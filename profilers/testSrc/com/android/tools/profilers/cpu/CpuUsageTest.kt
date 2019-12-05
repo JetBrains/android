@@ -43,7 +43,6 @@ class CpuUsageTest {
 
   @Before
   fun setup() {
-    services.enableAtrace(true)
     services.enableEventsPipeline(true)
   }
 

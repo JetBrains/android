@@ -95,7 +95,7 @@ public class DynamicValueResourceItem implements ResourceItem, ResolvableResourc
   @Override
   @NotNull
   public FolderConfiguration getConfiguration() {
-    return new FolderConfiguration();
+    return DEFAULT_CONFIGURATION;
   }
 
   @Override

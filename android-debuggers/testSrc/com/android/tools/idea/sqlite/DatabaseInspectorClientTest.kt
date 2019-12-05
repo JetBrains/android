@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sqlite
 
-import com.android.tools.idea.appinspection.api.AppInspectionPipelineConnection
+import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
@@ -50,7 +50,7 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
 
   fun testLaunchSendsTrackDatabasesCommand() {
     // Prepare
-    val mockPipelineConnection = object : AppInspectionPipelineConnection {
+    val mockTarget = object : AppInspectionTarget {
       override fun <T : AppInspectorClient> launchInspector(
         inspectorId: String,
         inspectorJar: DeployableFile,
@@ -67,7 +67,7 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
 
     // Act
     pumpEventsAndWaitForFuture(
-      DatabaseInspectorClient.launchInspector(mockDatabaseInspectorProjectService, mockPipelineConnection, taskExecutor)
+      DatabaseInspectorClient.launchInspector(mockDatabaseInspectorProjectService, mockTarget, taskExecutor)
     )
 
     // Assert

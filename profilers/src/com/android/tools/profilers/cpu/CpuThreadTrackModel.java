@@ -19,13 +19,16 @@ import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
-import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
+import com.android.tools.adtui.model.Timeline;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisChartModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel;
+import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
+import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltip;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -37,11 +40,14 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   private final CpuCapture myCapture;
   private final Range mySelectionRange;
   private final CpuThreadInfo myThreadInfo;
+  @NotNull private final CpuThreadsTooltip myThreadStateTooltip;
+  @NotNull private final Function<CaptureNode, CpuCaptureNodeTooltip> myTraceEventTooltipBuilder;
 
   public CpuThreadTrackModel(@NotNull DataSeries<CpuProfilerStage.ThreadState> threadStateDataSeries,
                              @NotNull Range range,
                              @NotNull CpuCapture capture,
-                             @NotNull CpuThreadInfo threadInfo) {
+                             @NotNull CpuThreadInfo threadInfo,
+                             @NotNull Timeline timeline) {
     myThreadStateChartModel = new StateChartModel<>();
     myThreadStateChartModel.addSeries(new RangedSeries<>(range, threadStateDataSeries));
 
@@ -49,6 +55,11 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
     myCapture = capture;
     mySelectionRange = range;
     myThreadInfo = threadInfo;
+
+    myThreadStateTooltip = new CpuThreadsTooltip(timeline);
+    myThreadStateTooltip.setThread(threadInfo.getName(), threadStateDataSeries);
+
+    myTraceEventTooltipBuilder = captureNode -> new CpuCaptureNodeTooltip(timeline, captureNode);
   }
 
   @NotNull
@@ -85,6 +96,22 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
     model.addTabModel(topDown);
     model.addTabModel(bottomUp);
     return model;
+  }
+
+  /**
+   * @return a tooltip model for thread states.
+   */
+  @NotNull
+  public CpuThreadsTooltip getThreadStateTooltip() {
+    return myThreadStateTooltip;
+  }
+
+  /**
+   * @return a function that produces a tooltip model for trace events.
+   */
+  @NotNull
+  public Function<CaptureNode, CpuCaptureNodeTooltip> getTraceEventTooltipBuilder() {
+    return myTraceEventTooltipBuilder;
   }
 
   private Collection<CaptureNode> getCaptureNode() {

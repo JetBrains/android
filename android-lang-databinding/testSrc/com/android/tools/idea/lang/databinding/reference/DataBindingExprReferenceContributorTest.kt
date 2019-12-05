@@ -1370,7 +1370,7 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
   }
 
   @Test
-  fun dbReferencesStringPluralResource() {
+  fun dbReferencesPluralsResourceWithCountParameter() {
     fixture.addFileToProject("res/values/strings.xml", """
       <resources>
         <plurals name="orange">
@@ -1382,13 +1382,35 @@ class DataBindingExprReferenceContributorTest(private val mode: DataBindingMode)
     val file = fixture.addFileToProject("res/layout/test_layout.xml", """
       <?xml version="1.0" encoding="utf-8"?>
       <layout xmlns:android="http://schemas.android.com/apk/res/android">
-        <TextView android:text="@{@plurals/oran${caret}ge(count)}"/>
+        <TextView android:text="@{@plurals/oran${caret}ge(1)}"/>
       </layout>
     """.trimIndent())
     fixture.configureFromExistingVirtualFile(file.virtualFile)
 
     val reference = fixture.getReferenceAtCaretPosition()!!
     assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("java.lang.String")
+  }
+
+  @Test
+  fun dbReferencesStringPluralsResourceWithoutParameter() {
+    fixture.addFileToProject("res/values/strings.xml", """
+      <resources>
+        <plurals name="orange">
+            <item quantity="one">orange</item>
+            <item quantity="other">oranges</item>
+        </plurals>
+      </resources>
+    """.trimIndent())
+    val file = fixture.addFileToProject("res/layout/test_layout.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <TextView android:text="@{@plurals/oran${caret}ge}"/>
+      </layout>
+    """.trimIndent())
+    fixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    val reference = fixture.getReferenceAtCaretPosition()!!
+    assertThat((reference as ModelClassResolvable).resolvedType!!.type.canonicalText).isEqualTo("int")
   }
 
   @Test

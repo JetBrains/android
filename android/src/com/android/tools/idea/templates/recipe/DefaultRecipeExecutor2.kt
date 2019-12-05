@@ -92,6 +92,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
 
   private val projectTemplateData: ProjectTemplateData get() = context.projectTemplateData
   private val moduleTemplateData: ModuleTemplateData? get() = context.templateData as? ModuleTemplateData
+  private val repositoryUrlManager: RepositoryUrlManager by lazy { RepositoryUrlManager.get() }
 
   @Suppress("DEPRECATION")
   override fun hasDependency(mavenCoordinate: String, configuration: String?): Boolean {
@@ -185,7 +186,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
   }
 
   override fun addClasspathDependency(mavenCoordinate: String) {
-    val resolvedCoordinate = resolveDependency(RepositoryUrlManager.get(), mavenCoordinate.trim())
+    val resolvedCoordinate = resolveDependency(repositoryUrlManager, mavenCoordinate.trim())
 
     referencesExecutor.addClasspathDependency(resolvedCoordinate)
 
@@ -224,31 +225,32 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
   /**
    * Add a library dependency into the project.
    */
-  override fun addDependency(mavenCoordinate: String, configuration: String) {
+  override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?) {
     // Translate from "compile" to "implementation" based on the parameter map context
     val newConfiguration = convertConfiguration(projectTemplateData.gradlePluginVersion, configuration)
-    referencesExecutor.addDependency(newConfiguration, mavenCoordinate)
+    referencesExecutor.addDependency(newConfiguration, mavenCoordinate, minRev)
 
     val buildFile = getBuildFilePath(context)
 
-    val configuration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
-    val mavenCoordinate = resolveDependency(RepositoryUrlManager.get(), convertToAndroidX(mavenCoordinate), null)
+    val resolvedConfiguration =
+      GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
+    val resolvedMavenCoordinate = resolveDependency(repositoryUrlManager, convertToAndroidX(mavenCoordinate), minRev)
 
-    if (hasDependency(mavenCoordinate)) {
+    if (hasDependency(resolvedMavenCoordinate)) {
       return
     }
 
     val buildModel = getBuildModel(buildFile, project) ?: return
-    buildModel.dependencies().addArtifact(configuration, mavenCoordinate)
+    buildModel.dependencies().addArtifact(resolvedConfiguration, resolvedMavenCoordinate)
     io.applyChanges(buildModel)
   }
 
-  override fun addModuleDependency(configuration: String, moduleName: String, toModule: String) {
+  override fun addModuleDependency(configuration: String, moduleName: String, toModule: File) {
     require(moduleName.isNotEmpty() && moduleName.first() != ':') {
       "incorrect module name (it should not be empty or include first ':')"
     }
     val configuration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
-    val buildFile = findGradleBuildFile(File(toModule))
+    val buildFile = findGradleBuildFile(toModule)
 
     // TODO(qumeric) handle it in a better way?
     val buildModel = getBuildModel(buildFile, context.project) ?: return
@@ -409,15 +411,14 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     io.applyChanges(buildModel)
   }
 
-  override fun addDynamicFeature(name: String, toModule: String) {
-    require(name.isNotEmpty() && toModule.isNotEmpty()) {
+  override fun addDynamicFeature(name: String, toModule: File) {
+    require(name.isNotEmpty()) {
       "Module name cannot be empty"
     }
-    val buildFile = findGradleBuildFile(File(toModule))
-    val gradleName = ':' + name.trimStart(':')
+    val buildFile = findGradleBuildFile(toModule)
     // TODO(qumeric) handle it in a better way?
     val buildModel = getBuildModel(buildFile, context.project) ?: return
-    buildModel.android().dynamicFeatures().addListValue().setValue(gradleName)
+    buildModel.android().dynamicFeatures().addListValue().setValue(":$name")
     io.applyChanges(buildModel)
   }
 

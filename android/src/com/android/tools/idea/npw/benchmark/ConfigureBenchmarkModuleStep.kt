@@ -22,6 +22,7 @@ import com.android.tools.adtui.validation.Validator
 import com.android.tools.adtui.validation.Validator.Result
 import com.android.tools.adtui.validation.Validator.Severity
 import com.android.tools.adtui.validation.ValidatorPanel
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.npw.FormFactor.MOBILE
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getInitialDomain
 import com.android.tools.idea.npw.module.AndroidApiLevelComboBox
@@ -132,14 +133,14 @@ class ConfigureBenchmarkModuleStep(
     validatorPanel.apply {
       registerValidator(moduleNameText, moduleValidator)
       registerValidator(model.packageName, packageNameValidator)
-      registerValidator(model.minSdk, minSdkValidator)
+      registerValidator(model.androidSdkInfo, minSdkValidator)
     }
     bindings.apply {
       bind(model.moduleName, moduleNameText, validatorPanel.hasErrors().not())
       bind(packageNameText, computedPackageName, isPackageNameSynced)
       bind(model.packageName, packageNameText)
       bindTwoWay(language, model.language)
-      bind(model.minSdk, SelectedItemProperty(apiLevelComboBox))
+      bind(model.androidSdkInfo, SelectedItemProperty(apiLevelComboBox))
     }
     listeners.listen(packageNameText) { value: String -> isPackageNameSynced.set(value == computedPackageName.get()) }
 
@@ -152,6 +153,11 @@ class ConfigureBenchmarkModuleStep(
     androidVersionsInfo.loadRemoteTargetVersions(
       MOBILE, minSdkLevel, Consumer { items -> apiLevelComboBox.init(MOBILE, items) }
     )
+  }
+
+  override fun onProceeding() {
+    // Now that the module name was validated, update the model template
+    model.template.set(createDefaultTemplateAt(model.project.basePath!!, model.moduleName.get()))
   }
 
   override fun canGoForward() = validatorPanel.hasErrors().not()

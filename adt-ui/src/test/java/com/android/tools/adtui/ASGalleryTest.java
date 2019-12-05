@@ -16,7 +16,7 @@
 package com.android.tools.adtui;
 
 import com.google.common.base.Function;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.UIUtil;
@@ -31,7 +31,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
 
-public final class ASGalleryTest extends PlatformTestCase {
+public final class ASGalleryTest extends LightPlatformTestCase {
   public static final Dimension THUMBNAIL_SIZE = new Dimension(128, 128);
   public static final int COLUMNS = 5;
   public static final Border BORDER = BorderFactory.createEmptyBorder(COLUMNS, 10, 20, 40);

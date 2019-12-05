@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.template
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.model.NewModuleModel
+import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.template.WizardUiContext
@@ -28,7 +28,7 @@ import com.intellij.openapi.vfs.VirtualFile
  * Step for the gallery for Fragment templates.
  */
 class ChooseFragmentTypeStep(
-  moduleModel: NewModuleModel,
+  moduleModel: NewAndroidModuleModel,
   renderModel: RenderTemplateModel,
   formFactor: FormFactor,
   targetDirectory: VirtualFile

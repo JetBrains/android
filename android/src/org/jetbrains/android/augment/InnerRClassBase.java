@@ -8,6 +8,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
 import com.google.common.base.Verify;
+import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.JavaPsiFacade;
@@ -58,14 +59,11 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
     Collection<StyleableAttrFieldUrl> styleableAttrFields = new ArrayList<>();
     Collection<String> otherFields = new ArrayList<>();
 
-    if (resourceType != ResourceType.STYLEABLE) {
-      otherFields.addAll(repository.getResources(namespace, resourceType).keySet());
-    }
-    else {
-      styleableFields.addAll(repository.getResources(namespace, resourceType).keySet());
+    if (resourceType == ResourceType.STYLEABLE) {
+      ListMultimap<String, ResourceItem> map = repository.getResources(namespace, resourceType);
+      styleableFields.addAll(map.keySet());
 
-      Collection<ResourceItem> items = repository.getResources(namespace, ResourceType.STYLEABLE).values();
-      for (ResourceItem item : items) {
+      for (ResourceItem item : map.values()) {
         StyleableResourceValue value = (StyleableResourceValue)item.getResourceValue();
         if (value != null) {
           List<AttrResourceValue> attributes = value.getAllAttributes();
@@ -80,6 +78,9 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
           }
         }
       }
+    }
+    else {
+      otherFields.addAll(repository.getResourceNames(namespace, resourceType));
     }
 
     return buildResourceFields(otherFields, styleableFields, styleableAttrFields, resourceType, context, fieldModifier);

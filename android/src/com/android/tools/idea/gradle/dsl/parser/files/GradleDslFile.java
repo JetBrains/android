@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.files;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleSettingsFile;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 
 import com.android.tools.idea.flags.StudioFlags;
@@ -23,14 +24,25 @@ import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.parser.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
+import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
+import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement;
+import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslParser;
 import com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslWriter;
+import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslParser;
 import com.android.tools.idea.gradle.dsl.parser.kotlin.KotlinDslWriter;
+import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
+import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -47,6 +59,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.psi.KtFile;
@@ -67,6 +80,24 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
 
   @Nullable private ApplyDslElement myApplyDslElement;
   @NotNull private final BuildModelContext myBuildModelContext;
+
+  public static final ImmutableMap<String, PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+    {"android", AndroidDslElement.ANDROID},
+    {"buildscript", BuildScriptDslElement.BUILDSCRIPT},
+    {"configurations", ConfigurationsDslElement.CONFIGURATIONS},
+    {"dependencies", DependenciesDslElement.DEPENDENCIES},
+    {"ext", ExtDslElement.EXT},
+    {"java", JavaDslElement.JAVA},
+    {"repositories", RepositoriesDslElement.REPOSITORIES},
+    {"subprojects", SubProjectsDslElement.SUBPROJECTS},
+    {"plugins", PluginsDslElement.PLUGINS}
+  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
+
+  @NotNull
+  @Override
+  protected ImmutableMap<String, PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+    return CHILD_PROPERTIES_ELEMENTS_MAP;
+  }
 
   protected GradleDslFile(@NotNull VirtualFile file,
                           @NotNull Project project,

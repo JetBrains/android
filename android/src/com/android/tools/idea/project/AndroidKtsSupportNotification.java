@@ -71,6 +71,7 @@ public class AndroidKtsSupportNotification {
 
     protected DisableAndroidKtsNotificationHyperlink() {
       super("disableKtsNotification", "Disable this warning");
+      this.setCloseOnClick(true);
     }
 
     @Override

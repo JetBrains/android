@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.chart.hchart.HTreeChart
 import com.android.tools.adtui.chart.statechart.StateChart
+import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.trackgroup.TrackModel
@@ -59,7 +60,9 @@ class CpuThreadTrackRendererTest {
         CpuThreadStateDataSeries(profilerClient.transportClient, profilers.session.streamId, profilers.session.pid, 1, mockCapture),
         Range(),
         mockCapture,
-        threadInfo),
+        threadInfo,
+        DefaultTimeline()
+      ),
       ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
     val renderer = CpuThreadTrackRenderer()
     val component = renderer.render(threadTrackModel)

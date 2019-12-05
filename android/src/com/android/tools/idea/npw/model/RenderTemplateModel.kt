@@ -20,13 +20,11 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.hasAnyKotlinModules
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.module.NewAndroidModuleRecipe
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getPackageForApplication
 import com.android.tools.idea.npw.template.TemplateHandle
 import com.android.tools.idea.npw.template.TemplateValueInjector
-import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
@@ -63,18 +61,16 @@ import com.android.tools.idea.wizard.template.Template as Template2
 private val log = logger<RenderTemplateModel>()
 
 class ExistingNewModuleModelData(
-  existingNewProjectModelData: ExistingNewProjectModelData, facet: AndroidFacet, template: NamedModuleTemplate
-) : ModuleModelData, ProjectModelData by existingNewProjectModelData {
+  existingProjectModelData: ExistingProjectModelData, facet: AndroidFacet, template: NamedModuleTemplate
+) : ModuleModelData, ProjectModelData by existingProjectModelData {
   override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(template)
   override val moduleName: StringValueProperty = StringValueProperty(facet.module.name)
-  override var moduleRecipe: NewAndroidModuleRecipe? = null
   override val moduleTemplateValues: MutableMap<String, Any> = mutableMapOf()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(ProjectTemplateDataBuilder(false))
 
-  override val moduleParent: String? get() = TODO("not implemented")
   override val formFactor: ObjectValueProperty<FormFactor> get() = TODO("not implemented")
-  override val isLibrary: BoolProperty get() = TODO("not implemented")
-  override val templateFile: OptionalValueProperty<File> get() = TODO("not implemented")
+  override val isLibrary: Boolean = false
+  override var templateFile: File? = null
   override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> get() = TODO("not implemented")
 }
 
@@ -106,7 +102,7 @@ class RenderTemplateModel private constructor(
       value.parameters
     )
   }
-  val renderLanguage = ObjectValueProperty(getInitialSourceLanguage(project.valueOrNull)).apply {
+  val renderLanguage = ObjectValueProperty(getInitialSourceLanguage(if (!isNewProject) project else null)).apply {
     addListener {
       PropertiesComponent.getInstance().setValue(PROPERTIES_RENDER_LANGUAGE_KEY, this.get().toString())
     }
@@ -149,7 +145,7 @@ class RenderTemplateModel private constructor(
       if (StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get() && isNew) {
         moduleTemplateDataBuilder.apply {
           // sourceProviderName = template.get().name TODO(qumeric) there is no sourcesProvider (yet?)
-          projectTemplateDataBuilder.setProjectDefaults(project.value)
+          projectTemplateDataBuilder.setProjectDefaults(project)
           formFactor = newTemplate.formFactor
           moduleTemplateDataBuilder.setModuleRoots(
             paths, projectLocation.get(), moduleName.get(), this@RenderTemplateModel.packageName.get()
@@ -194,12 +190,12 @@ class RenderTemplateModel private constructor(
 
     @WorkerThread
     override fun doDryRun(): Boolean {
-      if (!project.get().isPresent || !hasActivity) {
+      if (!hasActivity) {
         log.error("RenderTemplateModel did not collect expected information and will not complete. Please report this error.")
         return false
       }
 
-      return renderTemplate(true, project.value, template.get().paths, null, null)
+      return renderTemplate(true, project, template.get().paths, null, null)
     }
 
     @WorkerThread
@@ -207,7 +203,7 @@ class RenderTemplateModel private constructor(
       val paths = template.get().paths
 
       try {
-        renderSuccess = renderTemplate(false, project.value, paths, createdFiles, filesToReformat)
+        renderSuccess = renderTemplate(false, project, paths, createdFiles, filesToReformat)
       }
       catch (t: Throwable) {
         log.warn(t)
@@ -217,7 +213,7 @@ class RenderTemplateModel private constructor(
     @UiThread
     override fun finish() {
       if (renderSuccess && shouldOpenFiles) {
-        DumbService.getInstance(project.value).smartInvokeLater { TemplateUtils.openEditors(project.value, createdFiles, true) }
+        DumbService.getInstance(project).smartInvokeLater { TemplateUtils.openEditors(project, createdFiles, true) }
       }
     }
 
@@ -281,7 +277,7 @@ class RenderTemplateModel private constructor(
       commandName: String, projectSyncInvoker: ProjectSyncInvoker, shouldOpenFiles: Boolean
     ) = RenderTemplateModel(
       moduleModelData = ExistingNewModuleModelData(
-        ExistingNewProjectModelData(facet.module.project, projectSyncInvoker).apply { packageName.set(initialPackageSuggestion) },
+        ExistingProjectModelData(facet.module.project, projectSyncInvoker).apply { packageName.set(initialPackageSuggestion) },
         facet, template),
       androidFacet = facet,
       templateHandle = templateHandle,
@@ -290,7 +286,7 @@ class RenderTemplateModel private constructor(
 
     @JvmStatic
     fun fromModuleModel(
-      moduleModel: NewModuleModel, templateHandle: TemplateHandle?, commandName: String = moduleModel.formFactor.get().id
+      moduleModel: NewAndroidModuleModel, templateHandle: TemplateHandle?, commandName: String = moduleModel.formFactor.get().id
     ) = RenderTemplateModel(
       moduleModelData = moduleModel,
       androidFacet = null,

@@ -33,6 +33,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -111,7 +112,7 @@ public class StringResourceRepository {
       return resourceDirectoryKeys;
     }
 
-    Collection<String> names = myDynamicResourceRepository.getResources(ResourceNamespace.TODO(), ResourceType.STRING).keySet();
+    Set<String> names = myDynamicResourceRepository.getResourceNames(ResourceNamespace.TODO(), ResourceType.STRING);
     Stream<StringResourceKey> dynamicResourceKeys = names.stream().map(name -> new StringResourceKey(name, null));
 
     return Stream.concat(resourceDirectoryKeys, dynamicResourceKeys);

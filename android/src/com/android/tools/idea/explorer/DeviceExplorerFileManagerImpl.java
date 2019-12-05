@@ -213,7 +213,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
         // Set the device/path information on the virtual file so custom editors
         // (e.g. database viewer) know which device this file is coming from.
         DeviceFileId fileInfo = new DeviceFileId(entry.getFileSystem().getName(), entry.getFullPath());
-        virtualFile.putUserData(DeviceFileId.KEY, fileInfo);
+        fileInfo.storeInVirtualFile(virtualFile);
 
         progress.onCompleted(entry.getFullPath());
         if (callback != null) callback.onSuccess(virtualFile);

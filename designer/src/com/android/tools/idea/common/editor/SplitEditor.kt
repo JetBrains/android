@@ -18,30 +18,18 @@ package com.android.tools.idea.common.editor
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CustomShortcutSet
+import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
-import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.pom.Navigatable
-import java.awt.event.ActionEvent
-import java.awt.event.InputEvent.ALT_DOWN_MASK
-import java.awt.event.InputEvent.CTRL_DOWN_MASK
-import java.awt.event.InputEvent.SHIFT_DOWN_MASK
-import java.awt.event.KeyEvent
-import javax.swing.AbstractAction
 import javax.swing.Icon
-import javax.swing.JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
-import javax.swing.KeyStroke
-
-
-val ACTION_SHORTCUT_MODIFIERS = (if (SystemInfo.isMac) CTRL_DOWN_MASK else ALT_DOWN_MASK) or SHIFT_DOWN_MASK
-
-private const val NAV_LEFT_INPUT_KEY = "navigate_split_editor_mode_left"
-
-private const val NAV_RIGHT_INPUT_KEY = "navigate_split_editor_mode_right"
 
 /**
  * [TextEditorWithPreview] with keyboard shortcuts to navigate between views, and code navigation when interacting with the preview portion
@@ -59,6 +47,14 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
   private val splitViewAction = SplitEditorAction("Split", AllIcons.General.LayoutEditorPreview, super.getShowEditorAndPreviewAction())
 
   private val previewViewAction = SplitEditorAction("Design", AllIcons.General.LayoutPreviewOnly, super.getShowPreviewAction())
+
+  private val navigateLeftAction = object : AnAction() {
+    override fun actionPerformed(e: AnActionEvent) = selectAction(actions.previous(actions.indexOf(getSelectedAction())), true)
+  }
+
+  private val navigateRightAction = object : AnAction() {
+    override fun actionPerformed(e: AnActionEvent) = selectAction(actions.next(actions.indexOf(getSelectedAction())), true)
+  }
 
   protected val actions: List<SplitEditorAction> by lazy { listOf(showEditorAction, showEditorAndPreviewAction, showPreviewAction) }
 
@@ -106,20 +102,8 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
   private fun List<SplitEditorAction>.previous(selectedIndex: Int): SplitEditorAction = this[(this.size + selectedIndex - 1) % this.size]
 
   private fun registerModeNavigationShortcuts() {
-    val navigateLeftAction = object : AbstractAction() {
-      override fun actionPerformed(e: ActionEvent) = selectAction(actions.previous(actions.indexOf(getSelectedAction())), true)
-    }
-    component.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-      .put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, ACTION_SHORTCUT_MODIFIERS), NAV_LEFT_INPUT_KEY)
-    component.actionMap.put(NAV_LEFT_INPUT_KEY, navigateLeftAction)
-
-    val navigateRightAction = object : AbstractAction() {
-      override fun actionPerformed(e: ActionEvent) = selectAction(actions.next(actions.indexOf(getSelectedAction())), true)
-    }
-
-    component.getInputMap(WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-      .put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, ACTION_SHORTCUT_MODIFIERS), NAV_RIGHT_INPUT_KEY)
-    component.actionMap.put(NAV_RIGHT_INPUT_KEY, navigateRightAction)
+    navigateLeftAction.registerCustomShortcutSet(KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_PREVIOUS_EDITOR_TAB), component)
+    navigateRightAction.registerCustomShortcutSet(KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_NEXT_EDITOR_TAB), component)
   }
 
   protected open inner class SplitEditorAction internal constructor(val name: String,
@@ -141,6 +125,27 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
       }
       component.requestFocus()
     }
+
+    override fun update(e: AnActionEvent) {
+      super.update(e)
+      val bothShortcutsEmpty = navigateLeftAction.shortcutSet == CustomShortcutSet.EMPTY
+                               && navigateRightAction.shortcutSet == CustomShortcutSet.EMPTY
+      if (bothShortcutsEmpty || isSelected(e)) {
+        e.presentation.description = name
+        return
+      }
+
+      val shortcut =
+        // Action is on the right of the selected action
+        if (actions.previous(actions.indexOf(this)) == getSelectedAction()) navigateRightAction.shortcutSet
+        // Action is on the left of the selected action
+        else navigateLeftAction.shortcutSet
+
+      val suffix = KeymapUtil.getFirstKeyboardShortcutText(shortcut).takeIf { it.isNotEmpty() }?.let { " (${it})" } ?: ""
+      e.presentation.description = "$name$suffix"
+    }
+
+    override fun displayTextInToolbar() = true
 
     open fun onUserSelectedAction() {}
   }

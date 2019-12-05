@@ -16,8 +16,10 @@
 package com.android.tools.idea.npw.dynamicapp;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API;
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
+import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
 import static com.android.tools.idea.gradle.util.DynamicAppUtils.baseIsInstantEnabled;
 import static com.android.tools.idea.npw.FormFactor.MOBILE;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
@@ -67,6 +69,7 @@ import com.intellij.ui.components.JBScrollPane;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -103,23 +106,23 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
   private JComboBox<Language> myLanguageCombo;
   private AndroidApiLevelComboBox myApiLevelCombo;
 
-  public ConfigureDynamicModuleStep(@NotNull DynamicFeatureModel model, @NotNull String basePackage, boolean isInstant) {
+  public ConfigureDynamicModuleStep(@NotNull DynamicFeatureModel model, @NotNull String basePackage) {
     super(model, message("android.wizard.module.config.title"));
 
     TextProperty packageNameText = new TextProperty(myPackageName);
-    Expression<String> computedPackageName = new Expression<String>(model.moduleName) {
+    Expression<String> computedPackageName = new Expression<String>(model.getModuleName()) {
       @NotNull
       @Override
       public String get() {
-        return format("%s.%s", basePackage, nameToJavaPackage(model.moduleName.get()));
+        return format("%s.%s", basePackage, nameToJavaPackage(model.getModuleName().get()));
       }
     };
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
-    myBindings.bind(model.packageName, packageNameText);
+    myBindings.bind(model.getPackageName(), packageNameText);
 
     myInstantInfoIcon.setIcon(AllIcons.General.BalloonInformation);
-    if (isInstant) {
+    if (model.isInstant()) {
       SelectedProperty isFusingSelected = new SelectedProperty(myFusingCheckbox);
       myBindings.bind(model.featureFusing, isFusingSelected);
       BoolProperty isOnDemand = new BoolValueProperty(false);
@@ -157,7 +160,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    StringProperty modelName = getModel().moduleName;
+    StringProperty modelName = getModel().getModuleName();
     Project project = getModel().getProject();
 
     myBindings.bindTwoWay(new TextProperty(myModuleName), modelName);
@@ -168,13 +171,13 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
       .transform(appName -> format("%s.%s", basePackage, nameToJavaPackage(appName)));
     TextProperty packageNameText = new TextProperty(myPackageName);
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
-    myBindings.bind(getModel().packageName, packageNameText);
+    myBindings.bind(getModel().getPackageName(), packageNameText);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
     myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
-    myBindings.bindTwoWay(new SelectedItemProperty<>(myLanguageCombo), getModel().language);
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myLanguageCombo), getModel().getLanguage());
 
-    OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo = getModel().androidSdkInfo;
+    OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo = getModel().getAndroidSdkInfo();
     myBindings.bind(androidSdkInfo, new SelectedItemProperty<>(myApiLevelCombo));
 
     AndroidProjectInfo.getInstance(project).getAllModulesOfProjectType(PROJECT_TYPE_APP)
@@ -188,7 +191,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
     myValidatorPanel.registerValidator(modelName, value ->
       value.isEmpty() ? new Validator.Result(ERROR, message("android.wizard.validate.empty.module.name")) : OK);
 
-    myValidatorPanel.registerValidator(getModel().packageName,
+    myValidatorPanel.registerValidator(getModel().getPackageName(),
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
     myValidatorPanel.registerValidator(androidSdkInfo, value ->
@@ -204,18 +207,21 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
 
   @Override
   protected void onEntering() {
-    TemplateHandle templateHandle = getModel().getTemplateHandle();
-    int minSdkLevel = templateHandle.getMetadata().getMinSdk();
-
     myAndroidVersionsInfo.loadLocalVersions();
 
     // Pre-populate
-    List<AndroidVersionsInfo.VersionItem> versions = myAndroidVersionsInfo.getKnownTargetVersions(MOBILE, minSdkLevel);
+    List<AndroidVersionsInfo.VersionItem> versions = myAndroidVersionsInfo.getKnownTargetVersions(MOBILE, LOWEST_ACTIVE_API);
     myApiLevelCombo.init(MOBILE, versions);
 
-    myAndroidVersionsInfo.loadRemoteTargetVersions(MOBILE, minSdkLevel, items -> myApiLevelCombo.init(MOBILE, items));
+    myAndroidVersionsInfo.loadRemoteTargetVersions(MOBILE, LOWEST_ACTIVE_API, items -> myApiLevelCombo.init(MOBILE, items));
 
-    setTemplateThumbnail(templateHandle);
+    setTemplateThumbnail(new TemplateHandle(Objects.requireNonNull(getModel().getTemplateFile())));
+  }
+
+  @Override
+  protected void onProceeding() {
+    // Now that the module name was validated, update the model template
+    getModel().getTemplate().set(createDefaultTemplateAt(getModel().getProject().getBasePath(), getModel().getModuleName().get()));
   }
 
   @Override

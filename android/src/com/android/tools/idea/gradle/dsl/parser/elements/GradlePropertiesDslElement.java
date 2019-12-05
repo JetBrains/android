@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.ext.ElementSort;
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
+import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -266,6 +267,34 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       gradleDslExpressionList.setPsiElement(psiElement);
     }
     newElements.forEach(gradleDslExpressionList::addParsedElement);
+  }
+
+  @NotNull
+  private static final ImmutableMap<String,PropertiesElementDescription> NO_CHILD_PROPERTIES_ELEMENTS = ImmutableMap.of();
+
+  /**
+   * a helper for the default implementation for getChildPropertiesElementDescription: a common implementation will involve a Dsl element
+   * maintaining a String-to-Description map, and looking up the given name.  This works for most blocks, but is not suitable for
+   * NamedDomainObject containers, where the child properties can have arbitrary user-supplied names.
+   *
+   * In principle this map could vary by external Dsl language (Groovy, KotlinScript).  In practice at least at present all properties
+   * elements have the same name in both.
+   *
+   * @return a map of external names to descriptions of the corresponding properties element.
+   */
+  @NotNull
+  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+    return NO_CHILD_PROPERTIES_ELEMENTS;
+  }
+
+  /**
+   * @param name the external name of a potential block.
+   * @return the properties element description corresponding to the given name in the context of this block, or null if no such properties
+   * element exists in the Dsl.
+   */
+  @Nullable
+  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
+    return getChildPropertiesElementsDescriptionMap().get(name);
   }
 
   @NotNull

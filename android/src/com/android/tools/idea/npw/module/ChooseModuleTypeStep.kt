@@ -20,8 +20,6 @@ import org.jetbrains.android.util.AndroidBundle.message
 
 import com.android.tools.adtui.ASGallery
 import com.android.tools.adtui.util.FormScalingUtil
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate
-import com.android.tools.idea.npw.model.NewModuleModel
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.ui.WizardGallery
 import com.android.tools.idea.wizard.model.ModelWizard
@@ -54,22 +52,9 @@ class ChooseModuleTypeStep(
 
   override fun getComponent(): JComponent = rootPanel
 
-  public override fun createDependentSteps(): Collection<ModelWizardStep<*>> {
-    moduleDescriptionToStepMap.clear()
-    return moduleGalleryEntryList.map { moduleGalleryEntry ->
-      val model = NewModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate())
-      if (moduleGalleryEntry is ModuleTemplateGalleryEntry) {
-        model.isLibrary.set(moduleGalleryEntry.isLibrary)
-        when {
-          moduleGalleryEntry.templateFile != null -> model.templateFile.value = moduleGalleryEntry.templateFile!!
-          moduleGalleryEntry.recipe != null -> model.moduleRecipe = moduleGalleryEntry.recipe!!
-          else -> throw IllegalStateException("Module Gallery Entry should have either an old or a new template")
-        }
-      }
-
-      moduleGalleryEntry.createStep(model).also { step ->
-        moduleDescriptionToStepMap[moduleGalleryEntry] = step
-      }
+  public override fun createDependentSteps(): Collection<ModelWizardStep<*>> = moduleGalleryEntryList.map {
+    it.createStep(project, projectSyncInvoker, moduleParent).also { step ->
+      moduleDescriptionToStepMap[it] = step
     }
   }
 
@@ -108,7 +93,7 @@ fun sortModuleEntries(moduleTypesProviders: List<ModuleGalleryEntry>): List<Modu
     message("android.wizard.module.new.things"),
     message("android.wizard.module.import.gradle.title"),
     message("android.wizard.module.import.eclipse.title"),
-    message("android.wizard.module.import.title"),
+    message("android.wizard.module.import.archive.title"),
     message("android.wizard.module.new.java.or.kotlin.library"),
     message("android.wizard.module.new.google.cloud"),
     message("android.wizard.module.new.benchmark.module.app"))

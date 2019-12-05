@@ -58,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.regex.Matcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyElementVisitor;
@@ -551,11 +552,52 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
       return false;
     }
 
-    GradleDslElement propertyElement = createExpressionElement(blockElement, assignment, name, right);
-    propertyElement.setUseAssignment(true);
-    propertyElement.setElementType(REGULAR);
+    Matcher matcher = GradleNameElement.INDEX_PATTERN.matcher(name.name());
+    if (matcher.find()) {
+      String property = modelNameForParent(matcher.group(0), blockElement);
+      GradleDslElement element = blockElement.getElement(property);
+      if (element instanceof GradlePropertiesDslElement) {
+        blockElement = (GradlePropertiesDslElement) element;
+      }
+      else {
+        return false;
+      }
+      String index;
+      if (matcher.find()) {
+        index = matcher.group(1);
+      }
+      else {
+        return false;
+      }
+      while (matcher.find()) {
+        blockElement = GradleDslSimpleExpression.dereferencePropertiesElement(blockElement, index);
+        if (blockElement == null) {
+          return false;
+        }
+        index = matcher.group(1);
+      }
+      // now we're ready.
+      // TODO(xof): figure out how to get the Psi element for this name.
+      name = GradleNameElement.create(ensureUnquotedText(index));
+      if (blockElement instanceof GradleDslExpressionMap) {
+        GradleDslElement propertyElement = createExpressionElement(blockElement, assignment, name, right);
+        propertyElement.setUseAssignment(true);
+        propertyElement.setElementType(REGULAR);
 
-    blockElement.setParsedElement(propertyElement);
+        blockElement.setParsedElement(propertyElement);
+      }
+      // TODO(xof): handle list setting
+      else {
+        return false;
+      }
+    }
+    else {
+      GradleDslElement propertyElement = createExpressionElement(blockElement, assignment, name, right);
+      propertyElement.setUseAssignment(true);
+      propertyElement.setElementType(REGULAR);
+
+      blockElement.setParsedElement(propertyElement);
+    }
     return true;
   }
 

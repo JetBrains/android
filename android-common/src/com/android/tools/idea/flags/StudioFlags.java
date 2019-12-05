@@ -84,12 +84,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_NEW_PROJECT_TEMPLATE = Flag.create(
     NPW, "new.project.template", "Use the new project template",
     "Use the new Kotlin-based template system for new project creation over the old Freemarker system.",
-    true);
+    false);
 
   public static final Flag<Boolean> NPW_NEW_MODULE_TEMPLATES = Flag.create(
     NPW, "new.module.templates", "Use new module templates",
     "Use the new Kotlin-based template system for module templates over the old Freemarker system when it is available.",
-    true);
+    false);
 
   public static final Flag<Boolean> NPW_NEW_ACTIVITY_TEMPLATES = Flag.create(
     NPW, "new.activity.templates", "Use new activity templates",
@@ -130,11 +130,6 @@ public final class StudioFlags {
     "Support method tracing through APIs from android.os.Debug.",
     true);
 
-  public static final Flag<Boolean> PROFILER_MEMORY_CAPTURE_FILTER = Flag.create(
-    PROFILER, "memory.capture.filter", "Enable Memory Capture Filter",
-    "Show a text input field in the Memory profiler that is used to filter class names.",
-    true);
-
   public static final Flag<Boolean> PROFILER_USE_LIVE_ALLOCATIONS = Flag.create(
     PROFILER, "livealloc", "Enable JVMTI-based live allocation tracking",
     "For Android O or newer, allocations are tracked all the time while inside the Memory Profiler.",
@@ -150,10 +145,6 @@ public final class StudioFlags {
     "For Android O or newer, allows users to configure the sampling mode of live allocation tracking",
     true);
 
-  public static final Flag<Boolean> PROFILER_USE_ATRACE = Flag.create(
-    PROFILER, "atrace", "Show the atrace option in CPU profiler",
-    "Toggles if atrace is a valid option to choose from the CPU profiling dropdown.",
-    true);
 
   public static final Flag<Boolean> PROFILER_USE_PERFETTO = Flag.create(
     PROFILER, "perfetto", "Allows importing and recording of perfetto traces.",
@@ -323,6 +314,15 @@ public final class StudioFlags {
     NAV_EDITOR, "new.component", "Enable the new Component Tree",
     "Enable the new Component Tree",
     false);
+  //endregion
+
+  //region Resource Manager
+  private static final FlagGroup RES_MANAGER = new FlagGroup(FLAGS, "res.manager", "Resource Manager");
+  public static final Flag<Boolean> EXTENDED_TYPE_FILTERS = Flag.create(
+    RES_MANAGER, "extended.filters", "Enable extended filters for resources",
+    "Adds more filter options for resources based on the selected ResourceType. Includes options to filter by resource XML tag or "
+    + "File extension.",
+    true);
   //endregion
 
   //region Run/Debug
@@ -735,6 +735,13 @@ public final class StudioFlags {
     COMPOSE, "documentation.render.sample.slow",
     "Slow down rendering of samples of compose elements inside documentation",
     "If enabled, slow down rendering of samples of compose elements inside documentation, this flag is used for demonstration of non-blocking behavior",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_SURROUND_WITH_WIDGET = Flag.create(
+    COMPOSE, "surround.with.widget.action",
+    "Enables \"Surround with widget\" intention and template",
+    "Enables \"Surround with widget\" intention inside composable functions and adds \"Surround with widget\" live template",
     false
   );
 

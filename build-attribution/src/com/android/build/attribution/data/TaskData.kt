@@ -21,9 +21,13 @@ import org.gradle.tooling.events.task.TaskSuccessResult
 data class TaskData(val taskName: String,
                     val projectPath: String,
                     val originPlugin: PluginData,
-                    val executionTime: Long,
+                    val executionStartTime: Long,
+                    val executionEndTime: Long,
                     val executionMode: TaskExecutionMode,
                     val executionReasons: List<String>) {
+  val executionTime: Long = executionEndTime - executionStartTime
+  var isOnTheCriticalPath: Boolean = false
+
   enum class TaskExecutionMode {
     FROM_CACHE,
     UP_TO_DATE,
@@ -67,7 +71,8 @@ data class TaskData(val taskName: String,
       return TaskData(taskPath.substring(lastColonIndex + 1),
                       taskPath.substring(0, lastColonIndex),
                       pluginContainer.getPlugin(taskFinishEvent.descriptor.originPlugin, taskPath.substring(0, lastColonIndex)),
-                      result.endTime - result.startTime,
+                      result.startTime,
+                      result.endTime,
                       getTaskExecutionMode(result.isFromCache, result.isUpToDate, result.isIncremental),
                       result.executionReasons ?: emptyList())
     }

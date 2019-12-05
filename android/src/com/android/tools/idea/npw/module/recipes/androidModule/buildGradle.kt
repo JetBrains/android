@@ -49,14 +49,14 @@ fun buildGradle(
   val isApplicationProject = !isLibraryProject
   val kotlinPluginsBlock = renderIf(language == Language.Kotlin) {
     """
-    apply plugin : "kotlin-android"
-    apply plugin : "kotlin-android-extensions"
+    apply plugin: 'kotlin-android'
+    apply plugin: 'kotlin-android-extensions'
     """
   }
   val pluginsBlock = "    " + when {
-    isLibraryProject -> "apply plugin : \"com.android.library\""
-    isDynamicFeature -> "apply plugin : \"com.android.dynamic-feature\""
-    else -> "apply plugin : \"com.android.application\""
+    isLibraryProject -> "apply plugin: 'com.android.library'"
+    isDynamicFeature -> "apply plugin: 'com.android.dynamic-feature'"
+    else -> "apply plugin: 'com.android.application'"
   } + "\n    " + kotlinPluginsBlock
 
 

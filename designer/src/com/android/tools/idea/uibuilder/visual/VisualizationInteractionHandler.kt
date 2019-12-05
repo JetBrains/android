@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionHandler
+import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
@@ -43,12 +44,17 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
 
   override fun singleClick(x: Int, y: Int) = Unit
 
-  override fun doubleClick(x: Int, y: Int) = Unit
+  override fun doubleClick(x: Int, y: Int) {
+    val view = surface.getHoverSceneView(x, y) ?: return
+    val sourceFile = surface.sceneManager?.model?.virtualFile ?: return
+    val targetFile = view.sceneManager.model.virtualFile
+    LayoutNavigationManager.getInstance(surface.project).pushFile(sourceFile, targetFile)
+  }
 
   override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) {
     val sceneView = surface.getHoverSceneView(mouseX, mouseY)
     if (sceneView != null) {
-      val name = sceneView.sceneManager.model.configuration.toDisplayName()
+      val name = sceneView.sceneManager.model.configuration.toTooltips()
       surface.setDesignToolTip(name)
     }
     else {
@@ -71,9 +77,7 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
     val group = DefaultActionGroup().apply {
       if (model.modelDisplayName != "Default") {
         add(object : AnAction("Remove Configuration", "Remove a custom configuration", null) {
-          override fun actionPerformed(e: AnActionEvent) {
-            customModelsProvider.removeConfiguration(CustomConfiguration(model.modelDisplayName!!, model.configuration))
-          }
+          override fun actionPerformed(e: AnActionEvent) = customModelsProvider.removeCustomConfigurationAttributes(model)
         })
       }
       // TODO: add edit and copy options.

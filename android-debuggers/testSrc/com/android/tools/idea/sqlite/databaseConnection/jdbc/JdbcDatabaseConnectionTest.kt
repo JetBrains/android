@@ -18,10 +18,10 @@ package com.android.tools.idea.sqlite.databaseConnection.jdbc
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
-import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
+import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.google.common.truth.Truth.assertThat
@@ -49,7 +49,9 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     previouslyEnabled = DatabaseInspectorFlagController.enableFeature(true)
 
     sqliteFile = sqliteUtil.createTestSqliteDatabase()
-    databaseConnection = pumpEventsAndWaitForFuture(getSqliteJdbcService(sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)))
+    databaseConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(sqliteFile, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+    )
   }
 
   override fun tearDown() {
@@ -114,7 +116,7 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(databaseConnection.executeQuery(SqliteStatement("SELECT * FROM Book")))
+    val resultSet = pumpEventsAndWaitForFuture(databaseConnection.execute(SqliteStatement("SELECT * FROM Book")))!!
 
     // Assert
     assertThat(resultSet.hasColumn("book_id", JDBCType.INTEGER)).isTrue()
@@ -139,7 +141,7 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     // Prepare
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(databaseConnection.executeQuery(SqliteStatement("SELECT book_id FROM Book")))
+    val resultSet = pumpEventsAndWaitForFuture(databaseConnection.execute(SqliteStatement("SELECT book_id FROM Book")))!!
 
     // Assert
     assertThat(resultSet.hasColumn("book_id", JDBCType.INTEGER)).isTrue()
@@ -163,20 +165,16 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
   fun testExecuteUpdateDropTable() {
     // Prepare
 
-    // Act
-    pumpEventsAndWaitForFuture(databaseConnection.executeUpdate(SqliteStatement("DROP TABLE Book")))
-    val resultSet = pumpEventsAndWaitForFuture(databaseConnection.executeQuery(SqliteStatement("SELECT * FROM Book")))
-    val error = pumpEventsAndWaitForFutureException(resultSet.getRowBatch(0, 1))
-
-    // Assert
-    assertThat(error).isNotNull()
+    // Act/Assert
+    pumpEventsAndWaitForFuture(databaseConnection.execute(SqliteStatement("DROP TABLE Book")))
+    pumpEventsAndWaitForFutureException(databaseConnection.execute(SqliteStatement("SELECT * FROM Book")))
   }
 
   fun testResultSetThrowsAfterDisposed() {
     // Prepare
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(databaseConnection.executeQuery(SqliteStatement("SELECT * FROM Book")))
+    val resultSet = pumpEventsAndWaitForFuture(databaseConnection.execute(SqliteStatement("SELECT * FROM Book")))!!
     Disposer.dispose(resultSet)
     val error = pumpEventsAndWaitForFutureException(resultSet.getRowBatch(0,3))
 
@@ -187,13 +185,10 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
   fun testExecuteQueryFailsWhenIncorrectTableName() {
     // Prepare
 
-    // Act
-    val resultSet = pumpEventsAndWaitForFuture(databaseConnection.executeQuery(SqliteStatement("SELECTE * FROM IncorrectTableName")))
-    val future = resultSet.getRowBatch(0, 1)
-    val error = pumpEventsAndWaitForFutureException(future)
-
-    // Assert
-    assertThat(error).isNotNull()
+    // Act/Assert
+    pumpEventsAndWaitForFutureException(
+      databaseConnection.execute(SqliteStatement("SELECT * FROM wrongName"))
+    )
   }
 
   private fun SqliteResultSet.hasColumn(name: String, type: JDBCType) : Boolean {

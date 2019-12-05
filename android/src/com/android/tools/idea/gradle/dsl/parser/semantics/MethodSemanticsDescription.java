@@ -25,6 +25,10 @@ public enum MethodSemanticsDescription implements SemanticsDescription {
    */
   SET,
   /**
+   * The method's varargs argument list is the new value of the property
+   */
+  ADD_AS_LIST,
+  /**
    * Anything else (semantics currently implemented explicitly in DslElement classes)
    */
   OTHER

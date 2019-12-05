@@ -44,7 +44,8 @@
     ANY_TYPE_='***'
     ANY_TYPE_AND_NUM_OF_ARGS='...'
     ANY_PRIMITIVE_TYPE_='%'
-    ARRAY = '[]'
+    OPEN_BRACKET = '['
+    CLOSE_BRACKET = ']'
 
     FLAG_TOKEN = 'regexp:-[a-z]+' // Anything that starts with @ or -
     FILE_NAME = 'regexp:[\w\-./<>*?]+'
@@ -108,7 +109,7 @@ any_not_primitive_type ::= DOUBLE_ASTERISK
 type ::= any_type|(any_primitive_type|any_not_primitive_type|java_primitive|qualifiedName)array_type? {
   methods=[matchesPsiType]
 }
-array_type ::= "[]"+ {methods=[getNumberOfDimensions]}
+array_type ::= ("[" "]")+ {methods=[getNumberOfDimensions]}
 
 type_list ::= (type ("," type)* ("," ANY_TYPE_AND_NUM_OF_ARGS)?)? {pin(".*")=not_close_brace recoverWhile=not_right_paren}
 

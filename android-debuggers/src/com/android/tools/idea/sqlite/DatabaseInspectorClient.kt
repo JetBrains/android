@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sqlite
 
-import com.android.tools.idea.appinspection.api.AppInspectionPipelineConnection
+import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.appinspection.ide.AppInspectionClientsService
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
@@ -45,8 +45,8 @@ class DatabaseInspectorClient private constructor(
      * Starts listening for the creation of new connections to a device.
      */
     fun startListeningForPipelineConnections(databaseInspectorProjectService: DatabaseInspectorProjectService, taskExecutor: Executor) {
-      AppInspectionClientsService.discovery.addPipelineConnectionListener(PooledThreadExecutor.INSTANCE) { pipelineConnection ->
-        launch(databaseInspectorProjectService, pipelineConnection, FutureCallbackExecutor.wrap(taskExecutor))
+      AppInspectionClientsService.discovery.addTargetListener(PooledThreadExecutor.INSTANCE) { target ->
+        launch(databaseInspectorProjectService, target, FutureCallbackExecutor.wrap(taskExecutor))
       }
     }
 
@@ -55,10 +55,10 @@ class DatabaseInspectorClient private constructor(
      */
     private fun launch(
       databaseInspectorProjectService: DatabaseInspectorProjectService,
-      pipelineConnection: AppInspectionPipelineConnection,
+      target: AppInspectionTarget,
       taskExecutor: FutureCallbackExecutor
     ): ListenableFuture<DatabaseInspectorClient> {
-      val launchInspectorFuture = pipelineConnection.launchInspector(inspectorId, deployableFile) { messenger ->
+      val launchInspectorFuture = target.launchInspector(inspectorId, deployableFile) { messenger ->
         DatabaseInspectorClient(databaseInspectorProjectService, messenger)
       }
 
@@ -81,10 +81,10 @@ class DatabaseInspectorClient private constructor(
     @VisibleForTesting
     fun launchInspector(
       databaseInspectorProjectService: DatabaseInspectorProjectService,
-      pipelineConnection: AppInspectionPipelineConnection,
+      target: AppInspectionTarget,
       taskExecutor: FutureCallbackExecutor
     ): ListenableFuture<DatabaseInspectorClient> {
-      return launch(databaseInspectorProjectService, pipelineConnection, taskExecutor)
+      return launch(databaseInspectorProjectService, target, taskExecutor)
     }
   }
 

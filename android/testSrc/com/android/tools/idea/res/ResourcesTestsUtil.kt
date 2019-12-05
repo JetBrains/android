@@ -20,12 +20,16 @@ package com.android.tools.idea.res
 import com.android.SdkConstants
 import com.android.SdkConstants.DOT_AAR
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.util.toPathString
 import com.android.projectmodel.SelectiveResourceFolder
+import com.android.resources.ResourceType
 import com.android.tools.idea.projectsystem.FilenameConstants.EXPLODED_AAR
 import com.android.tools.idea.resources.aar.AarSourceResourceRepository
 import com.android.tools.idea.testing.Facets
+import com.android.tools.idea.util.toPathString
 import com.android.tools.idea.util.toVirtualFile
+import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.ModuleFileType
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
@@ -48,6 +52,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.function.Predicate
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
@@ -243,3 +248,31 @@ fun addBinaryAarDependency(module: Module) {
  * Exposes protected method [LocalResourceRepository.isScanPending] for usage in tests.
  */
 fun checkIfScanPending(repository: LocalResourceRepository, psiFile: PsiFile) = repository.isScanPending(psiFile)
+
+fun getSingleItem(repository: LocalResourceRepository, type: ResourceType, key: String): ResourceItem {
+  val list = repository.getResources(ResourceNamespace.RES_AUTO, type, key)
+  assertThat(list).hasSize(1)
+  return list[0]
+}
+
+fun getSingleItem(repository: LocalResourceRepository, type: ResourceType, key: String,
+                  filter: Predicate<ResourceItem>): ResourceItem {
+  val list = repository.getResources(ResourceNamespace.RES_AUTO, type, key)
+  var found: ResourceItem? = null
+  for (item in list) {
+    if (filter.test(item)) {
+      assertThat(found).isNull();
+      found = item
+    }
+  }
+  return found!!
+}
+
+class DefinedInOrUnder internal constructor(fileOrDirectory: VirtualFile) : Predicate<ResourceItem> {
+  private val myFileOrDirectory = fileOrDirectory.toPathString()
+
+  override fun test(item: ResourceItem): Boolean {
+    return item.source!!.startsWith(myFileOrDirectory)
+  }
+}
+

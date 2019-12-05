@@ -70,7 +70,6 @@ class LayoutPanel extends JPanel {
     JPanel top = new JPanel(new BorderLayout());
     top.add(left, BorderLayout.WEST);
     top.add(right, BorderLayout.EAST);
-    top.setPreferredSize(new Dimension(0, MEUI.scale(32)));
     mConstraintSetTable.setShowHorizontalLines(false);
 
     left.add(mTitle = new JLabel("Layout ", MEIcons.LIST_LAYOUT, SwingConstants.LEFT));

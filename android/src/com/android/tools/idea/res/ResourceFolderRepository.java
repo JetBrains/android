@@ -122,6 +122,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -477,7 +478,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     String attributeValue = StringUtil.notNullize(attribute.getValue()).trim();
     if (attributeValue.startsWith(NEW_ID_PREFIX) && !attribute.getNamespace().equals(TOOLS_URI)) {
       String id = attributeValue.substring(NEW_ID_PREFIX.length());
-      if (isValidResourceName(id)) {
+      if (isValidValueResourceName(id)) {
         item = PsiResourceItem.forXmlTag(id, ResourceType.ID, this, attribute.getParent(), calledFromPsiListener);
       }
     }
@@ -505,7 +506,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         for (XmlTag tag : subTags) {
           String name = tag.getAttributeValue(ATTR_NAME);
           ResourceType type = getResourceTypeForResourceTag(tag);
-          if (type != null && isValidResourceName(name)) {
+          if (type != null && isValidValueResourceName(name)) {
             PsiResourceItem item = PsiResourceItem.forXmlTag(name, type, this, tag, false);
             addToResult(result, item);
             items.add(item);
@@ -517,7 +518,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
               if (attrs.length > 0) {
                 for (XmlTag child : attrs) {
                   String attrName = child.getAttributeValue(ATTR_NAME);
-                  if (isValidResourceName(attrName) && !attrName.startsWith(ANDROID_NS_NAME_PREFIX)
+                  if (isValidValueResourceName(attrName) && !attrName.startsWith(ANDROID_NS_NAME_PREFIX)
                       // Only add attr nodes for elements that specify a format or have flag/enum children; otherwise
                       // it's just a reference to an existing attr.
                       && (child.getAttribute(ATTR_FORMAT) != null || child.getSubTags().length > 0)) {
@@ -540,8 +541,14 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   @Contract(value = "null -> false")
-  private static boolean isValidResourceName(@Nullable String name) {
+  private static boolean isValidValueResourceName(@Nullable String name) {
     return !StringUtil.isEmpty(name) && ValueResourceNameValidator.getErrorText(name, null) == null;
+  }
+
+  private static boolean isValidResourceFileName(@NotNull String filename, @NotNull ResourceFolderType folderType) {
+    // The check is relaxed compared to FileResourceNameValidator because some tests use mixed case resource files.
+    // TODO: Fix the tests and remove the toLowerCase call below.
+    return FileResourceNameValidator.getErrorTextForFileResource(filename.toLowerCase(Locale.ENGLISH), folderType) == null;
   }
 
   // Schedule a rescan to convert any map ResourceItems to PSI if needed, and return true if conversion
@@ -733,7 +740,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         setModificationCount(ourModificationCounter.incrementAndGet());
         invalidateParentCaches();
       }
-    } else {
+    } else if (isValidResourceFileName(file.getName(), folderType)) {
       ResourceItemSource<? extends ResourceItem> source = mySources.get(file.getVirtualFile());
       if (source instanceof PsiResourceFile && file.getFileType() == StdFileTypes.XML) {
         // If the old file was a PsiResourceFile for an XML file, we can update ID ResourceItems in place.
@@ -1016,7 +1023,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                   assert source instanceof PsiResourceFile;
                   PsiResourceFile psiResourceFile = (PsiResourceFile)source;
                   String name = tag.getAttributeValue(ATTR_NAME);
-                  if (isValidResourceName(name)) {
+                  if (isValidValueResourceName(name)) {
                     ResourceType type = getResourceTypeForResourceTag(tag);
                     if (type == ResourceType.STYLEABLE) {
                       // Can't handle declare styleable additions incrementally yet; need to update paired attr items.
@@ -1435,7 +1442,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                         if (map != null) {
                           // Found the relevant item: delete it and create a new one in a new location.
                           map.remove(oldName, item);
-                          if (isValidResourceName(newName)) {
+                          if (isValidValueResourceName(newName)) {
                             PsiResourceItem newItem =
                                 PsiResourceItem.forXmlTag(newName, type, ResourceFolderRepository.this, xmlTag, true);
                             map.put(newName, newItem);
@@ -2090,7 +2097,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           parseValueResourceFile(file, configuration);
         }
       }
-      else if (isValidResourceName(file.getFileName())) {
+      else if (isValidResourceFileName(file.getFileName(), folderInfo.folderType)) {
         if (isXmlFile(file) && folderInfo.isIdGenerating) {
           parseIdGeneratingResourceFile(file, configuration);
         }

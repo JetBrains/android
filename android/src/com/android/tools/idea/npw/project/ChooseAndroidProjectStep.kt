@@ -159,7 +159,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     model.enableCppSupport.set(selectedTemplate is CppTemplateRendererWithDescription)
     with(newProjectModuleModel!!) {
       formFactor.set(formFactorInfo.formFactor)
-      moduleTemplateFile().setNullableValue(formFactorInfo.templateFile)
+      setModuleTemplateFile(formFactorInfo.templateFile)
       renderTemplateHandle.setNullableValue(selectedTemplate.template)
       extraRenderTemplateModel.templateHandle = if (formFactorInfo.formFactor === FormFactor.THINGS) selectedTemplate.template else null
     }

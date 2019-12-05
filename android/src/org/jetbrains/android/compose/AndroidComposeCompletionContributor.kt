@@ -61,8 +61,6 @@ import org.jetbrains.kotlin.types.typeUtil.isUnit
 
 private val COMPOSABLE_FUNCTION_ICON = StudioIcons.Misc.COMPOSABLE_FUNCTION
 
-private fun CompletionParameters.isInsideComposableCode() = originalPosition?.isInsideComposableCode() == true
-
 /**
  * Checks if this completion is for a statement (where Compose views usually called) and not part of another expression.
  */
@@ -89,7 +87,7 @@ private val List<ValueParameterDescriptor>.hasComposableChildren: Boolean get() 
  */
 class AndroidComposeCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(parameters: CompletionParameters, resultSet: CompletionResultSet) {
-    if (parameters.position.getModuleSystem()?.usesCompose != true || !parameters.isInsideComposableCode()) return
+    if (parameters.position.getModuleSystem()?.usesCompose != true || parameters.position.language != KotlinLanguage.INSTANCE) return
 
     resultSet.runRemainingContributors(parameters) { completionResult ->
       val lookupElement = completionResult.lookupElement
@@ -219,8 +217,8 @@ class AndroidComposeCompletionWeigher : CompletionWeigher() {
   override fun weigh(element: LookupElement, location: CompletionLocation): Int {
     return when {
       !StudioFlags.COMPOSE_COMPLETION_WEIGHER.get() -> 0
+      location.completionParameters.position.language != KotlinLanguage.INSTANCE -> 0
       location.completionParameters.position.getModuleSystem()?.usesCompose != true -> 0
-      !location.completionParameters.isInsideComposableCode() -> 0
       element.isForNamedArgument() -> 2
       location.completionParameters.isForStatement() -> {
         if (element.psiElement?.isComposableFunction() == true) 1 else 0

@@ -33,6 +33,7 @@ import com.android.tools.idea.npw.template.components.ModuleTemplateComboProvide
 import com.android.tools.idea.npw.template.components.PackageComboProvider2
 import com.android.tools.idea.npw.template.components.SeparatorProvider
 import com.android.tools.idea.npw.template.components.TextFieldProvider2
+import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ListenerManager
 import com.android.tools.idea.observable.core.ObjectProperty
@@ -63,6 +64,7 @@ import com.android.tools.idea.wizard.template.Constraint.PACKAGE
 import com.android.tools.idea.wizard.template.Constraint.SOURCE_SET_FOLDER
 import com.android.tools.idea.wizard.template.Constraint.STRING
 import com.android.tools.idea.wizard.template.Constraint.URI_AUTHORITY
+import com.android.tools.idea.wizard.template.EnumParameter
 import com.android.tools.idea.wizard.template.EnumWidget
 import com.android.tools.idea.wizard.template.LanguageWidget
 import com.android.tools.idea.wizard.template.PackageNameWidget
@@ -219,13 +221,20 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
         // If not evaluating, change comes from the user (or user pressed "Back" and updates are "external". eg Template changed)
         if (evaluationState != EvaluationState.EVALUATING && rootPanel.isShowing) {
           userValues[parameter] = property.get()
-          parameter.value = property.get()
+          parameter.setFromProperty(property)
           // Evaluate later to prevent modifying Swing values that are locked during read
           enqueueEvaluateParameters()
         }
       }
       parameterRows[parameter] = row
-      row.setValue(parameter.value)
+      when (parameter) {
+        is EnumParameter -> {
+          row.setValue((parameter.value as Enum<*>).name)
+        }
+        else -> {
+          row.setValue(parameter.value)
+        }
+      }
     }
 
     if (templates.size > 1) {
@@ -341,7 +350,6 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
   }
 
   private fun validateAllParameters(): String? {
-    val project = model.project.valueOrNull
     val sourceProvider = model.template.get().getSourceProvider()
 
     return parameters.firstNotNullResult { parameter ->
@@ -351,7 +359,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
       }
       when (parameter) {
         is StringParameter -> parameter.validate(
-          project, model.module, sourceProvider, model.packageName.get(), property.get(), getRelatedValues(parameter))
+          model.project, model.module, sourceProvider, model.packageName.get(), property.get(), getRelatedValues(parameter))
         else -> null
       }
     }
@@ -387,7 +395,19 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     parameterRows.values.forEach(RowEntry<*>::accept)
 
     parameterRows.forEach { (p, row) ->
-      p.value = row.property!!.get() // TODO(qumeric): row may have no property? (e.g. separator)
+      p.setFromProperty(row.property!!)
+    }
+  }
+
+  private fun <T> Parameter<T>.setFromProperty(property: AbstractProperty<*>) {
+    when (this) {
+      is EnumParameter -> {
+        this.value = this.fromString(property.get() as String)!!
+      }
+      else -> {
+        @Suppress("UNCHECKED_CAST")
+        this.value = property.get() as T // TODO(qumeric): row may have no property? (e.g. separator)
+      }
     }
   }
 
@@ -426,7 +446,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     val filenameJoiner = Joiner.on('.').skipNulls()
 
     var suffix = 2
-    val project = model.project.valueOrNull
+    val project = model.project
     val relatedValues = getRelatedValues(parameter)
     val sourceProvider = model.template.get().getSourceProvider()
     while (!parameter.uniquenessSatisfied(project, model.module, sourceProvider, model.packageName.get(), suggested, relatedValues)) {

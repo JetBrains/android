@@ -35,6 +35,7 @@ import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.surface.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
+import com.android.tools.idea.uibuilder.visual.analytics.MultiViewMetricTrackerKt;
 import com.android.tools.idea.util.SyncUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
@@ -501,6 +502,8 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   public void onSelectedConfigurationSetChanged(@NotNull ConfigurationSet newConfigurationSet) {
     if (myCurrentConfigurationSet != newConfigurationSet) {
       myCurrentConfigurationSet = newConfigurationSet;
+
+      MultiViewMetricTrackerKt.trackOpenConfigSet(mySurface, myCurrentConfigurationSet);
       VisualizationToolSettings.getInstance().getGlobalState().setConfigurationSet(newConfigurationSet);
       myCurrentModelsProvider = newConfigurationSet.getModelsProviderCreator().invoke(this);
       refresh();

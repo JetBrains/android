@@ -37,7 +37,7 @@ abstract class AppInspectorClient(
      */
     // TODO(b/142649889): do we need a response? should we move it to AppInspectorClient itself?
     @WorkerThread
-    fun disposeInspector(): ListenableFuture<AppInspection.ServiceResponse>
+    fun disposeInspector(): ListenableFuture<AppInspection.AppInspectionResponse>
 
     /**
      * Sends a raw command using the provided [rawData]. Returns a future of a raw response.

@@ -17,7 +17,7 @@ package com.android.tools.idea.sqlite.ui
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
-import com.android.tools.idea.sqlite.ui.renderers.ResultSetTreeCellRenderer
+import com.android.tools.idea.sqlite.ui.renderers.SqliteColumnValueTableCellRenderer
 import com.android.tools.idea.sqlite.ui.renderers.ResultSetTreeHeaderRenderer
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
@@ -31,7 +31,7 @@ import javax.swing.table.DefaultTableModel
 internal fun JBTable.setupResultSetTable(queryTableModel: DefaultTableModel, columnClass: Class<SqliteColumnValue>) {
   if (this.model != queryTableModel) {
     this.model = queryTableModel
-    this.setDefaultRenderer(columnClass, ResultSetTreeCellRenderer())
+    this.setDefaultRenderer(columnClass, SqliteColumnValueTableCellRenderer())
     // Turn off JTable's auto resize so that JScrollPane will show a horizontal scroll bar.
     this.autoResizeMode = JTable.AUTO_RESIZE_OFF
     this.emptyText.text = "Table is empty"

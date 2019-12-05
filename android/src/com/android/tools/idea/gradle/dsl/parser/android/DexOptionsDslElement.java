@@ -39,7 +39,7 @@ public class DexOptionsDslElement extends GradleDslBlockElement {
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"additionalParameters", property, ADDITIONAL_PARAMETERS, VAR},
-    {"additionalParameters", atLeast(0), ADDITIONAL_PARAMETERS, OTHER},
+    {"additionalParameters", atLeast(0), ADDITIONAL_PARAMETERS, ADD_AS_LIST},
     {"javaMaxHeapSize", property, JAVA_MAX_HEAP_SIZE, VAR},
     {"setJavaMaxHeapSize", exactly(1), JAVA_MAX_HEAP_SIZE, SET},
     {"jumboMode", property, JUMBO_MODE, VAR},
@@ -59,7 +59,7 @@ public class DexOptionsDslElement extends GradleDslBlockElement {
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
     {"additionalParameters", property, ADDITIONAL_PARAMETERS, VAR},
-    {"additionalParameters", atLeast(0), ADDITIONAL_PARAMETERS, OTHER},
+    {"additionalParameters", atLeast(0), ADDITIONAL_PARAMETERS, ADD_AS_LIST},
     {"javaMaxHeapSize", property, JAVA_MAX_HEAP_SIZE, VAR},
     {"javaMaxHeapSize", exactly(1), JAVA_MAX_HEAP_SIZE, SET},
     {"jumboMode", property, JUMBO_MODE, VAR},
@@ -94,14 +94,5 @@ public class DexOptionsDslElement extends GradleDslBlockElement {
 
   public DexOptionsDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    if (element instanceof GradleDslSimpleExpression && (element.getName().equals("additionalParameters"))) {
-      addAsParsedDslExpressionList(ADDITIONAL_PARAMETERS, (GradleDslSimpleExpression)element);
-      return;
-    }
-    super.addParsedElement(element);
   }
 }

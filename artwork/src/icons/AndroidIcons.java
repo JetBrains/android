@@ -45,6 +45,16 @@ public class AndroidIcons {
     public static final Icon StudioProductIcon = load("/icons/wizards/studio_product.png"); // 60x60
     // Template thumbnails
     public static final Icon AndroidModule = load("/icons/wizards/android_module.png"); // 256x256
+    public static final Icon AutomotiveModule = load("/icons/wizards/automotive_module.png"); // 256x256
+    public static final Icon BenchmarkModule = load("/icons/wizards/benchmark_module.png"); // 256x256
+    public static final Icon DynamicFeatureModule = load("/icons/wizards/dynamic_feature_module.png"); // 256x256
+    public static final Icon EclipseModule = load("/icons/wizards/eclipse_module.png"); // 256x256
+    public static final Icon GradleModule = load("/icons/wizards/gradle_module.png"); // 256x256
+    public static final Icon InstantDynamicFeatureModule = load("/icons/wizards/instant_dynamic_feature_module.png"); // 256x256
+    public static final Icon MobileModule = load("/icons/wizards/mobile_module.png"); // 256x256
+    public static final Icon ThingsModule = load("/icons/wizards/things_module.png"); // 256x256
+    public static final Icon TvModule = load("/icons/wizards/tv_module.png"); // 256x256
+    public static final Icon WearModule = load("/icons/wizards/wear_module.png"); // 256x256
     public static final Icon NavigationDrawer = load("/icons/wizards/navigation/navigation_drawer.png"); // 256x256
     public static final Icon BottomNavigation = load("/icons/wizards/navigation/bottom_navigation.png"); // 256x256
     public static final Icon NavigationTabs = load("/icons/wizards/navigation/navigation_tabs.png"); // 256x256

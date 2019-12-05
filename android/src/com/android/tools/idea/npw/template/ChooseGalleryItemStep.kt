@@ -19,7 +19,7 @@ import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.model.NewModuleModel
+import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getModuleTemplates
@@ -58,13 +58,13 @@ import javax.swing.JComponent
  * Should we have something more specific than a ASGallery, that renders "Gallery items"?
  */
 abstract class ChooseGalleryItemStep(
-  moduleModel: NewModuleModel,
+  moduleModel: NewAndroidModuleModel,
   private val renderModel: RenderTemplateModel,
   formFactor: FormFactor,
   private val moduleTemplates: List<NamedModuleTemplate>,
   private val messageKeys: WizardGalleryItemsStepMessageKeys,
   private val emptyItemLabel: String
-) : SkippableWizardStep<NewModuleModel>(moduleModel, message(messageKeys.addMessage, formFactor.id), formFactor.icon) {
+) : SkippableWizardStep<NewAndroidModuleModel>(moduleModel, message(messageKeys.addMessage, formFactor.id), formFactor.icon) {
 
   abstract val templateRenderers: List<TemplateRenderer>
   private val itemGallery = WizardGallery(title, { t: TemplateRenderer? -> t!!.icon }, { t: TemplateRenderer? -> t!!.label })
@@ -79,7 +79,7 @@ abstract class ChooseGalleryItemStep(
     get() = renderModel.module == null
 
   constructor(
-    moduleModel: NewModuleModel,
+    moduleModel: NewAndroidModuleModel,
     renderModel: RenderTemplateModel,
     formFactor: FormFactor,
     targetDirectory: VirtualFile,
@@ -149,8 +149,8 @@ abstract class ChooseGalleryItemStep(
     val moduleApiLevel = androidSdkInfo?.minApiLevel ?: facet?.getModuleInfo()?.minSdkVersion?.featureLevel ?: Integer.MAX_VALUE
     val moduleBuildApiLevel = androidSdkInfo?.buildApiLevel ?: facet?.getModuleInfo()?.buildSdkVersion?.featureLevel ?: Integer.MAX_VALUE
 
-    val project = model.project.valueOrNull
-    val isAndroidxProject = project != null && project.isAndroidx()
+    val project = model.project
+    val isAndroidxProject = project.isAndroidx()
 
     invalidParameterMessage.set(
       if (renderModel.newTemplate != Template.NoActivity)

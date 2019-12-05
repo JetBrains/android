@@ -24,8 +24,12 @@ import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.TooltipModel;
 import com.android.tools.adtui.model.ViewBinder;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
+import com.android.tools.adtui.model.trackgroup.TrackModel;
+import com.android.tools.adtui.util.SwingUtil;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.util.ui.MouseEventHandler;
 import java.awt.FlowLayout;
+import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -87,7 +91,7 @@ public class TrackGroupListPanel implements TrackGroupMover {
         myTrackGroups.add(trackGroup);
 
         // Register tooltip mouse adapter
-        MouseAdapter adapter = new TooltipMouseAdapter(trackGroup);
+        MouseAdapter adapter = new TrackGroupMouseEventHandler(trackGroup);
         trackGroup.getTrackList().addMouseListener(adapter);
         trackGroup.getTrackList().addMouseMotionListener(adapter);
         DelegateMouseEventHandler.delegateTo(getComponent())
@@ -239,31 +243,30 @@ public class TrackGroupListPanel implements TrackGroupMover {
     }
   }
 
-  private class TooltipMouseAdapter extends MouseAdapter {
+  private class TrackGroupMouseEventHandler extends MouseEventHandler {
     @NotNull private final TrackGroup myTrackGroup;
 
-    private TooltipMouseAdapter(@NotNull TrackGroup trackGroup) {
+    private TrackGroupMouseEventHandler(@NotNull TrackGroup trackGroup) {
       myTrackGroup = trackGroup;
     }
 
     @Override
-    public void mouseEntered(MouseEvent e) {
-      handleMouseEvent(e);
-    }
+    protected void handle(MouseEvent event) {
+      int trackIndex = myTrackGroup.getTrackList().locationToIndex(event.getPoint());
 
-    @Override
-    public void mouseExited(MouseEvent e) {
-      handleMouseEvent(e);
-    }
+      TrackModel trackModel = myTrackGroup.getTrackList().getModel().getElementAt(trackIndex);
+      assert myTrackGroup.getTrackMap().containsKey(trackModel.getId());
+      // Find the origin location of the track (i.e. JList cell).
+      Point trackOrigin = myTrackGroup.getTrackList().indexToLocation(trackIndex);
+      // Manually translate the mouse point relative of the track origin.
+      Point newPoint = event.getPoint();
+      newPoint.translate(-trackOrigin.x, -trackOrigin.y);
+      // Forward the mouse event to a specific track because the cell renderer doesn't construct a component hierarchy tree for the mouse
+      // event to propagate.
+      // We create a new mouse event so that the tooltip panel can still show up at the correct location.
+      myTrackGroup.getTrackMap().get(trackModel.getId()).getComponent().dispatchEvent(SwingUtil.convertMouseEventPoint(event, newPoint));
 
-    @Override
-    public void mouseMoved(MouseEvent e) {
-      handleMouseEvent(e);
-    }
-
-    private void handleMouseEvent(MouseEvent e) {
-      int trackIndex = myTrackGroup.getTrackList().locationToIndex(e.getPoint());
-      setTooltip(trackIndex == -1 ? null : myTrackGroup.getTrackList().getModel().getElementAt(trackIndex).getTooltipModel());
+      setTooltip(trackIndex == -1 ? null : trackModel.getActiveTooltipModel());
     }
   }
 }

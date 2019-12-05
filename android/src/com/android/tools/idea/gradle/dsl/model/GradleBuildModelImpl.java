@@ -20,12 +20,12 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID;
 import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT;
-import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS;
 import static com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement.CONFIGURATIONS;
 import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA;
-import static com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement.PLUGINS_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement.PLUGINS;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -232,8 +232,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
     GradleDslFile parentModuleDslFile = parentModuleModelImpl.myGradleDslFile;
     buildDslFile.setParentModuleDslFile(parentModuleDslFile);
 
-    SubProjectsDslElement subProjectsDslElement =
-      parentModuleDslFile.getPropertyElement(SUBPROJECTS_BLOCK_NAME, SubProjectsDslElement.class);
+    SubProjectsDslElement subProjectsDslElement = parentModuleDslFile.getPropertyElement(SUBPROJECTS);
     if (subProjectsDslElement == null) {
       return;
     }
@@ -272,7 +271,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @NotNull
   public List<PluginModel> plugins() {
     // Look for plugins block first if it exists, and then look for apply block to retrieve plugins.
-    PluginsDslElement pluginsDslElement = myGradleDslFile.getPropertyElement(PLUGINS_BLOCK_NAME, PluginsDslElement.class);
+    PluginsDslElement pluginsDslElement = myGradleDslFile.getPropertyElement(PLUGINS);
     ArrayList<PluginModelImpl> plugins = new ArrayList<>();
     if (pluginsDslElement != null) {
       plugins.addAll(PluginModelImpl.deduplicatePlugins(PluginModelImpl.create(pluginsDslElement)).values());
@@ -289,11 +288,11 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @NotNull
   @Override
   public PluginModel applyPlugin(@NotNull String plugin) {
-    PluginsDslElement pluginsDslElement = myGradleDslFile.getPropertyElement(PLUGINS_BLOCK_NAME, PluginsDslElement.class);
+    PluginsDslElement pluginsDslElement = myGradleDslFile.getPropertyElement(PLUGINS);
     ApplyDslElement applyDslElement = myGradleDslFile.getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
     // If no plugins declaration exist, create a PluginDslElement to apply plugins
     if (pluginsDslElement == null && applyDslElement == null) {
-      pluginsDslElement = new PluginsDslElement(myGradleDslFile);
+      pluginsDslElement = new PluginsDslElement(myGradleDslFile, GradleNameElement.fake(PLUGINS.name));
       myGradleDslFile.addNewElementAt(0, pluginsDslElement);
     }
     else if (pluginsDslElement == null) {
@@ -337,7 +336,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   public void removePlugin(@NotNull String plugin) {
     // First look for plugins{} block (i.e. PluginsDslElement) if it exists, and try to remove the plugin from.
-    PluginsDslElement pluginsDslElement = myGradleDslFile.getPropertyElement(PLUGINS_BLOCK_NAME, PluginsDslElement.class);
+    PluginsDslElement pluginsDslElement = myGradleDslFile.getPropertyElement(PLUGINS);
     if (pluginsDslElement != null) {
       PluginModelImpl.removePlugins(PluginModelImpl.create(pluginsDslElement), plugin);
     }

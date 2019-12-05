@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
+import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.SchemaProvider
@@ -27,6 +28,7 @@ import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorView
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.mocks.MockSchemaProvider
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
+import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
@@ -37,6 +39,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
+import com.intellij.testFramework.fixtures.TempDirTestFixture
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.SameThreadExecutor
@@ -71,8 +75,13 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
   private val testSqliteTable = SqliteTable("testTable", arrayListOf(), true)
   private lateinit var sqliteResultSet: SqliteResultSet
 
+  private lateinit var tempDirTestFixture: TempDirTestFixture
+
   override fun setUp() {
     super.setUp()
+
+    tempDirTestFixture = IdeaTestFixtureFactory.getFixtureFactory().createTempDirTestFixture()
+    tempDirTestFixture.setUp()
 
     mockViewFactory = spy(MockDatabaseInspectorViewsFactory())
 
@@ -98,13 +107,18 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
 
     mockDatabaseConnection = mock(DatabaseConnection::class.java)
     `when`(mockDatabaseConnection.close()).thenReturn(Futures.immediateFuture(null))
-    `when`(mockDatabaseConnection.executeQuery(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(sqliteResultSet))
 
-    sqliteDatabase1 = FileSqliteDatabase("db1", mockDatabaseConnection)
-    sqliteDatabase2 = FileSqliteDatabase("db2", mockDatabaseConnection)
-    sqliteDatabase3 = FileSqliteDatabase("db", mockDatabaseConnection)
+    sqliteDatabase1 = LiveSqliteDatabase("db1", mockDatabaseConnection)
+    sqliteDatabase2 = LiveSqliteDatabase("db2", mockDatabaseConnection)
+    sqliteDatabase3 = LiveSqliteDatabase("db", mockDatabaseConnection)
 
     orderVerifier = inOrder(mockSqliteView, mockDatabaseConnection)
+  }
+
+  override fun tearDown() {
+    super.tearDown()
+    tempDirTestFixture.tearDown()
   }
 
   fun testAddSqliteDatabase() {
@@ -342,7 +356,7 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
     val evaluatorView = mockViewFactory.sqliteEvaluatorView
 
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
-    `when`(mockDatabaseConnection.executeUpdate(SqliteStatement("INSERT"))).thenReturn(Futures.immediateFuture(0))
+    `when`(mockDatabaseConnection.execute(SqliteStatement("INSERT"))).thenReturn(Futures.immediateFuture(null))
 
     sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
 
@@ -363,7 +377,10 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
 
   fun testReDownloadFileUpdatesView() {
     // Prepare
-    val mockFileDatabase = FileSqliteDatabase("db", mockDatabaseConnection)
+    val deviceFileId = DeviceFileId("deviceId", "filePath")
+    val virtualFile = tempDirTestFixture.createFile("db")
+    deviceFileId.storeInVirtualFile(virtualFile)
+    val fileDatabase = FileSqliteDatabase("db", mockDatabaseConnection, virtualFile)
 
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
     sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
@@ -375,7 +392,7 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
     project.registerServiceInstance(DatabaseInspectorProjectService::class.java, mockSqliteExplorerProjectService)
 
     // Act
-    mockSqliteView.viewListeners.single().reDownloadDatabaseFileActionInvoked(mockFileDatabase)
+    mockSqliteView.viewListeners.single().reDownloadDatabaseFileActionInvoked(fileDatabase)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert

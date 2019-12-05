@@ -38,7 +38,7 @@ import com.android.tools.idea.actions.NewAndroidComponentAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.npw.FormFactor;
-import com.android.tools.idea.npw.model.NewModuleModel;
+import com.android.tools.idea.npw.model.NewAndroidModuleModel;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.model.RenderTemplateModel;
 import com.android.tools.idea.npw.template.ChooseActivityTypeStep;
@@ -87,6 +87,7 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -600,7 +601,7 @@ public class TemplateManager {
       facet, null, initialPackageSuggestion, moduleTemplates.get(0),
       commandName, projectSyncInvoker, true);
 
-    NewModuleModel moduleModel = new NewModuleModel(project, null, projectSyncInvoker, moduleTemplates.get(0));
+    NewAndroidModuleModel moduleModel = new NewAndroidModuleModel(project, null, projectSyncInvoker, moduleTemplates.get(0), false, null);
     SkippableWizardStep chooseTypeStep;
     if (category.equals(CATEGORY_ACTIVITY)) {
       chooseTypeStep =
@@ -847,6 +848,11 @@ public class TemplateManager {
 
   public static boolean templateRootIsValid(@NotNull File templateRootFolder) {
     return new File(getWrapperLocation(templateRootFolder), FN_GRADLE_WRAPPER_UNIX).exists();
+  }
+
+  @NotNull
+  public static File getTemplate(@Nullable String category, @Nullable String templateName) {
+    return Objects.requireNonNull(getInstance().getTemplateFile(category, templateName));
   }
 
   private static File[] listFiles(@NotNull File root) {

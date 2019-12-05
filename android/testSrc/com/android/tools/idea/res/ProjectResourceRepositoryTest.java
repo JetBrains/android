@@ -18,7 +18,7 @@ package com.android.tools.idea.res;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.assertHasExactResourceTypes;
-import static com.android.tools.idea.res.ModuleResourceRepositoryTest.getFirstItem;
+import static com.android.tools.idea.res.ResourcesTestsUtil.getSingleItem;
 
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -107,7 +107,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     PsiFile layoutPsiFile = PsiManager.getInstance(getProject()).findFile(layoutFile);
     assertNotNull(layoutPsiFile);
     assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
-    ResourceItem item = getFirstItem(resources, ResourceType.ID, "btn_title_refresh");
+    ResourceItem item = getSingleItem(resources, ResourceType.ID, "btn_title_refresh");
 
     long generation = resources.getModificationCount();
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(getProject());
@@ -125,7 +125,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
       assertTrue(generation < resources.getModificationCount());
       // Should still be defined:
       assertTrue(resources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
-      ResourceItem newItem = getFirstItem(resources, ResourceType.ID, "btn_title_refresh");
+      ResourceItem newItem = getSingleItem(resources, ResourceType.ID, "btn_title_refresh");
       assertNotNull(newItem.getSource());
       // However, should be a different item
       assertNotSame(item, newItem);

@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.npw.java;
 
+import static com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt;
+import static com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain;
+import static org.jetbrains.android.util.AndroidBundle.message;
+
 import com.android.tools.adtui.LabelWithEditButton;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
@@ -39,14 +43,14 @@ import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.ui.ContextHelpLabel;
+import java.util.Collection;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.Collection;
-
-import static com.android.tools.idea.npw.model.NewProjectModel.getInitialDomain;
-import static org.jetbrains.android.util.AndroidBundle.message;
 
 public class ConfigureLibraryModuleStep extends SkippableWizardStep<NewLibraryModuleModel> {
   @NotNull private final StudioWizardStepPanel myRootPanel;
@@ -67,29 +71,29 @@ public class ConfigureLibraryModuleStep extends SkippableWizardStep<NewLibraryMo
     myValidatorPanel = new ValidatorPanel(this, myPanel);
 
     ModuleValidator moduleValidator = new ModuleValidator(model.getProject());
-    myLibraryName.setText(WizardUtils.getUniqueName(model.moduleName.get(), moduleValidator));
+    myLibraryName.setText(WizardUtils.getUniqueName(model.getModuleName().get(), moduleValidator));
     TextProperty libraryNameText = new TextProperty(myLibraryName);
-    myBindings.bind(model.moduleName, libraryNameText, myValidatorPanel.hasErrors().not());
+    myBindings.bind(model.getModuleName(), libraryNameText, myValidatorPanel.hasErrors().not());
     myBindings.bindTwoWay(new TextProperty(myClassName), model.className);
 
     Expression<String> computedPackageName =
-      new DomainToPackageExpression(new StringValueProperty(getInitialDomain()), model.moduleName);
+      new DomainToPackageExpression(new StringValueProperty(getInitialDomain()), model.getModuleName());
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
 
     TextProperty packageNameText = new TextProperty(myPackageName);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
-    myBindings.bind(model.packageName, packageNameText);
+    myBindings.bind(model.getPackageName(), packageNameText);
     myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
     myValidatorPanel.registerValidator(libraryNameText, moduleValidator);
-    myValidatorPanel.registerValidator(model.packageName,
+    myValidatorPanel.registerValidator(model.getPackageName(),
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
     myValidatorPanel.registerValidator(model.className, new ClassNameValidator());
 
     myRootPanel = new StudioWizardStepPanel(myValidatorPanel);
 
     SelectedItemProperty<Language> language = new SelectedItemProperty<>(myLanguageComboBox);
-    myBindings.bindTwoWay(language, model.language);
+    myBindings.bindTwoWay(language, model.getLanguage());
     FormScalingUtil.scaleComponentTree(this.getClass(), myRootPanel);
   }
 
@@ -103,6 +107,12 @@ public class ConfigureLibraryModuleStep extends SkippableWizardStep<NewLibraryMo
   @Override
   protected ObservableBool canGoForward() {
     return myValidatorPanel.hasErrors().not();
+  }
+
+  @Override
+  protected void onProceeding() {
+    // Now that the module name was validated, update the model template
+    getModel().getTemplate().set(createDefaultTemplateAt(getModel().getProject().getBasePath(), getModel().getModuleName().get()));
   }
 
   @NotNull

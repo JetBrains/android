@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.*;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ModelMapCollector.toModelMap;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.*;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
@@ -39,6 +40,33 @@ public final class AndroidDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<AndroidDslElement> ANDROID =
     new PropertiesElementDescription<>("android", AndroidDslElement.class, AndroidDslElement::new);
 
+  public static final ImmutableMap<String,PropertiesElementDescription> CHILD_PROPERTIES_ELEMENTS_MAP = Stream.of(new Object[][]{
+    {"aaptOptions", AaptOptionsDslElement.AAPT_OPTIONS},
+    {"adbOptions", AdbOptionsDslElement.ADB_OPTIONS},
+    {"buildFeatures", BuildFeaturesDslElement.BUILD_FEATURES},
+    {"buildTypes", BuildTypesDslElement.BUILD_TYPES},
+    {"compileOptions", CompileOptionsDslElement.COMPILE_OPTIONS},
+    {"dataBinding", DataBindingDslElement.DATA_BINDING},
+    {"defaultConfig", DefaultConfigDslElement.DEFAULT_CONFIG},
+    {"dexOptions", DexOptionsDslElement.DEX_OPTIONS},
+    {"externalNativeBuild", ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD},
+    {"kotlinOptions", KotlinOptionsDslElement.KOTLIN_OPTIONS},
+    {"lintOptions", LintOptionsDslElement.LINT_OPTIONS},
+    {"packagingOptions", PackagingOptionsDslElement.PACKAGING_OPTIONS},
+    {"productFlavors", ProductFlavorsDslElement.PRODUCT_FLAVORS},
+    {"signingConfigs", SigningConfigsDslElement.SIGNING_CONFIGS},
+    {"sourceSets", SourceSetsDslElement.SOURCE_SETS},
+    {"splits", SplitsDslElement.SPLITS},
+    {"testOptions", TestOptionsDslElement.TEST_OPTIONS},
+    {"viewBinding", ViewBindingDslElement.VIEW_BINDING}
+  }).collect(toImmutableMap(data -> (String) data[0], data -> (PropertiesElementDescription) data[1]));
+
+  @Override
+  @NotNull
+  protected ImmutableMap<String,PropertiesElementDescription> getChildPropertiesElementsDescriptionMap() {
+    return CHILD_PROPERTIES_ELEMENTS_MAP;
+  }
+
   @NotNull
   private static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"buildToolsVersion", property, BUILD_TOOLS_VERSION, VAR},
@@ -48,7 +76,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"defaultPublishConfig", property, DEFAULT_PUBLISH_CONFIG, VAR},
     {"defaultPublishConfig", exactly(1), DEFAULT_PUBLISH_CONFIG, SET},
     {"dynamicFeatures", property, DYNAMIC_FEATURES, VAR},
-    {"flavorDimensions", atLeast(0), FLAVOR_DIMENSIONS, OTHER}, // SETN: sets the property to the list of varargs arguments
+    {"flavorDimensions", atLeast(0), FLAVOR_DIMENSIONS, ADD_AS_LIST},
     {"generatePureSplits", property, GENERATE_PURE_SPLITS, VAR},
     {"generatePureSplits", exactly(1), GENERATE_PURE_SPLITS, SET},
     {"ndkVersion", property, NDK_VERSION, VAR},
@@ -66,7 +94,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"defaultPublishConfig", property, DEFAULT_PUBLISH_CONFIG, VAR},
     {"defaultPublishConfig", exactly(1), DEFAULT_PUBLISH_CONFIG, SET},
     {"dynamicFeatures", property, DYNAMIC_FEATURES, VAR},
-    {"flavorDimensions", atLeast(0), FLAVOR_DIMENSIONS, OTHER},
+    {"flavorDimensions", atLeast(0), FLAVOR_DIMENSIONS, ADD_AS_LIST},
     {"generatePureSplits", property, GENERATE_PURE_SPLITS, VAR},
     {"generatePureSplits", exactly(1), GENERATE_PURE_SPLITS, SET},
     {"ndkVersion", property, NDK_VERSION, VAR},
@@ -93,14 +121,5 @@ public final class AndroidDslElement extends GradleDslBlockElement {
 
   public AndroidDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-  }
-
-  @Override
-  public void addParsedElement(@NotNull GradleDslElement element) {
-    if (element.getName().equals("flavorDimensions") && element instanceof GradleDslSimpleExpression) {
-      addAsParsedDslExpressionList(FLAVOR_DIMENSIONS, (GradleDslSimpleExpression)element);
-      return;
-    }
-    super.addParsedElement(element);
   }
 }

@@ -142,7 +142,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     val liveDatabaseConnection = LiveDatabaseConnection(mockMessenger, 1, taskExecutor)
 
     // Act
-    val resultSet = pumpEventsAndWaitForFuture(liveDatabaseConnection.executeQuery(SqliteStatement("fake query")))
+    val resultSet = pumpEventsAndWaitForFuture(liveDatabaseConnection.execute(SqliteStatement("fake query")))!!
 
     // Assert
     val sqliteColumns = pumpEventsAndWaitForFuture(resultSet.columns)

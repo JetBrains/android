@@ -16,89 +16,23 @@
 package com.android.tools.idea.gradle.dsl.parser
 
 import com.android.tools.idea.gradle.dsl.parser.android.AbstractProductFlavorDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.AaptOptionsDslElement.AAPT_OPTIONS
-import com.android.tools.idea.gradle.dsl.parser.android.AdbOptionsDslElement.ADB_OPTIONS
-import com.android.tools.idea.gradle.dsl.parser.android.AndroidDslElement.ANDROID
-import com.android.tools.idea.gradle.dsl.parser.android.BuildFeaturesDslElement.BUILD_FEATURES
-import com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement.BUILD_TYPES
-import com.android.tools.idea.gradle.dsl.parser.android.CompileOptionsDslElement.COMPILE_OPTIONS
-import com.android.tools.idea.gradle.dsl.parser.android.DataBindingDslElement.DATA_BINDING
-import com.android.tools.idea.gradle.dsl.parser.android.DexOptionsDslElement.DEX_OPTIONS
-import com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement.EXTERNAL_NATIVE_BUILD
-import com.android.tools.idea.gradle.dsl.parser.android.KotlinOptionsDslElement.KOTLIN_OPTIONS
-import com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement.LINT_OPTIONS
-import com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement.PACKAGING_OPTIONS
-import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS
-import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement.SIGNING_CONFIGS
-import com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement.SOURCE_SETS
-import com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement.SPLITS
-import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement.TEST_OPTIONS
-import com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement.VIEW_BINDING
 import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.BuildTypeDslElement.BUILD_TYPE
-import com.android.tools.idea.gradle.dsl.parser.android.BuildTypesDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.DefaultConfigDslElement.DEFAULT_CONFIG
-import com.android.tools.idea.gradle.dsl.parser.android.ExternalNativeBuildDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement.PRODUCT_FLAVOR
-import com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigDslElement.SIGNING_CONFIG
-import com.android.tools.idea.gradle.dsl.parser.android.SigningConfigsDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.SourceSetDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.SourceSetDslElement.SOURCE_SET
-import com.android.tools.idea.gradle.dsl.parser.android.SourceSetsDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.SplitsDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.CMakeDslElement.CMAKE
-import com.android.tools.idea.gradle.dsl.parser.android.externalNativeBuild.NdkBuildDslElement.NDK_BUILD
-import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.ExternalNativeBuildOptionsDslElement
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.ExternalNativeBuildOptionsDslElement.EXTERNAL_NATIVE_BUILD_OPTIONS
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.NdkOptionsDslElement.NDK_OPTIONS
 import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.VectorDrawablesOptionsDslElement.VECTOR_DRAWABLES_OPTIONS
-import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.CMakeOptionsDslElement.CMAKE_OPTIONS
-import com.android.tools.idea.gradle.dsl.parser.android.productFlavors.externalNativeBuild.NdkBuildOptionsDslElement.NDK_BUILD_OPTIONS
-import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement
-import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement.AIDL
-import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement.ASSETS
-import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement.JNI
-import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement.JNI_LIBS
-import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement.RENDERSCRIPT
-import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement.RES
-import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceDirectoryDslElement.RESOURCES
-import com.android.tools.idea.gradle.dsl.parser.android.sourceSets.SourceFileDslElement.MANIFEST
-import com.android.tools.idea.gradle.dsl.parser.android.splits.AbiDslElement.ABI
-import com.android.tools.idea.gradle.dsl.parser.android.splits.DensityDslElement.DENSITY
-import com.android.tools.idea.gradle.dsl.parser.android.splits.LanguageDslElement.LANGUAGE
-import com.android.tools.idea.gradle.dsl.parser.android.testOptions.UnitTestsDslElement.UNIT_TESTS
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME
-import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement
-import com.android.tools.idea.gradle.dsl.parser.build.BuildScriptDslElement.BUILDSCRIPT
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT
 import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement
-import com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslElement.SUBPROJECTS_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationDslElement
-import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement
-import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement.CONFIGURATIONS
-import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
-import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA
-import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement
-import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement.PLUGINS_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement
-import com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement.FLAT_DIR_BLOCK_NAME
-import com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement
-import com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement.CREDENTIALS_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement
-import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.JCENTER_BLOCK_NAME
-import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.MAVEN_BLOCK_NAME
-import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement
-import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES
 import com.android.tools.idea.gradle.dsl.parser.settings.ProjectPropertiesDslElement
 import com.google.common.base.Splitter
 import com.google.common.collect.Lists
@@ -134,7 +68,7 @@ fun GradleDslFile.getBlockElement(
 
     if (element != null) return null
 
-    // Handle special cases based on the elements name
+    // Handle special cases based on the child element name
     when (nestedElementName) {
       "rootProject" -> return@fold context.rootProjectFile ?: this
       // Ext element is supported for any Gradle domain object that implements ExtensionAware. Here we get or create
@@ -151,53 +85,9 @@ fun GradleDslFile.getBlockElement(
       }
     }
 
-    // Handle the normal cases
     val newElement: GradlePropertiesDslElement = when (resultElement) {
-      is GradleDslFile -> createNewElementForFileOrSubProject(resultElement, nestedElementName) ?: return null
-      is SubProjectsDslElement -> createNewElementForFileOrSubProject(resultElement, nestedElementName) ?: return null
-      is BuildScriptDslElement -> when (nestedElementName) {
-        DEPENDENCIES.name -> DEPENDENCIES.constructor.construct(resultElement, elementName)
-        REPOSITORIES.name -> REPOSITORIES.constructor.construct(resultElement, elementName)
-        else -> return null
-      }
-      is RepositoriesDslElement -> when (nestedElementName) {
-        MAVEN_BLOCK_NAME -> MavenRepositoryDslElement(resultElement, elementName)
-        JCENTER_BLOCK_NAME -> MavenRepositoryDslElement(resultElement, elementName)
-        FLAT_DIR_BLOCK_NAME -> FlatDirRepositoryDslElement(resultElement)
-        else -> return null
-      }
-      is MavenRepositoryDslElement -> when (nestedElementName) {
-        CREDENTIALS_BLOCK_NAME -> MavenCredentialsDslElement(resultElement)
-        else -> return null
-      }
-      is AndroidDslElement -> when (nestedElementName) {
-        // TODO(xof): these should be (resultElement.blockMap.get(nestedElementName) ?: return null).constructor.construct(resultElement, elementName)
-        AAPT_OPTIONS.name -> AAPT_OPTIONS.constructor.construct(resultElement, elementName)
-        ADB_OPTIONS.name -> ADB_OPTIONS.constructor.construct(resultElement, elementName)
-        BUILD_FEATURES.name -> BUILD_FEATURES.constructor.construct(resultElement, elementName)
-        BUILD_TYPES.name -> BUILD_TYPES.constructor.construct(resultElement, elementName)
-        COMPILE_OPTIONS.name -> COMPILE_OPTIONS.constructor.construct(resultElement, elementName)
-        DATA_BINDING.name -> DATA_BINDING.constructor.construct(resultElement, elementName)
-        DEFAULT_CONFIG.name -> DEFAULT_CONFIG.constructor.construct(resultElement, elementName)
-        DEX_OPTIONS.name -> DEX_OPTIONS.constructor.construct(resultElement, elementName)
-        EXTERNAL_NATIVE_BUILD.name -> EXTERNAL_NATIVE_BUILD.constructor.construct(resultElement, elementName)
-        KOTLIN_OPTIONS.name -> KOTLIN_OPTIONS.constructor.construct(resultElement, elementName)
-        LINT_OPTIONS.name -> LINT_OPTIONS.constructor.construct(resultElement, elementName)
-        PACKAGING_OPTIONS.name -> PACKAGING_OPTIONS.constructor.construct(resultElement, elementName)
-        PRODUCT_FLAVORS.name -> PRODUCT_FLAVORS.constructor.construct(resultElement, elementName)
-        SIGNING_CONFIGS.name -> SIGNING_CONFIGS.constructor.construct(resultElement, elementName)
-        SOURCE_SETS.name -> SOURCE_SETS.constructor.construct(resultElement, elementName)
-        SPLITS.name -> SPLITS.constructor.construct(resultElement, elementName)
-        TEST_OPTIONS.name -> TEST_OPTIONS.constructor.construct(resultElement, elementName)
-        VIEW_BINDING.name -> VIEW_BINDING.constructor.construct(resultElement, elementName)
-        else -> return null
-      }
-      is ExternalNativeBuildDslElement -> when (nestedElementName) {
-        CMAKE.name -> CMAKE.constructor.construct(resultElement, elementName)
-        NDK_BUILD.name -> NDK_BUILD.constructor.construct(resultElement, elementName)
-        else -> return null
-      }
-      is ProductFlavorsDslElement -> PRODUCT_FLAVOR.constructor.construct(resultElement, elementName)
+      // Some parent blocks require special-case treatment
+      is GradleDslFile, is SubProjectsDslElement -> createNewElementForFileOrSubProject(resultElement, nestedElementName) ?: return null
       is AbstractProductFlavorDslElement -> when (nestedElementName) {
         "manifestPlaceholders" -> GradleDslExpressionMap(resultElement, elementName)
         "testInstrumentationRunnerArguments" -> GradleDslExpressionMap(resultElement, elementName)
@@ -206,45 +96,16 @@ fun GradleDslFile.getBlockElement(
         VECTOR_DRAWABLES_OPTIONS.name -> VECTOR_DRAWABLES_OPTIONS.constructor.construct(resultElement, elementName)
         else -> return null
       }
-      is BuildTypesDslElement -> BUILD_TYPE.constructor.construct(resultElement, elementName)
       is BuildTypeDslElement -> when (nestedElementName) {
         "manifestPlaceholders" -> GradleDslExpressionMap(resultElement, elementName)
         else -> return null
       }
-      is SigningConfigsDslElement -> SIGNING_CONFIG.constructor.construct(resultElement, elementName)
-      is SourceSetsDslElement -> SOURCE_SET.constructor.construct(resultElement, elementName)
-      is SourceSetDslElement -> when (nestedElementName) {
-        AIDL.name -> AIDL.constructor.construct(resultElement, elementName)
-        ASSETS.name -> ASSETS.constructor.construct(resultElement, elementName)
-        SourceDirectoryDslElement.JAVA.name -> SourceDirectoryDslElement.JAVA.constructor.construct(resultElement, elementName)
-        JNI.name -> JNI.constructor.construct(resultElement, elementName)
-        JNI_LIBS.name -> JNI_LIBS.constructor.construct(resultElement, elementName)
-        MANIFEST.name -> MANIFEST.constructor.construct(resultElement, elementName)
-        RENDERSCRIPT.name -> RENDERSCRIPT.constructor.construct(resultElement, elementName)
-        RES.name -> RES.constructor.construct(resultElement, elementName)
-        RESOURCES.name -> RESOURCES.constructor.construct(resultElement, elementName)
-        else -> return null
-      }
-      is ExternalNativeBuildOptionsDslElement -> when (nestedElementName) {
-        CMAKE_OPTIONS.name -> CMAKE_OPTIONS.constructor.construct(resultElement, elementName)
-        NDK_BUILD_OPTIONS.name -> NDK_BUILD_OPTIONS.constructor.construct(resultElement, elementName)
-        else -> return null
-      }
-      is SplitsDslElement -> when (nestedElementName) {
-        ABI.name -> ABI.constructor.construct(resultElement, elementName)
-        DENSITY.name-> DENSITY.constructor.construct(resultElement, elementName)
-        LANGUAGE.name -> LANGUAGE.constructor.construct(resultElement, elementName)
-        else -> return null
-      }
-      is TestOptionsDslElement -> when (nestedElementName) {
-        UNIT_TESTS.name -> UNIT_TESTS.constructor.construct(resultElement, elementName)
-        else -> return null
-      }
-      is ConfigurationsDslElement -> ConfigurationDslElement(resultElement, elementName)
       // we're not going to be clever about the contents of a ConfigurationDslElement: but we do need
       // to record whether there's anything there or not.
       is ConfigurationDslElement -> GradleDslClosure(resultElement, null, elementName)
-      else -> return null
+      // normal cases can simply construct a child block based on information in the parent Dsl element
+      else -> resultElement.getChildPropertiesElementDescription(nestedElementName)?.constructor?.construct(resultElement, elementName)
+              ?: return null
     }
 
     resultElement.setParsedElement(newElement)
@@ -255,20 +116,12 @@ fun GradleDslFile.getBlockElement(
 private fun createNewElementForFileOrSubProject(resultElement: GradlePropertiesDslElement,
                                                 nestedElementName: String): GradlePropertiesDslElement? {
   val elementName = GradleNameElement.fake(nestedElementName)
-  return when (nestedElementName) {
-    ANDROID.name -> ANDROID.constructor.construct(resultElement, elementName)
-    BUILDSCRIPT.name -> BUILDSCRIPT.constructor.construct(resultElement.dslFile, elementName)
-    CONFIGURATIONS.name -> CONFIGURATIONS.constructor.construct(resultElement, elementName)
-    DEPENDENCIES.name -> DEPENDENCIES.constructor.construct(resultElement, elementName)
-    EXT.name -> EXT.constructor.construct(resultElement, elementName)
-    JAVA.name -> JAVA.constructor.construct(resultElement, elementName)
-    REPOSITORIES.name -> REPOSITORIES.constructor.construct(resultElement, elementName)
-    SUBPROJECTS_BLOCK_NAME -> SubProjectsDslElement(resultElement)
-    PLUGINS_BLOCK_NAME -> PluginsDslElement(resultElement)
-    else -> {
+  return when (val properties = resultElement.getChildPropertiesElementDescription(nestedElementName)) {
+    null -> {
       val projectKey = ProjectPropertiesDslElement.getStandardProjectKey(nestedElementName) ?: return null
-      return ProjectPropertiesDslElement(resultElement, GradleNameElement.fake(projectKey))
+      ProjectPropertiesDslElement(resultElement, GradleNameElement.fake(projectKey))
     }
+    else -> properties.constructor.construct(resultElement, elementName)
   }
 }
 

@@ -20,7 +20,6 @@ package com.android.tools.profilers;
  * to allow the IDE to communicate to the profilers that a feature should be on or off.
  */
 public interface FeatureConfig {
-  boolean isAtraceEnabled();
   boolean isCpuApiTracingEnabled();
   boolean isCpuCaptureStageEnabled();
   boolean isCpuNewRecordingWorkflowEnabled();
@@ -28,7 +27,6 @@ public interface FeatureConfig {
   boolean isJniReferenceTrackingEnabled();
   boolean isLiveAllocationsEnabled();
   boolean isLiveAllocationsSamplingEnabled();
-  boolean isMemoryCaptureFilterEnabled();
   boolean isMemorySnapshotEnabled();
   boolean isPerfettoEnabled();
   boolean isPerformanceMonitoringEnabled();

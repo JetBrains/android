@@ -32,9 +32,10 @@ import com.intellij.psi.PsiType
 import com.intellij.psi.impl.source.PsiClassReferenceType
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.JavaClassReferenceProvider
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.JavaClassReferenceSet
+import com.intellij.psi.impl.source.tree.CompositeElement
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.tree.TokenSet
 import com.intellij.psi.util.PsiTreeUtil
-import org.jetbrains.kotlin.psi.psiUtil.children
 
 private class ProguardR8JavaClassReferenceProvider(
   val scope: GlobalSearchScope,
@@ -115,8 +116,14 @@ fun getPsiPrimitive(proguardR8JavaPrimitive: ProguardR8JavaPrimitive): PsiPrimit
   }
 }
 
+/**
+ * Returns number of dimensions or 0 if there is error
+ *
+ * Examnple: For int[][][] it returns 3
+ */
 fun getNumberOfDimensions(array: ProguardR8ArrayType): Int {
-  return array.node.children().count()
+  if (PsiTreeUtil.hasErrorElements(array)) return 0
+  return (array.node as CompositeElement).countChildren(TokenSet.create(ProguardR8PsiTypes.OPEN_BRACKET))
 }
 
 /**

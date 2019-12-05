@@ -48,10 +48,9 @@ private val log: Logger get() = logger<NewProjectModuleModel>()
 class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardModel() {
   @JvmField
   val formFactor = ObjectValueProperty(FormFactor.MOBILE)
-  private val newModuleModel = NewModuleModel(
+  private val newModuleModel = NewAndroidModuleModel(
     projectModel,
     File("").takeUnless { NPW_NEW_MODULE_TEMPLATES.get() },
-    null,
     createDummyTemplate(),
     formFactor
   )
@@ -67,7 +66,9 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
 
   fun androidSdkInfo(): OptionalProperty<AndroidVersionsInfo.VersionItem> = newModuleModel.androidSdkInfo
 
-  fun moduleTemplateFile(): OptionalProperty<File> = newModuleModel.templateFile
+  fun setModuleTemplateFile(templateFile: File?) {
+    newModuleModel.templateFile = templateFile
+  }
 
   override fun handleFinished() {
     initMainModule()
@@ -121,18 +122,18 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
 private const val EMPTY_ACTIVITY = "Empty Activity"
 private const val ANDROID_MODULE = "Android Module"
 
-private fun createCompanionModuleModel(projectModel: NewProjectModel): NewModuleModel {
+private fun createCompanionModuleModel(projectModel: NewProjectModel): NewAndroidModuleModel {
   // Note: The companion Module is always a Mobile app
   val moduleTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_MODULE)
   val moduleName = getModuleName(FormFactor.MOBILE)
   val namedModuleTemplate = createDefaultTemplateAt(projectModel.projectLocation.get(), moduleName)
-  val companionModuleModel = NewModuleModel(projectModel, moduleTemplateFile!!, namedModuleTemplate)
+  val companionModuleModel = NewAndroidModuleModel(projectModel, moduleTemplateFile!!, namedModuleTemplate)
   companionModuleModel.moduleName.set(moduleName)
 
   return companionModuleModel
 }
 
-private fun createCompanionRenderModel(moduleModel: NewModuleModel): RenderTemplateModel {
+private fun createCompanionRenderModel(moduleModel: NewAndroidModuleModel): RenderTemplateModel {
   // Note: The companion Render is always a "Empty Activity"
   val renderTemplateFile = TemplateManager.getInstance().getTemplateFile(CATEGORY_ACTIVITY, EMPTY_ACTIVITY)
   val renderTemplateHandle = TemplateHandle(renderTemplateFile!!)

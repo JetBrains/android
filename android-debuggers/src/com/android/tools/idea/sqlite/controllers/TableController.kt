@@ -54,7 +54,9 @@ class TableController(
   fun setUp(): ListenableFuture<Unit> {
     view.startTableLoading()
 
-    return edtExecutor.transform(databaseConnection.executeQuery(sqliteStatement)) { newResultSet ->
+    return edtExecutor.transform(databaseConnection.execute(sqliteStatement)) { newResultSet ->
+      checkNotNull(newResultSet)
+
       if (Disposer.isDisposed(this)) {
         Disposer.dispose(newResultSet)
         throw ProcessCanceledException()
@@ -79,7 +81,9 @@ class TableController(
 
     view.startTableLoading()
 
-    return edtExecutor.transform(databaseConnection.executeQuery(sqliteStatement)) { newResultSet ->
+    return edtExecutor.transform(databaseConnection.execute(sqliteStatement)) { newResultSet ->
+      checkNotNull(newResultSet)
+
       if (Disposer.isDisposed(this)) {
         Disposer.dispose(newResultSet)
         throw ProcessCanceledException()
@@ -169,7 +173,9 @@ class TableController(
       view.startTableLoading()
       Disposer.dispose(resultSet)
 
-      edtExecutor.transform(databaseConnection.executeQuery(SqliteStatement(newQuery, sqliteStatement.parametersValues))) { newResultSet ->
+      edtExecutor.transform(databaseConnection.execute(SqliteStatement(newQuery, sqliteStatement.parametersValues))) { newResultSet ->
+        checkNotNull(newResultSet)
+
         if (Disposer.isDisposed(this@TableController)) {
           newResultSet.dispose()
           throw ProcessCanceledException()

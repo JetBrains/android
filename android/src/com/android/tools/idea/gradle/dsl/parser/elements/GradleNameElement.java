@@ -34,19 +34,19 @@ import java.util.stream.Collectors;
 
 public class GradleNameElement {
   /**
-   * This regex is used to extract indexes out from a map or list property.
-   * Example matches would be:
+   * This regex is used to extract indexes out from a dereferenced map or list property.
+   * Example properties would be:
    *   someListProperty[0]
    *   otherMap['key'][1]
    *   list[0][2]['key'][2]
    *
-   * The first group will be the property name, with the index texts in succeeding groups.
-   * I.e for the last example property.
-   *    1st group -> "list"
-   *    2nd group -> "0"
-   *    3rd group -> "2"
-   *    4th group -> "'key'"
-   *    5th group -> "2"
+   * The first match will be the property name, with the index texts in group 1 of succeeding matches.
+   * For example, for the last example property:
+   *    1st match, group 0 -> "list"
+   *    2nd match, group 1 -> "0"
+   *    3rd match, group 1 -> "2"
+   *    4th match, group 1 -> "'key'"
+   *    5th match, group 1 -> "2"
    */
   @NotNull
   public static final Pattern INDEX_PATTERN = Pattern.compile("\\[(.+?)\\]|(.+?)(?=\\[)");
