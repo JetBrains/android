@@ -331,19 +331,79 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
   }
 
   @Nullable
+  public static GradleDslElement dereference(@NotNull GradleDslElement element, @NotNull String index) {
+    if (element instanceof GradleDslExpressionList) {
+      int offset;
+      try {
+        offset = Integer.parseInt(index);
+      }
+      catch (NumberFormatException e) {
+        return null;
+      }
+
+      GradleDslExpressionList list = (GradleDslExpressionList)element;
+      if (list.getExpressions().size() <= offset) {
+        return null;
+      }
+      return list.getExpressions().get(offset);
+    }
+    else if (element instanceof GradleDslExpressionMap) {
+      GradleDslExpressionMap map = (GradleDslExpressionMap)element;
+      index = stripQuotes(index);
+
+      return map.getPropertyElement(index);
+    }
+    else if (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference()) {
+      GradleDslElement value = followElement((GradleDslLiteral)element);
+      if (value == null) {
+        return null;
+      }
+      else {
+        return dereference(value, index);
+      }
+    }
+    else {
+      return null;
+    }
+  }
+
+  /**
+   * This is like plain {@link #dereference(GradleDslElement, String)} but with the opposite handling of references from DslLiterals: its
+   * input must already be resolved to a PropertiesDslElement, and it follows references from DslLiterals to return a PropertiesDslElement,
+   * which is particularly useful when we require the return value itself to be dereferenceable (e.g. for assignments)
+   *
+   * @param element
+   * @param index
+   * @return
+   */
+  @Nullable
+  public static GradlePropertiesDslElement dereferencePropertiesElement(@NotNull GradlePropertiesDslElement element, @NotNull String index) {
+    GradleDslElement result = dereference(element, index);
+    if (result instanceof GradleDslLiteral && ((GradleDslLiteral)result).isReference()) {
+      result = followElement((GradleDslLiteral)result);
+    }
+    if (result instanceof GradlePropertiesDslElement) {
+      return (GradlePropertiesDslElement)result;
+    }
+    else {
+      return null;
+    }
+  }
+
+  @Nullable
   private static GradleDslElement extractElementFromProperties(@NotNull GradlePropertiesDslElement properties,
                                                                @NotNull String name,
                                                                GradleDslNameConverter converter,
                                                                boolean sameScope,
                                                                @Nullable GradleDslElement childElement,
                                                                boolean includeSelf) {
-    String modelName = converter.modelNameForParent(name, properties);
 
     // First check if any indexing has been done.
     Matcher indexMatcher = GradleNameElement.INDEX_PATTERN.matcher(name);
 
     // If the index matcher doesn't give us anything, just attempt to find the property on the element;
     if (!indexMatcher.find()) {
+      String modelName = converter.modelNameForParent(name, properties);
       return sameScope
              ? properties.getElementBefore(childElement, modelName, includeSelf)
              : properties.getPropertyElementBefore(childElement, modelName, includeSelf);
@@ -354,14 +414,12 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
       return null;
     }
 
-    // We have some index present, find the element we need to index. The first group is always the whole match.
-    //
-    // TODO(xof): if the first group is the whole match, why are we getting the whole match rather than the element?
+    // We have some index present, find the element we need to index. The first match, the property, is always the whole match.
     String elementName = indexMatcher.group(0);
     if (elementName == null) {
       return null;
     }
-    modelName = converter.modelNameForParent(elementName, properties);
+    String modelName = converter.modelNameForParent(elementName, properties);
 
     GradleDslElement element =
       sameScope
@@ -370,12 +428,12 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
 
     // Construct a list of all of the index parts
     Deque<String> indexParts = new ArrayDeque<>();
-    // Note: groupCount returns the number of groups other than the match. So we need to add one here.
     while (indexMatcher.find()) {
       // Sanity check
       if (indexMatcher.groupCount() != 2) {
         return null;
       }
+      // second and subsequent matches of INDEX_PATTERN have .group(0) being "[...]", and .group(1) the text inside the brackets.
       indexParts.add(indexMatcher.group(1));
     }
 
@@ -388,35 +446,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
       }
 
       // Get the type of the element and ensure the index is compatible, e.g numerical index for a list.
-      if (element instanceof GradleDslExpressionList) {
-        int offset;
-        try {
-          offset = Integer.parseInt(index);
-        }
-        catch (NumberFormatException e) {
-          return null;
-        }
-
-        GradleDslExpressionList list = (GradleDslExpressionList)element;
-        if (list.getExpressions().size() <= offset) {
-          return null;
-        }
-        element = list.getExpressions().get(offset);
-      }
-      else if (element instanceof GradleDslExpressionMap) {
-        GradleDslExpressionMap map = (GradleDslExpressionMap)element;
-        index = stripQuotes(index);
-
-        element = map.getPropertyElement(index);
-      }
-      else if (element instanceof GradleDslLiteral && ((GradleDslLiteral)element).isReference()) {
-        element = followElement((GradleDslLiteral)element);
-        // Attempt to resolve the index part again
-        indexParts.push(index);
-      }
-      else {
-        return null;
-      }
+      element = dereference(element, index);
     }
 
     return element;

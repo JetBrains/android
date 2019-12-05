@@ -249,10 +249,10 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     assertEquals(ImmutableList.of(":", ":app", ":lib", ":olib"), settingsModel.modulePaths());
 
     File rootDir = getBaseDirPath(myProject);
-    assertEquals(new File(rootDir, "build.gradle"), settingsModel.buildFile(""));
+    assertEquals(new File(rootDir, "build.gradle" + (isGroovy()?"":".kts")), settingsModel.buildFile(""));
     assertEquals(new File(rootDir, "app/build.gradle"), settingsModel.buildFile("app"));
-    assertEquals(new File(rootDir, "lib/test.gradle"), settingsModel.buildFile(":lib"));
-    assertEquals(new File(rootDir, "otherlibs/xyz/other.gradle"), settingsModel.buildFile(":olib"));
+    assertEquals(new File(rootDir, "lib/test.gradle" + (isGroovy()?"":".kts")), settingsModel.buildFile(":lib"));
+    assertEquals(new File(rootDir, "otherlibs/xyz/other.gradle" + (isGroovy()?"":".kts")), settingsModel.buildFile(":olib"));
   }
 
   @Test

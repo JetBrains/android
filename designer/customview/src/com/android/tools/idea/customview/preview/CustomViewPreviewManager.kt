@@ -16,8 +16,33 @@
 package com.android.tools.idea.customview.preview
 
 internal interface CustomViewPreviewManager {
-  val states: List<String>
-  var currentState: String
+  enum class PreviewState {
+    /**
+     * Initial state right after the construction when the preview is waiting for the Smart mode and Gradle sync
+     */
+    LOADING,
+    /**
+     * Awaiting for the models updates and for rendering to finish
+     */
+    RENDERING,
+    /**
+     * Awaiting for build to finish
+     */
+    BUILDING,
+    /**
+     * Related source code is not compiled
+     */
+    NOT_COMPILED,
+    /**
+     * Successfully showing the previews
+     */
+    OK
+  }
+
+  val views: List<String>
+  var currentView: String
   var shrinkHeight: Boolean
   var shrinkWidth: Boolean
+
+  val state: PreviewState
 }

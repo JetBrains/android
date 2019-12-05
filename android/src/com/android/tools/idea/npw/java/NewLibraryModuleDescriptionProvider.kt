@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.npw.java
 
-import com.android.tools.idea.npw.model.NewModuleModel
+import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleDescriptionProvider
 import com.android.tools.idea.npw.module.ModuleGalleryEntry
-import com.android.tools.idea.npw.template.TemplateHandle
-import com.android.tools.idea.npw.ui.getTemplateIcon
 import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.intellij.openapi.project.Project
+import icons.AndroidIcons
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.Icon
 
@@ -31,14 +30,12 @@ class NewLibraryModuleDescriptionProvider : ModuleDescriptionProvider {
   override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(JavaModuleTemplateGalleryEntry())
 
   private class JavaModuleTemplateGalleryEntry : ModuleGalleryEntry {
-    private val templateHandle = TemplateHandle(TemplateManager.getInstance().getTemplateFile(
-        Template.CATEGORY_APPLICATION, message("android.wizard.module.new.java.or.kotlin.library"))!!)
-
-    override val icon: Icon? = getTemplateIcon(templateHandle)
-    override val name: String = templateHandle.metadata.title!!
-    override val description: String? = templateHandle.metadata.description
+    override val templateFile = TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Java or Kotlin Library")
+    override val icon: Icon = AndroidIcons.Wizards.AndroidModule
+    override val name: String = message("android.wizard.module.new.java.or.kotlin.library")
+    override val description: String = message("android.wizard.module.new.java.or.kotlin.library.description")
     override fun toString() = name
-    override fun createStep(model: NewModuleModel): SkippableWizardStep<*> =
-      ConfigureLibraryModuleStep(NewLibraryModuleModel(model.project.value, templateHandle, model.projectSyncInvoker), name)
+    override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> =
+      ConfigureLibraryModuleStep(NewLibraryModuleModel(project, templateFile, projectSyncInvoker), name)
   }
 }

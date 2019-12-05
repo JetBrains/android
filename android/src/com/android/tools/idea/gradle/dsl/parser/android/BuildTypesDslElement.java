@@ -29,6 +29,12 @@ import org.jetbrains.annotations.NotNull;
 public final class BuildTypesDslElement extends AbstractFlavorTypeCollectionDslElement implements GradleDslNamedDomainContainer {
   public static final PropertiesElementDescription<BuildTypesDslElement> BUILD_TYPES =
     new PropertiesElementDescription<>("buildTypes", BuildTypesDslElement.class, BuildTypesDslElement::new);
+
+  @Override
+  public PropertiesElementDescription getChildPropertiesElementDescription(String name) {
+    return BuildTypeDslElement.BUILD_TYPE;
+  }
+
   @NotNull private static final List<String> implicitBuildTypes = Arrays.asList("debug", "release");
 
   @Override

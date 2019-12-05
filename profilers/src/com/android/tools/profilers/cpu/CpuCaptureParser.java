@@ -261,47 +261,45 @@ public class CpuCaptureParser {
       // We should go on and try parsing the file as an atrace trace.
     }
 
-    // If atrace flag is enabled, check the file header to see if it's an atrace file.
-    if (myServices.getFeatureConfig().isAtraceEnabled()) {
-      try {
-        if (AtraceProducer.verifyFileHasAtraceHeader(traceFile) ||
-            (myServices.getFeatureConfig().isPerfettoEnabled() && PerfettoProducer.verifyFileHasPerfettoTraceHeader(traceFile))) {
-          // Atrace files contain multiple processes. For imported Atrace files we don't have a
-          // session that can tell us which process the user is interested in. So for all imported
-          // trace files we ask the user to select a process. The list of processes the user can
-          // choose from is parsed from the Atrace file.
-          AtraceParser parser = new AtraceParser(traceFile);
-          // Any process matching the application id of the current project will be sorted to
-          // the top of our process list.
-          CpuThreadSliceInfo[] processList = parser.getProcessList(myServices.getApplicationId());
-          // Attempt to find users intended process.
-          CpuThreadSliceInfo selected = null;
-          // 1) Use hint if available.
-          if (StringUtil.isNotEmpty(myProcessNameHint)) {
-            selected = Arrays.stream(processList).filter(it -> myProcessNameHint.endsWith(it.getProcessName())).findFirst().orElse(null);
-          }
+    // Check the file header to see if it's an atrace file.
+    try {
+      if (AtraceProducer.verifyFileHasAtraceHeader(traceFile) ||
+          (myServices.getFeatureConfig().isPerfettoEnabled() && PerfettoProducer.verifyFileHasPerfettoTraceHeader(traceFile))) {
+        // Atrace files contain multiple processes. For imported Atrace files we don't have a
+        // session that can tell us which process the user is interested in. So for all imported
+        // trace files we ask the user to select a process. The list of processes the user can
+        // choose from is parsed from the Atrace file.
+        AtraceParser parser = new AtraceParser(traceFile);
+        // Any process matching the application id of the current project will be sorted to
+        // the top of our process list.
+        CpuThreadSliceInfo[] processList = parser.getProcessList(myServices.getApplicationId());
+        // Attempt to find users intended process.
+        CpuThreadSliceInfo selected = null;
+        // 1) Use hint if available.
+        if (StringUtil.isNotEmpty(myProcessNameHint)) {
+          selected = Arrays.stream(processList).filter(it -> myProcessNameHint.endsWith(it.getProcessName())).findFirst().orElse(null);
+        }
 
-          // 2) If we don't have a process based on named find one based on id.
-          if (selected == null && myProcessIdHint > 0) {
-            selected = Arrays.stream(processList).filter(it -> it.getProcessId() == myProcessIdHint).findFirst().orElse(null);
-          }
+        // 2) If we don't have a process based on named find one based on id.
+        if (selected == null && myProcessIdHint > 0) {
+          selected = Arrays.stream(processList).filter(it -> it.getProcessId() == myProcessIdHint).findFirst().orElse(null);
+        }
 
-          // 3) Ask the user for input.
-          if (selected == null) {
-            selected = myServices.openListBoxChooserDialog("Select a process",
-                                                           "Select the process you want to analyze.",
-                                                           processList,
-                                                           (t) -> t.getProcessName());
-          }
-          if (selected != null) {
-            parser.setSelectProcess(selected);
-            return parser.parse(traceFile, IMPORTED_TRACE_ID);
-          }
+        // 3) Ask the user for input.
+        if (selected == null) {
+          selected = myServices.openListBoxChooserDialog("Select a process",
+                                                         "Select the process you want to analyze.",
+                                                         processList,
+                                                         (t) -> t.getProcessName());
+        }
+        if (selected != null) {
+          parser.setSelectProcess(selected);
+          return parser.parse(traceFile, IMPORTED_TRACE_ID);
         }
       }
-      catch (Exception ex) {
-        // We failed to find a proper process, or the file was not atrace.
-      }
+    }
+    catch (Exception ex) {
+      // We failed to find a proper process, or the file was not atrace.
     }
 
     // File couldn't be parsed by any of the parsers. Log the issue and return null.

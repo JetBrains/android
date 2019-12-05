@@ -224,11 +224,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
-      public boolean isAtraceEnabled() {
-        return StudioFlags.PROFILER_USE_ATRACE.get();
-      }
-
-      @Override
       public boolean isCpuApiTracingEnabled() {
         return StudioFlags.PROFILER_CPU_API_TRACING.get();
       }
@@ -259,11 +254,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
       @Override
       public boolean isLiveAllocationsSamplingEnabled() {
         return StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get();
-      }
-
-      @Override
-      public boolean isMemoryCaptureFilterEnabled() {
-        return StudioFlags.PROFILER_MEMORY_CAPTURE_FILTER.get();
       }
 
       @Override

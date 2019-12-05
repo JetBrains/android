@@ -131,6 +131,7 @@ public class CombinedListPanel extends JPanel {
 
     @Override
     public Component getListCellRendererComponent(JList<? extends Row> list, Row value, int index, boolean isSelected, boolean cellHasFocus) {
+      label.setFont(list.getFont());
       label.setText(value.myString);
       String titleString = "";
       switch (value.mType) {

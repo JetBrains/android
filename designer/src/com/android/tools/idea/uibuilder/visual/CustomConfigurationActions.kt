@@ -24,7 +24,7 @@ import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Action for adding custom configuration into the given [CustomModelsProvider].
- * For now the implementation is showing [ConfigurationCreationPalette] as a popup dialog and add the configuration picked from it.
+ * For now the implementation is showing [CustomConfigurationAttributeCreationPalette] as a popup dialog and add the configuration picked from it.
  */
 class AddCustomConfigurationAction(private val file: PsiFile,
                                    private val facet: AndroidFacet,
@@ -34,8 +34,8 @@ class AddCustomConfigurationAction(private val file: PsiFile,
   override fun actionPerformed(e: AnActionEvent) {
     val dialog = LightCalloutPopup()
 
-    val content = ConfigurationCreationPalette(file, facet) { name, newConfig ->
-      provider.addConfiguration(CustomConfiguration(name, newConfig))
+    val content = CustomConfigurationAttributeCreationPalette(file, facet) { attributes ->
+      provider.addCustomConfigurationAttributes(attributes)
       dialog.close()
     }
     val owner = e.inputEvent.component

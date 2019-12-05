@@ -74,7 +74,8 @@ fun RecipeExecutor.copyIconCommands(buildApi: Int, targetApi: Int, destination: 
 fun RecipeExecutor.generateAndroidModule(
   data: ModuleTemplateData,
   appTitle: String?, // may be null only for libraries
-  includeCppSupport: Boolean = false
+  includeCppSupport: Boolean = false,
+  cppFlags: String = ""
 ) {
   val (projectData, srcOut, resOut, manifestOut, testOut, unitTestOut, _, moduleOut) = data
   val language = projectData.language
@@ -109,7 +110,8 @@ fun RecipeExecutor.generateAndroidModule(
     language,
     projectData.gradlePluginVersion,
     supportsImprovedTestDeps,
-    includeCppSupport
+    includeCppSupport,
+    cppFlags
   )
 
   save(buildGradle, moduleOut.resolve("build.gradle"))

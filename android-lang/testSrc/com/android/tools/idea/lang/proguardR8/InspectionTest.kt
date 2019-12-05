@@ -63,11 +63,27 @@ class InspectionTest : ProguardR8TestCase() {
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,
       """
-        ${"-invalidflag".highlightedAs(ERROR, "Invalid flag name")}
+        ${"-invalidflag".highlightedAs(ERROR, "Invalid flag")}
       """.trimIndent()
     )
 
     myFixture.checkHighlighting()
+  }
+
+  fun testSpacesInArrayType() {
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class java.lang.String {
+        ${"int []".highlightedAs(ERROR, "White space between type and array annotation is not allowed, use 'type[]'")} method;
+        int${"[\n]".highlightedAs(ERROR, "White space is not allowed in array annotation, use 'type[]'")} method;
+        int ${"[  ]".highlightedAs(ERROR, "White space is not allowed in array annotation, use 'type[]'")} method;
+        int[] method;
+      }
+      """.trimIndent())
+
+    // checks only errors
+    myFixture.checkHighlighting(false, false, false)
   }
 
 }
@@ -91,7 +107,7 @@ class ProguardR8IgnoredFlagInspectionTest : AndroidTestCase() {
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,
       """
-        ${"-${flag}".highlightedAs(WARNING, "Flag is ignored by R8")}
+        ${"-${flag}".highlightedAs(WARNING, "Flag ignored by R8")}
       """.trimIndent()
     )
 

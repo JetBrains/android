@@ -30,6 +30,8 @@ import com.android.tools.profilers.cpu.analysis.CpuAnalysisPanel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip;
 import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip;
+import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltip;
+import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltipView;
 import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.LifecycleTooltipView;
 import com.android.tools.profilers.event.UserEventTooltip;
@@ -64,6 +66,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     // Tooltips used in the track groups
     myTrackGroupList.getTooltipBinder().bind(CpuFrameTooltip.class, CpuFrameTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(CpuThreadsTooltip.class, CpuThreadsTooltipView::new);
+    myTrackGroupList.getTooltipBinder().bind(CpuCaptureNodeTooltip.class, CpuCaptureNodeTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(CpuKernelTooltip.class, CpuKernelTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(UserEventTooltip.class, UserEventTooltipView::new);
     myTrackGroupList.getTooltipBinder().bind(LifecycleTooltip.class, LifecycleTooltipView::new);

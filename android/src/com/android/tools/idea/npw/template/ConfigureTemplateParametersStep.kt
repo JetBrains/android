@@ -19,7 +19,6 @@ import com.android.tools.adtui.TabularLayout
 import com.android.tools.adtui.TooltipLabel
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType
 import com.android.tools.idea.npw.model.RenderTemplateModel
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.getSourceProvider
@@ -65,6 +64,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import com.intellij.ui.RecentsManager
 import com.intellij.ui.components.JBLabel
 import com.intellij.uiDesigner.core.GridConstraints
@@ -133,6 +133,8 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
     // Add an extra blank line under the template description to separate it from the main body
     border = JBUI.Borders.emptyBottom(templateDescriptionLabel.font.size)
   }
+
+  private val project: Project? get() = if (model.isNewProject) null else model.project
 
   // TODO(b/142107543) Replace it with TabularLayout for more readability
   private val rootPanel = JPanel(GridLayoutManager(2, 2)).apply {
@@ -395,7 +397,6 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
 
   private fun validateAllParametersExcept(excludedParameters: Set<String>): String? {
     val parameters = model.templateHandle!!.metadata.parameters
-    val project = model.project.valueOrNull
     val sourceProvider = model.template.get().getSourceProvider()
 
     return parameters.mapNotNull { parameter ->
@@ -550,7 +551,6 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       val filenameJoiner = Joiner.on('.').skipNulls()
 
       var suffix = 2
-      val project = model.project.valueOrNull
       val relatedValues = getRelatedValues(parameter)
       val sourceProvider = model.template.get().getSourceProvider()
       while (!parameter.uniquenessSatisfied(project, model.module, sourceProvider, model.packageName.get(), suggested, relatedValues)) {

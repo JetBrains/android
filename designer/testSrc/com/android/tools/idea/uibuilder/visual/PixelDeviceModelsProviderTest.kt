@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.type.ZoomableDrawableFileType
 import com.intellij.openapi.util.Disposer
 import junit.framework.TestCase
+import org.intellij.lang.annotations.Language
 
 class PixelDeviceModelsProviderTest : LayoutTestCase() {
 
@@ -67,6 +68,7 @@ class PixelDeviceModelsProviderTest : LayoutTestCase() {
   }
 }
 
+@Language("Xml")
 private const val LAYOUT_FILE_CONTENT = """
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -76,6 +78,7 @@ private const val LAYOUT_FILE_CONTENT = """
 </LinearLayout>
 """
 
+@Language("Xml")
 private const val DRAWABLE_FILE_CONTENT = """
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android"

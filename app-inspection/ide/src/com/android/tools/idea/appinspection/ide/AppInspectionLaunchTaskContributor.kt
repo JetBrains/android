@@ -55,9 +55,7 @@ private class AppInspectionLaunchTask(private val module: Module) : LaunchTask {
     val packageName = AndroidModuleInfo.getInstance(module)?.`package`
 
     AppInspectionHostService.instance.discoveryHost.connect(TransportFileManager(device, TransportService.getInstance().messageBus),
-                                                            AutoPreferredProcess(
-                                                              device,
-                                                              packageName))
+                                                            AutoPreferredProcess(device, packageName))
     return LaunchResult.success()
   }
 

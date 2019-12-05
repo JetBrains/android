@@ -124,7 +124,7 @@ internal class TextEditorWithCustomViewPreview(textEditor: TextEditor, preview: 
   textEditor, preview, "Custom View and Preview") {
   init {
     preview.editorWithPreview = this
-    isPureTextEditor = preview.currentState.isEmpty()
+    isPureTextEditor = preview.currentView.isEmpty()
   }
 }
 
@@ -219,16 +219,16 @@ private class CustomViewPreviewToolbar(private val surface: DesignSurface) :
 
         // We need just a single previewEditor here (any) to retrieve (read) the states and currently selected state
         findPreviewEditors().firstOrNull()?.let { previewEditor ->
-          previewEditor.states.forEach {
-            val state = it
+          previewEditor.views.forEach {
+            val view = it
             add(object : AnAction(it) {
               override fun actionPerformed(e: AnActionEvent) {
                 // Here we iterate over all editors as change in selection (write) should trigger updates in all of them
-                findPreviewEditors().forEach { it.currentState = state }
+                findPreviewEditors().forEach { it.currentView = view }
               }
             })
           }
-          e.presentation.setText(previewEditor.currentState, false)
+          e.presentation.setText(previewEditor.currentView, false)
         }
       }
 

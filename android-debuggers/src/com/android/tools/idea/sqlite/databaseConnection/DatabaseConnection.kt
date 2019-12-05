@@ -30,18 +30,11 @@ interface DatabaseConnection : Disposable {
   fun readSchema(): ListenableFuture<SqliteSchema>
 
   /**
-   * Executes a query on the database.
+   * Executes a SQLite statement on the database.
    *
-   * @see java.sql.PreparedStatement.executeQuery
+   * @see java.sql.PreparedStatement.execute
    */
-  fun executeQuery(sqLiteStatement: SqliteStatement): ListenableFuture<SqliteResultSet>
-
-  /**
-   * Executes an update on the database.
-   *
-   * @see java.sql.PreparedStatement.executeUpdate
-   */
-  fun executeUpdate(sqLiteStatement: SqliteStatement): ListenableFuture<Int>
+  fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet?>
 
   override fun dispose() {
     close().get()

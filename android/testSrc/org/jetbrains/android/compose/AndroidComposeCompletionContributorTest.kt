@@ -18,6 +18,7 @@ package org.jetbrains.android.compose
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -32,7 +33,6 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
   }
 
   fun testSignatures() {
-    // Given:
     myFixture.addFileToProject(
       "src/com/example/MyViews.kt",
       // language=kotlin
@@ -60,7 +60,16 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       """.trimIndent()
     )
 
-    val file = myFixture.addFileToProject(
+    val expectedLookupItems = listOf(
+      "FoobarOne(required: Int)",
+      "FoobarTwo(required: Int, ...)",
+      "FoobarThree(...) {...}",
+      "FoobarFour {...}",
+      "FoobarFive(icon: String, onClick: () -> Unit)"
+    )
+
+    // Given:
+    myFixture.loadNewFile(
       "src/com/example/Test.kt",
       // language=kotlin
       """
@@ -76,17 +85,37 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
     )
 
     // When:
-    myFixture.configureFromExistingVirtualFile(file.virtualFile)
     myFixture.completeBasic()
 
     // Then:
-    assertThat(myFixture.renderedLookupElements).containsExactly(
-      "FoobarOne(required: Int)",
-      "FoobarTwo(required: Int, ...)",
-      "FoobarThree(...) {...}",
-      "FoobarFour {...}",
-      "FoobarFive(icon: String, onClick: () -> Unit)"
+    assertThat(myFixture.renderedLookupElements).containsExactlyElementsIn(expectedLookupItems)
+
+    // Given:
+    myFixture.loadNewFile(
+      "src/com/example/Test2.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      fun setContent(content: @Composable() () -> Unit) { TODO() }
+
+      class MainActivity {
+        fun onCreate() {
+          setContent {
+            Foobar${caret}
+          }
+        }
+      }
+      """.trimIndent()
     )
+
+    // When:
+    myFixture.completeBasic()
+
+    // Then:
+    assertThat(myFixture.renderedLookupElements).containsExactlyElementsIn(expectedLookupItems)
   }
 
   fun testInsertHandler() {

@@ -230,7 +230,7 @@ public class ResourceClassGeneratorTest extends AndroidTestCase {
     //    2 styles declared in both
     //------------------------------------------
     //    4 total styles
-    assertEquals(4, appResources.getResources(RES_AUTO, ResourceType.STYLEABLE).keySet().size());
+    assertEquals(4, appResources.getResourceNames(RES_AUTO, ResourceType.STYLEABLE).size());
 
     ResourceClassGenerator generator = buildGenerator(appResources);
     assertNotNull(generator);

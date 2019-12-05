@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.ListenableFuture
 import javax.naming.OperationNotSupportedException
@@ -29,7 +30,10 @@ open class MockDatabaseInspectorController(val model: DatabaseInspectorControlle
 
   override fun setUp() { }
 
-  override fun addSqliteDatabase(sqliteDatabaseFuture: ListenableFuture<SqliteDatabase>) { }
+  override fun addSqliteDatabase(sqliteDatabaseFuture: ListenableFuture<SqliteDatabase>) {
+    val database = sqliteDatabaseFuture.get()
+    model.add(database, SqliteSchema(emptyList()))
+  }
 
   override fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) { }
 

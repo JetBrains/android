@@ -26,11 +26,8 @@ import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.controllers.DatabaseInspectorControllerImpl
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionFactory
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionFactoryImpl
-import com.android.tools.idea.sqlite.databaseConnection.jdbc.JdbcDatabaseConnection
-import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
@@ -38,6 +35,7 @@ import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactoryImpl
+import com.google.common.collect.Sets
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.ide.actions.OpenFileAction
@@ -146,10 +144,7 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
   private val edtExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(edtExecutor)
   private val taskExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(taskExecutor)
 
-  private val lock = ReentrantLock()
-
-  @GuardedBy("lock")
-  private val databaseToFile = mutableMapOf<SqliteDatabase, VirtualFile>()
+  private val openFileSqliteDatabases = Sets.newConcurrentHashSet<FileSqliteDatabase>()
 
   private val controller: DatabaseInspectorController by lazy @UiThread {
     ApplicationManager.getApplication().assertIsDispatchThread()
@@ -160,23 +155,31 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
     @UiThread get() = controller.component
 
   init {
+    // TODO(b/145341040) investigate performance impact.
     model.addListener(object : DatabaseInspectorController.Model.Listener {
-      override fun onDatabaseAdded(database: SqliteDatabase) { }
+      override fun onDatabaseAdded(database: SqliteDatabase) {
+        if (database is FileSqliteDatabase) {
+          openFileSqliteDatabases.add(database)
+        }
+      }
+
       override fun onDatabaseRemoved(database: SqliteDatabase) {
-        lock.withLock { databaseToFile.remove(database) }
+        if (database is FileSqliteDatabase) {
+          openFileSqliteDatabases.remove(database)
+        }
       }
     })
 
     val virtualFileListener = object : BulkFileListener {
       override fun before(events: MutableList<out VFileEvent>) {
-        if (databaseToFile.keys.isEmpty()) return
+        if (openFileSqliteDatabases.isEmpty()) return
 
         val toClose = mutableListOf<SqliteDatabase>()
         for (event in events) {
           if (event !is VFileDeleteEvent) continue
 
-          for ((database, virtualFile) in databaseToFile) {
-            if (VfsUtil.isAncestor(event.file, virtualFile, false)) {
+          for (database in openFileSqliteDatabases) {
+            if (VfsUtil.isAncestor(event.file, database.virtualFile, false)) {
               toClose.add(database)
             }
           }
@@ -197,39 +200,34 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
     // TODO(b/139525976)
     val name = file.path.split("data/data/").getOrNull(1)?.replace("databases/", "") ?: file.path
 
-    return taskExecutor.transform(openSqliteDatabase(databaseConnectionFuture, name)) { database ->
-      lock.withLock { databaseToFile[database] = file }
-      database
+    val databaseFuture: ListenableFuture<SqliteDatabase> = taskExecutor.transform(databaseConnectionFuture) { databaseConnection ->
+      Disposer.register(project, databaseConnection)
+      FileSqliteDatabase(name, databaseConnection, file)
     }
+
+    return openSqliteDatabaseInInspector(databaseFuture)
   }
 
   @AnyThread
   override fun openSqliteDatabase(messenger: AppInspectorClient.CommandMessenger, id: Int, name: String): ListenableFuture<SqliteDatabase> {
     val databaseConnectionFuture = databaseConnectionFactory.getLiveDatabaseConnection(messenger, id, taskExecutor)
-    return openSqliteDatabase(databaseConnectionFuture, name)
+
+    val databaseFuture: ListenableFuture<SqliteDatabase> = taskExecutor.transform(databaseConnectionFuture) { databaseConnection ->
+      Disposer.register(project, databaseConnection)
+      LiveSqliteDatabase(name, databaseConnection)
+    }
+
+    return openSqliteDatabaseInInspector(databaseFuture)
   }
 
-  private fun openSqliteDatabase(
-    databaseConnectionFuture: ListenableFuture<DatabaseConnection>,
-    name: String
-  ): ListenableFuture<SqliteDatabase> {
-    val openSqliteServiceFuture = taskExecutor.transform(databaseConnectionFuture) { databaseConnection ->
-      Disposer.register(project, databaseConnection)
-
-      return@transform when (databaseConnection) {
-        is JdbcDatabaseConnection -> FileSqliteDatabase(name, databaseConnection)
-        is LiveDatabaseConnection -> LiveSqliteDatabase(name, databaseConnection)
-        else -> error("Unknown type of connection.")
-      }
-    }
-
+  private fun openSqliteDatabaseInInspector(databaseFuture: ListenableFuture<SqliteDatabase>): ListenableFuture<SqliteDatabase> {
     invokeLaterIfNeeded {
       toolWindowManager.getToolWindow(DatabaseInspectorToolWindowFactory.TOOL_WINDOW_ID).show {
-        controller.addSqliteDatabase(openSqliteServiceFuture)
+        controller.addSqliteDatabase(databaseFuture)
       }
     }
 
-    return openSqliteServiceFuture
+    return databaseFuture
   }
 
   @UiThread
@@ -239,12 +237,8 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
 
   @AnyThread
   override fun reDownloadAndOpenFile(database: FileSqliteDatabase, progress: DownloadProgress): ListenableFuture<Unit> {
-    val virtualFile = lock.withLock {
-      databaseToFile[database] ?: return Futures.immediateFailedFuture(IllegalStateException("DB not found"))
-    }
-
-    val deviceFileId: DeviceFileId = virtualFile.getUserData(DeviceFileId.KEY)
-                                     ?: return Futures.immediateFailedFuture(IllegalStateException("DeviceFileId not found"))
+    val deviceFileId = DeviceFileId.fromVirtualFile(database.virtualFile)
+                       ?: return Futures.immediateFailedFuture(IllegalStateException("DeviceFileId not found"))
     val downloadFuture = DeviceFileDownloaderService.getInstance(project).downloadFile(deviceFileId, progress)
 
     return edtExecutor.transform(downloadFuture) { downloadedFileData ->

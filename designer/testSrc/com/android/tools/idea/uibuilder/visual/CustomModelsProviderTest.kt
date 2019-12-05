@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.resources.NightMode
 import com.android.resources.ScreenOrientation
+import com.android.resources.UiMode
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.rendering.Locale
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.type.LayoutFileType
+import org.intellij.lang.annotations.Language
 import org.mockito.Mockito
 
 class CustomModelsProviderTest : LayoutTestCase() {
@@ -34,6 +36,8 @@ class CustomModelsProviderTest : LayoutTestCase() {
   override fun tearDown() {
     super.tearDown()
     DesignerTypeRegistrar.clearRegisteredTypes()
+    // Cleanup any added configurations
+    VisualizationToolSettings.getInstance().globalState.customConfigurationAttributes = emptyList()
   }
 
   fun testCreateActions() {
@@ -70,25 +74,26 @@ class CustomModelsProviderTest : LayoutTestCase() {
     val configurationManager = ConfigurationManager.getOrCreateInstance(myFacet)
     val defaultConfig = configurationManager.getConfiguration(file.virtualFile)
 
-    // Create additional config
-    val newConfig = Configuration.create(defaultConfig, file.virtualFile)
-    val device = configurationManager.getDeviceById("pixel_3")!!
-    val state = device.defaultState.deepCopy().apply { orientation = ScreenOrientation.PORTRAIT }
-    newConfig.setEffectiveDevice(device, state)
-    newConfig.locale = Locale.ANY
-    newConfig.setTheme(configurationManager.computePreferredTheme(defaultConfig))
-    modelsProvider.addConfiguration(CustomConfiguration("", newConfig))
+    val attributes = CustomConfigurationAttribute("Preview",
+                                                  "pixel_3",
+                                                  28,
+                                                  ScreenOrientation.PORTRAIT,
+                                                  Locale.ANY.toString(),
+                                                  configurationManager.computePreferredTheme(defaultConfig),
+                                                  UiMode.NORMAL,
+                                                  NightMode.NOTNIGHT)
+    modelsProvider.addCustomConfigurationAttributes(attributes)
 
-    assertSize(1, modelsProvider.customConfigurations)
+    assertSize(1, modelsProvider.configurationAttributes)
     // The created nlModels contains default one plus all custom configurations,
     // so its size is CustomModelsProvider.customConfigurations.size() + 1.
     val nlModelsAfterAdded = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
     assertSize(2, nlModelsAfterAdded)
     assertEquals(defaultConfig, nlModelsAfterAdded[0].configuration)
-    assertEquals(newConfig, nlModelsAfterAdded[1].configuration)
+    assertEquals("Preview", nlModelsAfterAdded[1].modelDisplayName)
 
-    modelsProvider.removeConfiguration(CustomConfiguration("", newConfig))
-    assertSize(0, modelsProvider.customConfigurations)
+    modelsProvider.removeCustomConfigurationAttributes(nlModelsAfterAdded[1])
+    assertSize(0, modelsProvider.configurationAttributes)
     val nlModelsAfterRemoved = modelsProvider.createNlModels(testRootDisposable, file, myFacet)
     assertSize(1, nlModelsAfterRemoved)
     assertEquals(defaultConfig, nlModelsAfterRemoved[0].configuration)
@@ -104,14 +109,15 @@ class CustomModelsProviderTest : LayoutTestCase() {
     val configurationManager = ConfigurationManager.getOrCreateInstance(myFacet)
     val defaultConfig = configurationManager.getConfiguration(defaultFile.virtualFile)
 
-    // Create additional config
-    val newConfig = Configuration.create(defaultConfig, defaultFile.virtualFile)
-    val device = configurationManager.getDeviceById("pixel_3")!!
-    val state = device.defaultState.deepCopy().apply { orientation = ScreenOrientation.PORTRAIT }
-    newConfig.setEffectiveDevice(device, state)
-    newConfig.locale = Locale.create("en")
-    newConfig.setTheme(configurationManager.computePreferredTheme(defaultConfig))
-    modelsProvider.addConfiguration(CustomConfiguration("", newConfig))
+    val attributes = CustomConfigurationAttribute("Preview",
+                                                  "pixel_3",
+                                                  28,
+                                                  ScreenOrientation.PORTRAIT,
+                                                  Locale.create("en").toString(),
+                                                  configurationManager.computePreferredTheme(defaultConfig),
+                                                  UiMode.NORMAL,
+                                                  NightMode.NOTNIGHT)
+    modelsProvider.addCustomConfigurationAttributes(attributes)
 
     // Create models, first one is default one and second one is custom one, which should associate to en file.
     val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myFacet)
@@ -120,6 +126,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
   }
 }
 
+@Language("Xml")
 private const val LAYOUT_FILE_CONTENT = """
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"

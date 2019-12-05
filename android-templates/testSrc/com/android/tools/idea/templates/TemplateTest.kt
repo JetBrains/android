@@ -531,6 +531,18 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareSettingsFragment() {
+    checkCreateTemplate("fragments", "SettingsFragment",
+                        ActivityCreationMode.WITH_PROJECT, false, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareSettingsFragmentWithKotlin() {
+    checkCreateTemplate("fragments", "SettingsFragment",
+                        ActivityCreationMode.WITH_PROJECT, false, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewViewModelFragment() {
     checkCreateTemplate("fragments", "ViewModelFragment")
   }
@@ -538,6 +550,18 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewViewModelFragmentWithKotlin() {
     checkCreateTemplate("fragments", "ViewModelFragment", ActivityCreationMode.WITHOUT_PROJECT, false, withKotlin)
+  }
+
+  @TemplateCheck
+  fun testCompareViewModelFragment() {
+    checkCreateTemplate("fragments", "ViewModelFragment", ActivityCreationMode.WITHOUT_PROJECT,
+                        false, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareViewModelFragmentWithKotlin() {
+    checkCreateTemplate("fragments", "ViewModelFragment", ActivityCreationMode.WITHOUT_PROJECT,
+                        false, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -551,6 +575,18 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareScrollFragment() {
+    checkCreateTemplate("fragments", "ScrollFragment",
+                        ActivityCreationMode.WITHOUT_PROJECT, false, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareScrollFragmentWithKotlin() {
+    checkCreateTemplate("fragments", "ScrollFragment",
+                        ActivityCreationMode.WITHOUT_PROJECT, false, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewFullscreenFragment() {
     checkCreateTemplate("fragments", "FullscreenFragment")
   }
@@ -558,6 +594,18 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewFullscreenFragmentWithKotlin() {
     checkCreateTemplate("fragments", "FullscreenFragment", ActivityCreationMode.WITHOUT_PROJECT, false, withKotlin)
+  }
+
+  @TemplateCheck
+  fun testCompareFullscreenFragment() {
+    checkCreateTemplate("fragments", "FullscreenFragment",
+                        ActivityCreationMode.WITHOUT_PROJECT, false, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareFullscreenFragmentWithKotlin() {
+    checkCreateTemplate("fragments", "FullscreenFragment",
+                        ActivityCreationMode.WITHOUT_PROJECT, false, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -580,6 +628,19 @@ open class TemplateTest : TemplateTestBase() {
     checkCreateTemplate("fragments", "GoogleAdMobAdsFragment", ActivityCreationMode.WITHOUT_PROJECT, false, withKotlin)
   }
 
+  @TemplateCheck
+  fun testCompareGoogleAdMobFragment() {
+    checkCreateTemplate("fragments", "GoogleAdMobAdsFragment",
+                        ActivityCreationMode.WITHOUT_PROJECT, false, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareGoogleAdMobFragmentWithKotlin() {
+    checkCreateTemplate("fragments", "GoogleAdMobAdsFragment",
+                        ActivityCreationMode.WITHOUT_PROJECT, false, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testLoginFragment() {
     checkCreateTemplate("fragments", "LoginFragment")
   }
@@ -587,6 +648,18 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testLoginFragmentWithKotlin() {
     checkCreateTemplate("fragments", "LoginFragment", ActivityCreationMode.WITHOUT_PROJECT, false, withKotlin)
+  }
+
+  @TemplateCheck
+  fun testCompareLoginFragment() {
+    checkCreateTemplate("fragments", "LoginFragment",
+                        ActivityCreationMode.WITHOUT_PROJECT, false, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareLoginFragmentWithKotlin() {
+    checkCreateTemplate("fragments", "LoginFragment",
+                        ActivityCreationMode.WITHOUT_PROJECT, false, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck

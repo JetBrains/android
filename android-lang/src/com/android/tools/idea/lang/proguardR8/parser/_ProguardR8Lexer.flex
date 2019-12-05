@@ -152,7 +152,8 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
   "***"                                  { return ANY_TYPE_; }
   "..."                                  { return ANY_TYPE_AND_NUM_OF_ARGS; }
   "%"                                    { return ANY_PRIMITIVE_TYPE_; }
-  "[]"                                   { return ARRAY; }
+  "["                                    { return OPEN_BRACKET; }
+  "]"                                    { return CLOSE_BRACKET; }
   "boolean"                              { return BOOLEAN; }
   "byte"                                 { return BYTE; }
   "char"                                 { return CHAR; }

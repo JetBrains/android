@@ -16,20 +16,14 @@
 package com.android.tools.idea.npw.module
 
 import com.android.sdklib.SdkVersionInfo.LOWEST_ACTIVE_API
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDummyTemplate
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.FormFactor.Companion.get
-import com.android.tools.idea.npw.model.NewModuleModel
+import com.android.tools.idea.npw.model.NewAndroidModuleModel
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
-import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
-import com.android.tools.idea.npw.template.TemplateHandle
-import com.android.tools.idea.npw.ui.getTemplateIcon
-import com.android.tools.idea.templates.Template.ANDROID_PROJECT_TEMPLATE
-import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
+import com.android.tools.idea.npw.model.ProjectSyncInvoker
+import com.android.tools.idea.templates.Template
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.SkippableWizardStep
-import com.android.tools.idea.wizard.template.ModuleTemplateData
-import com.android.tools.idea.wizard.template.TemplateData
 import com.intellij.openapi.project.Project
 import icons.AndroidIcons
 import org.jetbrains.android.util.AndroidBundle.message
@@ -37,68 +31,82 @@ import java.io.File
 import javax.swing.Icon
 
 class NewAndroidModuleDescriptionProvider : ModuleDescriptionProvider {
-  override fun getDescriptions(project: Project): Collection<ModuleTemplateGalleryEntry> {
-    val manager = TemplateManager.getInstance()!!
+  override fun getDescriptions(project: Project): Collection<ModuleGalleryEntry> = listOf(
+    MobileModuleTemplateGalleryEntry(),
+    AndroidLibraryModuleTemplateGalleryEntry(),
+    WearModuleTemplateGalleryEntry(),
+    TvModuleTemplateGalleryEntry(),
+    ThingsModuleTemplateGalleryEntry(),
+    AutomotiveModuleTemplateGalleryEntry()
+  )
 
-    return manager.getTemplatesInCategory(CATEGORY_APPLICATION)
-      .filter { manager.getTemplateMetadata(it)?.formFactor != null }
-      .flatMap { templateFile ->
-        val metadata = manager.getTemplateMetadata(templateFile)!!
-        val minSdk = metadata.minSdk
-        val formFactor = get(metadata.formFactor!!)
+  private abstract class AndroidModuleTemplateGalleryEntry(
+    override val templateFile: File?,
+    override val name: String,
+    override val description: String,
+    override val icon: Icon,
+    val formFactor: FormFactor
+  ): ModuleGalleryEntry {
+    val isLibrary = false
 
-        fun File.getIcon(): Icon = getTemplateIcon(TemplateHandle(this))!!
-        fun createTemplateEntry(isLibrary: Boolean, icon: Icon, title: String = metadata.title!!) =
-          if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get() && title == message("android.wizard.module.new.mobile"))
-            AndroidModuleTemplateGalleryEntry(
-              null,
-              { appTitle: String? ->
-                { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle) }
-              },
-              FormFactor.MOBILE,
-              LOWEST_ACTIVE_API,
-              false,
-              AndroidIcons.Wizards.AndroidModule,
-              title,
-              message("android.wizard.module.new.mobile.description")
-            )
-          else
-            AndroidModuleTemplateGalleryEntry(templateFile, null, formFactor, minSdk, isLibrary, icon, title, metadata.description!!)
-
-        val templateIcon = templateFile.getIcon()
-
-        if (formFactor == FormFactor.MOBILE) {
-          val androidProjectTemplate = TemplateManager.getInstance().getTemplateFile(CATEGORY_APPLICATION, ANDROID_PROJECT_TEMPLATE)!!
-          listOf(
-            createTemplateEntry(false, templateIcon, message("android.wizard.module.new.mobile")),
-            createTemplateEntry(true, androidProjectTemplate.getIcon(), message("android.wizard.module.new.library"))
-          )
-        }
-        else {
-          listOf(createTemplateEntry(false, templateIcon))
-        }
-      }
+    override fun toString(): String = name
+    override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
+      val basePackage = getSuggestedProjectPackage()
+      val model = NewAndroidModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate(), isLibrary, templateFile)
+      return ConfigureAndroidModuleStep(model, formFactor, LOWEST_ACTIVE_API, basePackage, name)
+    }
   }
 
-  private class AndroidModuleTemplateGalleryEntry(
-    override val templateFile: File?,
-    override val recipe: NewAndroidModuleRecipe?,
-    override val formFactor: FormFactor,
-    private val minSdkLevel: Int,
-    override val isLibrary: Boolean,
-    override val icon: Icon,
-    override val name: String,
-    override val description: String
-  ) : ModuleTemplateGalleryEntry {
-    override fun toString(): String = name
+  private class MobileModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
+    TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Android Module"),
+    message("android.wizard.module.new.mobile"),
+    message("android.wizard.module.new.mobile.description"),
+    AndroidIcons.Wizards.MobileModule,
+    FormFactor.MOBILE
+  )
 
-    init {
-      requireNotNull(templateFile ?: recipe)
-    }
+  private class AutomotiveModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
+    TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Automotive Module"),
+    message("android.wizard.module.new.automotive"),
+    message("android.wizard.module.new.automotive.description"),
+    AndroidIcons.Wizards.AutomotiveModule,
+    FormFactor.AUTOMOTIVE
+  )
 
-    override fun createStep(model: NewModuleModel): SkippableWizardStep<*> {
+  private class ThingsModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
+    TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Android Module"),
+    message("android.wizard.module.new.things"),
+    message("android.wizard.module.new.things.description"),
+    AndroidIcons.Wizards.ThingsModule,
+    FormFactor.THINGS
+  )
+
+  private class TvModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
+    TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Android TV Module"),
+    message("android.wizard.module.new.tv"),
+    message("android.wizard.module.new.tv.description"),
+    AndroidIcons.Wizards.TvModule,
+    FormFactor.TV
+  )
+
+  private class WearModuleTemplateGalleryEntry : AndroidModuleTemplateGalleryEntry(
+    TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Wear OS Module"),
+    message("android.wizard.module.new.wear"),
+    message("android.wizard.module.new.wear.description"),
+    AndroidIcons.Wizards.WearModule,
+    FormFactor.WEAR
+  )
+
+  private class AndroidLibraryModuleTemplateGalleryEntry: ModuleGalleryEntry {
+    override val templateFile = TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Android Module")
+    override val name: String = message("android.wizard.module.new.library")
+    override val description: String = message("android.wizard.module.new.library.description")
+    override val icon: Icon = AndroidIcons.Wizards.AndroidModule
+
+    override fun createStep(project: Project, projectSyncInvoker: ProjectSyncInvoker, moduleParent: String?): SkippableWizardStep<*> {
       val basePackage = getSuggestedProjectPackage()
-      return ConfigureAndroidModuleStep(model, formFactor, minSdkLevel, basePackage, name)
+      val model = NewAndroidModuleModel(project, moduleParent, projectSyncInvoker, createDummyTemplate(), true, templateFile)
+      return ConfigureAndroidModuleStep(model, FormFactor.MOBILE, LOWEST_ACTIVE_API, basePackage, name)
     }
   }
 }

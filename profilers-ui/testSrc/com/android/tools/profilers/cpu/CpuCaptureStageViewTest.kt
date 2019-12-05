@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu
 
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
@@ -29,15 +28,12 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip
-import com.android.tools.profilers.cpu.atrace.CpuKernelTooltip
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.JBSplitter
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Point
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import javax.swing.JLabel
 import javax.swing.SwingUtilities
 
@@ -122,7 +118,6 @@ class CpuCaptureStageViewTest {
   fun showTrackGroupTooltip() {
     // Load Atrace
     services.enablePerfetto(true)
-    services.enableAtrace(true)
     val stage = CpuCaptureStage.create(profilersView.studioProfilers, "", TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_PID1_PATH))
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()
@@ -140,10 +135,7 @@ class CpuCaptureStageViewTest {
     assertThat(stageView.trackGroupList.activeTooltip).isInstanceOf(CpuFrameTooltip::class.java)
 
     // Thread tooltip
-    val threadsTracks = trackGroups[2].trackList
-    val threadsTracksOrigin = SwingUtilities.convertPoint(threadsTracks, Point(0, 0), stageView.component)
-    ui.mouse.moveTo(threadsTracksOrigin.x, threadsTracksOrigin.y)
-    assertThat(stageView.trackGroupList.activeTooltip).isInstanceOf(CpuThreadsTooltip::class.java)
+    // TODO: cell renderer has width=0 in this test, causing the in-cell tooltip switching logic to fail.
 
     // CPU core tooltip
     // TODO: use a trace with CPU cores data

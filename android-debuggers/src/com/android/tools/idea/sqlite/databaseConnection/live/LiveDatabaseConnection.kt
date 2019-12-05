@@ -58,27 +58,22 @@ class LiveDatabaseConnection(
     }
   }
 
-  override fun executeQuery(sqLiteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
+  override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet?> {
     // TODO(b/144336989) pass SqliteStatement object instead of String.
-    val queryBuilder = SqliteInspection.QueryCommand.newBuilder().setQuery(sqLiteStatement.toString()).setDatabaseId(id)
+    val queryBuilder = SqliteInspection.QueryCommand.newBuilder().setQuery(sqliteStatement.toString()).setDatabaseId(id)
     // TODO: next CL. Figure out how to do this
     //hints.forEach { queryBuilder.addAffectedTables(it) }
     val command = SqliteInspection.Commands.newBuilder().setQuery(queryBuilder).build()
     val responseFuture = messenger.sendRawCommand(command.toByteArray())
 
     return taskExecutor.transform(responseFuture) {
-      getLiveSqliteResultSet(SqliteInspection.Cursor.parseFrom(it))
+      val cursor = SqliteInspection.Cursor.parseFrom(it)
+      if (cursor.rowsList.size == 0) {
+        null
+      } else {
+        getLiveSqliteResultSet(cursor)
+      }
     }
-  }
-
-  override fun executeUpdate(sqLiteStatement: SqliteStatement): ListenableFuture<Int> {
-    // TODO(b/144336989) pass SqliteStatement object instead of String.
-    val command = SqliteInspection.Commands.newBuilder()
-      .setExec(SqliteInspection.ExecCommand.newBuilder().setQuery(sqLiteStatement.toString()).setDatabaseId(id)).build()
-    val responseFuture = messenger.sendRawCommand(command.toByteArray())
-
-    // TODO(blocked): get value from cursor. Not yet implemented on device side.
-    return taskExecutor.transform(responseFuture) { 1 }
   }
 
   private fun getLiveSqliteResultSet(cursor: SqliteInspection.Cursor): ImmediateSqliteResultSet {

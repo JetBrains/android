@@ -54,16 +54,24 @@ class RefreshDesignAssetActionTest {
   }
 
   @Test
-  fun testDisabled() {
+  fun testDisabledWithColorDesignAsset() {
+    testDisabled(getDesignAssets(arrayOf(ResourceType.DRAWABLE, ResourceType.LAYOUT, ResourceType.COLOR)))
+  }
+
+  @Test
+  fun testDisabledWithNoDesignAssets() {
+    testDisabled(emptyArray())
+  }
+
+  private fun testDisabled(assets: Array<DesignAsset>) {
     val latch = CountDownLatch(1)
     val refreshAction = RefreshDesignAssetAction { latch.countDown() }
-    val assets = getDesignAssets(arrayOf(ResourceType.DRAWABLE, ResourceType.LAYOUT, ResourceType.COLOR))
     val dataContext = MapDataContext().apply { put(RESOURCE_DESIGN_ASSETS_KEY.name, assets) }
     val actionEvent = AnActionEvent(null, dataContext, "ActionTest", refreshAction.templatePresentation, actionManager, 0)
     refreshAction.update(actionEvent)
     assertFalse(actionEvent.presentation.isEnabledAndVisible)
     refreshAction.actionPerformed(actionEvent)
-    Truth.assertThat(latch.count).isEqualTo(1) // Not called in this case.
+    Truth.assertThat(latch.count).isEqualTo(1) // Not called when disabled.
   }
 
   /**

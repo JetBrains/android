@@ -68,13 +68,7 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   private final TracePreProcessor myFakeTracePreProcessor = new FakeTracePreProcessor();
 
   /**
-   * Can toggle for tests via {@link #enableAtrace(boolean)}, but each test starts with this defaulted to false.
-   */
-  private boolean myAtraceEnabled = false;
-
-  /**
-   * Can toggle for tests via {@link #enablePerfetto(boolean)}, but each test starts with this defaulted to false. Enabling this flag
-   * assumes that {@link #myAtraceEnabled} is true.
+   * Can toggle for tests via {@link #enablePerfetto(boolean)}, but each test starts with this defaulted to false.
    */
   private boolean myPerfettoEnabled = false;
 
@@ -244,11 +238,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
   public FeatureConfig getFeatureConfig() {
     return new FeatureConfig() {
       @Override
-      public boolean isAtraceEnabled() {
-        return myAtraceEnabled;
-      }
-
-      @Override
       public boolean isCpuApiTracingEnabled() {
         return myIsCpuApiTracingEnabled;
       }
@@ -277,11 +266,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
       @Override
       public boolean isLiveAllocationsSamplingEnabled() {
         return myLiveAllocationsSamplingEnabled;
-      }
-
-      @Override
-      public boolean isMemoryCaptureFilterEnabled() {
-        return false;
       }
 
       @Override
@@ -405,10 +389,6 @@ public final class FakeIdeProfilerServices implements IdeProfilerServices {
 
   public void setNativeProfilingConfigurationPreferred(boolean nativeProfilingConfigurationPreferred) {
     myNativeProfilingConfigurationPreferred = nativeProfilingConfigurationPreferred;
-  }
-
-  public void enableAtrace(boolean enabled) {
-    myAtraceEnabled = enabled;
   }
 
   public void enablePerfetto(boolean enabled) {

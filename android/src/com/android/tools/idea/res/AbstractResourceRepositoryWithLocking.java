@@ -22,6 +22,7 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.resources.ResourceType;
 import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import java.util.List;
 import java.util.Set;
@@ -89,6 +90,15 @@ public abstract class AbstractResourceRepositoryWithLocking extends AbstractReso
   public ListMultimap<String, ResourceItem> getResources(@NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType) {
     synchronized (ITEM_MAP_LOCK) {
       return super.getResources(namespace, resourceType);
+    }
+  }
+
+  @Override
+  @NotNull
+  public Set<String> getResourceNames(@NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType) {
+    synchronized (ITEM_MAP_LOCK) {
+      ListMultimap<String, ResourceItem> map = getMap(namespace, resourceType);
+      return map == null ? ImmutableSet.of() : ImmutableSet.copyOf(map.keySet());
     }
   }
 

@@ -29,6 +29,9 @@ import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer;
 import java.awt.Color;
+import java.awt.Point;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +50,29 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
     JPanel panel = new JPanel(new TabularLayout("*", "8px,*"));
     panel.add(threadStateChart, new TabularLayout.Constraint(0, 0));
     panel.add(traceEventChart, new TabularLayout.Constraint(1, 0));
+    panel.addMouseMotionListener(new MouseAdapter() {
+      @Override
+      public void mouseMoved(MouseEvent e) {
+        if (threadStateChart.contains(e.getPoint())) {
+          trackModel.setActiveTooltipModel(trackModel.getDataModel().getThreadStateTooltip());
+        }
+        else if (traceEventChart.contains(e.getPoint())) {
+          // Translate mouse point to be relative of the tree chart component.
+          Point p = e.getPoint();
+          p.translate(-traceEventChart.getX(), -traceEventChart.getY());
+          CaptureNode node = traceEventChart.getNodeAt(p);
+          if (node == null) {
+            trackModel.setActiveTooltipModel(null);
+          }
+          else {
+            trackModel.setActiveTooltipModel(trackModel.getDataModel().getTraceEventTooltipBuilder().apply(node));
+          }
+        }
+        else {
+          trackModel.setActiveTooltipModel(null);
+        }
+      }
+    });
     return panel;
   }
 

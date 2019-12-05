@@ -24,11 +24,6 @@ import org.junit.Before
 class CpuProfilerConfigsStateTest {
   private val myConfigsState = CpuProfilerConfigsState()
 
-  @Before
-  fun setUp() {
-    StudioFlags.PROFILER_USE_ATRACE.override(true)
-  }
-
   @Test
   fun testDefaultConfigs() {
     val configs = CpuProfilerConfigsState.getDefaultConfigs()

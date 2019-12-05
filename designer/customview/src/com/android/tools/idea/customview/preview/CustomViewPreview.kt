@@ -27,22 +27,33 @@ import com.android.tools.idea.common.util.setupBuildListener
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.editors.notifications.NotificationPanel
+import com.android.tools.idea.gradle.project.build.BuildStatus
+import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
+import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
+import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.util.function.BiFunction
+import java.util.function.Consumer
 import javax.swing.JPanel
+import javax.swing.OverlayLayout
 
 
 private fun fqcn2name(fcqn: String) = fcqn.substringAfterLast('.')
@@ -69,6 +80,7 @@ internal class CustomViewPreviewRepresentation(
   private val project = psiFile.project
   private val virtualFile = psiFile.virtualFile!!
   private val persistenceManager = persistenceProvider(project)
+  private var previewState: CustomViewPreviewManager.PreviewState = CustomViewPreviewManager.PreviewState.LOADING
 
   private val previewId = "$CUSTOM_VIEW_PREVIEW_ID${virtualFile.path}"
   private val currentStatePropertyName = "${previewId}_SELECTED"
@@ -81,21 +93,21 @@ internal class CustomViewPreviewRepresentation(
       if (field != value) {
         field = value
         if (field.isEmpty()) {
-          currentState = ""
+          currentView = ""
         }
-        else if (!states.contains(currentState)) {
-          currentState = states.first()
+        else if (!views.contains(currentView)) {
+          currentView = views.first()
         }
       }
     }
 
   // We use a list to preserve the order
-  override val states: List<String>
+  override val views: List<String>
     get() {
       return classes.map { fqcn2name(it) }
     }
 
-  override var currentState: String = persistenceManager.getValue(currentStatePropertyName, "")
+  override var currentView: String = persistenceManager.getValue(currentStatePropertyName, "")
     set(value) {
       if (field != value) {
         field = value
@@ -104,23 +116,30 @@ internal class CustomViewPreviewRepresentation(
       }
     }
 
-  override var shrinkHeight = persistenceManager.getValue(wrapContentHeightPropertyNameForClass(currentState), "false").toBoolean()
+  override var shrinkHeight = persistenceManager.getValue(wrapContentHeightPropertyNameForClass(currentView), "false").toBoolean()
     set(value) {
       if (field != value) {
         field = value
-        persistenceManager.setValue(wrapContentHeightPropertyNameForClass(currentState), value)
+        persistenceManager.setValue(wrapContentHeightPropertyNameForClass(currentView), value)
         updateModel()
       }
     }
 
-  override var shrinkWidth = persistenceManager.getValue(wrapContentWidthPropertyNameForClass(currentState), "false").toBoolean()
+  override var shrinkWidth = persistenceManager.getValue(wrapContentWidthPropertyNameForClass(currentView), "false").toBoolean()
     set(value) {
       if (field != value) {
         field = value
-        persistenceManager.setValue(wrapContentWidthPropertyNameForClass(currentState), value)
+        persistenceManager.setValue(wrapContentWidthPropertyNameForClass(currentView), value)
         updateModel()
       }
     }
+
+  override val state: CustomViewPreviewManager.PreviewState
+    get() = previewState
+
+  private val notificationsPanel = NotificationPanel(
+    ExtensionPointName.create<EditorNotifications.Provider<EditorNotificationPanel>>(
+      "com.android.tools.idea.customview.preview.customViewEditorNotificationProvider"))
 
   private val surface = NlDesignSurface.builder(project, this)
     .setDefaultSurfaceState(DesignSurface.State.SPLIT)
@@ -136,29 +155,87 @@ internal class CustomViewPreviewRepresentation(
 
   private val editorPanel = JPanel(BorderLayout()).apply {
     add(actionsToolbar.toolbarComponent, BorderLayout.NORTH)
-    add(surface, BorderLayout.CENTER)
+
+    val overlayPanel = object : JPanel() {
+      // Since the overlay panel is transparent, we can not use optimized drawing or it will produce rendering artifacts.
+      override fun isOptimizedDrawingEnabled(): Boolean = false
+    }
+
+    overlayPanel.apply {
+      layout = OverlayLayout(this)
+
+      add(notificationsPanel)
+      add(surface)
+    }
+
+    add(overlayPanel, BorderLayout.CENTER)
   }
 
   /**
    * [WorkBench] used to contain all the preview elements.
    */
-  val workbench = WorkBench<DesignSurface>(project, "Main Preview", null, this).apply {
+  private val workbench = WorkBench<DesignSurface>(project, "Main Preview", null, this).apply {
     init(editorPanel, surface, listOf(), false)
-    showLoading("Waiting for build to finish...")
   }
 
   init {
     setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
-        EditorNotifications.getInstance(project).updateNotifications(virtualFile)
         refresh()
       }
 
       override fun buildFailed() {
-        EditorNotifications.getInstance(project).updateNotifications(virtualFile)
-        workbench.loadingStopped("Preview is unavailable until after a successful project sync")
+        updatePreviewAndNotifications(CustomViewPreviewManager.PreviewState.NOT_COMPILED)
+      }
+
+      override fun buildStarted() {
+        updatePreviewAndNotifications(CustomViewPreviewManager.PreviewState.BUILDING)
       }
     }, this)
+
+    project.runWhenSmartAndSyncedOnEdt(this, Consumer { refresh() })
+
+    val previewState = when (GradleBuildState.getInstance(project).summary?.status) {
+      BuildStatus.SKIPPED, BuildStatus.SUCCESS, null -> CustomViewPreviewManager.PreviewState.LOADING
+      else -> CustomViewPreviewManager.PreviewState.NOT_COMPILED
+    }
+    updatePreviewAndNotifications(previewState)
+  }
+
+  private fun updatePreviewAndNotifications(newState: CustomViewPreviewManager.PreviewState) {
+    previewState = newState
+    fun updatePreview() {
+      val nothingToShow = classes.isEmpty()
+      when (previewState) {
+        CustomViewPreviewManager.PreviewState.LOADING -> {
+          workbench.hideContent()
+          workbench.showLoading("Waiting for gradle sync to finish...")
+        }
+        CustomViewPreviewManager.PreviewState.BUILDING -> {
+          if (nothingToShow) {
+            workbench.hideContent()
+            workbench.showLoading("Waiting for build to finish...")
+          }
+        }
+        CustomViewPreviewManager.PreviewState.RENDERING -> workbench.showLoading("Waiting for previews to render...")
+        CustomViewPreviewManager.PreviewState.NOT_COMPILED -> {
+          if (nothingToShow) {
+            workbench.hideContent()
+            workbench.loadingStopped("Preview is unavailable until after a successful project build.")
+          }
+        }
+        CustomViewPreviewManager.PreviewState.OK -> {
+          workbench.showContent()
+          workbench.hideLoading()
+        }
+      }
+    }
+
+    UIUtil.invokeLaterIfNeeded {
+      updatePreview()
+    }
+
+    EditorNotifications.getInstance(project).updateNotifications(virtualFile)
   }
 
   override val component = workbench
@@ -169,6 +246,7 @@ internal class CustomViewPreviewRepresentation(
    * Refresh the preview surfaces
    */
   private fun refresh() {
+    updatePreviewAndNotifications(CustomViewPreviewManager.PreviewState.RENDERING)
     // We are in a smart mode here
     classes = (AndroidPsiUtils.getPsiFileSafely(project,
                                                 virtualFile) as PsiClassOwner).classes.filter { it.name != null && it.extendsView() }.mapNotNull { it.qualifiedName }
@@ -183,7 +261,7 @@ internal class CustomViewPreviewRepresentation(
     surface.deactivate()
     surface.models.forEach { surface.removeModel(it) }
     surface.zoomToFit()
-    val selectedClass = classes.firstOrNull { fqcn2name(it) == currentState }
+    val selectedClass = classes.firstOrNull { fqcn2name(it) == currentView }
     selectedClass?.let {
       val customPreviewXml = CustomViewLightVirtualFile("custom_preview.xml", getXmlLayout(selectedClass, shrinkWidth, shrinkHeight))
       val facet = AndroidFacet.getInstance(psiFile)!!
@@ -214,15 +292,21 @@ internal class CustomViewPreviewRepresentation(
           }
           true
         }
-        workbench.hideLoading()
+
         if (ex != null) {
           Logger.getInstance(CustomViewPreviewRepresentation::class.java).warn(ex)
         }
+
+        updatePreviewAndNotifications(CustomViewPreviewManager.PreviewState.OK)
       }
     }
     editorWithPreview?.isPureTextEditor = selectedClass == null
   }
   var editorWithPreview: TextEditorWithCustomViewPreview? = null
+
+  override fun updateNotifications(parentEditor: FileEditor) {
+    notificationsPanel.updateNotifications(virtualFile, parentEditor, project)
+  }
 }
 
 /**

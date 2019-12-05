@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.iStr
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
+import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.FILE_CONSTRUCTOR_NAME
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INCOMPLETE_PARSING
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
@@ -363,7 +364,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
           // method call. For example : System.getEnv("pass") -> in such case, we shouldn't consider the expression as a literal but rather
           // as a methodCall.
           val methodName = "${receiver.text}.${referenceName}"
-          return getMethodCall(parent, expression, name, methodName, selector.valueArgumentList)
+          return getMethodCall(parent, expression, name, methodName, selector.valueArgumentList, false)
         }
       }
     }
@@ -386,11 +387,36 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       parentBlock = nestedElement
     }
 
-    val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return
-    propertyElement.setUseAssignment(true)
-    propertyElement.elementType = REGULAR
+    val matcher = GradleNameElement.INDEX_PATTERN.matcher(name.name())
+    if (matcher.find()) {
+      // we have an index / dereferencing lvalue: find the actual element that we will need to modify.
+      val property = modelNameForParent(matcher.group(0), parentBlock)
+      parentBlock = parentBlock.getElement(property) as? GradlePropertiesDslElement ?: return
+      // we do not need to convert this to a model name because it must be a user-supplied property.
+      var index = if (matcher.find()) matcher.group(1) else return
+      while (matcher.find()) {
+        parentBlock = GradleDslSimpleExpression.dereferencePropertiesElement(parentBlock, index) ?: return
+        index = matcher.group(1)
+      }
+      when(parentBlock) {
+        is GradleDslExpressionMap -> {
+          val name = GradleNameElement.create(unquoteString(index))
+          val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return
+          propertyElement.setUseAssignment(true)
+          propertyElement.elementType = REGULAR
 
-    parentBlock.setParsedElement(propertyElement)
+          parentBlock.setParsedElement(propertyElement)
+        }
+        else -> return
+      }
+    }
+    else {
+      val propertyElement = createExpressionElement(parentBlock, expression, name, right, true) ?: return
+      propertyElement.setUseAssignment(true)
+      propertyElement.elementType = REGULAR
+
+      parentBlock.setParsedElement(propertyElement)
+    }
   }
 
   override fun visitProperty(expression: KtProperty, parent: GradlePropertiesDslElement) {
@@ -452,7 +478,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     // If the CallExpression has one argument only that is a callExpression, we skip the current CallExpression.
     val arguments = argumentsList.arguments
     if (arguments.size != 1) {
-      return getMethodCall(parentElement, psiElement, name, methodName, argumentsList)
+      return getMethodCall(parentElement, psiElement, name, methodName, argumentsList, false)
     }
     else {
       val argumentExpression = arguments[0].getArgumentExpression()
@@ -469,7 +495,8 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
           // isNamed() checks if getArgumentName() is not null, so using !! here is safe (unless the implementation changes).
           if (arguments[0].isNamed()) GradleNameElement.create(arguments[0].getArgumentName()!!.text) else name,
           methodName,
-          argumentsList
+          argumentsList,
+          false
         )
       }
       if (isFirstCall && arguments[0].getArgumentExpression() != null && !arguments[0].isNamed()) {
@@ -479,7 +506,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
           name,
           arguments[0].getArgumentExpression() as KtElement)
       }
-      return getMethodCall(parentElement, psiElement, name, methodName, argumentsList)
+      return getMethodCall(parentElement, psiElement, name, methodName, argumentsList, false)
     }
   }
 
@@ -488,10 +515,11 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     psiElement: PsiElement,
     name: GradleNameElement,
     methodName: String,
-    arguments: KtValueArgumentList?
+    arguments: KtValueArgumentList?,
+    isConstructor: Boolean
   ): GradleDslMethodCall {
 
-    val methodCall = GradleDslMethodCall(parent, psiElement, name, methodName, false)
+    val methodCall = GradleDslMethodCall(parent, psiElement, name, methodName, isConstructor)
     if (arguments == null) return methodCall
     val argumentList = getExpressionList(methodCall, arguments, GradleNameElement.empty(), arguments.arguments, false)
     methodCall.setParsedArgumentList(argumentList)
@@ -558,6 +586,11 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       is KtCallExpression -> {
         // Ex: implementation(kotlin("stdlib-jdk7")).
         val expressionName = expression.name() ?: return null
+        // Special handling for KtCallExpression named File assuming that it is a constructor call as it is only used for path values so far.
+        // TODO (karimai): this is a workaround to avoid using psi resolution for now, See b/145395390.
+        if (expressionName == FILE_CONSTRUCTOR_NAME) {
+          return getMethodCall(parent, expression, name, expressionName, expression.valueArgumentList, true)
+        }
         val arguments = expression.valueArgumentList ?: return null
         return getCallExpression(parent, expression, name, arguments, expressionName, false, isLiteral)
       }

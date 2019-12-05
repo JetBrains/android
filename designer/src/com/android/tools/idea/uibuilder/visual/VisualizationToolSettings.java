@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.uibuilder.visual;
 
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.util.xmlb.annotations.Transient;
+import java.util.ArrayList;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
 @State(name = "VisualizationTool", storages = @Storage("visualizationTool.xml"))
@@ -65,7 +66,8 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
   public static class GlobalState {
     private boolean myVisible = false;
     private double myScale = 0.25;
-    @Nullable private String myConfigurationSetName = ConfigurationSet.PIXEL_DEVICES.name();
+    @NotNull private String myConfigurationSetName = ConfigurationSet.PIXEL_DEVICES.name();
+    @NotNull private List<CustomConfigurationAttribute> myCustomConfigurationAttributes = new ArrayList<>();
 
     public boolean isVisible() {
       return myVisible;
@@ -85,21 +87,33 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
 
     /**
      * Get the name of {@link ConfigurationSet}. This function is public just because it is part of JavaBean.
-     * Do not use this function. For getting {@link ConfigurationSet}, use {@link #getConfigurationSet} instead.
+     * Do not use this function; For getting {@link ConfigurationSet}, use {@link #getConfigurationSet} instead.
+     *
+     * Because {@link ConfigurationSet} is an enum class, once the saved {@link ConfigurationSet} is renamed or deleted, the fatal error
+     * may happen due to parsing persistent state failed. Thus, use {@link #getConfigurationSet} instead which handles the exception cases.
      */
     @SuppressWarnings("unused") // Used by JavaBeans
-    @Nullable
+    @NotNull
     public String getConfigurationSetName() {
       return myConfigurationSetName;
     }
 
     /**
      * Set the name of {@link ConfigurationSet}. This function is public just because it is part of JavaBean.
-     * Do not use this function. For setting {@link ConfigurationSet}, use {@link #setConfigurationSet(ConfigurationSet)} instead.
+     * Do not use this function; For setting {@link ConfigurationSet}, use {@link #setConfigurationSet(ConfigurationSet)} instead.
      */
     @SuppressWarnings("unused") // Used by JavaBeans
-    public void setConfigurationSetName(@Nullable String configurationSetName) {
+    public void setConfigurationSetName(@NotNull String configurationSetName) {
       myConfigurationSetName = configurationSetName;
+    }
+
+    @NotNull
+    public List<CustomConfigurationAttribute> getCustomConfigurationAttributes() {
+      return myCustomConfigurationAttributes;
+    }
+
+    public void setCustomConfigurationAttributes(@NotNull List<CustomConfigurationAttribute> configurationStrings) {
+      myCustomConfigurationAttributes = configurationStrings;
     }
 
     /**
@@ -127,6 +141,7 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
     /**
      * Helper function to set {@link ConfigurationSet}.
      */
+    @Transient
     public void setConfigurationSet(@NotNull ConfigurationSet configurationSet) {
       myConfigurationSetName = configurationSet.name();
     }

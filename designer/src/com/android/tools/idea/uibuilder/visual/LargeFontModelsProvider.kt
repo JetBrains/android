@@ -48,7 +48,7 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
 
     val models = mutableListOf<NlModel>()
     models.add(NlModel.create(parentDisposable,
-                              "Default Font (Normal)",
+                              "Default (100%)",
                               facet,
                               virtualFile,
                               defaultConfig,
@@ -62,21 +62,21 @@ object LargeFontModelsProvider : VisualizationModelsProvider {
     largestFontConfig.fontScale = SCALE_LARGEST
 
     models.add(NlModel.create(parentDisposable,
-                              "Smaller Font (85%)",
+                              "Small (85%)",
                               facet,
                               virtualFile,
                               smallerFontConfig,
                               Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
 
     models.add(NlModel.create(parentDisposable,
-                              "Larger Font (115%)",
+                              "Large (115%)",
                               facet,
                               virtualFile,
                               largerFontConfig,
                               Consumer<NlComponent> { NlComponentHelper.registerComponent(it) }))
 
     models.add(NlModel.create(parentDisposable,
-                              "Largest Font (130%)",
+                              "Largest (130%)",
                               facet,
                               virtualFile,
                               largestFontConfig,

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.templates.live
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInsight.template.impl.DefaultLiveTemplatesProvider
 
 /**
@@ -22,7 +23,7 @@ import com.intellij.codeInsight.template.impl.DefaultLiveTemplatesProvider
  */
 class AndroidLiveTemplatesProvider : DefaultLiveTemplatesProvider {
   override fun getDefaultLiveTemplateFiles(): Array<String> {
-    return arrayOf(
+    val templates = mutableListOf(
       "liveTemplates/Android",
       "liveTemplates/AndroidKotlin",
       "liveTemplates/AndroidComments",
@@ -33,6 +34,9 @@ class AndroidLiveTemplatesProvider : DefaultLiveTemplatesProvider {
       "liveTemplates/AndroidTesting",
       "liveTemplates/AndroidXML"
     )
+    if (StudioFlags.COMPOSE_SURROUND_WITH_WIDGET.get()) templates.add("liveTemplates/AndroidCompose")
+
+    return templates.toTypedArray()
   }
 
   override fun getHiddenLiveTemplateFiles(): Array<String>? = null

@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.res.ResourcesTestsUtil.addBinaryAarDependency;
+import static com.android.tools.idea.res.ResourcesTestsUtil.getSingleItem;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -126,7 +127,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     PsiFile layoutPsiFile = PsiManager.getInstance(getProject()).findFile(layoutFile);
     assertNotNull(layoutPsiFile);
     assertTrue(moduleRepository.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
-    ResourceItem item = ModuleResourceRepositoryTest.getFirstItem(moduleRepository, ResourceType.ID, "btn_title_refresh");
+    ResourceItem item = getSingleItem(moduleRepository, ResourceType.ID, "btn_title_refresh");
 
     long generation = moduleRepository.getModificationCount();
     long projectGeneration = projectResources.getModificationCount();
@@ -150,7 +151,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
       assertTrue(moduleRepository.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
       assertTrue(appResources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
       assertTrue(projectResources.hasResources(RES_AUTO, ResourceType.ID, "btn_title_refresh"));
-      ResourceItem newItem = ModuleResourceRepositoryTest.getFirstItem(appResources, ResourceType.ID, "btn_title_refresh");
+      ResourceItem newItem = getSingleItem(appResources, ResourceType.ID, "btn_title_refresh");
       assertNotNull(newItem.getSource());
       // However, should be a different item.
       assertNotSame(item, newItem);

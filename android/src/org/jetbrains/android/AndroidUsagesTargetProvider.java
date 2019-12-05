@@ -72,6 +72,25 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
     }
   }
 
+  @Nullable
+  @Override
+  public UsageTarget[] getTargets(@NotNull PsiElement psiElement) {
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+      if (psiElement instanceof ResourceReferencePsiElement) {
+        return UsageTarget.EMPTY_ARRAY;
+      }
+      ResourceReferencePsiElement referencePsiElement = ResourceReferencePsiElement.create(psiElement);
+      if (referencePsiElement == null) {
+        return UsageTarget.EMPTY_ARRAY;
+      }
+      referencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_ELEMENT, psiElement);
+      SearchScope scope = ResourceRepositoryToPsiResolver.getResourceSearchScope(referencePsiElement.getResourceReference(), psiElement);
+      referencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_SCOPE, scope);
+      return new UsageTarget[]{new PsiElement2UsageTargetAdapter(referencePsiElement)};
+    }
+    return UsageTarget.EMPTY_ARRAY;
+  }
+
   /**
    *
    * The rename parameter should be set to true when the method is called from a rename handler.

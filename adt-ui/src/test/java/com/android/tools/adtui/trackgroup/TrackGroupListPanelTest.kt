@@ -108,7 +108,7 @@ class TrackGroupListPanelTest {
   fun showTooltip() {
     val trackGroupListPanel = TrackGroupListPanel(TRACK_RENDERER_FACTORY)
     val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group1").build()
-    trackGroupModel.addTrackModel(TrackModel.newBuilder(true, TestTrackRendererType.FOO, "Foo").setTooltipModel(TestTooltip()))
+    trackGroupModel.addTrackModel(TrackModel.newBuilder(true, TestTrackRendererType.FOO, "Foo").setDefaultTooltipModel(TestTooltip()))
     trackGroupListPanel.tooltipBinder.bind(TestTooltip::class.java, ::TestTooltipView)
     trackGroupListPanel.loadTrackGroups(listOf(trackGroupModel))
     trackGroupListPanel.component.setBounds(0, 0, 500, 500)

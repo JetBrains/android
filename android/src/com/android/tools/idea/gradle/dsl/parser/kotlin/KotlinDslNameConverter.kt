@@ -56,7 +56,7 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
         // prefer assignment if possible, or otherwise the first appropriate method we find
         when (e.value.second) {
           VAR, VWO -> return e.key.first to false
-          SET, OTHER -> if (result == null) result = e.key.first to true
+          SET, ADD_AS_LIST, OTHER -> if (result == null) result = e.key.first to true
           else -> Unit
         }
       }

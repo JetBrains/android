@@ -1404,8 +1404,10 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     BuildTypeModel xyzModel = android.buildTypes().stream().filter(type -> type.name().equals("xyz")).findFirst().orElse(null);
     assertThat(xyzModel, is(notNullValue()));
+    verifyPropertyModel(xyzModel.debuggable(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 0);
     BuildTypeModel releaseModel = android.buildTypes().stream().filter(type -> type.name().equals("release")).findFirst().orElse(null);
     assertThat(releaseModel, is(notNullValue()));
+    verifyPropertyModel(releaseModel.jniDebuggable(), BOOLEAN_TYPE, true, BOOLEAN, REGULAR, 1);
 
     xyzModel.debuggable().delete();
 
