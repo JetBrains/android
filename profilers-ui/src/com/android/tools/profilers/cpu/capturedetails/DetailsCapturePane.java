@@ -65,7 +65,7 @@ class DetailsCapturePane extends CapturePane {
     myTabsPanel.addChangeListener(event -> setCaptureDetailToTab());
 
     final CpuProfilerStage stage = myStageView.getStage();
-    myFilterComponent = new FilterComponent(stage.getCaptureFilter(),
+    myFilterComponent = new FilterComponent(stage.getCaptureModel().getFilter(),
                                             FILTER_TEXT_FIELD_WIDTH, FILTER_TEXT_HISTORY_SIZE, FILTER_TEXT_FIELD_TRIGGER_DELAY_MS)
       .setMatchCountVisibility(false); // TODO(b/112703942): Show again when we can completely support this value
 
@@ -73,8 +73,7 @@ class DetailsCapturePane extends CapturePane {
       @Override
       @NotNull
       protected FilterResult applyFilter(@NotNull Filter filter) {
-        stage.setCaptureFilter(filter);
-        return new FilterResult(stage.getCaptureFilterNodeCount(), !filter.isEmpty());
+        return stage.applyCaptureFilter(filter);
       }
     });
     myFilterComponent.setVisible(!myFilterComponent.getModel().getFilter().isEmpty());

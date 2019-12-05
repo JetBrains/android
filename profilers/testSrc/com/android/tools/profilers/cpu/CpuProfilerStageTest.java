@@ -1533,7 +1533,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     Filter filter = Filter.EMPTY_FILTER;
     filterModel.setFilter(filter);
 
-    myStage.setCaptureFilter(filter);
+    myStage.applyCaptureFilter(filter);
 
     FilterMetadata filterMetadata = tracker.getLastFilterMetadata();
     assertThat(filterMetadata).isNotNull();
@@ -1544,7 +1544,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
     filter = new Filter("some", true, true);
     filterModel.setFilter(filter);
-    myStage.setCaptureFilter(filter);
+    myStage.applyCaptureFilter(filter);
     filterMetadata = tracker.getLastFilterMetadata();
     assertThat(filterMetadata).isNotNull();
     assertThat(filterMetadata.getFilterTextLength()).isEqualTo(4);

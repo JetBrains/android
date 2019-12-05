@@ -18,6 +18,8 @@ package com.android.tools.profilers.cpu.analysis;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
+import com.android.tools.adtui.model.filter.Filter;
+import com.android.tools.adtui.model.filter.FilterResult;
 import com.android.tools.adtui.model.formatter.PercentAxisFormatter;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
@@ -67,7 +69,22 @@ public class CpuAnalysisChartModel<T> extends CpuAnalysisTabModel<T> {
 
   @NotNull
   public CaptureDetails createDetails() {
-    return myDetailsType.build(mySelectionRange, collectCaptureNodes(), myCapture);
+    return applyFilterAndCreateDetails(Filter.EMPTY_FILTER).getCaptureDetails();
+  }
+
+  /**
+   * Create capture details from the chart model with a filter applied.
+   *
+   * @return capture details and filter result.
+   */
+  @NotNull
+  public CaptureDetailsWithFilterResult applyFilterAndCreateDetails(@NotNull Filter filter) {
+    List<CaptureNode> nodes = collectCaptureNodes();
+    FilterResult combinedResult = nodes.stream()
+      .map(node -> node.applyFilter(filter))
+      .reduce(FilterResult::combine)
+      .orElseGet(FilterResult::new);
+    return new CaptureDetailsWithFilterResult(myDetailsType.build(mySelectionRange, nodes, myCapture), combinedResult);
   }
 
   @NotNull
@@ -90,5 +107,28 @@ public class CpuAnalysisChartModel<T> extends CpuAnalysisTabModel<T> {
   private List<CaptureNode> collectCaptureNodes() {
     // Data series contains each thread selected. For each thread we grab the children and add them to our root.
     return getDataSeries().stream().map(myCaptureNodesExtractor).flatMap(Collection::stream).collect(Collectors.toList());
+  }
+
+  /**
+   * Helper class to hold both a {@link CaptureDetails} and {@link FilterResult}.
+   */
+  static class CaptureDetailsWithFilterResult {
+    @NotNull private final CaptureDetails myCaptureDetails;
+    @NotNull private final FilterResult myFilterResult;
+
+    private CaptureDetailsWithFilterResult(@NotNull CaptureDetails captureDetails, @NotNull FilterResult filterResult) {
+      myCaptureDetails = captureDetails;
+      myFilterResult = filterResult;
+    }
+
+    @NotNull
+    CaptureDetails getCaptureDetails() {
+      return myCaptureDetails;
+    }
+
+    @NotNull
+    FilterResult getFilterResult() {
+      return myFilterResult;
+    }
   }
 }
