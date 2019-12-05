@@ -15,21 +15,31 @@
  */
 package com.android.build.attribution.ui.tree
 
+import com.android.build.attribution.ui.controllers.BuildAttributionViewControllersProvider
+import com.android.build.attribution.ui.controllers.TaskIssueReporter
+import com.android.build.attribution.ui.controllers.TreeNodeSelector
 import com.android.build.attribution.ui.panels.AbstractBuildAttributionInfoPanel
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.openapi.ui.ComponentContainer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.CachingSimpleNode
-import com.intellij.ui.treeStructure.SimpleNode
 import javax.swing.Icon
 import javax.swing.JComponent
 
-abstract class AbstractBuildAttributionNode protected constructor(
-  aParent: SimpleNode,
-  val nodeName: String
-) : CachingSimpleNode(aParent), ComponentContainer {
+abstract class ControllersAwareBuildAttributionNode(
+  aParent: ControllersAwareBuildAttributionNode?
+) : CachingSimpleNode(aParent),
+    BuildAttributionViewControllersProvider
 
-  val nodeId: String = if (aParent is AbstractBuildAttributionNode) "${aParent.nodeId} > $nodeName" else nodeName
+abstract class AbstractBuildAttributionNode protected constructor(
+  parent: ControllersAwareBuildAttributionNode,
+  val nodeName: String
+) : ControllersAwareBuildAttributionNode(parent), ComponentContainer {
+
+  open val nodeId: String = if (parent is AbstractBuildAttributionNode) "${parent.nodeId} > $nodeName" else nodeName
+
+  override val nodeSelector: TreeNodeSelector = parent.nodeSelector
+  override val issueReporter: TaskIssueReporter = parent.issueReporter
 
   abstract val presentationIcon: Icon?
   abstract val issuesCountsSuffix: String?

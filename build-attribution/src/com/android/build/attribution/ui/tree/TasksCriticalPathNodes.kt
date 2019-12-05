@@ -37,7 +37,7 @@ import javax.swing.JComponent
 
 class CriticalPathTasksRoot(
   private val data: CriticalPathTasksUiData,
-  parent: SimpleNode,
+  parent: ControllersAwareBuildAttributionNode,
   private val taskIssueLinkListener: TreeLinkListener<TaskIssueUiData>
 ) : AbstractBuildAttributionNode(parent, "Critical Path Tasks") {
   private val chartItems: List<TimeDistributionChart.ChartDataItem<TaskUiData>> = createTaskChartItems(data)
@@ -87,7 +87,7 @@ private class TaskNode(
   private val taskData: TaskUiData,
   private val chartItems: List<TimeDistributionChart.ChartDataItem<TaskUiData>>,
   private val selectedChartItem: TimeDistributionChart.ChartDataItem<TaskUiData>,
-  parent: SimpleNode,
+  parent: CriticalPathTasksRoot,
   private val taskIssueLinkListener: TreeLinkListener<TaskIssueUiData>
 ) : AbstractBuildAttributionNode(parent, taskData.taskPath) {
 

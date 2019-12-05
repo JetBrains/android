@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.build.attribution.ui
+package com.android.build.attribution.ui.controllers
 
 import com.android.annotations.concurrency.UiThread
+import com.android.build.attribution.ui.BuildAttributionIssueReportingDialog
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.TaskIssueReportGenerator
 import com.android.build.attribution.ui.data.TaskIssueUiData

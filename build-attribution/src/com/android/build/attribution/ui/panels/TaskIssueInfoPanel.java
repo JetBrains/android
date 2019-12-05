@@ -19,7 +19,7 @@ import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.duration
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.issueIcon;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.percentageString;
 
-import com.android.build.attribution.ui.TaskIssueReporter;
+import com.android.build.attribution.ui.controllers.TaskIssueReporter;
 import com.android.build.attribution.ui.data.InterTaskIssueUiData;
 import com.android.build.attribution.ui.data.PluginSourceType;
 import com.android.build.attribution.ui.data.TaskIssueUiData;
