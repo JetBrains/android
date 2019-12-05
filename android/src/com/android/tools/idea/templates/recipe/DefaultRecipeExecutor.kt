@@ -64,12 +64,14 @@ import com.google.common.collect.SetMultimap
 import com.intellij.diff.comparison.ComparisonManager
 import com.intellij.diff.comparison.ComparisonPolicy
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.ReadonlyStatusHandler
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileVisitor
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.XmlElementFactory
 import com.intellij.util.LineSeparator
 import freemarker.template.Configuration
