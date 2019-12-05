@@ -17,6 +17,7 @@ package com.android.tools.idea.res
 
 import com.android.SdkConstants
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.idea.util.computeUserDataIfAbsent
 import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.module.Module
@@ -42,11 +43,7 @@ import org.jetbrains.android.util.AndroidUtils
  * This class is a project service, but it's not declared as [PsiElementFinder.EP_NAME] extension. The reason for that is that it's up to
  * the project system to decide whether to use this logic (see [ProjectSystemPsiElementFinder]).
  */
-class AndroidManifestClassPsiElementFinder(
-  private val psiManager: PsiManager,
-  private val projectFacetManager: ProjectFacetManager,
-  private val androidLightPackagesCache: AndroidLightPackage.InstanceCache
-) : PsiElementFinder() {
+class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFinder() {
 
   companion object {
     private const val SUFFIX = "." + SdkConstants.FN_MANIFEST_BASE
@@ -82,7 +79,7 @@ class AndroidManifestClassPsiElementFinder(
 
   fun getManifestClassForFacet(facet: AndroidFacet): PsiClass? {
     return if (facet.hasManifestClass()) {
-      facet.getUserData(MODULE_MANIFEST_CLASS) ?: facet.putUserDataIfAbsent(MODULE_MANIFEST_CLASS, ManifestClass(facet, psiManager))
+      facet.computeUserDataIfAbsent(MODULE_MANIFEST_CLASS) { ManifestClass(facet, PsiManager.getInstance(project)) }
     } else {
       null
     }
@@ -90,7 +87,7 @@ class AndroidManifestClassPsiElementFinder(
 
   override fun findPackage(qualifiedName: String): PsiPackage? {
     return if (findAndroidFacetsWithPackageName(qualifiedName).isNotEmpty()) {
-      androidLightPackagesCache.get(qualifiedName)
+      AndroidLightPackage.withName(qualifiedName, project)
     }
     else {
       null
@@ -111,7 +108,7 @@ class AndroidManifestClassPsiElementFinder(
 
   private fun findAndroidFacetsWithPackageName(packageName: String): List<AndroidFacet> {
     // TODO(b/110188226): cache this and figure out how to invalidate that cache.
-    return projectFacetManager.getFacets(AndroidFacet.ID).filter { getPackageName(it) == packageName }
+    return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).filter { getPackageName(it) == packageName }
   }
 
   private fun AndroidFacet.hasManifestClass(): Boolean {
