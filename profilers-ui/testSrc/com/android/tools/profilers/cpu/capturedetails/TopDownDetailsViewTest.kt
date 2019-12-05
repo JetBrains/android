@@ -85,8 +85,8 @@ class TopDownDetailsViewTest {
   }
 
   @Test
-  fun showsNoDataForThreadMessageWhenNodeIsNull() {
-    val topDown = CaptureDetails.Type.TOP_DOWN.build(Range(), listOf(capture.getCaptureNode(1)), capture) as CaptureDetails.TopDown
+  fun showsNoDataForThreadMessageWhenNodeIsEmpty() {
+    val topDown = CaptureDetails.Type.TOP_DOWN.build(Range(), emptyList(), capture) as CaptureDetails.TopDown
     val topDownView = TreeDetailsView.TopDownDetailsView(profilersView, topDown)
 
     val noDataInstructions = TreeWalker(topDownView.component).descendants().filterIsInstance<InstructionsPanel>().first {

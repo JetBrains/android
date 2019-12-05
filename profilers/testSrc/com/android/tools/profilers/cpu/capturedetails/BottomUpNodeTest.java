@@ -265,7 +265,7 @@ public class BottomUpNodeTest {
                     newNode("A", 0, 20));
     addChainSubtree(root.getChildren().get(0), newNode("B", 45, 100), newNode("A", 50, 70),
                     newNode("B", 55, 65));
-    addChainSubtree(root.getChildren().get(0), newNode("B", 21, 40),
+    addChainSubtree(root.getChildren().get(0).getChildren().get(0), newNode("B", 21, 40),
                     newNode("A", 25, 28));
 
     BottomUpNode node = new BottomUpNode(root);

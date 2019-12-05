@@ -23,11 +23,13 @@ import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.VisualNodeCaptureNode;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
-import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.google.common.collect.ImmutableMap;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -65,7 +67,7 @@ public class CpuAnalysisChartModel<T> extends CpuAnalysisTabModel<T> {
 
   @NotNull
   public CaptureDetails createDetails() {
-    return myDetailsType.build(mySelectionRange, createRootNode(), myCapture);
+    return myDetailsType.build(mySelectionRange, collectCaptureNodes(), myCapture);
   }
 
   @NotNull
@@ -85,12 +87,8 @@ public class CpuAnalysisChartModel<T> extends CpuAnalysisTabModel<T> {
    * Note: As we modify the selection model we may want to revisit this behavior for individually selected threads.
    */
   @NotNull
-  private CaptureNode createRootNode() {
-    VisualNodeCaptureNode rootNode = new VisualNodeCaptureNode(new SingleNameModel("Root"));
-    rootNode.setStartGlobal((long)myCapture.getRange().getMin());
-    rootNode.setEndGlobal((long)myCapture.getRange().getMax());
+  private List<CaptureNode> collectCaptureNodes() {
     // Data series contains each thread selected. For each thread we grab the children and add them to our root.
-    getDataSeries().forEach(child -> myCaptureNodesExtractor.apply(child).forEach(rootNode::addChild));
-    return rootNode;
+    return getDataSeries().stream().map(myCaptureNodesExtractor).flatMap(Collection::stream).collect(Collectors.toList());
   }
 }
