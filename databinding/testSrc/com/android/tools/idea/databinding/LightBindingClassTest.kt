@@ -273,6 +273,106 @@ class LightBindingClassTest {
   }
 
   @Test
+  fun updateVariablesRefreshesLightClassFields_withSingleLayout() {
+    val file = fixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name='obsolete' type='String'/>
+        </data>
+      </layout>
+    """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
+    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
+      assertThat(binding.methods.map { it.name }).containsAllOf("getObsolete", "setObsolete")
+    }
+    val tag = PsiTreeUtil.findChildrenOfType(file, XmlTag::class.java).first { (it as XmlTag).localName == "variable" }
+    updateXml(file, tag.textRange,
+      // language=XML
+              "<variable name='first' type='Integer'/> <variable name='second' type='String'/>")
+    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
+      binding.methods.map { it.name }.let { methodNames ->
+        assertThat(methodNames).containsAllOf("getFirst", "setFirst", "getSecond", "setSecond")
+        assertThat(methodNames).containsNoneOf("getObsolete", "setObsolete")
+      }
+    }
+  }
+
+  @Test
+  fun updateVariablesRefreshesLightClassFields_withMultipleLayoutConfigurations() {
+    val mainLayout = fixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name='first' type='String'/>
+        </data>
+      </layout>
+    """.trimIndent())
+    val landscapeLayout = fixture.addFileToProject(
+      "res/layout-land/activity_main.xml",
+      // language=XML
+      """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <data>
+          <variable name='second' type='String'/>
+        </data>
+      </layout>
+    """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
+    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
+      assertThat(binding.methods.map { it.name }).containsAllOf("getFirst", "getSecond", "setFirst", "setSecond")
+    }
+    (fixture.findClass("test.db.databinding.ActivityMainBindingImpl", context) as LightBindingClass).let { binding ->
+      assertThat(binding.methods.map { it.name }).containsAllOf("setFirst", "setSecond")
+    }
+    (fixture.findClass("test.db.databinding.ActivityMainBindingLandImpl", context) as LightBindingClass).let { binding ->
+      assertThat(binding.methods.map { it.name }).containsAllOf("setFirst", "setSecond")
+    }
+    // Update first XML file
+    run {
+      val tag = PsiTreeUtil.findChildrenOfType(mainLayout, XmlTag::class.java).first { (it as XmlTag).localName == "variable" }
+      updateXml(mainLayout, tag.textRange, "<variable name='third' type='String'/>")
+      (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
+        binding.methods.map { it.name }.let { methodNames ->
+          assertThat(methodNames).containsAllOf("getSecond", "getThird")
+          assertThat(methodNames).doesNotContain("getFirst")
+        }
+      }
+    }
+    // Update the second XML file
+    run {
+      val tag = PsiTreeUtil.findChildrenOfType(landscapeLayout, XmlTag::class.java).first { (it as XmlTag).localName == "variable" }
+      updateXml(landscapeLayout, tag.textRange, "<variable name='fourth' type='String'/>")
+      (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
+        binding.methods.map { it.name }.let { methodNames ->
+          assertThat(methodNames).containsAllOf("getThird", "getFourth")
+          assertThat(methodNames).containsNoneOf("getFirst", "getSecond")
+        }
+      }
+    }
+    // Update both files at the same time
+    run {
+      val tagMain = PsiTreeUtil.findChildrenOfType(mainLayout, XmlTag::class.java).first { (it as XmlTag).localName == "variable" }
+      updateXml(mainLayout, tagMain.textRange, "<variable name='fifth' type='String'/>")
+      val tagLand = PsiTreeUtil.findChildrenOfType(landscapeLayout, XmlTag::class.java).first { (it as XmlTag).localName == "variable" }
+      updateXml(landscapeLayout, tagLand.textRange, "<variable name='sixth' type='String'/>")
+      (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
+        binding.methods.map { it.name }.let { methodNames ->
+          assertThat(methodNames).containsAllOf("getFifth", "getSixth")
+          assertThat(methodNames).containsNoneOf("getFirst", "getSecond", "getThird", "getFourth")
+        }
+      }
+    }
+  }
+
+  @Test
   fun createViewFieldWithJavaType() {
     fixture.addFileToProject("src/java/com/example/Test.java", """
       package com.example;

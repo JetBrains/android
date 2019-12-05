@@ -308,6 +308,31 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     assertEquals("com.android.unittest2", supplier.getNow().getPackage());
   }
 
+
+  public void testCacheStaleAfterError() throws Exception {
+    // A malformed manifest (the closing application tag is missing a ">")
+    MergedManifestSnapshot malformedManifest = getMergedManifest(
+      "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+      "    package='com.android.unittest'>\n" +
+      "    <application>\n" +
+      "    </application\n" +
+      "</manifest>\n");
+
+    assertNull(malformedManifest.getMergedManifestInfo());
+
+    // The cache should consider the dummy snapshot from the failed computation stale.
+    MergedManifestSnapshot fixedManifest = getMergedManifest(
+      "<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+      "    package='com.android.unittest'>\n" +
+      "    <application>\n" +
+      "    </application>\n" +
+      "</manifest>\n");
+
+    // Now that we've fixed the manifest, we should get a valid snapshot.
+    assertNotSame(fixedManifest, malformedManifest);
+    assertNotNull(fixedManifest.getMergedManifestInfo());
+  }
+
   @SuppressWarnings("ConstantConditions")
   private static class TestAndroidTarget implements IAndroidTarget {
     private final int mApiLevel;
