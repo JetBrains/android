@@ -72,7 +72,6 @@ import com.intellij.openapi.vfs.VirtualFileVisitor
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.XmlElementFactory
-import com.intellij.util.LineSeparator
 import freemarker.template.TemplateModelException
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
@@ -204,7 +203,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
    */
   override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?) {
     // Translate from "compile" to "implementation" based on the parameter map context
-    val newConfiguration = convertConfiguration(projectTemplateData.gradlePluginVersion, configuration)
+    val newConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
     referencesExecutor.addDependency(newConfiguration, mavenCoordinate)
 
     val buildModel = moduleBuildModel ?: return
@@ -224,11 +223,11 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     require(moduleName.isNotEmpty() && moduleName.first() != ':') {
       "incorrect module name (it should not be empty or include first ':')"
     }
-    val configuration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
+    val convertConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
 
     // TODO(qumeric) handle it in a better way?
     val buildModel = getModuleBuildModel(context, toModule) ?: return
-    buildModel.dependencies().addModule(configuration, ":$moduleName")
+    buildModel.dependencies().addModule(convertConfiguration, ":$moduleName")
     io.applyChanges(buildModel)
   }
 
@@ -596,9 +595,6 @@ private fun getBuildFilePath(context: RenderingContext2): File {
   val moduleBuildFile = if (module == null) null else getGradleBuildFile(module)
   return moduleBuildFile?.let { virtualToIoFile(it) } ?: findGradleBuildFile(context.moduleRoot!!)
 }
-
-fun convertConfiguration(agpVersion: String?, configuration: String): String =
-  GradleUtil.mapConfigurationName(configuration, agpVersion, false)
 
 @VisibleForTesting
 fun CharSequence.squishEmptyLines(): String {
