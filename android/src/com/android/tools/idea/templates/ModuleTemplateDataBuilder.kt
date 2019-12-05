@@ -42,6 +42,7 @@ import com.android.tools.idea.wizard.template.ThemesData
 import com.intellij.openapi.module.Module
 import com.android.tools.idea.wizard.template.ThemeData
 import com.android.tools.idea.wizard.template.Version
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -222,7 +223,7 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
     else
       this.coerceAtMost(P) // The highest supported/recommended appCompact version is P(28)
 
-  internal fun build() = ModuleTemplateData(
+  fun build() = ModuleTemplateData(
     projectTemplateDataBuilder.build(),
     srcDir!!,
     resDir!!,

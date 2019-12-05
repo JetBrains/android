@@ -44,6 +44,7 @@ import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -68,7 +69,7 @@ abstract class ModuleModel(
   override val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
   override val moduleTemplateValues = mutableMapOf<String, Any>()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
-  protected abstract val renderer: MultiTemplateRenderer.TemplateRenderer
+  abstract val renderer: MultiTemplateRenderer.TemplateRenderer
 
   constructor(
     project: Project,
@@ -87,7 +88,7 @@ abstract class ModuleModel(
     multiTemplateRenderer.skipRender()
   }
 
-  protected abstract inner class ModuleTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
+  abstract inner class ModuleTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
     /**
      * A new system recipe which will should be run from [render] if the new system is used.
      */
