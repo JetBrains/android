@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.legacydevice
 
+import com.android.ddmlib.ChunkHandler
 import com.android.ddmlib.Client
 import com.android.ddmlib.HandleViewDebug
 import com.android.tools.idea.layoutinspector.model.TreeLoader
@@ -23,6 +24,7 @@ import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.base.Charsets
+import com.google.common.collect.Lists
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.IOException
@@ -43,20 +45,34 @@ import javax.imageio.ImageIO
  */
 object LegacyTreeLoader : TreeLoader {
 
+  // Reverse mapping of hashCode
+  private val latestWindowIds = mutableMapOf<Long, String>()
+
   override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient): ViewNode? {
     val legacyClient = client as? LegacyClient ?: return null
-    val provider = legacyClient.provider
-    val window = legacyClient.selectedWindow ?: return null
     val ddmClient = legacyClient.selectedClient ?: return null
-    return capture(ddmClient, window, provider)
+    val (maybeWindow, maybeUpdater) = data as? Pair<*, *> ?: return null
+    val window = maybeWindow as? Long ?: return null
+    val updater = maybeUpdater as? LegacyPropertiesProvider.Updater ?: return null
+    val windowName = latestWindowIds[window] ?: return null
+    return capture(ddmClient, windowName, updater)
   }
 
-  private fun capture(client: Client, window: String, provider: LegacyPropertiesProvider): ViewNode? {
+  override fun getAllWindowIds(data: Any?, client: InspectorClient): List<Long>? {
+    val legacyClient = client as? LegacyClient ?: return null
+    val ddmClient = legacyClient.selectedClient ?: return null
+    val windows = ListViewRootsHandler().getWindows(ddmClient, 5, TimeUnit.SECONDS)
+    latestWindowIds.clear()
+    windows.associateByTo(latestWindowIds) { it.hashCode().toLong() }
+    return windows.map { it.hashCode().toLong() }
+  }
+
+  private fun capture(client: Client, window: String, propertiesUpdater: LegacyPropertiesProvider.Updater): ViewNode? {
     val hierarchyHandler = CaptureByteArrayHandler(HandleViewDebug.CHUNK_VURT)
     HandleViewDebug.dumpViewHierarchy(client, window, false, true, false, hierarchyHandler)
     val hierarchyData = hierarchyHandler.getData() ?: return null
-    val (rootNode, hash) = parseLiveViewNode(hierarchyData, provider) ?: return null
-
+    val (rootNode, hash) = parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
+    rootNode.drawId = window.hashCode().toLong()
     val imageHandler = CaptureByteArrayHandler(HandleViewDebug.CHUNK_VUOP)
     HandleViewDebug.captureView(client, window, hash, imageHandler)
     try {
@@ -87,7 +103,7 @@ object LegacyTreeLoader : TreeLoader {
 
   /** Parses the flat string representation of a view node and returns the root node.  */
   @VisibleForTesting
-  fun parseLiveViewNode(bytes: ByteArray, provider: LegacyPropertiesProvider): Pair<ViewNode, String>?  {
+  fun parseLiveViewNode(bytes: ByteArray, propertyUpdater: LegacyPropertiesProvider.Updater): Pair<ViewNode, String>?  {
     var rootNodeAndHash: Pair<ViewNode, String>? = null
     var lastNodeAndHash: Pair<ViewNode, String>? = null
     var lastWhitespaceCount = Integer.MIN_VALUE
@@ -97,41 +113,35 @@ object LegacyTreeLoader : TreeLoader {
       InputStreamReader(ByteArrayInputStream(bytes), Charsets.UTF_8)
     )
 
-    val propertyLoader = LegacyPropertiesProvider.Updater()
-    try {
-      for (line in input.lines().collect(MergeNewLineCollector)) {
-        if ("DONE.".equals(line, ignoreCase = true)) {
-          break
-        }
-        // determine parent through the level of nesting by counting whitespaces
-        var whitespaceCount = 0
-        while (line[whitespaceCount] == ' ') {
-          whitespaceCount++
-        }
+    for (line in input.lines().collect(MergeNewLineCollector)) {
+      if ("DONE.".equals(line, ignoreCase = true)) {
+        break
+      }
+      // determine parent through the level of nesting by counting whitespaces
+      var whitespaceCount = 0
+      while (line[whitespaceCount] == ' ') {
+        whitespaceCount++
+      }
 
-        if (lastWhitespaceCount < whitespaceCount) {
-          stack.push(lastNodeAndHash?.first)
-        }
-        else if (!stack.isEmpty()) {
-          val count = lastWhitespaceCount - whitespaceCount
-          for (i in 0 until count) {
-            stack.pop()
-          }
-        }
-
-        lastWhitespaceCount = whitespaceCount
-        var parent: ViewNode? = null
-        if (!stack.isEmpty()) {
-          parent = stack.peek()
-        }
-        lastNodeAndHash = createViewNode(parent, line.trim(), propertyLoader)
-        if (rootNodeAndHash == null) {
-          rootNodeAndHash = lastNodeAndHash
+      if (lastWhitespaceCount < whitespaceCount) {
+        stack.push(lastNodeAndHash?.first)
+      }
+      else if (!stack.isEmpty()) {
+        val count = lastWhitespaceCount - whitespaceCount
+        for (i in 0 until count) {
+          stack.pop()
         }
       }
-    }
-    finally {
-      propertyLoader.apply(provider)
+
+      lastWhitespaceCount = whitespaceCount
+      var parent: ViewNode? = null
+      if (!stack.isEmpty()) {
+        parent = stack.peek()
+      }
+      lastNodeAndHash = createViewNode(parent, line.trim(), propertyUpdater)
+      if (rootNodeAndHash == null) {
+        rootNodeAndHash = lastNodeAndHash
+      }
     }
 
     return rootNodeAndHash
@@ -140,8 +150,8 @@ object LegacyTreeLoader : TreeLoader {
   private fun createViewNode(parent: ViewNode?, data: String, propertyLoader: LegacyPropertiesProvider.Updater): Pair<ViewNode, String> {
     val (name, dataWithoutName) = data.split('@', limit = 2)
     val (hash, properties) = dataWithoutName.split(' ', limit = 2)
-    val hashId = hash.toIntOrNull(16) ?: 0
-    val view = ViewNode(hashId.toLong(), name, null, 0, 0, 0, 0, 0, 0, null, "")
+    val hashId = hash.toLongOrNull(16) ?: 0
+    val view = ViewNode(hashId, name, null, 0, 0, 0, 0, 0, 0, null, "", 0)
     view.parent = parent
     parent?.children?.add(view)
     propertyLoader.parseProperties(view, properties)
@@ -173,6 +183,28 @@ object LegacyTreeLoader : TreeLoader {
       else {
         stringGroup.add(line)
       }
+    }
+  }
+
+  private class ListViewRootsHandler :
+    HandleViewDebug.ViewDumpHandler(HandleViewDebug.CHUNK_VULW) {
+
+    private val viewRoots = Lists.newCopyOnWriteArrayList<String>()
+
+    override fun handleViewDebugResult(data: ByteBuffer) {
+      val nWindows = data.int
+
+      for (i in 0 until nWindows) {
+        val len = data.int
+        viewRoots.add(ChunkHandler.getString(data, len))
+      }
+    }
+
+    @Throws(IOException::class)
+    fun getWindows(c: Client, timeout: Long, unit: TimeUnit): List<String> {
+      HandleViewDebug.listViewRoots(c, this)
+      waitForResult(timeout, unit)
+      return viewRoots
     }
   }
 }

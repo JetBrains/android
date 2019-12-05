@@ -86,7 +86,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
     get() = model.hasSubImages && overlay == null
 
   val isActive
-    get() = model.root != null
+    get() = !model.isEmpty
 
   fun findTopRect(x: Double, y: Double): ViewNode? {
     return hitRects.findLast {
@@ -101,17 +101,18 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   }
 
   fun refresh() {
-    val root = model.root
-    if (root == null) {
+    if (model.isEmpty) {
       rootBounds = Rectangle()
       maxDepth = 0
       hitRects = emptyList()
       modificationListeners.forEach { it() }
       return
     }
+    val root = model.root
 
     val levelLists = mutableListOf<MutableList<Pair<ViewNode, Rectangle>>>()
-    buildLevelLists(root, root.bounds, levelLists)
+    // Each window should start completely above the previous window, hence level = levelLists.size
+    root.children.forEach { buildLevelLists(it, root.bounds, levelLists, levelLists.size) }
     maxDepth = levelLists.size
 
     val newHitRects = mutableListOf<ViewDrawInfo>()
@@ -139,7 +140,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   private fun buildLevelLists(root: ViewNode,
                               parentClip: Rectangle,
                               levelListCollector: MutableList<MutableList<Pair<ViewNode, Rectangle>>>,
-                              level: Int = 0) {
+                              level: Int) {
     var childClip = parentClip
     var newLevelIndex = level
     if (root.visible) {

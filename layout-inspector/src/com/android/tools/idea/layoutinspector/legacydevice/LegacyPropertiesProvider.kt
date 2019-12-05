@@ -36,6 +36,7 @@ internal const val ATTR_SCROLL_Y = "scrollY"
 internal const val ATTR_X = "x"
 internal const val ATTR_Y = "y"
 internal const val ATTR_Z = "z"
+internal const val ATTR_DIM_BEHIND = "dim_behind"
 
 /**
  * A [PropertiesProvider] that can handle pre-api 29 devices.
@@ -92,8 +93,8 @@ class LegacyPropertiesProvider : PropertiesProvider {
       }
       while (!stop)
 
-      view.x = (table.remove(SdkConstants.ANDROID_URI, ATTR_LEFT)?.value?.toInt() ?: 0) + (parent?.let { it.x - it.scrollX } ?: 0)
-      view.y = (table.remove(SdkConstants.ANDROID_URI, ATTR_TOP)?.value?.toInt() ?: 0) + (parent?.let { it.y - it.scrollY } ?: 0)
+      view.x = (table.remove(SdkConstants.ANDROID_URI, ATTR_LEFT)?.value?.toInt() ?: 0) - (parent?.scrollX ?: 0)
+      view.y = (table.remove(SdkConstants.ANDROID_URI, ATTR_TOP)?.value?.toInt() ?: 0) - (parent?.scrollY ?: 0)
       view.scrollX = table[SdkConstants.ANDROID_URI, ATTR_SCROLL_X]?.value?.toInt() ?: 0
       view.scrollY = table[SdkConstants.ANDROID_URI, ATTR_SCROLL_Y]?.value?.toInt() ?: 0
       view.width = table.remove(SdkConstants.ANDROID_URI, SdkConstants.ATTR_WIDTH)?.value?.toInt() ?: 0
@@ -101,6 +102,8 @@ class LegacyPropertiesProvider : PropertiesProvider {
       view.textValue = table[SdkConstants.ANDROID_URI, SdkConstants.ATTR_TEXT]?.value ?: ""
       val url = table[SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID]?.value?.let { ResourceUrl.parse(it) }
       view.viewId = url?.let { ResourceReference(ResourceNamespace.TODO(), ResourceType.ID, it.name) }
+      // TODO: add other layout flags if we care about them
+      view.layoutFlags = table.remove(SdkConstants.ANDROID_URI, ATTR_DIM_BEHIND)?.value?.let { PropertyMapper.toInt(it) } ?: 0
 
       // Remove other attributes that we already have elsewhere:
       table.remove(SdkConstants.ANDROID_URI, ATTR_X)

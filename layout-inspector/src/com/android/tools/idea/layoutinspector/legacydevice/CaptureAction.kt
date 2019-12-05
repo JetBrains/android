@@ -28,7 +28,8 @@ class CaptureAction(
   private val client: () -> InspectorClient, private val model: InspectorModel
 ) : AnAction(StudioIcons.LayoutEditor.Toolbar.REFRESH) {
   override fun actionPerformed(e: AnActionEvent) {
-    model.update(client().treeLoader.loadComponentTree(null, model.resourceLookup, client()))
+    val currentClient = client() as? LegacyClient ?: return
+    currentClient.reloadAllWindows()
   }
 
   override fun update(e: AnActionEvent) {

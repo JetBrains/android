@@ -46,6 +46,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
 
   init {
     val builder = ComponentTreeBuilder()
+      .withHiddenRoot()
       .withNodeType(InspectorViewNodeType())
       .withContextMenu(::showPopup)
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
@@ -74,6 +75,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     layoutInspector?.layoutInspectorModel?.modificationListeners?.remove(this::modelModified)
     layoutInspector = toolContext
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add(this::modelModified)
+    componentTreeModel.treeRoot = layoutInspector?.layoutInspectorModel?.root
     toolContext?.layoutInspectorModel?.selectionListeners?.add(this::selectionChanged)
   }
 
@@ -92,7 +94,7 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   @Suppress("UNUSED_PARAMETER")
   private fun modelModified(oldView: ViewNode?, newView: ViewNode?, structuralChange: Boolean) {
     if (structuralChange) {
-      componentTreeModel.treeRoot = newView
+      componentTreeModel.hierarchyChanged(newView)
     }
   }
 

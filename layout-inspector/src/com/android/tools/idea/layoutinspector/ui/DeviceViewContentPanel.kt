@@ -148,7 +148,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
   }
 
   override fun getPreferredSize() =
-    if (inspectorModel.root == null) Dimension(0, 0)
+    if (inspectorModel.isEmpty) Dimension(0, 0)
     else Dimension((model.maxWidth * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt(),
                    (model.maxHeight * viewSettings.scaleFraction + JBUI.scale(MARGIN)).toInt())
 
@@ -181,7 +181,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
 
     if (image != null) {
       val composite = g2.composite
-      if (selection != null && view != selection) {
+      if (selection != null && view != selection && inspectorModel.hasSubImages) {
         g2.composite = AlphaComposite.SrcOver.derive(0.6f)
       }
       g2.clip(drawInfo.clip)
