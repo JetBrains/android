@@ -178,6 +178,14 @@ internal fun titleToTemplateRenderer(title: String, formFactor: FormFactor): Tem
   "Dynamic Feature (Instant App)" -> TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE
   "Benchmark Module" -> TemplateRenderer.BENCHMARK_LIBRARY_MODULE
   "Empty Compose Activity" -> TemplateRenderer.COMPOSE_EMPTY_ACTIVITY
+  "Fullscreen Fragment" -> TemplateRenderer.FRAGMENT_FULLSCREEN
+  "Google AdMob Ads Fragment" -> TemplateRenderer.FRAGMENT_GOOGLE_ADMOB_ADS
+  "Google Maps Fragment" -> TemplateRenderer.FRAGMENT_GOOGLE_MAPS
+  "Login Fragment" -> TemplateRenderer.FRAGMENT_LOGIN
+  "Modal Bottom Sheet" -> TemplateRenderer.FRAGMENT_MODAL_BOTTOM_SHEET
+  "Scrolling Fragment" -> TemplateRenderer.FRAGMENT_SCROLL
+  "Settings Fragment" -> TemplateRenderer.FRAGMENT_SETTINGS
+  "Fragment (with ViewModel)" -> TemplateRenderer.FRAGMENT_VIEWMODEL
   else -> TemplateRenderer.CUSTOM_TEMPLATE_RENDERER
 }
 
