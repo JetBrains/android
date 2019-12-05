@@ -15,23 +15,23 @@
  */
 package com.android.tools.profilers.cpu.capturedetails;
 
+import static com.android.tools.profilers.cpu.capturedetails.TopDownNodeTest.newNode;
+import static org.junit.Assert.assertEquals;
+
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.truth.Truth;
-import org.junit.Test;
-
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreeNode;
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
+import org.junit.Test;
 
 public class TopDownTreeModelTest {
   @Test
-  public void testTreeUpdate() throws Exception {
+  public void testTreeUpdate() {
     CaptureNode tree = TopDownNodeTest.createTree();
     TopDownNode topDown = new TopDownNode(tree);
 
@@ -102,6 +102,18 @@ public class TopDownTreeModelTest {
     assertEquals(     0, getChildrenTotal(root, "A", "B", "E"), 0);
     assertEquals(     2, getChildrenTotal(root, "A", "C"), 0);
     assertEquals(     0, getChildrenTotal(root, "A", "C", "F"), 0);
+  }
+
+  @Test
+  public void testRootNodeIdValid() {
+    TopDownNode topDown = new TopDownNode(newNode("", 0, 10));
+    Range range = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
+    CpuTreeModel model = new TopDownTreeModel(range, topDown);
+    Truth.assertThat(model.isRootNodeIdValid()).isFalse();
+
+    topDown = new TopDownNode(newNode("Valid", 0, 10));
+    model = new TopDownTreeModel(range, topDown);
+    Truth.assertThat(model.isRootNodeIdValid()).isTrue();
   }
 
   @Test
