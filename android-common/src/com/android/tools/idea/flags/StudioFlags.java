@@ -549,7 +549,7 @@ public final class StudioFlags {
     EDITOR, "custom.new.class.dialog",
     "Enable custom New Class dialog",
     "If enabled, our custom UI for creating a new Java class is used. Otherwise the platform default is used.",
-    true
+    false
   );
 
 
