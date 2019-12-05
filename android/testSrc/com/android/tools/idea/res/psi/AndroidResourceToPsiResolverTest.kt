@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.res.psi
 
+import com.android.ide.common.resources.configuration.DensityQualifier
+import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.ide.common.resources.configuration.LocaleQualifier
+import com.android.resources.Density
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.rendering.Locale
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiElement
 import org.jetbrains.android.AndroidTestCase
 
 /**
@@ -151,4 +156,91 @@ class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
     StudioFlags.RESOLVE_USING_REPOS.clearOverride()
     super.tearDown()
   }
+
+  fun testBestGotoDeclarationTargetDensity() {
+    myFixture.copyFileToProject("dom/resources/icon.png", "res/drawable/icon.png")
+    myFixture.copyFileToProject("dom/resources/icon.png", "res/drawable-hdpi/icon.png")
+    myFixture.copyFileToProject("dom/resources/icon.png", "res/drawable-xhdpi/icon.png")
+    val file = myFixture.addFileToProject(
+      "p1/p1/ResourceClass.java",
+      //language=JAVA
+      """
+        package p1.p2;
+        public class ResourceClass {
+          public void f() {
+            int n = R.drawable.ic${caret}on;
+          }
+        }""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    val elementAtCaret = myFixture.elementAtCaret
+    val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)!!
+    val context = myFixture.file.findElementAt(myFixture.caretOffset)!!
+
+    // Check picking the correct XHDPI density
+    checkDensityConfiguration(fakePsiElement, context, Density.XHIGH, "drawable-xhdpi/icon.png")
+
+    // Check picking the correct HDPI density
+    checkDensityConfiguration(fakePsiElement, context, Density.HIGH, "drawable-hdpi/icon.png")
+
+    // No correct XXXHDPI exists, check that it picks the next best matching DPI, which is XHDPI
+    checkDensityConfiguration(fakePsiElement, context, Density.XXXHIGH, "drawable-xhdpi/icon.png")
+  }
+
+  fun testBestGotoDeclarationTargetString() {
+    val stringsContent = """
+      <resources>
+        <string name="example">String Example</string>
+      </resources>
+    """.trimIndent()
+    myFixture.addFileToProject("res/values/strings.xml", stringsContent)
+    myFixture.addFileToProject("res/values-no/strings.xml", stringsContent)
+    myFixture.addFileToProject("res/value-en/strings.xml", stringsContent)
+    myFixture.addFileToProject("res/values-hdpi/strings.xml", stringsContent)
+    val file = myFixture.addFileToProject(
+      "p1/p1/ResourceClass.java",
+      //language=JAVA
+      """
+        package p1.p2;
+        public class ResourceClass {
+          public void f() {
+            int n = R.string.ex${caret}ample;
+          }
+        }""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    val elementAtCaret = myFixture.elementAtCaret
+    val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)!!
+    val context = myFixture.file.findElementAt(myFixture.caretOffset)!!
+
+    // Check picking the hdpi density
+    checkDensityConfiguration(fakePsiElement, context, Density.HIGH, "values-hdpi/strings.xml")
+
+    // Check picking the correct Norwegian locale
+    checkLocaleConfiguration(fakePsiElement, context, Locale.create("no"), "values-no/strings.xml")
+
+    // No french localed exists for the string resource, check the default is selected instead.
+    checkLocaleConfiguration(fakePsiElement, context, Locale.create("fr"), "values/strings.xml")
+  }
+
+  private fun checkLocaleConfiguration(resourceReferencePsiElement: ResourceReferencePsiElement, context: PsiElement, locale: Locale, expectedFileName: String) {
+    val folderConfiguration = FolderConfiguration()
+    folderConfiguration.localeQualifier = locale.qualifier
+    val defaultConfigurationFile = ResourceRepositoryToPsiResolver.getBestGotoDeclarationTarget(
+      resourceReferencePsiElement.resourceReference,
+      context,
+      folderConfiguration
+    )!!.containingFile
+    assertThat(defaultConfigurationFile.containingDirectory.name + "/" + defaultConfigurationFile.name).isEqualTo(expectedFileName)
+  }
+
+  private fun checkDensityConfiguration(resourceReferencePsiElement: ResourceReferencePsiElement, context: PsiElement, density: Density, expectedFileName: String) {
+    val folderConfiguration = FolderConfiguration()
+    folderConfiguration.densityQualifier = DensityQualifier(density)
+    val defaultConfigurationFile = ResourceRepositoryToPsiResolver.getBestGotoDeclarationTarget(
+      resourceReferencePsiElement.resourceReference,
+      context,
+      folderConfiguration
+    )!!.containingFile
+    assertThat(defaultConfigurationFile.containingDirectory.name + "/" + defaultConfigurationFile.name).isEqualTo(expectedFileName)
+  }
+
 }
