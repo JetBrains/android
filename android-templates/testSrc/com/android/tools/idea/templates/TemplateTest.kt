@@ -524,6 +524,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareModalBottomSheet() {
+    checkCreateTemplate("fragments", "ModalBottomSheet", ActivityCreationMode.WITHOUT_PROJECT, false, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareModalBottomSheetWithKotlin() {
+    checkCreateTemplate("fragments", "ModalBottomSheet", ActivityCreationMode.WITHOUT_PROJECT, false, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewAppWidget() {
     checkCreateTemplate("other", "AppWidget")
   }
