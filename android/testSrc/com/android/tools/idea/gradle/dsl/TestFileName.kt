@@ -909,6 +909,7 @@ enum class TestFileName(val path: String) {
   PROPERTY_ORDER_ADD_EXT_BLOCK_TO_TOP("propertyOrder/addExtBlockToTop"),
   PROPERTY_ORDER_ADD_EXT_BLOCK_TO_TOP_EXPECTED("propertyOrder/addExtBlockToTopExpected"),
   PROPERTY_ORDER_EXT_REFERENCE_TO_VAR("propertyOrder/extReferenceToVar"),
+  PROPERTY_UTIL_WRITE_BACK_ELEMENT_WITH_TRIMMED_NAME("propertyUtil/writeBackElementWithTrimmedName"),
   GRADLE_DSL_FILE_INVOLVED_FILES("gradleDslFile/involvedFiles"),
   GRADLE_DSL_FILE_INVOLVED_FILES_SUB("gradleDslFile/involvedFiles_sub"),
   GRADLE_DSL_FILE_PROPERTIES_LIST("gradleDslFile/propertiesList"),
