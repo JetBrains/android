@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.tools.adtui.actions.SEPARATOR_TEXT
 import com.android.tools.adtui.actions.createTestActionEvent
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.intellij.openapi.actionSystem.DataContext
@@ -45,8 +46,20 @@ class ConfigurationSetMenuActionTest : AndroidTestCase() {
     val actual = prettyPrintActions(menuAction)
     // The displayed text of dropdown action is the current selected option, which is Pixel Devices in this case.
     val builder = StringBuilder("Pixel Devices\n") // The current selection of dropdown action
-    // The options in dropdown menu have  4 spaces as indent
-    ConfigurationSet.values().filter { it.visible }.forEach { builder.append("    ${it.title}\n") }
+    // The options in dropdown menu have 4 spaces as indent
+    builder.append("    ${ConfigurationSet.PIXEL_DEVICES.title}\n")
+    builder.append("    ${ConfigurationSet.PROJECT_LOCALES.title}\n")
+    builder.append("    $SEPARATOR_TEXT\n")
+    builder.append("    ${ConfigurationSet.CUSTOM.title}\n")
+    if (ConfigurationSet.COLOR_BLIND_MODE.visible || ConfigurationSet.LARGE_FONT.visible) {
+      builder.append("    $SEPARATOR_TEXT\n")
+      if (ConfigurationSet.COLOR_BLIND_MODE.visible) {
+        builder.append("    ${ConfigurationSet.COLOR_BLIND_MODE.title}\n")
+      }
+      if (ConfigurationSet.LARGE_FONT.visible) {
+        builder.append("    ${ConfigurationSet.LARGE_FONT.title}\n")
+      }
+    }
 
     val expected = builder.toString()
     assertEquals(expected, actual)
