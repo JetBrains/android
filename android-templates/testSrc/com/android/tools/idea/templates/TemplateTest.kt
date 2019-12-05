@@ -509,6 +509,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareListFragment() {
+    checkCreateTemplate("fragments", "ListFragment", ActivityCreationMode.WITHOUT_PROJECT, false, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareListFragmentWithKotlin() {
+    checkCreateTemplate("fragments", "ListFragment", ActivityCreationMode.WITHOUT_PROJECT, false, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewModalBottomSheet() {
     checkCreateTemplate("fragments", "ModalBottomSheet")
   }
