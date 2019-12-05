@@ -92,7 +92,7 @@ object KeystoreUtils {
     val projectBuildModel = ProjectBuildModel.get(facet.module.project)
     val gradleBuildModel = projectBuildModel.getModuleBuildModel(facet.module) ?: return null
 
-    val signingConfig = gradleBuildModel.android().signingConfigs().first { "debug" == it.name() } ?: return null
+    val signingConfig = gradleBuildModel.android().signingConfigs().firstOrNull { "debug" == it.name() } ?: return null
 
     val debugStorePath = signingConfig.storeFile().valueAsString() ?: return null
     val debugStoreFile = File(debugStorePath)
