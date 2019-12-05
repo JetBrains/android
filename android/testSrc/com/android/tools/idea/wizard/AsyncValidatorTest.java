@@ -16,8 +16,8 @@
 package com.android.tools.idea.wizard;
 
 import com.android.tools.idea.npw.AsyncValidator;
-import com.intellij.idea.IdeaTestApplication;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.testFramework.TestApplicationManager;
 import com.intellij.util.ConcurrencyUtil;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -38,8 +38,8 @@ public final class AsyncValidatorTest {
   public void setUp() throws Exception {
     // This should happen on some other thread - it will become the AWT event queue thread.
     ThreadPoolExecutor executor = ConcurrencyUtil.newSingleThreadExecutor("async validator test");
-    Future<IdeaTestApplication> application = executor.
-      submit((Callable<IdeaTestApplication>)IdeaTestApplication::getInstance);
+    Future<TestApplicationManager> application = executor.
+      submit((Callable<TestApplicationManager>)TestApplicationManager::getInstance);
     application.get(); // Wait for the application instantiation
   }
 
