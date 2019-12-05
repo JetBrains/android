@@ -20,11 +20,14 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.property.panel.api.PropertiesPanel
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
 
 class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<LayoutInspector> {
   private val componentModel = InspectorPropertiesModel()
   private val componentView = InspectorPropertiesView(componentModel)
   private val properties = PropertiesPanel<InspectorPropertyItem>(this)
+  private val filterKeyListener = createFilterKeyListener()
 
   init {
     properties.addView(componentView)
@@ -37,6 +40,21 @@ class LayoutInspectorProperties(parentDisposable: Disposable) : ToolContent<Layo
 
   override fun getComponent() = properties.component
 
-  override fun dispose() {
+  override fun dispose() {}
+
+  override fun supportsFiltering() = true
+
+  override fun setFilter(filter: String) {
+    properties.filter = filter
+  }
+
+  override fun getFilterKeyListener() = filterKeyListener
+
+  private fun createFilterKeyListener() = object : KeyAdapter() {
+    override fun keyPressed(event: KeyEvent) {
+      if (properties.filter.isNotEmpty() && event.keyCode == KeyEvent.VK_ENTER && event.modifiers == 0 && properties.enterInFilter()) {
+        event.consume()
+      }
+    }
   }
 }

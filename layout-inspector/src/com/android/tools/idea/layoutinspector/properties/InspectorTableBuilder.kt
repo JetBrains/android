@@ -31,7 +31,8 @@ class InspectorTableBuilder(
   private val model: InspectorPropertiesModel,
   enumSupportProvider: EnumSupportProvider<InspectorPropertyItem>,
   controlTypeProvider: ControlTypeProvider<InspectorPropertyItem>,
-  private val itemComparator: Comparator<PTableItem> = FilteredPTableModel.alphabeticalSortOrder
+  private val itemComparator: Comparator<PTableItem> = FilteredPTableModel.alphabeticalSortOrder,
+  private val searchable: Boolean = false
 ) : InspectorBuilder<InspectorPropertyItem> {
 
   private val editorProvider = ResolutionStackEditorProvider(model, enumSupportProvider, controlTypeProvider)
@@ -44,6 +45,6 @@ class InspectorTableBuilder(
       return
     }
     val titleModel = inspector.addExpandableTitle(title, true)
-    inspector.addTable(tableModel, true, uiProvider, emptyList(), titleModel)
+    inspector.addTable(tableModel, searchable, uiProvider, emptyList(), titleModel)
   }
 }
