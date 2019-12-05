@@ -1,6 +1,7 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repo")
 load("//tools/base/bazel:maven.bzl", "maven_java_library")
+load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
 
 # managed by go/iml_to_build
 iml_module(
@@ -165,6 +166,7 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.core.tests",
+    exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.core.tests.iml"],
     test_class = "com.android.tools.idea.IdeaTestSuite",
     test_coverage = True,
