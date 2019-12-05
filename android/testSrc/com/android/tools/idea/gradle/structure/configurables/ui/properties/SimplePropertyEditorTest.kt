@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.structure.model.meta.*
 import com.google.common.util.concurrent.Futures.immediateFuture
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
-import com.intellij.idea.IdeaTestApplication
+import com.intellij.testFramework.TestApplicationManager
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.ui.components.JBTextField
 import org.hamcrest.CoreMatchers.equalTo
@@ -109,7 +109,7 @@ class SimplePropertyEditorTest : UsefulTestCase() {
 
   override fun setUp() {
     super.setUp()
-    IdeaTestApplication.getInstance()
+    TestApplicationManager.getInstance()
   }
 
   fun testLabel() {
