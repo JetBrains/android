@@ -502,7 +502,7 @@ public class ThemeEditorStyle {
     ApplicationManager.getApplication().assertReadAccessAllowed();
     sourceTag.acceptChildren(new PsiElementVisitor() {
       @Override
-      public void visitElement(PsiElement element) {
+      public void visitElement(@NotNull PsiElement element) {
         super.visitElement(element);
 
         if (!(element instanceof XmlTag)) {

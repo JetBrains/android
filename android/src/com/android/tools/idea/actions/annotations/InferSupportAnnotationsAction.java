@@ -191,7 +191,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       int myFileCount = 0;
 
       @Override
-      public void visitFile(PsiFile file) {
+      public void visitFile(@NotNull PsiFile file) {
         myFileCount++;
         VirtualFile virtualFile = file.getVirtualFile();
         FileViewProvider viewProvider = psiManager.findViewProvider(virtualFile);
