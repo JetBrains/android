@@ -43,7 +43,6 @@ import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.testing.AndroidGradleTests.SyncIssuesPresentError;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.intellij.idea.IdeaTestApplication;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -61,6 +60,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.TestApplicationManager;
 import com.intellij.testFramework.ThreadTracker;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
@@ -137,7 +137,7 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase implements G
     super.setUp();
 
     StudioFlags.KOTLIN_DSL_PARSING.override(true);
-    IdeaTestApplication.getInstance();
+    TestApplicationManager.getInstance();
     ensureSdkManagerAvailable();
     // Layoutlib rendering thread will be shutdown when the app is closed so do not report it as a leak
     ThreadTracker.longRunningThreadCreated(ApplicationManager.getApplication(), "Layoutlib");
