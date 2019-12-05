@@ -570,8 +570,6 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
 // TODO(qumeric): make private
 const val CLASSPATH_CONFIGURATION_NAME = "classpath"
 
-private val LINE_SEPARATOR = LineSeparator.getSystemLineSeparator().separatorString
-
 private fun getModuleBuildModel(context: RenderingContext2, toModule: File? = null) =
   getBuildModel(if (toModule == null) getBuildFilePath(context) else findGradleBuildFile(toModule), context.project)
 
@@ -599,18 +597,8 @@ private fun getBuildFilePath(context: RenderingContext2): File {
   return moduleBuildFile?.let { virtualToIoFile(it) } ?: findGradleBuildFile(context.moduleRoot!!)
 }
 
-// TODO(qumeric): make private
-fun formatClasspath(dependency: String): String =
-  "buildscript {" + LINE_SEPARATOR +
-  "  dependencies {" + LINE_SEPARATOR +
-  "    classpath '" + dependency + "'" + LINE_SEPARATOR +
-  "  }" + LINE_SEPARATOR +
-  "}" + LINE_SEPARATOR
-
-
 fun convertConfiguration(agpVersion: String?, configuration: String): String =
   GradleUtil.mapConfigurationName(configuration, agpVersion, false)
-
 
 @VisibleForTesting
 fun CharSequence.squishEmptyLines(): String {
