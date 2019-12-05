@@ -17,6 +17,7 @@ package com.android.build.attribution.ui.controllers
 
 import com.android.annotations.concurrency.UiThread
 import com.android.build.attribution.ui.BuildAttributionIssueReportingDialog
+import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
 import com.android.build.attribution.ui.data.TaskIssueReportGenerator
 import com.android.build.attribution.ui.data.TaskIssueUiData
@@ -26,7 +27,8 @@ import com.intellij.openapi.project.Project
 
 class TaskIssueReporter(
   reportData: BuildAttributionReportUiData,
-  private val project: Project
+  private val project: Project,
+  private val analytics: BuildAttributionUiAnalytics
 ) {
 
   private val generator = TaskIssueReportGenerator(
@@ -37,6 +39,6 @@ class TaskIssueReporter(
 
   @UiThread
   fun reportIssue(taskIssue: TaskIssueUiData) {
-    BuildAttributionIssueReportingDialog(project, taskIssue.task.pluginName, generator.generateReportText(taskIssue)).show()
+    BuildAttributionIssueReportingDialog(project, analytics, taskIssue.task.pluginName, generator.generateReportText(taskIssue)).show()
   }
 }

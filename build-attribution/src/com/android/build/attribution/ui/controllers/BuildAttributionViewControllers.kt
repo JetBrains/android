@@ -15,11 +15,13 @@
  */
 package com.android.build.attribution.ui.controllers
 
+import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.intellij.ui.treeStructure.SimpleNode
 
 
 interface BuildAttributionViewControllersProvider {
   val nodeSelector: TreeNodeSelector
+  val analytics: BuildAttributionUiAnalytics
   val issueReporter: TaskIssueReporter
 }
 

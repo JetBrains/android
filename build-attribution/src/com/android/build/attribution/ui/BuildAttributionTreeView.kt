@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui
 
+import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.TaskIssueReporter
 import com.android.build.attribution.ui.controllers.TreeNodeSelector
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
@@ -61,11 +62,12 @@ private const val SPLITTER_PROPERTY = "BuildAttribution.Splitter.Proportion"
 
 class BuildAttributionTreeView(
   reportData: BuildAttributionReportUiData,
-  issueReporter: TaskIssueReporter
+  issueReporter: TaskIssueReporter,
+  uiAnalytics: BuildAttributionUiAnalytics
 ) : ComponentContainer {
 
   private val disposed = AtomicBoolean()
-  private val rootNode = RootNode(reportData, issueReporter)
+  private val rootNode = RootNode(reportData, uiAnalytics, issueReporter)
   private val treeModel: StructureTreeModel<SimpleTreeStructure>
   private val panel = JPanel()
   private val tree: Tree
@@ -82,7 +84,7 @@ class BuildAttributionTreeView(
     componentsSplitter.firstComponent = JPanel(CardLayout()).apply {
       add(ScrollPaneFactory.createScrollPane(tree, SideBorder.NONE), "Tree")
     }
-    handler = InfoViewHandler(tree)
+    handler = InfoViewHandler(tree, uiAnalytics)
     componentsSplitter.secondComponent = handler.component
     panel.add(componentsSplitter, BorderLayout.CENTER)
   }
@@ -113,7 +115,10 @@ class BuildAttributionTreeView(
   /**
    * This class updates info shown on the right in response to tree nodes selection.
    */
-  private class InfoViewHandler(tree: Tree) {
+  private class InfoViewHandler(
+    tree: Tree,
+    private val uiAnalytics: BuildAttributionUiAnalytics
+  ) {
     private val viewMap = ContainerUtil.newConcurrentMap<String, JComponent>()
     private val enabledViewRef = AtomicReference<String>()
     private val panel: JPanel = JPanel(CardLayout())
@@ -148,10 +153,12 @@ class BuildAttributionTreeView(
           enabledViewRef.set(name)
           if (panel.componentCount > 1) {
             (panel.layout as CardLayout).show(panel, name)
+            uiAnalytics.pageChange(selectedNode.nodeId, selectedNode.pageType)
           }
           else {
             // CardLayout.show does not trigger validation when there is just one component.
             panel.validate()
+            uiAnalytics.initFirstPage(selectedNode.nodeId, selectedNode.pageType)
           }
         }
       }
@@ -164,6 +171,7 @@ class BuildAttributionTreeView(
 
   private inner class RootNode(
     private val reportData: BuildAttributionReportUiData,
+    override val analytics: BuildAttributionUiAnalytics,
     override val issueReporter: TaskIssueReporter
   ) : ControllersAwareBuildAttributionNode(null) {
     val taskIssueLinkListener = object : TreeLinkListener<TaskIssueUiData> {
@@ -191,6 +199,7 @@ class BuildAttributionTreeView(
 
     override val nodeSelector = object : TreeNodeSelector {
       override fun selectNode(node: SimpleNode) {
+        analytics.registerNodeLinkClick()
         treeModel.select(node, tree) { t: TreePath? ->
           Logger.getInstance(BuildAttributionTreeView::class.java).debug("Path selected with link: ${t}")
         }

@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui
 
+import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.intellij.CommonBundle
 import com.intellij.ide.IdeBundle
 import com.intellij.openapi.ide.CopyPasteManager
@@ -37,6 +38,7 @@ import javax.swing.SwingConstants
 
 class BuildAttributionIssueReportingDialog(
   project: Project,
+  private val analytics: BuildAttributionUiAnalytics,
   private val pluginName: String,
   private val reportText: String
 ) : DialogWrapper(project) {
@@ -74,6 +76,11 @@ class BuildAttributionIssueReportingDialog(
     return arrayOf(CopyToClipboardAction(), getCancelAction())
   }
 
+  override fun doCancelAction() {
+    analytics.reportingWindowClosed()
+    super.doCancelAction()
+  }
+
   private inner class CopyToClipboardAction : AbstractAction(IdeBundle.message("button.copy")) {
     init {
       putValue(Action.SHORT_DESCRIPTION, IdeBundle.message("description.copy.text.to.clipboard"))
@@ -82,6 +89,7 @@ class BuildAttributionIssueReportingDialog(
     }
 
     override fun actionPerformed(e: ActionEvent) {
+      analytics.reportingWindowCopyButtonClicked()
       val s = StringUtil.convertLineSeparators(reportText)
       CopyPasteManager.getInstance().setContents(StringSelection(s))
     }
