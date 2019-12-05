@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.room.migrations.generators;
 
+import static com.android.tools.idea.room.migrations.generators.GeneratorsUtil.makePublic;
 import static com.android.tools.idea.room.migrations.generators.MigrationTestGenerator.*;
 
 import com.intellij.openapi.project.Project;
@@ -45,7 +46,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * <p>The class will always be generated in a new file</p>
  */
-public class JavaMigrationTestGenerator implements MigrationTestGenerator{
+public class JavaMigrationTestGenerator implements MigrationTestGenerator {
   private JavaPsiFacade myJavaPsiFacade;
   private PsiElementFactory myPsiElementFactory;
   private Project myProject;
@@ -67,6 +68,7 @@ public class JavaMigrationTestGenerator implements MigrationTestGenerator{
     String migrationTestName = getMigrationTestName(migrationStartVersion, migrationEndVersion);
     PsiClass migrationTest = JavaDirectoryService.getInstance().createClass(targetDirectory, migrationTestName);
 
+    makePublic(migrationTest);
     addRunWithAnnotation(migrationTest);
     addTestDatabaseNameField(migrationTest, databaseName);
     addMigrationTestHelperField(migrationTest);
