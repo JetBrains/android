@@ -56,8 +56,7 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
 
     myThreadStateChartModel = new StateChartModel<>();
     myThreadStateChartModel.addSeries(new RangedSeries<>(range, threadStateDataSeries));
-
-    myCallChartModel = new CaptureDetails.CallChart(range, capture.getCaptureNode(threadInfo.getId()), capture);
+    myCallChartModel = new CaptureDetails.CallChart(range, Collections.singletonList(capture.getCaptureNode(threadInfo.getId())), capture);
     myCapture = capture;
     mySelectionRange = range;
     myThreadInfo = threadInfo;

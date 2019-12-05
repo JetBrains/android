@@ -140,20 +140,26 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
     double self = 0;
 
     // The node that is at the top of the call stack, e.g if the call stack looks like B [0..30] -> B [1..20],
-    // then the second method can't be outerSoFar.
+    // then the second method can't be outerSoFarByParent.
     // It's used to exclude nodes which aren't at the top of the
     // call stack from the total time calculation.
-    CaptureNode outerSoFar = null;
+    // When multiple threads with the same ID are selected, the nodes are merged. When this happens nodes may be interlaced between
+    // each of the threads. As such we keep a mapping of outer so far by parents to keep the book keeping done properly.
+    HashMap<CaptureNode, CaptureNode> outerSoFarByParent = new HashMap<>();
 
     // myNodes is sorted by CaptureNode#getStart() in increasing order,
     // if they are equal then ancestor comes first
     for (CaptureNode node : myNodes) {
+      // We use the root node to distinguish if two nodes share the same tree. In the event of multi-select we want to compute the bottom
+      // up calculation independently for each tree then sum them after the fact.
+      CaptureNode root = findRootNode(node);
+      CaptureNode outerSoFar = outerSoFarByParent.getOrDefault(root, null);
       if (outerSoFar == null || node.getEnd() > outerSoFar.getEnd()) {
         if (outerSoFar != null) {
-          // |outerSoFar| is at the top of the call stack
+          // |outerSoFarByParent| is at the top of the call stack
           myGlobalTotal += getIntersection(range, outerSoFar, ClockType.GLOBAL);
         }
-        outerSoFar = node;
+        outerSoFarByParent.put(root, node);
       }
 
       self += getIntersection(range, node, ClockType.GLOBAL);
@@ -162,11 +168,19 @@ public class BottomUpNode extends CpuTreeNode<BottomUpNode> {
       }
     }
 
-    if (outerSoFar != null) {
-      // |outerSoFar| is at the top of the call stack
+    for(CaptureNode outerSoFar : outerSoFarByParent.values()) {
+      // |outerSoFarByParent| is at the top of the call stack
       myGlobalTotal += getIntersection(range, outerSoFar, ClockType.GLOBAL);
     }
     myGlobalChildrenTotal = myGlobalTotal - self;
+  }
+
+  @NotNull
+  private static CaptureNode findRootNode(@NotNull CaptureNode node) {
+    if (node.getParent() != null) {
+      return findRootNode(node.getParent());
+    }
+    return node;
   }
 
   @NotNull

@@ -21,16 +21,15 @@ import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
-import com.android.tools.profilers.FakeIdeProfilerComponents
-import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.CpuProfilerStageView
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
@@ -82,8 +81,8 @@ class BottomUpDetailsViewTest {
   }
 
   @Test
-  fun showsNoDataForThreadMessageWhenNodeIsNull() {
-    val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(Range(), capture.getCaptureNode(1), capture) as CaptureDetails.BottomUp
+  fun showsNoDataForThreadMessageWhenNodeIsEmpty() {
+    val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(Range(), emptyList(), capture) as CaptureDetails.BottomUp
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 
     val noDataInstructions = TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().first {
@@ -96,7 +95,8 @@ class BottomUpDetailsViewTest {
 
   @Test
   fun showsContentWhenNodeIsNotNull() {
-    val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(Range(), capture.getCaptureNode(capture.mainThreadId), capture) as CaptureDetails.BottomUp
+    val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(Range(), listOf(capture.getCaptureNode(capture.mainThreadId)),
+                                                       capture) as CaptureDetails.BottomUp
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 
     val noDataInstructionsList = TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().filter {
@@ -114,7 +114,8 @@ class BottomUpDetailsViewTest {
   fun showsNoDataForRangeMessage() {
     // Select a range where we don't have trace data
     val range = Range(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
-    val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(range, capture.getCaptureNode(capture.mainThreadId), capture) as CaptureDetails.BottomUp
+    val bottomUp = CaptureDetails.Type.BOTTOM_UP.build(range, listOf(capture.getCaptureNode(capture.mainThreadId)),
+                                                       capture) as CaptureDetails.BottomUp
     val bottomUpView = TreeDetailsView.BottomUpDetailsView(profilersView, bottomUp)
 
     val noDataInstructions = TreeWalker(bottomUpView.component).descendants().filterIsInstance<InstructionsPanel>().first {

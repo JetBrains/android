@@ -100,6 +100,11 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
       .build();
 
     if (node != null) {
+      // If our root node has an empty ID it is the visual node. As such we look at the type of the first child to determine which tooltip
+      // we will display.
+      if (node.getData().getId().isEmpty()) {
+        node = node.getFirstChild();
+      }
       if (node.getData() instanceof AtraceNodeModel) {
         if (type == CaptureDetails.Type.CALL_CHART) {
           chart.addMouseMotionListener(

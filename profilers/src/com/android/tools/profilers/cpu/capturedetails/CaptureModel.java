@@ -24,6 +24,8 @@ import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuProfilerAspect;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.google.common.collect.ImmutableMap;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -207,7 +209,8 @@ public class CaptureModel {
       if (suggestedType == null) {
         suggestedType = myDetails == null ? CaptureDetails.Type.CALL_CHART : myDetails.getType();
       }
-      myDetails = suggestedType.build(myCaptureConvertedRange, node, myCapture);
+      List<CaptureNode> nodes = node == null ? Collections.emptyList() : Collections.singletonList(node);
+      myDetails = suggestedType.build(myCaptureConvertedRange, nodes, myCapture);
     }
     else {
       // If we don't have a capture clear the filter state and the details.
