@@ -22,6 +22,7 @@ import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.ui.AdtUiCursors
+import com.android.tools.editor.ActionToolbarUtil
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.legacydevice.CaptureAction
@@ -290,6 +291,7 @@ class DeviceViewPanel(
       leftGroup.add(CaptureAction(layoutInspector::currentClient, layoutInspector.layoutInspectorModel))
     }
     val actionToolbar = ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true)
+    ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
     actionToolbar.setTargetComponent(this)
     leftPanel.add(actionToolbar.component, BorderLayout.CENTER)
     panel.add(leftPanel, BorderLayout.CENTER)
