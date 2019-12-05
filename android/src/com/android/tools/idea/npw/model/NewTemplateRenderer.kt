@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.model
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.stats.withProjectId
 import com.android.tools.idea.templates.TemplateUtils
+import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
 import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Language
@@ -70,6 +71,11 @@ fun Recipe.doRender(c: RenderingContext2, e: RecipeExecutor): Boolean {
   try {
     writeCommandAction(c.project).withName(c.commandName).run<IOException> {
       this(e, c.templateData)
+      // Old recipe executor calls applyChanges after every BuildModel update. It is slow but correct.
+      // TODO(qumeric): remove casting when the old executor will be deleted
+      if (e is DefaultRecipeExecutor2) {
+        e.applyChanges()
+      }
     }
   }
   catch (e: IOException) {
