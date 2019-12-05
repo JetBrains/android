@@ -1975,7 +1975,9 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
             if (folderInfo != null) {
               RepositoryConfiguration configuration = getConfiguration(myRepository, folderInfo.configuration);
               for (VirtualFile file : subDir.getChildren()) {
-
+                if (file.getName().startsWith(".")) {
+                  continue; // Skip file with the name starting with a dot.
+                }
                 // If there is an unsaved Document for this file, data read from persistent cache may be stale and data read using
                 // loadResourceFile below will be stale as it reads straight from disk. Schedule a PSI-based parse.
                 if (myFileDocumentManager.isFileModified(file)) {

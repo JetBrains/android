@@ -230,8 +230,10 @@ public final class FrameworkResourceRepository extends AarSourceResourceReposito
 
         sourceConfigurations.add(((BasicResourceItemBase)item).getRepositoryConfiguration());
         if (item instanceof BasicValueResourceItemBase) {
-          NamespaceResolver resolver = (NamespaceResolver)((BasicValueResourceItemBase)item).getNamespaceResolver();
-          namespaceResolverCache.put(resolver, resolver);
+          ResourceNamespace.Resolver resolver = ((BasicValueResourceItemBase)item).getNamespaceResolver();
+          NamespaceResolver namespaceResolver =
+              resolver == ResourceNamespace.Resolver.EMPTY_RESOLVER ? NamespaceResolver.EMPTY : (NamespaceResolver)resolver;
+          namespaceResolverCache.put(namespaceResolver, namespaceResolver);
         }
         String name = item.getName();
         stringCache.put(name, name);

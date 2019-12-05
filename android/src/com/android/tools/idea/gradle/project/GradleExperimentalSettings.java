@@ -31,6 +31,7 @@ public class GradleExperimentalSettings implements PersistentStateComponent<Grad
   public boolean USE_L2_DEPENDENCIES_ON_SYNC = true;
   public boolean USE_SINGLE_VARIANT_SYNC = true;
   public boolean USE_NEW_PSD = true;
+  public boolean SKIP_GRADLE_TASKS_LIST = false;
 
   @NotNull
   public static GradleExperimentalSettings getInstance() {
