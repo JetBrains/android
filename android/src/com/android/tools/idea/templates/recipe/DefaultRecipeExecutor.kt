@@ -71,10 +71,10 @@ import com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileVisitor
 import com.intellij.psi.XmlElementFactory
+import com.intellij.util.LineSeparator
 import freemarker.template.Configuration
 import java.io.File
 import java.io.IOException
-import java.util.Arrays
 
 /**
  * Executor support for recipe instructions.
@@ -194,6 +194,14 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
       io.applyChanges(buildModel)
       return
     }
+
+    val sep = LineSeparator.getSystemLineSeparator().separatorString
+    fun formatClasspath(dependency: String) =
+      "buildscript {" + sep +
+      "  dependencies {" + sep +
+      "    classpath '" + dependency + "'" + sep +
+      "  }" + sep +
+      "}" + sep
 
     // The attempt above to merge the classpath using the GradleBuildModel failed, now attempt to merge the classpaths by merging the files.
     val destinationContents = if (rootBuildFile.exists()) nullToEmpty(readTextFile(rootBuildFile)) else ""
