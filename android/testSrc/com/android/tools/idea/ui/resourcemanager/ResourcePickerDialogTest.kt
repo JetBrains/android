@@ -64,11 +64,13 @@ class ResourcePickerDialogTest {
 
     var point = list.indexToLocation(0)
     simulateMouseClick(list, point, 1)
+/* b/145854765
     assertThat(pickerDialog.resourceName).isEqualTo("@drawable/png")
 
     point = list.indexToLocation(1)
     simulateMouseClick(list, point, 1)
     assertThat(pickerDialog.resourceName).isEqualTo("@drawable/vector_drawable")
+b/145854765 */
   }
 
   @Test
