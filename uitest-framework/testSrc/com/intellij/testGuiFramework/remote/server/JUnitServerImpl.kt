@@ -30,6 +30,7 @@ import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunListener
 import org.junit.runner.notification.RunNotifier
 import org.junit.runners.model.TestTimedOutException
+import java.io.IOException
 import java.io.InvalidClassException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
@@ -109,7 +110,12 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
     postingMessages.clear()
     receivingMessages.clear()
     val startTime = System.currentTimeMillis()
-    connection = serverSocket.accept()
+    try {
+      connection = serverSocket.accept()
+    } catch (e : IOException) {
+      killClient()
+      throw e
+    }
     LOG.info("Server accepted client on port: ${connection.port} after ${System.currentTimeMillis() - startTime}ms")
 
     objectOutputStream = ObjectOutputStream(connection.getOutputStream())
@@ -162,11 +168,15 @@ class JUnitServerImpl(notifier: RunNotifier) : JUnitServer {
     val process = GuiTestLauncher.process
     if (process != null && !process.waitFor(5, TimeUnit.SECONDS)) {
       LOG.warn("Client didn't shut down when asked nicely; shutting it down forcibly.")
-      process.destroyForcibly()
-      val systemDir = GuiTests.getSystemDirPath()
-      FileUtil.delete(systemDir) // ensure lock files are removed, which would prevent startup for the next test
-      FileUtil.ensureExists(systemDir)
+      killClient();
     }
+  }
+
+  private fun killClient() {
+    GuiTestLauncher.process?.destroyForcibly()
+    val systemDir = GuiTests.getSystemDirPath()
+    FileUtil.delete(systemDir) // ensure lock files are removed, which would prevent startup for the next test
+    FileUtil.ensureExists(systemDir)
   }
 
   override fun launchIdeAndStart() {
