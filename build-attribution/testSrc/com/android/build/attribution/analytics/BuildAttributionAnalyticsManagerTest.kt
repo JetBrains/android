@@ -34,6 +34,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AlwaysRunTasksAnalyzerData
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AnnotationProcessorsAnalyzerData
+import com.google.wireless.android.sdk.stats.BuildAttribuitionTaskIdentifier
 import com.google.wireless.android.sdk.stats.BuildAttributionPluginIdentifier
 import com.google.wireless.android.sdk.stats.CriticalPathAnalyzerData
 import com.google.wireless.android.sdk.stats.ProjectConfigurationAnalyzerData
@@ -60,6 +61,13 @@ class BuildAttributionAnalyticsManagerTest {
   private val pluginA = PluginData(createBinaryPluginIdentifierStub("pluginA"), ":app")
   private val buildScript = PluginData(createScriptPluginIdentifierStub("build.gradle"), ":app")
 
+  val pluginATask = TaskData("dummyTask1", "", pluginA, 0, 100, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
+    setTaskType("com.example.test.DummyTask")
+  }
+  val buildScriptTask = TaskData("dummyTask2", "", buildScript, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList()).apply {
+    setTaskType("com.example.test.DummyTask")
+  }
+
   @Before
   fun setUp() {
     MockitoAnnotations.initMocks(this)
@@ -77,23 +85,38 @@ class BuildAttributionAnalyticsManagerTest {
   }
 
   private fun getAnalyzersData(): BuildEventsAnalysisResult {
-    val pluginATask = TaskData("", "", pluginA, 0, 0, TaskData.TaskExecutionMode.FULL, emptyList())
-    val buildScriptTask = TaskData("", "", buildScript, 0, 0, TaskData.TaskExecutionMode.FULL, emptyList())
-
     return object : AbstractBuildAttributionReportBuilderTest.MockResultsProvider() {
 
       override fun getNonIncrementalAnnotationProcessorsData() = listOf(
         AnnotationProcessorData("com.example.processor", Duration.ofMillis(1234)))
 
+      override fun getTotalBuildTimeMs() = 123456L
+
       override fun getCriticalPathDurationMs() = 567L
 
       override fun getCriticalPathTasks() = listOf(pluginATask, pluginATask)
 
-      override fun getCriticalPathPlugins() = listOf(PluginBuildData(applicationPlugin, 891), PluginBuildData(pluginA, 234))
+      override fun getPluginsDeterminingBuildDuration() = listOf(PluginBuildData(applicationPlugin, 891), PluginBuildData(pluginA, 234))
 
       override fun getProjectsConfigurationData() = listOf(
-        ProjectConfigurationData(":app", 891, listOf(PluginConfigurationData(applicationPlugin, 567),
-                                                     PluginConfigurationData(pluginA, 890)), emptyList()))
+        ProjectConfigurationData(":app", 891,
+                                 listOf(PluginConfigurationData(applicationPlugin, 567),
+                                        PluginConfigurationData(pluginA, 890)),
+                                 listOf(ProjectConfigurationData.ConfigurationStep(
+                                   ProjectConfigurationData.ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS, 123),
+                                        ProjectConfigurationData.ConfigurationStep(
+                                          ProjectConfigurationData.ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS, 456))))
+
+      override fun getTotalConfigurationData() =
+        ProjectConfigurationData("Total Configuration Data", 891,
+                                 listOf(PluginConfigurationData(applicationPlugin, 567),
+                                        PluginConfigurationData(pluginA, 890)),
+                                 listOf(ProjectConfigurationData.ConfigurationStep(
+                                   ProjectConfigurationData.ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS, 123),
+                                        ProjectConfigurationData.ConfigurationStep(
+                                          ProjectConfigurationData.ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS, 456)))
+
+      override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(pluginATask, buildScriptTask)
 
       override fun getAlwaysRunTasks() = listOf(AlwaysRunTaskData(pluginATask, AlwaysRunTaskData.Reason.UP_TO_DATE_WHEN_FALSE))
 
@@ -111,6 +134,7 @@ class BuildAttributionAnalyticsManagerTest {
     assertThat(buildAttributionEvents).hasSize(1)
 
     val buildAttributionAnalyzersData = buildAttributionEvents.first().studioEvent.buildAttributionStats.buildAttributionAnalyzersData
+    assertThat(buildAttributionAnalyzersData.totalBuildTimeMs).isEqualTo(123456)
 
     checkAlwaysRunTasksAnalyzerData(buildAttributionAnalyzersData.alwaysRunTasksAnalyzerData)
     checkAnnotationProcessorsAnalyzerData(buildAttributionAnalyzersData.annotationProcessorsAnalyzerData)
@@ -121,7 +145,7 @@ class BuildAttributionAnalyticsManagerTest {
 
   private fun checkAlwaysRunTasksAnalyzerData(analyzerData: AlwaysRunTasksAnalyzerData) {
     assertThat(analyzerData.alwaysRunTasksList).hasSize(1)
-    assertThat(isTheSamePlugin(analyzerData.alwaysRunTasksList.first().pluginIdentifier, pluginA)).isTrue()
+    assertThat(isTheSameTask(analyzerData.alwaysRunTasksList.first().taskIdentifier, pluginATask)).isTrue()
   }
 
   private fun checkAnnotationProcessorsAnalyzerData(analyzerData: AnnotationProcessorsAnalyzerData) {
@@ -132,6 +156,7 @@ class BuildAttributionAnalyticsManagerTest {
 
   private fun checkCriticalPathAnalyzerData(analyzerData: CriticalPathAnalyzerData) {
     assertThat(analyzerData.criticalPathDurationMs).isEqualTo(567)
+    assertThat(analyzerData.tasksDeterminingBuildDurationMs).isEqualTo(500)
     assertThat(analyzerData.numberOfTasksOnCriticalPath).isEqualTo(2)
     assertThat(analyzerData.pluginsCriticalPathList).hasSize(2)
     assertThat(analyzerData.pluginsCriticalPathList[0].buildDurationMs).isEqualTo(891)
@@ -142,6 +167,9 @@ class BuildAttributionAnalyticsManagerTest {
 
   private fun checkProjectConfigurationAnalyzerData(analyzerData: ProjectConfigurationAnalyzerData) {
     assertThat(analyzerData.projectConfigurationDataList).hasSize(1)
+
+    assertThat(analyzerData.projectConfigurationDataList[0]).isEqualTo(analyzerData.overallConfigurationData)
+
     assertThat(analyzerData.projectConfigurationDataList[0].configurationTimeMs).isEqualTo(891)
     assertThat(analyzerData.projectConfigurationDataList[0].pluginsConfigurationDataList).hasSize(2)
     assertThat(analyzerData.projectConfigurationDataList[0].pluginsConfigurationDataList[0].pluginConfigurationTimeMs).isEqualTo(567)
@@ -150,13 +178,21 @@ class BuildAttributionAnalyticsManagerTest {
     assertThat(analyzerData.projectConfigurationDataList[0].pluginsConfigurationDataList[1].pluginConfigurationTimeMs).isEqualTo(890)
     assertThat(
       isTheSamePlugin(analyzerData.projectConfigurationDataList[0].pluginsConfigurationDataList[1].pluginIdentifier, pluginA)).isTrue()
+
+    assertThat(analyzerData.projectConfigurationDataList[0].configurationStepsList).hasSize(2)
+    assertThat(analyzerData.projectConfigurationDataList[0].configurationStepsList[0].configurationTimeMs).isEqualTo(123)
+    assertThat(analyzerData.projectConfigurationDataList[0].configurationStepsList[1].configurationTimeMs).isEqualTo(456)
+    assertThat(analyzerData.projectConfigurationDataList[0].configurationStepsList[0].type).isEqualTo(
+      ProjectConfigurationAnalyzerData.ConfigurationStep.StepType.NOTIFYING_BUILD_LISTENERS)
+    assertThat(analyzerData.projectConfigurationDataList[0].configurationStepsList[1].type).isEqualTo(
+      ProjectConfigurationAnalyzerData.ConfigurationStep.StepType.EXECUTING_BUILD_SCRIPT_BLOCKS)
   }
 
   private fun checkConfigurationIssuesAnalyzerData(analyzerData: TasksConfigurationIssuesAnalyzerData) {
     assertThat(analyzerData.tasksSharingOutputDataList).hasSize(1)
-    assertThat(analyzerData.tasksSharingOutputDataList[0].pluginsCreatedSharingOutputTasksList).hasSize(2)
-    assertThat(isTheSamePlugin(analyzerData.tasksSharingOutputDataList[0].pluginsCreatedSharingOutputTasksList[0], pluginA)).isTrue()
-    assertThat(isTheSamePlugin(analyzerData.tasksSharingOutputDataList[0].pluginsCreatedSharingOutputTasksList[1], buildScript)).isTrue()
+    assertThat(analyzerData.tasksSharingOutputDataList[0].tasksSharingOutputList).hasSize(2)
+    assertThat(isTheSameTask(analyzerData.tasksSharingOutputDataList[0].tasksSharingOutputList[0], pluginATask)).isTrue()
+    assertThat(isTheSameTask(analyzerData.tasksSharingOutputDataList[0].tasksSharingOutputList[1], buildScriptTask)).isTrue()
   }
 
   private fun isTheSamePlugin(pluginIdentifier: BuildAttributionPluginIdentifier, pluginData: PluginData): Boolean {
@@ -168,5 +204,9 @@ class BuildAttributionAnalyticsManagerTest {
       PluginData.PluginType.SCRIPT -> pluginIdentifier.type == BuildAttributionPluginIdentifier.PluginType.BUILD_SCRIPT &&
                                       pluginIdentifier.pluginDisplayName == ""
     }
+  }
+
+  private fun isTheSameTask(taskIdentifier: BuildAttribuitionTaskIdentifier, taskData: TaskData): Boolean {
+    return isTheSamePlugin(taskIdentifier.originPlugin, taskData.originPlugin) && taskIdentifier.taskClassName == "DummyTask"
   }
 }

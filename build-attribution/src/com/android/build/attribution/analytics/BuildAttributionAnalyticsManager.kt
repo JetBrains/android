@@ -22,6 +22,7 @@ import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
+import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.data.TasksSharingOutputData
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.stats.withProjectId
@@ -29,6 +30,7 @@ import com.google.common.base.Stopwatch
 import com.google.wireless.android.sdk.stats.AlwaysRunTasksAnalyzerData
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AnnotationProcessorsAnalyzerData
+import com.google.wireless.android.sdk.stats.BuildAttribuitionTaskIdentifier
 import com.google.wireless.android.sdk.stats.BuildAttributionAnalyzersData
 import com.google.wireless.android.sdk.stats.BuildAttributionPerformanceStats
 import com.google.wireless.android.sdk.stats.BuildAttributionPluginIdentifier
@@ -37,6 +39,7 @@ import com.google.wireless.android.sdk.stats.CriticalPathAnalyzerData
 import com.google.wireless.android.sdk.stats.ProjectConfigurationAnalyzerData
 import com.google.wireless.android.sdk.stats.TasksConfigurationIssuesAnalyzerData
 import com.intellij.openapi.project.Project
+import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.io.Closeable
 import java.util.concurrent.TimeUnit
 
@@ -57,14 +60,18 @@ class BuildAttributionAnalyticsManager(project: Project) : Closeable {
   fun logAnalyzersData(analysisResult: BuildEventsAnalysisResult) {
     val analyzersDataBuilder = BuildAttributionAnalyzersData.newBuilder()
 
+    analyzersDataBuilder.totalBuildTimeMs = analysisResult.getTotalBuildTimeMs()
+
     analyzersDataBuilder.alwaysRunTasksAnalyzerData = transformAlwaysRunTasksAnalyzerData(analysisResult.getAlwaysRunTasks())
     analyzersDataBuilder.annotationProcessorsAnalyzerData =
       transformAnnotationProcessorsAnalyzerData(analysisResult.getNonIncrementalAnnotationProcessorsData())
     analyzersDataBuilder.criticalPathAnalyzerData = transformCriticalPathAnalyzerData(analysisResult.getCriticalPathDurationMs(),
+                                                                                      analysisResult.getTasksDeterminingBuildDuration()
+                                                                                        .sumByLong(TaskData::executionTime),
                                                                                       analysisResult.getCriticalPathTasks().size,
-                                                                                      analysisResult.getCriticalPathPlugins())
+                                                                                      analysisResult.getPluginsDeterminingBuildDuration())
     analyzersDataBuilder.projectConfigurationAnalyzerData =
-      transformProjectConfigurationAnalyzerData(analysisResult.getProjectsConfigurationData())
+      transformProjectConfigurationAnalyzerData(analysisResult.getProjectsConfigurationData(), analysisResult.getTotalConfigurationData())
     analyzersDataBuilder.tasksConfigurationIssuesAnalyzerData =
       transformTasksConfigurationIssuesAnalyzerData(analysisResult.getTasksSharingOutput())
 
@@ -86,17 +93,21 @@ class BuildAttributionAnalyticsManager(project: Project) : Closeable {
       .build()
 
   private fun transformCriticalPathAnalyzerData(criticalPathDurationMs: Long,
+                                                tasksDeterminingBuildDurationMs: Long,
                                                 numberOfTasksOnCriticalPath: Int,
                                                 pluginsCriticalPath: List<PluginBuildData>) =
     CriticalPathAnalyzerData.newBuilder()
       .setCriticalPathDurationMs(criticalPathDurationMs)
+      .setTasksDeterminingBuildDurationMs(tasksDeterminingBuildDurationMs)
       .setNumberOfTasksOnCriticalPath(numberOfTasksOnCriticalPath)
       .addAllPluginsCriticalPath(pluginsCriticalPath.map(::transformPluginBuildData))
       .build()
 
-  private fun transformProjectConfigurationAnalyzerData(projectConfigurationData: List<ProjectConfigurationData>) =
+  private fun transformProjectConfigurationAnalyzerData(projectConfigurationData: List<ProjectConfigurationData>,
+                                                        totalConfigurationData: ProjectConfigurationData) =
     ProjectConfigurationAnalyzerData.newBuilder()
       .addAllProjectConfigurationData(projectConfigurationData.map(::transformProjectConfigurationData))
+      .setOverallConfigurationData(transformProjectConfigurationData(totalConfigurationData))
       .build()
 
   private fun transformTasksConfigurationIssuesAnalyzerData(tasksSharingOutputData: List<TasksSharingOutputData>) =
@@ -120,6 +131,14 @@ class BuildAttributionAnalyticsManager(project: Project) : Closeable {
     return builder.build()
   }
 
+  private fun getTaskClassName(taskData: TaskData) = taskData.taskType.split('.').last()
+
+  private fun transformTaskData(taskData: TaskData) =
+    BuildAttribuitionTaskIdentifier.newBuilder()
+      .setTaskClassName(getTaskClassName(taskData))
+      .setOriginPlugin(transformPluginData(taskData.originPlugin))
+      .build()
+
   private fun transformPluginBuildData(pluginBuildData: PluginBuildData) =
     CriticalPathAnalyzerData.PluginBuildData.newBuilder()
       .setBuildDurationMs(pluginBuildData.buildDuration)
@@ -139,7 +158,7 @@ class BuildAttributionAnalyticsManager(project: Project) : Closeable {
   private fun transformAlwaysRunTaskData(alwaysRunTaskData: AlwaysRunTaskData) =
     AlwaysRunTasksAnalyzerData.AlwaysRunTask.newBuilder()
       .setReason(transformAlwaysRunTaskReason(alwaysRunTaskData.rerunReason))
-      .setPluginIdentifier(transformPluginData(alwaysRunTaskData.taskData.originPlugin))
+      .setTaskIdentifier(transformTaskData(alwaysRunTaskData.taskData))
       .build()
 
   private fun transformAnnotationProcessorData(annotationProcessorData: AnnotationProcessorData) =
@@ -154,14 +173,35 @@ class BuildAttributionAnalyticsManager(project: Project) : Closeable {
       .setPluginIdentifier(transformPluginData(pluginConfigurationData.plugin))
       .build()
 
+  private fun transformConfigurationStepType(stepType: ProjectConfigurationData.ConfigurationStep.Type) =
+    when (stepType) {
+      ProjectConfigurationData.ConfigurationStep.Type.NOTIFYING_BUILD_LISTENERS ->
+        ProjectConfigurationAnalyzerData.ConfigurationStep.StepType.NOTIFYING_BUILD_LISTENERS
+      ProjectConfigurationData.ConfigurationStep.Type.RESOLVING_DEPENDENCIES ->
+        ProjectConfigurationAnalyzerData.ConfigurationStep.StepType.RESOLVING_DEPENDENCIES
+      ProjectConfigurationData.ConfigurationStep.Type.COMPILING_BUILD_SCRIPTS ->
+        ProjectConfigurationAnalyzerData.ConfigurationStep.StepType.COMPILING_BUILD_SCRIPTS
+      ProjectConfigurationData.ConfigurationStep.Type.EXECUTING_BUILD_SCRIPT_BLOCKS ->
+        ProjectConfigurationAnalyzerData.ConfigurationStep.StepType.EXECUTING_BUILD_SCRIPT_BLOCKS
+      ProjectConfigurationData.ConfigurationStep.Type.OTHER ->
+        ProjectConfigurationAnalyzerData.ConfigurationStep.StepType.OTHER
+    }
+
+  private fun transformConfigurationStepData(configurationStep: ProjectConfigurationData.ConfigurationStep) =
+    ProjectConfigurationAnalyzerData.ConfigurationStep.newBuilder()
+      .setType(transformConfigurationStepType(configurationStep.type))
+      .setConfigurationTimeMs(configurationStep.configurationTimeMs)
+      .build()
+
   private fun transformProjectConfigurationData(projectConfigurationData: ProjectConfigurationData) =
     ProjectConfigurationAnalyzerData.ProjectConfigurationData.newBuilder()
       .setConfigurationTimeMs(projectConfigurationData.totalConfigurationTimeMs)
       .addAllPluginsConfigurationData(projectConfigurationData.pluginsConfigurationData.map(::transformPluginConfigurationData))
+      .addAllConfigurationSteps(projectConfigurationData.configurationSteps.map(::transformConfigurationStepData))
       .build()
 
   private fun transformTasksSharingOutputData(tasksSharingOutputData: TasksSharingOutputData) =
     TasksConfigurationIssuesAnalyzerData.TasksSharingOutputData.newBuilder()
-      .addAllPluginsCreatedSharingOutputTasks(tasksSharingOutputData.taskList.map { transformPluginData(it.originPlugin) })
+      .addAllTasksSharingOutput(tasksSharingOutputData.taskList.map(::transformTaskData))
       .build()
 }
