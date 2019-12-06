@@ -934,11 +934,11 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   protected void notifyListenersModelLayoutComplete(boolean animate) {
-    getModel().notifyListenersModelLayoutComplete(animate);
+    getModel().notifyListenersModelChangedOnLayout(animate);
   }
 
   protected void notifyListenersModelUpdateComplete() {
-    getModel().notifyListenersModelUpdateComplete();
+    getModel().notifyListenersModelDerivedDataChanged();
   }
 
   private void logConfigurationChange(@NotNull DesignSurface surface) {

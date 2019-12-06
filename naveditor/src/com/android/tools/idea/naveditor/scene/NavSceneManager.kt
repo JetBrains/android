@@ -384,7 +384,7 @@ open class NavSceneManager(
       updateHierarchy(model, model)
       designSurface.refreshRoot()
       requestRender()
-      model.notifyListenersModelUpdateComplete()
+      model.notifyListenersModelDerivedDataChanged()
     }
 
     override fun modelChangedOnLayout(model: NlModel, animate: Boolean) {
