@@ -458,7 +458,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    * // TODO: move this mechanism to LayoutlibSceneManager, or, ideally, remove the need for it entirely by
    * // moving all the derived data into the Scene.
    */
-  public void notifyListenersModelUpdateComplete() {
+  public void notifyListenersModelDerivedDataChanged() {
     myListeners.forEach(listener -> listener.modelDerivedDataChanged(this));
   }
 
@@ -469,7 +469,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
    *
    * @param animate if true, warns the listeners to animate the layout update
    */
-  public void notifyListenersModelLayoutComplete(boolean animate) {
+  public void notifyListenersModelChangedOnLayout(boolean animate) {
     myListeners.forEach(listener -> listener.modelChangedOnLayout(this, animate));
   }
 

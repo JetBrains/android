@@ -731,12 +731,12 @@ public class NlModelTest extends LayoutTestCase {
     model.addListener(listener1);
     model.addListener(remove1);
     model.addListener(listener2);
-    model.notifyListenersModelLayoutComplete(false);
+    model.notifyListenersModelChangedOnLayout(false);
     verify(listener1).modelChangedOnLayout(any(), anyBoolean());
     verify(remove1).modelChangedOnLayout(any(), anyBoolean());
     verify(listener2).modelChangedOnLayout(any(), anyBoolean());
 
-    model.notifyListenersModelLayoutComplete(false);
+    model.notifyListenersModelChangedOnLayout(false);
     verify(listener1, times(2)).modelChangedOnLayout(any(), anyBoolean());
     verifyNoMoreInteractions(remove1);
     verify(listener2, times(2)).modelChangedOnLayout(any(), anyBoolean());
@@ -776,7 +776,7 @@ public class NlModelTest extends LayoutTestCase {
                                                            "</LinearLayout>");
     NlModel model = createModel(modelXml);
 
-    notifyAndCheckListeners(model, NlModel::notifyListenersModelUpdateComplete, listener -> listener.modelDerivedDataChanged(any()));
+    notifyAndCheckListeners(model, NlModel::notifyListenersModelDerivedDataChanged, listener -> listener.modelDerivedDataChanged(any()));
     notifyAndCheckListeners(model, m -> m.notifyModified(NlModel.ChangeType.EDIT), listener -> listener.modelChanged(any()));
   }
 
