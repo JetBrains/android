@@ -28,11 +28,12 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ForcedPluginVersionUpgradeStep;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.ui.TestDialog;
 import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -47,6 +48,7 @@ public class PluginVersionUpgradeTest extends PlatformTestCase {
   @Mock RecommendedPluginVersionUpgradeStep myUpgradeStep3;
 
   private PluginVersionUpgrade myVersionUpgrade;
+  private TestDialog myOldTestDialog;
 
   @Override
   protected void setUp() throws Exception {
@@ -55,7 +57,17 @@ public class PluginVersionUpgradeTest extends PlatformTestCase {
 
     RecommendedPluginVersionUpgradeStep[] recommended = {myUpgradeStep1, myUpgradeStep2, myUpgradeStep3};
 
-    myVersionUpgrade = new PluginVersionUpgrade(getProject(), new ForcedPluginVersionUpgradeStep[0], recommended);
+    myVersionUpgrade = new PluginVersionUpgrade(getProject(), recommended);
+    myOldTestDialog = Messages.setTestDialog(TestDialog.OK);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    try {
+      Messages.setTestDialog(myOldTestDialog);
+    } finally {
+      super.tearDown();
+    }
   }
 
   public void testCheckAndPerformUpgradeWithoutAndroidModule() {
@@ -70,7 +82,6 @@ public class PluginVersionUpgradeTest extends PlatformTestCase {
   public void testCheckAndPerformUpgradeWhenUpgradeIsPerformed() {
     Module module = getModule();
     simulateAndroidModule(module);
-
 
     AndroidPluginInfo pluginInfo = new AndroidPluginInfo(module, null, null);
     Project project = getProject();
