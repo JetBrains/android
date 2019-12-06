@@ -16,11 +16,13 @@
 package com.android.tools.idea.kotlin
 
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtQualifiedExpression
@@ -47,6 +49,16 @@ fun KtProperty.hasBackingField(): Boolean {
 /** Computes the qualified name of this [KtAnnotationEntry]. */
 fun KtAnnotationEntry.getQualifiedName(): String? {
   return analyze(BodyResolveMode.PARTIAL).get(BindingContext.ANNOTATION, this)?.fqName?.asString()
+}
+
+/** Computes the qualified name for a Kotlin Class. Returns null if the class is a kotlin built-in. */
+fun KtClass.getQualifiedName(): String? {
+  val classDescriptor = analyze(BodyResolveMode.PARTIAL).get(BindingContext.CLASS, this) ?: return null
+ return if (KotlinBuiltIns.isUnderKotlinPackage(classDescriptor)) {
+    null
+  } else {
+    classDescriptor.fqNameSafe.asString()
+  }
 }
 
 /**
