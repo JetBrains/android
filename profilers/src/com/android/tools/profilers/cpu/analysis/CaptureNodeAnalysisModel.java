@@ -33,6 +33,11 @@ public class CaptureNodeAnalysisModel implements CpuAnalyzable<CaptureNodeAnalys
   }
 
   @NotNull
+  public CaptureNode getNode() {
+    return myNode;
+  }
+
+  @NotNull
   @Override
   public CpuAnalysisModel<CaptureNodeAnalysisModel> getAnalysisModel() {
     Range nodeRange = new Range(myNode.getStart(), myNode.getEnd());

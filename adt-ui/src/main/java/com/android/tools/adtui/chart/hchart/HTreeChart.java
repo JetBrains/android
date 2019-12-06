@@ -96,6 +96,11 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
   @Nullable
   private N myFocusedNode;
 
+  private boolean myNodeSelectionEnabled;
+
+  @Nullable
+  private N mySelectedNode;
+
   @NotNull
   private final List<Rectangle2D.Float> myDrawnRectangles;
 
@@ -127,12 +132,14 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     myRenderer = builder.myRenderer;
     myOrientation = builder.myOrientation;
     myRootVisible = builder.myRootVisible;
+    myNodeSelectionEnabled = builder.myNodeSelectionEnabled;
 
     myYRange = new Range(INITIAL_Y_POSITION, INITIAL_Y_POSITION);
     myRectangles = new ArrayList<>();
     myNodes = new ArrayList<>();
     myDrawnNodes = new ArrayList<>();
     myDrawnRectangles = new ArrayList<>();
+    mySelectedNode = null;
 
     setFocusable(true);
     initializeInputMap();
@@ -153,6 +160,25 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
   @VisibleForTesting
   public void setFocusedNode(@Nullable N node) {
     myFocusedNode = node;
+  }
+
+  /**
+   * Updates the selected node. This is called by mouse click event handler and also from other instances of HTreeChart selects a node and
+   * wants to update the (un)selected state of this instance.
+   *
+   * @param selectedNode the new selected node, or null if no node is being selected.
+   */
+  public void setSelectedNode(@Nullable N selectedNode) {
+    if (selectedNode != mySelectedNode) {
+      myDataUpdated = true;
+      mySelectedNode = selectedNode;
+    }
+  }
+
+  @VisibleForTesting
+  @Nullable
+  public N getSelectedNode() {
+    return mySelectedNode;
   }
 
   private void changed() {
@@ -238,7 +264,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
                                                                    Math.min(drawingArea.x + drawingArea.width, dim.width - PADDING) -
                                                                    Math.max(0, drawingArea.x),
                                                                    drawingArea.height);
-      myRenderer.render(g, node, drawingArea, clampedDrawingArea, node == myFocusedNode);
+      myRenderer.render(g, node, drawingArea, clampedDrawingArea, node == myFocusedNode, mySelectedNode != null && node != mySelectedNode);
     }
 
     g.dispose();
@@ -387,6 +413,9 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
         if (!hasFocus()) {
           requestFocusInWindow();
         }
+        if (myNodeSelectionEnabled) {
+          setSelectedNode(getNodeAt(e.getPoint()));
+        }
       }
 
       @Override
@@ -499,6 +528,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     @NotNull private Orientation myOrientation = Orientation.TOP_DOWN;
     @NotNull private Range myGlobalXRange = new Range(-Double.MAX_VALUE, Double.MAX_VALUE);
     private boolean myRootVisible = true;
+    private boolean myNodeSelectionEnabled = false;
     @NotNull private HTreeChartReducer<N> myReducer = new DefaultHTreeChartReducer<>();
 
     /**
@@ -522,6 +552,12 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     @NotNull
     public Builder<N> setRootVisible(boolean visible) {
       myRootVisible = visible;
+      return this;
+    }
+
+    @NotNull
+    public Builder<N> setNodeSelectionEnabled(boolean nodeSelectionEnabled) {
+      myNodeSelectionEnabled = nodeSelectionEnabled;
       return this;
     }
 
