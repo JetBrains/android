@@ -16,7 +16,6 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectModel;
-import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.DefaultTimeline;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
@@ -337,17 +336,11 @@ public class CpuCaptureStage extends Stage<Timeline> {
     String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());
     TrackGroupModel threads = TrackGroupModel.newBuilder().setTitle(threadsTitle).setTrackSelectable(true).build();
     for (CpuThreadInfo threadInfo : threadInfos) {
-      DataSeries<CpuProfilerStage.ThreadState> threadStateDataSeries =
-        new CpuThreadStateDataSeries(getStudioProfilers().getClient().getTransportClient(),
-                                     getStudioProfilers().getSession().getStreamId(),
-                                     getStudioProfilers().getSession().getPid(),
-                                     threadInfo.getId(),
-                                     capture);
       // Since thread tracks display multiple elements with different tooltip we don't set a default tooltip model here but defer to the
       // track renderer to switch between its various tooltip models.
       threads.addTrackModel(
         TrackModel.newBuilder(
-          new CpuThreadTrackModel(threadStateDataSeries, selectionRange, capture, threadInfo, getTimeline()),
+          new CpuThreadTrackModel(getStudioProfilers(), selectionRange, capture, threadInfo, getTimeline()),
           ProfilerTrackRendererType.CPU_THREAD,
           threadInfo.getName()));
     }
