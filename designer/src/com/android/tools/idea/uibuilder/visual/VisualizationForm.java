@@ -60,9 +60,6 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.DefaultFocusTraversalPolicy;
 import java.awt.event.AdjustmentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -105,12 +102,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   private JComponent myContentPanel;
   private JComponent myActionToolbarPanel;
   private JLabel myFileNameLabel;
-
-  /**
-   * The mouse listener in all visible component in visualization tool to make visualization tool can grab the focus.
-   * TODO(b/142469546): Remove this once the interaction of visualization tool is defined.
-   */
-  private final MouseListener myClickToFocusWindowListener;
 
   @Nullable private Runnable myCancelPreviousAddModelsRequestTask = null;
 
@@ -155,20 +146,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
     mySurface.setCentered(true);
     mySurface.setName(VISUALIZATION_DESIGN_SURFACE);
 
-    myClickToFocusWindowListener = new MouseAdapter() {
-      @Override
-      public void mousePressed(MouseEvent event) {
-        if (event.getID() == MouseEvent.MOUSE_PRESSED) {
-          mySurface.getLayeredPane().requestFocusInWindow();
-        }
-      }
-    };
-
-    // TODO(b/142469546): Remove this once the interaction of visualization tool is defined.
-    // The interaction of mySurface is disabled because mySurface is not editable so its InteractionManager is not listening any
-    // mouse and keyboard events. Here we add a mouse listener to focus visualization tool when clicking on previews area.
-    mySurface.getLayeredPane().addMouseListener(myClickToFocusWindowListener);
-
     myWorkBench = new WorkBench<>(myProject, "Visualization", null, this);
     myWorkBench.setLoadingText("Loading...");
     myWorkBench.setToolContext(mySurface);
@@ -194,7 +171,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   private JComponent createToolbarPanel() {
     myFileNameLabel = new JLabel();
     myActionToolbarPanel = new AdtPrimaryPanel(new BorderLayout());
-    myActionToolbarPanel.addMouseListener(myClickToFocusWindowListener);
 
     JComponent toolbarRootPanel = new AdtPrimaryPanel(new BorderLayout());
     toolbarRootPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()),
@@ -202,7 +178,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
 
     toolbarRootPanel.add(myFileNameLabel, BorderLayout.WEST);
     toolbarRootPanel.add(myActionToolbarPanel, BorderLayout.CENTER);
-    toolbarRootPanel.addMouseListener(myClickToFocusWindowListener);
 
     updateActionToolbar();
     return toolbarRootPanel;
