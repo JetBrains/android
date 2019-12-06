@@ -570,6 +570,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> TWEAK_COLOR_SCHEME = Flag.create(
+    EDITOR, "tweak.color.scheme",
+    "Change the default color scheme",
+    "If enabled, we modify the default color scheme slightly.",
+    true
+  );
+
   //endregion
 
   //region Analyzer
