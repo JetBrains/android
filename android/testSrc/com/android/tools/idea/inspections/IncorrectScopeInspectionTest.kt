@@ -115,4 +115,42 @@ class IncorrectScopeInspectionTest : AndroidGradleTestCase() {
       it.description == expectedErrorMessage && it.severity == HighlightSeverity.ERROR
     }).isTrue()
   }
+
+  // Regression test for b/132401150
+  fun testCorrectScopeKotlinStandardLibrary() {
+    val unitTestPath = "app/src/test/java/com/example/android/kotlin/ExampleUnitTest.kt"
+    val file = project.guessProjectDir()!!.findFileByRelativePath(unitTestPath)
+    myFixture.openFileInEditor(file!!)
+    myFixture.moveCaret("assertEquals(4, 2 + 2)|")
+    myFixture.type("\nlistOf<AbstractCollection<*>>()")
+
+    val highlightInfo = myFixture.doHighlighting(HighlightSeverity.WARNING)
+    assertThat(highlightInfo).isEmpty()
+  }
+
+  // Regression test for b/132401150. Kotlin primitive types will not be found in JavaPsiFacade, so they must be ignored.
+  fun testCorrectScopeKotlinStandardLibraryPrimitiveType() {
+    val unitTestPath = "app/src/test/java/com/example/android/kotlin/ExampleUnitTest.kt"
+    val file = project.guessProjectDir()!!.findFileByRelativePath(unitTestPath)
+    myFixture.openFileInEditor(file!!)
+    myFixture.moveCaret("assertEquals(4, 2 + 2)|")
+    myFixture.type("\nlistOf<Int>()")
+
+    val highlightInfo = myFixture.doHighlighting(HighlightSeverity.WARNING)
+    assertThat(highlightInfo).isEmpty()
+  }
+
+  fun testCorrectScopeKotlinBuiltIns() {
+    val unitTestPath = "app/src/test/java/com/example/android/kotlin/ExampleUnitTest.kt"
+    val file = project.guessProjectDir()!!.findFileByRelativePath(unitTestPath)
+    myFixture.openFileInEditor(file!!)
+    myFixture.moveCaret("assertEquals(4, 2 + 2)|")
+    myFixture.type("""
+
+      listOf<Any>()
+      listOf<Nothing>()
+      listOf<Function<LongArray>>()""".trimIndent())
+    val highlightInfo = myFixture.doHighlighting(HighlightSeverity.WARNING)
+    assertThat(highlightInfo).isEmpty()
+  }
 }
