@@ -64,6 +64,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.text.TextWithMnemonic;
 import com.intellij.ui.AppUIUtil;
 import java.io.File;
 import java.util.Arrays;
@@ -94,7 +95,12 @@ public class AndroidStudioInitializer implements Runnable {
     hideRarelyUsedIntellijActions();
     renameSynchronizeAction();
     setupResourceManagerActions();
+    if (StudioFlags.TWEAK_COLOR_SCHEME.get()) {
+      tweakDefaultColorScheme();
+    }
+  }
 
+  private static void tweakDefaultColorScheme() {
     // Modify built-in "Default" color scheme to remove background from XML tags.
     // "Darcula" and user schemes will not be touched.
     EditorColorsScheme colorsScheme = EditorColorsManager.getInstance().getScheme(EditorColorsScheme.DEFAULT_SCHEME_NAME);
@@ -221,7 +227,7 @@ public class AndroidStudioInitializer implements Runnable {
       @Override
       public void projectOpened(@NotNull Project project) {
         ExtensionPoint<MultiHostInjector> extensionPoint =
-          Extensions.getArea(project).getExtensionPoint(MultiHostInjector.MULTIHOST_INJECTOR_EP_NAME);
+          project.getExtensionArea().getExtensionPoint(MultiHostInjector.MULTIHOST_INJECTOR_EP_NAME);
 
         for (MultiHostInjector injector : extensionPoint.getExtensions()) {
           if (injector instanceof GrConcatenationInjector) {
@@ -249,7 +255,11 @@ public class AndroidStudioInitializer implements Runnable {
   // JUnit original Extension JUnitConfigurationType is disabled so it can be replaced by its child class AndroidJUnitConfigurationType
   private static void disableIdeaJUnitConfigurations() {
     // First we unregister the ConfigurationProducers, and after the ConfigurationType
+
+    //noinspection rawtypes: RunConfigurationProducer.EP_NAME uses raw types.
     ExtensionPoint<RunConfigurationProducer> configurationProducerExtensionPoint = RunConfigurationProducer.EP_NAME.getPoint(null);
+
+    //noinspection rawtypes: RunConfigurationProducer.EP_NAME uses raw types.
     for (RunConfigurationProducer runConfigurationProducer : configurationProducerExtensionPoint.getExtensions()) {
       if (runConfigurationProducer instanceof JUnitConfigurationProducer
           && !(runConfigurationProducer instanceof AndroidJUnitConfigurationProducer)) {
@@ -280,7 +290,7 @@ public class AndroidStudioInitializer implements Runnable {
   private static void renameSynchronizeAction() {
     // Rename the Synchronize action to Sync with File System to look better next to Sync Project with Gradle Files.
     AnAction action = ActionManager.getInstance().getAction(IdeActions.ACTION_SYNCHRONIZE);
-    action.getTemplatePresentation().setText("S_ync with File System", true);
+    action.getTemplatePresentation().setTextWithMnemonic(TextWithMnemonic.parse("S_ync with File System"));
   }
 
   @NotNull
