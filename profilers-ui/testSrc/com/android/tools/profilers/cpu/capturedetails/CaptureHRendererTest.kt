@@ -27,7 +27,9 @@ import com.android.tools.profilers.cpu.nodemodel.NativeNodeModel
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
 import com.android.tools.profilers.cpu.nodemodel.SyscallModel
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ui.ColorUtil
 import com.intellij.ui.Graphics2DDelegate
+import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert.fail
 import org.junit.Before
@@ -221,6 +223,15 @@ class CaptureNodeHRendererTest {
     val colorModel3 = AtraceNodeModelHChartColors.getFillColor(model3, CaptureDetails.Type.CALL_CHART, false, false, false)
     val colorModel4 = AtraceNodeModelHChartColors.getFillColor(model4, CaptureDetails.Type.CALL_CHART, false, false, false)
     assertThat(colorModel3).isEqualTo(colorModel4)
+
+    val idleModel = AtraceNodeModelHChartColors.getIdleCpuColor(model, CaptureDetails.Type.CALL_CHART, false, false, false)
+    val idleModel2 = AtraceNodeModelHChartColors.getIdleCpuColor(model2, CaptureDetails.Type.CALL_CHART, false, false, false)
+    assertThat(idleModel).isNotEqualTo(idleModel2)
+    assertThat(idleModel).isNotEqualTo(focused)
+    assertThat(idleModel).isNotEqualTo(model)
+    assertThat(JBColor.isBright()).isTrue()
+    // In light mode we darken the colors as such our idle colors are less bright than the non idle ones.
+    assertThat(ColorUtil.getLuminance(idleModel)).isLessThan(ColorUtil.getLuminance(focused))
 
     var color = AtraceNodeModelHChartColors.getFillColor(model, CaptureDetails.Type.FLAME_CHART, false, false, false)
     assertThat(color).isEqualTo(ProfilerColors.CPU_FLAMECHART_APP)
