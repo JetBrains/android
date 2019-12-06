@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.BuildListener
 import com.android.tools.idea.common.util.setupBuildListener
+import com.android.tools.idea.common.util.setupChangeListener
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
@@ -37,6 +38,7 @@ import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClassOwner
@@ -77,7 +79,7 @@ class CustomViewPreviewRepresentation(
   private val project = psiFile.project
   private val virtualFile = psiFile.virtualFile!!
   private val persistenceManager = persistenceProvider(project)
-  private var previewState: CustomViewPreviewManager.PreviewState = CustomViewPreviewManager.PreviewState.LOADING
+  private var stateTracker: CustomViewVisualStateTracker
 
   private val previewId = "$CUSTOM_VIEW_PREVIEW_ID${virtualFile.path}"
   private val currentStatePropertyName = "${previewId}_SELECTED"
@@ -133,8 +135,8 @@ class CustomViewPreviewRepresentation(
       }
     }
 
-  override val state: CustomViewPreviewManager.PreviewState
-    get() = previewState
+  override val notificationsState: CustomViewPreviewManager.NotificationsState
+    get() = stateTracker.notificationsState
 
   private val notificationsPanel = NotificationPanel(
     ExtensionPointName.create<EditorNotifications.Provider<EditorNotificationPanel>>(
@@ -178,63 +180,68 @@ class CustomViewPreviewRepresentation(
   }
 
   init {
+    val gradleState = GradleBuildState.getInstance(project)
+    val prevBuildStatus = gradleState.summary?.status
+    val buildState = when {
+      gradleState.isBuildInProgress -> CustomViewVisualStateTracker.BuildState.IN_PROGRESS
+      prevBuildStatus == null || prevBuildStatus == BuildStatus.SKIPPED || prevBuildStatus == BuildStatus.SUCCESS ->
+        CustomViewVisualStateTracker.BuildState.SUCCESSFUL
+      else -> CustomViewVisualStateTracker.BuildState.FAILED
+    }
+    val fileState = if (FileDocumentManager.getInstance().isFileModified(virtualFile))
+      CustomViewVisualStateTracker.FileState.MODIFIED
+    else
+      CustomViewVisualStateTracker.FileState.UP_TO_DATE
+    stateTracker = CustomViewVisualStateTracker(
+      buildState = buildState,
+      fileState = fileState,
+      onNotificationStateChanged = {
+        EditorNotifications.getInstance(project).updateNotifications(virtualFile)
+      },
+      onPreviewStateChanged = {
+        UIUtil.invokeLaterIfNeeded {
+          when (it) {
+            CustomViewVisualStateTracker.PreviewState.BUILDING -> {
+              workbench.hideContent()
+              workbench.showLoading("Waiting for build to finish...")
+            }
+            CustomViewVisualStateTracker.PreviewState.RENDERING -> {
+              workbench.hideContent()
+              workbench.showLoading("Waiting for previews to render...")
+            }
+            CustomViewVisualStateTracker.PreviewState.BUILD_FAILED -> {
+              workbench.hideContent()
+              workbench.loadingStopped("Preview is unavailable until after a successful project build.")
+            }
+            CustomViewVisualStateTracker.PreviewState.OK -> {
+              workbench.showContent()
+              workbench.hideLoading()
+            }
+          }
+        }
+      })
+
     setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
+        stateTracker.setBuildState(CustomViewVisualStateTracker.BuildState.SUCCESSFUL)
         refresh()
       }
 
       override fun buildFailed() {
-        updatePreviewAndNotifications(CustomViewPreviewManager.PreviewState.NOT_COMPILED)
+        stateTracker.setBuildState(CustomViewVisualStateTracker.BuildState.FAILED)
       }
 
       override fun buildStarted() {
-        updatePreviewAndNotifications(CustomViewPreviewManager.PreviewState.BUILDING)
+        stateTracker.setFileState(CustomViewVisualStateTracker.FileState.UP_TO_DATE)
+        stateTracker.setBuildState(CustomViewVisualStateTracker.BuildState.IN_PROGRESS)
       }
     }, this)
 
+    setupChangeListener(project, psiFile, {
+      stateTracker.setFileState(CustomViewVisualStateTracker.FileState.MODIFIED)
+    }, this)
+
     project.runWhenSmartAndSyncedOnEdt(this, Consumer { refresh() })
-
-    val previewState = when (GradleBuildState.getInstance(project).summary?.status) {
-      BuildStatus.SKIPPED, BuildStatus.SUCCESS, null -> CustomViewPreviewManager.PreviewState.LOADING
-      else -> CustomViewPreviewManager.PreviewState.NOT_COMPILED
-    }
-    updatePreviewAndNotifications(previewState)
-  }
-
-  private fun updatePreviewAndNotifications(newState: CustomViewPreviewManager.PreviewState) {
-    previewState = newState
-    fun updatePreview() {
-      val nothingToShow = classes.isEmpty()
-      when (previewState) {
-        CustomViewPreviewManager.PreviewState.LOADING -> {
-          workbench.hideContent()
-          workbench.showLoading("Waiting for gradle sync to finish...")
-        }
-        CustomViewPreviewManager.PreviewState.BUILDING -> {
-          if (nothingToShow) {
-            workbench.hideContent()
-            workbench.showLoading("Waiting for build to finish...")
-          }
-        }
-        CustomViewPreviewManager.PreviewState.RENDERING -> workbench.showLoading("Waiting for previews to render...")
-        CustomViewPreviewManager.PreviewState.NOT_COMPILED -> {
-          if (nothingToShow) {
-            workbench.hideContent()
-            workbench.loadingStopped("Preview is unavailable until after a successful project build.")
-          }
-        }
-        CustomViewPreviewManager.PreviewState.OK -> {
-          workbench.showContent()
-          workbench.hideLoading()
-        }
-      }
-    }
-
-    UIUtil.invokeLaterIfNeeded {
-      updatePreview()
-    }
-
-    EditorNotifications.getInstance(project).updateNotifications(virtualFile)
   }
 
   override val component = workbench
@@ -245,7 +252,7 @@ class CustomViewPreviewRepresentation(
    * Refresh the preview surfaces
    */
   private fun refresh() {
-    updatePreviewAndNotifications(CustomViewPreviewManager.PreviewState.RENDERING)
+    stateTracker.setVisualState(CustomViewVisualStateTracker.VisualState.RENDERING)
     // We are in a smart mode here
     classes = (AndroidPsiUtils.getPsiFileSafely(project,
                                                 virtualFile) as PsiClassOwner).classes.filter { it.name != null && it.extendsView() }.mapNotNull { it.qualifiedName }
@@ -296,7 +303,7 @@ class CustomViewPreviewRepresentation(
           Logger.getInstance(CustomViewPreviewRepresentation::class.java).warn(ex)
         }
 
-        updatePreviewAndNotifications(CustomViewPreviewManager.PreviewState.OK)
+        stateTracker.setVisualState(CustomViewVisualStateTracker.VisualState.OK)
       }
     }
   }

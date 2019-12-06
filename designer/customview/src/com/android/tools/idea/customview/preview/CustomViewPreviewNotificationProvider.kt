@@ -29,17 +29,16 @@ internal class CustomViewPreviewNotificationProvider : EditorNotifications.Provi
 
   override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? {
     val previewManager = fileEditor.getCustomViewPreviewManager() ?: return null
-    return when (previewManager.state) {
-      CustomViewPreviewManager.PreviewState.RENDERING -> EditorNotificationPanel().apply {
-        setText("Waiting for previews render to finish...")
-        icon(AnimatedIcon.Default())
+    return when (previewManager.notificationsState) {
+      CustomViewPreviewManager.NotificationsState.CODE_MODIFIED -> EditorNotificationPanel().apply {
+        setText("Source code is modified. A rebuild is required to show updated previews.")
       }
-      CustomViewPreviewManager.PreviewState.BUILDING -> EditorNotificationPanel().apply {
+      CustomViewPreviewManager.NotificationsState.BUILDING -> EditorNotificationPanel().apply {
         setText("Building...")
         icon(AnimatedIcon.Default())
       }
-      CustomViewPreviewManager.PreviewState.NOT_COMPILED -> EditorNotificationPanel(LightColors.RED).apply {
-        setText("Successful build is required to display the preview.")
+      CustomViewPreviewManager.NotificationsState.BUILD_FAILED -> EditorNotificationPanel(LightColors.RED).apply {
+        setText("Correct preview cannot be displayed until after a successful build.")
       }
       else -> null
     }

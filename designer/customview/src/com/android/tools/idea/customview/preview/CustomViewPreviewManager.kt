@@ -16,27 +16,26 @@
 package com.android.tools.idea.customview.preview
 
 interface CustomViewPreviewManager {
-  enum class PreviewState {
+  /**
+   * A state exposed to the CustomViewPreviewManager clients to know what type of notifications to display.
+   */
+  enum class NotificationsState {
     /**
-     * Initial state right after the construction when the preview is waiting for the Smart mode and Gradle sync
-     */
-    LOADING,
-    /**
-     * Awaiting for the models updates and for rendering to finish
-     */
-    RENDERING,
-    /**
-     * Awaiting for build to finish
+     * Awaiting for build to finish.
      */
     BUILDING,
     /**
-     * Related source code is not compiled
+     * Related source code is modified, therefore preview might be not up to date.
      */
-    NOT_COMPILED,
+    CODE_MODIFIED,
     /**
-     * Successfully showing the previews
+     * There are no notifications to show (all is fine).
      */
-    OK
+    NO_NOTIFICATIONS,
+    /**
+     * The previous build failed, therefore preview might be incorrect.
+     */
+    BUILD_FAILED,
   }
 
   val views: List<String>
@@ -44,5 +43,5 @@ interface CustomViewPreviewManager {
   var shrinkHeight: Boolean
   var shrinkWidth: Boolean
 
-  val state: PreviewState
+  val notificationsState: NotificationsState
 }
