@@ -660,6 +660,18 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareGoogleMapsFragment() {
+    checkCreateTemplate("fragments", "GoogleMapsFragment",
+                        ActivityCreationMode.WITHOUT_PROJECT, false, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareGoogleMapsFragmentWithKotlin() {
+    checkCreateTemplate("fragments", "GoogleMapsFragment",
+                        ActivityCreationMode.WITHOUT_PROJECT, false, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewGoogleAdMobFragment() {
     checkCreateTemplate("fragments", "GoogleAdMobAdsFragment")
   }

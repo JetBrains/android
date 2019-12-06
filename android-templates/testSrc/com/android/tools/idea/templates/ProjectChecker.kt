@@ -38,6 +38,7 @@ import com.android.tools.idea.npw.module.recipes.wearModule.generateWearModule
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.setGradleWrapperExecutable
 import com.android.tools.idea.npw.template.TemplateResolver
+import com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore
 import com.android.tools.idea.templates.Template.titleToTemplateRenderer
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_AIDL_OUT
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_ANDROIDX_SUPPORT
@@ -257,8 +258,8 @@ data class ProjectChecker(
       buildToolsVersion = Revision.parseRevision(activityState.getString(ATTR_BUILD_TOOLS_VERSION))
       topOut = File(activityState.getString(ATTR_TOP_OUT))
       applicationPackage = null
+      debugKeyStoreSha1 = KeystoreUtils.sha1(getOrCreateDefaultDebugKeystore())
     }
-
     val apis = ApiTemplateData(
       minApi = activityState.getString(ATTR_MIN_API),
       minApiLevel = activityState.getInt(ATTR_MIN_API_LEVEL),
