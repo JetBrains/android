@@ -16,14 +16,14 @@
 package com.android.tools.idea.lang.androidSql.parser
 
 import com.android.tools.idea.lang.AndroidParsingTestCase
-import com.android.tools.idea.lang.androidSql.ANDROID_SQL_FILE_TYPE
+import com.android.tools.idea.lang.androidSql.AndroidSqlFileType
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
 import com.android.tools.idea.lang.androidSql.AndroidSqlPairedBraceMatcher
 import com.intellij.codeInsight.completion.CompletionUtil
 import com.intellij.lang.LanguageBraceMatching
 import com.intellij.psi.TokenType
 
-abstract class AndroidSqlParserTest : AndroidParsingTestCase(ANDROID_SQL_FILE_TYPE.defaultExtension, AndroidSqlParserDefinition()) {
+abstract class AndroidSqlParserTest : AndroidParsingTestCase(AndroidSqlFileType.INSTANCE.defaultExtension, AndroidSqlParserDefinition()) {
   override fun getTestDataPath() = com.android.tools.idea.lang.getTestDataPath()
 
   override fun setUp() {

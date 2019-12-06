@@ -53,7 +53,7 @@ class ColumnReferencesTest : RoomLightTestCase() {
   }
 
   fun testColumnNameInsideAlterQuery() {
-    val file = myFixture.configureByText(ANDROID_SQL_FILE_TYPE, "ALTER TABLE User RENAME COLUMN n<caret>ame TO newName")
+    val file = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "ALTER TABLE User RENAME COLUMN n<caret>ame TO newName")
     val schema = file.setTestSqlSchema {
       table {
         name = "User"

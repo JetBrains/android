@@ -431,7 +431,34 @@
 
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
 
-    <fileTypeFactory implementation="org.jetbrains.android.fileTypes.AndroidFileTypeFactory"/>
+    <fileType name="Android 9-Patch"
+              implementationClass="com.android.tools.idea.fileTypes.AndroidNinePatchFileType"
+              fieldName="INSTANCE"
+              extensions="9.png" />
+    <fileType name="Adobe Photoshop"
+              implementationClass="com.android.tools.idea.fileTypes.PhotoshopFileType"
+              fieldName="INSTANCE"
+              extensions="psd" />
+    <fileType name="APK"
+              implementationClass="com.android.tools.idea.apk.ApkFileType"
+              fieldName="INSTANCE"
+              extensions="apk" />
+    <fileType name="DEX"
+              implementationClass="com.android.tools.idea.apk.DexFileType"
+              fieldName="INSTANCE"
+              extensions="dex" />
+    <fileType name="AAR"
+              implementationClass="com.android.tools.idea.apk.AarFileType"
+              fieldName="INSTANCE"
+              extensions="aar" />
+    <fileType name="AAB"
+              implementationClass="com.android.tools.idea.apk.BundleFileType"
+              fieldName="INSTANCE"
+              extensions="aab" />
+    <fileType name="Font"
+              implementationClass="com.android.tools.idea.fileTypes.FontFileType"
+              fieldName="INSTANCE"
+              extensions="ttf;otf" />
 
     <fileEditorProvider implementation="com.android.tools.idea.editors.NinePatchEditorProvider" />
     <fileEditorProvider implementation="com.android.tools.idea.editors.manifest.ManifestEditorProvider"/>
