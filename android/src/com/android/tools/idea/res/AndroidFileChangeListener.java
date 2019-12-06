@@ -25,7 +25,6 @@ import com.android.tools.idea.gradle.project.sync.GradleFiles;
 import com.android.tools.idea.lang.aidl.AidlFileType;
 import com.android.tools.idea.lang.rs.AndroidRenderscriptFileType;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.google.common.collect.Iterables;
 import com.intellij.AppTopics;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.editor.Document;
@@ -34,7 +33,6 @@ import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener;
-import com.intellij.openapi.fileTypes.FileNameMatcher;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
@@ -60,7 +58,6 @@ import com.intellij.psi.PsiTreeChangeListener;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.Consumer;
 import com.intellij.util.messages.MessageBusConnection;
-import java.util.Arrays;
 import java.util.List;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -96,8 +93,6 @@ import org.jetbrains.kotlin.idea.KotlinFileType;
  * </ul>
  */
 public class AndroidFileChangeListener implements Disposable {
-  private static final List<FileNameMatcher> RENDERSCRIPT_MATCHERS = Arrays.asList(AndroidRenderscriptFileType.fileNameMatchers());
-
   @NotNull private final ResourceFolderRegistry myRegistry;
   @NotNull private final Project myProject;
   @NotNull private final ResourceNotificationManager myResourceNotificationManager;
@@ -182,7 +177,7 @@ public class AndroidFileChangeListener implements Disposable {
       return true;
     }
 
-    if (Iterables.any(RENDERSCRIPT_MATCHERS, (matcher) -> matcher != null && matcher.acceptsCharSequence(fileName))) {
+    if (file.getFileType().equals(AndroidRenderscriptFileType.INSTANCE)) {
       return true;
     }
 

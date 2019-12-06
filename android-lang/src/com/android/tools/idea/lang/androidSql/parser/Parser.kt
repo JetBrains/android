@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lang.androidSql.parser
 
-import com.android.tools.idea.lang.androidSql.ANDROID_SQL_FILE_TYPE
+import com.android.tools.idea.lang.androidSql.AndroidSqlFileType
 import com.android.tools.idea.lang.androidSql.COMMENTS
 import com.android.tools.idea.lang.androidSql.STRING_LITERALS
 import com.android.tools.idea.lang.androidSql.WHITE_SPACES
@@ -50,7 +50,7 @@ class AndroidSqlParserDefinition : ParserDefinition {
   companion object {
     @JvmStatic
     fun isValidSqlQuery(project: Project, input: String): Boolean {
-      val psiFile = PsiFileFactory.getInstance(project).createFileFromText("temp.sql", ANDROID_SQL_FILE_TYPE, input)
+      val psiFile = PsiFileFactory.getInstance(project).createFileFromText("temp.sql", AndroidSqlFileType.INSTANCE, input)
       return !PsiTreeUtil.hasErrorElements(psiFile)
     }
   }
