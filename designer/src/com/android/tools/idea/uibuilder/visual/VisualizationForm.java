@@ -403,7 +403,12 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
         addModelFuture.thenRunAsync(() -> {
           if (!isRequestCancelled.get() && !facet.isDisposed() && !isAddingModelCanceled.get()) {
             activeModels(models);
-            mySurface.setScale(VisualizationToolSettings.getInstance().getGlobalState().getScale() / mySurface.getScreenScalingFactor());
+            double lastScaling = VisualizationToolSettings.getInstance().getGlobalState().getScale() / mySurface.getScreenScalingFactor();
+            if (!mySurface.setScale(lastScaling)) {
+              // Update scroll area because the scaling doesn't change, which keeps the old scroll area and may not suitable to new
+              // configuration set.
+              mySurface.updateScrolledAreaSize();
+            }
             myWorkBench.showContent();
           }
           else {
