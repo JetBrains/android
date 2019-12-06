@@ -17,6 +17,7 @@ package com.android.tools.idea.res;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.SampleDataResourceValue;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.truth.Truth;
 import com.intellij.mock.MockPsiFile;
@@ -30,16 +31,24 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public class SampleDataItemsTest {
   @Rule
   public AndroidProjectRule rule = AndroidProjectRule.inMemory();
 
+  @NotNull
+  private static SingleNamespaceResourceRepository getRepository() {
+    SingleNamespaceResourceRepository repository = Mockito.mock(SingleNamespaceResourceRepository.class);
+    Mockito.when(repository.getNamespace()).thenReturn(ResourceNamespace.RES_AUTO);
+    return repository;
+  }
+
   @Test
   public void testCsvParsing() {
     MockPsiFile file = new MockPsiFile(new LightVirtualFile("test.csv"), new MockPsiManager(rule.getProject())) {
-      @NotNull
       @Override
+      @NotNull
       public String getName() {
         return "test.csv";
       }
@@ -50,26 +59,23 @@ public class SampleDataItemsTest {
     SampleDataResourceItem[] item = ApplicationManager.getApplication()
       .runReadAction((Computable<SampleDataResourceItem[]>)() -> {
         try {
-          return SampleDataResourceItem.getFromPsiFileSystemItem(file, ResourceNamespace.RES_AUTO).toArray(new SampleDataResourceItem[0]);
+          return SampleDataResourceItem.getFromPsiFileSystemItem(getRepository(), file)
+              .toArray(new SampleDataResourceItem[0]);
         }
         catch (IOException e) {
-          e.printStackTrace();
+          throw new RuntimeException(e);
         }
-
-        return null;
       });
 
     Truth.assertThat(item).hasLength(2);
 
     Truth.assertThat(item[0].getName()).isEqualTo("test.csv/header0");
     SampleDataResourceValue value = (SampleDataResourceValue)item[0].getResourceValue();
-    Truth.assertThat(value.getValueAsLines())
-      .containsExactly("A1", "A2", "A3");
+    Truth.assertThat(value.getValueAsLines()).containsExactly("A1", "A2", "A3");
 
     Truth.assertThat(item[1].getName()).isEqualTo("test.csv/header1");
     value = (SampleDataResourceValue)item[1].getResourceValue();
-    Truth.assertThat(value.getValueAsLines())
-      .containsExactly("B1", "B3");
+    Truth.assertThat(value.getValueAsLines()).containsExactly("B1", "B3");
   }
 
   @Test
@@ -78,8 +84,8 @@ public class SampleDataItemsTest {
     final String content = "{\"data\":[{\"animal\":\"cat\"},{\"animal\":\"dog\"}]}";
 
     MockPsiFile file = new MockPsiFile(new LightVirtualFile("test.json"), new MockPsiManager(rule.getProject())) {
-      @NotNull
       @Override
+      @NotNull
       public String getName() {
         return "test.json";
       }
@@ -90,13 +96,12 @@ public class SampleDataItemsTest {
     SampleDataResourceItem[] item = ApplicationManager.getApplication()
       .runReadAction((Computable<SampleDataResourceItem[]>)() -> {
         try {
-          return SampleDataResourceItem.getFromPsiFileSystemItem(file, ResourceNamespace.RES_AUTO).toArray(new SampleDataResourceItem[0]);
+          return SampleDataResourceItem.getFromPsiFileSystemItem(getRepository(), file)
+              .toArray(new SampleDataResourceItem[0]);
         }
         catch (IOException e) {
-          e.printStackTrace();
+          throw new RuntimeException(e);
         }
-
-        return null;
       });
 
     Truth.assertThat(item).hasLength(1);
@@ -104,7 +109,6 @@ public class SampleDataItemsTest {
 
     Truth.assertThat(item[0].getName()).isEqualTo("test.json/data/animal");
     SampleDataResourceValue value = (SampleDataResourceValue)item[0].getResourceValue();
-    Truth.assertThat(value.getValueAsLines())
-      .containsExactly("cat", "dog");
+    Truth.assertThat(value.getValueAsLines()).containsExactly("cat", "dog");
   }
 }

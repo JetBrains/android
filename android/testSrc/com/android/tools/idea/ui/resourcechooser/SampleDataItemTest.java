@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.resourcechooser;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.PredefinedSampleDataResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -32,6 +33,7 @@ import com.intellij.testFramework.LightVirtualFile;
 import java.io.IOException;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public class SampleDataItemTest {
   @Rule
@@ -39,20 +41,19 @@ public class SampleDataItemTest {
 
   @Test
   public void getResourceUrl() {
+    SingleNamespaceResourceRepository repository = Mockito.mock(SingleNamespaceResourceRepository.class);
+    Mockito.when(repository.getNamespace()).thenReturn(ResourceNamespace.RES_AUTO);
+
     MockPsiFile file = new MockPsiFile(new LightVirtualFile("dummy"), new MockPsiManager(rule.getProject()));
     file.putUserData(ModuleUtilCore.KEY_MODULE, rule.getModule());
     file.text = "toto\ntata";
     ResourceChooserItem.SampleDataItem userItem = new ResourceChooserItem.SampleDataItem(ApplicationManager.getApplication().runReadAction(
-      new Computable<SampleDataResourceItem>() {
-        @Override
-        public SampleDataResourceItem compute() {
-          try {
-            return SampleDataResourceItem.getFromPsiFileSystemItem(file, ResourceNamespace.RES_AUTO).get(0);
-          }
-          catch (IOException e) {
-            e.printStackTrace();
-          }
-          return null;
+      (Computable<SampleDataResourceItem>)() -> {
+        try {
+          return SampleDataResourceItem.getFromPsiFileSystemItem(repository, file).get(0);
+        }
+        catch (IOException e) {
+          throw new RuntimeException(e);
         }
       }));
     Truth.assertThat(userItem.getResourceUrl()).isEqualTo("@sample/dummy");

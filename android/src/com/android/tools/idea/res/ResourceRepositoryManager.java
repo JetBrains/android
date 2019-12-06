@@ -639,10 +639,6 @@ public final class ResourceRepositoryManager implements Disposable {
     AppResourceRepository appResources = (AppResourceRepository)getExistingAppResources();
     if (projectResources != null) {
       projectResources.updateRoots();
-
-      if (appResources != null) {
-        appResources.invalidateCache(projectResources);
-      }
     }
 
     Map<ExternalLibrary, AarResourceRepository> oldLibraryResourceMap;

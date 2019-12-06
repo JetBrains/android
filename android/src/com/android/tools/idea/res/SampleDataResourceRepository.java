@@ -23,8 +23,9 @@ import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -105,6 +106,9 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
   @Override
   @Nullable
   protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
+    if (!namespace.equals(myNamespace)) {
+      return null;
+    }
     return myResourceTable.get(type);
   }
 
@@ -153,41 +157,39 @@ public class SampleDataResourceRepository extends LocalResourceRepository implem
       return;
     }
 
-    VirtualFile sampleDataDir = toVirtualFile(ProjectSystemUtil.getModuleSystem(myAndroidFacet.getModule()).getSampleDataDirectory());
-    myResourceTable.clear();
+    List<SampleDataResourceItem> items = ImmutableList.of();
 
+    VirtualFile sampleDataDir = toVirtualFile(ProjectSystemUtil.getModuleSystem(myAndroidFacet.getModule()).getSampleDataDirectory());
     if (sampleDataDir != null) {
-      List<SampleDataResourceItem> items = new ArrayList<>();
+      List<SampleDataResourceItem> items1 = new ArrayList<>();
       PsiManager psiManager = PsiManager.getInstance(myAndroidFacet.getModule().getProject());
       Stream<VirtualFile> childrenStream = Arrays.stream(sampleDataDir.getChildren());
       ApplicationManager.getApplication().runReadAction(() -> childrenStream
         .map(vf -> vf.isDirectory() ? psiManager.findDirectory(vf) : psiManager.findFile(vf))
         .filter(Objects::nonNull)
-        .forEach(f -> items.addAll(loadItemsFromFile(f))));
-
-      if (!items.isEmpty()) {
-        synchronized (ITEM_MAP_LOCK) {
-          ListMultimap<String, ResourceItem> map = myResourceTable.get(ResourceType.SAMPLE_DATA);
-          if (map == null) {
-            map = LinkedListMultimap.create(); // Use LinkedListMultimap to preserve ordering for editors that show original order.
-            myResourceTable.put(ResourceType.SAMPLE_DATA, map);
-          }
-          for (ResourceItem item : items) {
-            assert item.getNamespace().equals(myNamespace);
-            map.put(item.getName(), item);
-          }
-        }
-      }
+        .forEach(f -> items1.addAll(loadItemsFromFile(f))));
+      items = items1;
     }
 
-    setModificationCount(ourModificationCounter.incrementAndGet());
-    invalidateParentCaches(myNamespace, ResourceType.SAMPLE_DATA);
+    synchronized (ITEM_MAP_LOCK) {
+      myResourceTable.clear();
+      if (!items.isEmpty()) {
+        ImmutableListMultimap.Builder<String, ResourceItem> mapBuilder = ImmutableListMultimap.builder();
+        for (ResourceItem item : items) {
+          assert item.getNamespace().equals(myNamespace);
+          mapBuilder.put(item.getName(), item);
+        }
+        myResourceTable.put(ResourceType.SAMPLE_DATA, mapBuilder.build());
+      }
+      setModificationCount(ourModificationCounter.incrementAndGet());
+      invalidateParentCaches(this, ResourceType.SAMPLE_DATA);
+    }
   }
 
   @NotNull
   private List<SampleDataResourceItem> loadItemsFromFile(@NotNull PsiFileSystemItem sampleDataFile) {
     try {
-      return SampleDataResourceItem.getFromPsiFileSystemItem(sampleDataFile, myNamespace);
+      return SampleDataResourceItem.getFromPsiFileSystemItem(this, sampleDataFile);
     }
     catch (IOException e) {
       LOG.warn("Error loading sample data file " + sampleDataFile.getName(), e);

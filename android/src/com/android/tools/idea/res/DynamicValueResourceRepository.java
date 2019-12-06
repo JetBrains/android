@@ -130,7 +130,7 @@ public class DynamicValueResourceRepository extends LocalResourceRepository
   private void notifyProjectSynced() {
     synchronized (ITEM_MAP_LOCK) {
       myResourceTable.clear(); // Computed lazily in getMap.
-      invalidateParentCaches();
+      invalidateParentCaches(this, ResourceType.values());
     }
   }
 
@@ -151,7 +151,7 @@ public class DynamicValueResourceRepository extends LocalResourceRepository
         // Masked by higher priority source provider.
         continue;
       }
-      ResourceItem item = new DynamicValueResourceItem(myNamespace, type, name, field.getValue());
+      ResourceItem item = new DynamicValueResourceItem(this, type, name, field.getValue());
       map.put(name, item);
     }
   }
