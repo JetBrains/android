@@ -20,12 +20,16 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.Timeline;
+import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisChartModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisTabModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
+import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CpuCaptureNodeTooltip;
+import com.google.common.annotations.VisibleForTesting;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.function.Function;
@@ -43,11 +47,13 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   @NotNull private final CpuThreadsTooltip myThreadStateTooltip;
   @NotNull private final Function<CaptureNode, CpuCaptureNodeTooltip> myTraceEventTooltipBuilder;
 
-  public CpuThreadTrackModel(@NotNull DataSeries<CpuProfilerStage.ThreadState> threadStateDataSeries,
+  public CpuThreadTrackModel(@NotNull StudioProfilers profilers,
                              @NotNull Range range,
                              @NotNull CpuCapture capture,
                              @NotNull CpuThreadInfo threadInfo,
                              @NotNull Timeline timeline) {
+    DataSeries<CpuProfilerStage.ThreadState> threadStateDataSeries = buildThreadStateDataSeries(profilers, capture, threadInfo.getId());
+
     myThreadStateChartModel = new StateChartModel<>();
     myThreadStateChartModel.addSeries(new RangedSeries<>(range, threadStateDataSeries));
 
@@ -117,5 +123,32 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
   private Collection<CaptureNode> getCaptureNode() {
     assert myCapture.containsThread(myThreadInfo.getId());
     return Collections.singleton(myCapture.getCaptureNode(myThreadInfo.getId()));
+  }
+
+  @VisibleForTesting
+  static DataSeries<CpuProfilerStage.ThreadState> buildThreadStateDataSeries(@NotNull StudioProfilers profilers,
+                                                                             @NotNull CpuCapture capture,
+                                                                             int threadId) {
+    if (profilers.getSession().getPid() != 0) {
+      // We have an ongoing session, use sampled thread state data if available.
+      DataSeries<CpuProfilerStage.ThreadState> threadStateDataSeries =
+        new CpuThreadStateDataSeries(profilers.getClient().getTransportClient(),
+                                     profilers.getSession().getStreamId(),
+                                     profilers.getSession().getPid(),
+                                     threadId,
+                                     capture);
+      if (capture.getType() == Cpu.CpuTraceType.ATRACE) {
+        // If we have an Atrace capture we need to create a MergeCaptureDataSeries.
+        threadStateDataSeries = new MergeCaptureDataSeries<>(
+          capture,
+          threadStateDataSeries,
+          new AtraceDataSeries<>((AtraceCpuCapture)capture, atraceCapture -> atraceCapture.getThreadStatesForThread(threadId)));
+      }
+      return threadStateDataSeries;
+    }
+    if (capture.getType() == Cpu.CpuTraceType.ATRACE) {
+      return new AtraceDataSeries<>((AtraceCpuCapture)capture, atraceCapture -> atraceCapture.getThreadStatesForThread(threadId));
+    }
+    return new ImportedTraceThreadDataSeries(capture, threadId);
   }
 }
