@@ -27,7 +27,7 @@ import java.util.Collection;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link ForcedPluginVersionUpgradeStep}.
+ * Tests for {@link GradlePluginUpgrade#shouldPreviewBeForcedToUpgrade(GradleVersion, GradleVersion)}.
  */
 @RunWith(Parameterized.class)
 public class ForcedPluginPreviewVersionUpgradeStepTest {
@@ -81,7 +81,7 @@ public class ForcedPluginPreviewVersionUpgradeStepTest {
 
   @Test
   public void shouldPreviewBeForcedToUpgradePluginVersion() {
-    boolean forced = ForcedPluginVersionUpgradeStep.shouldPreviewBeForcedToUpgradePluginVersion(myRecommended, myCurrent);
+    boolean forced = GradlePluginUpgrade.shouldPreviewBeForcedToUpgrade(myRecommended, myCurrent);
     assertEquals("should force upgrade from " + myCurrent + " to " + myRecommended + "?", myForceUpgrade, forced);
   }
 }

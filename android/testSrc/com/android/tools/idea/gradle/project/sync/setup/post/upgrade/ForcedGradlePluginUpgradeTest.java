@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,9 +39,9 @@ import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
- * Tets for {@link ForcedPluginVersionUpgradeStep}.
+ * Test for {@link GradlePluginUpgrade#performForcedPluginUpgrade(Project, AndroidPluginInfo)}.
  */
-public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends PlatformTestCase {
+public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
   @Mock private LatestKnownPluginVersionProvider myLatestKnownPluginVersionProvider;
   @Mock private AndroidPluginVersionUpdater myVersionUpdater;
@@ -49,8 +49,6 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends PlatformTestC
 
   private GradleSyncMessagesStub mySyncMessages;
   private TestDialog myOriginalTestDialog;
-
-  private ForcedPluginVersionUpgradeStep myVersionUpgrade;
 
   @Override
   protected void setUp() throws Exception {
@@ -61,8 +59,6 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends PlatformTestC
     new IdeComponents(project).replaceProjectService(GradleSyncState.class, mySyncState);
     new IdeComponents(project).replaceProjectService(AndroidPluginVersionUpdater.class, myVersionUpdater);
     mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
-
-    myVersionUpgrade = new ForcedPluginVersionUpgradeStep();
   }
 
   @Override
@@ -83,7 +79,7 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends PlatformTestC
     when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
     when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("3.0.0"));
 
-    boolean upgraded = myVersionUpgrade.performUpgradeAndSync(getProject(), myPluginInfo);
+    boolean upgraded = GradlePluginUpgrade.shouldForcePluginUpgrade(myPluginInfo);
     assertFalse(upgraded);
 
     verify(mySyncState, never()).syncSucceeded();
@@ -101,7 +97,7 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends PlatformTestC
     // Simulate user accepting the upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
 
-    boolean upgraded = myVersionUpgrade.performUpgradeAndSync(getProject(), myPluginInfo);
+    boolean upgraded = GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), myPluginInfo);
     assertTrue(upgraded);
 
     verify(mySyncState).syncSucceeded();
@@ -119,7 +115,7 @@ public class ForcedPluginPreviewVersionUpgradeStepIdeaTest extends PlatformTestC
     // Simulate user canceling upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(Messages.CANCEL));
 
-    boolean upgraded = myVersionUpgrade.performUpgradeAndSync(getProject(), myPluginInfo);
+    boolean upgraded = GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), myPluginInfo);
     assertTrue(upgraded);
 
     List<SyncMessage> messages = mySyncMessages.getReportedMessages();
