@@ -43,6 +43,8 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -65,7 +67,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -101,7 +102,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   private boolean isActive = false;
   private JComponent myContentPanel;
   private JComponent myActionToolbarPanel;
-  private JLabel myFileNameLabel;
 
   @Nullable private Runnable myCancelPreviousAddModelsRequestTask = null;
 
@@ -169,23 +169,23 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
 
   @NotNull
   private JComponent createToolbarPanel() {
-    myFileNameLabel = new JLabel();
     myActionToolbarPanel = new AdtPrimaryPanel(new BorderLayout());
-
-    JComponent toolbarRootPanel = new AdtPrimaryPanel(new BorderLayout());
-    toolbarRootPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()),
-                                                              BorderFactory.createEmptyBorder(0, 6, 0, 0)));
-
-    toolbarRootPanel.add(myFileNameLabel, BorderLayout.WEST);
-    toolbarRootPanel.add(myActionToolbarPanel, BorderLayout.CENTER);
-
+    myActionToolbarPanel.setBorder(BorderFactory.createCompoundBorder(
+      BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()),
+      BorderFactory.createEmptyBorder(0, 6, 0, 0))
+    );
     updateActionToolbar();
-    return toolbarRootPanel;
+    return myActionToolbarPanel;
   }
 
   private void updateActionToolbar() {
     myActionToolbarPanel.removeAll();
-    DefaultActionGroup group = new DefaultActionGroup(new ConfigurationSetMenuAction(this, myCurrentConfigurationSet));
+    DefaultActionGroup group = new DefaultActionGroup();
+    String fileName = myFile != null ? myFile.getName() : "";
+    // Add an empty action and disable it permanently for displaying file name.
+    group.add(new TextLabelAction(fileName));
+    group.addSeparator();
+    group.add(new DefaultActionGroup(new ConfigurationSetMenuAction(this, myCurrentConfigurationSet)));
     if (myFile != null) {
       PsiFile file = PsiManager.getInstance(myProject).findFile(myFile);
       AndroidFacet facet = file != null ? AndroidFacet.getInstance(file) : null;
@@ -332,7 +332,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
       return;
     }
 
-    myFileNameLabel.setText(file.getName());
+    updateActionToolbar();
 
     // isRequestCancelled allows us to cancel the ongoing computation if it is not needed anymore. There is no need to hold
     // to the Future since Future.cancel does not really interrupt the work.
@@ -522,6 +522,33 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   @Override
   public void panningChanged(AdjustmentEvent adjustmentEvent) {
     // Do nothing.
+  }
+
+  /**
+   * An disabled action for displaying text in action toolbar.
+   */
+  private static final class TextLabelAction extends AnAction {
+
+    TextLabelAction(@NotNull String text) {
+      super(null, null, null);
+      getTemplatePresentation().setText(text, false);
+      getTemplatePresentation().setEnabled(false);
+    }
+
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent e) {
+      // Do nothing
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      e.getPresentation().setEnabled(false);
+    }
+
+    @Override
+    public boolean displayTextInToolbar() {
+      return true;
+    }
   }
 
   private static class VisualizationTraversalPolicy extends DefaultFocusTraversalPolicy {
