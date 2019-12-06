@@ -23,20 +23,21 @@ import com.android.tools.analytics.stubs.StubOperatingSystemMXBean;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.testFramework.PlatformTestCase;
 
 public class MemorySettingsRecommendationTest extends PlatformTestCase {
   public void testRecommend() {
-    assertEquals(getRecommended(1280, 5120, 20), -1);
-    assertEquals(getRecommended(1280, 5120, 100), 1536);
-    assertEquals(getRecommended(1280, 5120, 200), 1536);
-    assertEquals(getRecommended(1280, 8192, 20), 2048);
-    assertEquals(getRecommended(1280, 8192, 120), 2048);
-    assertEquals(getRecommended(1280, 8192, 200), 2048);
-    assertEquals(getRecommended(1280, 16 * 1024, 20), 2048);
-    assertEquals(getRecommended(1280, 16 * 1024, 50), 2048);
-    assertEquals(getRecommended(1280, 16 * 1024, 100), 3072);
-    assertEquals(getRecommended(1280, 16 * 1024, 200), 4096);
+    assertEquals(-1, getRecommended(1280, 5120, 20));
+    assertEquals(SystemInfo.isWindows ? -1 : 1536, getRecommended(1280, 5120, 100));
+    assertEquals(SystemInfo.isWindows ? -1 : 1536, getRecommended(1280, 5120, 200));
+    assertEquals(SystemInfo.isWindows ? -1 : 2048, getRecommended(1280, 8192, 20));
+    assertEquals(SystemInfo.isWindows ? 1536 : 2048, getRecommended(1280, 8192, 120));
+    assertEquals(SystemInfo.isWindows ? 1536 : 2048, getRecommended(1280, 8192, 200));
+    assertEquals(SystemInfo.isWindows ? -1 : 2048, getRecommended(1280, 16 * 1024, 20));
+    assertEquals(2048, getRecommended(1280, 16 * 1024, 50));
+    assertEquals(3072, getRecommended(1280, 16 * 1024, 100));
+    assertEquals(4096, getRecommended(1280, 16 * 1024, 200));
   }
 
   private int getRecommended(int currentXmxInMB, int machineMemInMB, int moduleCount) {
