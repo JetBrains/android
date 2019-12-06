@@ -345,6 +345,7 @@ enum class TestFileName(val path: String) {
   LINT_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST("lintOptionsModel/removeOneOfElementsInTheList"),
   LINT_OPTIONS_MODEL_REMOVE_ONE_OF_ELEMENTS_IN_THE_LIST_EXPECTED("lintOptionsModel/removeOneOfElementsInTheListExpected"),
   LINT_OPTIONS_MODEL_REMOVE_ONLY_ELEMENTS_IN_THE_LIST("lintOptionsModel/removeOnlyElementsInTheList"),
+  MODEL_MAP_PROPERTY_IMPL_PROPERTY_VALUES("modelMapPropertyImpl/propertyValues"),
   PACKAGING_OPTIONS_MODEL_PARSE_ELEMENTS_IN_APPLICATION_STATEMENTS("packagingOptionsModel/parseElementsInApplicationStatements"),
   PACKAGING_OPTIONS_MODEL_PARSE_ELEMENTS_IN_ASSIGNMENT_STATEMENTS("packagingOptionsModel/parseElementsInAssignmentStatements"),
   PACKAGING_OPTIONS_MODEL_REPLACE_ELEMENTS("packagingOptionsModel/replaceElements"),
