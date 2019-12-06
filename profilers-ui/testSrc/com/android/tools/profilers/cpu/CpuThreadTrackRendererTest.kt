@@ -29,6 +29,7 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerTrackRendererType
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -54,8 +55,11 @@ class CpuThreadTrackRendererTest {
   @Test
   fun renderComponentsForThreadTrack() {
     val threadInfo = CpuThreadInfo(1, "Thread-1")
+    val multiSelectionModel = MultiSelectionModel<CpuAnalyzable<*>>()
+    val captureNode = CaptureNode(StubCaptureNodeModel())
     val mockCapture = Mockito.mock(CpuCapture::class.java)
     Mockito.`when`(mockCapture.range).thenReturn(Range())
+    Mockito.`when`(mockCapture.getCaptureNode(1)).thenReturn(captureNode)
     val threadTrackModel = TrackModel.newBuilder(
       CpuThreadTrackModel(
         profilers,
@@ -63,7 +67,7 @@ class CpuThreadTrackRendererTest {
         mockCapture,
         threadInfo,
         DefaultTimeline(),
-        MultiSelectionModel()
+        multiSelectionModel
       ),
       ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
     val renderer = CpuThreadTrackRenderer()
@@ -71,5 +75,13 @@ class CpuThreadTrackRendererTest {
     assertThat(component.componentCount).isEqualTo(2)
     assertThat(component.components[0]).isInstanceOf(StateChart::class.java)
     assertThat(component.components[1]).isInstanceOf(HTreeChart::class.java)
+
+    // Verify trace event chart selection is updated.
+    val traceEventChart = component.components[1] as HTreeChart<CaptureNode>
+    assertThat(traceEventChart.selectedNode).isNull()
+    traceEventChart.selectedNode = captureNode
+    assertThat(traceEventChart.selectedNode).isSameAs(captureNode)
+    multiSelectionModel.clearSelection()
+    assertThat(traceEventChart.selectedNode).isNull()
   }
 }

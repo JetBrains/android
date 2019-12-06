@@ -18,13 +18,20 @@ package com.android.tools.profilers.cpu.capturedetails;
 import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.profilers.cpu.CaptureNode;
-import com.android.tools.profilers.cpu.nodemodel.*;
+import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
+import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
+import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel;
+import com.android.tools.profilers.cpu.nodemodel.NativeNodeModel;
+import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
 import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
 import java.util.function.Predicate;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Specifies render characteristics (i.e. text and color) of {@link com.android.tools.adtui.chart.hchart.HTreeChart} nodes that represent
@@ -58,35 +65,35 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     this(type, (text, metrics, width) -> metrics.stringWidth(text) <= width);
   }
 
-  private Color getFillColor(CaptureNode node, boolean isFocused) {
+  private Color getFillColor(CaptureNode node, boolean isFocused, boolean isDeselected) {
     // TODO (b/74349846): Change this function to use a binder base on CaptureNode.
     CaptureNodeModel nodeModel = node.getData();
     if (nodeModel instanceof JavaMethodModel) {
-      return JavaMethodHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused);
+      return JavaMethodHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
     }
     else if (nodeModel instanceof NativeNodeModel) {
-      return NativeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused);
+      return NativeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
     }
     // AtraceNodeModel is a SingleNameModel as such this check needs to happen before SingleNameModel check.
     else if (nodeModel instanceof AtraceNodeModel) {
-      return AtraceNodeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused);
+      return AtraceNodeModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
     }
     else if (nodeModel instanceof SingleNameModel) {
-      return SingleNameModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused);
+      return SingleNameModelHChartColors.getFillColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
     }
     throw new IllegalStateException("Node type not supported.");
   }
 
-  private Color getIdleCpuColor(CaptureNode node, boolean isFocused) {
+  private Color getIdleCpuColor(CaptureNode node, boolean isFocused, boolean isDeselected) {
     // TODO (b/74349846): Change this function to use a binder base on CaptureNode.
 
     // The only nodes that actually show idle time are the atrace nodes. As such they are the only ones,
     // that return a custom color for the idle cpu time.
     CaptureNodeModel nodeModel = node.getData();
     if (nodeModel instanceof AtraceNodeModel) {
-      return AtraceNodeModelHChartColors.getIdleCpuColor(nodeModel, myType, node.isUnmatched(), isFocused);
+      return AtraceNodeModelHChartColors.getIdleCpuColor(nodeModel, myType, node.isUnmatched(), isFocused, isDeselected);
     }
-    return getFillColor(node, isFocused);
+    return getFillColor(node, isFocused, isDeselected);
   }
 
   /**
@@ -103,12 +110,13 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
                      @NotNull CaptureNode node,
                      @NotNull Rectangle2D fullDrawingArea,
                      @NotNull Rectangle2D drawingArea,
-                     boolean isFocused) {
+                     boolean isFocused,
+                     boolean isDeselected) {
     // Draw rectangle background
     CaptureNode captureNode = node;
     CaptureNodeModel nodeModel = node.getData();
-    Color nodeColor = getFillColor(captureNode, isFocused);
-    Color idleColor = getIdleCpuColor(captureNode, isFocused);
+    Color nodeColor = getFillColor(captureNode, isFocused, isDeselected);
+    Color idleColor = getIdleCpuColor(captureNode, isFocused, isDeselected);
     g.setPaint(nodeColor);
     g.fill(drawingArea);
 

@@ -37,7 +37,8 @@ private data class DataVisualizationTheme(
  * Palette file is visible for testing.
  */
 object DataVisualizationColors {
-  @JvmField val PRIMARY_DATA_COLOR = "Vivid Blue"
+  const val PRIMARY_DATA_COLOR = "Vivid Blue"
+  const val BACKGROUND_DATA_COLOR = "Gray"
 
   val palette = LinkedHashMap<String, List<JBColor>>()
   var numberOfTonesPerColor = 0
@@ -66,25 +67,46 @@ object DataVisualizationColors {
    * Index 3 maps to COLORB_TONE1.
    */
   fun getColor(index: Int): JBColor {
-    return getColor(index, 0)
+    return getColor(index, false)
   }
 
-  fun getColor(index: Int, toneIndex: Int): JBColor {
+  fun getColor(index: Int, isFocused: Boolean): JBColor {
+    return getColor(index, 0, isFocused)
+  }
+
+  fun getColor(index: Int, toneIndex: Int, isFocused: Boolean): JBColor {
     if (!isInitialized) {
       initialize()
     }
     val boundIndex = abs(index + numberOfTonesPerColor * toneIndex) % (palette.size * numberOfTonesPerColor)
     val colorIndex = boundIndex % palette.size
     val toneIndex = (boundIndex / palette.size) % numberOfTonesPerColor
-    return palette.values.elementAt(colorIndex)[toneIndex]
+    val color = palette.values.elementAt(colorIndex)[toneIndex]
+    return if (isFocused) getFocusColor(color) else color
   }
 
   fun getColor(name: String, toneIndex: Int): JBColor {
+    return getColor(name, toneIndex, false)
+  }
+
+  fun getColor(name: String, isFocused: Boolean): JBColor {
+    return getColor(name, 0, isFocused)
+  }
+
+  fun getColor(name: String, toneIndex: Int, isFocused: Boolean): JBColor {
     if (!isInitialized) {
       initialize()
     }
     assert(palette.containsKey(name)) { "Palette does not contain specified key: ${name}." }
-    return palette[name]!![toneIndex]
+    val color = palette[name]!![toneIndex]
+    return if (isFocused) getFocusColor(color) else color
+  }
+
+  /**
+   * Returns a new color that represents the focused state.
+   */
+  fun getFocusColor(color: JBColor): JBColor {
+    return JBColor(color.brighter(), color.darker())
   }
 
   /**

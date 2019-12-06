@@ -199,6 +199,9 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
       .map(CpuAnalyzable::getAnalysisModel)
       .reduce(CpuAnalysisModel::mergeWith)
       .ifPresent(getStage()::addCpuAnalysisModel);
+
+    // Now update track groups
+    updateTrackGroupList();
   }
 
   @VisibleForTesting

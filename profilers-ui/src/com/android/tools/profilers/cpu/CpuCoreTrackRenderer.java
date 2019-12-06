@@ -63,10 +63,10 @@ public class CpuCoreTrackRenderer implements TrackRenderer<CpuCoreTrackModel, Pr
       DataVisualizationColors dataColors = DataVisualizationColors.INSTANCE;
       // Return other process colors.
       if (value.getProcessId() != myAppProcessId) {
-        return dataColors.getColor(nameHash, isMouseOver ? 1 : 0);
+        return dataColors.getColor(nameHash, isMouseOver);
       }
       // Return app process color.
-      return dataColors.getColor(PRIMARY_DATA_COLOR, isMouseOver ? 1 : 0);
+      return dataColors.getColor(PRIMARY_DATA_COLOR, isMouseOver);
     }
 
     @NotNull

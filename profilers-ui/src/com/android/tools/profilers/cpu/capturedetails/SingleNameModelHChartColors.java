@@ -15,14 +15,14 @@
  */
 package com.android.tools.profilers.cpu.capturedetails;
 
+import static com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer.toUnmatchColor;
+
+import com.android.tools.adtui.common.DataVisualizationColors;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
+import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
-
-import static com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer.toUnmatchColor;
 
 /**
  *  Defines the fill color of the rectangles used to represent {@link SingleNameModel} nodes in a
@@ -36,12 +36,21 @@ class SingleNameModelHChartColors {
     }
   }
 
-  static Color getFillColor(@NotNull CaptureNodeModel model, CaptureDetails.Type chartType, boolean isUnmatched, boolean isFocused) {
+  static Color getFillColor(@NotNull CaptureNodeModel model,
+                            CaptureDetails.Type chartType,
+                            boolean isUnmatched,
+                            boolean isFocused,
+                            boolean isDeselected) {
     validateModel(model);
 
     Color color;
     if (chartType == CaptureDetails.Type.CALL_CHART) {
-      color = isFocused ? ProfilerColors.CPU_CALLCHART_APP_HOVER : ProfilerColors.CPU_CALLCHART_APP;
+      if (isDeselected) {
+        color = DataVisualizationColors.INSTANCE.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, isFocused);
+      }
+      else {
+        color = isFocused ? ProfilerColors.CPU_CALLCHART_APP_HOVER : ProfilerColors.CPU_CALLCHART_APP;
+      }
     }
     else {
       color = isFocused ? ProfilerColors.CPU_FLAMECHART_APP_HOVER : ProfilerColors.CPU_FLAMECHART_APP;
