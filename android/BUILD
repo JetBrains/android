@@ -223,15 +223,10 @@ iml_module(
             "com.android.tools.idea.lint",
             "com.android.tools.idea.material.icons",
             "com.android.tools.idea.memorysettings",
-            "com.android.tools.idea.navigator",
-            "com.android.tools.idea.npw",
-            "com.android.tools.idea.refactoring",
-            "com.android.tools.idea.rendering",
-            "com.android.tools.idea.run",
-            "com.android.tools.idea.sdk",
-            "com.android.tools.idea.startup",
-            "com.android.tools.idea.templates",
-            "com.android.tools.idea.ui.resourcemanager",
+            "com.android.tools.idea.navigator", # testDependentNativeModules (ag/9872410)
+            "com.android.tools.idea.npw", # leaks, json exceptions, etc.
+            "com.android.tools.idea.run", # some test directory paths are too long
+            "com.android.tools.idea.ui.resourcemanager", # leaks (b/145024498)
             "org.jetbrains.android",
         ],
         "//conditions:default": [],
