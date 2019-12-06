@@ -413,7 +413,10 @@ class ResourceLookupResolver(
   }
 
   private fun findViewTagInFile(view: ViewNode, layout: ResourceReference?): XmlTag? {
-    view.tag?.let { return it }
+    val isViewLayout = view.layout == layout
+    if (isViewLayout) {
+      view.tag?.let { return it }
+    }
 
     val reference = mapReference(layout) ?: return null
     val layoutValue = resolver.getUnresolvedResource(reference)
@@ -421,7 +424,7 @@ class ResourceLookupResolver(
     val xmlFile = (AndroidPsiUtils.getPsiFileSafely(project, file) as? XmlFile) ?: return null
     val locator = ViewLocator(view)
     xmlFile.rootTag?.accept(locator)
-    return locator.found?.also { view.tag = it }
+    return locator.foundXmlTag?.also { if (isViewLayout) view.tag = it }
   }
 
   /**
@@ -436,27 +439,36 @@ class ResourceLookupResolver(
   private fun mapReference(reference: ResourceReference?): ResourceReference? = mapReference(appFacet, reference)
 
   /**
-   * A [PsiRecursiveElementVisitor] to find a [view] in an [XmlFile].
+   * A [PsiRecursiveElementVisitor] to find a view in an [XmlFile].
    */
-  private inner class ViewLocator(private val view: ViewNode) : PsiRecursiveElementVisitor() {
-    var found: XmlTag? = null
+  private inner class ViewLocator(view: ViewNode) : PsiRecursiveElementVisitor() {
+    private val viewId = view.viewId
+    private val parentId = view.parent?.viewId
+    private var found: XmlTag? = null
+    private var foundParent: XmlTag? = null
+
+    val foundXmlTag: XmlTag?
+      get() {
+        found?.let { return it }
+        return foundParent?.subTags?.singleOrNull()
+      }
 
     override fun visitElement(element: PsiElement) {
-      if (element !is XmlTag) return
-      if (sameId(element)) {
-        found = element
-        return
+      if (element is XmlTag) {
+        if (viewId != null && sameId(element, viewId)) {
+          found = element
+        }
+        if (parentId != null && sameId(element, parentId)) {
+          foundParent = element
+        }
       }
       super.visitElement(element)
     }
 
-    private fun sameId(tag: XmlTag): Boolean {
-      val attr = tag.getAttributeValue(ATTR_ID, ANDROID_URI)
-      if (view.viewId == null || attr == null) {
-        return false
-      }
-      val ref = ResourceUrl.parse(attr)?.resolve(tag)
-      return mapReference(view.viewId) == ref
+    private fun sameId(tag: XmlTag, id: ResourceReference): Boolean {
+      val attr = tag.getAttributeValue(ATTR_ID, ANDROID_URI) ?: return false
+      val url = ResourceUrl.parse(attr)
+      return url?.type == ResourceType.ID && url.name == id.name
     }
   }
 }

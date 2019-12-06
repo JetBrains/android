@@ -20,6 +20,7 @@ import com.android.SdkConstants.ATTR_BACKGROUND
 import com.android.SdkConstants.ATTR_BACKGROUND_TINT
 import com.android.SdkConstants.ATTR_DRAWABLE_LEFT
 import com.android.SdkConstants.ATTR_DRAWABLE_RIGHT
+import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
@@ -62,6 +63,7 @@ class ResourceLookupResolverTest {
   @After
   fun tearDown() = InspectorBuilder.tearDownDemo()
 
+  @Suppress("SameParameterValue")
   private fun createResourceLookupResolver(theme: String, vararg qualifiers: String): ResourceLookupResolver {
     // We will always get qualifiers from the device.
     // In this test we are only concerned about orientation and screen width: give suitable default values if they are omitted.
@@ -216,6 +218,18 @@ class ResourceLookupResolverTest {
     assertThat(resolver.findAttributeValue(data.drawableRight, data.demo)).isEqualTo("@framework:drawable/arrow_up_float")
   }
 
+  @Test
+  fun testTextFromTextFieldWithoutAnId() {
+    val data = Data()
+    val resolver = createResourceLookupResolver(data.theme)
+    val value1 = resolver.findAttributeValue(data.text1, data.demo)
+    val value2 = resolver.findAttributeValue(data.text2, data.demo)
+    // We cannot determine a view without an ID in general:
+    assertThat(value1).isNull()
+    // Except if this view is the only child of a parent view with an ID, then we assume we have found it:
+    assertThat(value2).isEqualTo("TextView without an ID")
+  }
+
   private fun checkLocation(location: SourceLocation, source: String, xml: String) {
     assertThat(location.source).isEqualTo(source)
     val actualXml = when (val navigatable = location.navigatable) {
@@ -234,11 +248,17 @@ class ResourceLookupResolverTest {
     val myTextStyleExtra = ResourceReference(exampleNS, ResourceType.STYLE, "MyTextStyle.Extra")
     val textStyleMaterial = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "TextAppearance.Material")
     val textStyleMaterialBody1 = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "TextAppearance.Material.Body1")
+    val relativeId = ResourceReference(exampleNS, ResourceType.ID, "relativeLayout")
+    val frameId = ResourceReference(exampleNS, ResourceType.ID, "frameLayout")
     val titleId = ResourceReference(exampleNS, ResourceType.ID, "title")
     val model = InspectorPropertiesModel()
     val inspectorModel = model.layoutInspector?.layoutInspectorModel
     val resourceLookup = inspectorModel?.resourceLookup
-    val title = ViewNode(1, "TextView", demo, 30, 60, 0, 0, 300, 100, titleId, "Hello Folks")
+    val relativeLayout = ViewNode(1, "RelativeLayout", demo, 0, 0, 0, 0, 300, 900, relativeId, "")
+    val title = ViewNode(2, "TextView", demo, 30, 60, 0, 0, 300, 100, titleId, "Hello Folks")
+    val frameLayout = ViewNode(3, "RelativeLayout", demo, 0, 200, 0, 0, 300, 700, frameId, "")
+    val textView1 = ViewNode(4, "TextView", demo, 400, 60, 0, 0, 300, 100, null, "TextView without an ID")
+    val textView2 = ViewNode(5, "TextView", demo, 0, 200, 0, 0, 300, 700, null, "TextView without an ID")
     val textColor = InspectorPropertyItem(
       ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "", PropertySection.DECLARED, demo, title, resourceLookup)
     val background = InspectorPropertyItem(
@@ -249,5 +269,21 @@ class ResourceLookupResolverTest {
       ANDROID_URI, ATTR_DRAWABLE_LEFT, ATTR_DRAWABLE_LEFT, Type.DRAWABLE, "", PropertySection.DECLARED, demo, title, resourceLookup)
     val drawableRight = InspectorPropertyItem(
       ANDROID_URI, ATTR_DRAWABLE_RIGHT, ATTR_DRAWABLE_RIGHT, Type.DRAWABLE, "", PropertySection.DECLARED, demo, title, resourceLookup)
+    val text1 = InspectorPropertyItem(
+      ANDROID_URI, ATTR_TEXT, ATTR_TEXT, Type.STRING, "", PropertySection.DECLARED, demo, textView1, resourceLookup)
+    val text2 = InspectorPropertyItem(
+      ANDROID_URI, ATTR_TEXT, ATTR_TEXT, Type.STRING, "", PropertySection.DECLARED, demo, textView2, resourceLookup)
+
+    init {
+      setChildren(relativeLayout, title, textView1, frameLayout)
+      setChildren(frameLayout, textView2)
+    }
+
+    private fun setChildren(parent: ViewNode, vararg views: ViewNode) {
+      views.forEach {
+        it.parent = parent
+        parent.children.add(it)
+      }
+    }
   }
 }
