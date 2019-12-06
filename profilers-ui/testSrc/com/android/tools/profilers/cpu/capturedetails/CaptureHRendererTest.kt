@@ -19,22 +19,33 @@ import com.android.testutils.TestUtils
 import com.android.tools.adtui.common.DataVisualizationColors
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.cpu.CaptureNode
-import com.android.tools.profilers.cpu.nodemodel.*
+import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
+import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel
+import com.android.tools.profilers.cpu.nodemodel.JavaMethodModel
+import com.android.tools.profilers.cpu.nodemodel.NativeNodeModel
+import com.android.tools.profilers.cpu.nodemodel.SingleNameModel
+import com.android.tools.profilers.cpu.nodemodel.SyscallModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.Graphics2DDelegate
 import com.intellij.util.ui.UIUtil
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
-import java.awt.*
+import java.awt.Color
+import java.awt.FontMetrics
+import java.awt.Paint
+import java.awt.Shape
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
+import java.io.FileInputStream
 
 class CaptureNodeHRendererTest {
 
   @Before
   fun setup() {
-    DataVisualizationColors.initialize(TestUtils.getWorkspaceFile("tools/adt/idea/profilers-ui/testData/data-colors.json"));
+    DataVisualizationColors.initialize(
+      FileInputStream(TestUtils.getWorkspaceFile("tools/adt/idea/profilers-ui/testData/data-colors.json")))
   }
 
   @Test
