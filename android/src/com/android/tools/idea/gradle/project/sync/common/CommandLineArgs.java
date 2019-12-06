@@ -26,6 +26,7 @@ import static com.android.builder.model.AndroidProject.PROPERTY_REFRESH_EXTERNAL
 import static com.android.builder.model.AndroidProject.PROPERTY_STUDIO_VERSION;
 import static com.android.tools.idea.gradle.actions.RefreshLinkedCppProjectsAction.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
 import static com.android.tools.idea.gradle.project.sync.hyperlink.SyncProjectWithExtraCommandLineOptionsHyperlink.EXTRA_GRADLE_COMMAND_LINE_OPTIONS_KEY;
+import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createJvmArg;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.createProjectProperty;
 import static com.intellij.util.ArrayUtil.toStringArray;
 
@@ -104,7 +105,12 @@ public class CommandLineArgs {
     args.add(createProjectProperty(PROPERTY_BUILD_MODEL_DISABLE_SRC_DOWNLOAD, true));
 
     args.add(createProjectProperty("idea.gradle.do.not.build.tasks", GradleExperimentalSettings.getInstance().SKIP_GRADLE_TASKS_LIST));
-
+    if (myIdeInfo.isAndroidStudio()) {
+      // This property customizes GradleProjectBuilder, with "omit_all_tasks" the builder will skip task realization and return
+      // GradleProject model with empty task list. The task list in GradleProject is not used by IDE and thus should always be omitted.
+      // This property exists since Gradle 6.1, and has no effect on prior versions of Gradle.
+      args.add(createJvmArg("org.gradle.internal.GradleProjectBuilderOptions", "omit_all_tasks"));
+    }
     if (project != null) {
       Boolean refreshExternalNativeModels = project.getUserData(REFRESH_EXTERNAL_NATIVE_MODELS_KEY);
       if (refreshExternalNativeModels != null) {
