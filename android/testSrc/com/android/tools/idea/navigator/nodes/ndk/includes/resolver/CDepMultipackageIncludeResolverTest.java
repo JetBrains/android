@@ -17,6 +17,7 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.resolver;
 
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageType;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
+import com.android.utils.FileUtils;
 import org.junit.Test;
 
 import java.util.List;
@@ -36,7 +37,7 @@ public class CDepMultipackageIncludeResolverTest {
     assertThat(resolution.getSimplePackageName()).isEqualTo("firebase/app");
     assertThat(resolution.getRelativeIncludeSubFolder()).isEqualTo(
       "/com.github.jomof/firebase/app/2.1.3-rev22/firebase-app-header.zip/include/");
-    assertThat(resolution.getPackageFamilyBaseFolder().getPath()).isEqualTo(
+    assertThat(FileUtils.toSystemIndependentPath(resolution.getPackageFamilyBaseFolder().getPath())).isEqualTo(
       "/usr/local/google/home/jomof/.cdep/exploded");
   }
 }
