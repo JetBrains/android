@@ -16,15 +16,19 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_ADD_EMPTY_PRODUCT_FLAVOR;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_ADD_EMPTY_PRODUCT_FLAVOR_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_ADD_PRODUCT_FLAVOR;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_ADD_PRODUCT_FLAVOR_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_NOT_REMOVED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_NOT_REMOVED_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_APPEND_STATEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_APPLICATION_STATEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_ASSIGNMENT_STATEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_WITH_OVERRIDE_STATEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVORS_ELEMENT_RENAME_PRODUCT_FLAVOR_EXPECTED;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.ProductFlavorModel;
@@ -147,6 +151,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, PRODUCT_FLAVORS_ELEMENT_ADD_EMPTY_PRODUCT_FLAVOR_EXPECTED);
     android = buildModel.android();
 
     List<ProductFlavorModel> productFlavors = android.productFlavors();
@@ -186,6 +191,8 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, PRODUCT_FLAVORS_ELEMENT_ADD_PRODUCT_FLAVOR_EXPECTED);
+
     android = buildModel.android();
 
     List<ProductFlavorModel> productFlavors = android.productFlavors();
@@ -225,6 +232,7 @@ public class ProductFlavorsElementTest extends GradleFileModelTestCase {
     flavor1.rename("newAndImproved");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, PRODUCT_FLAVORS_ELEMENT_RENAME_PRODUCT_FLAVOR_EXPECTED);
 
     assertEquals("newAndImproved", buildModel.android().productFlavors().get(0).name());
     assertEquals("com.example.myFlavor1", buildModel.android().productFlavors().get(0).applicationId().toString());
