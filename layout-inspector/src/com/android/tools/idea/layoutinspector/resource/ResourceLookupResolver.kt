@@ -437,6 +437,10 @@ class ResourceLookupResolver(
     val file = resolver.resolveLayout(layoutValue) ?: return null
     val xmlFile = (AndroidPsiUtils.getPsiFileSafely(project, file) as? XmlFile) ?: return null
     val locator = ViewLocator(view)
+    val rootTag = xmlFile.rootTag ?: return null
+    if (rootTag.isEmpty) {
+      return rootTag
+    }
     xmlFile.rootTag?.accept(locator)
     return locator.foundXmlTag?.also { if (isViewLayout) view.tag = it }
   }
