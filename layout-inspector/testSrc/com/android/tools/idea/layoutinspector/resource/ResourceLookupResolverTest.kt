@@ -224,10 +224,13 @@ class ResourceLookupResolverTest {
     val resolver = createResourceLookupResolver(data.theme)
     val value1 = resolver.findAttributeValue(data.text1, data.demo)
     val value2 = resolver.findAttributeValue(data.text2, data.demo)
+    val value3 = resolver.findAttributeValue(data.text3, data.design_text)
     // We cannot determine a view without an ID in general:
     assertThat(value1).isNull()
     // Except if this view is the only child of a parent view with an ID, then we assume we have found it:
     assertThat(value2).isEqualTo("TextView without an ID")
+    // or if this file only has 1 view, then we assume that view is what we are looking for:
+    assertThat(value3).isEqualTo("Tab1")
   }
 
   @Test
@@ -255,6 +258,7 @@ class ResourceLookupResolverTest {
     val theme = "@style/AppTheme"
     val exampleNS = ResourceNamespace.fromPackageName("com.example")
     val demo = ResourceReference(exampleNS, ResourceType.LAYOUT, "demo")
+    val design_text = ResourceReference(exampleNS, ResourceType.LAYOUT, "design_tab_text")
     val myTextStyle = ResourceReference(exampleNS, ResourceType.STYLE, "MyTextStyle")
     val myTextStyleExtra = ResourceReference(exampleNS, ResourceType.STYLE, "MyTextStyle.Extra")
     val textStyleMaterial = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "TextAppearance.Material")
@@ -270,6 +274,7 @@ class ResourceLookupResolverTest {
     val frameLayout = ViewNode(3, "RelativeLayout", demo, 0, 200, 0, 0, 300, 700, frameId, "")
     val textView1 = ViewNode(4, "TextView", demo, 400, 60, 0, 0, 300, 100, null, "TextView without an ID")
     val textView2 = ViewNode(5, "TextView", demo, 0, 200, 0, 0, 300, 700, null, "TextView without an ID")
+    val singleTextView = ViewNode(1, "TextView", design_text, 0, 0, 0, 0, 400, 50, null, "Tab3")
     val textColor = InspectorPropertyItem(
       ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, "", PropertySection.DECLARED, demo, title, resourceLookup)
     val background = InspectorPropertyItem(
@@ -284,6 +289,8 @@ class ResourceLookupResolverTest {
       ANDROID_URI, ATTR_TEXT, ATTR_TEXT, Type.STRING, "", PropertySection.DECLARED, demo, textView1, resourceLookup)
     val text2 = InspectorPropertyItem(
       ANDROID_URI, ATTR_TEXT, ATTR_TEXT, Type.STRING, "", PropertySection.DECLARED, demo, textView2, resourceLookup)
+    val text3 = InspectorPropertyItem(
+      ANDROID_URI, ATTR_TEXT, ATTR_TEXT, Type.STRING, "", PropertySection.DECLARED, design_text, singleTextView, resourceLookup)
 
     init {
       setChildren(relativeLayout, title, textView1, frameLayout)
