@@ -230,11 +230,22 @@ class ResourceLookupResolverTest {
     assertThat(value2).isEqualTo("TextView without an ID")
   }
 
+  @Test
+  fun testApproximateFileLocation() {
+    val data = Data()
+    val resolver = createResourceLookupResolver(data.theme)
+    val locations = resolver.findFileLocations(data.text1, data.demo, 10)
+    checkLocation(locations[0], "demo.xml:?", "<RelativeLayout\n" +
+                                              "    xmlns:framework=\"http://schemas.android.com/apk/res/android\"\n" +
+                                              "...")
+    assertThat(locations.size).isEqualTo(1)
+  }
+
   private fun checkLocation(location: SourceLocation, source: String, xml: String) {
     assertThat(location.source).isEqualTo(source)
     val actualXml = when (val navigatable = location.navigatable) {
       is XmlAttributeValue -> navigatable.parent.text
-      is XmlTag -> navigatable.text
+      is XmlTag -> navigatable.text.lines().joinToString(separator="\n", limit = 2)
       else -> navigatable.toString()
     }
     assertThat(actualXml).isEqualTo(xml)

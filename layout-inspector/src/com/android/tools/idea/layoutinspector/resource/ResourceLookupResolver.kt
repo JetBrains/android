@@ -177,8 +177,8 @@ class ResourceLookupResolver(
   }
 
   private fun findFileLocationsFromViewTag(property: InspectorPropertyItem, layout: ResourceReference, max: Int): List<SourceLocation> {
-    val xmlAttributeValue = findLayoutAttribute(property, layout)?.valueElement ?: return emptyList()
-    val location = createFileLocation(xmlAttributeValue) ?: return emptyList()
+    val xmlAttributeValue = findLayoutAttribute(property, layout)?.valueElement ?: return findApproximateLocation(layout)
+    val location = createFileLocation(xmlAttributeValue) ?: return findApproximateLocation(layout)
     val resValue = dereferenceRawAttributeValue(xmlAttributeValue)
     if (max <= 1 || resValue == null) {
       return listOf(location)
@@ -187,6 +187,20 @@ class ResourceLookupResolver(
     result.add(location)
     addValueReference(resValue, result, max - 1)
     return result
+  }
+
+  private fun findApproximateLocation(layout: ResourceReference): List<SourceLocation> {
+    val reference = mapReference(layout) ?: return unknownLocation()
+    val layoutValue = resolver.getUnresolvedResource(reference)
+    val file = resolver.resolveLayout(layoutValue) ?: return unknownLocation()
+    val xmlFile = (AndroidPsiUtils.getPsiFileSafely(project, file) as? XmlFile) ?: return unknownLocation()
+    val element = xmlFile.rootTag ?: xmlFile
+    val navigatable = findNavigatable(element)
+    return listOf(SourceLocation("${file.name}:?", navigatable))
+  }
+
+  private fun unknownLocation(): List<SourceLocation> {
+    return listOf(SourceLocation("unknown:?", null))
   }
 
   private fun findFileLocationsFromStyle(property: InspectorPropertyItem, style: ResourceReference, max: Int): List<SourceLocation> {
