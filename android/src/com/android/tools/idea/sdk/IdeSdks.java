@@ -15,22 +15,6 @@
  */
 package com.android.tools.idea.sdk;
 
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
-import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.base.Strings.isNullOrEmpty;
-import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
-import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
-import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
-import static com.intellij.openapi.util.io.FileUtil.filesEqual;
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
-import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
-import static com.intellij.openapi.util.io.FileUtil.resolveShortWindowsName;
-import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
-
 import com.android.SdkConstants;
 import com.android.repository.Revision;
 import com.android.repository.api.LocalPackage;
@@ -44,6 +28,7 @@ import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -56,15 +41,20 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.projectRoots.JavaSdk;
-import com.intellij.openapi.projectRoots.JavaSdkVersion;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkModificator;
+import com.intellij.openapi.projectRoots.*;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.SystemProperties;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -73,13 +63,16 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
+import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Strings.isNullOrEmpty;
+import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
+import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
+import static com.intellij.openapi.projectRoots.JdkUtil.checkForJdk;
+import static com.intellij.openapi.util.io.FileUtil.*;
+import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 
 public class IdeSdks {
   @NonNls public static final String MAC_JDK_CONTENT_PATH = "/Contents/Home";
@@ -96,11 +89,13 @@ public class IdeSdks {
     return ServiceManager.getService(IdeSdks.class);
   }
 
-  public IdeSdks(@NotNull AndroidSdks androidSdks,
-                 @NotNull Jdks jdks,
-                 @NotNull EmbeddedDistributionPaths embeddedDistributionPaths,
-                 @NotNull IdeInfo ideInfo) {
-    myAndroidSdks = androidSdks;
+  public IdeSdks() {
+    this(AndroidSdks.getInstance(), Jdks.getInstance(), EmbeddedDistributionPaths.getInstance(), IdeInfo.getInstance());
+  }
+
+  @NonInjectable
+  public IdeSdks(@NotNull AndroidSdks sdks, @NotNull Jdks jdks, @NotNull EmbeddedDistributionPaths embeddedDistributionPaths, @NotNull IdeInfo ideInfo) {
+    myAndroidSdks = sdks;
     myJdks = jdks;
     myEmbeddedDistributionPaths = embeddedDistributionPaths;
     myIdeInfo = ideInfo;
@@ -240,10 +235,7 @@ public class IdeSdks {
             throw new IllegalStateException("Failed to create IDEA JDK from '" + path.getPath() + "'");
           }
           setJdkOfAndroidSdks(chosenJdk);
-
-          ProjectManager projectManager = ApplicationManager.getApplication().getComponent(ProjectManager.class);
-          Project[] openProjects = projectManager.getOpenProjects();
-          for (Project project : openProjects) {
+          for (Project project : ProjectUtil.getOpenProjects()) {
             applyJdkToProject(project, chosenJdk);
           }
         }
@@ -383,13 +375,12 @@ public class IdeSdks {
   }
 
   private static void afterAndroidSdkPathUpdate(@NotNull File androidSdkPath) {
-    ProjectManager projectManager = ApplicationManager.getApplication().getComponent(ProjectManager.class);
-    Project[] openProjects = projectManager.getOpenProjects();
+    Project[] openProjects = ProjectUtil.getOpenProjects();
     if (openProjects.length == 0) {
       return;
     }
 
-    AndroidSdkEventListener[] eventListeners = AndroidSdkEventListener.EP_NAME.getExtensions();
+    List<AndroidSdkEventListener> eventListeners = AndroidSdkEventListener.EP_NAME.getExtensionList();
     for (Project project : openProjects) {
       if (!AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
         continue;
