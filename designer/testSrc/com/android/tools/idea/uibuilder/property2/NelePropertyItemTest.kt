@@ -487,6 +487,7 @@ class NelePropertyItemTest {
     assertThat(srcCompat.editingSupport.validation("@color/translucentRed")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(srcCompat.editingSupport.validation("@android:drawable/btn_minus")).isEqualTo(EDITOR_NO_ERROR)
     assertThat(srcCompat.editingSupport.validation("#XYZ")).isEqualTo(Pair(ERROR, "Invalid color value: '#XYZ'"))
+    assertThat(srcCompat.editingSupport.validation("@+drrawable/x")).isEqualTo(Pair(ERROR, "Invalid syntax"))
     assertThat(srcCompat.editingSupport.validation("?android:attr/no_color")).isEqualTo(
       Pair(ERROR, "Cannot resolve theme reference: 'android:attr/no_color'"))
     assertThat(srcCompat.editingSupport.validation("@hello/hello")).isEqualTo(Pair(ERROR, "Unknown resource type hello"))

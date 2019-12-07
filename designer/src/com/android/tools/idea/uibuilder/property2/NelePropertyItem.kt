@@ -406,7 +406,8 @@ open class NelePropertyItem(
     if (text == NULL_RESOURCE) {
       return EDITOR_NO_ERROR
     }
-    val parsed = org.jetbrains.android.dom.resources.ResourceValue.parse(text, true, true, false)!!
+    val parsed = org.jetbrains.android.dom.resources.ResourceValue.parse(text, true, true, false) ?:
+                 return Pair(EditingErrorCategory.ERROR, "Invalid syntax")
     val error = parsed.errorMessage
     if (error != null) {
       return Pair(EditingErrorCategory.ERROR, error)
