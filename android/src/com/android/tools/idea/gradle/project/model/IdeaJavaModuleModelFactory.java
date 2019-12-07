@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
-import static com.android.tools.idea.gradle.project.model.JavaModuleModel.isBuildable;
 import static com.intellij.openapi.util.text.StringUtil.equalsIgnoreCase;
 
 import com.android.builder.model.SyncIssue;
@@ -66,12 +65,13 @@ public class IdeaJavaModuleModelFactory {
   public JavaModuleModel create(@NotNull IdeaModule ideaModule,
                                 @NotNull Collection<SyncIssue> syncIssues,
                                 @Nullable ExternalProject externalProject,
-                                boolean androidModuleWithoutVariants) {
+                                boolean androidModuleWithoutVariants,
+                                boolean isBuildable) {
     Pair<Collection<JavaModuleDependency>, Collection<JarLibraryDependency>> dependencies = getDependencies(ideaModule);
     return JavaModuleModel.create(ideaModule.getName(), getContentRoots(ideaModule), dependencies.first, dependencies.second,
                                   getArtifactsByConfiguration(externalProject), syncIssues, getCompilerOutput(externalProject),
                                   ideaModule.getGradleProject().getBuildDirectory(), getLanguageLevel(externalProject),
-                                  !androidModuleWithoutVariants && isBuildable(ideaModule.getGradleProject()),
+                                  !androidModuleWithoutVariants && isBuildable,
                                   androidModuleWithoutVariants);
   }
 
