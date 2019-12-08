@@ -1,4 +1,4 @@
-PROJECT             : testCompatibilityWithAndroidStudio36NoImlProject
+PROJECT             : AS36_noiml
     MODULE              : AS36_noiml
         - ModuleGroupPath   : AS36_noiml
         ExternalModuleGroup :
