@@ -52,7 +52,7 @@ class BuildAttributionUiManagerTest : AndroidTestCase() {
     super.setUp()
     UsageTracker.setWriterForTest(tracker)
     windowManager = ToolWindowHeadlessManagerImpl(project)
-    registerProjectComponent(ToolWindowManager::class.java, windowManager)
+    registerProjectService(ToolWindowManager::class.java, windowManager)
     registerProjectService(BuildContentManager::class.java, BuildContentManagerImpl(project))
 
     // Add a fake build tab
