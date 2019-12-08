@@ -24,7 +24,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowEP
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.impl.ToolWindowHeadlessManagerImpl
-import com.intellij.testFramework.registerComponentInstance
+import com.intellij.testFramework.registerServiceInstance
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -43,7 +43,7 @@ class LayoutInspectorSettingsTest {
     originalValue = enableLiveLayoutInspector
     val project = projectRule.project
     windowManager = MyToolWindowManager(project)
-    project.registerComponentInstance(ToolWindowManager::class.java, windowManager, project)
+    project.registerServiceInstance(ToolWindowManager::class.java, windowManager)
   }
 
 
