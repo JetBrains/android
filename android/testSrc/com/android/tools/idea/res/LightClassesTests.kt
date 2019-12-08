@@ -344,7 +344,9 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         Manifest.getMainManifest(myFacet)!!.addPermission()!!.apply { name.value = "com.example.SEND_MESSAGE" }
       }
 
+/* b/145874569
       assertThat(resolveReferenceUnderCaret()).isInstanceOf(AndroidLightField::class.java)
+b/145874569 */
       myFixture.checkHighlighting()
     }
 
