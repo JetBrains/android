@@ -27,6 +27,8 @@ import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneMode
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,6 +49,7 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
   private final static int MAX_KEY_POSITIONS = 101; // 0-100 inclusive key positions are allowed
   private String[] myPositionAttributes = new String[2];
   private float[] myPositionsValues = new float[2];
+  private final DecimalFormat myFloatFormatter = createFloatFormatter();
 
   private static class KeyframeCandidate {
     Object keyframe;
@@ -261,8 +264,13 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
     myKeyframeCandidate.clear();
   }
 
-  private String formatValue(float value) {
-    return new DecimalFormat("#.###").format(value);
+  @NotNull
+  private static DecimalFormat createFloatFormatter() {
+    DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance(Locale.US);
+    return new DecimalFormat("#.###", symbols);
   }
 
+  private String formatValue(float value) {
+    return myFloatFormatter.format(value);
+  }
 }
