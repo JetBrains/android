@@ -99,6 +99,7 @@ class SqliteEvaluatorController(
         } else {
           // update statement
           view.tableView.resetView()
+          view.tableView.setEditable(false)
           listeners.forEach { it.onSchemaUpdated(database) }
         }
 
