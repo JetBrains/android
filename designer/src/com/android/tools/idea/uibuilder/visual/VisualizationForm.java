@@ -20,6 +20,7 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCRE
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -48,6 +49,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.DumbService;
@@ -59,6 +61,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
+import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
@@ -86,6 +89,8 @@ import org.jetbrains.annotations.Nullable;
 public class VisualizationForm implements Disposable, ConfigurationSetListener, PanZoomListener {
 
   public static final String VISUALIZATION_DESIGN_SURFACE = "VisualizationFormDesignSurface";
+
+  private static final String RENDERING_MESSAGE = "Rendering Previews...";
 
   /**
    * horizontal gap between different previews
@@ -138,7 +143,8 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
       .setSceneManagerProvider((surface, model) -> {
         Supplier<RenderSettings> renderSettingsProvider = () -> {
           RenderSettings settings = RenderSettings.getProjectSettings(model.getProject());
-          return settings.copy(0.5f, false, true);
+          boolean showDecoration = VisualizationToolSettings.getInstance().getGlobalState().getShowDecoration();
+          return settings.copy(0.5f, false, showDecoration);
         };
         return new LayoutlibSceneManager(model, surface, renderSettingsProvider);
       })
@@ -206,6 +212,10 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
         group.addAll(configurationActions);
       }
     }
+    DropDownAction viewOptions = new DropDownAction("View Options", null, StudioIcons.Common.VISIBILITY_INLINE);
+    viewOptions.add(new ToggleShowDecorationAction());
+    viewOptions.setPopup(true);
+    group.add(viewOptions);
     // Use ActionPlaces.EDITOR_TOOLBAR as place to update the ui when appearance is changed.
     // In IJ's implementation, only the actions in ActionPlaces.EDITOR_TOOLBAR toolbar will be tweaked when ui is changed.
     // See com.intellij.openapi.actionSystem.impl.ActionToolbarImpl.tweakActionComponentUI()
@@ -322,7 +332,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   }
 
   private void initNeleModel() {
-    myWorkBench.showLoading("Rendering Previews...");
+    myWorkBench.showLoading(RENDERING_MESSAGE);
     DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelWhenSmart());
   }
 
@@ -560,6 +570,29 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
     @Override
     public boolean displayTextInToolbar() {
       return true;
+    }
+  }
+
+  private final class ToggleShowDecorationAction extends ToggleAction {
+    private ToggleShowDecorationAction() {
+      super("Show System UI");
+    }
+
+    @Override
+    public boolean isSelected(@NotNull AnActionEvent e) {
+      return VisualizationToolSettings.getInstance().getGlobalState().getShowDecoration();
+    }
+
+    @Override
+    public void setSelected(@NotNull AnActionEvent e, boolean state) {
+      VisualizationToolSettings.getInstance().getGlobalState().setShowDecoration(state);
+      myWorkBench.hideContent();
+      myWorkBench.showLoading(RENDERING_MESSAGE);
+      mySurface.forceUserRequestedRefresh().thenRun(() -> {
+        if (!Disposer.isDisposed(myWorkBench)) {
+          myWorkBench.showContent();
+        }
+      });
     }
   }
 

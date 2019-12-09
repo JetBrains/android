@@ -66,6 +66,7 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
   public static class GlobalState {
     private boolean myVisible = false;
     private double myScale = 0.25;
+    private boolean myShowDecoration = false;
     @NotNull private String myConfigurationSetName = ConfigurationSet.PIXEL_DEVICES.name();
     @NotNull private List<CustomConfigurationAttribute> myCustomConfigurationAttributes = new ArrayList<>();
 
@@ -83,6 +84,14 @@ public class VisualizationToolSettings implements PersistentStateComponent<Visua
 
     public void setScale(double scale) {
       myScale = scale;
+    }
+
+    public boolean getShowDecoration() {
+      return myShowDecoration;
+    }
+
+    public void setShowDecoration(boolean showDecoration) {
+      myShowDecoration = showDecoration;
     }
 
     /**
