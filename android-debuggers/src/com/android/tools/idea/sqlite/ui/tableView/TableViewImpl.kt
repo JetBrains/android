@@ -146,6 +146,10 @@ class TableViewImpl : TableView {
     lastRowsPageButton.isEnabled = enable
   }
 
+  override fun setEditable(isEditable: Boolean) {
+    (table.model as MyTableModel).isEditable = isEditable
+  }
+
   override fun addListener(listener: TableView.Listener) {
     listeners.add(listener)
   }
@@ -182,9 +186,10 @@ class TableViewImpl : TableView {
     }
   }
 
-  private class MyTableModel(val columns: List<SqliteColumn>) : AbstractTableModel() {
+  private inner class MyTableModel(val columns: List<SqliteColumn>) : AbstractTableModel() {
 
     private val rows = mutableListOf<SqliteRow>()
+    var isEditable = false
 
     fun addRows(newRows: List<SqliteRow>) {
       val startIndex = rows.size
@@ -209,6 +214,12 @@ class TableViewImpl : TableView {
 
     override fun getValueAt(modelRowIndex: Int, modelColumnIndex: Int) = rows[modelRowIndex].values[modelColumnIndex].value.toString()
 
-    override fun isCellEditable(modelRowIndex: Int, modelColumnIndex: Int) = false
+    override fun setValueAt(newValue: Any, modelRowIndex: Int, modelColumnIndex: Int) {
+      val row = rows[modelRowIndex]
+      val column = columns[modelColumnIndex]
+      listeners.forEach { it.updateCellInvoked(row, column, newValue) }
+    }
+
+    override fun isCellEditable(modelRowIndex: Int, modelColumnIndex: Int) = isEditable
   }
 }
