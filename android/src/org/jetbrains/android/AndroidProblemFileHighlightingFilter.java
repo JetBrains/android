@@ -13,9 +13,8 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
-import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -34,11 +33,8 @@ public class AndroidProblemFileHighlightingFilter implements Condition<VirtualFi
 
   @Override
   public boolean value(VirtualFile file) {
-    if (file.getFileType() != StdFileTypes.XML) {
-      return false;
-    }
     if (SdkConstants.FN_ANDROID_MANIFEST_XML.equals(file.getName())) {
-      Module module = ModuleUtil.findModuleForFile(file, myProject);
+      Module module = ModuleUtilCore.findModuleForFile(file, myProject);
       return module != null && AndroidFacet.getInstance(module) != null;
     }
 
