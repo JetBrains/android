@@ -67,6 +67,7 @@ import com.android.tools.idea.resources.base.RepositoryLoader;
 import com.android.tools.idea.resources.base.ResourceSerializationUtil;
 import com.android.tools.idea.resources.base.ResourceSourceFile;
 import com.android.tools.idea.util.FileExtensions;
+import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
@@ -86,11 +87,13 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileFilter;
+import com.intellij.problems.WolfTheProblemSolver;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiNameHelper;
 import com.intellij.psi.PsiTreeAnyChangeAbstractAdapter;
 import com.intellij.psi.PsiTreeChangeAdapter;
 import com.intellij.psi.PsiTreeChangeEvent;
@@ -123,7 +126,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -205,6 +207,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
   @NotNull private final Map<VirtualFile, ResourceItemSource<? extends ResourceItem>> mySources = new HashMap<>();
   @NotNull private final PsiManager myPsiManager;
+  @NotNull private final PsiNameHelper myPsiNameHelper;
+  @NotNull private final WolfTheProblemSolver myWolfTheProblemSolver;
   @NotNull private final PsiDocumentManager myPsiDocumentManager;
 
   @NotNull private final Object SCAN_LOCK = new Object();
@@ -252,6 +256,8 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     myResourcePathBase = new PathString(myResourcePathPrefix);
     myPsiManager = PsiManager.getInstance(getProject());
     myPsiDocumentManager = PsiDocumentManager.getInstance(getProject());
+    myPsiNameHelper = PsiNameHelper.getInstance(getProject());
+    myWolfTheProblemSolver = WolfTheProblemSolver.getInstance(getProject());
 
     PsiTreeChangeListener psiListener = StudioFlags.INCREMENTAL_RESOURCE_REPOSITORIES.get()
                                         ? new IncrementalUpdatePsiListener()
@@ -372,7 +378,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                                          @NotNull PsiFile file) {
     // XML or image.
     String resourceName = ResourceHelper.getResourceName(file);
-    if (FileResourceNameValidator.getErrorTextForNameWithoutExtension(resourceName, folderType) != null) {
+    if (!checkResourceFilename(file, folderType)) {
       return; // Not a valid file resource name.
     }
 
@@ -546,10 +552,24 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     return !StringUtil.isEmpty(name) && ValueResourceNameValidator.getErrorText(name, null) == null;
   }
 
-  private static boolean isValidResourceFileName(@NotNull String filename, @NotNull ResourceFolderType folderType) {
-    // The check is relaxed compared to FileResourceNameValidator because some tests use mixed case resource files.
-    // TODO: Fix the tests and remove the toLowerCase call below.
-    return FileResourceNameValidator.getErrorTextForFileResource(filename.toLowerCase(Locale.ENGLISH), folderType) == null;
+  private boolean checkResourceFilename(@NotNull PathString file, @NotNull ResourceFolderType folderType) {
+    if (FileResourceNameValidator.getErrorTextForFileResource(file.getFileName(), folderType) != null) {
+      VirtualFile virtualFile = FileExtensions.toVirtualFile(file);
+      if (virtualFile != null) {
+        myWolfTheProblemSolver.reportProblemsFromExternalSource(virtualFile, this);
+      }
+    }
+    return myPsiNameHelper.isIdentifier(SdkUtils.fileNameToResourceName(file.getFileName()));
+  }
+
+  private boolean checkResourceFilename(@NotNull PsiFile file, @NotNull ResourceFolderType folderType) {
+    if (FileResourceNameValidator.getErrorTextForFileResource(file.getName(), folderType) != null) {
+      VirtualFile virtualFile = file.getVirtualFile();
+      if (virtualFile != null) {
+        myWolfTheProblemSolver.reportProblemsFromExternalSource(virtualFile, this);
+      }
+    }
+    return myPsiNameHelper.isIdentifier(SdkUtils.fileNameToResourceName(file.getName()));
   }
 
   // Schedule a rescan to convert any map ResourceItems to PSI if needed, and return true if conversion
@@ -741,7 +761,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         setModificationCount(ourModificationCounter.incrementAndGet());
         invalidateParentCaches(this, ResourceType.values());
       }
-    } else if (isValidResourceFileName(file.getName(), folderType)) {
+    } else if (checkResourceFilename(file, folderType)) {
       ResourceItemSource<? extends ResourceItem> source = mySources.get(file.getVirtualFile());
       if (source instanceof PsiResourceFile && file.getFileType() == StdFileTypes.XML) {
         // If the old file was a PsiResourceFile for an XML file, we can update ID ResourceItems in place.
@@ -1698,6 +1718,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       if (source != null) {
         onSourceRemoved(file, source);
       }
+      myWolfTheProblemSolver.clearProblemsFromExternalSource(file, this);
     }
   }
 
@@ -2112,7 +2133,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           parseValueResourceFile(file, configuration);
         }
       }
-      else if (isValidResourceFileName(file.getFileName(), folderInfo.folderType)) {
+      else if (myRepository.checkResourceFilename(file, folderInfo.folderType)) {
         if (isXmlFile(file) && folderInfo.isIdGenerating) {
           parseIdGeneratingResourceFile(file, configuration);
         }

@@ -52,6 +52,8 @@ import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import com.intellij.codeInsight.problems.MockWolfTheProblemSolver;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -67,6 +69,7 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.problems.WolfTheProblemSolver;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -88,6 +91,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -4464,6 +4468,55 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     });
     runListeners();
     ensureLayoutlibCachesFlushed();
+  }
+
+  public void testInvalidFilenames() throws Exception {
+    WolfTheProblemSolver wolfTheProblemSolver = WolfTheProblemSolver.getInstance(getProject());
+    ((MockWolfTheProblemSolver)wolfTheProblemSolver).setDelegate(new MockWolfTheProblemSolver() {
+      Set<VirtualFile> problemFiles = Sets.newConcurrentHashSet();
+
+      @Override
+      public void reportProblemsFromExternalSource(@NotNull VirtualFile file, @NotNull Object source) {
+        problemFiles.add(file);
+      }
+
+      @Override
+      public void clearProblemsFromExternalSource(@NotNull VirtualFile file, @NotNull Object source) {
+        problemFiles.remove(file);
+      }
+
+      @Override
+      public boolean isProblemFile(VirtualFile virtualFile) {
+        return problemFiles.contains(virtualFile);
+      }
+    });
+
+    VirtualFile valid = VfsTestUtil.createFile(ProjectUtil.guessProjectDir(getProject()),
+                                               "res/drawable/valid.png",
+                                               new byte[] { 1 });
+    VirtualFile invalidButIdentifier = VfsTestUtil.createFile(ProjectUtil.guessProjectDir(getProject()),
+                                                              "res/drawable/FooBar.png",
+                                                              new byte[] { 1 });
+    VirtualFile invalid = VfsTestUtil.createFile(ProjectUtil.guessProjectDir(getProject()),
+                                                 "res/drawable/1st.png",
+                                                 new byte[] { 1 });
+    ResourceFolderRepository repository = createRegisteredRepository();
+
+    assertThat(repository.getResourceNames(RES_AUTO, ResourceType.DRAWABLE)).containsExactly("valid", "FooBar");
+    assertThat(wolfTheProblemSolver.isProblemFile(valid)).isFalse();
+    assertThat(wolfTheProblemSolver.isProblemFile(invalid)).isTrue();
+    assertThat(wolfTheProblemSolver.isProblemFile(invalidButIdentifier)).isTrue();
+
+    WriteAction.run(() -> {
+      invalid.rename(this, "fixed.png");
+      invalidButIdentifier.rename(this, "also_fixed.png");
+    });
+    runListeners();
+
+    assertThat(repository.getResourceNames(RES_AUTO, ResourceType.DRAWABLE)).containsExactly("valid", "fixed", "also_fixed");
+    assertThat(wolfTheProblemSolver.isProblemFile(valid)).isFalse();
+    assertThat(wolfTheProblemSolver.isProblemFile(invalid)).isFalse();
+    assertThat(wolfTheProblemSolver.isProblemFile(invalidButIdentifier)).isFalse();
   }
 
   @Nullable
