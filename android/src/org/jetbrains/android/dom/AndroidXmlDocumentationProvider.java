@@ -84,7 +84,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
   @Override
   public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
     if (element instanceof ResourceReferencePsiElement) {
-      return ((ResourceReferencePsiElement)element).getPresentableText();
+      return ((ResourceReferencePsiElement)element).getResourceReference().getResourceUrl().toString();
     }
     if (element instanceof LazyValueResourceElementWrapper) {
       ValueResourceInfo info = ((LazyValueResourceElementWrapper)element).getResourceInfo();
