@@ -28,10 +28,12 @@ import com.android.tools.editor.ActionToolbarUtil;
 import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
@@ -65,6 +67,7 @@ import java.awt.event.AdjustmentEvent;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -132,6 +135,13 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
       .showModelNames()
       .setIsPreview(false)
       .setEditable(true)
+      .setSceneManagerProvider((surface, model) -> {
+        Supplier<RenderSettings> renderSettingsProvider = () -> {
+          RenderSettings settings = RenderSettings.getProjectSettings(model.getProject());
+          return settings.copy(0.5f, false, true);
+        };
+        return new LayoutlibSceneManager(model, surface, renderSettingsProvider);
+      })
       .setActionManagerProvider((surface) -> new VisualizationActionManager((NlDesignSurface) surface))
       .setInteractionHandlerProvider((surface) -> new VisualizationInteractionHandler(surface, () -> myCurrentModelsProvider ))
       .setLayoutManager(new GridSurfaceLayoutManager(DEFAULT_SCREEN_OFFSET_X,
