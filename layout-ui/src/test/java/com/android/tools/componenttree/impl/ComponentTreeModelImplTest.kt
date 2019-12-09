@@ -27,7 +27,6 @@ import com.android.tools.componenttree.util.Style
 import com.android.tools.componenttree.util.StyleNodeType
 import com.android.tools.componenttree.util.StyleRenderer
 import com.android.tools.property.testing.ApplicationRule
-import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -37,7 +36,6 @@ import org.junit.Rule
 import org.junit.Test
 import javax.swing.SwingUtilities
 import javax.swing.event.TreeModelEvent
-import javax.swing.event.TreeModelListener
 
 class ComponentTreeModelImplTest {
 
@@ -75,7 +73,7 @@ class ComponentTreeModelImplTest {
     model.addTreeModelListener(count)
     model.treeRoot = item1
     UIUtil.dispatchAllInvocationEvents()
-    assertThat(count.structureChanges).isEqualTo(1)
+    assertThat(count.treeChanged).isEqualTo(1)
   }
 
   @Test
@@ -148,19 +146,20 @@ class ComponentTreeModelImplTest {
 
     // test
     selectionModel.selection = listOf(item2)
-    Truth.assertThat(selectionChangeCount).isEqualTo(1)
-    Truth.assertThat(treeSelectionChangeCount).isEqualTo(1)
-    Truth.assertThat(count.anyChanges()).isFalse()
+    assertThat(selectionChangeCount).isEqualTo(1)
+    assertThat(treeSelectionChangeCount).isEqualTo(1)
+    assertThat(count.anyChanges()).isFalse()
     assertThat(selectionModel.selection).containsExactly(item2)
   }
 
-  private class NotificationCount : TreeModelListener {
+  private class NotificationCount : ComponentTreeModelListener {
     var inserted = 0
     var structureChanges = 0
     var nodesChanged = 0
     var nodesRemoved = 0
+    var treeChanged = 0
 
-    fun anyChanges(): Boolean = inserted != 0 || structureChanges != 0 || nodesChanged != 0 || nodesRemoved != 0
+    fun anyChanges(): Boolean = inserted != 0 || structureChanges != 0 || nodesChanged != 0 || nodesRemoved != 0 || treeChanged != 0
 
     override fun treeNodesInserted(event: TreeModelEvent) {
       inserted++
@@ -176,6 +175,10 @@ class ComponentTreeModelImplTest {
 
     override fun treeNodesRemoved(e: TreeModelEvent?) {
       nodesRemoved++
+    }
+
+    override fun treeChanged(event: TreeModelEvent) {
+      treeChanged++
     }
   }
 }

@@ -128,10 +128,16 @@ class ComponentTreeModelImpl(
   }
 
   private fun hierarchyChanged(newRoot: Any?) {
-    invokeLater.invoke(Runnable { fireTreeStructureChange(newRoot) })
+    invokeLater.invoke(Runnable { fireTreeChange(newRoot) })
   }
 
-  private fun fireTreeStructureChange(newRoot: Any?) {
+  private fun fireTreeChange(newRoot: Any?) {
+    val path = newRoot?.let { TreePath(newRoot) }
+    val event = TreeModelEvent(this, path)
+    modelListeners.forEach { (it as? ComponentTreeModelListener)?.treeChanged(event) }
+  }
+
+  fun fireTreeStructureChange(newRoot: Any?) {
     val path = newRoot?.let { TreePath(newRoot) }
     val event = TreeModelEvent(this, path)
     modelListeners.forEach { it.treeStructureChanged(event) }
