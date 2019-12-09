@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.compiled.ClsFieldImpl
+import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttributeValue
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.ResourceLightField
@@ -231,6 +232,21 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
     val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)
     assertThat(fakePsiElement).isNotNull()
     assertThat(fakePsiElement!!.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ID, "textview"))
+  }
+
+  fun testXMLAttributeValueAttr() {
+    val file = myFixture.addFileToProject(
+      "res/layout/layout.xml",
+      //language=XML
+      """
+       <resources>
+         <attr name="android:text${caret}Style"/>
+       </resources>""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    val elementAtCaret = myFixture.file.findElementAt(myFixture.caretOffset)!!.parentOfType<XmlAttributeValue>()!!
+    val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)
+    assertThat(fakePsiElement).isNotNull()
+    assertThat(fakePsiElement!!.resourceReference).isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.ATTR, "textStyle"))
   }
 
   fun testDrawableFile() {
