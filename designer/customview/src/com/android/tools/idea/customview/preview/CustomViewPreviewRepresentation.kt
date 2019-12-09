@@ -109,6 +109,8 @@ class CustomViewPreviewRepresentation(
       if (field != value) {
         field = value
         persistenceManager.setValue(currentStatePropertyName, value)
+        shrinkHeight = persistenceManager.getValue(wrapContentHeightPropertyNameForClass(value), "false").toBoolean()
+        shrinkWidth = persistenceManager.getValue(wrapContentWidthPropertyNameForClass(value), "false").toBoolean()
         updateModel()
       }
     }
