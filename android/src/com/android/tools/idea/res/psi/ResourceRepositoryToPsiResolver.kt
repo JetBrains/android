@@ -20,6 +20,8 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceRepository
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.ide.common.resources.sampledata.SampleDataManager
+import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
@@ -75,10 +77,14 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
         resourceValue.resourceName ?: return ResolveResult.EMPTY_ARRAY
       ).resolve(context)
       ?: return ResolveResult.EMPTY_ARRAY
-
+    val resourceName = if (resourceReference.resourceType == ResourceType.SAMPLE_DATA) {
+      SampleDataManager.getResourceNameFromSampleReference(resourceReference.name)
+    } else {
+      resourceReference.name
+    }
     val allResources = ResourceRepositoryManager.getInstance(facet).allResources ?: return ResolveResult.EMPTY_ARRAY
 
-    return if (allResources.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)) {
+    return if (allResources.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceName)) {
       arrayOf(PsiElementResolveResult(ResourceReferencePsiElement(resourceReference, context.manager)))
     } else {
       ResolveResult.EMPTY_ARRAY
