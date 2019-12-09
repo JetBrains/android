@@ -109,7 +109,7 @@ public final class StudioFlags {
     PROFILER, "cpu.capture.stage", "Enable new capture stage",
     "With the new System Trace design we have a cpu capture stage. This flag uses that flow instead of the legacy " +
     "CpuProfilerStageView flow.",
-    false);
+    true);
 
   public static final Flag<Boolean> PROFILER_UNIFIED_PIPELINE = Flag.create(
     PROFILER, "unified.pipeline", "Enables new event pipeline to be used for core components.",
