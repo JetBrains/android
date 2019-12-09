@@ -34,6 +34,7 @@ import java.awt.event.MouseEvent.BUTTON1
 import javax.swing.JComponent
 import javax.swing.SwingUtilities
 import javax.swing.ToolTipManager
+import javax.swing.event.TreeModelEvent
 import javax.swing.plaf.basic.BasicTreeUI
 import javax.swing.tree.TreePath
 
@@ -66,6 +67,11 @@ class TreeImpl(
     addMouseListener(object: MouseAdapter() {
       override fun mouseClicked(event: MouseEvent) {
         this@TreeImpl.mouseClicked(event)
+      }
+    })
+    componentTreeModel.addTreeModelListener(object : ComponentTreeModelAdapter() {
+      override fun treeChanged(event: TreeModelEvent) {
+        updateTree(event)
       }
     })
     initialized = true
@@ -181,6 +187,14 @@ class TreeImpl(
     else {
       contextPopup.invoke(this, x, y)
     }
+  }
+
+  private fun updateTree(event: TreeModelEvent) {
+    val expanded = TreeUtil.collectExpandedPaths(this)
+    val selected = getSelectionModel().selectionPaths
+    model?.fireTreeStructureChange(event)
+    TreeUtil.restoreExpandedPaths(this, expanded)
+    getSelectionModel().selectionPaths = selected
   }
 
   // region Support for Badges
