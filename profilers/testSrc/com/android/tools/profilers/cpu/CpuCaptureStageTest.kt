@@ -232,12 +232,11 @@ class CpuCaptureStageTest {
     profilers.stage = stage
     assertThat(stage.analysisModels.size).isEqualTo(1)
     assertThat(stage.analysisModels[0].javaClass).isEqualTo(CpuFullTraceAnalysisModel::class.java)
-    assertThat(stage.analysisModels[0].tabSize).isEqualTo(4)
+    assertThat(stage.analysisModels[0].tabSize).isEqualTo(3)
     val tabs = stage.analysisModels[0].tabModels.toList()
-    assertThat(tabs[0].tabType).isEqualTo(CpuAnalysisTabModel.Type.SUMMARY)
+    assertThat(tabs[0].tabType).isEqualTo(CpuAnalysisTabModel.Type.TOP_DOWN)
     assertThat(tabs[1].tabType).isEqualTo(CpuAnalysisTabModel.Type.FLAME_CHART)
-    assertThat(tabs[2].tabType).isEqualTo(CpuAnalysisTabModel.Type.TOP_DOWN)
-    assertThat(tabs[3].tabType).isEqualTo(CpuAnalysisTabModel.Type.BOTTOM_UP)
+    assertThat(tabs[2].tabType).isEqualTo(CpuAnalysisTabModel.Type.BOTTOM_UP)
   }
 
 }
