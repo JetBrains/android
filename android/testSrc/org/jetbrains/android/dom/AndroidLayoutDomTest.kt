@@ -6,10 +6,12 @@ import com.android.SdkConstants.DOT_XML
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.lint.AndroidLintMotionLayoutInvalidSceneFileReferenceInspection
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
+import com.android.tools.idea.templates.TemplateUtils.camelCaseToUnderlines
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
@@ -36,7 +38,6 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
-import com.intellij.psi.xml.XmlTag
 import com.intellij.spellchecker.inspections.SpellCheckingInspection
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.PsiTestUtil
@@ -1507,7 +1508,11 @@ b/145854589 */
 
   fun testAttrReferences1() {
     copyFileToProject("attrReferences_attrs.xml", "res/values/attrReferences_attrs.xml")
-    doTestHighlighting()
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+      doTestHighlighting("attrReferences1_repos.xml", "res/layout/attr_references1.xml")
+    } else {
+      doTestHighlighting("attrReferences1.xml", "res/layout/attr_references1.xml")
+    }
   }
 
   fun testAttrReferences2() {
