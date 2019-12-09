@@ -159,9 +159,13 @@ class ResourceReferencePsiElement(
         val tag = element.parentOfType<XmlTag>() ?: return null
         if ((element.parent as XmlAttribute).name != ATTR_NAME) return null
         val type = AndroidResourceUtil.getResourceTypeForResourceTag(tag) ?: return null
-        if (!type.isValueBased()) return null
-        val name = element.value
-        val resourceReference = ResourceReference(ResourceNamespace.TODO(), type, name)
+        val resourceReference = if (type == ResourceType.ATTR) {
+          ResourceUrl.parseAttrReference(element.value)?.resolve(element) ?: return null
+        } else {
+          if (!type.isValueBased()) return null
+          val name = element.value
+          ResourceReference(ResourceNamespace.TODO(), type, name)
+        }
         return ResourceReferencePsiElement(resourceReference, element.manager)
       }
     }
