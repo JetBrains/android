@@ -41,7 +41,7 @@ public class ExternalRepository {
   // TODO (MavenDependencyLookupDialog.searchMavenCentral()), so, we'd like to move that code out from a UI class and consolidate
   // TODO it inside the current one.
 
-  private static final String URL_TEMPLATE = "http://repo1.maven.org/maven2/%s/%s/maven-metadata.xml";
+  private static final String URL_TEMPLATE = "https://repo1.maven.org/maven2/%s/%s/maven-metadata.xml";
 
   private static final String MAVEN_METADATA_VERSIONING = "versioning";
   private static final String MAVEN_METADATA_LATEST = "latest";
