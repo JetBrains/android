@@ -940,7 +940,8 @@ public class AndroidStudioSystemHealthMonitor extends PreloadingActivity {
                 .setActionClassName(actionName)
                 .setInvocationKind(invocationKind)
                 .setInvocations(1)
-                .setDirect(true)));
+                .setDirect(true)
+                .setUiPlace(event.getPlace())));
       }
     }
   }
@@ -1022,23 +1023,34 @@ public class AndroidStudioSystemHealthMonitor extends PreloadingActivity {
    * Gets an action name based on its class. For Android Studio code, we use simple names for plugins we use canonical names.
    */
   static String getActionName(@NotNull Class actionClass, @NotNull Presentation templatePresentation) {
-    Class currentClass = actionClass;
-    while (currentClass.isAnonymousClass()) {
-      currentClass = currentClass.getEnclosingClass();
+    if (actionClass.isAnonymousClass()) {
+      Class enclosingClass = actionClass.getEnclosingClass();
+      Class superClass = actionClass.getSuperclass();
+      return String.format("%s@%s", metricsNameForClass(superClass), metricsNameForClass(enclosingClass));
     }
-    Package classPackage = currentClass.getPackage();
+
+    String actionName = metricsNameForClass(actionClass);
+    if (actionName.equals("ExecutorAction")) {
+      actionName += "#" + templatePresentation.getText();
+    }
+    return actionName;
+  }
+
+  private static String metricsNameForClass(Class cls) {
+    Package classPackage = cls.getPackage();
     String packageName = classPackage != null ? classPackage.getName() : "";
     if (packageName.startsWith("com.android.") || packageName.startsWith("com.intellij.") || packageName.startsWith("org.jetbrains.") ||
         packageName.startsWith("or.intellij.") || packageName.startsWith("com.jetbrains.") || packageName.startsWith("git4idea.")) {
 
-      String actionName = currentClass.getSimpleName();
-      // ExecutorAction points to many different Run/Debug actions, we use the template text to distinguish.
-      if (actionName.equals("ExecutorAction")) {
-        actionName += "#" + templatePresentation.getText();
+      String actionName = cls.getSimpleName();
+      Class parentClass = cls.getDeclaringClass();
+      while (parentClass != null) {
+        actionName = String.format("%s.%s", parentClass.getSimpleName(), actionName);
+        parentClass = parentClass.getDeclaringClass();
       }
       return actionName;
     }
-    return currentClass.getCanonicalName();
+    return cls.getCanonicalName();
   }
 
   private static void reportCrashes(@NotNull List<StudioCrashDetails> descriptions) {
