@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.rendering.classloading;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.rendering.ClassConverter.*;
+import static com.android.tools.idea.rendering.classloading.ClassConverter.*;
 
 /**
  * Exception thrown when we attempt to load a class that cannot be converted by
- * the {@link com.android.tools.idea.rendering.RenderClassLoader}
+ * the {@link RenderClassLoader}
  */
 public class InconvertibleClassError extends UnsupportedClassVersionError {
   private final String myFqcn;

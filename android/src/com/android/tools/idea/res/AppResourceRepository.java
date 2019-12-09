@@ -24,7 +24,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Collection;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.uipreview.ModuleClassLoader;
+import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,7 +92,7 @@ class AppResourceRepository extends MultiResourceRepository {
 
     // Clear the fake R class cache and the ModuleClassLoader cache.
     ResourceIdManager.get(myFacet.getModule()).resetDynamicIds();
-    ModuleClassLoader.clearCache(myFacet.getModule());
+    ModuleClassLoaderManager.get().clearCache(myFacet.getModule());
   }
 
   @VisibleForTesting

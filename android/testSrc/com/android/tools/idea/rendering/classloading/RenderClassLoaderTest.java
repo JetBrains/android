@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.rendering.classloading;
 
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.diagnostic.DefaultLogger;
@@ -76,7 +76,7 @@ public class RenderClassLoaderTest {
   }
 
   @Test
-  public void testRemovingJarFile() throws IOException {
+  public void testRemovingJarFile() throws IOException, ClassNotFoundException {
     ourLoggerInstance = new DefaultLogger("") {
       @Override
       public void error(@NonNls String message, @Nullable Throwable t, @NonNls @NotNull String... details) {
@@ -95,9 +95,13 @@ public class RenderClassLoaderTest {
       }
     };
 
-    loader.loadClassFromJar("com.myjar.MyJarClass");
+    loader.loadClassFromNonProjectDependency("com.myjar.MyJarClass");
     assertTrue(testJarFile.delete());
-    loader.loadClassFromJar("com.myjar.MyJarClass");
+    try {
+      loader.loadClassFromNonProjectDependency("com.myjar.MyJarClass");
+      fail("Class should be available anymore");
+    } catch (ClassNotFoundException ignore) {
+    }
   }
 
   @Test

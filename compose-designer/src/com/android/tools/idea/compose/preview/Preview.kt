@@ -73,7 +73,7 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.uipreview.ModuleClassLoader
+import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import org.jetbrains.kotlin.backend.common.pop
 import java.awt.BorderLayout
 import java.util.concurrent.TimeUnit
@@ -268,7 +268,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         val module = ModuleUtil.findModuleForFile(file)!!
         val modules = mutableSetOf<Module>()
         ModuleUtil.collectModulesDependsOn(module, modules)
-        modules.forEach { ModuleClassLoader.clearCache(it) }
+        modules.forEach { ModuleClassLoaderManager.get().clearCache(it) }
         EditorNotifications.getInstance(project).updateNotifications(file.virtualFile!!)
         refresh()
       }

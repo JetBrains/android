@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.idea.rendering.classloading;
 
 import com.google.common.collect.Lists;
 import junit.framework.TestCase;
@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.android.tools.idea.rendering.ClassConverter.*;
+import static com.android.tools.idea.rendering.classloading.ClassConverter.*;
 import static org.jetbrains.org.objectweb.asm.Opcodes.*;
 
 public class ClassConverterTest extends TestCase {
@@ -115,7 +115,7 @@ public class ClassConverterTest extends TestCase {
     assertEquals(Integer.valueOf(42), result);
     Class<?> oldClz = clz;
 
-    data = rewriteClass(data, 48, Integer.MIN_VALUE);
+    data = rewriteClass(data, visitor -> new VersionClassTransform(visitor, 48, Integer.MIN_VALUE));
     assertEquals(48, getMajorVersion(data));
     classLoader = new TestClassLoader(data);
     clz = classLoader.loadClass("Test");
@@ -124,7 +124,7 @@ public class ClassConverterTest extends TestCase {
     result = clz.getMethod("test").invoke(null);
     assertEquals(Integer.valueOf(42), result);
 
-    data = rewriteClass(data, Integer.MAX_VALUE, 52); // latest known
+    data = rewriteClass(data,visitor -> new VersionClassTransform(visitor, Integer.MAX_VALUE, 52)); // latest known
     assertEquals(52, getMajorVersion(data));
     classLoader = new TestClassLoader(data);
     clz = classLoader.loadClass("Test");
@@ -219,7 +219,7 @@ public class ClassConverterTest extends TestCase {
     byte[] data = ClassConverterTest.dumpTestViewClass();
 
     assertTrue(isValidClassFile(data));
-    byte[] modified = rewriteClass(data);
+    byte[] modified = rewriteClass(data, visitor -> new ViewMethodWrapperTransform(visitor));
     assertTrue(isValidClassFile(data));
 
     // Parse both classes and compare
@@ -271,8 +271,8 @@ public class ClassConverterTest extends TestCase {
 
 
     // Modify the classes and repeat.
-    final byte[] modifiedFirstData = rewriteClass(firstData, 50, 0);
-    final byte[] modifiedSecondData = rewriteClass(secondData, 50, 0);
+    final byte[] modifiedFirstData = rewriteClass(firstData, visitor -> new VersionClassTransform(visitor, 50, 0));
+    final byte[] modifiedSecondData = rewriteClass(secondData, visitor -> new VersionClassTransform(visitor, 50, 0));
     loader = new ClassLoader() {
       @Override
       protected Class<?> findClass(String name) throws ClassNotFoundException {
