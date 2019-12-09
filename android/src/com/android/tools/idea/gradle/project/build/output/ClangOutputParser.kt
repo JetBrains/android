@@ -265,7 +265,9 @@ private fun augmentLinkerError(message: String, soFilePath: Path?): String {
 private fun BuildOutputInstantReader.peekPrevious(): String? {
   pushBack()
   try {
+/* b/145882605
     return currentLine?.trimEnd()
+b/145882605 */ return null
   }
   catch (e: IndexOutOfBoundsException) {
     // It's sad that BuildOutputInstantReader does not have an API to test if there is a previous line.
