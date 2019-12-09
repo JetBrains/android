@@ -96,7 +96,6 @@ public class CpuThreadTrackModel implements CpuAnalyzable<CpuThreadTrackModel> {
     bottomUp.getDataSeries().add(this);
 
     CpuAnalysisModel<CpuThreadTrackModel> model = new CpuAnalysisModel<>(myThreadInfo.getName(), "%d threads");
-    model.addTabModel(new CpuAnalysisTabModel<>(CpuAnalysisTabModel.Type.SUMMARY));
     model.addTabModel(flameChart);
     model.addTabModel(topDown);
     model.addTabModel(bottomUp);

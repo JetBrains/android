@@ -68,7 +68,8 @@ public class CpuAnalysisModel<T> {
   }
 
   /**
-   * @return all tab models for iteration.
+   * @return all tab models for iteration. They are sorted by the {@link CpuAnalysisTabModel.Type} enum natural order (the order the enums
+   * are defined) so that the tabs are displayed in a consistent order.
    */
   @NotNull
   public Iterable<CpuAnalysisTabModel<T>> getTabModels() {

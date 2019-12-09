@@ -84,10 +84,8 @@ class CpuAnalysisPanelTest {
   fun tabsAreOnlyPopulatedWhenSelected() {
     stage.enter()
     assertThat(panel.tabView.selectedIndex).isEqualTo(0)
-    assertThat(panel.tabView.getComponentAt(0)).isInstanceOf(CpuAnalysisSummaryTab::class.java)
-    assertThat(panel.tabView.getComponentAt(1)).isNotInstanceOf(CpuAnalysisChart::class.java)
+    assertThat(panel.tabView.getComponentAt(0)).isInstanceOf(CpuAnalysisChart::class.java)
     panel.tabView.selectedIndex = 1
-    assertThat(panel.tabView.getComponentAt(0)).isNotInstanceOf(CpuAnalysisSummaryTab::class.java)
-    assertThat(panel.tabView.getComponentAt(1)).isInstanceOf(CpuAnalysisChart::class.java)
+    assertThat(panel.tabView.getComponentAt(0)).isNotInstanceOf(CpuAnalysisChart::class.java)
   }
 }
