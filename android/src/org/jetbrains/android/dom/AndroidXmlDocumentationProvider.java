@@ -17,6 +17,7 @@ import static com.intellij.psi.xml.XmlTokenType.XML_DATA_CHARACTERS;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.databinding.util.DataBindingUtil;
@@ -98,8 +99,15 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
       return ((ProvidedDocumentationPsiElement)element).getDocumentation();
     }
     if (element instanceof ResourceReferencePsiElement) {
-      ResourceUrl resourceUrl = ((ResourceReferencePsiElement)element).getResourceReference().getResourceUrl();
-      return generateDoc(originalElement, resourceUrl);
+      ResourceUrl originalUrl = originalElement != null ? ResourceUrl.parse(originalElement.getText()) : null;
+      ResourceReference resourceReference = ((ResourceReferencePsiElement)element).getResourceReference();
+      if (resourceReference.getResourceType().equals(ResourceType.ATTR) && originalUrl != null) {
+        // This might be a theme reference, in which case we want to use the Url form the original XML element.
+        return generateDoc(originalElement, originalUrl);
+      } else {
+        ResourceUrl resourceUrl = resourceReference.getResourceUrl();
+        return generateDoc(originalElement, resourceUrl);
+      }
     }
     if (element instanceof LazyValueResourceElementWrapper) {
       LazyValueResourceElementWrapper wrapper = (LazyValueResourceElementWrapper)element;
