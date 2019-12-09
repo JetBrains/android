@@ -306,7 +306,6 @@ class ClangOutputParserTest {
   @Test
   fun `linker - unresolved reference`() {
     Assume.assumeTrue(SdkConstants.currentPlatform() == SdkConstants.PLATFORM_LINUX)
-/* presumably due to b/145882605
     assertParser("""
       > Task :app:externalNativeBuildDebug
     * ninja: Entering directory `/usr/local/google/home/jeff/hello-world/app/.cxx/cmake/debug/arm64-v8a'
@@ -322,13 +321,11 @@ class ClangOutputParserTest {
         "[:app Debug arm64-v8a]" to "/usr/local/google/home/jeff/HelloWorld/src/HelloWorld.cpp:33: error: undefined reference to 'foo()'"
       )
     }
-presumably due to b/145882605 */
   }
 
   @Test
   fun `linker - missing library`() {
     Assume.assumeTrue(SdkConstants.currentPlatform() == SdkConstants.PLATFORM_LINUX)
-/* presumably due to b/145882605
     assertParser("""
       > Task :app:externalNativeBuildDebug
     * ninja: Entering directory `/usr/local/google/home/jeff/hello-world/app/.cxx/cmake/debug/x86_64'
@@ -344,7 +341,6 @@ presumably due to b/145882605 */
         "[:app Debug x86_64]" to "/usr/local/google/home/jeff/Android/Sdk/ndk-bundle/toolchains/llvm/prebuilt/windows-x86_64/x86_64-linux-android/bin/ld: error: cannot find -lbdisasm"
       )
     }
-presumably due to b/145882605 */
   }
 
   @Test
@@ -501,9 +497,8 @@ presumably due to b/145882605 */
         // Record the current line and check if it's not supposed to be consumed by parsing it to the block.
         unconsumedLineIndices.add(reader.currentIndex)
         // Assert the reader is consistent with respect to the "current" line so there is no surprises for parsers after this parser.
-/* b/145882605
-        Truth.assertThat(line).named("current line in reader").isEqualTo(reader.currentLine)
-b/145882605 */
+        reader.pushBack()
+        Truth.assertThat(line).named("current line in reader").isEqualTo(reader.readLine())
       }
     }
     block(consumer.messageEvents.map { it as MessageEventImpl }, unconsumedLineIndices)
