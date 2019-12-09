@@ -37,7 +37,7 @@ class OpenResourceManagerAction : DumbAwareAction("Resource Manager", "Open the 
   }
 
   private fun showResourceExplorer(project: Project) {
-    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID)
+    val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID)!!
     toolWindow.show(null)
   }
 }

@@ -189,7 +189,7 @@ class BuildAttributionUiManagerImpl(
         }
         uiAnalytics.registerOpenEventSource(eventSource)
         contentManager!!.setSelectedContent(buildContent!!, true, true)
-        ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.BUILD).show {}
+        ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.BUILD)!!.show {}
       }
     }
   }
