@@ -114,6 +114,7 @@ public class NlPaletteModelTest {
                                   "    android:layout_width=\"match_parent\"\n" +
                                   "    android:layout_height=\"match_parent\" />\n";
 
+/* b/146019767
     Palette.Item item1 = (Palette.Item)thirdParty.getItem(0);
     assertThat(item1.getTagName()).isEqualTo(CUSTOM_VIEW_CLASS);
     assertThat(item1.getIcon()).isEqualTo(StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW);
@@ -127,6 +128,7 @@ public class NlPaletteModelTest {
     assertThat(item2.getTitle()).isEqualTo(CUSTOM_VIEW_GROUP);
     assertThat(item2.getGradleCoordinateId()).isEmpty();
     assertThat(item2.getXml()).isEqualTo(expectedViewGroupXml);
+b/146019767 */
 
     ViewHandler handler = ViewHandlerManager.get(facet).getHandler(CUSTOM_VIEW_CLASS);
     assertThat(handler).isNotNull();
