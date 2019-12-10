@@ -19,8 +19,8 @@ import com.intellij.ide.file.BatchFileChangeListener
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.impl.stores.BatchUpdateListener
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.IdeaTestCase
 import com.intellij.util.messages.MessageBus
+import org.jetbrains.android.AndroidTestCase
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.`when`
@@ -31,7 +31,7 @@ import org.mockito.Mockito.verify
 /**
  * Tests for [BatchUpdatesUtil]
  */
-class BatchUpdatesUtilTest : IdeaTestCase() {
+class BatchUpdatesUtilTest : AndroidTestCase() {
   fun testStartBatchUpdate() {
     val spyProject = spy(project)
     val mockMessageBus = mock(MessageBus::class.java)
