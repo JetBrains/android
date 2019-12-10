@@ -144,6 +144,7 @@ import java.util.Set;
 import org.jetbrains.android.AndroidFileTemplateProvider;
 import org.jetbrains.android.actions.CreateTypedResourceFileAction;
 import org.jetbrains.android.augment.ManifestClass;
+import org.jetbrains.android.augment.StyleableAttrLightField;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.color.ColorSelector;
 import org.jetbrains.android.dom.drawable.DrawableSelector;
@@ -244,8 +245,43 @@ public class AndroidResourceUtil {
                                               @NotNull Collection<String> resourceNames,
                                               boolean onlyInOwnPackages) {
     final List<PsiField> result = new ArrayList<>();
-    for (PsiClass rClass : findRJavaClasses(facet, onlyInOwnPackages)) {
+    for (PsiClass rClass : findRJavaClasses(facet)) {
       findResourceFieldsFromClass(rClass, resClassName, resourceNames, result);
+    }
+    return result.toArray(PsiField.EMPTY_ARRAY);
+  }
+
+  @NotNull
+  public static PsiField[] findStyleableAttrFieldsForAttr(@NotNull AndroidFacet facet, @NotNull String attrName) {
+    final List<PsiField> result = new ArrayList<>();
+    for (PsiClass rClass : findRJavaClasses(facet)) {
+      PsiClass styleableClass = rClass.findInnerClassByName(STYLEABLE.getName(), false);
+      if (styleableClass == null) continue;
+      for (PsiField field : styleableClass.getFields()) {
+        if (field instanceof StyleableAttrLightField) {
+          if (((StyleableAttrLightField)field).getStyleableAttrFieldUrl().getAttr().getName().equals(attrName)) {
+            result.add(field);
+          }
+        }
+      }
+    }
+    return result.toArray(PsiField.EMPTY_ARRAY);
+  }
+
+
+  @NotNull
+  public static PsiField[] findStyleableAttrFieldsForStyleable(@NotNull AndroidFacet facet, @NotNull String styleableName) {
+    final List<PsiField> result = new ArrayList<>();
+    for (PsiClass rClass : findRJavaClasses(facet)) {
+      PsiClass styleableClass = rClass.findInnerClassByName(STYLEABLE.getName(), false);
+      if (styleableClass == null) continue;
+      for (PsiField field : styleableClass.getFields()) {
+        if (field instanceof StyleableAttrLightField) {
+          if (((StyleableAttrLightField)field).getStyleableAttrFieldUrl().getStyleable().getName().equals(styleableName)) {
+            result.add(field);
+          }
+        }
+      }
     }
     return result.toArray(PsiField.EMPTY_ARRAY);
   }
@@ -287,15 +323,11 @@ public class AndroidResourceUtil {
    * Finds all R classes that contain fields for resources from the given module.
    *
    * @param facet {@link AndroidFacet} of the module to find classes for
-   * @param onlyInOwnPackages whether to limit results to "canonical" R classes, that is classes defined in the same module as the module
-   *                          they describe. When sync-time R.java generation is used, sources for the same fully-qualified R class are
-   *                          generated both in the owning module and all modules depending on it.
    * @return
    */
   @NotNull
-  private static Collection<? extends PsiClass> findRJavaClasses(@NotNull AndroidFacet facet, boolean onlyInOwnPackages) {
+  private static Collection<? extends PsiClass> findRJavaClasses(@NotNull AndroidFacet facet) {
     final Module module = facet.getModule();
-    final Project project = module.getProject();
     if (Manifest.getMainManifest(facet) == null) {
       return Collections.emptySet();
     }
