@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.AndroidDebugBridge;
@@ -43,9 +42,10 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
+import com.intellij.util.messages.MessageBusConnection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -57,11 +57,11 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 
-public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAware, Condition<Project> {
+public final class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAware, Condition<Project> {
   public static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
 
   @Override
-  public void createToolWindowContent(@NotNull final Project project, @NotNull final ToolWindow toolWindow) {
+  public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     // In order to use the runner layout ui, the runner infrastructure needs to be initialized.
     // Otherwise it is not possible to for example drag one of the tabs out of the tool window.
     // The object that needs to be created is the content manager of the execution manager for this project.
@@ -70,13 +70,14 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
     toolWindow.setAvailable(true, null);
     toolWindow.setToHideOnEmptyContent(true);
 
-    LogcatPanel logcatPanel = new LogcatPanel(project);
+    LogcatPanel logcatPanel = new LogcatPanel(project, toolWindow);
     AndroidLogcatView logcatView = logcatPanel.getLogcatView();
 
-    ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(new MyToolWindowManagerListener(project, logcatView));
-    project.getMessageBus().connect().subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(logcatView));
+    MessageBusConnection busConnection = project.getMessageBus().connect(toolWindow.getDisposable());
+    busConnection.subscribe(ProjectTopics.PROJECT_ROOTS, new MyAndroidPlatformListener(logcatView));
+    busConnection.subscribe(ToolWindowManagerListener.TOPIC, new MyToolWindowManagerListener(project, logcatView));
 
-    final ContentManager contentManager = toolWindow.getContentManager();
+    ContentManager contentManager = toolWindow.getContentManager();
     Content c = contentManager.getFactory().createContent(logcatPanel, "", true);
 
     // Store references to the logcat & device panel views, so that these views can be retrieved directly from
@@ -88,7 +89,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
 
     ApplicationManager.getApplication().invokeLater(() -> {
       logcatView.activate();
-      final ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(getToolWindowId());
+      ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(getToolWindowId());
       if (window != null && window.isVisible()) {
         ConsoleView console = logcatView.getLogConsole().getConsole();
         if (console != null) {
@@ -97,7 +98,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
       }
     }, project.getDisposed());
 
-    final File adb = AndroidSdkUtils.getAdb(project);
+    File adb = AndroidSdkUtils.getAdb(project);
     if (adb == null) {
       return;
     }

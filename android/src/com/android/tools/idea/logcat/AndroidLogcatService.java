@@ -15,14 +15,8 @@
  */
 package com.android.tools.idea.logcat;
 
-import com.android.ddmlib.AdbCommandRejectedException;
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.IShellEnabledDevice;
+import com.android.ddmlib.*;
 import com.android.ddmlib.Log.LogLevel;
-import com.android.ddmlib.MultiLineReceiver;
-import com.android.ddmlib.ShellCommandUnresponsiveException;
-import com.android.ddmlib.TimeoutException;
 import com.android.ddmlib.logcat.LogCatHeader;
 import com.android.ddmlib.logcat.LogCatMessage;
 import com.android.tools.idea.IdeInfo;
@@ -39,22 +33,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Disposer;
-import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayDeque;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 import org.jetbrains.android.util.AndroidBundle;
@@ -62,6 +40,15 @@ import org.jetbrains.android.util.AndroidOutputReceiver;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
+
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * {@link AndroidLogcatService} is the class that manages logs in all connected devices and emulators.
@@ -227,7 +214,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
       AndroidLogcatReceiver receiver = newAndroidLogcatReceiver(device);
       myLogReceivers.put(device, receiver);
       myLogBuffers.put(device, new LogcatBuffer());
-      myExecutors.get(device).submit(() -> executeLogcat(device, receiver));
+      myExecutors.get(device).execute(() -> executeLogcat(device, receiver));
     }
   }
 
@@ -339,7 +326,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
 
       stopReceiving(device);
 
-      executor.submit(() -> {
+      executor.execute(() -> {
         try {
           execute(device, "logcat -c", new LoggingReceiver(getLog()), Duration.ofSeconds(5));
         }
@@ -392,7 +379,7 @@ public final class AndroidLogcatService implements AndroidDebugBridge.IDeviceCha
       if (!oldMessages.isEmpty()) {
         ExecutorService executor = myExecutors.get(device);
         assert executor != null;
-        executor.submit(() -> listenerConnector.processBacklog());
+        executor.execute(() -> listenerConnector.processBacklog());
       }
     }
   }
