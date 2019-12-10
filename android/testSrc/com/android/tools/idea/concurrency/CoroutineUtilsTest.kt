@@ -22,6 +22,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.ThreadFactoryBuilder
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
@@ -227,5 +228,19 @@ class CoroutineUtilsTest {
     assertThat(exception.get()).isInstanceOf(CancellationException::class.java)
     assertThat(exception.get()).hasMessageThat().contains("FooManager")
     assertThat(exception.get()).hasMessageThat().contains("disposed")
+  }
+
+  @Test
+  fun explicitScope() {
+    class FooManager : Disposable {
+
+      private val scope = AndroidCoroutineScope(this)
+
+      fun run() = scope.launch {
+        // work
+      }
+
+      override fun dispose() {}
+    }
   }
 }

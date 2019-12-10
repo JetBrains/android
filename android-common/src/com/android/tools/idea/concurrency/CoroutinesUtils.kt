@@ -107,12 +107,25 @@ fun SupervisorJob(disposable: Disposable): Job {
 }
 
 /**
+ * Returns a [CoroutineScope] containing:
+ *   - a [Job] tied to the [Disposable] lifecycle of this object
+ *   - [AndroidDispatchers.workerThread]
+ *   - a [CoroutineExceptionHandler] that logs unhandled exception at `ERROR` level.
+ */
+@Suppress("FunctionName") // Mirroring coroutines API, with many functions that look like constructors.
+fun AndroidCoroutineScope(disposable: Disposable): CoroutineScope {
+  return CoroutineScope(SupervisorJob(disposable) + AndroidDispatchers.workerThread + androidCoroutineExceptionHandler)
+}
+
+/**
  * Mixin interface for IDE components aware of Android conventions for using Kotlin coroutines.
  *
  * To properly use coroutines, the component needs to meet these requirements:
  * - Be [Disposable]. Disposing the component cancels all coroutines created in the scope of this object.
  * - Implement [UserDataHolderEx], so the single [Job] tied to the [Disposable] lifecycle can be stored and reused. This can be done by
  *   delegating to a fresh instance of [UserDataHolderBase], e.g. `class Foo : UserDataHolder by UserDataHolderBase(), ...`
+ *
+ * Alternatively, an IDE component may use [AndroidCoroutineScope] to store the scope in an explicit field.
  */
 interface AndroidCoroutinesAware : UserDataHolderEx, Disposable, CoroutineScope {
 
@@ -120,15 +133,8 @@ interface AndroidCoroutinesAware : UserDataHolderEx, Disposable, CoroutineScope 
     private val CONTEXT: Key<CoroutineContext> = Key.create(::CONTEXT.qualifiedName)
   }
 
-  /**
-   * Default [CoroutineContext] containing:
-   *   - a [Job] tied to the [Disposable] lifecycle of this object
-   *   - [AndroidDispatchers.workerThread]
-   *   - a [CoroutineExceptionHandler] that logs unhandled exception at `ERROR` level.
-   */
-  override val coroutineContext: CoroutineContext get() = getUserData(CONTEXT) ?: putUserDataIfAbsent(CONTEXT, createContext())
-
-  private fun createContext(): CoroutineContext {
-    return SupervisorJob(this) + AndroidDispatchers.workerThread + androidCoroutineExceptionHandler
+  /** @see AndroidCoroutineScope */
+  override val coroutineContext: CoroutineContext get() {
+    return getUserData(CONTEXT) ?: putUserDataIfAbsent(CONTEXT, AndroidCoroutineScope(this).coroutineContext)
   }
 }
