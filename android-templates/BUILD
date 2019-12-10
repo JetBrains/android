@@ -34,7 +34,7 @@ iml_module(
         "//tools/idea/java/plugin:intellij.java.plugin",
         "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
     ],
-    test_shard_count = 1,  # temporarily due to b/145856067; when fixed, restore to 10
+    test_shard_count = 10,
     test_srcs = ["testSrc"],
     test_tags = [
         "cpu:3",
