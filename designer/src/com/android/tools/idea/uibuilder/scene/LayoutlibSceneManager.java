@@ -305,24 +305,26 @@ public class LayoutlibSceneManager extends SceneManager {
 
     super.dispose();
     // dispose is called by the project close using the read lock. Invoke the render task dispose later without the lock.
-    myRenderTaskDisposerExecutor.execute(() -> {
-      synchronized (myRenderingTaskLock) {
-        if (myRenderTask != null) {
-          myRenderTask.dispose();
-          myRenderTask = null;
-        }
+    myRenderTaskDisposerExecutor.execute(this::disposeRenderTask);
+  }
+
+  private void disposeRenderTask() {
+    synchronized (myRenderingTaskLock) {
+      if (myRenderTask != null) {
+        myRenderTask.dispose();
+        myRenderTask = null;
       }
-      myRenderResultLock.writeLock().lock();
-      try {
-        if (myRenderResult != null) {
-          myRenderResult.dispose();
-        }
-        myRenderResult = null;
+    }
+    myRenderResultLock.writeLock().lock();
+    try {
+      if (myRenderResult != null) {
+        myRenderResult.dispose();
       }
-      finally {
-        myRenderResultLock.writeLock().unlock();
-      }
-    });
+      myRenderResult = null;
+    }
+    finally {
+      myRenderResultLock.writeLock().unlock();
+    }
   }
 
   private void stopProgressIndicator() {
@@ -488,6 +490,9 @@ public class LayoutlibSceneManager extends SceneManager {
         requestModelUpdate();
         model.updateTheme();
       }
+      else {
+        requestLayoutAndRender(false);
+      }
     }
 
     @Override
@@ -497,11 +502,11 @@ public class LayoutlibSceneManager extends SceneManager {
           myRenderingQueue.cancelAllUpdates();
         }
       }
+      disposeRenderTask();
     }
 
     @Override
     public void modelLiveUpdate(@NotNull NlModel model, boolean animate) {
-      NlDesignSurface surface = getDesignSurface();
       requestLayoutAndRender(animate);
     }
   }
