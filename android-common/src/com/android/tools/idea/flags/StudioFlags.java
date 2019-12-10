@@ -186,6 +186,10 @@ public final class StudioFlags {
     MLKIT, "modelfiletype", "Enable TFLite model file type",
     "When enabled, TFLite model file can be recognized as a particular type and has its own viewer.",
     false);
+  public static final Flag<Boolean> MLKIT_LIGHT_CLASSES = Flag.create(
+    MLKIT, "lightclasses", "Enable light model classes generation",
+    "When enabled, light model classes will be generated for each recognized TFLite model file.",
+    false);
   //endregion
 
   //region Layout Editor
