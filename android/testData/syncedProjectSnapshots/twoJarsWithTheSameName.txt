@@ -1,6 +1,5 @@
 PROJECT             : My Application
     MODULE              : My_Application
-        - ModuleGroupPath   : My Application
         - ModuleGroupPath   : My_Application
         ExternalModuleGroup :
         ExternalModuleVersion         : unspecified
