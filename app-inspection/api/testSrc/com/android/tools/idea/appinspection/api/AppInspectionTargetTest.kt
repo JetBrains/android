@@ -30,6 +30,7 @@ import com.android.tools.profiler.proto.Common.Event
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.AsyncFunction
 import com.google.common.util.concurrent.Futures
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -65,6 +66,7 @@ class AppInspectionTargetTest {
     assertThat(clientFuture.get()).isNotNull()
   }
 
+  @Ignore("b/144511139")
   @Test
   fun launchInspectorReturnsCorrectConnection() {
     val target = appInspectionRule.launchTarget().get()
