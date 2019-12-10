@@ -82,7 +82,7 @@ public class AndroidViewNodesTest extends AndroidGradleTestCase {
   }
 
   private static final class MyToolWindow extends ToolWindowHeadlessManagerImpl.MockToolWindow {
-    public MyToolWindow(@NotNull Project project) {
+    private MyToolWindow(@NotNull Project project) {
       super(project);
     }
 
