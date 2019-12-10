@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.benchmark
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.npw.model.ExistingProjectModelData
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.generateBenchmarkModule
@@ -31,7 +32,7 @@ import java.io.File
 
 class NewBenchmarkModuleModel(
   project: Project, templateFile: File, projectSyncInvoker: ProjectSyncInvoker
-) : ModuleModel(project, templateFile, projectSyncInvoker, "benchmark", "New Benchmark Module", true) {
+) : ModuleModel(templateFile, "benchmark", "New Benchmark Module", true, ExistingProjectModelData(project, projectSyncInvoker)) {
   override val renderer = object : ModuleTemplateRenderer() {
     override val recipe: Recipe get() = { td: TemplateData -> generateBenchmarkModule(td as ModuleTemplateData) }
 

@@ -18,6 +18,7 @@ package com.android.tools.idea.npw.java
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.FormFactor
+import com.android.tools.idea.npw.model.ExistingProjectModelData
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.pureLibrary.generatePureLibrary
@@ -35,7 +36,7 @@ import java.io.File
 
 class NewLibraryModuleModel(
   project: Project, templateFile: File, projectSyncInvoker: ProjectSyncInvoker
-) : ModuleModel(project, templateFile, projectSyncInvoker, "lib", "New Library Module", true) {
+) : ModuleModel(templateFile, "lib", "New Library Module", true, ExistingProjectModelData(project, projectSyncInvoker)) {
   @JvmField
   val className = StringValueProperty("MyClass")
 

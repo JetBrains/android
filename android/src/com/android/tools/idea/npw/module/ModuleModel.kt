@@ -19,11 +19,9 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.model.ExistingProjectModelData
 import com.android.tools.idea.npw.model.ModuleModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.ProjectModelData
-import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.TemplateValueInjector
@@ -47,7 +45,6 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.Project
 import java.io.File
 
 private val log: Logger get() = logger<ModuleModel>()
@@ -68,15 +65,6 @@ abstract class ModuleModel(
   override val moduleTemplateValues = mutableMapOf<String, Any>()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
   abstract val renderer: MultiTemplateRenderer.TemplateRenderer
-
-  constructor(
-    project: Project,
-    templateFile: File?,
-    projectSyncInvoker: ProjectSyncInvoker,
-    moduleName: String,
-    commandName: String = "New Module",
-    isLibrary: Boolean
-  ): this(templateFile, moduleName, commandName, isLibrary, ExistingProjectModelData(project, projectSyncInvoker))
 
   public override fun handleFinished() {
     multiTemplateRenderer.requestRender(renderer)

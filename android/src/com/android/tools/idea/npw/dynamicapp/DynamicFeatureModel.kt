@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.dynamicapp
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.npw.model.ExistingProjectModelData
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.module.ModuleModel
@@ -47,7 +48,7 @@ import java.io.File
 class DynamicFeatureModel(
   project: Project, templateFile: File, projectSyncInvoker: ProjectSyncInvoker, val isInstant: Boolean
 ) : ModuleModel(
-  project, templateFile, projectSyncInvoker, "dynamicfeature", "New Dynamic Feature Module", false
+  templateFile, "dynamicfeature", "New Dynamic Feature Module", false, ExistingProjectModelData(project, projectSyncInvoker)
 ) {
   @JvmField
   val featureTitle = StringValueProperty("Module Title")
