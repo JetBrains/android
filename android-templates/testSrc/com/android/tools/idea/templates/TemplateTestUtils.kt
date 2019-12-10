@@ -55,6 +55,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -248,9 +249,13 @@ fun Parameter.getDefaultValue(templateState: TestTemplateWizardState): Any? {
 // TODO(qumeric) should it be removed in favor of AndroidGradleTestCase.setUpFixture?
 internal fun setUpFixtureForProject(projectName: String): JavaCodeInsightTestFixture {
   val projectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(projectName)
-  return JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.fixture).apply {
+  val fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.fixture).apply {
     setUp()
   }
+  val project = fixture.project
+  FileUtil.ensureExists(File(toSystemDependentName(project.basePath!!)))
+  LocalFileSystem.getInstance().refreshAndFindFileByPath(project.basePath!!)
+  return fixture
 }
 
 internal fun verifyLanguageFiles(projectDir: File, language: Language) {
