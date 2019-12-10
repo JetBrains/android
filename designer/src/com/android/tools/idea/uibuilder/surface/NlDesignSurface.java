@@ -88,6 +88,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.AccessoryPanelVisibility {
 
+  private static final double DEFAULT_MIN_SCALE = 0.1;
+  private static final double DEFAULT_MAX_SCALE = 10;
+
   public static class Builder {
     private final Project myProject;
     private final Disposable myParentDisposable;
@@ -99,6 +102,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private SurfaceLayoutManager myLayoutManager;
     private NavigationHandler myNavigationHandler;
     @NotNull private State myDefaultSurfaceState = State.FULL;
+    private double myMinScale = DEFAULT_MIN_SCALE;
+    private double myMaxScale = DEFAULT_MAX_SCALE;
 
     /**
      * Factory to create an action manager for the NlDesignSurface
@@ -213,9 +218,44 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return this;
     }
 
+    /**
+     * Restrict the minimum zoom level to the given value. The default value is {@link #DEFAULT_MIN_SCALE}.
+     * For example, if this value is 0.15 then the zoom level of {@link DesignSurface} can never be lower than 15%.
+     * This restriction also effects to zoom-to-fit, if the measured size of zoom-to-fit is 10%, then the zoom level will be cut to 15%.
+     *
+     * This value should always be larger than 0, otherwise the {@link IllegalStateException} will be thrown.
+     *
+     * @see #setMaxScale(double)
+     */
+    public Builder setMinScale(double scale) {
+      if (scale <= 0) {
+        throw new IllegalStateException("The min scale (" + scale + ") is not larger than 0");
+      }
+      myMinScale = scale;
+      return this;
+    }
+
+    /**
+     * Restrict the max zoom level to the given value. The default value is {@link #DEFAULT_MAX_SCALE}.
+     * For example, if this value is 1.0 then the zoom level of {@link DesignSurface} can never be larger than 100%.
+     * This restriction also effects to zoom-to-fit, if the measured size of zoom-to-fit is 120%, then the zoom level will be cut to 100%.
+     *
+     * This value should always be larger than 0 and larger than min scale which is set by {@link #setMinScale(double)}. otherwise the
+     * {@link IllegalStateException} will be thrown when {@link #build()} is called.
+     *
+     * @see #setMinScale(double)
+     */
+    public Builder setMaxScale(double scale) {
+      myMaxScale = scale;
+      return this;
+    }
+
     @NotNull
     public NlDesignSurface build() {
       SurfaceLayoutManager layoutManager = myLayoutManager != null ? myLayoutManager : createDefaultSurfaceLayoutManager();
+      if (myMinScale > myMaxScale) {
+        throw new IllegalStateException("The max scale (" + myMaxScale + ") is lower than min scale (" + myMinScale +")");
+      }
       return new NlDesignSurface(myProject,
                                  myParentDisposable,
                                  myIsPreview,
@@ -226,7 +266,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  myActionManagerProvider,
                                  myInteractionHandlerProvider,
                                  myDefaultSurfaceState,
-                                 myNavigationHandler);
+                                 myNavigationHandler,
+                                 myMinScale,
+                                 myMaxScale);
     }
   }
 
@@ -270,6 +312,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Nullable private final NavigationHandler myNavigationHandler;
 
+  private final double myMinScale;
+  private final double myMaxScale;
+
   private boolean myIsRenderingSynchronously = false;
   private boolean myIsAnimationScrubbing = false;
 
@@ -283,7 +328,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
                           @NotNull Function<DesignSurface, InteractionHandler> interactionHandlerProvider,
                           @NotNull State defaultSurfaceMode,
-                          @Nullable NavigationHandler navigationHandler) {
+                          @Nullable NavigationHandler navigationHandler,
+                          double minScale,
+                          double maxScale) {
     super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, defaultSurfaceMode, isEditable);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
@@ -296,6 +343,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     if (myNavigationHandler != null) {
       Disposer.register(this, myNavigationHandler);
     }
+
+    myMinScale = minScale;
+    myMaxScale = maxScale;
   }
 
   /**
@@ -714,12 +764,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Override
   protected double getMinScale() {
-    return Math.max(getFitScale(true), 0.01);
+    return Math.max(getFitScale(true), myMinScale);
   }
 
   @Override
   protected double getMaxScale() {
-    return 10;
+    return myMaxScale;
   }
 
   @Override
