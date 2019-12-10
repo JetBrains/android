@@ -24,7 +24,6 @@ import com.android.tools.idea.npw.model.ModuleModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.ProjectModelData
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
-import com.android.tools.idea.npw.model.doRender
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.TemplateValueInjector
@@ -42,7 +41,6 @@ import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
 import com.android.tools.idea.templates.recipe.RenderingContext.Builder
 import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.model.WizardModel
-import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.command.WriteCommandAction
@@ -159,7 +157,7 @@ abstract class ModuleModel(
         // assert(moduleRoot == (context.templateData as ModuleTemplateData).rootDir)
 
         val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
-        return recipe.doRender(context, executor)
+        return recipe.render(context, executor, null)
       }
 
       val projectRoot = File(project.basePath!!)
