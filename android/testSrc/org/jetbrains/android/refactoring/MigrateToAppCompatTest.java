@@ -351,7 +351,9 @@ public class MigrateToAppCompatTest extends AndroidTestCase {
 
     public void run(JavaCodeInsightTestFixture fixture) {
       MigrateToAppCompatProcessor processor = setUpProcessor(fixture);
+/* b/146019491
       runMigration(fixture, processor);
+b/146019491 */
     }
 
     public MigrateToAppCompatProcessor makeProcessor(Project project, boolean allEntries,
