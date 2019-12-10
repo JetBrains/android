@@ -45,6 +45,8 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_NAME
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
@@ -164,6 +166,10 @@ class NewAndroidModuleModel(
       FormFactor.TV -> { data: TemplateData -> generateTvModule(data as ModuleTemplateData, applicationName.get()) }
       FormFactor.THINGS -> { data: TemplateData -> generateThingsModule(data as ModuleTemplateData, applicationName.get()) }
     }
+
+    override val loggingEvent: AndroidStudioEvent.TemplateRenderer
+      get() = formFactor.get().toModuleRenderingLoggingEvent()
+
     @WorkerThread
     override fun init() {
       super.init()
@@ -197,4 +203,12 @@ class NewAndroidModuleModel(
       moduleTemplateValues.putAll(projectTemplateValues)
     }
   }
+}
+
+private fun FormFactor.toModuleRenderingLoggingEvent() = when(this) {
+  FormFactor.MOBILE -> RenderLoggingEvent.ANDROID_MODULE
+  FormFactor.TV -> RenderLoggingEvent.ANDROID_TV_MODULE
+  FormFactor.AUTOMOTIVE -> RenderLoggingEvent.AUTOMOTIVE_MODULE
+  FormFactor.THINGS -> RenderLoggingEvent.THINGS_MODULE
+  FormFactor.WEAR -> RenderLoggingEvent.ANDROID_WEAR_MODULE
 }

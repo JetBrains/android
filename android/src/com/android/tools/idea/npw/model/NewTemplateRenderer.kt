@@ -153,7 +153,6 @@ internal fun titleToTemplateRenderer(title: String, formFactor: FormFactor): Tem
   "Java Library" -> TemplateRenderer.JAVA_LIBRARY
   "Android TV Module" -> TemplateRenderer.ANDROID_TV_MODULE
   "Dynamic Feature (Instant App)" -> TemplateRenderer.ANDROID_INSTANT_APP_DYNAMIC_MODULE
-  "Benchmark Module" -> TemplateRenderer.BENCHMARK_LIBRARY_MODULE
   "Wear OS Module" -> TemplateRenderer.ANDROID_WEAR_MODULE
 
   "Basic Activity" -> TemplateRenderer.BASIC_ACTIVITIY

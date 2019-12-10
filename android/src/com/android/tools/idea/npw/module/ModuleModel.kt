@@ -41,6 +41,7 @@ import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.Recipe
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -79,6 +80,10 @@ abstract class ModuleModel(
      * A new system recipe which will should be run from [render] if the new system is used.
      */
     protected abstract val recipe: Recipe
+    /**
+     * A value which will be logged for Studio usage tracking.
+     */
+    protected abstract val loggingEvent: RenderLoggingEvent
 
     @WorkerThread
     override fun init() {
@@ -145,7 +150,7 @@ abstract class ModuleModel(
         // assert(moduleRoot == (context.templateData as ModuleTemplateData).rootDir)
 
         val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
-        return recipe.render(context, executor, null)
+        return recipe.render(context, executor, loggingEvent)
       }
 
       val projectRoot = File(project.basePath!!)

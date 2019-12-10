@@ -39,6 +39,8 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_SIMPLE_NA
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.util.lang.JavaVersion
@@ -48,7 +50,11 @@ import java.io.File
 class DynamicFeatureModel(
   project: Project, templateFile: File, projectSyncInvoker: ProjectSyncInvoker, val isInstant: Boolean
 ) : ModuleModel(
-  templateFile, "dynamicfeature", "New Dynamic Feature Module", false, ExistingProjectModelData(project, projectSyncInvoker)
+  templateFile,
+  "dynamicfeature",
+  "New Dynamic Feature Module",
+  false,
+  ExistingProjectModelData(project, projectSyncInvoker)
 ) {
   @JvmField
   val featureTitle = StringValueProperty("Module Title")
@@ -77,6 +83,9 @@ class DynamicFeatureModel(
         deviceFeatures
       )
     }
+
+    override val loggingEvent: AndroidStudioEvent.TemplateRenderer
+      get() = if (isInstant) RenderLoggingEvent.INSTANT_DYNAMIC_FEATURE_MODULE else RenderLoggingEvent.DYNAMIC_FEATURE_MODULE
 
     override fun init() {
       super.init()
