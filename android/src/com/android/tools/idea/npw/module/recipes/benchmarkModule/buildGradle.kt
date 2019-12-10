@@ -85,7 +85,7 @@ android {
         versionCode 1
         versionName "1.0"
 
-        testInstrumentationRunner "androidx.benchmark.junit4.AndroidBenchmarkRunner"
+        testInstrumentationRunner 'androidx.benchmark.junit4.AndroidBenchmarkRunner'
     }
 
     $testBuildTypeBlock
