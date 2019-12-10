@@ -490,7 +490,6 @@ PROJECT             : testWithBuildSrc
         ORDER_ENTRY         : <Module source>
     MODULE              : testWithBuildSrc_buildSrc
         - ModuleGroupPath   : testWithBuildSrc
-        - ModuleGroupPath   : buildSrc
         - ModuleGroupPath   : testWithBuildSrc_buildSrc
         ExternalModuleGroup :
         ExternalModuleVersion         : unspecified
