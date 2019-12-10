@@ -148,6 +148,8 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
                                                      DEFAULT_SCREEN_OFFSET_Y,
                                                      HORIZONTAL_SCREEN_DELTA,
                                                      VERTICAL_SCREEN_DELTA))
+      .setMinScale(0.10)
+      .setMaxScale(4)
       .build();
     mySurface.addPanZoomListener(this);
 
