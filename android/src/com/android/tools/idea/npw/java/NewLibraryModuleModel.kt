@@ -27,6 +27,8 @@ import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 import com.intellij.openapi.project.Project
 import com.intellij.util.lang.JavaVersion
 
@@ -45,6 +47,8 @@ class NewLibraryModuleModel(
 
   override val renderer = object : ModuleTemplateRenderer() {
     override val recipe: Recipe get() = { td: TemplateData -> generatePureLibrary(td as ModuleTemplateData, className.get()) }
+    override val loggingEvent: AndroidStudioEvent.TemplateRenderer
+      get() = RenderLoggingEvent.JAVA_LIBRARY
 
     override fun init() {
       super.init()

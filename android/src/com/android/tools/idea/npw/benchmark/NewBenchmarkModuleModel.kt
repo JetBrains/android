@@ -22,6 +22,8 @@ import com.android.tools.idea.npw.module.recipes.benchmarkModule.generateBenchma
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 import com.intellij.openapi.project.Project
 import com.intellij.util.lang.JavaVersion
 
@@ -30,6 +32,8 @@ class NewBenchmarkModuleModel(
 ) : ModuleModel(null, "benchmark", "New Benchmark Module", true, ExistingProjectModelData(project, projectSyncInvoker)) {
   override val renderer = object : ModuleTemplateRenderer() {
     override val recipe: Recipe get() = { td: TemplateData -> generateBenchmarkModule(td as ModuleTemplateData) }
+    override val loggingEvent: AndroidStudioEvent.TemplateRenderer
+      get() = RenderLoggingEvent.BENCHMARK_LIBRARY_MODULE
 
     override fun init() {
       super.init()
