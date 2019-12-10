@@ -35,6 +35,7 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
@@ -134,6 +135,9 @@ public class AndroidResourceRenameResourceProcessor extends RenamePsiElementProc
 
   @Override
   public boolean canProcessElement(@NotNull final PsiElement element) {
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+      return false;
+    }
     return ApplicationManager.getApplication().runReadAction((Computable<Boolean>)() -> {
       final PsiElement computedElement = LazyValueResourceElementWrapper.computeLazyElement(element);
       if (computedElement == null) {
