@@ -41,7 +41,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ex.ToolWindowManagerAdapter;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
@@ -125,7 +124,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
     }, EdtExecutorService.getInstance());
   }
 
-  private static final class MyToolWindowManagerListener extends ToolWindowManagerAdapter {
+  private static final class MyToolWindowManagerListener implements ToolWindowManagerListener {
     private final Project myProject;
     private final AndroidLogcatView myLogcatView;
 
