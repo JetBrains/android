@@ -38,7 +38,7 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 
-const val RESOURCE_EXPLORER_TOOL_WINDOW_ID = "Resources Explorer"
+internal const val RESOURCE_EXPLORER_TOOL_WINDOW_ID = "Resources Explorer"
 
 private const val STRIPE_TITLE = "Resource Manager"
 
@@ -46,9 +46,6 @@ private const val STRIPE_TITLE = "Resource Manager"
  * Provides the tool explorer panel
  */
 class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware, Condition<Project> {
-
-  override fun isDoNotActivateOnStart(): Boolean = true
-
   override fun init(window: ToolWindow?) {
     window?.stripeTitle = STRIPE_TITLE
   }
