@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker.Request
 import com.android.tools.idea.io.FilePaths
-import com.android.tools.idea.npw.model.doRender
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
 import com.android.tools.idea.npw.module.recipes.automotiveModule.generateAutomotiveModule
@@ -317,7 +316,7 @@ data class ProjectChecker(
         newTemplate.render(context, executor)
       }
     } else {
-      recipe!!.doRender(context, executor)
+      recipe!!.render(context, executor, null)
     }
   }
 
