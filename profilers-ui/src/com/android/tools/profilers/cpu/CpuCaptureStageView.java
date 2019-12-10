@@ -15,12 +15,19 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.model.MultiSelectionModel;
+import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionModel;
+import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
+import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
+import com.android.tools.adtui.trackgroup.Track;
 import com.android.tools.adtui.trackgroup.TrackGroupListPanel;
 import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.ProfilerTrackRendererFactory;
 import com.android.tools.profilers.StageView;
@@ -39,6 +46,7 @@ import com.android.tools.profilers.event.UserEventTooltipView;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollPane;
+import java.awt.Dimension;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.ScrollPaneConstants;
@@ -140,11 +148,25 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
                        ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
                        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER),
       new TabularLayout.Constraint(1, 0));
+    container.add(createBottomAxisPanel(minimapModel.getRangeSelectionModel().getSelectionRange()), new TabularLayout.Constraint(2, 0));
 
     JBSplitter splitter = new JBSplitter(false, 0.5f);
     splitter.setFirstComponent(container);
     splitter.setSecondComponent(myAnalysisPanel.getComponent());
     return splitter;
+  }
+
+  private static JComponent createBottomAxisPanel(@NotNull Range range) {
+    // Match track's column sizing.
+    JPanel axisPanel = new JPanel(new TabularLayout(Track.COL_SIZES));
+    axisPanel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    AxisComponent timeAxis = new AxisComponent(new ResizingAxisComponentModel.Builder(range, TimeAxisFormatter.DEFAULT).build(),
+                                               AxisComponent.AxisOrientation.BOTTOM);
+    timeAxis.setMinimumSize(new Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT));
+    timeAxis.setPreferredSize(new Dimension(Integer.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT));
+    // Align with track content.
+    axisPanel.add(timeAxis, new TabularLayout.Constraint(0, 1));
+    return axisPanel;
   }
 
   private void updateTrackGroupList() {
