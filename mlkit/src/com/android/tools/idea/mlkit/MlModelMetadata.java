@@ -15,11 +15,23 @@
  */
 package com.android.tools.idea.mlkit;
 
-import org.junit.Test;
+import org.jetbrains.annotations.NotNull;
 
-public class MlkitDummyTest {
-  @Test
-  public void dummy() {
-    MlkitModuleService.class.getName();
+/** Stores metadata of model file used by the light model class generator. */
+public class MlModelMetadata {
+  public final String modelFileUrl;
+
+  public MlModelMetadata(@NotNull String modelFileUrl) {
+    this.modelFileUrl = modelFileUrl;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof MlModelMetadata && modelFileUrl.equals(((MlModelMetadata) obj).modelFileUrl);
+  }
+
+  @Override
+  public int hashCode() {
+    return modelFileUrl.hashCode();
   }
 }
