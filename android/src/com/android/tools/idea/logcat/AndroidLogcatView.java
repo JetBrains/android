@@ -79,6 +79,7 @@ public class AndroidLogcatView {
   static final AndroidLogcatFilter EDIT_FILTER_CONFIGURATION_ITEM = new MatchAllFilter(EDIT_FILTER_CONFIGURATION);
 
   private final Project myProject;
+  final Disposable parentDisposable;
   private final FormattedLogcatReceiver myLogcatReceiver;
   private final AndroidLogConsole myLogConsole;
   private final DeviceContext myDeviceContext;
@@ -146,6 +147,7 @@ public class AndroidLogcatView {
   AndroidLogcatView(@NotNull Project project, @NotNull DeviceContext deviceContext, @NotNull Disposable parentDisposable) {
     myDeviceContext = deviceContext;
     myProject = project;
+    this.parentDisposable = parentDisposable;
 
     AndroidLogcatFormatter formatter = new AndroidLogcatFormatter(ZoneId.systemDefault(), AndroidLogcatPreferences.getInstance(project));
 
