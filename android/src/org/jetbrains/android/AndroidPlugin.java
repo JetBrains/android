@@ -19,7 +19,10 @@ import com.intellij.openapi.actionSystem.Anchor;
 import com.intellij.openapi.actionSystem.Constraints;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.components.BaseComponent;
+import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.project.Project;
 import org.intellij.images.fileTypes.ImageFileTypeManager;
@@ -40,7 +43,11 @@ public class AndroidPlugin implements BaseComponent {
   }
 
   private static void registerWebpSupport() {
-    FileTypeManager.getInstance().associateExtension(ImageFileTypeManager.getInstance().getImageFileType(), WebpMetadata.EXT_WEBP);
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      FileTypeManager fileTypeManager = FileTypeManager.getInstance();
+      FileType imageFileType = ImageFileTypeManager.getInstance().getImageFileType();
+      WriteAction.run(() -> fileTypeManager.associateExtension(imageFileType, WebpMetadata.EXT_WEBP));
+    });
     WebpMetadata.ensureWebpRegistered();
   }
 
