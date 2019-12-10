@@ -29,7 +29,9 @@ class SourceCodeEditorProviderTest : LightJavaCodeInsightFixtureTestCase(){
     provider = SourceCodeEditorProvider()
   }
 
-  fun testOffByDefault() {
+  fun testOffIfDisabled() {
+    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(false)
+
     val file = myFixture.addFileToProject("src/Preview.kt", "")
 
     assertFalse(provider.accept(file.project, file.virtualFile))
@@ -37,40 +39,30 @@ class SourceCodeEditorProviderTest : LightJavaCodeInsightFixtureTestCase(){
 
 
   fun testAcceptsKotlinFile() {
-    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(true)
-
     val file = myFixture.addFileToProject("src/Preview.kt", "")
 
     assertTrue(provider.accept(file.project, file.virtualFile))
   }
 
   fun testAcceptsJavaFile() {
-    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(true)
-
     val file = myFixture.addFileToProject("src/Preview.java", "")
 
     assertTrue(provider.accept(file.project, file.virtualFile))
   }
 
   fun testDeclinesTxtFile() {
-    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(true)
-
     val file = myFixture.addFileToProject("src/Preview.txt", "")
 
     assertFalse(provider.accept(file.project, file.virtualFile))
   }
 
   fun testDeclinesXmlFile() {
-    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(true)
-
     val file = myFixture.addFileToProject("src/Preview.xml", "")
 
     assertFalse(provider.accept(file.project, file.virtualFile))
   }
 
   fun testCreatableForKotlinFile() {
-    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(true)
-
     val file = myFixture.addFileToProject("src/Preview.kt", "")
 
     val editor = provider.createEditor(file.project, file.virtualFile)
