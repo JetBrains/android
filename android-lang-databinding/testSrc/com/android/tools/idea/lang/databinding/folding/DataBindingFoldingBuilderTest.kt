@@ -54,7 +54,6 @@ class DataBindingFoldingBuilderTest {
     ModuleDataBinding.getInstance(androidFacet!!).dataBindingMode = DataBindingMode.ANDROIDX
   }
 
-  @org.junit.Ignore("b/145963403")
   @Test
   @RunsInEdt
   fun escapeCharactersFoldAsExpected() {
