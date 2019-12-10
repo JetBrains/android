@@ -61,7 +61,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A UI panel which wraps a console that prints output from Android's logging system.
  */
-public class AndroidLogcatView implements Disposable {
+public class AndroidLogcatView {
   public static final Key<AndroidLogcatView> ANDROID_LOGCAT_VIEW_KEY = Key.create("ANDROID_LOGCAT_VIEW_KEY");
 
   static final String SELECTED_APP_FILTER = AndroidBundle.message("android.logcat.filters.selected");
@@ -143,11 +143,9 @@ public class AndroidLogcatView implements Disposable {
   /**
    * Logcat view with device obtained from {@link DeviceContext}
    */
-  AndroidLogcatView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
+  AndroidLogcatView(@NotNull Project project, @NotNull DeviceContext deviceContext, @NotNull Disposable parentDisposable) {
     myDeviceContext = deviceContext;
     myProject = project;
-
-    Disposer.register(myProject, this);
 
     AndroidLogcatFormatter formatter = new AndroidLogcatFormatter(ZoneId.systemDefault(), AndroidLogcatPreferences.getInstance(project));
 
@@ -175,6 +173,12 @@ public class AndroidLogcatView implements Disposable {
 
     myLogConsole = new AndroidLogConsole(project, myLogFilterModel, formatter, this);
     myLogcatReceiver = new ViewListener(formatter, this);
+
+    Disposer.register(parentDisposable, () -> {
+      if (myDevice != null) {
+        AndroidLogcatService.getInstance().removeListener(myDevice, myLogcatReceiver);
+      }
+    });
 
     DeviceContext.DeviceSelectionListener deviceSelectionListener =
       new DeviceContext.DeviceSelectionListener() {
@@ -207,7 +211,7 @@ public class AndroidLogcatView implements Disposable {
           }
         }
       };
-    deviceContext.addListener(deviceSelectionListener, this);
+    deviceContext.addListener(deviceSelectionListener, parentDisposable);
 
     JComponent consoleComponent = myLogConsole.getComponent();
 
@@ -220,7 +224,7 @@ public class AndroidLogcatView implements Disposable {
     }
 
     myPanel.add(consoleComponent, BorderLayout.CENTER);
-    Disposer.register(this, myLogConsole);
+    Disposer.register(parentDisposable, myLogConsole);
 
     updateLogConsole();
   }
@@ -406,13 +410,6 @@ public class AndroidLogcatView implements Disposable {
   @NotNull
   public final JPanel getContentPanel() {
     return myPanel;
-  }
-
-  @Override
-  public final void dispose() {
-    if (myDevice != null) {
-      AndroidLogcatService.getInstance().removeListener(myDevice, myLogcatReceiver);
-    }
   }
 
   static final class MyRestartAction extends AnAction {
