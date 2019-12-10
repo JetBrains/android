@@ -38,30 +38,33 @@ internal class CustomViewPreviewToolbar(private val surface: DesignSurface) :
       .distinct()
   } ?: listOf()
 
+  private class CustomViewOption(val viewName: String, val parent: CustomViewPreviewToolbar) : AnAction(viewName) {
+    override fun actionPerformed(e: AnActionEvent) {
+      // Here we iterate over all editors as change in selection (write) should trigger updates in all of them
+      parent.findPreviewEditors().forEach { it.currentView = viewName }
+    }
+  }
+
+  private class CustomViewSelector(val parent: CustomViewPreviewToolbar) :
+    DropDownAction(null, "Custom View for Preview", StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW) {
+    override fun update(e: AnActionEvent) {
+      super.update(e)
+      removeAll()
+
+      // We need just a single previewEditor here (any) to retrieve (read) the states and currently selected state
+      parent.findPreviewEditors().firstOrNull()?.let { previewEditor ->
+        previewEditor.views.forEach {
+          add(CustomViewOption(it, parent))
+        }
+        e.presentation.setText(previewEditor.currentView, false)
+      }
+    }
+    override fun displayTextInToolbar() = true
+  }
+
   override fun getNorthGroup(): ActionGroup {
     val customViewPreviewActions = DefaultActionGroup()
-    val customViews = object : DropDownAction(null, "Custom View for Preview", StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW) {
-      override fun update(e: AnActionEvent) {
-        super.update(e)
-        removeAll()
-
-        // We need just a single previewEditor here (any) to retrieve (read) the states and currently selected state
-        findPreviewEditors().firstOrNull()?.let { previewEditor ->
-          previewEditor.views.forEach {
-            val view = it
-            add(object : AnAction(it) {
-              override fun actionPerformed(e: AnActionEvent) {
-                // Here we iterate over all editors as change in selection (write) should trigger updates in all of them
-                findPreviewEditors().forEach { it.currentView = view }
-              }
-            })
-          }
-          e.presentation.setText(previewEditor.currentView, false)
-        }
-      }
-
-      override fun displayTextInToolbar() = true
-    }
+    val customViews = CustomViewSelector(this)
 
     val wrapWidth = object : ToggleAction(null, "Set preview width to wrap content", StudioIcons.LayoutEditor.Toolbar.WRAP_WIDTH) {
       override fun isSelected(e: AnActionEvent) = findPreviewEditors().any { it.shrinkWidth }
