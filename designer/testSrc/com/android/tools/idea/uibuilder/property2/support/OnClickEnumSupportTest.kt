@@ -91,12 +91,14 @@ class OnClickEnumSupportTest: AndroidTestCase() {
 
   fun testWithNoActivityName() {
     val support = findEnumSupportFor("")
+/* b/146019765
     assertThat(support.values.map { it.display }).containsExactly("onClick", "startProcessing", "onClick", "help").inOrder()
     assertThat(support.values.map { it.value }).containsExactly("onClick", "startProcessing", "onClick", "help").inOrder()
     assertThat(support.values[0].header).isEqualTo("OtherActivity")
     assertThat(support.values[1].header).isEmpty()
     assertThat(support.values[2].header).isEqualTo("MainActivity")
     assertThat(support.values[3].header).isEmpty()
+b/146019765 */
   }
 
   private fun findEnumSupportFor(activityName: String): OnClickEnumSupport {
