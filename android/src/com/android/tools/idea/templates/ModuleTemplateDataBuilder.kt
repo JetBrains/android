@@ -123,7 +123,7 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
     apis = ApiTemplateData(
       minSdkVersion.apiString,
       minSdkVersion.featureLevel,
-      target?.version?.featureLevel,
+      target?.version?.featureLevel?.coerceIfNeeded(facet.module.project),
       moduleInfo.targetSdkVersion.apiLevel,
       moduleInfo.targetSdkVersion.codename,
       target?.version?.toApiString(),
