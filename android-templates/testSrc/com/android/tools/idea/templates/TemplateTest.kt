@@ -380,6 +380,18 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareGoogleMapsActivity() {
+    checkCreateTemplate("activities", "GoogleMapsActivity",
+                        ActivityCreationMode.WITHOUT_PROJECT, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareGoogleMapsActivityWithKotlin() {
+    checkCreateTemplate("activities", "GoogleMapsActivity",
+                        ActivityCreationMode.WITH_PROJECT, true, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testGoogleMapsWearActivity() {
     checkCreateTemplate("activities", "GoogleMapsWearActivity", ActivityCreationMode.WITHOUT_PROJECT, true)
   }
