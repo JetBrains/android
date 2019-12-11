@@ -2,8 +2,8 @@ android {
   sourceSets {
     main {
       java {
-        srcDirs "javaSource1"
-        srcDir "javaSource2"
+        srcDir "javaSource1"
+        srcDirs "javaSource2"
         include "javaInclude1"
         include "javaInclude2"
         exclude "javaExclude1", "javaExclude2"
