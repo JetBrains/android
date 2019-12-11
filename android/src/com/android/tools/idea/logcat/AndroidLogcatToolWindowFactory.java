@@ -36,7 +36,6 @@ import com.intellij.openapi.roots.ModuleRootEvent;
 import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -57,7 +56,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.util.List;
 
-public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAware, Condition<Project> {
+public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAware {
   public static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
 
   @Override
@@ -196,11 +195,6 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
                       ConsoleViewContentType.ERROR_OUTPUT);
       }
     }
-  }
-
-  @Override
-  public boolean value(Project project) {
-    return true;
   }
 
   private static class MyAndroidPlatformListener implements ModuleRootListener {

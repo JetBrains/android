@@ -600,7 +600,6 @@
                       facetIdList="android,apk"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.LOGCAT"
-                      conditionClass="com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory"
                       factoryClass="com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory"/>
     <facet.toolWindow id="Build Variants"
                       facetIdList="android,android-gradle"
@@ -612,7 +611,6 @@
                       facetIdList="android,apk"
                       anchor="right"
                       secondary="true"
-                      conditionClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowCondition"
                       icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
                       factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater"/>
