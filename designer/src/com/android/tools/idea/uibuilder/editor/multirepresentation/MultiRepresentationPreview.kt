@@ -32,6 +32,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.BorderFactory
@@ -86,7 +87,7 @@ open class MultiRepresentationPreview(private val psiFile: PsiFile,
       }
     }
 
-  protected open fun onRepresentationChanged() {
+  private fun onRepresentationChanged() = UIUtil.invokeLaterIfNeeded {
     component.removeAll()
 
     component.add(representationSelectionToolbar, BorderLayout.NORTH)
