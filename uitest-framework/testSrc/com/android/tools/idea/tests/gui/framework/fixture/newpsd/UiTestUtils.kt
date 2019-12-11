@@ -94,7 +94,9 @@ fun waitForIdle() {
 }
 
 internal fun ContainerFixture<*>.clickToolButton(titlePrefix: String) {
-  fun ActionButton.matches() = action?.templateText?.startsWith(titlePrefix) ?: false
+  fun ActionButton.matches() = toolTipText?.startsWith(titlePrefix) ?: false ||
+                               accessibleContext.accessibleName?.startsWith(titlePrefix) ?: false
+
   // Find the topmost tool button. (List/Map editors may contains similar buttons)
   val button =
     ActionButtonFixture(

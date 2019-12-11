@@ -158,7 +158,7 @@ class DependenciesFixture(
   fun clickAddModuleDependency(): AddModuleDependencyDialogFixture {
     clickToolButton("Add Dependency")
     val listFixture = JListFixture(robot(), getList())
-    listFixture.clickItem(2 /* 3 Module Dependency */)  // Search by title does not work here.
+    listFixture.drag(2).clickItem(2 /* 3 Module Dependency */)  // Search by title does not work here.
     return AddModuleDependencyDialogFixture.find(robot(), "Add Module Dependency")
   }
 

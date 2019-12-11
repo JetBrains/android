@@ -91,8 +91,10 @@ class ProjectStructureDialogFixture(
 
 private fun Robot.fixupWaiting() = ReliableRobot(this)
 
-fun IdeFrameFixture.openPsd(): ProjectStructureDialogFixture =
-  openFromMenu({ ProjectStructureDialogFixture.find(it) }, arrayOf("File", "Project Structure..."))
+fun IdeFrameFixture.openPsd(): ProjectStructureDialogFixture {
+  waitAndInvokeMenuPath("File", "Project Structure...")
+  return ProjectStructureDialogFixture.find(this)
+}
 
 internal fun DialogContainerFixture.clickOkAndWaitDialogDisappear() {
   GuiTests.findAndClickOkButton(this)
