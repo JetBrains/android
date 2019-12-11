@@ -94,7 +94,7 @@ fun waitForIdle() {
 }
 
 internal fun ContainerFixture<*>.clickToolButton(titlePrefix: String) {
-  fun ActionButton.matches() = toolTipText?.startsWith(titlePrefix) ?: false
+  fun ActionButton.matches() = action?.templateText?.startsWith(titlePrefix) ?: false
   // Find the topmost tool button. (List/Map editors may contains similar buttons)
   val button =
     ActionButtonFixture(
@@ -157,7 +157,7 @@ private fun oneFullSync() {
     var done = false
     fun postTryIdleMessage(expectNumber: Int) {
       if (IdeEventQueue.getInstance().eventCount == expectNumber) {
-        lock.withLock { done = true ; condition.signalAll() }
+        lock.withLock { done = true; condition.signalAll() }
       }
       else {
         val expectEventCount = IdeEventQueue.getInstance().eventCount + 1
