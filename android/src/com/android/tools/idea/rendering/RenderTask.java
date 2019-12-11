@@ -830,6 +830,43 @@ public class RenderTask {
   }
 
   /**
+   * Triggers execution of the Handler and frame callbacks in layoutlib
+   * @return a future that is completed when callbacks are executed
+   */
+  @NotNull
+  public CompletableFuture<Void> executeCallbacks() {
+    if (myRenderSession == null) {
+      return CompletableFuture.completedFuture(null);
+    }
+
+    return runAsyncRenderAction(() -> {
+      myRenderSession.executeCallbacks(System.nanoTime());
+      return null;
+    });
+  }
+
+  /**
+   * Sets layoutlib system time (needed for the correct touch event handling) and informs layoutlib that there was a (mouse) touch event
+   * detected of a particular type at a particular point.
+   * @param touchEventType type of a touch event
+   * @param x horizontal android coordinate of the detected touch event
+   * @param y vertical android coordinate of the detected touch event
+   * @return a future that is completed when layoutlib handled the touch event
+   */
+  @NotNull
+  public CompletableFuture<Void> triggerTouchEvent(@NotNull RenderSession.TouchEventType touchEventType, int x, int y) {
+    if (myRenderSession == null) {
+      return CompletableFuture.completedFuture(null);
+    }
+
+    return runAsyncRenderAction(() -> {
+      myRenderSession.setSystemTimeNanos(System.nanoTime());
+      myRenderSession.triggerTouchEvent(touchEventType, x, y);
+      return null;
+    });
+  }
+
+  /**
    * Method used to report unhandled layoutlib exceptions to the crash reporter
    */
   private void reportException(@NotNull Throwable e) {
