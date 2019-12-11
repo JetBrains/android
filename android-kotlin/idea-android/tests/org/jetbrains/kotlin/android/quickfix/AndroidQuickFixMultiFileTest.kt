@@ -21,7 +21,6 @@ abstract class AndroidQuickFixMultiFileTest : AbstractAndroidQuickFixMultiFileTe
     private const val TEST_DIR = "idea-android/testData/android/quickfix"
   }
 
-/* b/145963172
   class AutoImports : AndroidQuickFixMultiFileTest() {
     fun testAndroidRImport() = doTest("$TEST_DIR/autoImports/androidRImport")
   }
@@ -30,5 +29,4 @@ abstract class AndroidQuickFixMultiFileTest : AbstractAndroidQuickFixMultiFileTe
     fun testIndirect() = doTest("$TEST_DIR/viewConstructor/indirect")
     fun testSimple() = doTest("$TEST_DIR/viewConstructor/simple")
   }
-b/145963172 */
 }
