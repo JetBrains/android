@@ -40,6 +40,11 @@ public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFac
   public static final String TOOL_WINDOW_ID = "Device File Explorer";
 
   @Override
+  public boolean isApplicable(@NotNull Project project) {
+    return DeviceExplorer.isFeatureEnabled();
+  }
+
+  @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     toolWindow.setIcon(StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER);
     toolWindow.setAvailable(true);

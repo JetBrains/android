@@ -17,7 +17,6 @@ package com.android.tools.idea.profilers;
 
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -33,7 +32,7 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFactory, Condition<Project> {
+public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFactory {
   public static final String ID = "Android Profiler";
   private static final String PROFILER_TOOL_WINDOW_TITLE = "Profiler";
   private static final Map<Content, AndroidProfilerToolWindow> PROJECT_PROFILER_MAP = new HashMap<>();
@@ -110,11 +109,6 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
       PROJECT_PROFILER_MAP.remove(content);
       toolWindow.getContentManager().removeAllContents(true);
     }
-  }
-
-  @Override
-  public boolean value(Project project) {
-    return true;
   }
 }
 
