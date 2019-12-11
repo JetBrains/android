@@ -650,14 +650,15 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
     }
 
     public void testStyleable() throws Throwable {
-      super.testStyleable("Usage (2 usages)\n" +
-                          " Found usages (2 usages)\n" +
-                          "  Resource reference in code (1 usage)\n" +
-                          "   app (1 usage)\n" +
-                          "    p1.p2 (1 usage)\n" +
-                          "     MyView (1 usage)\n" +
-                          "      MyView(Context, AttributeSet, int) (1 usage)\n" +
+      super.testStyleable("Usage (3 usages)\n" +
+                          " Found usages (3 usages)\n" +
+                          "  Resource reference in code (2 usages)\n" +
+                          "   app (2 usages)\n" +
+                          "    p1.p2 (2 usages)\n" +
+                          "     MyView (2 usages)\n" +
+                          "      MyView(Context, AttributeSet, int) (2 usages)\n" +
                           "       13TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.MyView);\n" +
+                          "       14int answer = a.getInt(R.styleable.MyView_answer, 0);\n" +
                           "  Usage in Android resources XML (1 usage)\n" +
                           "   app (1 usage)\n" +
                           "    res/values (1 usage)\n" +
@@ -1206,18 +1207,7 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
     createManifest();
     myFixture.copyFileToProject(BASE_PATH + "attrs.xml", "res/values/attrs.xml");
     Collection<UsageInfo> references = findUsages("MyView1.java", myFixture, "src/p1/p2/MyView.java");
-    assertEquals(expectedTreeRepresentation,
-                 // Note: the attrs.xml occurence of "MyView" is not a *reference* to the *field*,
-                 // the field is a reference to the XML:
-                 // I had earlier implemented this such the following showed up (by
-                 // making the resolveInner method in DeclareStyleableNameConverter also
-                 // look up AndroidResourceUtil.findResourceFields, but that isn't semantically correct
-                 // since "go to declaration" for the XML reference will jump to the derived generated
-                 // R class field (and some other highlighting tests will fail).
-                 //"values/attrs.xml:3:\n" +
-                 //"  <declare-styleable name=\"MyView\">\n" +
-                 //"                           |~~~~~~ \n",
-                 myFixture.getUsageViewTreeTextRepresentation(references));
+    assertEquals(expectedTreeRepresentation, myFixture.getUsageViewTreeTextRepresentation(references));
   }
 
   public void testStyleableAttr(String expectedTreeRepresentation) throws Throwable {
