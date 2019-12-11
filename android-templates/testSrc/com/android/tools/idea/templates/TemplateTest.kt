@@ -222,6 +222,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareMasterDetailFlow() {
+    checkCreateTemplate("activities", "MasterDetailFlow", ActivityCreationMode.WITHOUT_PROJECT, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareMasterDetailFlowWithKotlin() {
+    checkCreateTemplate("activities", "MasterDetailFlow", ActivityCreationMode.WITHOUT_PROJECT, true, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewFullscreenActivity() {
     checkCreateTemplate("activities", "FullscreenActivity", ActivityCreationMode.WITHOUT_PROJECT, true)
   }
