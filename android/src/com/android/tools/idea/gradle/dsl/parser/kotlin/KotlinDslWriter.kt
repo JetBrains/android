@@ -34,6 +34,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.lexer.KtTokens.*
 import org.jetbrains.kotlin.psi.KtArrayAccessExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtConstantExpression
@@ -305,7 +306,14 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     maybeUpdateName(literal, this)
 
     val newLiteral = literal.unsavedValue ?: return
-    val psiExpression = literal.expression
+    var psiExpression = literal.expression
+
+    // Earlier, at the parser stage, if the literal value is typed (ex: val as Type), we trim the type psiElement from the expression. Make
+    // sure to include it in the psiExpression in case of update.
+    if (psiExpression?.parent is KtBinaryExpressionWithTypeRHS) {
+      psiExpression = psiExpression.parent
+    }
+
     if (psiExpression != null) {
       val replace = psiExpression.replace(newLiteral)
       // Make sure we replaced with the right psi element for the GradleDslLiteral.
