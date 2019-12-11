@@ -90,7 +90,7 @@ class ResourceImportDialogViewModelTest {
     val designAsset = DesignAsset(testFile, emptyList(), ResourceType.DRAWABLE)
     val viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(designAsset))
     val designAssetSet = viewModel.assetSets.first()
-    assertThat(designAssetSet.name).isEqualTo("ic_icon_category_entertainment")
+    assertThat(designAssetSet.name).isEqualTo("icon_category_entertainment")
     viewModel.rename(designAssetSet, "newName") { newAsset ->
       assertThat(newAsset).isNotEqualTo(designAssetSet)
       assertThat(newAsset).isNotSameAs(designAssetSet)
@@ -112,7 +112,7 @@ class ResourceImportDialogViewModelTest {
     val designAsset = DesignAsset(testFile, emptyList(), ResourceType.DRAWABLE)
     val designAsset2 = DesignAsset(testFile, emptyList(), ResourceType.DRAWABLE, newName)
     val viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(designAsset, designAsset2))
-    var designAssetSet = viewModel.assetSets.first { it.name == "ic_icon_category_entertainment" }
+    var designAssetSet = viewModel.assetSets.first { it.name == "icon_category_entertainment" }
 
     // Check invalidName
     viewModel.rename(designAssetSet, invalidName) { designAssetSet = it }
@@ -121,8 +121,8 @@ class ResourceImportDialogViewModelTest {
 
     // Check valid name duplicated
     assertNull(viewModel.validateName(newName))
-    viewModel.rename(designAssetSet, "ic_$newName") {}
-    val validationInfo = viewModel.validateName("ic_$newName")!!
+    viewModel.rename(designAssetSet, newName) {}
+    val validationInfo = viewModel.validateName(newName)!!
     assertEquals("A resource with the same name is also being imported.", validationInfo.message)
     assertTrue(validationInfo.warning)
     assertNull(viewModel.getValidationInfo())
@@ -141,7 +141,7 @@ class ResourceImportDialogViewModelTest {
     }
     var asset = DesignAsset(validFile!!, emptyList(), ResourceType.DRAWABLE)
     var viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(asset))
-    assertThat(viewModel.assetSets.first().name).isEqualTo("ic_background_image_1")
+    assertThat(viewModel.assetSets.first().name).isEqualTo("background_image_1")
     assertNull(viewModel.getValidationInfo())
 
     asset  = DesignAsset(validFileWithPrefix!!, emptyList(), ResourceType.DRAWABLE)
@@ -152,7 +152,7 @@ class ResourceImportDialogViewModelTest {
     // Doesn't substitute special characters other than '-' or ' '.
     asset  = DesignAsset(invalidFile!!, emptyList(), ResourceType.DRAWABLE)
     viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(asset))
-    assertThat(viewModel.assetSets.first().name).isEqualTo("ic_background_imag@e_1")
+    assertThat(viewModel.assetSets.first().name).isEqualTo("background_imag@e_1")
     assertNotNull(viewModel.getValidationInfo())
   }
 
