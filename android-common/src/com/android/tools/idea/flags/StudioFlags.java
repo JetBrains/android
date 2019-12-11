@@ -816,6 +816,13 @@ public final class StudioFlags {
     "If enabled, allows adding new Compose Projects/Modules/Activities through the wizards",
     true
   );
+
+  public static final Flag<Boolean> COMPOSE_ANIMATED_PREVIEW = Flag.create(
+    COMPOSE, "preview.animated.enable",
+    "Enable animated compose preview",
+    "If enabled, a user can switch compose preview to be animated",
+    false
+  );
   //endregion
 
   //region Manifests
