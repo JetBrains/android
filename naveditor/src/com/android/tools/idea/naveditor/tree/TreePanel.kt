@@ -29,6 +29,7 @@ import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.model.uiName
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import icons.StudioIcons
 import javax.swing.Icon
@@ -37,8 +38,10 @@ import javax.swing.JComponent
 class TreePanel : ToolContent<DesignSurface> {
   private var designSurface: DesignSurface? = null
   private val componentTree: JComponent
-  private val componentTreeModel: ComponentTreeModel
-  private val componentTreeSelectionModel: ComponentTreeSelectionModel
+  @VisibleForTesting
+  val componentTreeModel: ComponentTreeModel
+  @VisibleForTesting
+  val componentTreeSelectionModel: ComponentTreeSelectionModel
   private val contextSelectionListener = SelectionListener { _, _ -> contextSelectionChanged() }
   private var shouldScroll = true
   private val modelListener = NlModelListener()
@@ -112,7 +115,7 @@ class TreePanel : ToolContent<DesignSurface> {
     componentTreeModel.treeRoot = model.components.firstOrNull()
   }
 
-  private class NlComponentNodeType : ViewNodeType<NlComponent>() {
+  class NlComponentNodeType : ViewNodeType<NlComponent>() {
     override val clazz = NlComponent::class.java
 
     override fun tagNameOf(node: NlComponent) = node.tagName
