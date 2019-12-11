@@ -23,6 +23,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
+import com.android.tools.idea.compose.preview.actions.AnimatedPreviewEnabler
 import com.android.tools.idea.compose.preview.actions.ViewOptionsAction
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
@@ -64,11 +65,10 @@ internal fun findComposePreviewManagersForContext(context: DataContext): List<Co
 private class ComposePreviewToolbar(private val surface: DesignSurface) :
   ToolbarActionGroups(surface) {
 
-  override fun getNorthGroup(): ActionGroup = DefaultActionGroup(listOf(
-    GroupSwitchAction(),
-    ViewOptionsAction(surface.project),
-    ForceCompileAndRefreshAction(surface)
-  ))
+  override fun getNorthGroup(): ActionGroup = DefaultActionGroup(
+    listOf(GroupSwitchAction(), ViewOptionsAction(surface.project), ForceCompileAndRefreshAction(surface)) +
+    if (StudioFlags.COMPOSE_ANIMATED_PREVIEW.get()) listOf(AnimatedPreviewEnabler()) else emptyList()
+  )
 
   override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup().apply {
     addAll(getZoomActionsWithShortcuts(surface, this@ComposePreviewToolbar))

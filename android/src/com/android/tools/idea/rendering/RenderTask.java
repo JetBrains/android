@@ -45,6 +45,7 @@ import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
@@ -385,7 +386,10 @@ public class RenderTask {
       myImageFactoryDelegate = null;
       myAssetRepository = null;
 
-      clearCompose();
+      // TODO(b/146552571): Fix this by properly managing the session
+      if (!StudioFlags.COMPOSE_ANIMATED_PREVIEW.get()) {
+        clearCompose();
+      }
 
       return null;
     });
@@ -920,9 +924,12 @@ public class RenderTask {
         }).whenComplete((result, ex) -> {
           // After render clean-up. Dispose the GapWorker cache and the Choreographer queued tasks.
           clearGapWorkerCache();
-          RenderService.runAsyncRenderAction(() -> {
-            android.view.Choreographer.releaseInstance();
-          });
+          // TODO(b/146552571): Fix this by properly managing the session
+          if (!StudioFlags.COMPOSE_ANIMATED_PREVIEW.get()) {
+            RenderService.runAsyncRenderAction(() -> {
+              android.view.Choreographer.releaseInstance();
+            });
+          }
         });
       }
       catch (Exception e) {
