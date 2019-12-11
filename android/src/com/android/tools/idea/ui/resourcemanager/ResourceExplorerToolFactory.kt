@@ -28,7 +28,6 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Condition
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
@@ -45,7 +44,7 @@ private const val STRIPE_TITLE = "Resource Manager"
 /**
  * Provides the tool explorer panel
  */
-class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware, Condition<Project> {
+class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware {
   override fun init(window: ToolWindow?) {
     window?.stripeTitle = STRIPE_TITLE
   }
@@ -57,10 +56,7 @@ class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware, Condition<Proj
 
   override fun shouldBeAvailable(project: Project) = StudioFlags.RESOURCE_MANAGER_ENABLED.get() && AndroidUtils.hasAndroidFacets(project)
 
-  /**
-   * Implementation of [Condition].
-   */
-  override fun value(project: Project) = shouldBeAvailable(project)
+  override fun isApplicable(project: Project) = shouldBeAvailable(project)
 }
 
 private fun connectListeners(toolWindow: ToolWindow,

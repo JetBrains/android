@@ -543,7 +543,6 @@
                       facetIdList="android"
                       anchor="bottom"
                       icon="StudioIcons.Shell.ToolWindows.LOGCAT"
-                      conditionClass="com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory"
                       factoryClass="com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory"/>
     <facet.toolWindow id="Build Variants"
                       facetIdList="android,android-gradle"
@@ -555,7 +554,6 @@
                       facetIdList="android"
                       anchor="right"
                       secondary="true"
-                      conditionClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowCondition"
                       icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
                       factoryClass="com.android.tools.idea.explorer.DeviceExplorerToolWindowFactory"/>
     <facet.toolWindow id="Captures"

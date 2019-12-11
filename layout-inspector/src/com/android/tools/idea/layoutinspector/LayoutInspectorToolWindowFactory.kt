@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.ui.InspectorPanel
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 
-class LayoutInspectorToolWindowFactory : ToolWindowFactory {
-  val TOOL_WINDOW_ID = "Layout Inspector"
+internal class LayoutInspectorToolWindowFactory : ToolWindowFactory {
+  override fun isApplicable(project: Project): Boolean = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get()
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val contentManager = toolWindow.contentManager
