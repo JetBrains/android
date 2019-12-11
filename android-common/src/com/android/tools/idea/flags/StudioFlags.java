@@ -316,7 +316,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NAV_NEW_COMPONENT_TREE = Flag.create(
     NAV_EDITOR, "new.component", "Enable the new Component Tree",
     "Enable the new Component Tree",
-    false);
+    true);
   //endregion
 
   //region Resource Manager
