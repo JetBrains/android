@@ -16,53 +16,79 @@
 package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.Result
+import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.rendering.PerfgateRenderUtil.computeAndRecordMetric
 import com.android.tools.idea.rendering.PerfgateRenderUtil.getInflateMetric
 import com.android.tools.idea.rendering.PerfgateRenderUtil.getRenderMetric
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager
+import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.PERFGATE_COMPLEX_LAYOUT
 import com.android.tools.idea.util.androidFacet
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.After
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import org.mockito.Mockito.mock
 import java.util.concurrent.TimeUnit
 
-class RenderComplexPerfgateTest : AndroidGradleTestCase() {
+private fun checkComplexLayoutInflateResult(result: RenderResult) {
+  AndroidGradleTestCase.assertEquals(Result.Status.SUCCESS, result.renderResult.status)
+}
 
-  @Throws(Exception::class)
-  override fun setUp() {
-    super.setUp()
+/**
+ * Asserts that the given result matches the [.SIMPLE_LAYOUT] structure
+ */
+private fun checkComplexLayoutRenderResult(result: RenderResult) {
+  AndroidGradleTestCase.assertEquals(Result.Status.SUCCESS, result.renderResult.status)
+
+  AndroidGradleTestCase.assertNotNull(result.renderedImage)
+}
+
+class RenderComplexPerfgateTest {
+  @get:Rule
+  val gradleRule = AndroidGradleProjectRule()
+  private lateinit var facet: AndroidFacet
+  private lateinit var layoutFile: VirtualFile
+  private lateinit var layoutConfiguration: Configuration
+  private val logger = mock(RenderLogger::class.java)
+
+  @Before
+  fun setUp() {
     RenderTestUtil.beforeRenderTestCase()
+
+    gradleRule.load(PERFGATE_COMPLEX_LAYOUT)
+    gradleRule.requestSyncAndWait()
+    facet = gradleRule.androidFacet
+    val xmlPath = AndroidTestBase.getTestDataPath() +
+                  "/projects/perfgateComplexLayout/app/src/main/res/layout/activity_main.xml"
+    layoutFile = LocalFileSystem.getInstance().findFileByPath(xmlPath)!!
+    layoutConfiguration = RenderTestUtil.getConfiguration(facet.module, layoutFile)
   }
 
-  @Throws(Exception::class)
-  override fun tearDown() {
+  @After
+  fun tearDown() {
     try {
-      RenderTestUtil.afterRenderTestCase()
+      ApplicationManager.getApplication().invokeAndWait {
+        RenderTestUtil.afterRenderTestCase()
+      }
     }
     finally {
       FrameworkResourceRepositoryManager.getInstance().clearCache()
-      super.tearDown()
     }
   }
 
+  @Test
   fun testComplexInflate() {
-    loadProject(PERFGATE_COMPLEX_LAYOUT)
-
-    val module = getModule("app")
-    val facet: AndroidFacet = module.androidFacet!!
-    val xmlPath = AndroidTestBase.getTestDataPath() +
-                  "/projects/perfgateComplexLayout/app/src/main/res/layout/activity_main.xml"
-    val file =  LocalFileSystem.getInstance().findFileByPath(xmlPath)!!
-    val configuration = RenderTestUtil.getConfiguration(module, file)
-    val logger = mock<RenderLogger>(RenderLogger::class.java)
-
     val computable: ThrowableComputable<PerfgateRenderMetric, Exception> = ThrowableComputable {
-      val task = RenderTestUtil.createRenderTask(facet, file, configuration, logger)
-      val metric = getInflateMetric(task, this::checkComplexLayoutInflateResult)
+      val task = RenderTestUtil.createRenderTask(facet, layoutFile, layoutConfiguration, logger)
+      val metric = getInflateMetric(task, ::checkComplexLayoutInflateResult)
       task.dispose().get(5, TimeUnit.SECONDS)
       metric
     }
@@ -70,37 +96,15 @@ class RenderComplexPerfgateTest : AndroidGradleTestCase() {
     computeAndRecordMetric("inflate_time_complex", "inflate_memory_complex", computable)
   }
 
+  @Test
   fun testComplexRender() {
-    loadProject(PERFGATE_COMPLEX_LAYOUT)
-
-    val module = getModule("app")
-    val facet: AndroidFacet = module.androidFacet!!
-    val xmlPath = AndroidTestBase.getTestDataPath() +
-                  "/projects/perfgateComplexLayout/app/src/main/res/layout/activity_main.xml"
-    val file =  LocalFileSystem.getInstance().findFileByPath(xmlPath)!!
-    val configuration = RenderTestUtil.getConfiguration(module, file)
-    val logger = mock<RenderLogger>(RenderLogger::class.java)
-
-    val computable: ThrowableComputable<PerfgateRenderMetric, Exception> = ThrowableComputable{
-      val task = RenderTestUtil.createRenderTask(facet, file, configuration, logger)
-      val metric = getRenderMetric(task, this::checkComplexLayoutInflateResult, this::checkComplexLayoutRenderResult)
+    val computable: ThrowableComputable<PerfgateRenderMetric, Exception> = ThrowableComputable {
+      val task = RenderTestUtil.createRenderTask(facet, layoutFile, layoutConfiguration, logger)
+      val metric = getRenderMetric(task, ::checkComplexLayoutInflateResult, ::checkComplexLayoutRenderResult)
       task.dispose().get(5, TimeUnit.SECONDS)
       metric
     }
 
     computeAndRecordMetric("render_time_complex", "render_memory_complex", computable)
-  }
-
-  private fun checkComplexLayoutInflateResult(result: RenderResult) {
-    assertEquals(Result.Status.SUCCESS, result.renderResult.status)
-  }
-
-  /**
-   * Asserts that the given result matches the [.SIMPLE_LAYOUT] structure
-   */
-  private fun checkComplexLayoutRenderResult(result: RenderResult) {
-    assertEquals(Result.Status.SUCCESS, result.renderResult.status)
-
-    assertNotNull(result.renderedImage)
   }
 }
