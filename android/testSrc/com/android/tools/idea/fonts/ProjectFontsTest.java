@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.fonts;
 
+import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
+import static com.android.ide.common.fonts.FontProviderKt.GOOGLE_FONT_AUTHORITY;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
@@ -25,17 +29,11 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.PathUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.android.ide.common.fonts.FontFamilyKt.FILE_PROTOCOL_START;
-import static com.android.ide.common.fonts.FontProviderKt.GOOGLE_FONT_AUTHORITY;
-import static com.google.common.truth.Truth.assertThat;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ProjectFontsTest extends FontTestCase {
 
@@ -47,13 +45,13 @@ public class ProjectFontsTest extends FontTestCase {
 
     assertThat(fonts.size()).isEqualTo(1);
     FontFamily family = assertFontFamily(fonts.get(0), "a_bee_zee_regular", FontProvider.EMPTY_PROVIDER,
-                                         FILE_PROTOCOL_START + PathUtil.toSystemDependentName(file.getPath()),
+                                         FILE_PROTOCOL_START + file.getPath(),
                                          new File(file.getPath()));
 
     assertThat(family.getFonts().size()).isEqualTo(1);
 
     assertFontDetail(family.getFonts().get(0), "a_bee_zee_regular", "Regular", 400, 100, false,
-                     FILE_PROTOCOL_START + PathUtil.toSystemDependentName(file.getPath()), new File(file.getPath()));
+                     FILE_PROTOCOL_START + file.getPath(), new File(file.getPath()));
   }
 
   public void testCompoundFamilyFile() {
@@ -66,15 +64,15 @@ public class ProjectFontsTest extends FontTestCase {
     assertThat(fonts).containsExactly("fonta", "fontb", "my_font_family");
 
     FontFamily family = assertFontFamily(project.getFont("@font/my_font_family"), "my_font_family", FontProvider.EMPTY_PROVIDER,
-                                         FILE_PROTOCOL_START + PathUtil.toSystemDependentName(fileA.getPath()),
+                                         FILE_PROTOCOL_START + fileA.getPath(),
                                          new File(fileA.getPath()));
 
     assertThat(family.getFonts().size()).isEqualTo(2);
 
     assertFontDetail(family.getFonts().get(0), "fontb", "Regular Italic", 400, 100, true,
-                     FILE_PROTOCOL_START + PathUtil.toSystemDependentName(fileB.getPath()), new File(fileB.getPath()));
+                     FILE_PROTOCOL_START + fileB.getPath(), new File(fileB.getPath()));
     assertFontDetail(family.getFonts().get(1), "fonta", "Regular", 400, 100, false,
-                     FILE_PROTOCOL_START + PathUtil.toSystemDependentName(fileA.getPath()), new File(fileA.getPath()));
+                     FILE_PROTOCOL_START + fileA.getPath(), new File(fileA.getPath()));
   }
 
   public void testCompoundFamilyFileWithCircularReferences() {
