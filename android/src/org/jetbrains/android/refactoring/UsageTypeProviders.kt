@@ -16,20 +16,26 @@
 package org.jetbrains.android.refactoring
 
 import com.android.SdkConstants
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.GradleFiles
 import com.android.tools.idea.res.AndroidRClassBase
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiReferenceExpression
 import com.intellij.psi.impl.compiled.ClsFieldImpl
 import com.intellij.psi.xml.XmlFile
+import com.intellij.usages.PsiElementUsageTarget
+import com.intellij.usages.UsageTarget
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
+import com.intellij.usages.impl.rules.UsageTypeProviderEx
 import com.intellij.util.xml.DomManager
 import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.augment.ManifestClass
 import org.jetbrains.android.dom.AndroidDomElement
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription
+import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.plugins.groovy.GroovyLanguage
 
@@ -47,11 +53,16 @@ class GradleUsageTypeProvider : UsageTypeProvider {
   }
 }
 
+private val ANDROID_MANIFEST_USAGE_TYPE = UsageType("{0} in Android manifest")
+
 /**
  * Recognizes Android XML files and provides a better description than [com.intellij.util.xml.DomUsageTypeProvider].
+ * Only used when RESOLVE_USING_REPOS flag is false.
  */
-class AndroidDomUsageTypeProvider : UsageTypeProvider {
+class AndroidOldXmlUsageProvider : UsageTypeProvider {
+
   override fun getUsageType(element: PsiElement): UsageType? {
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) return null
     val xmlFile = element.containingFile as? XmlFile ?: return null
     val domManager = DomManager.getDomManager(xmlFile.project) ?: return null
     return when (domManager.getFileElement(xmlFile, AndroidDomElement::class.java)?.fileDescription) {
@@ -60,10 +71,39 @@ class AndroidDomUsageTypeProvider : UsageTypeProvider {
       else -> ANDROID_RESOURCES_XML_USAGE_TYPE
     }
   }
-
   companion object {
     private val ANDROID_RESOURCES_XML_USAGE_TYPE = UsageType("{0} in Android resources XML")
-    private val ANDROID_MANIFEST_USAGE_TYPE = UsageType("{0} in Android manifest")
+  }
+}
+
+/**
+ * Better usage type descriptions for resources in XML files when the StudioFlags.RESOLVE_USING_REPOS flag is true.
+ * Categorises resource elements as either usages or declarations.
+ */
+class AndroidNewXmlUsageProvider : UsageTypeProviderEx {
+  override fun getUsageType(element: PsiElement?): UsageType? = getUsageType(element, UsageTarget.EMPTY_ARRAY)
+
+  override fun getUsageType(element: PsiElement?, targets: Array<out UsageTarget>): UsageType? {
+    if (!StudioFlags.RESOLVE_USING_REPOS.get()) return null
+    val xmlFile = element?.containingFile as? XmlFile ?: return null
+    val domManager = DomManager.getDomManager(xmlFile.project) ?: return null
+    val resourceReferencePsiElement = (targets.firstOrNull() as? PsiElementUsageTarget)?.element as? ResourceReferencePsiElement
+    return when (domManager.getFileElement(xmlFile, AndroidDomElement::class.java)?.fileDescription) {
+      null -> null
+      is ManifestDomFileDescription -> ANDROID_MANIFEST_USAGE_TYPE
+      else -> {
+        return if (resourceReferencePsiElement != null && AndroidResourceUtil.isResourceDeclaration(element, resourceReferencePsiElement)) {
+          ANDROID_RESOURCES_XML_DECLARATION_TYPE
+        } else {
+          ANDROID_RESOURCES_XML_USAGE_TYPE
+        }
+      }
+    }
+  }
+
+  companion object {
+    private val ANDROID_RESOURCES_XML_DECLARATION_TYPE = UsageType("Resource declaration in Android resources XML")
+    private val ANDROID_RESOURCES_XML_USAGE_TYPE = UsageType("Resource reference Android resources XML")
   }
 }
 

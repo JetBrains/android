@@ -16,8 +16,8 @@
 package org.jetbrains.android.refactoring
 
 import com.android.SdkConstants
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.caret
-import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.vfs.VirtualFile
@@ -27,6 +27,7 @@ import com.intellij.usages.PsiElementUsageTarget
 import com.intellij.usages.UsageTargetUtil
 import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageTypeProvider
+import com.intellij.usages.impl.rules.UsageTypeProviderEx
 import org.jetbrains.android.AndroidTestCase
 
 /**
@@ -74,7 +75,13 @@ class UsageTypeProvidersTest : AndroidTestCase() {
          }
        }
        """.trimIndent())
-    checkUsageTypeText(file.virtualFile, "Resource reference in code")
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+      checkUsageTypeText(file.virtualFile,
+                         "Resource declaration in Android resources XML",
+                         "Resource reference in code")
+    } else {
+      checkUsageTypeText(file.virtualFile, "Resource reference in code")
+    }
   }
 
   fun testClsFieldImplManifest() {
@@ -121,7 +128,7 @@ class UsageTypeProvidersTest : AndroidTestCase() {
   }
 
   /**
-   * Tests for [AndroidDomUsageTypeProvider]
+   * Tests for [AndroidOldXmlUsageProvider]
    */
   fun testResourceDomElement() {
     myFixture.addFileToProject(
@@ -140,7 +147,13 @@ class UsageTypeProvidersTest : AndroidTestCase() {
       "res/values/colors.xml",
       //language=XML
       """<resources><color name="color${caret}Primary">#008577</color></resources>""")
-    checkUsageTypeText(colorsFile.virtualFile, "{0} in Android resources XML")
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+      checkUsageTypeText(colorsFile.virtualFile,
+                         "Resource declaration in Android resources XML",
+                         "Resource reference Android resources XML")
+    } else {
+      checkUsageTypeText(colorsFile.virtualFile, "{0} in Android resources XML")
+    }
   }
 
   fun testManifestDomElement() {
@@ -178,16 +191,21 @@ class UsageTypeProvidersTest : AndroidTestCase() {
 
   private fun getUsageType(element: PsiElement) : UsageType? {
     for (provider in UsageTypeProvider.EP_NAME.extensionList) {
-      return provider.getUsageType(element) ?: continue
+      if (provider is UsageTypeProviderEx) {
+        val targets = UsageTargetUtil.findUsageTargets { dataId -> (myFixture.getEditor() as EditorEx).dataContext.getData(dataId) }
+        return provider.getUsageType(element, targets) ?: continue
+      }
+      else {
+        return provider.getUsageType(element) ?: continue
+      }
     }
     return null
   }
 
-  private fun checkUsageTypeText(virtualFile: VirtualFile, usageText: String) {
+  private fun checkUsageTypeText(virtualFile: VirtualFile, vararg usageText: String) {
     myFixture.configureFromExistingVirtualFile(virtualFile)
     val usageInfo = findUsages().toList()
-    val usageType = getUsageType(usageInfo[0].element!!)
-    assertThat(usageType).isNotNull()
-    assertThat(usageType.toString()).isEqualTo(usageText)
+    val usageTypeTexts = usageInfo.map { getUsageType(it.element!!).toString() }
+    assertThat(usageTypeTexts).containsExactlyElementsIn(usageText)
   }
 }

@@ -481,6 +481,52 @@ public class AndroidResourceUtil {
            : Collections.emptyList();
   }
 
+   /**
+   * Distinguishes whether a reference to a resource in an XML file is a resource declaration or a usage.
+   */
+   public static boolean isResourceDeclaration(@NotNull PsiElement resourceElement, @NotNull ResourceReferencePsiElement targetElement) {
+     if (resourceElement instanceof XmlFile) {
+       // If the ReferencePsiElement created from the resourceElement matches the targetElement, then it must be a declaration of the
+       // targetElement.
+       ResourceReferencePsiElement referencePsiElement = ResourceReferencePsiElement.create(resourceElement);
+       return referencePsiElement != null && referencePsiElement.equals(targetElement);
+     }
+     else if (resourceElement instanceof XmlAttributeValue) {
+       if (isIdDeclaration((XmlAttributeValue)resourceElement)) {
+         // Layout and Navigation graph files can do inline id declaration.
+         return true;
+       }
+       if (ResourceFolderType.VALUES.equals(ResourceHelper.getFolderType(resourceElement.getContainingFile()))) {
+         XmlAttribute attribute = PsiTreeUtil.getParentOfType(resourceElement, XmlAttribute.class);
+         if (attribute == null || !attribute.getNameElement().getText().equals(ATTR_NAME)) {
+           return false;
+         }
+         XmlTag tag = PsiTreeUtil.getParentOfType(resourceElement, XmlTag.class);
+         if (tag == null) {
+           return false;
+         }
+         ResourceType resourceType = getResourceTypeForResourceTag(tag);
+         if (resourceType == null) {
+           // Null means no resource type so this is not a resource declaration
+           return false;
+         }
+         else if (resourceType.equals(ATTR)) {
+           return tag.getAttribute(ATTR_FORMAT) != null;
+         }
+         else if (resourceType.equals(STYLE)) {
+           // Styles can have references to other styles in their name, this checks that the full name is the reference we're looking for.
+           return targetElement.equals(ResourceReferencePsiElement.create(resourceElement));
+         } else {
+          // For all other ResourceType, this is a declaration
+          return true;
+         }
+       }
+       return false;
+     } else {
+       return false;
+     }
+   }
+
   public static boolean isResourceField(@NotNull PsiField field) {
     PsiClass rClass = field.getContainingClass();
     if (rClass == null) return false;
