@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.assetstudio;
 
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.scaleRectangleAroundCenter;
+import static com.android.tools.idea.npw.assetstudio.VectorDrawableTransformer.transform;
 import static java.lang.Math.max;
 
 import com.android.ide.common.util.AssetUtil;
@@ -62,9 +63,10 @@ import org.jetbrains.annotations.Nullable;
  */
 @SuppressWarnings("UseJBColor") // We are using colors for Android icons, no need for JBColor here.
 public class TvBannerGenerator extends IconGenerator {
-  public static final Color DEFAULT_BACKGROUND_COLOR = new Color(0xFFFFFF);
-  public static final Rectangle IMAGE_SIZE_ADAPTIVE_DP = new Rectangle(0, 0, 320, 180);
-  public static final Dimension SIZE_ADAPTIVE_DP = IMAGE_SIZE_ADAPTIVE_DP.getSize();
+  private static final Color DEFAULT_BACKGROUND_COLOR = new Color(0xFFFFFF);
+  private static final Rectangle IMAGE_SIZE_ADAPTIVE_DP = new Rectangle(0, 0, 320, 180);
+  private static final Dimension SIZE_ADAPTIVE_DP = IMAGE_SIZE_ADAPTIVE_DP.getSize();
+  private static final double ADAPTIVE_ICON_SCALE_FACTOR = 72. / 108.;
   private static final Density LEGACY_DENSITY = Density.XHIGH;
   /** Ratio between image and text width when both are present. */
   private static final double IMAGE_TEXT_RATIO = 0.4;
@@ -132,8 +134,8 @@ public class TvBannerGenerator extends IconGenerator {
   public TvBannerOptions createOptions(boolean forPreview) {
     TvBannerOptions options = new TvBannerOptions(forPreview);
     // Set foreground image.
-    BaseAsset foregroundAsset = sourceAsset().getValueOrNull();
-    if (foregroundAsset != null) {
+    ImageAsset foregroundAsset = (ImageAsset)sourceAsset().getValueOrNull();
+    if (foregroundAsset != null && foregroundAsset.imagePath().getValueOrNull() != null) {
       double scaleFactor = foregroundAsset.scalingPercent().get() / 100.;
       options.foregroundImage =
           new TransformedImageAsset(foregroundAsset, SIZE_ADAPTIVE_DP, scaleFactor, null, getGraphicGeneratorContext());
@@ -304,6 +306,7 @@ public class TvBannerGenerator extends IconGenerator {
           xmlDrawableText = VectorDrawableTransformer.merge(imageDrawable, textDrawable);
         }
 
+        xmlDrawableText = applyAdaptiveIconScaleFactor(xmlDrawableText);
         iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
         return new GeneratedXmlResource(name,
                                         new PathString(getIconPath(iconOptions, iconOptions.foregroundLayerName)),
@@ -329,6 +332,8 @@ public class TvBannerGenerator extends IconGenerator {
                          new Throwable());
           xmlDrawableText = "<vector/>"; // Use an empty image. It will be recomputed again soon.
         }
+
+        xmlDrawableText = applyAdaptiveIconScaleFactor(xmlDrawableText);
         iconOptions.apiVersion = calculateMinRequiredApiLevel(xmlDrawableText, myMinSdkVersion);
         return new GeneratedXmlResource(name,
                                         new PathString(getIconPath(iconOptions, iconOptions.backgroundLayerName)),
@@ -354,6 +359,11 @@ public class TvBannerGenerator extends IconGenerator {
                                         xmlColor);
       });
     }
+  }
+
+  @NotNull
+  private static String applyAdaptiveIconScaleFactor(@NotNull String xmlDrawableText) {
+    return transform(xmlDrawableText, SIZE_ADAPTIVE_DP, Gravity.CENTER, ADAPTIVE_ICON_SCALE_FACTOR, null, null, null, 1);
   }
 
   /**
