@@ -23,6 +23,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Cpu.CpuTraceInfo;
 import com.android.tools.profiler.proto.Cpu.CpuTraceType;
+import com.android.tools.profiler.proto.Cpu.CpuTraceStatusData;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuProfilingAppStopResponse;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
@@ -324,6 +325,28 @@ public class CpuProfiler extends StudioProfiler {
                                                            @NotNull Common.Session session,
                                                            boolean newPipeline) {
     return getTraceInfoFromRange(client, session, new Range(Long.MIN_VALUE, Long.MAX_VALUE), newPipeline);
+  }
+
+  /**
+   * Gets the trace status for a given trace id.
+   * This function only uses the unified pipeline.
+   */
+  @NotNull
+  public static Common.Event getTraceStatusEventFromId(@NotNull StudioProfilers profilers, long traceId) {
+    if (!profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      return Common.Event.getDefaultInstance();
+    }
+
+    Transport.GetEventGroupsResponse response = profilers.getClient().getTransportClient().getEventGroups(
+      Transport.GetEventGroupsRequest.newBuilder()
+        .setStreamId(profilers.getSession().getStreamId())
+        .setKind(Common.Event.Kind.CPU_TRACE_STATUS)
+        .setGroupId(traceId)
+        .build());
+    if (response.getGroupsCount() == 0) {
+      return Common.Event.getDefaultInstance();
+    }
+    return response.getGroups(0).getEvents(response.getGroups(0).getEventsCount() - 1);
   }
 
   public static void stopTracing(@NotNull StudioProfilers profilers,
