@@ -213,20 +213,11 @@ iml_module(
             "com.android.tools.idea.ddms",
             "com.android.tools.idea.debug",
             "com.android.tools.idea.diagnostics",
-            "com.android.tools.idea.downloads",
-            "com.android.tools.idea.editors",
-            "com.android.tools.idea.exportSignedPackage",
-            "com.android.tools.idea.folding",
-            "com.android.tools.idea.fonts",
             "com.android.tools.idea.gradle",
-            "com.android.tools.idea.javadoc",
-            "com.android.tools.idea.lint",
-            "com.android.tools.idea.material.icons",
-            "com.android.tools.idea.memorysettings",
-            "com.android.tools.idea.navigator", # testDependentNativeModules (ag/9872410)
-            "com.android.tools.idea.npw", # leaks, json exceptions, etc.
-            "com.android.tools.idea.run", # some test directory paths are too long
-            "com.android.tools.idea.ui.resourcemanager", # leaks (b/145024498)
+            "com.android.tools.idea.navigator",  # testDependentNativeModules (ag/9872410)
+            "com.android.tools.idea.npw",  # leaks, json exceptions, etc.
+            "com.android.tools.idea.run",  # some test directory paths are too long
+            "com.android.tools.idea.ui.resourcemanager",  # leaks (b/145024498)
             "org.jetbrains.android",
         ],
         "//conditions:default": [],
