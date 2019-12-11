@@ -433,7 +433,11 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       for (NlComponent component : selection) {
         String tagName = component.getTagName();
         String id = component.getId();
-        MTag tag = mMotionEditor.getMeModel().findTag(tagName, id);
+
+        MTag tag = null;
+        if (mMotionEditor != null && mMotionEditor.getMeModel() != null) {
+          tag = mMotionEditor.getMeModel().findTag(tagName, id);
+        }
         if (tag != null) {
           if (tag instanceof NlComponentTag) {
             mMotionEditor.setSelection(MotionEditorSelector.Type.LAYOUT_VIEW, new MTag[]{tag}, 0);
