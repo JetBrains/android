@@ -35,24 +35,27 @@ public class MECreateTransitionTest extends BaseMotionEditorTest {
 
   public void testCreateTransitionLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,155,229\n" +
-                    "1,JLabel,5,2,145,15\n" +
-                    "1,JSeparator,5,20,145,2\n" +
-                    "1,JLabel,5,25,145,15\n" +
-                    "1,PromptedTextField,5,43,145,19\n" +
-                    "1,JLabel,5,65,145,15\n" +
-                    "1,MEComboBox,5,83,145,24\n" +
-                    "1,JLabel,5,110,145,15\n" +
-                    "1,MEComboBox,5,128,145,24\n" +
-                    "1,JLabel,5,155,145,15\n" +
-                    "1,MEComboBox,5,173,145,24\n" +
-                    "1,JButton,5,203,145,25\n";
+    String layout = "0,CreatorAccess      ,0,0,99,99\n" +
+                    "1,JLabel             ,3,0,92,6\n" +
+                    "1,JSeparator         ,3,8,92,0\n" +
+                    "1,JLabel             ,3,10,92,6\n" +
+                    "1,PromptedTextField  ,3,18,92,8\n" +
+                    "1,JLabel             ,3,28,92,6\n" +
+                    "1,MEComboBox         ,3,36,92,10\n" +
+                    "1,JLabel             ,3,47,92,6\n" +
+                    "1,MEComboBox         ,3,55,92,10\n" +
+                    "1,JLabel             ,3,67,92,6\n" +
+                    "1,MEComboBox         ,3,75,92,10\n" +
+                    "1,JButton            ,3,88,92,10\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
     panel.validate();
-    assertEquals(layout, componentTreeToString(panel, 0));
-  }
+    String actual = componentTreeToString(panel, 0, null);
+    if (!similar(layout, actual,2)) {
+      assertEquals(layout, actual);
+    }
+   }
 
   public void testCreateTransitionAction() {
     CreatorAccess panel = new CreatorAccess();
