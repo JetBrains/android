@@ -256,6 +256,42 @@ public final class CpuProfilerTest {
   }
 
   @Test
+  public void testGetTraceStatusEventFromId() {
+    Assume.assumeTrue(myUnifiedPipeline);
+
+    Common.Session session = myProfilers.getSession();
+    int TRACE_ID = 123;
+
+    // Insert a start status.
+    Cpu.CpuTraceStatusData status1 = Cpu.CpuTraceStatusData.newBuilder()
+      .setTraceStartStatus(Cpu.TraceStartStatus.newBuilder().setStatus(Cpu.TraceStartStatus.Status.SUCCESS))
+      .build();
+    Common.Event event1 =
+      Common.Event.newBuilder().setGroupId(TRACE_ID).setPid(session.getPid()).setKind(Common.Event.Kind.CPU_TRACE_STATUS).setTimestamp(1)
+        .setCpuTraceStatus(status1).build();
+    myTransportService.addEventToStream(session.getStreamId(), event1);
+
+    Common.Event event = CpuProfiler.getTraceStatusEventFromId(myProfilers, TRACE_ID);
+    assertThat(event).isEqualTo(event1);
+
+    // Insert a stop status.
+    Cpu.CpuTraceStatusData status2 = Cpu.CpuTraceStatusData.newBuilder()
+      .setTraceStopStatus(Cpu.TraceStopStatus.newBuilder().setStatus(Cpu.TraceStopStatus.Status.WAIT_TIMEOUT).setErrorMessage("error"))
+      .build();
+    Common.Event event2 =
+      Common.Event.newBuilder().setGroupId(TRACE_ID).setPid(session.getPid()).setKind(Common.Event.Kind.CPU_TRACE_STATUS).setTimestamp(5)
+        .setCpuTraceStatus(status2).build();
+    myTransportService.addEventToStream(session.getStreamId(), event2);
+    // Insert an event from another TRACE_ID.
+    Common.Event event3 = event2.toBuilder().setGroupId(TRACE_ID + 100).build();
+    myTransportService.addEventToStream(session.getStreamId(), event3);
+
+    event = CpuProfiler.getTraceStatusEventFromId(myProfilers, TRACE_ID);
+    assertThat(event).isEqualTo(event2);
+    assertThat(event).isNotEqualTo(event3);
+  }
+
+  @Test
   public void reimportTraceShouldSelectSameSession() throws IOException {
     Assume.assumeFalse("Unified pipeline import cannot yet be tested because of dependencies on TransportService.getInstance().",
                        myUnifiedPipeline);

@@ -86,7 +86,8 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   private static final SingleUnitAxisFormatter NUM_THREADS_AXIS = new SingleUnitAxisFormatter(1, 5, 1, "");
 
   // Clamp the property value between 5 Seconds and 5 Minutes, otherwise the user could specify arbitrarily small or large value.
-  public static final int CPU_ART_STOP_TIMEOUT_SEC = Math.max(5, Math.min(Integer.getInteger("profiler.cpu.art.stop.timeout.sec", 10),
+  // Default timeout value is 2 mintues (120 seconds).
+  public static final int CPU_ART_STOP_TIMEOUT_SEC = Math.max(5, Math.min(Integer.getInteger("profiler.cpu.art.stop.timeout.sec", 120),
                                                                           5 * 60));
   /**
    * Percentage of space on either side of an imported trace.
@@ -164,6 +165,11 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
    * If there is a capture in progress, stores its start time.
    */
   private long myCaptureStartTimeNs;
+
+  /**
+   * If there is a catpure being stopped, stores the time when the stop is initiated.
+   */
+  private long myCaptureStopTimeNs;
 
   private final InProgressTraceHandler myInProgressTraceHandler;
   @NotNull private Cpu.CpuTraceInfo myInProgressTraceInfo = Cpu.CpuTraceInfo.getDefaultInstance();
@@ -513,8 +519,9 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
 
   private void startCapturingCallback(@NotNull Cpu.TraceStartStatus status) {
     if (status.getStatus().equals(Cpu.TraceStartStatus.Status.SUCCESS)) {
-      setCaptureState(CaptureState.CAPTURING);
+      // Set myCaptureStartTimeNs before updating the state because the timestamp may be used to construct recording panel.
       myCaptureStartTimeNs = currentTimeNs();
+      setCaptureState(CaptureState.CAPTURING);
       // We should jump to live data when start recording.
       getTimeline().setStreaming(true);
     }
@@ -535,12 +542,18 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
       return;
     }
 
+    // Set myCaptureStopTimeNs before updating the state because the timestamp may be used to construct stopping panel.
+    myCaptureStopTimeNs = currentTimeNs();
     setCaptureState(CaptureState.STOPPING);
     CpuProfiler.stopTracing(getStudioProfilers(), mySession, myInProgressTraceInfo.getConfiguration(), this::stopCapturingCallback);
   }
 
-  public long getCaptureElapsedTimeUs() {
-    return TimeUnit.NANOSECONDS.toMicros(currentTimeNs() - myCaptureStartTimeNs);
+  public long getCaptureStartTimeNs() {
+    return myCaptureStartTimeNs;
+  }
+
+  public long getCaptureStopTimeNs() {
+    return myCaptureStopTimeNs;
   }
 
   @NotNull
@@ -572,20 +585,12 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
   }
 
   private void stopCapturingCallback(@NotNull Cpu.TraceStopStatus status) {
-    // Successful traces are tracked via the InProgressTraceHandler.
-    if (!status.getStatus().equals(Cpu.TraceStopStatus.Status.SUCCESS)) {
-      CpuCaptureMetadata captureMetadata = new CpuCaptureMetadata(myProfilerConfigModel.getProfilingConfiguration());
-      long estimateDurationMs = TimeUnit.NANOSECONDS.toMillis(currentTimeNs() - myCaptureStartTimeNs);
-      // Set the estimate duration of the capture, i.e. the time difference between device time when user clicked start and stop.
-      // If the capture is successful, we can track a more accurate time, calculated from the capture itself.
-      captureMetadata.setCaptureDurationMs(estimateDurationMs);
-      captureMetadata.setStoppingTimeMs((int)TimeUnit.NANOSECONDS.toMillis(status.getStoppingTimeNs()));
-      captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.fromStopStatus(status.getStatus()));
-      getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
-
-      getLogger().warn("Unable to stop tracing: " + status.getStatus());
-      getLogger().warn(status.getErrorMessage());
-      getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.CAPTURE_STOP_FAILURE);
+    if (status.getStatus().equals(Cpu.TraceStopStatus.Status.UNSPECIFIED)) {
+      // Daemon reports a matching ongoing recording has been found. Stopping is in progress. Do nothing.
+      // When the stopping is done, a CPU_TRACE event will be generated and it will be tracked via the InProgressTraceHandler.
+    }
+    else if (!status.getStatus().equals(Cpu.TraceStopStatus.Status.SUCCESS)) {
+      trackAndLogTraceStopFailures(status);
       // Return to IDLE state and set the current capture to null
       setCaptureState(CaptureState.IDLE);
       setCapture(null);
@@ -595,6 +600,21 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     if (myProfilerConfigModel.getProfilingConfiguration().isDisableLiveAllocation()) {
       getStudioProfilers().setMemoryLiveAllocationEnabled(true);
     }
+  }
+
+  private void trackAndLogTraceStopFailures(@NotNull Cpu.TraceStopStatus status) {
+    CpuCaptureMetadata captureMetadata = new CpuCaptureMetadata(myProfilerConfigModel.getProfilingConfiguration());
+    long estimateDurationMs = TimeUnit.NANOSECONDS.toMillis(currentTimeNs() - myCaptureStartTimeNs);
+    // Set the estimate duration of the capture, i.e. the time difference between device time when user clicked start and stop.
+    // If the capture is successful, we can track a more accurate time, calculated from the capture itself.
+    captureMetadata.setCaptureDurationMs(estimateDurationMs);
+    captureMetadata.setStoppingTimeMs((int)TimeUnit.NANOSECONDS.toMillis(status.getStoppingTimeNs()));
+    captureMetadata.setStatus(CpuCaptureMetadata.CaptureStatus.fromStopStatus(status.getStatus()));
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackCaptureTrace(captureMetadata);
+
+    getLogger().warn("Unable to stop tracing: " + status.getStatus());
+    getLogger().warn(status.getErrorMessage());
+    getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.CAPTURE_STOP_FAILURE);
   }
 
   private void goToCaptureStage(long traceId) {
@@ -740,7 +760,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     return null;
   }
 
-  private long currentTimeNs() {
+  public long currentTimeNs() {
     return TimeUnit.MICROSECONDS.toNanos((long)getTimeline().getDataRange().getMax());
   }
 
@@ -1052,6 +1072,9 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
             captureMetadata.setStoppingTimeMs((int)TimeUnit.NANOSECONDS.toMillis(trace.getStopStatus().getStoppingTimeNs()));
             myCaptureParser.trackCaptureMetadata(trace.getTraceId(), captureMetadata);
           }
+          else {
+            trackAndLogTraceStopFailures(trace.getStopStatus());
+          }
         }
       }
 
@@ -1083,8 +1106,17 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
       }
 
       myInProgressTraceInfo = traceInfo;
+      // Set myCaptureStartTimeNs/myCaptureStopTimeNs before updating the state because the timestamp may be used to construct
+      // recording panel.
+      CaptureState state = CaptureState.CAPTURING;
       myCaptureStartTimeNs = myInProgressTraceInfo.getFromTimestamp();
-      setCaptureState(CaptureState.CAPTURING);
+      Common.Event statusEvent = CpuProfiler.getTraceStatusEventFromId(getStudioProfilers(), myInProgressTraceInfo.getTraceId());
+      if (statusEvent.getKind() == Common.Event.Kind.CPU_TRACE_STATUS && statusEvent.getCpuTraceStatus().hasTraceStopStatus()) {
+        // A STOP_CPU_TRACE command has been issued.
+        state = CaptureState.STOPPING;
+        myCaptureStopTimeNs = statusEvent.getTimestamp();
+      }
+      setCaptureState(state);
       getTimeline().setStreaming(true);
 
       if (myInProgressTraceInfo.getConfiguration().getInitiationType() == TraceInitiationType.INITIATED_BY_API) {
