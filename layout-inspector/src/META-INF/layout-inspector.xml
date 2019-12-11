@@ -19,7 +19,6 @@
                       facetIdList="android"
                       anchor="right"
                       secondary="true"
-                      conditionClass="com.android.tools.idea.layoutinspector.LayoutInspectorToolWindowCondition"
                       icon="StudioIcons.Shell.Menu.LAYOUT_INSPECTOR"
                       factoryClass="com.android.tools.idea.layoutinspector.LayoutInspectorToolWindowFactory"/>
   </extensions>

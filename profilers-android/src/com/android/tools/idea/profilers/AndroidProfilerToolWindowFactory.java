@@ -33,7 +33,6 @@ import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -50,7 +49,7 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFactory, Condition<Project> {
+public final class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFactory {
   public static final String ID = "Android Profiler";
   private static final String PROFILER_TOOL_WINDOW_TITLE = "Profiler";
   private static final Map<Content, AndroidProfilerToolWindow> PROJECT_PROFILER_MAP = new HashMap<>();
@@ -128,17 +127,12 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
     }
   }
 
-  @Override
-  public boolean value(Project project) {
-    return true;
-  }
-
-  private static class ProfilerDeviceManagerListener implements TransportDeviceManager.TransportDeviceManagerListener {
+  private static final class ProfilerDeviceManagerListener implements TransportDeviceManager.TransportDeviceManagerListener {
     private final int LIVE_ALLOCATION_STACK_DEPTH = Integer.getInteger("profiler.alloc.stack.depth", 50);
 
     @NotNull private final FeatureTracker myTracker;
 
-    public ProfilerDeviceManagerListener(@NotNull Project project) {
+    private ProfilerDeviceManagerListener(@NotNull Project project) {
       myTracker = new StudioFeatureTracker(project);
     }
 
@@ -212,7 +206,7 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
         .setStartupProfilingEnabled(runConfig != null);
     }
 
-    private boolean shouldEnableMemoryLiveAllocation(@Nullable AndroidRunConfigurationBase runConfig) {
+    private static boolean shouldEnableMemoryLiveAllocation(@Nullable AndroidRunConfigurationBase runConfig) {
       if (runConfig != null && runConfig.getProfilerState().STARTUP_CPU_PROFILING_ENABLED) {
         String configName = runConfig.getProfilerState().STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
         CpuProfilerConfig startupConfig = CpuProfilerConfigsState.getInstance(runConfig.getProject()).getConfigByName(configName);
