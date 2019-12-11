@@ -82,7 +82,7 @@ public class ReferenceResolutionTest extends GradleFileModelTestCase {
     assertNotNull(android);
 
     assertEquals("compileSdkVersion", "android-23", android.compileSdkVersion());
-    assertEquals("minSdkVersion", "android-23", android.defaultConfig().minSdkVersion());
+    assertEquals("applicationIdSuffix", "android-23", android.defaultConfig().applicationIdSuffix());
   }
 
   @Test
