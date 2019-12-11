@@ -19,10 +19,12 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.icons.AllIcons;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.MouseEventHandler;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -39,14 +41,32 @@ public class Track {
   private static final int DEFAULT_TITLE_COL_PX = 150;
   public static final String COL_SIZES = DEFAULT_TITLE_COL_PX + "px,*";
 
-  @NotNull private final JPanel myComponent;
+  private static final Icon COLLAPSE_ICON = AllIcons.General.ArrowRight;
+  private static final Icon EXPAND_ICON = AllIcons.General.ArrowDown;
+
+  @NotNull
+  private final JPanel myComponent;
   @NotNull private final JLabel myTitleLabel;
 
   private Track(@NotNull TrackModel trackModel, @NotNull JComponent trackContent) {
     myTitleLabel = new JLabel(trackModel.getTitle());
-    myTitleLabel.setBorder(new JBEmptyBorder(4, 36, 4, 0));
     myTitleLabel.setVerticalAlignment(SwingConstants.TOP);
+    myTitleLabel.setToolTipText(trackModel.getTitleTooltip());
+    if (trackModel.isCollapsible()) {
+      myTitleLabel.setIcon(trackModel.isCollapsed() ? COLLAPSE_ICON : EXPAND_ICON);
+      myTitleLabel.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          if (myTitleLabel.contains(e.getPoint()) && e.getClickCount() == 2) {
+            trackModel.setCollapsed(!trackModel.isCollapsed());
+            myTitleLabel.setIcon(trackModel.isCollapsed() ? COLLAPSE_ICON : EXPAND_ICON);
+          }
+        }
+      });
+    }
 
+    int iconOffset = myTitleLabel.getIcon() == null ? 0 : myTitleLabel.getIcon().getIconWidth() + myTitleLabel.getIconTextGap();
+    myTitleLabel.setBorder(new JBEmptyBorder(4, 36 - iconOffset, 4, 0));
     trackContent.setBorder(new JBEmptyBorder(4, 0, 4, 0));
 
     myComponent = new JPanel(new TabularLayout(COL_SIZES, "Fit"));
@@ -59,6 +79,10 @@ public class Track {
     else {
       myComponent.add(myTitleLabel, new TabularLayout.Constraint(0, 0));
       myComponent.add(trackContent, new TabularLayout.Constraint(0, 1));
+      // Forward mouse event to the title column.
+      MouseAdapter titleAdapter = new TrackMouseEventHandler(myTitleLabel, 0, 0);
+      myComponent.addMouseListener(titleAdapter);
+      myComponent.addMouseMotionListener(titleAdapter);
       // Offsets mouse event using width of the title column.
       MouseAdapter adapter = new TrackMouseEventHandler(trackContent, -DEFAULT_TITLE_COL_PX, 0);
       myComponent.addMouseListener(adapter);
