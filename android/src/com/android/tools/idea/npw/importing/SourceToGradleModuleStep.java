@@ -36,7 +36,6 @@ import com.android.tools.idea.wizard.model.ModelWizard.Facade;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
@@ -48,15 +47,11 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.components.JBScrollPane;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -65,8 +60,6 @@ import java.util.Set;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.event.DocumentEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,9 +84,6 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
   private JBScrollPane myModulesScroller;
   private ModulesTable myModulesPanel;
   private JLabel myRequiredModulesLabel;
-  private JLabel myModuleNameLabel;
-  private JTextField myModuleNameField;
-  private JLabel myPrimaryModuleState;
 
   // TODO(qumeric): Improve logic so these don't need to all be set to null in applyValidationResult
   @Nullable private VirtualFile myVFile;
@@ -265,68 +255,4 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
 
     return false;
   }
-
-  private final class PrimaryModuleImportSettings implements ModuleImportSettings {
-    @Override
-    public boolean isModuleSelected() {
-      return true;
-    }
-
-    @Override
-    public void setModuleSelected(boolean selected) {
-      // Do nothing - primary module
-    }
-
-    @Override
-    @NotNull
-    public String getModuleName() {
-      return myModuleNameField.getText();
-    }
-
-    @Override
-    public void setModuleName(@NotNull String moduleName) {
-      if (!Objects.equal(moduleName, myModuleNameField.getText())) {
-        myModuleNameField.setText(moduleName);
-      }
-    }
-
-    @Override
-    public void setModuleSourcePath(String relativePath) {
-      // Nothing
-    }
-
-    @Override
-    public void setCanToggleModuleSelection(boolean b) {
-      // Nothing
-    }
-
-    @Override
-    public void setCanRenameModule(boolean canRenameModule) {
-      myModuleNameField.setEnabled(canRenameModule);
-    }
-
-    @Override
-    public void setValidationStatus(@Nullable MessageType statusSeverity, @Nullable String statusDescription) {
-      myPrimaryModuleState.setIcon(statusSeverity == null ? null : statusSeverity.getDefaultIcon());
-      myPrimaryModuleState.setText(Strings.nullToEmpty(statusDescription));
-    }
-
-    @Override
-    public void setVisible(boolean visible) {
-      myPrimaryModuleState.setVisible(visible);
-      myModuleNameField.setVisible(visible);
-      myModuleNameLabel.setVisible(visible);
-    }
-
-    @Override
-    public void addActionListener(@NotNull ActionListener actionListener) {
-      myModuleNameField.getDocument().addDocumentListener(new DocumentAdapter() {
-        @Override
-        protected void textChanged(@NotNull DocumentEvent e) {
-          actionListener.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "changed"));
-        }
-      });
-    }
-  }
-
 }
