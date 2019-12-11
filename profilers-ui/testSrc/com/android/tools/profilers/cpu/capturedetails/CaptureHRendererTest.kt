@@ -427,7 +427,10 @@ class CaptureNodeHRendererTest {
 
   private class TestTextFitPredicate: CaptureNodeHRenderer.TextFitsPredicate {
     var fittingLength: Int = 0
-    override fun test(text: String, metrics: FontMetrics, width: Float) = text.length <= fittingLength
+    override fun test(text: String,
+                      metrics: FontMetrics,
+                      width: Float,
+                      height: Float) = text.length <= fittingLength
   }
 
   private class StubCaptureNodeModel : CaptureNodeModel {

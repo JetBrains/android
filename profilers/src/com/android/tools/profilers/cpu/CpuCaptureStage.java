@@ -341,18 +341,28 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   private TrackGroupModel createThreadsTrackGroup(@NotNull Range selectionRange, @NotNull CpuCapture capture) {
+    // Collapse threads for ART and SimplePerf traces.
+    boolean collapseThreads = !(capture instanceof AtraceCpuCapture);
     List<CpuThreadInfo> threadInfos =
       capture.getThreads().stream().sorted(new CaptureThreadComparator(capture)).collect(Collectors.toList());
     String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());
-    TrackGroupModel threads = TrackGroupModel.newBuilder().setTitle(threadsTitle).setTrackSelectable(true).build();
+    TrackGroupModel threads = TrackGroupModel.newBuilder()
+      .setTitle(threadsTitle)
+      .setTrackSelectable(true)
+      .build();
     for (CpuThreadInfo threadInfo : threadInfos) {
+      String title = threadInfo.getName();
+      String titleTooltip = title + " (Double-click to expand/collapse)";
       // Since thread tracks display multiple elements with different tooltip we don't set a default tooltip model here but defer to the
       // track renderer to switch between its various tooltip models.
       threads.addTrackModel(
         TrackModel.newBuilder(
           new CpuThreadTrackModel(selectionRange, capture, threadInfo, getTimeline(), myMultiSelectionModel),
           ProfilerTrackRendererType.CPU_THREAD,
-          threadInfo.getName()));
+          title)
+          .setCollapsible(true)
+          .setCollapsed(collapseThreads)
+          .setTitleTooltip(titleTooltip));
     }
     return threads;
   }
