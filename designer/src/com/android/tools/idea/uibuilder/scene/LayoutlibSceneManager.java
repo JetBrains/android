@@ -21,6 +21,7 @@ import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
+import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.SessionParams;
@@ -1284,5 +1285,33 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   public void forceReinflate() {
     myForceInflate.set(true);
+  }
+
+  /**
+   * Triggers execution of the Handler and frame callbacks in the layoutlib
+   * @return a future that is completed when callbacks are executed
+   */
+  @NotNull
+  public CompletableFuture<Void> executeCallbacks() {
+    if (myRenderTask == null) {
+      return CompletableFuture.completedFuture(null);
+    }
+    return myRenderTask.executeCallbacks();
+  }
+
+  /**
+   * Informs layoutlib that there was a (mouse) touch event detected of a particular type at a particular point
+   * @param type type of a touch event
+   * @param x horizontal android coordinate of the detected touch event
+   * @param y vertical android coordinate of the detected touch event
+   * @return a future that is completed when layoutlib handled the touch event
+   */
+  @NotNull
+  public CompletableFuture<Void> triggerTouchEvent(
+    @NotNull RenderSession.TouchEventType type, @AndroidCoordinate int x, @AndroidCoordinate int y) {
+    if (myRenderTask == null) {
+      return CompletableFuture.completedFuture(null);
+    }
+    return myRenderTask.triggerTouchEvent(type, x, y);
   }
 }
