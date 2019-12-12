@@ -24,6 +24,10 @@ iml_module(
     # do not sort: must match IML order
     test_runtime_deps = ["//tools/idea:intellij.java.ui.tests"],
     test_srcs = ["testSrc"],
+    test_tags = [
+        "cpu:3",
+        "perfgate",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
