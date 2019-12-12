@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
 
-import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.actions.LayoutPreviewHandler;
+import com.android.tools.idea.actions.LayoutPreviewHandlerKt;
 import com.android.tools.idea.common.editor.ActionManager;
-import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DnDTransferComponent;
@@ -41,7 +40,6 @@ import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
@@ -86,7 +84,9 @@ import org.jetbrains.annotations.Nullable;
  * The {@link DesignSurface} for the layout editor, which contains the full background, rulers, one
  * or more device renderings, etc
  */
-public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.AccessoryPanelVisibility {
+public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.AccessoryPanelVisibility, LayoutPreviewHandler {
+
+  private boolean myPreviewWithToolsAttributes = true;
 
   private static final double DEFAULT_MIN_SCALE = 0.1;
   private static final double DEFAULT_MAX_SCALE = 10;
@@ -869,4 +869,24 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   public boolean isInAnimationScrubbing() { return myIsAnimationScrubbing; }
 
+  @Override
+  public Object getData(@NotNull String dataId) {
+    if (LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY.is(dataId)) {
+      return this;
+    }
+    return super.getData(dataId);
+  }
+
+  @Override
+  public boolean getPreviewWithToolsAttributes() {
+    return myPreviewWithToolsAttributes;
+  }
+
+  @Override
+  public void setPreviewWithToolsAttributes(boolean isPreviewWithToolsAttributes) {
+    if (myPreviewWithToolsAttributes != isPreviewWithToolsAttributes) {
+      myPreviewWithToolsAttributes = isPreviewWithToolsAttributes;
+      forceUserRequestedRefresh();
+    }
+  }
 }

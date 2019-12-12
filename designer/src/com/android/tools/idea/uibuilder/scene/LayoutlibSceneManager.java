@@ -937,6 +937,10 @@ public class LayoutlibSceneManager extends SceneManager {
       taskBuilder.useTransparentBackground();
     }
 
+    if (!getDesignSurface().getPreviewWithToolsAttributes()) {
+      taskBuilder.disableToolsAttributes();
+    }
+
     return taskBuilder;
   }
 

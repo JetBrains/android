@@ -179,7 +179,9 @@ public class LayoutPullParsers {
         IRenderLogger logger = renderTask.getLogger();
         HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
         ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
-        return LayoutPsiPullParser.create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver);
+        boolean useToolsNamespace = renderTask.getShowWithToolsAttributes();
+        return LayoutPsiPullParser
+          .create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, useToolsNamespace);
       }
       case DRAWABLE:
       case MIPMAP:
@@ -203,7 +205,7 @@ public class LayoutPullParsers {
             IRenderLogger logger = renderTask.getLogger();
             HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
             ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
-            return LayoutPsiPullParser.create(file, logger,  Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver);
+            return LayoutPsiPullParser.create(file, logger,  Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, true);
           }
         }
         return null;
