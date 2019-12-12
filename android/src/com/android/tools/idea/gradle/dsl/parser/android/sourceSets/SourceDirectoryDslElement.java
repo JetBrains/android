@@ -66,8 +66,8 @@ public class SourceDirectoryDslElement extends GradleDslBlockElement {
     {"includes", property, INCLUDES, VAL},
     {"include", atLeast(0), INCLUDES, OTHER},
     {"srcDirs", property, SRC_DIRS, VAL},
-    {"setSrcDirs", exactly(1), SRC_DIRS, SET},
     {"srcDirs", atLeast(0), SRC_DIRS, OTHER},
+    {"setSrcDirs", exactly(1), SRC_DIRS, SET},
     {"srcDir", exactly(1), SRC_DIRS, OTHER}
   }).collect(toModelMap());
 
