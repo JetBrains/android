@@ -16,7 +16,7 @@ import java.util.Collection;
  * @author Dmitry Avdeev
  */
 public class AndroidGradleProjectImportingTest extends GradleImportingTestCase {
-  @Ignore("Fails with Unknown host 'maven.labs.intellij.net: unknown error'")
+  @Ignore("Fails with Unknown host 'repo.labs.intellij.net: unknown error'")
   @Test
   public void testJavaFacet() throws Exception {
     createProjectSubFile("settings.gradle", "rootProject.name = 'multiproject'\n" +
@@ -45,7 +45,7 @@ public class AndroidGradleProjectImportingTest extends GradleImportingTestCase {
     createProjectSubFile("android/build.gradle", "buildscript {\n" +
                                                  "    repositories {\n" +
                                                  "    maven {\n" +
-                                                 "        url 'http://maven.labs.intellij.net/repo1'\n" +
+                                                 "        url 'https://repo.labs.intellij.net/repo1'\n" +
                                                  "    }\n" +
                                                  "    }\n" +
                                                  "    dependencies {\n" +
