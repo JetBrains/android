@@ -186,3 +186,8 @@ fun JListFixture.dragAndClickItem(text: String) {
   drag(text)
   clickItem(text)
 }
+
+fun JListFixture.dragAndClickItem(index: Int) {
+  drag(index)
+  clickItem(index)
+}

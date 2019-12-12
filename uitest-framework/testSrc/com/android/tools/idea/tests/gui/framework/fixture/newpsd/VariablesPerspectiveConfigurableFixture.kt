@@ -70,7 +70,7 @@ class VariablesPerspectiveConfigurableFixture(
 
   private fun chooseTypeByIndex(index: Int) {
     val listFixture = JListFixture(robot(), getList())
-    listFixture.clickItem(index)  // Search by title does not work here.
+    listFixture.drag(index).dragAndClickItem(index)  // Search by title does not work here.
   }
 
   private fun findTable(): JTableFixture =
