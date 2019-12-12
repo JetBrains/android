@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.npw.assetstudio.ui;
 
-import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toUpperCamelCase;
-
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
@@ -113,7 +111,8 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
   private static final String FOREGROUND_LAYER_NAME_PROPERTY = "foregroundLayerName";
   private static final String BACKGROUND_LAYER_NAME_PROPERTY = "backgroundLayerName";
   private static final String FOREGROUND_IMAGE_PROPERTY = "foregroundImage";
-  private static final String FOREGROUND_TEXT_ASSET_PROPERTY = "foregroundTextAsset";
+  private static final String FOREGROUND_TEXT_PROPERTY = "foregroundText";
+  private static final String BACKGROUND_IMAGE_PROPERTY = "backgroundImage";
 
   /**
    * This panel presents panels for configuring image and text asset.
@@ -234,6 +233,7 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
   private IntProperty myForegroundTextResizePercent;
   private IntProperty myBackgroundResizePercent;
   private BoolProperty myGenerateLegacyIcon;
+  private AndroidFacet myFacet;
 
   /**
    * Initializes a panel which can generate Android launcher icons. The supported types passed in
@@ -245,22 +245,12 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
                                 @NotNull ValidatorPanel validatorPanel,
                                 @Nullable DrawableRenderer renderer) {
     super(new BorderLayout());
+    myFacet = facet;
     AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(facet);
     AndroidVersion buildSdkVersion = androidModuleInfo.getBuildSdkVersion();
     myBuildSdkVersion = buildSdkVersion != null ? buildSdkVersion : new AndroidVersion(26);
 
-    ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
-      LocalResourceRepository projectResources = repositoryManager.getProjectResources();
-      List<ResourceItem> items = projectResources.getResources(repositoryManager.getNamespace(), ResourceType.STRING, "app_name");
-      ResourceValue resourceValue = !items.isEmpty() ? items.get(0).getResourceValue() : null;
-      String defaultIconText = resourceValue == null || resourceValue.getValue() == null ? "Application Name" : resourceValue.getValue();
-      UIUtil.invokeLaterIfNeeded(() -> {
-        myForegroundTextAssetEditor.setDefaultText(defaultIconText);
-        TextAsset textAsset = myForegroundTextAssetEditor.getAsset();
-        textAsset.text().set(defaultIconText);
-      });
-    });
+    myForegroundImageAssetBrowser.getAsset().setDefaultImagePath(DEFAULT_FOREGROUND_IMAGE);
 
     myIconGenerator = new TvBannerGenerator(facet.getModule().getProject(), androidModuleInfo.getMinSdkVersion().getApiLevel(), renderer);
     myValidatorPanel = validatorPanel;
@@ -349,32 +339,47 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
   @NotNull
   public PersistentState getState() {
     PersistentState state = new PersistentState();
-    state.setChild(FOREGROUND_TEXT_ASSET_PROPERTY, myForegroundTextAssetEditor.getState());
-    state.setChild("background" + toUpperCamelCase(BackgroundAssetType.IMAGE), myBackgroundImageAssetBrowser.getAsset().getState());
+    state.setChild(FOREGROUND_IMAGE_PROPERTY, myForegroundImageAssetBrowser.getAsset().getState());
+    state.setChild(FOREGROUND_TEXT_PROPERTY, myForegroundTextAssetEditor.getAsset().getState());
+    state.setChild(BACKGROUND_IMAGE_PROPERTY, myBackgroundImageAssetBrowser.getAsset().getState());
     state.set(BACKGROUND_ASSET_TYPE_PROPERTY, myBackgroundAssetType.get(), DEFAULT_BACKGROUND_ASSET_TYPE);
     // Notice that the foreground colors that are owned by the asset components have already been saved.
-    state.set(BACKGROUND_COLOR_PROPERTY, myBackgroundColor.get(), LauncherIconGenerator.DEFAULT_BACKGROUND_COLOR);
+    state.set(BACKGROUND_COLOR_PROPERTY, myBackgroundColor.get(), TvBannerGenerator.DEFAULT_BACKGROUND_COLOR);
     state.set(GENERATE_LEGACY_ICON_PROPERTY, myGenerateLegacyIcon.get(), true);
     state.set(OUTPUT_NAME_PROPERTY, myOutputName.get(), DEFAULT_OUTPUT_NAME);
     state.set(FOREGROUND_LAYER_NAME_PROPERTY, myForegroundLayerName.get(), defaultForegroundLayerName());
     state.set(BACKGROUND_LAYER_NAME_PROPERTY, myBackgroundLayerName.get(), defaultBackgroundLayerName());
-    state.set(FOREGROUND_IMAGE_PROPERTY, myForegroundImageAssetBrowser.getAsset().imagePath().getValueOrNull(), DEFAULT_FOREGROUND_IMAGE);
     return state;
   }
 
   @Override
   public void loadState(@NotNull PersistentState state) {
-    PersistentStateUtil.load(myForegroundTextAssetEditor, state.getChild(FOREGROUND_TEXT_ASSET_PROPERTY));
-    PersistentStateUtil.load(myBackgroundImageAssetBrowser.getAsset(),
-                             state.getChild("background" + toUpperCamelCase(BackgroundAssetType.IMAGE)));
+    // This method delays actual state loading until default icon text is obtained from the project
+    // resource repository.
+    ApplicationManager.getApplication().executeOnPooledThread(() -> {
+      ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myFacet);
+      LocalResourceRepository projectResources = repositoryManager.getProjectResources();
+      List<ResourceItem> items = projectResources.getResources(repositoryManager.getNamespace(), ResourceType.STRING, "app_name");
+      ResourceValue resourceValue = !items.isEmpty() ? items.get(0).getResourceValue() : null;
+      String defaultIconText = resourceValue == null || resourceValue.getValue() == null ? "Application Name" : resourceValue.getValue();
+      UIUtil.invokeLaterIfNeeded(() -> {
+        myForegroundTextAssetEditor.getAsset().setDefaultText(defaultIconText);
+        loadStateInternal(state);
+      });
+    });
+  }
+
+  private void loadStateInternal(@NotNull PersistentState state) {
+    PersistentStateUtil.load(myForegroundImageAssetBrowser.getAsset(), state.getChild(FOREGROUND_IMAGE_PROPERTY));
+    PersistentStateUtil.load(myForegroundTextAssetEditor.getAsset(), state.getChild(FOREGROUND_TEXT_PROPERTY));
+    PersistentStateUtil.load(myBackgroundImageAssetBrowser.getAsset(), state.getChild(BACKGROUND_IMAGE_PROPERTY));
     myBackgroundAssetType.set(state.get(BACKGROUND_ASSET_TYPE_PROPERTY, DEFAULT_BACKGROUND_ASSET_TYPE));
     // Notice that the foreground colors that are owned by the asset components have already been loaded.
-    myBackgroundColor.set(state.get(BACKGROUND_COLOR_PROPERTY, LauncherIconGenerator.DEFAULT_BACKGROUND_COLOR));
+    myBackgroundColor.set(state.get(BACKGROUND_COLOR_PROPERTY, TvBannerGenerator.DEFAULT_BACKGROUND_COLOR));
     myGenerateLegacyIcon.set(state.get(GENERATE_LEGACY_ICON_PROPERTY, true));
     myOutputName.set(state.get(OUTPUT_NAME_PROPERTY, DEFAULT_OUTPUT_NAME));
     myForegroundLayerName.set(state.get(FOREGROUND_LAYER_NAME_PROPERTY, defaultForegroundLayerName()));
     myBackgroundLayerName.set(state.get(BACKGROUND_LAYER_NAME_PROPERTY, defaultBackgroundLayerName()));
-    myForegroundImageAssetBrowser.getAsset().imagePath().setValue(state.get(FOREGROUND_IMAGE_PROPERTY, DEFAULT_FOREGROUND_IMAGE));
   }
 
   /**
