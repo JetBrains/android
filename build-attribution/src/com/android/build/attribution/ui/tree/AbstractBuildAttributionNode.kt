@@ -70,7 +70,9 @@ abstract class AbstractBuildAttributionNode protected constructor(
   private var cachedComponent: JComponent? = null
     get() {
       if (field == null) {
-        field = createComponent().init()
+        field = createComponent().init().apply {
+          name = "infoPage"
+        }
       }
       return field
     }

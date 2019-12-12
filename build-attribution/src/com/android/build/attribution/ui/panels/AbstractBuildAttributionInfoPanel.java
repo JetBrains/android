@@ -57,7 +57,9 @@ public abstract class AbstractBuildAttributionInfoPanel extends JBPanel<Abstract
     c.insets = JBUI.emptyInsets();
     c.fill = GridBagConstraints.BOTH;
     c.anchor = GridBagConstraints.FIRST_LINE_START;
-    add(createBody(), c);
+    JComponent body = createBody();
+    body.setName("pageBody");
+    add(body, c);
   }
 
   public abstract JComponent createHeader();
