@@ -74,7 +74,7 @@ fun waitForIdle() {
         if (e is InvocationEvent && eventString.contains("LaterInvocator.FlushQueue")) {
           @Suppress("INACCESSIBLE_TYPE")
           synchronized(lock) {
-            LaterInvocator.getLaterInvocatorQueue().cast<Collection<Any>>().forEach {
+            LaterInvocator.getLaterInvocatorWtQueue().cast<Collection<Any>>().forEach {
               lastEvents.offer(it.toString())
             }
           }
