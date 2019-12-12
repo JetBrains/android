@@ -75,7 +75,7 @@ class Histogram(val entries: List<HistogramEntry>, val instanceCount: Long) {
       }
 
       val summary =
-        "${getSummaryLine(mainHistogram, mainHistogramName)}\n${getSummaryLine(secondaryHistogram, secondaryHistogramName)}"
+        "${getSummaryLine(mainHistogram, mainHistogramName)}${System.lineSeparator()}${getSummaryLine(secondaryHistogram, secondaryHistogramName)}"
 
       if (options.includeByCount) {
         appendln("Histogram. Top ${options.classByCountLimit} by instance count [All-objects] [Only-strong-ref]:")
