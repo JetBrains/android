@@ -76,6 +76,7 @@ import com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesFor
 import com.android.tools.idea.testing.AndroidGradleTests.updateLocalRepositories
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.util.toIoFile
+import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.BooleanParameter
 import com.android.tools.idea.wizard.template.FormFactor
@@ -88,6 +89,7 @@ import com.android.tools.idea.wizard.template.WizardParameterData
 import com.google.common.base.Charsets.UTF_8
 import com.google.common.io.Files
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.project.guessProjectDir
@@ -328,6 +330,9 @@ data class ProjectChecker(
     if (newContent != origContent) {
       Files.asCharSink(gradleFile, UTF_8).write(newContent)
     }
+    // Bug 146077926
+    val gradleDocument = FileDocumentManager.getInstance().getDocument(gradleFile.toVirtualFile()!!)!!
+    FileDocumentManager.getInstance().reloadFromDisk(gradleDocument)
     refreshProjectFiles()
     if (syncProject) {
       assertEquals(moduleName, name)
