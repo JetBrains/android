@@ -16,6 +16,9 @@
 package com.android.tools.idea.ui.resourcemanager.importer
 
 import com.android.tools.idea.ui.resourcemanager.plugin.ResourceImporter
+import com.intellij.openapi.diagnostic.Logger
+
+private val LOG : Logger by lazy { Logger.getInstance(ImportersProvider::class.java) }
 
 /**
  * Provides methods to get aggregated data from the registered [ResourceImporter].
@@ -37,5 +40,11 @@ class ImportersProvider(
   /**
    * Returns a list of [ResourceImporter] that supports the provided extension.
    */
-  fun getImportersForExtension(extension: String): List<ResourceImporter> = typeToImporter[extension] ?: emptyList()
+  fun getImportersForExtension(extension: String): List<ResourceImporter> {
+    val importers = typeToImporter[extension] ?: emptyList()
+    if (importers.isEmpty()) {
+      LOG.warn("No Importers for: $extension.")
+    }
+    return importers
+  }
 }
