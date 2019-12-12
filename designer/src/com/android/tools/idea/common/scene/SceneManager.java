@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.common.scene;
 
-import static com.android.resources.Density.DEFAULT_DENSITY;
-
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
@@ -28,7 +26,6 @@ import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
