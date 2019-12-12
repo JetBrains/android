@@ -304,7 +304,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
     NELE, "show.source.code.editor", "New Source Code Editor",
     "Enable new source code editor with preview(s) coming as a substitute to Compose and Custom View editors.",
-    true);
+    false);
   //endregion
 
   //region Navigation Editor
