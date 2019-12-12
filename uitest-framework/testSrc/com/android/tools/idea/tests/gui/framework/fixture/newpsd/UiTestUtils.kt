@@ -27,6 +27,7 @@ import com.intellij.ui.components.JBList
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.exception.WaitTimedOutError
 import org.fest.swing.fixture.ContainerFixture
+import org.fest.swing.fixture.JListFixture
 import org.fest.swing.timing.Wait
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import sun.awt.PeerEvent
@@ -179,4 +180,9 @@ private fun oneFullSync() {
 
   xQueueSync()
   eventQueueSync()
+}
+
+fun JListFixture.dragAndClickItem(text: String) {
+  drag(text)
+  clickItem(text)
 }
