@@ -122,7 +122,7 @@ class TreePanel : ToolContent<DesignSurface> {
 
     override fun idOf(node: NlComponent) = node.id
 
-    override fun textValueOf(node: NlComponent) = node.uiName
+    override fun textValueOf(node: NlComponent) = null
 
     override fun iconOf(node: NlComponent): Icon = node.mixin?.icon ?: StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW
 
