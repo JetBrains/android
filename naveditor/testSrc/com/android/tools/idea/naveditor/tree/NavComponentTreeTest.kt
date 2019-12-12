@@ -25,11 +25,11 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.common.truth.Truth.assertThat
 
 class NavComponentTreeTest : NavTestCase() {
-  lateinit var model: NlModel
-  lateinit var surface: NavDesignSurface
-  lateinit var panel: TreePanel
-  lateinit var treeModel: ComponentTreeModel
-  lateinit var selectionModel: ComponentTreeSelectionModel
+  private lateinit var model: NlModel
+  private lateinit var surface: NavDesignSurface
+  private lateinit var panel: TreePanel
+  private lateinit var treeModel: ComponentTreeModel
+  private lateinit var selectionModel: ComponentTreeSelectionModel
 
   override fun setUp() {
     super.setUp()
@@ -92,5 +92,21 @@ class NavComponentTreeTest : NavTestCase() {
 
     val expectedRoot = model.find(root)!!
     assertEquals(surface.currentNavigation, expectedRoot)
+  }
+
+  fun testText() {
+    testText(model, "root")
+    testText(model, "fragment1")
+    testText(model, "fragment2")
+    testText(model, "subnav")
+    testText(model, "action1")
+    testText(model, "action2")
+  }
+
+  private fun testText(model: NlModel, id: String) {
+    val component = model.find(id)!!
+    val nodeType = TreePanel.NlComponentNodeType()
+    assertEquals(id, nodeType.idOf(component))
+    assertNull(nodeType.textValueOf(component))
   }
 }
