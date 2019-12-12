@@ -630,7 +630,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     ResourceResolver resourceResolver = configuration.getResourceResolver();
 
     LayoutPsiPullParser parser =
-      LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), null, Density.MEDIUM, resourceResolver);
+      LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), null, Density.MEDIUM, resourceResolver, true);
     assertEquals(START_TAG, parser.nextTag());
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("include", parser.getName());
@@ -672,7 +672,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     ResourceResolver resourceResolver = configuration.getResourceResolver();
 
     LayoutPsiPullParser parser =
-      LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), null, Density.MEDIUM, resourceResolver);
+      LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), null, Density.MEDIUM, resourceResolver, true);
     assertEquals(START_TAG, parser.nextTag());
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("include", parser.getName());
@@ -709,6 +709,56 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertEquals(START_TAG, parser.nextTag()); // Second TextView
     assertEquals("TextView", parser.getName());
     assertEquals("This should end up\nbeing on two lines", parser.getAttributeValue(ANDROID_URI, "text"));
+  }
+
+  public void testDisableToolsNamespace() throws XmlPullParserException {
+    @Language("XML")
+    final String content = "<androidx.constraintlayout.widget.ConstraintLayout\n" +
+                           "    xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                           "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
+                           "    xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                           "    android:layout_width=\"match_parent\"\n" +
+                           "    android:layout_height=\"match_parent\">\n" +
+                           "\n" +
+                           "    <Button\n" +
+                           "        android:id=\"@+id/button\"\n" +
+                           "        android:layout_width=\"wrap_content\"\n" +
+                           "        android:layout_height=\"wrap_content\"\n" +
+                           "        android:text=\"Button\"\n" +
+                           "        app:layout_constraintEnd_toEndOf=\"parent\"\n" +
+                           "        app:layout_constraintStart_toStartOf=\"parent\"\n" +
+                           "        tools:layout_editor_absoluteY=\"116dp\" />\n" +
+                           "\n" +
+                           "    <ImageView\n" +
+                           "        android:id=\"@+id/imageView2\"\n" +
+                           "        android:layout_width=\"wrap_content\"\n" +
+                           "        android:layout_height=\"wrap_content\"\n" +
+                           "        android:layout_marginTop=\"40dp\"\n" +
+                           "        tools:layout_marginTop=\"0dp\"\n" +
+                           "        app:srcCompat=\"@drawable/abc\"\n" +
+                           "        app:layout_constraintEnd_toEndOf=\"@+id/button\"\n" +
+                           "        app:layout_constraintStart_toStartOf=\"@+id/button\"\n" +
+                           "        app:layout_constraintTop_toBottomOf=\"@+id/button\"\n" +
+                           "        tools:srcCompat=\"@tools:sample/avatars\" />\n" +
+                           "\n" +
+                           "</androidx.constraintlayout.widget.ConstraintLayout>";
+    PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
+    assertTrue(psiFile instanceof XmlFile);
+    XmlFile xmlFile = (XmlFile) psiFile;
+    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, new RenderLogger("test", myModule), null, Density.MEDIUM, null, false);
+
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("androidx.constraintlayout.widget.ConstraintLayout", parser.getName());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("Button", parser.getName());
+    assertNull(parser.getAttributeValue(TOOLS_URI, "layout_editor_absoluteY"));
+    assertEquals(END_TAG, parser.nextTag());
+    assertEquals(START_TAG, parser.nextTag());
+    assertEquals("ImageView", parser.getName());
+    assertNull(parser.getAttributeValue(TOOLS_URI, "layout_marginTop"));
+    assertEquals("40dp", parser.getAttributeValue(ANDROID_URI, "layout_marginTop"));
+    assertNull(parser.getAttributeValue(TOOLS_URI, "srcCompat"));
+    assertEquals("@drawable/abc", parser.getAttributeValue(AUTO_URI, "srcCompat"));
   }
 
   enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }

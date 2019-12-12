@@ -163,6 +163,7 @@ public class RenderTask {
   private boolean myShowDecorations = true;
   private boolean myShadowEnabled = true;
   private boolean myHighQualityShadow = true;
+  private boolean myShowWithToolsAttributes = true;
   private AssetRepositoryImpl myAssetRepository;
   private long myTimeout;
   @NotNull private final Locale myLocale;
@@ -283,6 +284,10 @@ public class RenderTask {
 
   public boolean getShowDecorations() {
     return myShowDecorations;
+  }
+
+  public boolean getShowWithToolsAttributes() {
+    return myShowWithToolsAttributes;
   }
 
   public boolean isDisposed() {
@@ -498,6 +503,19 @@ public class RenderTask {
     return this;
   }
 
+  /**
+   * Sets whether the rendering should use 'tools' namespaced attributes. Including substituting 'android' and 'app' attributes with their
+   * 'tools' variants.
+   * <p>
+   * Default is {@code true}.
+   */
+  @SuppressWarnings("UnusedReturnValue")
+  @NotNull
+  public RenderTask setShowWithToolsAttributes(boolean showWithToolsAttributes) {
+    myShowWithToolsAttributes = showWithToolsAttributes;
+    return this;
+  }
+
   /** Returns whether this parser will provide view cookies for included views. */
   public boolean getProvideCookiesForIncludedViews() {
     return myProvideCookiesForIncludedViews;
@@ -676,6 +694,11 @@ public class RenderTask {
     XmlFile xmlFile = getXmlFile();
     if (xmlFile == null) {
       throw new IllegalStateException("getIncludingLayoutParser shouldn't be called on RenderTask without PsiFile");
+    }
+
+    if (!myShowWithToolsAttributes) {
+      // Don't support 'showIn' when 'tools' attributes are ignored for rendering.
+      return null;
     }
 
     // Code to support editing included layout.

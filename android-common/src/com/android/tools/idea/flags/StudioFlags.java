@@ -310,6 +310,11 @@ public final class StudioFlags {
     NELE, "show.source.code.editor", "New Source Code Editor",
     "Enable new source code editor with preview(s) coming as a substitute to Compose and Custom View editors.",
     false);
+
+  public static final Flag<Boolean> NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW = Flag.create(
+    NELE, "toggle.tools.attributes.preview", "New Toggle for Tools namespaces attributes",
+    "Enable the new toggle in the Layout Editor. Allows toggling tools attributes in the Layout preview.",
+    false);
   //endregion
 
   //region Navigation Editor

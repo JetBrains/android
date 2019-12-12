@@ -24,6 +24,7 @@ import com.android.tools.adtui.actions.ZoomResetAction
 import com.android.tools.adtui.actions.ZoomShortcut
 import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.editor.EditorActionsToolbarActionGroups
+import com.android.tools.idea.uibuilder.actions.DisableToolsAttributesInPreviewAction
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -41,9 +42,13 @@ class EditableDesignSurfaceActionGroups(private val shortcutConsumer: JComponent
     get() = createZoomLabelGroup()
 
   override val otherGroups: List<ActionGroup>
-    get() = listOf(DefaultActionGroup().apply {
-      add(PanSurfaceAction)
-    })
+    get() = listOf(
+      DefaultActionGroup().apply {
+        add(DisableToolsAttributesInPreviewAction)
+      },
+      DefaultActionGroup().apply {
+        add(PanSurfaceAction)
+      })
 }
 
 /**
