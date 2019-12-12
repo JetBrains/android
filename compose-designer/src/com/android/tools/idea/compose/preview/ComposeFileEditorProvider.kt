@@ -124,7 +124,7 @@ class ComposeFileEditorProvider @JvmOverloads constructor(
   }
 
   override fun accept(project: Project, file: VirtualFile): Boolean {
-    if (StudioFlags.NELE_SOURCE_CODE_EDITOR.get() || !StudioFlags.COMPOSE_PREVIEW.get() || !file.isKotlinFileType()) {
+    if (!StudioFlags.COMPOSE_PREVIEW.get() || !file.isKotlinFileType()) {
       return false
     }
 

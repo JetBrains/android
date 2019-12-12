@@ -77,7 +77,6 @@ internal class ComposeNewPreviewNotificationProvider @JvmOverloads constructor(
 
   override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? =
     when {
-      StudioFlags.NELE_SOURCE_CODE_EDITOR.get() -> null
       !StudioFlags.COMPOSE_PREVIEW.get() -> null
       // Not a Kotlin file or already a Compose Preview Editor
       !file.isKotlinFileType() || fileEditor.getComposePreviewManager() != null -> null
