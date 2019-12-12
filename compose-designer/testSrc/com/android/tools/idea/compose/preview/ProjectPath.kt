@@ -15,4 +15,4 @@
  */
 package com.android.tools.idea.compose.preview
 
-internal const val SIMPLE_COMPOSE_PROJECT_PATH = "projects/SimpleComposeApplication"
+const val SIMPLE_COMPOSE_PROJECT_PATH = "projects/SimpleComposeApplication"

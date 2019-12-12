@@ -17,10 +17,6 @@ package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.Result
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.rendering.PerfgateRenderUtil.computeAndRecordMetric
-import com.android.tools.idea.rendering.PerfgateRenderUtil.getInflateMetric
-import com.android.tools.idea.rendering.PerfgateRenderUtil.getRenderMetric
-import com.android.tools.idea.rendering.RenderLogger
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager.Companion.getInstance
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.VirtualFile
@@ -28,7 +24,6 @@ import junit.framework.TestCase
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestCase
 import org.junit.Assert
-import org.mockito.Mockito
 import java.util.concurrent.TimeUnit
 
 /**
@@ -74,7 +69,6 @@ private val SIMPLE_LAYOUT = """
 class RenderBasePerfgateTest : AndroidTestCase() {
   private lateinit var layoutFile: VirtualFile
   private lateinit var layoutConfiguration: Configuration
-  private val logger = Mockito.mock(RenderLogger::class.java)
 
   @Throws(Exception::class)
   override fun setUp() {
@@ -99,7 +93,7 @@ class RenderBasePerfgateTest : AndroidTestCase() {
   @Throws(Exception::class)
   fun testBaseInflate() {
     val computable = ThrowableComputable<PerfgateRenderMetric, Exception> {
-      val task = RenderTestUtil.createRenderTask(myFacet, layoutFile, layoutConfiguration, logger)
+      val task = RenderTestUtil.createRenderTask(myFacet, layoutFile, layoutConfiguration)
       val metric = getInflateMetric(task) { result: RenderResult ->
         checkSimpleLayoutResult(result)
       }
@@ -112,7 +106,7 @@ class RenderBasePerfgateTest : AndroidTestCase() {
   @Throws(Exception::class)
   fun testBaseRender() {
     val computable = ThrowableComputable<PerfgateRenderMetric, Exception> {
-      val task = RenderTestUtil.createRenderTask(myFacet, layoutFile, layoutConfiguration, logger)
+      val task = RenderTestUtil.createRenderTask(myFacet, layoutFile, layoutConfiguration)
       val metric = getRenderMetric(task, ::checkSimpleLayoutResult)
       task.dispose().get(5, TimeUnit.SECONDS)
       metric
