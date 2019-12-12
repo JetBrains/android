@@ -42,6 +42,7 @@ import com.android.tools.idea.testing.TestProjectPaths.TRANSITIVE_DEPENDENCIES
 import com.android.tools.idea.testing.TestProjectPaths.TWO_JARS
 import com.google.common.truth.Truth.assertAbout
 import com.google.common.truth.Truth.assertThat
+import com.intellij.idea.Bombed
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.application.WriteAction.run
@@ -84,6 +85,7 @@ abstract class GradleSyncProjectComparisonTest(
   override fun useSingleVariantSyncInfrastructure(): Boolean = singleVariantSync
   override fun useCompoundSyncInfrastructure(): Boolean = false
 
+  @Bombed(year=9999, month=12, day=31, description = "Idea does not use NewGradleSync.", user = "andrei.kuznetsov")
   class NewSyncGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTest(useNewSync = true)
 
   class NewSyncSingleVariantGradleSyncProjectComparisonTest :
