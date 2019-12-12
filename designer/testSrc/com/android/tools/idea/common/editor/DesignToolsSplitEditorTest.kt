@@ -54,7 +54,19 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
     val component = mock(JComponent::class.java)
     `when`(component.getActionForKeyStroke(any(KeyStroke::class.java))).thenCallRealMethod()
     splitEditor = object : DesignToolsSplitEditor(textEditor, designerEditor, "testEditor", project) {
-      override fun getComponent() = component
+      // The fact that we have to call registerModeNavigationShortcuts here repeating the behavior in SplitEditor is incorrect
+      // and should be fixed. However, we can not use the original getComponent method since it calls getComponent of
+      // TextEditorWithPreview which fails with a NullPointerException in testing environment. This test, however, has a value
+      // because we test that registerModeNavigationShortcuts does the right thing.
+      // TODO(b/146150328)
+      private var registeredShortcuts = false
+      override fun getComponent(): JComponent {
+        if (!registeredShortcuts) {
+          registeredShortcuts = true
+          registerModeNavigationShortcuts(component)
+        }
+        return component
+      }
     }
     CommonUsageTracker.NOP_TRACKER.resetLastTrackedEvent()
   }
@@ -99,7 +111,8 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
   fun testKeyboardShortcuts() {
     val modifiers = (if (SystemInfo.isMac) InputEvent.CTRL_DOWN_MASK else InputEvent.ALT_DOWN_MASK) or InputEvent.SHIFT_DOWN_MASK
     val focusManager = mock(KeyboardFocusManager::class.java)
-    `when`(focusManager.focusOwner).thenReturn(splitEditor.component)
+    val component = splitEditor.component
+    `when`(focusManager.focusOwner).thenReturn(component)
     KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
     val dispatcher = IdeKeyEventDispatcher(null)
 
