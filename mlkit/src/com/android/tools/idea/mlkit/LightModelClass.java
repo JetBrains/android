@@ -29,7 +29,9 @@ import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/** Represents a light class auto-generated for a specific model file under the assets folder. */
+/**
+ * Represents a light class auto-generated for a specific model file in the assets folder.
+ */
 public class LightModelClass extends AndroidLightClassBase {
   private final LightModelClassConfig myClassConfig;
   private final PsiJavaFile myContainingFile;
@@ -38,8 +40,8 @@ public class LightModelClass extends AndroidLightClassBase {
     super(PsiManager.getInstance(module.getProject()), ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
     myClassConfig = classConfig;
 
-    myContainingFile = (PsiJavaFile) PsiFileFactory.getInstance(module.getProject()).createFileFromText(
-      classConfig.myClassName + SdkConstants.DOT_JAVA,
+    myContainingFile = (PsiJavaFile)PsiFileFactory.getInstance(module.getProject()).createFileFromText(
+      classConfig.myModelMetadata.myClassName + SdkConstants.DOT_JAVA,
       JavaFileType.INSTANCE,
       "// This class is generated on-the-fly by the IDE.");
     myContainingFile.setPackageName(classConfig.myPackageName);
@@ -49,13 +51,13 @@ public class LightModelClass extends AndroidLightClassBase {
 
   @Override
   public String getName() {
-    return myClassConfig.myClassName;
+    return myClassConfig.myModelMetadata.myClassName;
   }
 
-  @Nullable
+  @NotNull
   @Override
   public String getQualifiedName() {
-    return myClassConfig.myPackageName + "." + myClassConfig.myClassName;
+    return myClassConfig.myPackageName + "." + getName();
   }
 
   @Nullable
@@ -64,7 +66,7 @@ public class LightModelClass extends AndroidLightClassBase {
     return null;
   }
 
-  @Nullable
+  @NotNull
   @Override
   public PsiFile getContainingFile() {
     return myContainingFile;

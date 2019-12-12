@@ -22,7 +22,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
-/** Provides editor for the TFLite mode files. */
+/**
+ * Provides editor for the TFLite mode files.
+ */
 public class TfliteModelFileEditorProvider implements FileEditorProvider {
   private static final String ID = "tflite_model_file_editor";
 
