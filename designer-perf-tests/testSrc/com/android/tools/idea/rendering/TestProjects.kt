@@ -13,22 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.idea.rendering
 
-import org.jetbrains.uast.UFile
-import org.jetbrains.uast.UMethod
-
-internal fun UFile.declaredMethods(): Sequence<UMethod> =
-  classes
-    .asSequence()
-    .flatMap { it.methods.asSequence() }
-
-internal fun UFile.method(name: String): UMethod? =
-  declaredMethods()
-    .filter { it.name == name }
-    .singleOrNull()
-
-internal class StaticPreviewProvider(private val list: List<PreviewElement>): PreviewElementProvider {
-  override val previewElements: List<PreviewElement>
-    get() = list
-}
+internal const val PERFGATE_COMPLEX_LAYOUT = "projects/perfgateComplexLayout"
+internal const val SIMPLE_COMPOSE_PROJECT_PATH = "projects/SimpleComposeApplication"

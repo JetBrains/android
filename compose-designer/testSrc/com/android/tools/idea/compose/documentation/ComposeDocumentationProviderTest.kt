@@ -17,9 +17,9 @@ package com.android.tools.idea.compose.documentation
 
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffUtil
-import com.android.tools.idea.compose.preview.NoSecurityManagerRenderService
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.rendering.NoSecurityManagerRenderService
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.intellij.openapi.application.ReadAction
