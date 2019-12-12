@@ -58,6 +58,7 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_MANIFEST_OUT
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API_LEVEL
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_NAME
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_OVERRIDE_PATH_CHECK
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_PACKAGE_NAME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_PROJECT_OUT
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_RES_OUT
@@ -260,6 +261,7 @@ data class ProjectChecker(
       topOut = File(activityState.getString(ATTR_TOP_OUT))
       applicationPackage = null
       debugKeyStoreSha1 = KeystoreUtils.sha1(getOrCreateDefaultDebugKeystore())
+      overridePathCheck = activityState.getBoolean(ATTR_OVERRIDE_PATH_CHECK)
     }
     val apis = ApiTemplateData(
       minApi = activityState.getString(ATTR_MIN_API),
