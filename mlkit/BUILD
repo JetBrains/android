@@ -39,6 +39,7 @@ iml_module(
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
         "//tools/idea/platform/core-api:intellij.platform.core[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
+        "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
     ],
 )
 
@@ -95,5 +96,7 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/idea/.idea/libraries:Guava[test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
+        "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
+        "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
     ],
 )
