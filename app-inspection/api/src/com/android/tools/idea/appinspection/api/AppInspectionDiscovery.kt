@@ -56,8 +56,8 @@ class AppInspectionDiscoveryHost(
   val discovery = AppInspectionDiscovery(executor, client, poller, AppInspectionAttacher(executor, client))
 
   /**
-   * Connects to a process on device defined by [processDescriptor]. This method returns a future of [AppInspectionPipelineConnection]. If
-   * the connection is cached, the future is ready to be gotten immediately.
+   * Connects to a process on device defined by [processDescriptor]. This method returns a future of [AppInspectionTarget]. If the
+   * connection is cached, the future is ready to be gotten immediately.
    */
   fun connect(
     jarCopier: AppInspectionJarCopier,
