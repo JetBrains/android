@@ -196,5 +196,7 @@ fun criticalPathHeader(prefix: String, duration: String, analytics: BuildAttribu
   )
 }
 
-fun headerLabel(text: String): JLabel = JBLabel(text).withFont(JBUI.Fonts.label(13f).asBold())
+fun headerLabel(text: String): JLabel = JBLabel(text).withFont(JBUI.Fonts.label(13f).asBold()).apply {
+  name = "pageHeader"
+}
 

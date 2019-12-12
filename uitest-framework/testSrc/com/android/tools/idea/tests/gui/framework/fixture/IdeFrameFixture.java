@@ -298,7 +298,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   }
 
   protected void selectProjectMakeAction() {
-    invokeMenuPath("Build", "Make Project");
+    waitAndInvokeMenuPath("Build", "Make Project");
   }
 
   /**
