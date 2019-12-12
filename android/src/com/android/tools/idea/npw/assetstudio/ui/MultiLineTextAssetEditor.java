@@ -17,13 +17,11 @@ package com.android.tools.idea.npw.assetstudio.ui;
 
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
-import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
-import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.border.CustomLineBorder;
@@ -39,11 +37,7 @@ import org.jetbrains.annotations.NotNull;
  * Panel which wraps a {@link TextAsset}, allowing the user to enter multi-line text and choose a font
  * from a pulldown.
  */
-public final class MultiLineTextAssetEditor extends JPanel implements AssetComponent<TextAsset>, PersistentStateComponent<PersistentState> {
-  private static final String TEXT_PROPERTY = "text";
-  private static final String FONT_FAMILY_PROPERTY = "fontFamily";
-
-  private @NotNull String myDefaultText = "";
+public final class MultiLineTextAssetEditor extends JPanel implements AssetComponent<TextAsset>  {
   private final TextAsset myTextAsset = new TextAsset();
   private final BindingsManager myBindings = new BindingsManager();
   private final List<ActionListener> myListeners = new ArrayList<>(1);
@@ -89,36 +83,9 @@ public final class MultiLineTextAssetEditor extends JPanel implements AssetCompo
     myListeners.add(listener);
   }
 
-  @NotNull
-  public String getDefaultText() {
-    return myDefaultText;
-  }
-
-  public void setDefaultText(@NotNull String defaultText) {
-    myDefaultText = defaultText;
-  }
-
   @Override
   public void dispose() {
     myBindings.releaseAll();
     myListeners.clear();
-  }
-
-  @Override
-  @NotNull
-  public PersistentState getState() {
-    PersistentState state = new PersistentState();
-    state.set(TEXT_PROPERTY, myTextAsset.text().get(), myDefaultText);
-    state.set(FONT_FAMILY_PROPERTY, myTextAsset.fontFamily().get(), myTextAsset.defaultFontFamily());
-    return state;
-  }
-
-  @Override
-  public void loadState(@NotNull PersistentState state) {
-    String text = state.get(TEXT_PROPERTY);
-    if (text != null) {
-      myTextAsset.text().set(text);
-    }
-    myTextAsset.fontFamily().set(state.get(FONT_FAMILY_PROPERTY, myTextAsset.defaultFontFamily()));
   }
 }

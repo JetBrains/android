@@ -25,7 +25,6 @@ import com.android.tools.idea.npw.assetstudio.LauncherLegacyIconGenerator;
 import com.android.tools.idea.npw.assetstudio.NotificationIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
-import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
 import com.android.tools.idea.npw.assetstudio.wizard.PersistentStateUtil;
@@ -220,7 +219,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     myDefaultOutputName = myIconType.toOutputName("name");
     myIconGenerator = createIconGenerator(facet.getModule().getProject(), iconType, minSdkVersion, renderer);
 
-    myTextAssetEditor.setDefaultText(TextAsset.DEFAULT_TEXT);
+    myTextAssetEditor.getAsset().setDefaultText("Aa");
 
     DefaultComboBoxModel<ActionBarIconGenerator.Theme> themesModel = new DefaultComboBoxModel<>(ActionBarIconGenerator.Theme.values());
     myThemeComboBox.setModel(themesModel);
@@ -289,7 +288,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     File file = myImageAssetBrowser.getAsset().imagePath().getValueOrNull();
     state.set(IMAGE_ASSET_PROPERTY, file == null ? null : file.getPath());
     state.setChild(CLIPART_ASSET_PROPERTY, myClipartAssetButton.getState());
-    state.setChild(TEXT_ASSET_PROPERTY, myTextAssetEditor.getState());
+    state.setChild(TEXT_ASSET_PROPERTY, myTextAssetEditor.getAsset().getState());
     switch (myIconType) {
       case LAUNCHER_LEGACY:
         // Notice that the foreground colors that are owned by the asset components have already been stored.
@@ -320,7 +319,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     String path = state.get(IMAGE_ASSET_PROPERTY);
     myImageAssetBrowser.getAsset().imagePath().setNullableValue(path == null ? null : new File(path));
     PersistentStateUtil.load(myClipartAssetButton, state.getChild(CLIPART_ASSET_PROPERTY));
-    PersistentStateUtil.load(myTextAssetEditor, state.getChild(TEXT_ASSET_PROPERTY));
+    PersistentStateUtil.load(myTextAssetEditor.getAsset(), state.getChild(TEXT_ASSET_PROPERTY));
     switch (myIconType) {
       case LAUNCHER_LEGACY:
         // Notice that the foreground colors that are owned by the asset components have already been loaded.
