@@ -97,9 +97,9 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     }
   }
 
-  override fun convertToPsiElement(literal: Any): PsiElement? {
+  override fun convertToPsiElement(context: GradleDslSimpleExpression, literal: Any): PsiElement? {
     return try {
-      createLiteral(dslFile, literal)
+      createLiteral(context, dslFile, literal)
     }
     catch (e : IncorrectOperationException) {
       dslFile.context.getNotificationForType(dslFile, INVALID_EXPRESSION).addError(e)
@@ -108,8 +108,12 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
   }
 
   override fun setUpForNewValue(context: GradleDslLiteral, newValue: PsiElement?) {
-    val isReference = newValue is KtNameReferenceExpression || newValue is KtDotQualifiedExpression ||
-                      newValue is KtClassLiteralExpression || newValue is KtArrayAccessExpression
+    val newPsiElement = when (newValue) {
+      is KtBinaryExpressionWithTypeRHS -> newValue.left
+      else -> newValue
+    }
+    val isReference = newPsiElement is KtNameReferenceExpression || newPsiElement is KtDotQualifiedExpression ||
+                      newPsiElement is KtClassLiteralExpression || newPsiElement is KtArrayAccessExpression
     context.isReference = isReference
   }
 
@@ -187,6 +191,10 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
           }
         }
         return literal.text
+      }
+      is KtBinaryExpressionWithTypeRHS -> return when (val expressionInfo = literal.left) {
+        is KtArrayAccessExpression -> this.extractValue(context, expressionInfo, resolve)
+        else -> unquoteString(literal.text)
       }
       else -> return ReferenceTo(literal.text)
     }

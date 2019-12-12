@@ -63,7 +63,7 @@ public abstract class FakeElement extends GradleDslSettableExpression {
     PsiElement element = s == null
                          ? null
                          : ApplicationManager.getApplication()
-                                             .runReadAction((Computable<PsiElement>)() -> getDslFile().getParser().convertToPsiElement(s));
+                                             .runReadAction((Computable<PsiElement>)() -> getDslFile().getParser().convertToPsiElement(this, s));
     // Note: Even though we use static dependencies for everything else, we are required to update them here.
     setupDependencies(element);
     return element;
