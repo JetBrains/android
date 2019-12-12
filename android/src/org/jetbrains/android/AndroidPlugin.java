@@ -50,6 +50,7 @@ final class AndroidPlugin {
     AnalyticsSettings.disable();
     UsageTracker.disable();
     UsageTracker.setIdeBrand(AndroidStudioEvent.IdeBrand.INTELLIJ);
+    StudioFlags.NEW_SYNC_INFRA_ENABLED.override(false);
   }
 
   private static void setUpActionsUnderFlag(@NotNull ActionManager actionManager) {
