@@ -17,10 +17,13 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 
 import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.vfs.VfsUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
+
+private val LOG : Logger by lazy { Logger.getInstance(ResourceImporter::class.java) }
 
 /**
  * Plugin interface to add resources importation plugins.
@@ -81,11 +84,16 @@ interface ResourceImporter {
    * Implementing methods can do some processing on the files like converting, or resizing...
    */
   fun processFile(file: File): DesignAsset? {
-    val virtualFile = VfsUtil.findFileByIoFile(file, true) ?: return null
+    val virtualFile = VfsUtil.findFileByIoFile(file, true)
+    if (virtualFile == null) {
+      LOG.warn("Failed to find file in VFS: ${file.path}.")
+      return null
+    }
     return if (DesignAssetRendererManager.getInstance().hasViewer(virtualFile)) {
       DesignAsset(virtualFile, listOf(), ResourceType.RAW)
     }
     else {
+      LOG.warn("No viewer for: ${virtualFile.name}.")
       null
     }
   }
