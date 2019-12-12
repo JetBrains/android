@@ -23,6 +23,7 @@ import com.android.builder.model.AndroidProject;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.java.model.ArtifactModel;
 import com.android.java.model.JavaProject;
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
@@ -82,7 +83,8 @@ public class NewGradleSync implements GradleSync {
   }
 
   public static boolean isEnabled(@NotNull Project project) {
-    return StudioFlags.NEW_SYNC_INFRA_ENABLED.get() || isSingleVariantSync(project);
+    return IdeInfo.getInstance().isAndroidStudio() &&
+           StudioFlags.NEW_SYNC_INFRA_ENABLED.get() || isSingleVariantSync(project);
   }
 
   public static boolean isSingleVariantSync(@NotNull Project project) {
