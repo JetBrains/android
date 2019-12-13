@@ -44,8 +44,8 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
+import com.intellij.psi.util.PsiEditorUtil;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiUtilBase;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
@@ -231,7 +231,7 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
       if (javaFile == null) {
         return;
       }
-      final Editor javaEditor = PsiUtilBase.findEditor(method);
+      final Editor javaEditor = PsiEditorUtil.Service.getInstance().findEditorByPsiElement(method);
 
       if (javaEditor == null) {
         return;

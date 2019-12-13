@@ -32,8 +32,8 @@ import com.intellij.psi.PsiExpression
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiStatement
 import com.intellij.psi.codeStyle.JavaCodeStyleManager
+import com.intellij.psi.util.PsiEditorUtil
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.util.PsiUtilBase
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -118,7 +118,7 @@ class AddTargetVersionCheckQuickFix(private val api: Int) : LintIdeQuickFix {
 
   private fun handleJava(element: PsiElement) {
     val expression = PsiTreeUtil.getParentOfType(element, PsiExpression::class.java, false) ?: return
-    val editor = PsiUtilBase.findEditor(expression) ?: return
+    val editor = PsiEditorUtil.Service.getInstance().findEditorByPsiElement(expression) ?: return
     val anchorStatement = PsiTreeUtil.getParentOfType(expression, PsiStatement::class.java) ?: return
     val file = expression.containingFile
     val project = expression.project
