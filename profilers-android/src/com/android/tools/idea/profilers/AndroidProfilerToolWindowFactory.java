@@ -42,9 +42,9 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     project.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
       @Override
-      public void stateChanged() {
+      public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
         // We need to query the tool window again, because it might have been unregistered when closing the project.
-        ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ID);
+        ToolWindow window = toolWindowManager.getToolWindow(ID);
         if (window == null) {
           return;
         }

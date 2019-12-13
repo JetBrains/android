@@ -136,8 +136,8 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
     }
 
     @Override
-    public void stateChanged() {
-      ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow("Logcat");
+    public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
+      ToolWindow window = toolWindowManager.getToolWindow("Logcat");
 
       if (window == null) {
         return;
