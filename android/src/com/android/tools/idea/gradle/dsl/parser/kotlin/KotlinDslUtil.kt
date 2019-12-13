@@ -476,7 +476,7 @@ internal fun createListElement(expression : GradleDslSettableExpression) : PsiEl
  * the expression value.
  */
 internal fun createMapElement(expression : GradleDslSettableExpression) : PsiElement? {
-  val parent = requireNotNull(expression.parent)
+  val parent = requireNotNull(expression.parent as? GradleDslExpressionMap)
   val parentPsiElement = parent.create() as? KtCallExpression ?: return null
 
   expression.psiElement = parentPsiElement
@@ -486,8 +486,11 @@ internal fun createMapElement(expression : GradleDslSettableExpression) : PsiEle
   val expressionRightValue =
     if (expressionValue is KtConstantExpression || expressionValue is KtNameReferenceExpression) expressionValue.text
     else StringUtil.unquoteString(expressionValue.text).addQuotes(true)
-  val argumentStringExpression =
-    "${expression.name.addQuotes(true)} to $expressionRightValue"
+  val argumentStringExpression = when {
+    parent.asNamedArgs -> "${expression.name}=$expressionRightValue"
+    else -> "${expression.name.addQuotes(true)} to $expressionRightValue"
+  }
+
   val mapArgument = psiFactory.createExpression(argumentStringExpression)
 
   val argumentValue = psiFactory.createArgument(mapArgument)

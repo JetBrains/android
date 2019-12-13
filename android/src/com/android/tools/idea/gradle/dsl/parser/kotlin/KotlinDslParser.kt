@@ -554,6 +554,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     arguments: List<KtValueArgument>
   ): GradleDslExpressionMap {
     val map = GradleDslExpressionMap(parentElement, arglistPsiElement, propertyName, false)
+    map.asNamedArgs = true
     arguments
       .map { arg -> arg.getArgumentName() to arg.getArgumentExpression() }
       .filter { e -> e.first != null && e.second != null }

@@ -33,6 +33,10 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement imp
   // prop = [:] possibly having important semantic meaning.
   private boolean myShouldBeDeleted;
 
+  // (In KotlinScript) should this map be expressed as a function call with named arguments, or as an explicit call to mapOf()?  (The
+  // parser is ambiguous for historical reasons, so we disambiguate at construction sites.)
+  private boolean asNamedArgs;
+
   public GradleDslExpressionMap(@Nullable GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name);
   }
@@ -82,6 +86,14 @@ public final class GradleDslExpressionMap extends GradlePropertiesDslElement imp
 
   public boolean isLiteralMap() {
     return myUseAssignment;
+  }
+
+  public boolean getAsNamedArgs() {
+    return asNamedArgs;
+  }
+
+  public void setAsNamedArgs(boolean value) {
+    asNamedArgs = value;
   }
 
   @Override
