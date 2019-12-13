@@ -35,7 +35,7 @@ object DisableToolsAttributesInPreviewAction : ToggleAction(
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    e.presentation.isEnabledAndVisible = NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW.get() || e.getPreviewHandler() != null
+    e.presentation.isEnabledAndVisible = NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW.get() && e.getPreviewHandler() != null
   }
 
   override fun isSelected(e: AnActionEvent): Boolean {
