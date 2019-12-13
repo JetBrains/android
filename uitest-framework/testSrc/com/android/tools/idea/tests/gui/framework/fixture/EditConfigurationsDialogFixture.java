@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickLabel;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitForPopup;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.application.options.ModulesComboBox;
@@ -22,6 +27,9 @@ import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.impl.EditConfigurationsDialog;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.module.Module;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JTextField;
 import org.fest.swing.cell.JComboBoxCellReader;
 import org.fest.swing.cell.JListCellReader;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -32,10 +40,6 @@ import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.*;
 
 public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfigurationsDialog> {
   @NotNull
@@ -86,8 +90,7 @@ public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfi
     ActionButton addNewConfigurationButton = robot().finder().find(target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
       @Override
       protected boolean isMatching(@NotNull ActionButton button) {
-        String toolTipText = button.getToolTipText();
-        return button.isShowing() && toolTipText != null && toolTipText.startsWith("Add New Configuration");
+        return button.isShowing() && button.getAction().getTemplatePresentation().getText().equals("Add New Configuration");
       }
     });
     robot().click(addNewConfigurationButton);
