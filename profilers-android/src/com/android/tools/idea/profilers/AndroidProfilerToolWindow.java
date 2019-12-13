@@ -392,9 +392,9 @@ public class AndroidProfilerToolWindow implements Disposable {
      * 2. If the window is minimized while a session is running, a balloon is shown informing users that the profilers is still running.
      */
     @Override
-    public void stateChanged() {
+    public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
       // We need to query the tool window again, because it might have been unregistered when closing the project.
-      ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(AndroidProfilerToolWindowFactory.ID);
+      ToolWindow window = toolWindowManager.getToolWindow(AndroidProfilerToolWindowFactory.ID);
       if (window == null) {
         return;
       }
