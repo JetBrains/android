@@ -25,14 +25,18 @@ import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.RESO
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.RESOURCE_CONTEXT_SCOPE
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
 import com.android.tools.idea.util.androidFacet
+import com.android.utils.reflection.qualifiedName
 import com.intellij.ide.TitledHandler
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.psi.PsiElement
@@ -41,10 +45,12 @@ import com.intellij.psi.PsiReference
 import com.intellij.psi.search.SearchScope
 import com.intellij.refactoring.listeners.RefactoringElementListener
 import com.intellij.refactoring.rename.BindablePsiReference
+import com.intellij.refactoring.rename.PsiElementRenameHandler
 import com.intellij.refactoring.rename.RenameDialog
 import com.intellij.refactoring.rename.RenameHandler
 import com.intellij.refactoring.rename.RenamePsiElementProcessor
 import com.intellij.refactoring.rename.RenameUtil
+import com.intellij.ui.EditorTextField
 import com.intellij.usageView.UsageInfo
 import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrFieldUrl
@@ -197,6 +203,12 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
 }
 
 /**
+ * [DataKey] used by areas of the IDE that want to override the name suggestion field of the resource rename dialog with their own new name
+ * suggestion.
+ */
+val NEW_NAME_RESOURCE: DataKey<String> = DataKey.create(::NEW_NAME_RESOURCE.qualifiedName)
+
+/**
  * [RenameHandler] for Android Resources, in Java, XML, and PsiFiles.
  */
 open class ResourceRenameHandler : RenameHandler, TitledHandler {
@@ -239,13 +251,13 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
     if (file == null) {
       return
     }
-    referencePsiElement.putCopyableUserData<PsiElement>(RESOURCE_CONTEXT_ELEMENT, file)
+    referencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_ELEMENT, file)
     referencePsiElement.putCopyableUserData(
       RESOURCE_CONTEXT_SCOPE,
       ResourceRepositoryToPsiResolver.getResourceSearchScope(referencePsiElement.resourceReference, file)
     )
-    val renameDialog = ResourceRenameDialog(project, referencePsiElement, null, editor)
-    RenameDialog.showRenameDialog(dataContext, renameDialog)
+    val newName = NEW_NAME_RESOURCE.getData(dataContext)
+    ResourceRenameDialog(project, referencePsiElement, null, editor, newName).show(dataContext)
   }
 
   override fun invoke(project: Project, elements: Array<out PsiElement>, dataContext: DataContext) {
@@ -265,8 +277,26 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
     project: Project,
     resourceReferenceElement: ResourceReferencePsiElement,
     nameSuggestionContext: PsiElement?,
-    editor: Editor?
+    editor: Editor?,
+    providedName: String?
   ) : RenameDialog(project, resourceReferenceElement, nameSuggestionContext, editor) {
+
+    init {
+      if (providedName != null) {
+        (nameSuggestionsField.focusableComponent as? EditorTextField)?.text = providedName
+      }
+    }
+
+    fun show(dataContext: DataContext) {
+      if (ApplicationManager.getApplication().isUnitTestMode) {
+        val newTestingName = NEW_NAME_RESOURCE.getData(dataContext) ?: PsiElementRenameHandler.DEFAULT_NAME.getData(dataContext) ?: return
+        performRename(newTestingName)
+        close(DialogWrapper.OK_EXIT_CODE)
+      }
+      else {
+        super.show()
+      }
+    }
 
     override fun canRun() {
       val name = newName

@@ -29,6 +29,7 @@ import com.android.SdkConstants.RELATIVE_LAYOUT
 import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
 import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor
@@ -63,6 +64,7 @@ class NeleIdPropertyItemTest {
   fun setUp() {
     NeleIdRenameProcessor.choiceForNextRename = RefactoringChoice.ASK
     componentStack = ComponentStack(projectRule.project)
+    StudioFlags.RESOLVE_USING_REPOS.override(false)
   }
 
   @After
@@ -70,6 +72,7 @@ class NeleIdPropertyItemTest {
     NeleIdRenameProcessor.choiceForNextRename = RefactoringChoice.ASK
     componentStack!!.restore()
     componentStack = null
+    StudioFlags.RESOLVE_USING_REPOS.clearOverride()
   }
 
   @Test

@@ -22,13 +22,18 @@ import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor
 import com.android.tools.lint.detector.api.stripIdPrefix
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.xml.XmlAttributeValue
-import com.intellij.psi.xml.XmlTag
+import com.intellij.refactoring.actions.RenameElementAction
 import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.attrs.AttributeDefinition
+import org.jetbrains.android.refactoring.renaming.NEW_NAME_RESOURCE
 
 open class NeleIdPropertyItem(
   model: NelePropertiesModel,
@@ -100,10 +105,24 @@ open class NeleIdPropertyItem(
       return false
     }
 
-    // Exact replace only
-    val project = model.facet.module.project
-    val processor = NeleIdRenameProcessor(project, value, newValue)
-    processor.run()
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+      val action = RenameElementAction()
+      val simpleContext = SimpleDataContext.getSimpleContext(
+        mapOf(
+          NEW_NAME_RESOURCE.name to newId,
+          CommonDataKeys.PSI_FILE.name to value.containingFile,
+          CommonDataKeys.PSI_ELEMENT.name to value,
+          CommonDataKeys.PROJECT.name to value.project),
+        null
+      )
+      val event = AnActionEvent.createFromAnAction(action, null, "", simpleContext)
+      action.actionPerformed(event)
+    } else {
+      // Exact replace only
+      val project = model.facet.module.project
+      val processor = NeleIdRenameProcessor(project, value, newValue)
+      processor.run()
+    }
 
     // The RenameProcessor will change the value of the ID here (may happen later if previewing first).
     return true
