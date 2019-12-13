@@ -591,19 +591,21 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
   else {
     val project = element.psiElement?.project ?: return
     val factory = KtPsiFactory(project)
-    val psiElement : PsiElement = if (oldName.node.elementType == IDENTIFIER) {
-      factory.createNameIdentifier(newName)
-    } else if (oldName.node.elementType == STRING_TEMPLATE) {
-      factory.createExpression(StringUtil.unquoteString(newName).addQuotes(true))
-    }
-    // TODO(b/141842964): this is a bandage over the fact that we don't (yet) have a principled translation from Psi to Dsl to Psi.  We
-    //  parse extra["foo"] to ext.foo, so when writing we have to do the reverse.
-    else if (oldName.node.elementType == ARRAY_ACCESS_EXPRESSION && newName.startsWith("ext.")) {
-      val extraExpression = "extra[\"${newName.substring("ext.".length, newName.length)}\"]"
-      factory.createExpression(extraExpression)
-    } else {
-      factory.createExpression(newName)
-    }
+    val psiElement: PsiElement =
+      when (oldName.node.elementType) {
+        IDENTIFIER -> factory.createNameIdentifierIfPossible(newName)
+        STRING_TEMPLATE -> factory.createExpressionIfPossible(StringUtil.unquoteString(newName).addQuotes(true))
+        ARRAY_ACCESS_EXPRESSION -> when {
+          newName.startsWith("ext.") -> {
+            // TODO(b/141842964): this is a bandage over the fact that we don't (yet) have a principled translation from Psi to Dsl to Psi.
+            //  We parse extra["foo"] to ext.foo, so when writing we have to do the reverse.
+            val extraExpression = "extra[\"${newName.substring("ext.".length, newName.length)}\"]"
+            factory.createExpressionIfPossible(extraExpression)
+          }
+          else -> factory.createExpressionIfPossible(newName)
+        }
+        else -> factory.createExpressionIfPossible(newName)
+      } ?: throw IllegalStateException("Can't create new KtExpression for name element \"$newName\"")
 
     // For Kotlin, committing changes is a bit different, and if the psiElement is invalid, it throws an exception (unlike Groovy), so we
     // need to check if the oldName is still valid, otherwise, we use the psiElement created to update the name.
