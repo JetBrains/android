@@ -44,10 +44,11 @@ import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.util.messages.MessageBusConnection;
 import icons.StudioIcons;
-import java.util.HashMap;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public final class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFactory {
   public static final String ID = "Android Profiler";
@@ -58,9 +59,9 @@ public final class AndroidProfilerToolWindowFactory implements DumbAware, ToolWi
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     project.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
       @Override
-      public void stateChanged() {
+      public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
         // We need to query the tool window again, because it might have been unregistered when closing the project.
-        ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ID);
+        ToolWindow window = toolWindowManager.getToolWindow(ID);
         if (window == null) {
           return;
         }

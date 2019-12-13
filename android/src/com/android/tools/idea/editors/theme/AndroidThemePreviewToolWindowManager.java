@@ -164,12 +164,8 @@ public class AndroidThemePreviewToolWindowManager implements ProjectComponent {
     // Add a listener so we only update the preview when it's visible
     myProject.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
       @Override
-      public void stateChanged() {
-        if (myProject.isDisposed()) {
-          return;
-        }
-
-        final ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(TOOL_WINDOW_ID);
+      public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
+        ToolWindow window = toolWindowManager.getToolWindow(TOOL_WINDOW_ID);
         if (window != null && window.isAvailable()) {
           final boolean visible = window.isVisible();
           AndroidEditorSettings.getInstance().getGlobalState().setVisible(visible);

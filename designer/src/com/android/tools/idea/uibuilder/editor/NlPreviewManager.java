@@ -126,12 +126,8 @@ public class NlPreviewManager implements ProjectComponent {
 
     myProject.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
       @Override
-      public void stateChanged() {
-        if (myProject.isDisposed()) {
-          return;
-        }
-
-        final ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(toolWindowId);
+      public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
+        final ToolWindow window = toolWindowManager.getToolWindow(toolWindowId);
         if (window != null && window.isAvailable()) {
           final boolean visible = window.isVisible();
           AndroidEditorSettings.getInstance().getGlobalState().setVisible(visible);
