@@ -255,9 +255,19 @@ public final class StudioFlags {
     "If enabled, user can access the Connection Assistant under \"Tools\" and \"Deploy Target Dialog\"",
     true);
 
-  public static final Flag<Boolean> NELE_LAYOUT_EDITOR_ASSISTANT_ENABLED = Flag.create(
-    ASSISTANT, "layout.editor.help", "Display Help for Design Editor",
-    "If enabled, the assistant panel will display helpful guide on using the Design Editor.",
+  public static final Flag<Boolean> NELE_CONSTRAINT_LAYOUT_ASSISTANT = Flag.create(
+    ASSISTANT, "layout.editor.help.constraintlayout", "Display Help for Constraint Layout",
+    "If enabled, the assistant panel will display helpful guide on using Constraint Layout.",
+    false);
+
+  public static final Flag<Boolean> NELE_MOTION_LAYOUT_ASSISTANT = Flag.create(
+    ASSISTANT, "layout.editor.help.motionlayout", "Display Help for Motion Layout",
+    "If enabled, the assistant panel will display helpful guide on using Motion Layout.",
+    false);
+
+  public static final Flag<Boolean> NELE_NAV_EDITOR_ASSISTANT = Flag.create(
+    ASSISTANT, "layout.editor.help.naveditor", "Display Help for Navigation Editor",
+    "If enabled, the assistant panel will display helpful guide on using the Navigation Editor.",
     false);
 
   public static final Flag<Boolean> NELE_NEW_PROPERTY_PANEL = Flag.create(
