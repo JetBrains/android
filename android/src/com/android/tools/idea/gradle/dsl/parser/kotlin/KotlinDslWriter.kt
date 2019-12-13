@@ -177,7 +177,12 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       }
     }
     else if (element is GradleDslExpressionMap) {
-      statementText += "mapOf()"
+      if (element.asNamedArgs) {
+        statementText += "()"
+      }
+      else {
+        statementText += "mapOf()"
+      }
     }
     else {
       statementText += "()"
