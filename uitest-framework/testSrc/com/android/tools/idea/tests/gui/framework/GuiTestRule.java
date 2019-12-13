@@ -281,7 +281,7 @@ public class GuiTestRule implements TestRule {
     Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
     if (activeWindow instanceof Dialog) {
       Dialog dialog = (Dialog)activeWindow;
-      if (dialog.getModalityType() == Dialog.ModalityType.APPLICATION_MODAL) {
+      if (dialog.getModalityType() == Dialog.ModalityType.APPLICATION_MODAL && dialog.isDisplayable()) {
         return dialog;
       }
     }
