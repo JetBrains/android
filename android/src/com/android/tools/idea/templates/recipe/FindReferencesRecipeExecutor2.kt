@@ -25,9 +25,7 @@ import java.io.File
  * [RecipeExecutor] that collects references as a result of executing instructions in a [Recipe].
  */
 internal class FindReferencesRecipeExecutor2(private val context: RenderingContext2) : RecipeExecutor2 {
-  override fun hasDependency(mavenCoordinate: String, configuration: String?): Boolean {
-    return false
-  }
+  override fun hasDependency(mavenCoordinate: String): Boolean = false
 
   override fun save(source: String, to: File, trimVertical: Boolean, squishEmptyLines: Boolean) {
     addTargetFile(to)
