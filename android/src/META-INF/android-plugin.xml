@@ -446,7 +446,12 @@
 
     <moduleBuilder builderClass="com.android.tools.idea.npw.ideahost.AndroidModuleBuilder"/>
 
-    <defaultLiveTemplatesProvider implementation="com.android.tools.idea.templates.live.AndroidLiveTemplatesProvider"/>
+    <defaultLiveTemplates file="liveTemplates/Android.xml"/>
+    <defaultLiveTemplates file="liveTemplates/AndroidComments.xml"/>
+    <defaultLiveTemplates file="liveTemplates/AndroidLog.xml"/>
+    <defaultLiveTemplates file="liveTemplates/AndroidParcelable.xml"/>
+    <defaultLiveTemplates file="liveTemplates/AndroidTesting.xml"/>
+    <defaultLiveTemplates file="liveTemplates/AndroidXML.xml"/>
 
     <completion.contributor language="JAVA" implementationClass="org.jetbrains.android.AndroidJavaCompletionContributor" order="first"/>
     <completion.contributor language="JAVA" implementationClass="org.jetbrains.android.inspections.ResourceTypeCompletionContributor"
