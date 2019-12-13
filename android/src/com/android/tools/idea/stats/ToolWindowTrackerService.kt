@@ -86,7 +86,7 @@ internal class MyToolWindowManagerListener(private val project: Project) : ToolW
     ToolWindowTrackerService.getInstance(project).toolWindowRegistered(id)
   }
 
-  override fun stateChanged() {
+  override fun stateChanged(toolWindowManager: ToolWindowManager) {
     ToolWindowTrackerService.getInstance(project).stateChanged()
   }
 }

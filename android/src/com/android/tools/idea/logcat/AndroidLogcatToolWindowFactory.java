@@ -44,8 +44,6 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.util.messages.MessageBusConnection;
-import java.io.File;
-import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.maven.AndroidMavenUtil;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -53,6 +51,9 @@ import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+import java.util.List;
 
 public final class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAware {
   public static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
@@ -133,15 +134,13 @@ public final class AndroidLogcatToolWindowFactory implements ToolWindowFactory, 
     }
 
     @Override
-    public void stateChanged() {
-      ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow("Logcat");
-
+    public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
+      ToolWindow window = toolWindowManager.getToolWindow("Logcat");
       if (window == null) {
         return;
       }
 
       boolean visible = window.isVisible();
-
       if (myToolWindowVisible == visible) {
         return;
       }
@@ -208,7 +207,7 @@ public final class AndroidLogcatToolWindowFactory implements ToolWindowFactory, 
     }
 
     @Override
-    public void rootsChanged(ModuleRootEvent event) {
+    public void rootsChanged(@NotNull ModuleRootEvent event) {
       final ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(getToolWindowId());
       if (window == null) {
         return;

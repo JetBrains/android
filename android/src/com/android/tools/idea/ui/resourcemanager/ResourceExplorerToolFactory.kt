@@ -155,9 +155,8 @@ private class MyFileEditorListener(val project: Project,
 }
 
 private class MyToolWindowManagerListener(private val project: Project) : ToolWindowManagerListener {
-
-  override fun stateChanged() {
-    val window: ToolWindow = ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID) ?: return
+  override fun stateChanged(toolWindowManager: ToolWindowManager) {
+    val window: ToolWindow = toolWindowManager.getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID) ?: return
     val contentManager = window.contentManager
     val resourceExplorerIsPresent = contentManager.contents.any { it.component is ResourceExplorer }
     if (!window.isVisible) {
