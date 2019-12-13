@@ -55,7 +55,7 @@ internal class AppInspectorConnection(
   private val connectionClosedMessage = "Failed to send a command because the $inspectorId connection is already closed."
   private val disposeCalled = AtomicBoolean(false)
   private var isDisposed = AtomicBoolean(false)
-  private val disposeFuture = SettableFuture.create<AppInspection.AppInspectionResponse>()
+  private val disposeFuture = SettableFuture.create<Unit>()
 
   /**
    * The active [AppInspectorClient.EventListener] for this connection.
@@ -121,7 +121,7 @@ internal class AppInspectorConnection(
     }
   }
 
-  override fun disposeInspector(): ListenableFuture<AppInspection.AppInspectionResponse> {
+  override fun disposeInspector(): ListenableFuture<Unit> {
     return disposeFuture.also {
       if (disposeCalled.compareAndSet(false, true)) {
         val disposeInspectorCommand = DisposeInspectorCommand.newBuilder().build()
@@ -190,7 +190,7 @@ internal class AppInspectorConnection(
         disposeFuture.setException(RuntimeException(futureExceptionMessage))
       }
       else {
-        disposeFuture.set(disposeResponse)
+        disposeFuture.set(Unit)
       }
       clientEventListener.onDispose()
     }
