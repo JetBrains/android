@@ -6,6 +6,7 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.naveditor.iml"],
     lint_baseline = "lint_baseline.xml",
+    resources = ["resources"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
@@ -33,6 +34,7 @@ iml_module(
     ],
     # do not sort: must match IML order
     deps = [
+        "//tools/adt/idea/assistant[module]",
         "//tools/adt/idea/designer:intellij.android.designer[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
