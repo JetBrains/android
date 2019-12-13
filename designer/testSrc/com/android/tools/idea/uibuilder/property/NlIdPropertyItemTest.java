@@ -25,6 +25,7 @@ import static com.android.SdkConstants.TEXT_VIEW;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor;
 import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor.RefactoringChoice;
 import com.intellij.refactoring.BaseRefactoringProcessor;
@@ -40,11 +41,13 @@ public class NlIdPropertyItemTest extends PropertyTestCase {
     clearSnapshots();
     NeleIdRenameProcessor.setChoiceForNextRename(RefactoringChoice.ASK);
     myItem = (NlIdPropertyItem)createFrom(myTextView, ATTR_ID);
+    StudioFlags.RESOLVE_USING_REPOS.override(false);
   }
 
   @Override
   public void tearDown() throws Exception {
     try {
+      StudioFlags.RESOLVE_USING_REPOS.clearOverride();
       NeleIdRenameProcessor.setChoiceForNextRename(RefactoringChoice.ASK);
     }
     finally {
