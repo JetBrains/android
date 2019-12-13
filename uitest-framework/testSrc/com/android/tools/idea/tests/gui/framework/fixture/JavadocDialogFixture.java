@@ -30,7 +30,7 @@ import javax.swing.*;
 public class JavadocDialogFixture implements ContainerFixture<JDialog> {
 
   public static JavadocDialogFixture find(IdeFrameFixture ideFrameFixture) {
-    JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog.class, "Specify Generate JavaDoc Scope"));
+    JDialog dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog.class, "Generate JavaDoc"));
     return new JavadocDialogFixture(ideFrameFixture, dialog);
   }
 
