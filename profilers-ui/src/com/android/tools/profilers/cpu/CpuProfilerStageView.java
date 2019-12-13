@@ -125,9 +125,9 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
    * It can be either "start capturing" or "stop capturing".
    * This will be null if {@link FeatureConfig::isCpuCaptureStageEnabled}
    */
-  @Nullable private JBSplitter mySplitter;
+  @NotNull private final JBSplitter mySplitter;
 
-  @Nullable private CpuCaptureView myCaptureView;
+  @NotNull private final CpuCaptureView myCaptureView;
 
   @NotNull private final RangeTooltipComponent myTooltipComponent;
 
@@ -201,23 +201,17 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
     details.add(new ProfilerScrollbar(myStage.getTimeline(), details), new TabularLayout.Constraint(4, 0));
 
     // The first component in the splitter is the L2 components, the 2nd component is the L3 components.
-    if (!getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
-      myCaptureView = new CpuCaptureView(this);
+    myCaptureView = new CpuCaptureView(this);
+    mySplitter = new JBSplitter(true);
+    mySplitter.setFirstComponent(details);
+    mySplitter.setSecondComponent(null);
+    mySplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
+    getComponent().add(mySplitter, BorderLayout.CENTER);
 
-      mySplitter = new JBSplitter(true);
-      mySplitter.setFirstComponent(details);
-      mySplitter.setSecondComponent(null);
-      mySplitter.getDivider().setBorder(DEFAULT_HORIZONTAL_BORDERS);
-      getComponent().add(mySplitter, BorderLayout.CENTER);
+    stage.getStudioProfilers().addDependency(this)
+      .onChange(ProfilerAspect.MODE, this::updateCaptureViewVisibility);
 
-      stage.getStudioProfilers().addDependency(this)
-        .onChange(ProfilerAspect.MODE, this::updateCaptureViewVisibility);
-
-      updateCaptureViewVisibility();
-    }
-    else {
-      getComponent().add(details, BorderLayout.CENTER);
-    }
+    updateCaptureViewVisibility();
 
     CpuProfilerContextMenuInstaller.install(myStage, getIdeComponents(), myUsageView, getComponent());
     // Add the profilers common menu items
@@ -311,8 +305,6 @@ public class CpuProfilerStageView extends StageView<CpuProfilerStage> {
   }
 
   private void updateCaptureViewVisibility() {
-    assert mySplitter != null;
-    assert myCaptureView != null;
     if (myStage.getProfilerMode() == ProfilerMode.EXPANDED) {
       mySplitter.setSecondComponent(myCaptureView.getComponent());
     }
