@@ -473,8 +473,12 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       FILE_CONSTRUCTOR_NAME -> return getMethodCall(parentElement, psiElement, name, FILE_CONSTRUCTOR_NAME, argumentsList, true)
     }
 
-    // If the CallExpression has one argument only that is a callExpression, we skip the current CallExpression.
     val arguments = argumentsList.arguments
+    // If nontrivially-all the arguments are named, return a GradleDslExpressionMap
+    if (isFirstCall && arguments.size > 0 && arguments.all { it.isNamed() }) {
+      return getArglistMap(parentElement, psiElement, name, argumentsList.arguments)
+    }
+    // If the CallExpression has one argument only that is a callExpression, we skip the current CallExpression.
     if (arguments.size != 1) {
       return getMethodCall(parentElement, psiElement, name, methodName, argumentsList, false)
     }
@@ -541,6 +545,21 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     }.forEach(expressionMap::addParsedElement)
 
     return expressionMap
+  }
+
+  private fun getArglistMap(
+    parentElement: GradleDslElement,
+    arglistPsiElement: PsiElement,
+    propertyName: GradleNameElement,
+    arguments: List<KtValueArgument>
+  ): GradleDslExpressionMap {
+    val map = GradleDslExpressionMap(parentElement, arglistPsiElement, propertyName, false)
+    arguments
+      .map { arg -> arg.getArgumentName() to arg.getArgumentExpression() }
+      .filter { e -> e.first != null && e.second != null }
+      .mapNotNull { e -> createExpressionElement(map, arglistPsiElement, GradleNameElement.from(e.first!!, this), e.second!!) }
+      .forEach(map::addParsedElement)
+    return map
   }
 
   private fun getExpressionList(parentElement : GradleDslElement,
