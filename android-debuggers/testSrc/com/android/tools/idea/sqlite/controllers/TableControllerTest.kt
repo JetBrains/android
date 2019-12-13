@@ -272,6 +272,34 @@ class TableControllerTest : PlatformTestCase() {
     pumpEventsAndWaitForFutureException(future)
   }
 
+  fun testReloadDataAfterSortReturnsSortedData() {
+    // Prepare
+    tableController = TableController(
+      2,
+      tableView,
+      sqliteTable,
+      realDatabaseConnection,
+      SqliteStatement("SELECT * FROM author"),
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    tableView.listeners.first().toggleOrderByColumnInvoked(authorIdColumn)
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+
+    pumpEventsAndWaitForFuture(tableController.refreshData())
+
+    // Assert
+    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow1, authorsRow2))
+    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow1, authorsRow2))
+    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow5, authorsRow4))
+    orderVerifier.verify(tableView).showTableRowBatch(listOf(authorsRow5, authorsRow4))
+  }
+
   fun `test Next UiIsDisabledWhenNoMoreRowsAvailableOnSetup`() {
     // Prepare
     val mockResultSet = MockSqliteResultSet(10)

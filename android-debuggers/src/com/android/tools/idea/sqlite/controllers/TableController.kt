@@ -54,11 +54,14 @@ class TableController(
   private var orderBy: OrderBy? = null
   private var start = 0
 
+  private var lastExecutedQuery = sqliteStatement
+
   fun setUp(): ListenableFuture<Unit> {
     view.startTableLoading()
 
     return edtExecutor.transform(databaseConnection.execute(sqliteStatement)) { newResultSet ->
       checkNotNull(newResultSet)
+      lastExecutedQuery = sqliteStatement
 
       if (Disposer.isDisposed(this)) {
         Disposer.dispose(newResultSet)
@@ -84,7 +87,7 @@ class TableController(
 
     view.startTableLoading()
 
-    return edtExecutor.transform(databaseConnection.execute(sqliteStatement)) { newResultSet ->
+    return edtExecutor.transform(databaseConnection.execute(lastExecutedQuery)) { newResultSet ->
       checkNotNull(newResultSet)
 
       if (Disposer.isDisposed(this)) {
@@ -176,8 +179,10 @@ class TableController(
       view.startTableLoading()
       Disposer.dispose(resultSet)
 
-      edtExecutor.transform(databaseConnection.execute(SqliteStatement(newQuery, sqliteStatement.parametersValues))) { newResultSet ->
+      val selectStatement = SqliteStatement(newQuery, sqliteStatement.parametersValues)
+      edtExecutor.transform(databaseConnection.execute(selectStatement)) { newResultSet ->
         checkNotNull(newResultSet)
+        lastExecutedQuery = selectStatement
 
         if (Disposer.isDisposed(this@TableController)) {
           newResultSet.dispose()
