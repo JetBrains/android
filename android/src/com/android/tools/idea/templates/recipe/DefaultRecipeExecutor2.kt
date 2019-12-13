@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.dsl.api.java.LanguageLevelPropertyModel
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleUtil.dependsOn
+import com.android.tools.idea.gradle.util.GradleUtil.dependsOnAndroidTest
 import com.android.tools.idea.gradle.util.GradleUtil.dependsOnJavaLibrary
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.templates.RenderingContextAdapter
@@ -47,8 +48,8 @@ import com.android.tools.idea.templates.TemplateUtils.hasExtension
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDisk
 import com.android.tools.idea.templates.TemplateUtils.readTextFromDocument
 import com.android.tools.idea.templates.TemplateUtils.writeTextFile
-import com.android.tools.idea.templates.findModule
 import com.android.tools.idea.templates.resolveDependency
+import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
@@ -70,8 +71,6 @@ import com.intellij.openapi.vfs.VirtualFileVisitor
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.XmlElementFactory
-import freemarker.template.TemplateModelException
-import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
 import java.io.IOException
 import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
@@ -103,46 +102,25 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     }
   }
 
-  @Suppress("DEPRECATION")
-  override fun hasDependency(mavenCoordinate: String, configuration: String?): Boolean {
-    val defaultConfigurations = arrayOf(
-      GRADLE_COMPILE_CONFIGURATION, GRADLE_IMPLEMENTATION_CONFIGURATION, GRADLE_API_CONFIGURATION)
-    val defaultTestConfigurations = arrayOf(
-      GRADLE_ANDROID_TEST_COMPILE_CONFIGURATION, GRADLE_ANDROID_TEST_IMPLEMENTATION_CONFIGURATION, GRADLE_ANDROID_TEST_API_CONFIGURATION)
-
-    // Determine the configuration to check, based on the second argument passed to the function.
-    // Defaults to "compile" and "implementation and "api".
-    val configurations: Array<String> = if (configuration != null)
-      arrayOf(configuration)
-    else
-      defaultConfigurations
-
+  override fun hasDependency(mavenCoordinate: String): Boolean {
     val buildModel = moduleGradleBuildModel ?: return false
 
-    val isArtifactInDependencies = configurations.any { c ->
-      buildModel.dependencies().containsArtifact(c, ArtifactDependencySpec.create(mavenCoordinate)!!)
+    val existingArtifacts = buildModel.dependencies().artifacts().map {
+      ArtifactDependencySpec.create(it.name().toString(), it.group().toString(), it.version().toString())
     }
 
-    if (isArtifactInDependencies) {
+    val artifactToAdd = ArtifactDependencySpec.create(mavenCoordinate)!!
+
+    if (existingArtifacts.any { it.equalsIgnoreVersion(artifactToAdd) }) {
       return true
     }
 
-    // TODO(qumeric): Do we need it at all?
-    fun findCorrespondingModule(): Boolean? {
-      val modulePath = (context.templateData as? ModuleTemplateData)?.rootDir ?: return null
-      val module = findModule(modulePath.toString()) ?: return null
-      val facet = AndroidFacet.getInstance(module) ?: return null
-      // TODO(b/23032990)
-      val androidModel = AndroidModuleModel.get(facet) ?: return null
-      return when (configurations[0]) {
-        in defaultConfigurations ->
-          dependsOn(androidModel, mavenCoordinate) || dependsOnJavaLibrary(androidModel, mavenCoordinate) // For Kotlin dependencies
-        in defaultTestConfigurations -> GradleUtil.dependsOnAndroidTest(androidModel, mavenCoordinate)
-        else -> throw TemplateModelException("Unknown dependency configuration " + configurations[0])
-      }
-    }
+    val facet = context.module?.androidFacet ?: return false
+    val androidModel = AndroidModuleModel.get(facet) ?: return false
 
-    return findCorrespondingModule() ?: false
+    return dependsOn(androidModel, mavenCoordinate) ||
+           dependsOnJavaLibrary(androidModel, mavenCoordinate) ||
+           dependsOnAndroidTest(androidModel, mavenCoordinate)
   }
 
   /**
