@@ -36,6 +36,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiReferenceContributor;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.UsefulTestCase;
@@ -89,9 +90,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
     }
     myFixture = null;
     super.tearDown();
-/* b/146019490
     checkUndisposedAndroidRelatedObjects();
-b/146019490 */
   }
 
   /**
@@ -102,7 +101,8 @@ b/146019490 */
       if (disposable.getClass().getName().equals("com.android.tools.idea.adb.AdbService") ||
           disposable.getClass().getName().equals("com.android.tools.idea.adb.AdbOptionsService") ||
           (disposable instanceof ProjectImpl && (((ProjectImpl)disposable).isDefault() || ((ProjectImpl)disposable).isLight())) ||
-          (disposable instanceof Module && ((Module)disposable).getName().equals(LightProjectDescriptor.TEST_MODULE_NAME))) {
+          (disposable instanceof Module && ((Module)disposable).getName().equals(LightProjectDescriptor.TEST_MODULE_NAME)) ||
+          disposable instanceof PsiReferenceContributor) {
         // Ignore application services and light projects and modules that are not disposed by tearDown.
         return DisposerExplorer.VisitResult.SKIP_CHILDREN;
       }
