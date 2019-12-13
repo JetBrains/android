@@ -56,7 +56,7 @@ class TransportEventPoller(private val transportClient: TransportServiceGrpc.Tra
     // Poll for each listener
     for (eventListener in listeners) {
       // Use start/end time if available
-      val startTimestamp = eventListener.startTime?.invoke() ?: listenersToLastTimestamp.getOrDefault(eventListener, Long.MIN_VALUE)
+      val startTimestamp = listenersToLastTimestamp[eventListener] ?: eventListener.startTime?.invoke() ?: Long.MIN_VALUE
       val endTimestamp = eventListener.endTime()
 
       val builder = Transport.GetEventGroupsRequest.newBuilder()
