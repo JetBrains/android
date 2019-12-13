@@ -709,8 +709,12 @@ public final class GroovyDslUtil {
 
     String str = name + " = 1";
     GrExpression expression = factory.createExpressionFromText(str);
-    assert expression instanceof GrAssignmentExpression;
-    return ((GrAssignmentExpression)expression).getLValue();
+    if (expression instanceof GrAssignmentExpression) {
+      return ((GrAssignmentExpression)expression).getLValue();
+    }
+    else {
+      return null;
+    }
   }
 
   static void maybeUpdateName(@NotNull GradleDslElement element) {
@@ -728,7 +732,7 @@ public final class GroovyDslUtil {
     else {
       PsiElement psiElement = createNameElement(element, newName);
       if (psiElement == null) {
-        throw new IllegalStateException("Can't create new GrExpression for name element");
+        throw new IllegalStateException("Can't create new GrExpression for name element '" + newName + "'");
       }
       newElement = oldName.replace(psiElement);
     }
