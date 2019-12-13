@@ -40,16 +40,13 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
-import com.intellij.util.concurrency.AppExecutorUtil;
-import com.intellij.util.concurrency.AppScheduledExecutorService;
 import com.intellij.util.ui.UIUtil;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
+import java.util.Set;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
@@ -80,16 +77,19 @@ public abstract class AndroidTestBase extends UsefulTestCase {
   }
 
   public static void cleanupMockitoThreadLocals() throws Exception {
-    ThreadSafeMockingProgress.mockingProgress().resetOngoingStubbing();
-    Callable<Void> callable = () -> {
-      ThreadSafeMockingProgress.mockingProgress().resetOngoingStubbing();
-      return null;
-    };
-    callable.call();
-    AppScheduledExecutorService service = (AppScheduledExecutorService)AppExecutorUtil.getAppScheduledExecutorService();
-    List<Future<Void>> futures = service.invokeAll(Collections.nCopies(service.getBackendPoolExecutorSize(), callable));
-    for (Future<Void> future : futures) {
-      future.get();
+    Field provider = ThreadSafeMockingProgress.class.getDeclaredField("MOCKING_PROGRESS_PROVIDER");
+    provider.setAccessible(true);
+    ThreadLocal key = (ThreadLocal)provider.get(ThreadSafeMockingProgress.class);
+    Field threadLocalsField = Thread.class.getDeclaredField("threadLocals");
+    threadLocalsField.setAccessible(true);
+    Method remove = threadLocalsField.getType().getDeclaredMethod("remove", ThreadLocal.class);
+    remove.setAccessible(true);
+    Set<Thread> threads = Thread.getAllStackTraces().keySet();
+    for (Thread thread : threads) {
+      Object o = threadLocalsField.get(thread);
+      if (o != null) {
+        remove.invoke(o, key);
+      }
     }
   }
 
