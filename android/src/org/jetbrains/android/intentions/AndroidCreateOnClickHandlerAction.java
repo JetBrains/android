@@ -44,8 +44,8 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
+import com.intellij.psi.util.PsiEditorUtil;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiUtilBase;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
@@ -53,15 +53,12 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PsiNavigateUtil;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
-import java.util.List;
-import java.util.Locale;
 import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
 import org.jetbrains.kotlin.asJava.classes.KtLightClass;
 import org.jetbrains.kotlin.idea.KotlinLanguage;
 import org.jetbrains.kotlin.psi.KtClassOrObject;
@@ -231,7 +228,7 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
       if (javaFile == null) {
         return;
       }
-      final Editor javaEditor = PsiUtilBase.findEditor(method);
+      final Editor javaEditor = PsiEditorUtil.Service.getInstance().findEditorByPsiElement(method);
 
       if (javaEditor == null) {
         return;

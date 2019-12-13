@@ -25,10 +25,16 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiComment;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiExpression;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiModifierListOwner;
+import com.intellij.psi.PsiStatement;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
+import com.intellij.psi.util.PsiEditorUtil;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiUtilBase;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
@@ -38,7 +44,7 @@ import org.jetbrains.annotations.NotNull;
 
 /** Fix which surrounds an API warning with a version check */
 public class AddTargetVersionCheckQuickFix implements AndroidLintQuickFix {
-  private int myApi;
+  private final int myApi;
 
   public AddTargetVersionCheckQuickFix(int api) {
     myApi = api;
@@ -84,7 +90,7 @@ public class AddTargetVersionCheckQuickFix implements AndroidLintQuickFix {
     }
 
     PsiStatement anchorStatement = PsiTreeUtil.getParentOfType(expression, PsiStatement.class);
-    Editor editor = PsiUtilBase.findEditor(expression);
+    Editor editor = PsiEditorUtil.Service.getInstance().findEditorByPsiElement(expression);
     if (editor == null) {
       return;
     }
