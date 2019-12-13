@@ -30,6 +30,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.common.editor.DesignToolsSplitEditor;
 import com.android.tools.idea.common.editor.DesignerEditor;
+import com.android.tools.idea.common.editor.SplitEditor;
 import com.android.tools.idea.editors.manifest.ManifestPanel;
 import com.android.tools.idea.editors.strings.StringResourceEditor;
 import com.android.tools.idea.flags.StudioFlags;
@@ -65,6 +66,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileEditor.SplitEditorToolbar;
 import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.fileEditor.TextEditorWithPreview;
 import com.intellij.openapi.keymap.Keymap;
 import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.DumbService;
@@ -212,8 +214,8 @@ public class EditorFixture {
     if (StudioFlags.NELE_SPLIT_EDITOR.get() && editor == null) {
       // When using the split editor, we need to retrieve its text editor.
       FileEditor selectedEditor = manager.getSelectedEditor();
-      if (selectedEditor instanceof DesignToolsSplitEditor) {
-        editor = ((DesignToolsSplitEditor)selectedEditor).getTextEditor().getEditor();
+      if (selectedEditor instanceof TextEditorWithPreview) {
+        editor = ((TextEditorWithPreview)selectedEditor).getTextEditor().getEditor();
       }
     }
     checkState(editor != null, "no currently selected text editor");
@@ -392,8 +394,8 @@ public class EditorFixture {
         assertNotNull("Can't switch to tab " + tabName + " when no file is open in the editor", currentFile);
         FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
         for (FileEditor editor : manager.getAllEditors(currentFile)) {
-          if (StudioFlags.NELE_SPLIT_EDITOR.get() && editor instanceof DesignToolsSplitEditor) {
-            boolean consumedBySplitEditor = selectSplitEditorTab(tab, (DesignToolsSplitEditor)editor);
+          if (StudioFlags.NELE_SPLIT_EDITOR.get() && editor instanceof TextEditorWithPreview) {
+            boolean consumedBySplitEditor = selectSplitEditorTab(tab, (TextEditorWithPreview)editor);
             if (consumedBySplitEditor) {
               return true;
             }
@@ -412,11 +414,11 @@ public class EditorFixture {
   }
 
   /**
-   * Given a {@link Tab}, selects the corresponding mode in the {@link DesignToolsSplitEditor}, i.e. "Text only" when tab is {@link Tab#EDITOR} and
+   * Given a {@link Tab}, selects the corresponding mode in the {@link TextEditorWithPreview}, i.e. "Text only" when tab is {@link Tab#EDITOR} and
    * "Design only" when tab is {@link Tab#DESIGN}.
    * @return Whether this method effectively changed tabs. This only returns false if tab is not {@link Tab#EDITOR} or {@link Tab#DESIGN}.
    */
-  private boolean selectSplitEditorTab(@NotNull Tab tab, @NotNull DesignToolsSplitEditor editor) {
+  private boolean selectSplitEditorTab(@NotNull Tab tab, @NotNull TextEditorWithPreview editor) {
     if (!(tab == Tab.EDITOR || tab == Tab.DESIGN)) {
       // Only text and design are supported by split editor at the moment.
       return false;
@@ -516,8 +518,8 @@ public class EditorFixture {
       FileEditorManager manager = FileEditorManager.getInstance(myFrame.getProject());
       if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
         FileEditor selectedEditor = manager.getSelectedEditor();
-        if (selectedEditor instanceof DesignToolsSplitEditor) {
-          DesignToolsSplitEditor splitEditor = (DesignToolsSplitEditor)selectedEditor;
+        if (selectedEditor instanceof SplitEditor) {
+          SplitEditor splitEditor = (SplitEditor)selectedEditor;
           if (splitEditor.isTextMode()) {
             return splitEditor.getEditor();
           }
@@ -889,15 +891,21 @@ public class EditorFixture {
   public String getSelectedTab() {
     if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
       FileEditor[] selectedEditors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
-      if (selectedEditors.length > 0 && selectedEditors[0] instanceof DesignToolsSplitEditor) {
-        DesignToolsSplitEditor editor = (DesignToolsSplitEditor)selectedEditors[0];
-        if (editor.getPreferredFocusedComponent() == editor.getTextEditor().getPreferredFocusedComponent()) {
-          // The equivalent to the "Text" tab in the split editor is when we're in text-only mode.
-          return "Text";
+      if (selectedEditors.length > 0) {
+        FileEditor editor = selectedEditors[0];
+        if (editor instanceof TextEditorWithPreview) {
+          TextEditorWithPreview editorWithText = (TextEditorWithPreview)editor;
+          if (editorWithText.getPreferredFocusedComponent() == editorWithText.getTextEditor().getPreferredFocusedComponent()) {
+            // The equivalent to the "Text" tab in the split editor is when we're in text-only mode.
+            return "Text";
+          }
         }
-        else if (editor.getPreferredFocusedComponent() == editor.getDesignerEditor().getPreferredFocusedComponent()) {
-          // The equivalent to the "Design" tab in the split editor is when we're in preview-only mode.
-          return "Design";
+        if (editor instanceof DesignToolsSplitEditor) {
+          DesignToolsSplitEditor editorWithDesigner = (DesignToolsSplitEditor)editor;
+          if (editorWithDesigner.getPreferredFocusedComponent() == editorWithDesigner.getDesignerEditor().getPreferredFocusedComponent()) {
+            // The equivalent to the "Design" tab in the split editor is when we're in preview-only mode.
+            return "Design";
+          }
         }
       }
     }
@@ -928,10 +936,10 @@ public class EditorFixture {
       FileEditor[] selectedEditors = FileEditorManager.getInstance(myFrame.getProject()).getSelectedEditors();
       checkState(selectedEditors.length > 0, "no selected editors");
       FileEditor selected = selectedEditors[0];
-      checkState(selected instanceof DesignToolsSplitEditor, "invalid editor selected");
+      checkState(selected instanceof TextEditorWithPreview, "invalid editor selected");
       Tab tab = Tab.fromName(tabName);
       assertNotNull(String.format("Can't find tab named \"%s\".", tabName), tab);
-      GuiTask.execute(() -> selectSplitEditorTab(tab, (DesignToolsSplitEditor)selected));
+      GuiTask.execute(() -> selectSplitEditorTab(tab, (TextEditorWithPreview)selected));
     }
     else {
       TabLabel tab = waitUntilShowing(robot, new GenericTypeMatcher<TabLabel>(TabLabel.class) {
