@@ -127,8 +127,10 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
         // this must be done inside a transaction, see DeviceExplorerFilesUtils.findFile
         VirtualFile virtualFile = VfsUtil.findFileByIoFile(localPath.toFile(), true);
         if (virtualFile != null) {
-          boolean isOperationSuccessful = deleteVirtualFile(futureResult, virtualFile);
-          if (!isOperationSuccessful) {
+          try {
+            deleteVirtualFile(virtualFile);
+          } catch (IOException exception) {
+            futureResult.setException(exception);
             return;
           }
         }
@@ -140,20 +142,14 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     return futureResult;
   }
 
-  private boolean deleteVirtualFile(@NotNull SettableFuture<DownloadedFileData> futureResult, @NotNull VirtualFile virtualFile) {
+  public void deleteVirtualFile(@NotNull VirtualFile virtualFile) throws IOException {
     // Using VFS to delete files has the advantage of throwing VFS events,
     // so listeners can react to actions on the files - for example by closing a file before it being deleted.
-    try {
-      // This assertions prevent regressions for b/141649841.
-      // We need to add this assertion because in tests the deletion of a file doesn't trigger some PSI events that call the assertion.
-      ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
-      virtualFile.delete(this);
-      return true;
-    }
-    catch (IOException e) {
-      futureResult.setException(e);
-      return false;
-    }
+
+    // This assertions prevent regressions for b/141649841.
+    // We need to add this assertion because in tests the deletion of a file doesn't trigger some PSI events that call the assertion.
+    ((TransactionGuardImpl)TransactionGuard.getInstance()).assertWriteActionAllowed();
+    virtualFile.delete(this);
   }
 
   private void downloadFileAndAdditionalFiles(@NotNull SettableFuture<DownloadedFileData> futureResult,
