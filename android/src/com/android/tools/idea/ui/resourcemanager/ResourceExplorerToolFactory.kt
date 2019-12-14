@@ -45,8 +45,8 @@ private const val STRIPE_TITLE = "Resource Manager"
  * Provides the tool explorer panel
  */
 class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware {
-  override fun init(window: ToolWindow?) {
-    window?.stripeTitle = STRIPE_TITLE
+  override fun init(window: ToolWindow) {
+    window.stripeTitle = STRIPE_TITLE
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
