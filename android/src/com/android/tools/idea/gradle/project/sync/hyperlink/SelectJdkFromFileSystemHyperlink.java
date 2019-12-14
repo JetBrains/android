@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project.sync.hyperlink;
 
 import com.android.tools.idea.gradle.structure.AndroidProjectSettingsService;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
@@ -29,6 +30,14 @@ public class SelectJdkFromFileSystemHyperlink extends NotificationHyperlink {
   @Nullable
   public static SelectJdkFromFileSystemHyperlink create(@NotNull Project project) {
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      return doCreate(project);
+    }
+    return null;
+  }
+
+  @VisibleForTesting
+  static SelectJdkFromFileSystemHyperlink doCreate(@NotNull Project project) {
+    if (!project.isDisposed()) {
       ProjectSettingsService service = ProjectSettingsService.getInstance(project);
       if (service instanceof AndroidProjectSettingsService) {
         return new SelectJdkFromFileSystemHyperlink((AndroidProjectSettingsService)service);
@@ -44,6 +53,8 @@ public class SelectJdkFromFileSystemHyperlink extends NotificationHyperlink {
 
   @Override
   protected void execute(@NotNull Project project) {
-    mySettingsService.chooseJdkLocation();
+    if (!project.isDisposed()) {
+      mySettingsService.chooseJdkLocation();
+    }
   }
 }
