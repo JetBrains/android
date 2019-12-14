@@ -35,8 +35,6 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.util.concurrent.ListenableFuture
 import org.junit.runner.Description
-import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
@@ -177,12 +175,12 @@ class AppInspectionServiceRule(
    * Keeps track of the copied jar so tests could verify the operation happened.
    */
   class TestTransportFileCopier : AppInspectionJarCopier {
-    private val deviceBasePath = Paths.get("/test")
+    private val deviceBasePath = "/test/"
     lateinit var copiedJar: AppInspectorJar
 
-    override fun copyFileToDevice(jar: AppInspectorJar): List<Path> {
+    override fun copyFileToDevice(jar: AppInspectorJar): List<String> {
       copiedJar = jar
-      return listOf(deviceBasePath.resolve(jar.name))
+      return listOf(deviceBasePath + jar.name)
     }
   }
 }

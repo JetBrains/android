@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.appinspection.api
 
-import java.nio.file.Path
-
 /**
  * Defines the method through which an [AppInspectorJar] could be copied to device.
  */
@@ -24,7 +22,7 @@ interface AppInspectionJarCopier {
   /**
    * Copies the provided [AppInspectorJar] to a device.
    */
-  fun copyFileToDevice(jar: AppInspectorJar): List<Path>
+  fun copyFileToDevice(jar: AppInspectorJar): List<String>
 }
 
 /**
