@@ -452,7 +452,7 @@ public class AndroidStudioSystemHealthMonitor {
   private void initDataCollection() {
     Application application = ApplicationManager.getApplication();
 
-    ourStudioActionCount.set(myProperties.getOrInitLong(STUDIO_ACTIVITY_COUNT, 0L) + 1);
+    ourStudioActionCount.set(myProperties.getLong(STUDIO_ACTIVITY_COUNT, 0L) + 1);
     ourStudioExceptionCount.set(getPersistedExceptionCount(STUDIO_EXCEPTION_COUNT_FILE));
     ourInitialPersistedExceptionCount.set(ourStudioExceptionCount.get());
     ourBundledPluginsExceptionCount.set(getPersistedExceptionCount(BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE));
