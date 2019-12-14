@@ -58,8 +58,8 @@ private const val STRIPE_TITLE = "Resource Manager"
  */
 class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware, Condition<Any> {
 
-  override fun init(window: ToolWindow?) {
-    window?.stripeTitle = STRIPE_TITLE
+  override fun init(window: ToolWindow) {
+    window.stripeTitle = STRIPE_TITLE
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {

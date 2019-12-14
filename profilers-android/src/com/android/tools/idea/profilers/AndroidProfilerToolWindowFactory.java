@@ -58,7 +58,7 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
   }
 
   @Override
-  public void init(ToolWindow toolWindow) {
+  public void init(@NotNull ToolWindow toolWindow) {
     toolWindow.setToHideOnEmptyContent(true);
     toolWindow.hide(null);
     toolWindow.setShowStripeButton(false);
