@@ -50,7 +50,7 @@ public class CompatibilityChecksMetadataUpdater {
    */
   void initiateUpdateIfNecessary() {
     if (myCheckInterval != CheckInterval.NONE) {
-      long lastUpdateCheck = PropertiesComponent.getInstance().getOrInitLong(LAST_CHECK_TIMESTAMP_PROPERTY_NAME, -1);
+      long lastUpdateCheck = PropertiesComponent.getInstance().getLong(LAST_CHECK_TIMESTAMP_PROPERTY_NAME, -1);
       if (myCheckInterval.needsUpdate(lastUpdateCheck)) {
         fetchVersionMetadataUpdate(false);
       }
