@@ -33,7 +33,6 @@ import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.TransportService
 import com.intellij.execution.Executor
 import com.intellij.openapi.module.Module
-import java.nio.file.Path
 
 class AppInspectionLaunchTaskContributor : AndroidLaunchTaskContributor {
   override fun getTask(module: Module, applicationId: String, launchOptions: LaunchOptions): LaunchTask {
@@ -60,7 +59,7 @@ private class AppInspectionLaunchTask(private val module: Module) : LaunchTask {
     AppInspectionHostService.instance.discoveryHost.connect(
       object : AppInspectionJarCopier {
         private val delegate = TransportFileManager(device, TransportService.getInstance().messageBus)
-        override fun copyFileToDevice(jar: AppInspectorJar): List<Path> = delegate.copyFileToDevice(jar.toDeployableFile())
+        override fun copyFileToDevice(jar: AppInspectorJar): List<String> = delegate.copyFileToDevice(jar.toDeployableFile())
       },
       ProcessDescriptor(device, packageName)
     )

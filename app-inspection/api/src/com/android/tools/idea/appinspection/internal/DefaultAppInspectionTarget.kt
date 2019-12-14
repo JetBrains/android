@@ -42,7 +42,6 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.common.util.concurrent.SettableFuture
-import java.nio.file.Path
 import java.util.concurrent.Executor
 
 /**
@@ -118,13 +117,13 @@ private class DefaultAppInspectionTarget(
     creator: (AppInspectorClient.CommandMessenger) -> T
   ): ListenableFuture<T> {
     val launchResultFuture = MoreExecutors.listeningDecorator(transport.executorService)
-      .submit<Path> { jarCopier.copyFileToDevice(inspectorJar).first() }
+      .submit<String> { jarCopier.copyFileToDevice(inspectorJar).first() }
     return Futures.transformAsync(
       launchResultFuture,
-      AsyncFunction<Path, AppInspectorConnection> { fileDevicePath ->
+      AsyncFunction<String, AppInspectorConnection> { fileDevicePath ->
         val connectionFuture = SettableFuture.create<AppInspectorConnection>()
         val createInspectorCommand = CreateInspectorCommand.newBuilder()
-          .setDexPath(fileDevicePath.toString())
+          .setDexPath(fileDevicePath)
           .build()
         val appInspectionCommand = AppInspectionCommand.newBuilder()
           .setInspectorId(inspectorId)
