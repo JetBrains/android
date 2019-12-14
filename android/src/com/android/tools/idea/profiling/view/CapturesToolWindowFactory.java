@@ -38,7 +38,7 @@ public class CapturesToolWindowFactory implements ToolWindowFactory, DumbAware {
   }
 
   @Override
-  public void init(ToolWindow toolWindow) {
+  public void init(@NotNull ToolWindow toolWindow) {
     toolWindow.setStripeTitle(WINDOW_TITLE);
     toolWindow.setSplitMode(true, null);
   }
