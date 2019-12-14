@@ -213,7 +213,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
   @NotNull
   public ThreeComponentsSplitterFixture findToolWindowSplitter() {
     ToolWindowsPane toolWindowsPane = GuiTests.waitUntilFound(robot(), target(), Matchers.byType(ToolWindowsPane.class));
-    ThreeComponentsSplitter splitter = (ThreeComponentsSplitter)toolWindowsPane.getMyLayeredPane().getComponent(0);
+    ThreeComponentsSplitter splitter = (ThreeComponentsSplitter)toolWindowsPane.getLayeredPane().getComponent(0);
     return new ThreeComponentsSplitterFixture(robot(), splitter);
   }
 
