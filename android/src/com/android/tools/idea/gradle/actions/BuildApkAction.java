@@ -28,7 +28,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -57,8 +56,7 @@ public class BuildApkAction extends DumbAwareAction {
         GradleBuildInvoker gradleBuildInvoker = GradleBuildInvoker.getInstance(project);
         gradleBuildInvoker.add(new GoToApkLocationTask(project, appModules, ACTION_TEXT));
         Module[] modulesToBuild = appModules.toArray(Module.EMPTY_ARRAY);
-        gradleBuildInvoker.assemble(modulesToBuild, TestCompileType.ALL, Collections.emptyList(),
-                                    new OutputBuildAction(getModuleGradlePaths(appModules)));
+        gradleBuildInvoker.assemble(modulesToBuild, TestCompileType.ALL, new OutputBuildAction(getModuleGradlePaths(appModules)));
       }
     }
   }
