@@ -45,5 +45,6 @@ data class RenderingContext2(
 
   val showWarnings: Boolean get() = showErrors && dryRun
 
-  val projectTemplateData = (templateData as? ModuleTemplateData)?.projectTemplateData ?: templateData as ProjectTemplateData
+  val moduleTemplateData = templateData as? ModuleTemplateData
+  val projectTemplateData = moduleTemplateData?.projectTemplateData ?: templateData as ProjectTemplateData
 }
