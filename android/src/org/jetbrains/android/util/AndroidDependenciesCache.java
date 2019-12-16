@@ -18,14 +18,15 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.Ref;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,8 +37,8 @@ public class AndroidDependenciesCache implements Disposable {
   private static final Key<AndroidDependenciesCache> KEY = Key.create(AndroidDependenciesCache.class.getName());
 
   private final Module myModule;
-  private final Ref<List<WeakReference<AndroidFacet>>> myAllDependencies = Ref.create();
-  private final Ref<List<WeakReference<AndroidFacet>>> myAllLibraryDependencies = Ref.create();
+  private final AtomicReference<List<WeakReference<AndroidFacet>>> myAllDependencies = new AtomicReference<>();
+  private final AtomicReference<List<WeakReference<AndroidFacet>>> myAllLibraryDependencies = new AtomicReference<>();
 
   private AndroidDependenciesCache(@NotNull Module module) {
     myModule = module;
@@ -48,7 +49,6 @@ public class AndroidDependenciesCache implements Disposable {
     // AndroidDependenciesCache we are interested in any changes in the project.
     MessageBusConnection busConnection = module.getProject().getMessageBus().connect(this);
 
-    //noinspection rawtypes: FacetManagerAdapter uses raw types.
     busConnection.subscribe(FacetManager.FACETS_TOPIC, new FacetManagerAdapter() {
       @Override
       public void facetAdded(@NotNull Facet facet) {
@@ -108,14 +108,18 @@ public class AndroidDependenciesCache implements Disposable {
   }
 
   @NotNull
-  private Ref<List<WeakReference<AndroidFacet>>> getListRef(boolean androidLibrariesOnly) {
+  private AtomicReference<List<WeakReference<AndroidFacet>>> getListRef(boolean androidLibrariesOnly) {
     return androidLibrariesOnly ? myAllLibraryDependencies : myAllDependencies;
   }
 
   @NotNull
   private static List<AndroidFacet> getAllAndroidDependencies(@NotNull Module module,
                                                               boolean androidLibrariesOnly,
-                                                              @NotNull Ref<List<WeakReference<AndroidFacet>>> listRef) {
+                                                              @NotNull AtomicReference<List<WeakReference<AndroidFacet>>> listRef) {
+    if (module.isDisposed()) {
+      return Collections.emptyList();
+    }
+
     List<WeakReference<AndroidFacet>> refs = listRef.get();
 
     if (refs == null) {
