@@ -121,6 +121,8 @@ import java.io.IOException;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.psi.KtCallExpression;
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList;
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral;
 import org.junit.Test;
@@ -499,6 +501,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
 
     assertFalse(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_RESET);
 
     dependencies = dependenciesModel.artifacts();
     assertThat(dependencies).hasSize(1);
@@ -654,11 +657,17 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     DependenciesModel dependenciesModel = buildModel.dependencies();
 
     ArtifactDependencySpecImpl guavaSpec = new ArtifactDependencySpecImpl("guava", "com.google.guava", "18.0");
-    ArtifactDependencySpecImpl guiceSpec = new ArtifactDependencySpecImpl("guice", "com.google.code.guice", "2.0");
+    ArtifactDependencySpecImpl guice1Spec = new ArtifactDependencySpecImpl("guice", "com.google.code.guice", "1.0");
+    ArtifactDependencySpecImpl guice2Spec = new ArtifactDependencySpecImpl("guice", "com.google.code.guice", "2.0");
+    ArtifactDependencySpecImpl appcompat = new ArtifactDependencySpecImpl("appcompat-v7", "com.android.support", "22.1.1");
+    ArtifactDependencySpecImpl notAppcompat = new ArtifactDependencySpecImpl("appcompat-v7", "com.example", "22.1.1");
 
     assertTrue(dependenciesModel.containsArtifact(COMPILE, guavaSpec));
-    assertFalse(dependenciesModel.containsArtifact(COMPILE, guiceSpec));
     assertFalse(dependenciesModel.containsArtifact(CLASSPATH, guavaSpec));
+    assertTrue(dependenciesModel.containsArtifact(COMPILE, guice1Spec));
+    assertFalse(dependenciesModel.containsArtifact(COMPILE, guice2Spec));
+    assertTrue(dependenciesModel.containsArtifact(COMPILE, appcompat));
+    assertFalse(dependenciesModel.containsArtifact(COMPILE, notAppcompat));
   }
 
   @Test
@@ -1195,8 +1204,12 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     PsiElement psiElement = artifact.getPsiElement();
     if (isGroovy()) {
       assertThat(psiElement).isInstanceOf(GrLiteral.class);
+      assertThat(psiElement.getText()).isEqualTo("'org.gradle.test.classifiers:service:1.0'");
     }
-    assertThat(psiElement.getText()).isEqualTo("'org.gradle.test.classifiers:service:1.0'");
+    else {
+      assertThat(psiElement).isInstanceOf(KtStringTemplateExpression.class);
+      assertThat(psiElement.getText()).isEqualTo("\"org.gradle.test.classifiers:service:1.0\"");
+    }
   }
 
   @Test
@@ -1238,8 +1251,12 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     PsiElement psiElement = artifact.getPsiElement();
     if (isGroovy()) {
       assertThat(psiElement).isInstanceOf(GrLiteral.class);
+      assertThat(psiElement.getText()).isEqualTo("'org.hibernate:hibernate:3.1'");
     }
-    assertThat(psiElement.getText()).isEqualTo("'org.hibernate:hibernate:3.1'");
+    else {
+      assertThat(psiElement).isInstanceOf(KtStringTemplateExpression.class);
+      assertThat(psiElement.getText()).isEqualTo("\"org.hibernate:hibernate:3.1\"");
+    }
   }
 
   @Test
@@ -1280,9 +1297,14 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     PsiElement psiElement = artifact.getPsiElement();
     if (isGroovy()) {
       assertThat(psiElement).isInstanceOf(GrArgumentList.class);
+      assertThat(psiElement.getText())
+        .isEqualTo("group: 'com.google.code.guice', name: 'guice', version: '1.0', classifier: 'high', ext: 'bleh'");
     }
-    assertThat(psiElement.getText())
-      .isEqualTo("group: 'com.google.code.guice', name: 'guice', version: '1.0', classifier: 'high', ext: 'bleh'");
+    else {
+      assertThat(psiElement).isInstanceOf(KtCallExpression.class);
+      assertThat(psiElement.getText())
+        .isEqualTo("compile(group=\"com.google.code.guice\", name=\"guice\", version=\"1.0\", classifier=\"high\", ext=\"bleh\")");
+    }
   }
 
   @Test
@@ -1395,12 +1417,18 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     List<ArtifactDependencyModel> artifacts = dependencies.artifacts();
     assertSize(2, artifacts);
 
-    ResolvedPropertyModel model = artifacts.get(0).completeModel();
-    verifyPropertyModel(model, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, DERIVED, 1, "0");
     assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
-    model = artifacts.get(1).completeModel();
-    verifyPropertyModel(model, STRING_TYPE, "com.google.guava:guava:+", STRING, DERIVED, 1, "1");
     assertThat(artifacts.get(0).configurationName()).isEqualTo("testCompile");
+    ResolvedPropertyModel model0 = artifacts.get(0).completeModel();
+    ResolvedPropertyModel model1 = artifacts.get(1).completeModel();
+    if (isGroovy()) {
+      verifyPropertyModel(model0, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, DERIVED, 1, "0");
+      verifyPropertyModel(model1, STRING_TYPE, "com.google.guava:guava:+", STRING, DERIVED, 1, "1");
+    }
+    else {
+      verifyPropertyModel(model0, STRING_TYPE, "org.gradle.test.classifiers:service:1.0", STRING, REGULAR, 1, "testCompile");
+      verifyPropertyModel(model1, STRING_TYPE, "com.google.guava:guava:+", STRING, REGULAR, 1, "testCompile");
+    }
   }
 
   private void runSetFullReferencesTest(@NotNull TestFileName testFileName) throws IOException {
