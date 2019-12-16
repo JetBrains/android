@@ -29,7 +29,9 @@ import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView
 import com.google.common.util.concurrent.FutureCallback
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -73,29 +75,37 @@ class DatabaseInspectorControllerImpl(
     view.addListener(sqliteViewListener)
   }
 
-  override fun addSqliteDatabase(sqliteDatabaseFuture: ListenableFuture<SqliteDatabase>) {
+  override fun addSqliteDatabase(sqliteDatabaseFuture: ListenableFuture<SqliteDatabase>): ListenableFuture<Unit> {
+    val settableFuture = SettableFuture.create<Unit>()
+
     view.startLoading("Getting database...")
     taskExecutor.addCallback(sqliteDatabaseFuture, object : FutureCallback<SqliteDatabase> {
       override fun onSuccess(sqliteDatabase: SqliteDatabase?) {
         if (Disposer.isDisposed(this@DatabaseInspectorControllerImpl)) return
-        readDatabaseSchema(sqliteDatabase!!) { schema -> addNewDatabaseSchema(sqliteDatabase, schema) }
+
+        Disposer.register(this@DatabaseInspectorControllerImpl, sqliteDatabase!!.databaseConnection)
+        readDatabaseSchema(sqliteDatabase) { schema -> addNewDatabaseSchema(sqliteDatabase, schema) }
+        settableFuture.set(Unit)
       }
 
       override fun onFailure(t: Throwable) {
         view.reportError("Error getting database", t)
+        settableFuture.setException(t)
       }
     })
+
+    return settableFuture
   }
 
-  override fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
+  override fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     val sqliteEvaluatorController = openNewEvaluatorTab()
-    sqliteEvaluatorController.evaluateSqlStatement(database, sqliteStatement)
+    return sqliteEvaluatorController.evaluateSqlStatement(database, sqliteStatement)
   }
 
-  override fun closeDatabase(database: SqliteDatabase) {
+  override fun closeDatabase(database: SqliteDatabase): ListenableFuture<Unit> {
     // TODO(b/143873070) when a database is closed with the close button the corresponding file is not deleted.
     if (!model.openDatabases.containsKey(database)) {
-      return
+      return Futures.immediateFuture(Unit)
     }
 
     val tabsToClose = resultSetControllers.keys
@@ -113,7 +123,10 @@ class DatabaseInspectorControllerImpl(
     view.removeDatabaseSchema(database)
 
     model.remove(database)
-    Disposer.dispose(database.databaseConnection)
+
+    return taskExecutor.executeAsync {
+      Disposer.dispose(database.databaseConnection)
+    }
   }
 
   override fun dispose() {
@@ -287,9 +300,9 @@ interface DatabaseInspectorController : Disposable {
   val component: JComponent
 
   fun setUp()
-  fun addSqliteDatabase(sqliteDatabaseFuture: ListenableFuture<SqliteDatabase>)
-  fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement)
-  fun closeDatabase(database: SqliteDatabase)
+  fun addSqliteDatabase(sqliteDatabaseFuture: ListenableFuture<SqliteDatabase>): ListenableFuture<Unit>
+  fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit>
+  fun closeDatabase(database: SqliteDatabase): ListenableFuture<Unit>
 
   /**
    * Model for Database Inspector. Used to store and access currently open [SqliteDatabase]s and their [SqliteSchema]s.

@@ -118,6 +118,7 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
 
   override fun tearDown() {
     super.tearDown()
+    Disposer.dispose(sqliteController)
     tempDirTestFixture.tearDown()
   }
 
