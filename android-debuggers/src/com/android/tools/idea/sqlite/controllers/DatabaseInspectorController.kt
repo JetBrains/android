@@ -84,7 +84,7 @@ class DatabaseInspectorControllerImpl(
         if (Disposer.isDisposed(this@DatabaseInspectorControllerImpl)) return
 
         Disposer.register(this@DatabaseInspectorControllerImpl, sqliteDatabase!!.databaseConnection)
-        readDatabaseSchema(sqliteDatabase) { schema -> addNewDatabaseSchema(sqliteDatabase, schema) }
+        readDatabaseSchema(sqliteDatabase) { schema -> addNewDatabase(sqliteDatabase, schema) }
         settableFuture.set(Unit)
       }
 
@@ -160,7 +160,7 @@ class DatabaseInspectorControllerImpl(
     })
   }
 
-  private fun addNewDatabaseSchema(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
+  private fun addNewDatabase(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
     if (Disposer.isDisposed(this)) return
     val index = model.getSortedIndexOf(database)
     view.addDatabaseSchema(database, sqliteSchema, index)
@@ -169,6 +169,7 @@ class DatabaseInspectorControllerImpl(
       .asSequence()
       .filterIsInstance<SqliteEvaluatorController>()
       .forEach { it.addDatabase(database, index) }
+
     model.add(database, sqliteSchema)
   }
 
