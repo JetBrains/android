@@ -114,6 +114,8 @@ class TrackGroupListPanelTest {
     // Selecting a different selectable type will clear current selection before adding the new item.
     trackGroupListPanel.trackGroups[2].trackList.selectedIndex = 0
     assertThat(multiSectionModel.selection).containsExactly(BooleanSelectable(true))
+    // The previously selected track group should clear its selection.
+    assertThat(trackGroupListPanel.trackGroups[0].trackList.isSelectionEmpty).isTrue()
   }
 
   @Test

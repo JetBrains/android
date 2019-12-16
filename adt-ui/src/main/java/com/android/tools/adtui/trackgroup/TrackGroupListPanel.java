@@ -228,14 +228,31 @@ public class TrackGroupListPanel implements TrackGroupMover {
     TrackGroupSelectionListener(@NotNull TrackGroup trackGroup, @NotNull MultiSelectionModel<T> multiSelectionModel) {
       myTrackGroup = trackGroup;
       myMultiSelectionModel = multiSelectionModel;
+
+      // Subscribe to multi-selection changes as selection can be modified by other sources.
+      // For example, multiple track groups share the same MultiSelectionModel in CPU capture stage. Selecting a track in Track Group A
+      // should clear the track selection in Track Group B and vice versa.
+      multiSelectionModel.addDependency(trackGroup).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, () -> {
+        if (!multiSelectionModel.getSelection().isEmpty() && !trackGroup.isEmpty()) {
+          // Selection is changed and may come from another source.
+          T selection = multiSelectionModel.getSelection().iterator().next();
+          T listModel = (T)trackGroup.getTrackModelAt(0).getDataModel();
+          // This may cause false positives if both selection are of the same type and isCompatibleWith() performs a type check only.
+          if (!listModel.isCompatibleWith(selection)) {
+            // Selection no longer contains this list model, update the list selection state to match that.
+            trackGroup.getTrackList().clearSelection();
+          }
+        }
+      });
     }
 
     @Override
     public void valueChanged(ListSelectionEvent e) {
       for (int i = e.getFirstIndex(); i <= e.getLastIndex(); ++i) {
-        T selectedModel = (T)myTrackGroup.getTrackList().getModel().getElementAt(i).getDataModel();
+        T selectedModel = (T)myTrackGroup.getTrackModelAt(i).getDataModel();
         if (myTrackGroup.getTrackList().isSelectedIndex(i)) {
           if (!myMultiSelectionModel.getSelection().isEmpty() &&
+              // This may cause false positives if both selection are of the same type and isCompatibleWith() performs a type check only.
               !selectedModel.isCompatibleWith(myMultiSelectionModel.getSelection().iterator().next())) {
             myMultiSelectionModel.clearSelection();
           }
@@ -259,7 +276,7 @@ public class TrackGroupListPanel implements TrackGroupMover {
     protected void handle(MouseEvent event) {
       int trackIndex = myTrackGroup.getTrackList().locationToIndex(event.getPoint());
 
-      TrackModel trackModel = myTrackGroup.getTrackList().getModel().getElementAt(trackIndex);
+      TrackModel trackModel = myTrackGroup.getTrackModelAt(trackIndex);
       assert myTrackGroup.getTrackMap().containsKey(trackModel.getId());
       // Find the origin location of the track (i.e. JList cell).
       Point trackOrigin = myTrackGroup.getTrackList().indexToLocation(trackIndex);
