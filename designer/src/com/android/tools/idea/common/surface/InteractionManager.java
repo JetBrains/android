@@ -463,17 +463,17 @@ public class InteractionManager implements Disposable {
       int clickCount = event.getClickCount();
 
       if (clickCount == 2 && event.getButton() == MouseEvent.BUTTON1) {
-        myInteractionHandler.doubleClick(x, y);
+        myInteractionHandler.doubleClick(x, y, myLastModifiersEx);
         return;
       }
 
       // No need to navigate XML when click was done holding some modifiers (e.g multi-selecting).
       if (clickCount == 1 && event.getButton() == MouseEvent.BUTTON1 && !event.isShiftDown() && !AdtUiUtils.isActionKeyDown(event)) {
-        myInteractionHandler.singleClick(x, y);
+        myInteractionHandler.singleClick(x, y, myLastModifiersEx);
       }
 
       if (event.isPopupTrigger()) {
-        myInteractionHandler.popupMenuTrigger(event, true);
+        myInteractionHandler.popupMenuTrigger(event);
       }
     }
 
@@ -490,7 +490,7 @@ public class InteractionManager implements Disposable {
       myLastModifiersEx = event.getModifiersEx();
 
       if (event.isPopupTrigger()) {
-        myInteractionHandler.popupMenuTrigger(event, true);
+        myInteractionHandler.popupMenuTrigger(event);
         event.consume();
         return;
       }
@@ -500,7 +500,7 @@ public class InteractionManager implements Disposable {
         return;
       }
       if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
-        // TODO: move this logic into InteractionProvider.createInteractionOnClick()
+        // TODO: move this logic into InteractionHandler.createInteractionOnPressed()
         if (myCurrentInteraction instanceof PanInteraction) {
           myCurrentInteraction.update(event, new InteractionInformation(myLastMouseX, myLastMouseY, myLastModifiersEx));
           updateCursor(myLastMouseX, myLastMouseY, myLastModifiersEx);
@@ -517,7 +517,7 @@ public class InteractionManager implements Disposable {
         return;
       }
 
-      Interaction interaction = myInteractionHandler.createInteractionOnClick(myLastMouseX, myLastMouseY);
+      Interaction interaction = myInteractionHandler.createInteractionOnPressed(myLastMouseX, myLastMouseY, myLastModifiersEx);
       if (interaction != null) {
         if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
           startInteraction(event, interaction);
@@ -537,7 +537,7 @@ public class InteractionManager implements Disposable {
       if (event.isPopupTrigger()) {
         // On Windows the convention is that the mouse up event triggers the popup.
         // Handle popup triggers here for Windows.
-        myInteractionHandler.popupMenuTrigger(event, true);
+        myInteractionHandler.popupMenuTrigger(event);
         return;
       }
 
@@ -647,7 +647,7 @@ public class InteractionManager implements Disposable {
         y = myLastMouseY;
         myLastModifiersEx = modifiersEx;
 
-        Interaction interaction = myInteractionHandler.createInteractionOnDrag(x, y);
+        Interaction interaction = myInteractionHandler.createInteractionOnDrag(x, y, myLastModifiersEx);
 
         if (interaction != null) {
           if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {

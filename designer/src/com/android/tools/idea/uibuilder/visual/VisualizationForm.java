@@ -20,6 +20,7 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCRE
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.adtui.actions.DropDownAction;
 import com.android.tools.adtui.common.AdtPrimaryPanel;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.common.SwingCoordinate;
@@ -28,10 +29,12 @@ import com.android.tools.editor.ActionToolbarUtil;
 import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
+import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
@@ -43,7 +46,10 @@ import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.DumbService;
@@ -55,20 +61,18 @@ import com.intellij.psi.PsiManager;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.concurrency.EdtExecutorService;
+import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.DefaultFocusTraversalPolicy;
 import java.awt.event.AdjustmentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -85,6 +89,8 @@ import org.jetbrains.annotations.Nullable;
 public class VisualizationForm implements Disposable, ConfigurationSetListener, PanZoomListener {
 
   public static final String VISUALIZATION_DESIGN_SURFACE = "VisualizationFormDesignSurface";
+
+  private static final String RENDERING_MESSAGE = "Rendering Previews...";
 
   /**
    * horizontal gap between different previews
@@ -104,13 +110,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   private boolean isActive = false;
   private JComponent myContentPanel;
   private JComponent myActionToolbarPanel;
-  private JLabel myFileNameLabel;
-
-  /**
-   * The mouse listener in all visible component in visualization tool to make visualization tool can grab the focus.
-   * TODO(b/142469546): Remove this once the interaction of visualization tool is defined.
-   */
-  private final MouseListener myClickToFocusWindowListener;
 
   @Nullable private Runnable myCancelPreviousAddModelsRequestTask = null;
 
@@ -141,12 +140,22 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
       .showModelNames()
       .setIsPreview(false)
       .setEditable(true)
+      .setSceneManagerProvider((surface, model) -> {
+        Supplier<RenderSettings> renderSettingsProvider = () -> {
+          RenderSettings settings = RenderSettings.getProjectSettings(model.getProject());
+          boolean showDecoration = VisualizationToolSettings.getInstance().getGlobalState().getShowDecoration();
+          return settings.copy(0.5f, false, showDecoration);
+        };
+        return new LayoutlibSceneManager(model, surface, renderSettingsProvider);
+      })
       .setActionManagerProvider((surface) -> new VisualizationActionManager((NlDesignSurface) surface))
       .setInteractionHandlerProvider((surface) -> new VisualizationInteractionHandler(surface, () -> myCurrentModelsProvider ))
       .setLayoutManager(new GridSurfaceLayoutManager(DEFAULT_SCREEN_OFFSET_X,
                                                      DEFAULT_SCREEN_OFFSET_Y,
                                                      HORIZONTAL_SCREEN_DELTA,
                                                      VERTICAL_SCREEN_DELTA))
+      .setMinScale(0.10)
+      .setMaxScale(4)
       .build();
     mySurface.addPanZoomListener(this);
 
@@ -154,20 +163,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
     Disposer.register(this, mySurface);
     mySurface.setCentered(true);
     mySurface.setName(VISUALIZATION_DESIGN_SURFACE);
-
-    myClickToFocusWindowListener = new MouseAdapter() {
-      @Override
-      public void mousePressed(MouseEvent event) {
-        if (event.getID() == MouseEvent.MOUSE_PRESSED) {
-          mySurface.getLayeredPane().requestFocusInWindow();
-        }
-      }
-    };
-
-    // TODO(b/142469546): Remove this once the interaction of visualization tool is defined.
-    // The interaction of mySurface is disabled because mySurface is not editable so its InteractionManager is not listening any
-    // mouse and keyboard events. Here we add a mouse listener to focus visualization tool when clicking on previews area.
-    mySurface.getLayeredPane().addMouseListener(myClickToFocusWindowListener);
 
     myWorkBench = new WorkBench<>(myProject, "Visualization", null, this);
     myWorkBench.setLoadingText("Loading...");
@@ -192,25 +187,23 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
 
   @NotNull
   private JComponent createToolbarPanel() {
-    myFileNameLabel = new JLabel();
     myActionToolbarPanel = new AdtPrimaryPanel(new BorderLayout());
-    myActionToolbarPanel.addMouseListener(myClickToFocusWindowListener);
-
-    JComponent toolbarRootPanel = new AdtPrimaryPanel(new BorderLayout());
-    toolbarRootPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()),
-                                                              BorderFactory.createEmptyBorder(0, 6, 0, 0)));
-
-    toolbarRootPanel.add(myFileNameLabel, BorderLayout.WEST);
-    toolbarRootPanel.add(myActionToolbarPanel, BorderLayout.CENTER);
-    toolbarRootPanel.addMouseListener(myClickToFocusWindowListener);
-
+    myActionToolbarPanel.setBorder(BorderFactory.createCompoundBorder(
+      BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()),
+      BorderFactory.createEmptyBorder(0, 6, 0, 0))
+    );
     updateActionToolbar();
-    return toolbarRootPanel;
+    return myActionToolbarPanel;
   }
 
   private void updateActionToolbar() {
     myActionToolbarPanel.removeAll();
-    DefaultActionGroup group = new DefaultActionGroup(new ConfigurationSetMenuAction(this, myCurrentConfigurationSet));
+    DefaultActionGroup group = new DefaultActionGroup();
+    String fileName = myFile != null ? myFile.getName() : "";
+    // Add an empty action and disable it permanently for displaying file name.
+    group.add(new TextLabelAction(fileName));
+    group.addSeparator();
+    group.add(new DefaultActionGroup(new ConfigurationSetMenuAction(this, myCurrentConfigurationSet)));
     if (myFile != null) {
       PsiFile file = PsiManager.getInstance(myProject).findFile(myFile);
       AndroidFacet facet = file != null ? AndroidFacet.getInstance(file) : null;
@@ -219,6 +212,10 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
         group.addAll(configurationActions);
       }
     }
+    DropDownAction viewOptions = new DropDownAction("View Options", null, StudioIcons.Common.VISIBILITY_INLINE);
+    viewOptions.add(new ToggleShowDecorationAction());
+    viewOptions.setPopup(true);
+    group.add(viewOptions);
     // Use ActionPlaces.EDITOR_TOOLBAR as place to update the ui when appearance is changed.
     // In IJ's implementation, only the actions in ActionPlaces.EDITOR_TOOLBAR toolbar will be tweaked when ui is changed.
     // See com.intellij.openapi.actionSystem.impl.ActionToolbarImpl.tweakActionComponentUI()
@@ -335,7 +332,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   }
 
   private void initNeleModel() {
-    myWorkBench.showLoading("Rendering Previews...");
+    myWorkBench.showLoading(RENDERING_MESSAGE);
     DumbService.getInstance(myProject).smartInvokeLater(() -> initNeleModelWhenSmart());
   }
 
@@ -357,7 +354,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
       return;
     }
 
-    myFileNameLabel.setText(file.getName());
+    updateActionToolbar();
 
     // isRequestCancelled allows us to cancel the ongoing computation if it is not needed anymore. There is no need to hold
     // to the Future since Future.cancel does not really interrupt the work.
@@ -403,7 +400,12 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
         addModelFuture.thenRunAsync(() -> {
           if (!isRequestCancelled.get() && !facet.isDisposed() && !isAddingModelCanceled.get()) {
             activeModels(models);
-            mySurface.setScale(VisualizationToolSettings.getInstance().getGlobalState().getScale() / mySurface.getScreenScalingFactor());
+            double lastScaling = VisualizationToolSettings.getInstance().getGlobalState().getScale() / mySurface.getScreenScalingFactor();
+            if (!mySurface.setScale(lastScaling)) {
+              // Update scroll area because the scaling doesn't change, which keeps the old scroll area and may not suitable to new
+              // configuration set.
+              mySurface.updateScrolledAreaSize();
+            }
             myWorkBench.showContent();
           }
           else {
@@ -542,6 +544,56 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   @Override
   public void panningChanged(AdjustmentEvent adjustmentEvent) {
     // Do nothing.
+  }
+
+  /**
+   * An disabled action for displaying text in action toolbar.
+   */
+  private static final class TextLabelAction extends AnAction {
+
+    TextLabelAction(@NotNull String text) {
+      super(null, null, null);
+      getTemplatePresentation().setText(text, false);
+      getTemplatePresentation().setEnabled(false);
+    }
+
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent e) {
+      // Do nothing
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+      e.getPresentation().setEnabled(false);
+    }
+
+    @Override
+    public boolean displayTextInToolbar() {
+      return true;
+    }
+  }
+
+  private final class ToggleShowDecorationAction extends ToggleAction {
+    private ToggleShowDecorationAction() {
+      super("Show System UI");
+    }
+
+    @Override
+    public boolean isSelected(@NotNull AnActionEvent e) {
+      return VisualizationToolSettings.getInstance().getGlobalState().getShowDecoration();
+    }
+
+    @Override
+    public void setSelected(@NotNull AnActionEvent e, boolean state) {
+      VisualizationToolSettings.getInstance().getGlobalState().setShowDecoration(state);
+      myWorkBench.hideContent();
+      myWorkBench.showLoading(RENDERING_MESSAGE);
+      mySurface.forceUserRequestedRefresh().thenRun(() -> {
+        if (!Disposer.isDisposed(myWorkBench)) {
+          myWorkBench.showContent();
+        }
+      });
+    }
   }
 
   private static class VisualizationTraversalPolicy extends DefaultFocusTraversalPolicy {

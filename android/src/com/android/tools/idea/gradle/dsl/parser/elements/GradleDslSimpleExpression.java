@@ -58,7 +58,7 @@ import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 public abstract class GradleDslSimpleExpression extends GradleDslElementImpl implements GradleDslExpression {
   @NotNull private static final String SINGLE_QUOTES = "\'";
   @NotNull private static final String DOUBLE_QUOTES = "\"";
-  protected boolean myIsReference;
+  private boolean myIsReference;
   @Nullable private PsiElement myUnsavedConfigBlock;
 
   @Nullable protected PsiElement myExpression;

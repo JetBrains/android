@@ -16,8 +16,8 @@
 package com.android.tools.profilers.cpu;
 
 import com.android.tools.adtui.model.AspectModel;
-import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.DefaultTimeline;
+import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
 import com.android.tools.adtui.model.StateChartModel;
@@ -34,6 +34,7 @@ import com.android.tools.profilers.ProfilerTrackRendererType;
 import com.android.tools.profilers.Stage;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
+import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
 import com.android.tools.profilers.cpu.analysis.CpuFullTraceAnalysisModel;
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
 import com.android.tools.profilers.cpu.atrace.AtraceFrame;
@@ -124,6 +125,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
   private final AspectModel<Aspect> myAspect = new AspectModel<>();
   private final List<CpuAnalysisModel> myAnalysisModels = new ArrayList<>();
   private final List<TrackGroupModel> myTrackGroupModels = new ArrayList<>();
+  private final MultiSelectionModel<CpuAnalyzable> myMultiSelectionModel = new MultiSelectionModel<>();
 
   private CpuCaptureMinimapModel myMinimapModel;
   private State myState = State.PARSING;
@@ -138,7 +140,6 @@ public class CpuCaptureStage extends Stage<Timeline> {
    * View range: minimap selection;
    * Tooltip range: all track groups share the same mouse-over range, different from the minimap or profilers;
    * Selection range: union of all selected trace events;
-   *
    */
   private final Timeline myTrackGroupTimeline = new DefaultTimeline();
 
@@ -194,6 +195,11 @@ public class CpuCaptureStage extends Stage<Timeline> {
   @NotNull
   public List<TrackGroupModel> getTrackGroupModels() {
     return myTrackGroupModels;
+  }
+
+  @NotNull
+  public MultiSelectionModel<CpuAnalyzable> getMultiSelectionModel() {
+    return myMultiSelectionModel;
   }
 
   @NotNull
@@ -333,21 +339,16 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   private TrackGroupModel createThreadsTrackGroup(@NotNull Range selectionRange, @NotNull CpuCapture capture) {
-    List<CpuThreadInfo> threadInfos = capture.getThreads().stream().sorted().collect(Collectors.toList());
+    List<CpuThreadInfo> threadInfos =
+      capture.getThreads().stream().sorted(new CaptureThreadComparator(capture)).collect(Collectors.toList());
     String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());
     TrackGroupModel threads = TrackGroupModel.newBuilder().setTitle(threadsTitle).setTrackSelectable(true).build();
     for (CpuThreadInfo threadInfo : threadInfos) {
-      DataSeries<CpuProfilerStage.ThreadState> threadStateDataSeries =
-        new CpuThreadStateDataSeries(getStudioProfilers().getClient().getTransportClient(),
-                                     getStudioProfilers().getSession().getStreamId(),
-                                     getStudioProfilers().getSession().getPid(),
-                                     threadInfo.getId(),
-                                     capture);
       // Since thread tracks display multiple elements with different tooltip we don't set a default tooltip model here but defer to the
       // track renderer to switch between its various tooltip models.
       threads.addTrackModel(
         TrackModel.newBuilder(
-          new CpuThreadTrackModel(threadStateDataSeries, selectionRange, capture, threadInfo, getTimeline()),
+          new CpuThreadTrackModel(getStudioProfilers(), selectionRange, capture, threadInfo, getTimeline(), myMultiSelectionModel),
           ProfilerTrackRendererType.CPU_THREAD,
           threadInfo.getName()));
     }

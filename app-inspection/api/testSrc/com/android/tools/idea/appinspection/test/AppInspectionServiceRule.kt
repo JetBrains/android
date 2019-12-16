@@ -17,16 +17,16 @@ package com.android.tools.idea.appinspection.test
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
+import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.AppInspectorClient
+import com.android.tools.idea.appinspection.api.AppInspectorJar
 import com.android.tools.idea.appinspection.api.TestInspectorClient
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
-import com.android.tools.idea.appinspection.internal.launchInspectorForTest
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
+import com.android.tools.idea.appinspection.internal.launchInspectorForTest
 import com.android.tools.idea.testing.NamedExternalResource
-import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.idea.transport.TransportClient
-import com.android.tools.idea.transport.TransportFileCopier
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
@@ -35,13 +35,11 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.util.concurrent.ListenableFuture
 import org.junit.runner.Description
-import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
-val TEST_JAR = DeployableFile.Builder("test.jar").build()
+val TEST_JAR = AppInspectorJar("test")
 
 /**
  * Rule providing all of the underlying components of App Inspection, including [executorService], [poller], [transport] and [client].
@@ -93,7 +91,7 @@ class AppInspectionServiceRule(
   ): ListenableFuture<AppInspectionTarget> {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, defaultAttachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    return AppInspectionTarget.attach(stream, process, grpcServer.name, executorService, jarCopier, transport)
+    return AppInspectionTarget.attach(transport, jarCopier)
   }
 
   /**
@@ -101,9 +99,10 @@ class AppInspectionServiceRule(
    *
    * [commandHandler], and [eventListener] can be provided to customize behavior of how commands and events are received.
    */
-  fun launchInspectorConnection(inspectorId: String = INSPECTOR_ID,
-                                commandHandler: CommandHandler = TestInspectorCommandHandler(timer),
-                                eventListener: AppInspectorClient.EventListener = TestInspectorEventListener()
+  fun launchInspectorConnection(
+    inspectorId: String = INSPECTOR_ID,
+    commandHandler: CommandHandler = TestInspectorCommandHandler(timer),
+    eventListener: AppInspectorClient.EventListener = TestInspectorEventListener()
   ): AppInspectorClient.CommandMessenger {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
     return launchInspectorForTest(inspectorId, transport, timer.currentTimeNs) {
@@ -175,13 +174,13 @@ class AppInspectionServiceRule(
   /**
    * Keeps track of the copied jar so tests could verify the operation happened.
    */
-  class TestTransportFileCopier : TransportFileCopier {
-    private val deviceBasePath = Paths.get("/test")
-    lateinit var copiedJar: DeployableFile
+  class TestTransportFileCopier : AppInspectionJarCopier {
+    private val deviceBasePath = "/test/"
+    lateinit var copiedJar: AppInspectorJar
 
-    override fun copyFileToDevice(deployableFile: DeployableFile): List<Path> {
-      copiedJar = deployableFile
-      return listOf(deviceBasePath.resolve(deployableFile.fileName))
+    override fun copyFileToDevice(jar: AppInspectorJar): List<String> {
+      copiedJar = jar
+      return listOf(deviceBasePath + jar.name)
     }
   }
 }

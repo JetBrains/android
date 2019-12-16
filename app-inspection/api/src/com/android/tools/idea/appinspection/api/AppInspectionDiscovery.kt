@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.appinspection.api
 
+import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.appinspection.internal.AppInspectionAttacher
-import com.android.tools.idea.concurrency.addCallback
-import com.android.tools.idea.transport.TransportFileCopier
-import com.google.common.util.concurrent.FutureCallback
-import java.util.concurrent.ConcurrentHashMap
+import com.android.tools.idea.appinspection.internal.AppInspectionTransport
+import com.android.tools.idea.concurrency.transform
+import com.android.tools.idea.transport.TransportClient
+import com.android.tools.idea.transport.poller.TransportEventPoller
+import com.google.common.annotations.VisibleForTesting
+import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.SettableFuture
 import java.util.concurrent.Executor
 import java.util.concurrent.ScheduledExecutorService
+import java.util.concurrent.TimeUnit
+import java.util.function.Function
 
 typealias TargetListener = (AppInspectionTarget) -> Unit
 
@@ -32,7 +38,14 @@ typealias TargetListener = (AppInspectionTarget) -> Unit
  * the discovery with interested clients.
  */
 // TODO(b/143628758): This Discovery mechanism must be called only behind the flag SQLITE_APP_INSPECTOR_ENABLED
-class AppInspectionDiscoveryHost(executor: ScheduledExecutorService, channel: Channel) {
+class AppInspectionDiscoveryHost(
+  executor: ScheduledExecutorService,
+  transportChannel: Channel,
+  @VisibleForTesting client: TransportClient = TransportClient(transportChannel.name),
+  @VisibleForTesting poller: TransportEventPoller = TransportEventPoller.createPoller(
+    client.transportStub, TimeUnit.MILLISECONDS.toNanos(100)
+  )
+) {
   /**
    * This class represents a channel between some host (which should implement this class) and a target Android device.
    */
@@ -40,12 +53,17 @@ class AppInspectionDiscoveryHost(executor: ScheduledExecutorService, channel: Ch
     val name: String
   }
 
-  val discovery = AppInspectionDiscovery(executor, channel)
+  val discovery = AppInspectionDiscovery(executor, client, poller, AppInspectionAttacher(executor, client))
 
-  // TODO(b/143836794): this method should return to the caller if it was to connect to device
-  fun connect(transportFileCopier: TransportFileCopier, preferredProcess: AutoPreferredProcess) {
-    discovery.connect(transportFileCopier, preferredProcess)
-  }
+  /**
+   * Connects to a process on device defined by [processDescriptor]. This method returns a future of [AppInspectionTarget]. If the
+   * connection is cached, the future is ready to be gotten immediately.
+   */
+  fun connect(
+    jarCopier: AppInspectionJarCopier,
+    processDescriptor: ProcessDescriptor
+  ): ListenableFuture<AppInspectionTarget> =
+    discovery.connect(jarCopier, processDescriptor)
 }
 
 /**
@@ -55,31 +73,52 @@ class AppInspectionDiscoveryHost(executor: ScheduledExecutorService, channel: Ch
  * to and fire listeners for all of them.
  */
 // TODO(b/143628758): This Discovery mechanism must be called only behind the flag SQLITE_APP_INSPECTOR_ENABLED
-class AppInspectionDiscovery(private val executor: ScheduledExecutorService,
-                             private val channel: AppInspectionDiscoveryHost.Channel) {
-  private val listeners = ConcurrentHashMap<TargetListener, Executor>()
-  private val attacher = AppInspectionAttacher(executor, channel)
+class AppInspectionDiscovery internal constructor(
+  private val executor: ScheduledExecutorService,
+  private val transportClient: TransportClient,
+  private val transportPoller: TransportEventPoller,
+  private val attacher: AppInspectionAttacher
+) {
+  @GuardedBy("this")
+  private val listeners = mutableMapOf<TargetListener, Executor>()
 
-  internal fun connect(fileCopier: TransportFileCopier, preferredProcess: AutoPreferredProcess) {
-    attacher.attach(preferredProcess) { stream, process ->
-      AppInspectionTarget.attach(stream, process, channel.name, executor, fileCopier)
-        .addCallback(executor, object : FutureCallback<AppInspectionTarget> {
-          override fun onSuccess(result: AppInspectionTarget?) {
-            listeners.forEach {
-              it.value.execute { it.key(result!!) }
+  @GuardedBy("this")
+  private val connections = mutableMapOf<ProcessDescriptor, ListenableFuture<AppInspectionTarget>>()
+
+  internal fun connect(
+    jarCopier: AppInspectionJarCopier,
+    processDescriptor: ProcessDescriptor
+  ): ListenableFuture<AppInspectionTarget> {
+    return connections.computeIfAbsent(
+      processDescriptor,
+      Function { descriptor ->
+        val connectionFuture = SettableFuture.create<AppInspectionTarget>()
+        attacher.attach(descriptor) { stream, process ->
+          val transport = AppInspectionTransport(transportClient, stream, process, executor, transportPoller)
+          AppInspectionTarget.attach(transport, jarCopier)
+            .transform(executor) { connection ->
+              connection.addTargetTerminatedListener(executor) {
+                connections.remove(ProcessDescriptor(stream.device.manufacturer, stream.device.model, stream.device.serial, process.name))
+                  ?.cancel(false)
+              }
+              listeners.forEach { it.value.execute { it.key(connection) } }
+              connectionFuture.set(connection)
             }
-          }
-
-          override fun onFailure(t: Throwable) {
-            TODO("not implemented")
-          }
-        })
-
-    }
+        }
+        connectionFuture
+      })
   }
 
+  /**
+   * Adds a [TargetListener] to discovery service. Listener will receive future connections when they come online.
+   *
+   * This has the side effect of notifying users of all existing live connections the discovery service is aware of.
+   */
   fun addTargetListener(executor: Executor, listener: TargetListener): TargetListener {
-    listeners[listener] = executor
+    synchronized(this) {
+      listeners[listener] = executor
+      connections.filterValues { it.isDone }.map { it.value.get() }.forEach { executor.execute { listener(it) } }
+    }
     return listener
   }
 }

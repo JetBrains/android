@@ -113,6 +113,7 @@ public abstract class BasicResourceItemBase implements BasicResourceItem, Resour
    * Framework resource items may move between repositories with the same origin.
    * @see RepositoryConfiguration#transferOwnershipTo(LoadableResourceRepository)
    */
+  @Override
   @NotNull
   public final LoadableResourceRepository getRepository() {
     return getRepositoryConfiguration().getRepository();

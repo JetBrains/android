@@ -90,8 +90,8 @@ class FlameChartDetailsViewTest {
   }
 
   @Test
-  fun showsNoDataForThreadMessageWhenNodeIsNull() {
-    val flameChart = CaptureDetails.Type.FLAME_CHART.build(Range(), capture.getCaptureNode(1), capture) as CaptureDetails.FlameChart
+  fun showsNoDataForThreadMessageWhenNodeIsEmpty() {
+    val flameChart = CaptureDetails.Type.FLAME_CHART.build(Range(), emptyList(), capture) as CaptureDetails.FlameChart
     val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
 
     val noDataInstructions = TreeWalker(flameChartView.component).descendants().filterIsInstance<InstructionsPanel>().first {
@@ -111,7 +111,7 @@ class FlameChartDetailsViewTest {
                                        TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_PID1_PATH)),
                                      Cpu.CpuTraceType.ATRACE)!!.get()
     val flameChart = CaptureDetails.Type.FLAME_CHART.build(Range(Double.MIN_VALUE, Double.MAX_VALUE),
-                                                           atraceCapture.getCaptureNode(atraceCapture.mainThreadId),
+                                                           listOf(atraceCapture.getCaptureNode(atraceCapture.mainThreadId)),
                                                            atraceCapture) as CaptureDetails.FlameChart
     val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
     val treeChart = TreeWalker(flameChartView.component).descendants().filterIsInstance<HTreeChart<CaptureNode>>().first()
@@ -121,7 +121,7 @@ class FlameChartDetailsViewTest {
   @Test
   fun showsContentWhenNodeIsNotNull() {
     val flameChart = CaptureDetails.Type.FLAME_CHART.build(Range(Double.MIN_VALUE, Double.MAX_VALUE),
-                                                           capture.getCaptureNode(capture.mainThreadId),
+                                                           listOf(capture.getCaptureNode(capture.mainThreadId)),
                                                            capture) as CaptureDetails.FlameChart
     val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
 
@@ -141,7 +141,7 @@ class FlameChartDetailsViewTest {
   fun showsNoDataForRangeMessage() {
     // Select a range where we don't have trace data
     val range = Range(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
-    val flameChart = CaptureDetails.Type.FLAME_CHART.build(range, capture.getCaptureNode(capture.mainThreadId),
+    val flameChart = CaptureDetails.Type.FLAME_CHART.build(range, listOf(capture.getCaptureNode(capture.mainThreadId)),
                                                            capture) as CaptureDetails.FlameChart
     val flameChartView = ChartDetailsView.FlameChartDetailsView(profilersView, flameChart)
 

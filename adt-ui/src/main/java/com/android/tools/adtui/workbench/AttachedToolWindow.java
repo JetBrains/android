@@ -15,7 +15,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ToggleAction;
-import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.DumbService;
@@ -422,7 +421,8 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     return button;
   }
 
-  private void updateActions() {
+  @VisibleForTesting
+  public void updateActions() {
     myActionButtons.forEach(UpdatableActionButton::update);
   }
 
@@ -617,7 +617,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
 
     public void update() {
       AnActionEvent event = new AnActionEvent(null, getDataContext(), myPlace, myPresentation, ActionManager.getInstance(), 0);
-      ActionUtil.performDumbAwareUpdate(false, myAction, event, false);
+      myAction.update(event);
     }
 
     @Override
@@ -635,6 +635,12 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
 
     @Override
+    public void update(@NotNull AnActionEvent event) {
+      Presentation presentation = event.getPresentation();
+      presentation.setEnabled(true);
+    }
+
+    @Override
     public void actionPerformed(@NotNull AnActionEvent event) {
       showSearchField(true);
     }
@@ -646,10 +652,16 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
 
     @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
+    public void update(@NotNull AnActionEvent event) {
+      Presentation presentation = event.getPresentation();
+      presentation.setEnabled(true);
+    }
+
+    @Override
+    public void actionPerformed(@NotNull AnActionEvent event) {
       int x = 0;
       int y = 0;
-      InputEvent inputEvent = e.getInputEvent();
+      InputEvent inputEvent = event.getInputEvent();
       if (inputEvent instanceof MouseEvent) {
         x = ((MouseEvent)inputEvent).getX();
         y = ((MouseEvent)inputEvent).getY();
@@ -662,6 +674,12 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   private class HideAction extends AnAction {
     private HideAction() {
       super(UIBundle.message("tool.window.hide.action.name"), null, AllIcons.General.HideToolWindow);
+    }
+
+    @Override
+    public void update(@NotNull AnActionEvent event) {
+      Presentation presentation = event.getPresentation();
+      presentation.setEnabled(true);
     }
 
     @Override

@@ -163,6 +163,7 @@ class PsAndroidModule(
       "implementation",
       "api".takeIf { onlyImportantFor == null || onlyImportantFor == ImportantFor.MODULE },
       "compileOnly".takeIf { onlyImportantFor == null },
+      "runtimeOnly".takeIf { onlyImportantFor == null },
       "annotationProcessor".takeIf { onlyImportantFor == null })
 
     val result = mutableListOf<String>()

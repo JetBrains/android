@@ -51,6 +51,7 @@ public class Track {
     if (trackModel.getHideHeader()) {
       myComponent.add(trackContent, new TabularLayout.Constraint(0, 0, 2));
       MouseAdapter adapter = new TrackMouseEventHandler(trackContent, 0, 0);
+      myComponent.addMouseListener(adapter);
       myComponent.addMouseMotionListener(adapter);
     }
     else {
@@ -58,6 +59,7 @@ public class Track {
       myComponent.add(trackContent, new TabularLayout.Constraint(0, 1));
       // Offsets mouse event using width of the title column.
       MouseAdapter adapter = new TrackMouseEventHandler(trackContent, -DEFAULT_TITLE_COL_PX, 0);
+      myComponent.addMouseListener(adapter);
       myComponent.addMouseMotionListener(adapter);
     }
   }

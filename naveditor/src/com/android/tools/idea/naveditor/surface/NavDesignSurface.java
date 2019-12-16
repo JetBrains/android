@@ -210,11 +210,6 @@ public class NavDesignSurface extends DesignSurface {
     return super.getData(dataId);
   }
 
-  @Override
-  public float getSceneScalingFactor() {
-    return 1f;
-  }
-
   @NotNull
   @Override
   public CompletableFuture<Void> forceUserRequestedRefresh() {
@@ -662,11 +657,6 @@ public class NavDesignSurface extends DesignSurface {
     });
 
     getScheduleRef().set(AppExecutorUtil.getAppScheduledExecutorService().scheduleWithFixedDelay(action, 0, 10, TimeUnit.MILLISECONDS));
-  }
-
-  @Override
-  public boolean isResizeAvailable() {
-    return false;
   }
 
   @VisibleForTesting

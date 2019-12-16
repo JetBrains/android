@@ -144,7 +144,10 @@ public class AndroidGradleTests {
 
       // App compat version needs to match compile SDK
       String appCompatMainVersion = BuildEnvironment.getInstance().getCompileSdkVersion();
-      contents =  replaceRegexGroup(contents, "com.android.support:appcompat-v7:(\\+)",  appCompatMainVersion + ".+");
+      // TODO(145548476): convert to androidx
+      if (!appCompatMainVersion.equals("29")) {
+        contents = replaceRegexGroup(contents, "com.android.support:appcompat-v7:(\\+)", appCompatMainVersion + ".+");
+      }
 
       contents = updateBuildToolsVersion(contents);
       contents = updateCompileSdkVersion(contents);

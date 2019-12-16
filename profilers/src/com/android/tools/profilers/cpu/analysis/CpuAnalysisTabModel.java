@@ -26,13 +26,16 @@ import org.jetbrains.annotations.NotNull;
  * @param <T> type of the analysis object, e.g. {@link com.android.tools.profilers.cpu.CpuThreadTrackModel}.
  */
 public class CpuAnalysisTabModel<T> {
+  /**
+   * The order the enum values are defined determine the order they are displayed to ensure consistent ordering across the board.
+   */
   public enum Type {
     /**
      * Summary tab used to display high level information about the current capture / selection.
      */
     SUMMARY("Summary"),
-    FLAME_CHART("Flame Chart"),
     TOP_DOWN("Top Down"),
+    FLAME_CHART("Flame Chart"),
     BOTTOM_UP("Bottom Up"),
     EVENTS("Events"),
     OCCURRENCES("Occurrences"),

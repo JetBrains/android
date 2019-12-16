@@ -33,7 +33,7 @@ public final class AndroidNinePatchFileType implements FileType {
   @NotNull
   @Override
   public String getName() {
-    return "Android Nine-Patch";
+    return "Android 9-Patch";
   }
 
   @NotNull

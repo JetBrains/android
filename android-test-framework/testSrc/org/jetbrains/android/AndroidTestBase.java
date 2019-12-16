@@ -36,6 +36,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiReferenceContributor;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.UsefulTestCase;
@@ -100,17 +101,13 @@ public abstract class AndroidTestBase extends UsefulTestCase {
       if (disposable.getClass().getName().equals("com.android.tools.idea.adb.AdbService") ||
           disposable.getClass().getName().equals("com.android.tools.idea.adb.AdbOptionsService") ||
           (disposable instanceof ProjectImpl && (((ProjectImpl)disposable).isDefault() || ((ProjectImpl)disposable).isLight())) ||
-          (disposable instanceof Module && ((Module)disposable).getName().equals(LightProjectDescriptor.TEST_MODULE_NAME))) {
+          (disposable instanceof Module && ((Module)disposable).getName().equals(LightProjectDescriptor.TEST_MODULE_NAME)) ||
+          disposable instanceof PsiReferenceContributor) {
         // Ignore application services and light projects and modules that are not disposed by tearDown.
         return DisposerExplorer.VisitResult.SKIP_CHILDREN;
       }
       if (disposable.getClass().getName().startsWith("com.android.")) {
-        Disposable root = disposable;
-        Disposable parent;
-        while ((parent = DisposerExplorer.getParent(root)) != null) {
-          root = parent;
-        }
-        fail("Undisposed object: " + root);
+        fail("Undisposed object of type " + disposable.getClass().getName());
       }
       return DisposerExplorer.VisitResult.CONTINUE;
     });

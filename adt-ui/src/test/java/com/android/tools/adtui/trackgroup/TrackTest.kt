@@ -19,25 +19,24 @@ import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
-import javax.swing.JCheckBox
 import javax.swing.JLabel
 
 class TrackTest {
 
   @Test
   fun createTrack() {
-    val trackModel = TrackModel.newBuilder (true, TestTrackRendererType.FOO, "foo").build()
-    val trackComponent = Track.create(trackModel, FooTrackRenderer()).component
+    val trackModel = TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "foo").build()
+    val trackComponent = Track.create(trackModel, BooleanTrackRenderer()).component
     assertThat(trackComponent.componentCount).isEqualTo(2)
     assertThat(trackComponent.getComponent(0)).isInstanceOf(JLabel::class.java)
-    assertThat(trackComponent.getComponent(1)).isInstanceOf(JCheckBox::class.java)
+    assertThat(trackComponent.getComponent(1)).isInstanceOf(JLabel::class.java)
   }
 
   @Test
   fun hideTrackHeader() {
-    val trackModel = TrackModel.newBuilder(true, TestTrackRendererType.FOO, "foo").setHideHeader(true).build()
-    val trackComponent = Track.create(trackModel, FooTrackRenderer()).component
+    val trackModel = TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "foo").setHideHeader(true).build()
+    val trackComponent = Track.create(trackModel, BooleanTrackRenderer()).component
     assertThat(trackComponent.componentCount).isEqualTo(1)
-    assertThat(trackComponent.getComponent(0)).isInstanceOf(JCheckBox::class.java)
+    assertThat(trackComponent.getComponent(0)).isInstanceOf(JLabel::class.java)
   }
 }

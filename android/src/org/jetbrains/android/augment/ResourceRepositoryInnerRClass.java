@@ -65,11 +65,11 @@ public class ResourceRepositoryInnerRClass extends InnerRClassBase {
       return null;
     }
 
-    return new AndroidLightField(name,
-                                 this,
-                                 PsiType.INT,
-                                 AndroidLightField.FieldModifier.NON_FINAL,
-                                 null);
+    return new ResourceLightField(name,
+                                  this,
+                                  PsiType.INT,
+                                  AndroidLightField.FieldModifier.NON_FINAL,
+                                  null);
   }
 
   @NotNull

@@ -58,11 +58,13 @@ public class NonGradleApkProviderTest extends AndroidTestCase {
 
     NonGradleApkProvider provider = new NonGradleApkProvider(myFacet, new NonGradleApplicationIdProvider(myFacet), "customApk");
 
+/* b/145854907
     Collection<ApkInfo> apks = provider.getApks(device);
     assertNotNull(apks);
     assertEquals(1, apks.size());
     ApkInfo apk = apks.iterator().next();
     assertEquals("p1.p2", apk.getApplicationId());
     assertTrue(apk.getFile().getPath().endsWith("right.apk"));
+b/145854907 */
   }
 }

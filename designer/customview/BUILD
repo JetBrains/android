@@ -22,6 +22,7 @@ iml_module(
     runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
@@ -50,7 +51,6 @@ iml_module(
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/idea/.idea/libraries:protobuf",
-        "//tools/adt/idea/compose-designer:intellij.android.compose-designer[module]",
     ],
 )
 
@@ -79,6 +79,7 @@ iml_module(
         "//tools/idea/java/plugin:intellij.java.plugin",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",

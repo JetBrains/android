@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidProject
 
+import com.android.SdkConstants.FN_BUILD_GRADLE
+import com.android.SdkConstants.FN_GRADLE_PROPERTIES
+import com.android.SdkConstants.FN_LOCAL_PROPERTIES
+import com.android.SdkConstants.FN_SETTINGS_GRADLE
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -32,15 +36,17 @@ fun RecipeExecutor.androidProjectRecipe(
   val topOut = data.rootDir
   save(
     androidProjectBuildGradle(language == Language.KOTLIN, data.kotlinVersion, false, data.gradlePluginVersion),
-    topOut.resolve("build.gradle")
+    topOut.resolve(FN_BUILD_GRADLE)
   )
 
   if (makeIgnore) {
     copy(resource("project_ignore"), topOut.resolve(".gitignore"))
   }
 
-  save(androidProjectGradleSettings(appTitle), topOut.resolve("settings.gradle"))
-  save(androidProjectGradleProperties(addAndroidXSupport), topOut.resolve("gradle.properties"))
-  save(androidProjectLocalProperties(data.sdkDir), topOut.resolve("local.properties"))
+  save(androidProjectGradleSettings(appTitle), topOut.resolve(FN_SETTINGS_GRADLE))
+  save(
+    androidProjectGradleProperties(addAndroidXSupport, language == Language.KOTLIN, data.overridePathCheck),
+    topOut.resolve(FN_GRADLE_PROPERTIES))
+  save(androidProjectLocalProperties(data.sdkDir), topOut.resolve(FN_LOCAL_PROPERTIES))
   copy(resource("wrapper"), topOut)
 }

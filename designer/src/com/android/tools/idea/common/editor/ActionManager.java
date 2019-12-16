@@ -68,6 +68,11 @@ public abstract class ActionManager<S extends DesignSurface> {
   }
 
   public final void showPopup(@NotNull MouseEvent event, @Nullable NlComponent leafComponent) {
+    Component invoker = event.getSource() instanceof Component ? (Component)event.getSource() : mySurface;
+    showPopup(invoker, event.getX(), event.getY(), leafComponent);
+  }
+
+  public final void showPopup(@NotNull Component invoker, int x, int y, @Nullable NlComponent leafComponent) {
     DefaultActionGroup group = getPopupMenuActions(leafComponent);
     if (group.getChildrenCount() == 0) {
       return;
@@ -75,8 +80,7 @@ public abstract class ActionManager<S extends DesignSurface> {
 
     com.intellij.openapi.actionSystem.ActionManager actionManager = com.intellij.openapi.actionSystem.ActionManager.getInstance();
     ActionPopupMenu popupMenu = actionManager.createActionPopupMenu("LayoutEditor", group);
-    Component invoker = event.getSource() instanceof Component ? (Component)event.getSource() : mySurface;
-    popupMenu.getComponent().show(invoker, event.getX(), event.getY());
+    popupMenu.getComponent().show(invoker, x, y);
   }
 
   /**

@@ -15,18 +15,23 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk.includes.resolver;
 
-import com.android.tools.idea.navigator.nodes.ndk.includes.RealWorldExamples;
-import com.android.tools.idea.navigator.nodes.ndk.includes.model.*;
-import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
-import org.junit.Test;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import static com.android.tools.idea.navigator.nodes.ndk.includes.resolver.ResolverTests.PATH_TO_NDK;
 import static com.android.tools.idea.navigator.nodes.ndk.includes.resolver.ResolverTests.ROOT_OF_RELATIVE_INCLUDE_PATHS;
 import static com.google.common.truth.Truth.assertThat;
+
+import com.android.tools.idea.navigator.nodes.ndk.includes.RealWorldExamples;
+import com.android.tools.idea.navigator.nodes.ndk.includes.model.IncludeValue;
+import com.android.tools.idea.navigator.nodes.ndk.includes.model.IncludeValues;
+import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageFamilyValue;
+import com.android.tools.idea.navigator.nodes.ndk.includes.model.PackageValue;
+import com.android.tools.idea.navigator.nodes.ndk.includes.model.ShadowingIncludeValue;
+import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
+import com.android.tools.idea.navigator.nodes.ndk.includes.utils.IncludeSet;
+import com.android.utils.FileUtils;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.Test;
 
 public class ClassifiedIncludeExpressionNodeRewriterTest {
   private static void assertContainsInOrder(String value, String... lines) {
@@ -64,6 +69,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
+    result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
     assertThat(dependencies).hasSize(2);
     assertContainsInOrder(result,
       "NDK Components (/path/to/ndk-bundle)",
@@ -81,6 +87,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
+    result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
     assertThat(dependencies).hasSize(1);
     assertThat(result).contains("Shadow Group\n" +
                                        "        include (Include Folders, /project/include, /)\n" +
@@ -98,6 +105,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
+    result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
     assertThat(dependencies).hasSize(1);
     assertThat(result).contains("Shadow Group\n" +
                                        "        include (Include Folders, D:/project/include, /)\n" +
@@ -115,6 +123,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
+    result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
     assertThat(dependencies).hasSize(1);
     assertThat(result).contains("Shadow Group\n" +
                                        "        include (Include Folders, D:/project/include, /)\n" +
@@ -132,6 +141,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
+    result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
     assertThat(dependencies).hasSize(1);
     assertThat(result).contains("include (Include Folders, /project/include, /)");
   }
@@ -147,6 +157,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
+    result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
     assertThat(dependencies).hasSize(3);
     assertContainsInOrder(result,
                           "OpenCV (Third Party Packages, /usr/local/google/home/jomof, /third_party/OpenCV/include/)",
@@ -171,11 +182,13 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
+    result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
+    String rootPath = FileUtils.toSystemIndependentPath(new File("/a/b").getAbsolutePath()); // Account for Windows drive
     assertThat(dependencies).hasSize(3);
     assertContainsInOrder(result,
                           "NDK Components (/path/to/ndk-bundle)",
-                          "Externals (/a/b)",
-                          "    SFML (Externals, /a/b, /Externals/SFML/include/)",
+                          "Externals (" + rootPath + ")",
+                          "    SFML (Externals, " + rootPath + ", /Externals/SFML/include/)",
                           "    minizip (Externals, 2 include paths)");
   }
 
@@ -190,6 +203,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
+    result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
     assertThat(dependencies).hasSize(1);
     assertThat(result).contains("external (Include Folders, /usr/local/google/home/jomof/projects/Game/cocos2d/external, /)");
   }
@@ -205,6 +219,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
+    result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
     assertThat(dependencies).hasSize(1);
     assertThat(result).contains("editor-support (Include Folders, /usr/local/google/home/jomof/projects/Game/cocos2d/cocos/editor-support, /)");
   }
@@ -220,6 +235,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
+    result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
     assertThat(dependencies).hasSize(1);
     assertThat(result).contains("xxhash (Cocos Third Party Packages, /usr/local/google/home/jomof/projects/Game/cocos2d, /external/xxhash/)");
   }
@@ -235,6 +251,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
+    result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
     assertThat(dependencies).hasSize(2);
     assertContainsInOrder(result,
                           "jni (Include Folders, /path/to/ndk-bundle/samples/Teapot/jni, /)",
@@ -258,6 +275,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
+    result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
     System.out.println(result);
     assertThat(dependencies).hasSize(1);
     assertContainsInOrder(result,
@@ -277,6 +295,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
+    result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
     System.out.println(result);
     assertThat(dependencies).hasSize(1);
     // The tag should be NDK r19 not NDK r19a ('a' is elided)
@@ -297,6 +316,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
+    result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
     System.out.println(result);
     assertThat(dependencies).hasSize(1);
     assertContainsInOrder(result,
@@ -316,6 +336,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
+    result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
     System.out.println(result);
     assertThat(dependencies).hasSize(1);
     assertContainsInOrder(result,
@@ -335,6 +356,7 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
+    result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
     assertThat(dependencies).hasSize(1);
     assertContainsInOrder(result,
                           "poly2tri (Cocos Third Party Packages, external/poly2tri)",
@@ -352,11 +374,17 @@ public class ClassifiedIncludeExpressionNodeRewriterTest {
     StringBuilder sb = new StringBuilder();
     printDependencies(sb, dependencies, 0);
     String result = sb.toString();
+    result = FileUtils.toSystemIndependentPath(result); // Account for Windows path separators
     assertThat(dependencies).hasSize(5);
-    assertThat(result).contains(
+    // myExcludes is a set, so it can be out of order, and it seems to consistently be the latter on Windows
+    assertThat(result.contains(
       "Shadow Group\n" +
       "    exclude: /usr/local/google/home/jomof/projects/Game/cocos2d\n" +
-      "    exclude: /path/to/ndk-bundle");
+      "    exclude: /path/to/ndk-bundle")
+               || result.contains(
+      "Shadow Group\n" +
+      "    exclude: /path/to/ndk-bundle\n" +
+      "    exclude: /usr/local/google/home/jomof/projects/Game/cocos2d")).isTrue();
     assertThat(result).contains(
       "Cocos Editor Support Modules (/usr/local/google/home/jomof/projects/Game/cocos2d)\n" +
       "    cocosbuilder (Cocos Editor Support Modules, /usr/local/google/home/jomof/projects/Game/cocos2d, /cocos/editor-support/cocosbuilder/)\n" +

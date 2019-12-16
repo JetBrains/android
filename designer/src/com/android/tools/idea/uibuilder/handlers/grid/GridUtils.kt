@@ -84,7 +84,7 @@ fun getGridBarriers(gridComponent: SceneComponent): GridBarriers {
   val isSupportLibrary = SdkConstants.GRID_LAYOUT_V7.isEquals(gridComponent.nlComponent.tagName)
 
   // Helper function to convert px to dp
-  fun Int.toDp() = Coordinates.pxToDp(gridComponent.scene.designSurface, this)
+  fun Int.toDp() = Coordinates.pxToDp(gridComponent.scene.sceneManager, this)
 
   @AndroidCoordinate val padding = retrievePaddings(gridComponent.authoritativeNlComponent)
 

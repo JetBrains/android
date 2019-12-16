@@ -27,7 +27,6 @@ import com.android.tools.idea.configurations.TargetMenuAction;
 import com.android.tools.idea.configurations.ThemeMenuAction;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ThemeSelectionDialogFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -36,6 +35,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testFramework.TestActionEvent;
 import java.util.Arrays;
 import java.util.function.Predicate;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
@@ -209,7 +209,12 @@ public class NlConfigurationToolbarFixture<ParentFixture> {
 
   @NotNull
   private ActionButton findToolbarButton(@NotNull final String tooltip) {
-    return waitUntilShowingAndEnabled(myRobot, myToolBar.getComponent(), Matchers.byTooltip(ActionButton.class, tooltip));
+    return waitUntilShowingAndEnabled(myRobot, myToolBar.getComponent(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override
+      protected boolean isMatching(@NotNull ActionButton actionButton) {
+        return tooltip.equals(actionButton.getAction().getTemplatePresentation().getDescription());
+      }
+    });
   }
 
   private static class DeviceNamePredicate implements Predicate<String> {

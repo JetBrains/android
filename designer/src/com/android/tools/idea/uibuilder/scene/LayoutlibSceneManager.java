@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.scene;
 
 import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
@@ -28,6 +29,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.analytics.CommonUsageTracker;
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager;
 import com.android.tools.idea.common.model.AndroidCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
@@ -279,6 +281,15 @@ public class LayoutlibSceneManager extends SceneManager {
     return DECORATOR_FACTORY;
   }
 
+  /**
+   * In the layout editor, Scene uses {@link AndroidDpCoordinate}s whereas rendering is done in (zoomed and offset)
+   * {@link AndroidCoordinate}s. The scaling factor between them is the ratio of the screen density to the standard density (160).
+   */
+  @Override
+  public float getSceneScalingFactor() {
+    return getModel().getConfiguration().getDensity().getDpiValue() / (float)DEFAULT_DENSITY;
+  }
+
   @Override
   public void dispose() {
     if (myAreListenersRegistered) {
@@ -294,24 +305,26 @@ public class LayoutlibSceneManager extends SceneManager {
 
     super.dispose();
     // dispose is called by the project close using the read lock. Invoke the render task dispose later without the lock.
-    myRenderTaskDisposerExecutor.execute(() -> {
-      synchronized (myRenderingTaskLock) {
-        if (myRenderTask != null) {
-          myRenderTask.dispose();
-          myRenderTask = null;
-        }
+    myRenderTaskDisposerExecutor.execute(this::disposeRenderTask);
+  }
+
+  private void disposeRenderTask() {
+    synchronized (myRenderingTaskLock) {
+      if (myRenderTask != null) {
+        myRenderTask.dispose();
+        myRenderTask = null;
       }
-      myRenderResultLock.writeLock().lock();
-      try {
-        if (myRenderResult != null) {
-          myRenderResult.dispose();
-        }
-        myRenderResult = null;
+    }
+    myRenderResultLock.writeLock().lock();
+    try {
+      if (myRenderResult != null) {
+        myRenderResult.dispose();
       }
-      finally {
-        myRenderResultLock.writeLock().unlock();
-      }
-    });
+      myRenderResult = null;
+    }
+    finally {
+      myRenderResultLock.writeLock().unlock();
+    }
   }
 
   private void stopProgressIndicator() {
@@ -392,20 +405,21 @@ public class LayoutlibSceneManager extends SceneManager {
     super.updateFromComponent(sceneComponent);
     NlComponent component = sceneComponent.getNlComponent();
     boolean animate = getScene().isAnimated() && !sceneComponent.hasNoDimension();
+    SceneManager manager = sceneComponent.getScene().getSceneManager();
     if (animate) {
       long time = System.currentTimeMillis();
-      sceneComponent.setPositionTarget(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getX(component)),
-                                       Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getY(component)),
+      sceneComponent.setPositionTarget(Coordinates.pxToDp(manager, NlComponentHelperKt.getX(component)),
+                                       Coordinates.pxToDp(manager, NlComponentHelperKt.getY(component)),
                                        time);
-      sceneComponent.setSizeTarget(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getW(component)),
-                                   Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getH(component)),
+      sceneComponent.setSizeTarget(Coordinates.pxToDp(manager, NlComponentHelperKt.getW(component)),
+                                   Coordinates.pxToDp(manager, NlComponentHelperKt.getH(component)),
                                    time);
     }
     else {
-      sceneComponent.setPosition(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getX(component)),
-                                 Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getY(component)));
-      sceneComponent.setSize(Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getW(component)),
-                             Coordinates.pxToDp(getDesignSurface(), NlComponentHelperKt.getH(component)));
+      sceneComponent.setPosition(Coordinates.pxToDp(manager, NlComponentHelperKt.getX(component)),
+                                 Coordinates.pxToDp(manager, NlComponentHelperKt.getY(component)));
+      sceneComponent.setSize(Coordinates.pxToDp(manager, NlComponentHelperKt.getW(component)),
+                             Coordinates.pxToDp(manager, NlComponentHelperKt.getH(component)));
     }
   }
 
@@ -476,6 +490,9 @@ public class LayoutlibSceneManager extends SceneManager {
         requestModelUpdate();
         model.updateTheme();
       }
+      else {
+        requestLayoutAndRender(false);
+      }
     }
 
     @Override
@@ -485,11 +502,11 @@ public class LayoutlibSceneManager extends SceneManager {
           myRenderingQueue.cancelAllUpdates();
         }
       }
+      disposeRenderTask();
     }
 
     @Override
     public void modelLiveUpdate(@NotNull NlModel model, boolean animate) {
-      NlDesignSurface surface = getDesignSurface();
       requestLayoutAndRender(animate);
     }
   }
@@ -920,6 +937,10 @@ public class LayoutlibSceneManager extends SceneManager {
       taskBuilder.useTransparentBackground();
     }
 
+    if (!getDesignSurface().getPreviewWithToolsAttributes()) {
+      taskBuilder.disableToolsAttributes();
+    }
+
     return taskBuilder;
   }
 
@@ -934,11 +955,11 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   protected void notifyListenersModelLayoutComplete(boolean animate) {
-    getModel().notifyListenersModelLayoutComplete(animate);
+    getModel().notifyListenersModelChangedOnLayout(animate);
   }
 
   protected void notifyListenersModelUpdateComplete() {
-    getModel().notifyListenersModelUpdateComplete();
+    getModel().notifyListenersModelDerivedDataChanged();
   }
 
   private void logConfigurationChange(@NotNull DesignSurface surface) {

@@ -182,7 +182,7 @@ public abstract class SceneView {
   }
 
   public float getSceneScalingFactor() {
-    return getSurface().getSceneScalingFactor();
+    return getSceneManager().getSceneScalingFactor();
   }
 
   public void setLocation(@SwingCoordinate int screenX, @SwingCoordinate int screenY) {

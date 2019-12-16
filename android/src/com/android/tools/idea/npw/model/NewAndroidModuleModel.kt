@@ -22,6 +22,10 @@ import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.RenderTemplateModel.Companion.getInitialSourceLanguage
 import com.android.tools.idea.npw.module.ModuleModel
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
+import com.android.tools.idea.npw.module.recipes.automotiveModule.generateAutomotiveModule
+import com.android.tools.idea.npw.module.recipes.thingsModule.generateThingsModule
+import com.android.tools.idea.npw.module.recipes.tvModule.generateTvModule
+import com.android.tools.idea.npw.module.recipes.wearModule.generateWearModule
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateValueInjector
@@ -49,7 +53,7 @@ import java.io.File
 
 class ExistingProjectModelData(
   override var project: Project,
-  override val projectSyncInvoker: ProjectSyncInvoker
+  override val projectSyncInvoker: ProjectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker()
 ) : ProjectModelData {
   override val applicationName: StringValueProperty = StringValueProperty(message("android.wizard.module.config.new.application"))
   override val packageName: StringValueProperty = StringValueProperty()
@@ -108,6 +112,8 @@ class NewAndroidModuleModel(
   isLibrary,
   projectModelData
 ) {
+  override val moduleTemplateValues = mutableMapOf<String, Any>()
+  override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
   override val renderer = ModuleTemplateRenderer()
 
   init {
@@ -148,9 +154,15 @@ class NewAndroidModuleModel(
     multiTemplateRenderer.incrementRenders()
   }
 
-  protected inner class ModuleTemplateRenderer : ModuleModel.ModuleTemplateRenderer() {
-    override val recipe: Recipe get() = { data: TemplateData ->
-      generateAndroidModule(data as ModuleTemplateData, applicationName.get(), enableCppSupport.get(), cppFlags.get())
+  inner class ModuleTemplateRenderer : ModuleModel.ModuleTemplateRenderer() {
+    override val recipe: Recipe get() = when(formFactor.get()) {
+      FormFactor.MOBILE -> { data: TemplateData ->
+        generateAndroidModule(data as ModuleTemplateData, applicationName.get(), enableCppSupport.get(), cppFlags.get())
+      }
+      FormFactor.WEAR -> { data: TemplateData -> generateWearModule(data as ModuleTemplateData, applicationName.get()) }
+      FormFactor.AUTOMOTIVE -> { data: TemplateData -> generateAutomotiveModule(data as ModuleTemplateData, applicationName.get()) }
+      FormFactor.TV -> { data: TemplateData -> generateTvModule(data as ModuleTemplateData, applicationName.get()) }
+      FormFactor.THINGS -> { data: TemplateData -> generateThingsModule(data as ModuleTemplateData, applicationName.get()) }
     }
     @WorkerThread
     override fun init() {

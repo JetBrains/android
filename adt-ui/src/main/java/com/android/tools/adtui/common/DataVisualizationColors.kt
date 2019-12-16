@@ -15,14 +15,12 @@
  */
 package com.android.tools.adtui.common
 
-import com.google.common.annotations.VisibleForTesting
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import com.intellij.ui.JBColor
-import java.io.File
-import java.io.FileReader
+import java.io.InputStream
+import java.io.InputStreamReader
 import java.lang.Math.abs
-import java.net.URL
 
 /**
  * Helper class to deserialize the color json palette. This is based on the format of the auto-generated data-visualization-palette.json.
@@ -45,11 +43,11 @@ object DataVisualizationColors {
   var numberOfTonesPerColor = 0
   var isInitialized = false
 
-  fun initialize(paletteFile: File = File(javaClass.getResource("/palette/data-visualization-palette.json").file)) {
+  fun initialize(paletteStream: InputStream = javaClass.getResourceAsStream("/palette/data-visualization-palette.json")) {
     if (isInitialized) {
       return
     }
-    loadColorPalette(paletteFile)
+    loadColorPalette(paletteStream)
     numberOfTonesPerColor = palette.values.first().size
     isInitialized = true
   }
@@ -95,11 +93,11 @@ object DataVisualizationColors {
    *
    * Note: The data-visualization-palette.json is an auto generated file and should be updated when the design team creates new colors.
    */
-  private fun loadColorPalette(paletteFile: File) {
+  private fun loadColorPalette(paletteStream: InputStream) {
     val gsonParser = Gson()
 
     val colors = gsonParser.fromJson<Array<DataVisualizationTheme>>(
-      FileReader(paletteFile), Array<DataVisualizationTheme>::class.java)
+      InputStreamReader(paletteStream), Array<DataVisualizationTheme>::class.java)
     colors.forEach {
       assert(it.light.size == it.dark.size) {
         "Expected light (${it.light.size}), and dark (${it.dark.size}) palette to have same number of colors"

@@ -24,6 +24,7 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.SampleDataResourceValueImpl;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.sampledata.SampleDataCsvParser;
 import com.android.ide.common.resources.sampledata.SampleDataHolder;
@@ -43,10 +44,8 @@ import com.intellij.psi.PsiFileSystemItem;
 import com.intellij.psi.ResolveResult;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
@@ -77,20 +76,20 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
       .maximumWeight(50) // MB
       .build();
 
+  @NotNull private final SingleNamespaceResourceRepository myOwner;
   @NotNull private final String myName;
-  @NotNull private final ResourceNamespace myNamespace;
   @NotNull private final Function<OutputStream, Exception> myDataSource;
   @NotNull private final Supplier<Long> myDataSourceModificationStamp;
   @Nullable private final SmartPsiElementPointer<PsiElement> mySourceElement;
 
   @Nullable private ResourceValue myResourceValue;
-  private final ContentType myContentType;
+  @NotNull private final ContentType myContentType;
 
   /**
    * Creates a new {@link SampleDataResourceItem}.
    *
-   * @param name name of the resource
-   * @param namespace optional resource namespace. Pre-defined data sources use the {@link ResourceNamespace#TOOLS} namespace.
+   * @param owner the resource repository owning this resource
+   * @param name the name of the resource
    * @param dataSource {@link Function} that writes the content to be used for this item to the passed {@link OutputStream}. The function
    *     must return any exceptions that happened during the processing of the file.
    * @param dataSourceModificationStamp {@link Supplier} that returns a modification stamp. This stamp should change every time the content
@@ -98,14 +97,14 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
    * @param sourceElement optional {@link SmartPsiElementPointer} where the content was obtained from. This will be used to display
    *     references to the content.
    */
-  private SampleDataResourceItem(@NotNull String name,
-                                 @NotNull ResourceNamespace namespace,
+  private SampleDataResourceItem(@NotNull SingleNamespaceResourceRepository owner,
+                                 @NotNull String name,
                                  @NotNull Function<OutputStream, Exception> dataSource,
                                  @NotNull Supplier<Long> dataSourceModificationStamp,
                                  @Nullable SmartPsiElementPointer<PsiElement> sourceElement,
                                  @NotNull ContentType contentType) {
+    myOwner = owner;
     myName = name;
-    myNamespace = namespace;
     myDataSource = dataSource;
     myDataSourceModificationStamp = dataSourceModificationStamp;
     // We use SourcelessResourceItem as parent because we don't really obtain a FolderConfiguration or Qualifiers from
@@ -126,10 +125,11 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
    * since the never change.
    */
   @NotNull
-  static SampleDataResourceItem getFromStaticDataSource(@NotNull String name,
+  static SampleDataResourceItem getFromStaticDataSource(@NotNull SingleNamespaceResourceRepository repository,
+                                                        @NotNull String name,
                                                         @NotNull Function<OutputStream, Exception> source,
                                                         @NotNull ContentType contentType) {
-    return new SampleDataResourceItem(name, PredefinedSampleDataResourceRepository.NAMESPACE, source, () -> 1L, null, contentType);
+    return new SampleDataResourceItem(repository, name, source, () -> 1L, null, contentType);
   }
 
   /**
@@ -137,12 +137,12 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
    * the contents of the {@link SampleDataResourceItem} if the source element changes.
    */
   @NotNull
-  private static SampleDataResourceItem getFromPlainFile(@NotNull SmartPsiElementPointer<PsiElement> filePointer,
-                                                         @NotNull ResourceNamespace namespace) {
+  private static SampleDataResourceItem getFromPlainFile(@NotNull SingleNamespaceResourceRepository repository,
+                                                         @NotNull SmartPsiElementPointer<PsiElement> filePointer) {
     VirtualFile vFile = filePointer.getVirtualFile();
     String fileName = vFile.getName();
 
-    return new SampleDataResourceItem(fileName, namespace, output -> {
+    return new SampleDataResourceItem(repository, fileName, output -> {
       PsiElement sourceElement = filePointer.getElement();
       if (sourceElement == null) {
         LOG.warn("File pointer was invalidated and the repository was not refreshed");
@@ -165,11 +165,11 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
    * invalidate the contents of the {@link SampleDataResourceItem} if the directory contents change.
    */
   @NotNull
-  private static SampleDataResourceItem getFromDirectory(@NotNull SmartPsiElementPointer<PsiElement> directoryPointer,
-                                                         @NotNull ResourceNamespace namespace) {
+  private static SampleDataResourceItem getFromDirectory(@NotNull SingleNamespaceResourceRepository repository,
+                                                         @NotNull SmartPsiElementPointer<PsiElement> directoryPointer) {
     VirtualFile directory = directoryPointer.getVirtualFile();
     // For directories, at this point, we always consider them images since it's the only type we handle for them
-    return new SampleDataResourceItem(directory.getName(), namespace, output -> {
+    return new SampleDataResourceItem(repository, directory.getName(), output -> {
       try (PrintStream printStream = new PrintStream(output, false, UTF_8.name())) {
         Arrays.stream(directory.getChildren())
               .filter(child -> !child.isDirectory())
@@ -188,12 +188,12 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
    * will be the selection of elements from the sourceElement that are found with the given path.
    */
   @NotNull
-  private static SampleDataResourceItem getFromJsonFile(@NotNull SmartPsiElementPointer<PsiElement> jsonPointer,
-                                                        @NotNull String contentPath,
-                                                        @NotNull ResourceNamespace namespace) {
+  private static SampleDataResourceItem getFromJsonFile(@NotNull SingleNamespaceResourceRepository repository,
+                                                        @NotNull SmartPsiElementPointer<PsiElement> jsonPointer,
+                                                        @NotNull String contentPath) {
     VirtualFile vFile = jsonPointer.getVirtualFile();
     String fileName = vFile.getName();
-    return new SampleDataResourceItem(fileName + contentPath, namespace, output -> {
+    return new SampleDataResourceItem(repository, fileName + contentPath, output -> {
       if (contentPath.isEmpty()) {
         return null;
       }
@@ -205,7 +205,7 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
       }
 
       try {
-        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(source.getText().getBytes(UTF_8)));
+        StringReader input = new StringReader(source.getText());
         SampleDataJsonParser parser = SampleDataJsonParser.parse(input);
         if (parser != null) {
           output.write(parser.getContentFromPath(contentPath));
@@ -230,8 +230,8 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
    * of file or directory and return a number of items.
    */
   @NotNull
-  public static List<SampleDataResourceItem> getFromPsiFileSystemItem(@NotNull PsiFileSystemItem sampleDataSource,
-                                                                      @NotNull ResourceNamespace namespace) throws IOException {
+  public static List<SampleDataResourceItem> getFromPsiFileSystemItem(@NotNull SingleNamespaceResourceRepository repository,
+                                                                      @NotNull PsiFileSystemItem sampleDataSource) throws IOException {
     String extension = sampleDataSource.getVirtualFile().getExtension();
     if (extension == null) {
       extension = "";
@@ -255,7 +255,7 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
         Set<String> possiblePaths = parser.getPossiblePaths();
         ImmutableList.Builder<SampleDataResourceItem> items = ImmutableList.builder();
         for (String path : possiblePaths) {
-          items.add(getFromJsonFile(psiPointer, path, namespace));
+          items.add(getFromJsonFile(repository, psiPointer, path));
         }
         return items.build();
       }
@@ -270,7 +270,7 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
         Set<String> possiblePaths = parser.getPossiblePaths();
         ImmutableList.Builder<SampleDataResourceItem> items = ImmutableList.builder();
         for (String path : possiblePaths) {
-          items.add(new SampleDataResourceItem(sampleDataSource.getName() + path, namespace,
+          items.add(new SampleDataResourceItem(repository, sampleDataSource.getName() + path,
                                                new HardcodedContent(Joiner.on('\n').join(parser.getPath(path))),
                                                () -> psiPointer.getVirtualFile().getModificationStamp() + 1, psiPointer,
                                                ContentType.UNKNOWN));
@@ -280,7 +280,7 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
 
       default:
         return ImmutableList.of(sampleDataSource instanceof PsiDirectory ?
-                                getFromDirectory(psiPointer, namespace) : getFromPlainFile(psiPointer, namespace));
+                                getFromDirectory(repository, psiPointer) : getFromPlainFile(repository, psiPointer));
     }
   }
 
@@ -324,6 +324,12 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
 
   @Override
   @NotNull
+  public SingleNamespaceResourceRepository getRepository() {
+    return myOwner;
+  }
+
+  @Override
+  @NotNull
   public String getName() {
     return myName;
   }
@@ -343,7 +349,7 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
   @Override
   @NotNull
   public ResourceNamespace getNamespace() {
-    return myNamespace;
+    return myOwner.getNamespace();
   }
 
   @Override

@@ -69,7 +69,7 @@ open class BasePerspectiveConfigurableFixture protected constructor(
   }
 
   fun restoreModulesList() {
-    val restoreButton = finder().find(container, matcher<ActionButton> { it.toolTipText == "Restore 'Modules' List" })
+    val restoreButton = finder().find(container, matcher<ActionButton> { it.accessibleContext.accessibleName == "Restore 'Modules' List" })
     robot().pressMouse(restoreButton, Point(3, 3), MouseButton.LEFT_BUTTON)
     try {
       Pause.pause(TimedDeadzone.DEFAULT.length.toLong() + 1)

@@ -18,6 +18,10 @@ package com.android.tools.idea.res.psi
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ResourceItem
+import com.android.ide.common.resources.ResourceRepository
+import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.ide.common.resources.sampledata.SampleDataManager
+import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
@@ -59,7 +63,8 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
   }
 
   /**
-   * Resolves the reference to a {@link ResourceReferencePsiElement} if any matching resources exist.
+   * Resolves the reference to a {@link ResourceReferencePsiElement} if any matching resources exist. We should avoid using the
+   * [ResourceValue] parameter and instead provide [ResourceReference] via the other implementation below.
    */
   override fun resolveReference(
     resourceValue: ResourceValue,
@@ -73,7 +78,14 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
         resourceValue.resourceName ?: return ResolveResult.EMPTY_ARRAY
       ).resolve(context)
       ?: return ResolveResult.EMPTY_ARRAY
+    return resolveReference(resourceReference, context, facet)
+  }
 
+  fun resolveReference(
+    resourceReference: ResourceReference,
+    context: PsiElement,
+    facet: AndroidFacet
+  ): Array<out ResolveResult> {
     val allResources = ResourceRepositoryManager.getInstance(facet).allResources ?: return ResolveResult.EMPTY_ARRAY
 
     return if (allResources.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)) {
@@ -119,5 +131,24 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
     else {
       GlobalSearchScope.union(allScopes)
     }
+  }
+
+  /**
+   * For areas of the IDE which want to pick a single resource declaration to navigate to, we pick the best possible [ResourceItem] based on
+   * the supplied [FolderConfiguration], and if none exists, returns the first item returned by the [ResourceRepository]
+   *
+   * @param resourceReference [ResourceReference] of a resource.
+   * @param context           [PsiElement] context element from which an action is being performed.
+   * @param configuration     [FolderConfiguration] configuration provided that is used to pick a matching [ResourceItem].
+   * @return [PsiElement] of the best matching resource declaration.
+   */
+  fun getBestGotoDeclarationTarget(
+    resourceReference: ResourceReference,
+    context: PsiElement,
+    configuration: FolderConfiguration
+  ): PsiElement? {
+    val resources = ResourceRepositoryManager.getInstance(context)?.allResources?.getResources(resourceReference) ?: return null
+    val resourceItem = configuration.findMatchingConfigurable(resources) ?: resources.firstOrNull() ?: return null
+    return resolveToDeclaration(resourceItem, context.project)
   }
 }

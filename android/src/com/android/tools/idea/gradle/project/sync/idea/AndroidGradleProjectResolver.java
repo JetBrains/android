@@ -263,7 +263,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         !hasArtifacts(gradleModule)) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
-      createJavaProject(gradleModule, ideModule, emptyList(), false);
+      createJavaProject(gradleModule, ideModule, emptyList(), false, false);
       return;
     }
 
@@ -301,8 +301,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         issues = androidProject.getSyncIssues();
       }
 
-      // This is a Java lib module.
-      createJavaProject(gradleModule, ideModule, issues, androidProjectWithoutVariants);
+      // This is a Java lib module or Jar/Aar wrapped module.
+      // The module is buildable only if JavaPlugin is applied. For Jar/Aar wrapped module, this could be false.
+      createJavaProject(gradleModule, ideModule, issues, androidProjectWithoutVariants,
+                        gradlePluginList.contains("org.gradle.api.plugins.JavaPlugin"));
       // Populate ContentRootDataNode for buildSrc module. This DataNode is required to setup classpath buildscript.
       if (BUILD_SRC_FOLDER_NAME.equals(gradleModule.getGradleProject().getName())) {
         nextResolver.populateModuleContentRoots(gradleModule, ideModule);
@@ -318,9 +320,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   private void createJavaProject(@NotNull IdeaModule gradleModule,
                                  @NotNull DataNode<ModuleData> ideModule,
                                  @NotNull Collection<SyncIssue> syncIssues,
-                                 boolean androidProjectWithoutVariants) {
+                                 boolean androidProjectWithoutVariants,
+                                 boolean isBuildable) {
     ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
-    JavaModuleModel javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, syncIssues, externalProject, androidProjectWithoutVariants);
+    JavaModuleModel javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, syncIssues, externalProject, androidProjectWithoutVariants, isBuildable);
     ideModule.createChild(JAVA_MODULE_MODEL, javaModuleModel);
   }
 

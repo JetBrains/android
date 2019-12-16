@@ -118,7 +118,7 @@ public class JavaMigrationTestGeneratorTest extends AndroidTestCase {
                  "import java.io.IOException;\n" +
                  "\n" +
                  "@RunWith(AndroidJUnit4.class)\n" +
-                 "class Migration_1_2_Test {\n" +
+                 "public class Migration_1_2_Test {\n" +
                  "    private static final String TEST_APP_DATABASE = \"test-app-database\";\n" +
                  "    @Rule\n" +
                  "    private MigrationTestHelper migrationTestHelper;\n" +

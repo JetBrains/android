@@ -32,6 +32,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
+import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.BorderFactory
@@ -86,7 +87,7 @@ open class MultiRepresentationPreview(private val psiFile: PsiFile,
       }
     }
 
-  protected open fun onRepresentationChanged() {
+  private fun onRepresentationChanged() = UIUtil.invokeLaterIfNeeded {
     component.removeAll()
 
     component.add(representationSelectionToolbar, BorderLayout.NORTH)
@@ -110,7 +111,7 @@ open class MultiRepresentationPreview(private val psiFile: PsiFile,
     }
   }
 
-  protected fun updateRepresentations() {
+  protected fun updateRepresentations() = UIUtil.invokeLaterIfNeeded {
     val providers = providers.filter { it.accept(project, virtualFile) }.toList()
     val providerNames = providers.map { it.displayName }.toSet()
 
@@ -162,29 +163,33 @@ open class MultiRepresentationPreview(private val psiFile: PsiFile,
     return toolbar as ActionToolbarImpl
   }
 
+  private class RepresentationOption(val representationName: String, val parent: MultiRepresentationPreview) :
+    AnAction(representationName) {
+    override fun actionPerformed(e: AnActionEvent) {
+      // Here we iterate over all editors as change in selection (write) should trigger updates in all of them
+      parent.findAllPreviews().forEach { it.currentRepresentationName = representationName }
+    }
+  }
+
+  private class RepresentationsSelector(val parent: MultiRepresentationPreview) :
+    DropDownAction(null, "Representations", StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW) {
+    override fun update(e: AnActionEvent) {
+      super.update(e)
+      removeAll()
+
+      // We need just a single previewEditor here (any) to retrieve (read) the states and currently selected state
+      parent.representations.keys.forEach {
+        add(RepresentationOption(it, parent))
+      }
+      e.presentation.setText(parent.currentRepresentationName, false)
+    }
+
+    override fun displayTextInToolbar() = true
+  }
+
   private fun createActionGroup(): ActionGroup {
     val actionGroup = DefaultActionGroup()
-    val representationsSelector = object : DropDownAction(null, "Representations", StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW) {
-      override fun update(e: AnActionEvent) {
-        super.update(e)
-        removeAll()
-
-        // We need just a single previewEditor here (any) to retrieve (read) the states and currently selected state
-        representations.keys.forEach {
-          val representation = it
-          add(object : AnAction(representation) {
-            override fun actionPerformed(e: AnActionEvent) {
-              // Here we iterate over all editors as change in selection (write) should trigger updates in all of them
-              findAllPreviews().forEach { it.currentRepresentationName = representation }
-            }
-          })
-        }
-        e.presentation.setText(currentRepresentationName, false)
-      }
-
-
-      override fun displayTextInToolbar() = true
-    }
+    val representationsSelector = RepresentationsSelector(this)
     actionGroup.add(representationsSelector)
     return actionGroup
   }

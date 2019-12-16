@@ -173,22 +173,20 @@ public abstract class LocalResourceRepository extends AbstractResourceRepository
     }
   }
 
+  @GuardedBy("ITEM_MAP_LOCK")
   protected void invalidateParentCaches() {
-    synchronized (ITEM_MAP_LOCK) {
-      if (myParents != null) {
-        for (MultiResourceRepository parent : myParents) {
-          parent.invalidateCache(this);
-        }
+    if (myParents != null) {
+      for (MultiResourceRepository parent : myParents) {
+        parent.invalidateCache();
       }
     }
   }
 
-  protected void invalidateParentCaches(@NotNull ResourceNamespace namespace, @NotNull ResourceType... types) {
-    synchronized (ITEM_MAP_LOCK) {
-      if (myParents != null) {
-        for (MultiResourceRepository parent : myParents) {
-          parent.invalidateCache(this, namespace, types);
-        }
+  @GuardedBy("ITEM_MAP_LOCK")
+  protected void invalidateParentCaches(@NotNull SingleNamespaceResourceRepository repository, @NotNull ResourceType... types) {
+    if (myParents != null) {
+      for (MultiResourceRepository parent : myParents) {
+        parent.invalidateCache(repository, types);
       }
     }
   }

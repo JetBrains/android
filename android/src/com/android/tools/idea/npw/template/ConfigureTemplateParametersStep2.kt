@@ -227,13 +227,11 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
         }
       }
       parameterRows[parameter] = row
-      when (parameter) {
-        is EnumParameter -> {
-          row.setValue((parameter.value as Enum<*>).name)
-        }
-        else -> {
-          row.setValue(parameter.value)
-        }
+      when (widget) {
+        // We cannot know a good default value for package in template, but it's being preset in [createRowForWidget]
+        is PackageNameWidget -> parameter.value = property!!.get()
+        is EnumWidget -> row.setValue((parameter.value as Enum<*>).name)
+        else -> row.setValue(parameter.value)
       }
     }
 
@@ -345,7 +343,6 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
 
     evaluationState = EvaluationState.NOT_EVALUATING
 
-
     invalidParameterMessage.set(validateAllParameters() ?: "")
   }
 
@@ -428,7 +425,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
   }
 
   private fun deduplicate(parameter: StringParameter): String {
-    val value = parameter.suggest() ?: parameter.defaultValue
+    val value = parameter.suggest() ?: parameter.value
     if (value.isEmpty() || !parameter.constraints.contains(Constraint.UNIQUE)) {
       return value
     }

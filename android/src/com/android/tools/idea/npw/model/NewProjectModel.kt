@@ -56,6 +56,7 @@ import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
@@ -81,8 +82,6 @@ import java.util.Optional
 import java.util.regex.Pattern
 
 private val logger: Logger get() = logger<NewProjectModel>()
-
-typealias AndroidProjectRecipe = (String, Language, Boolean) -> Recipe
 
 interface ProjectModelData {
   val projectSyncInvoker: ProjectSyncInvoker
@@ -257,11 +256,11 @@ class NewProjectModel : WizardModel(), ProjectModelData {
           moduleRoot = null
         )
         val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
-        val recipe: AndroidProjectRecipe = { appTitle, language, useAndroidX ->
+        val recipe: Recipe = { appTitle: String, language: Language, useAndroidX: Boolean ->
           { data: TemplateData -> androidProjectRecipe(data as ProjectTemplateData, appTitle, language, useAndroidX) }
-        }
+        }(applicationName.get(), language.value, !useAppCompat.get())
 
-        recipe(applicationName.get(), language.value, !useAppCompat.get()).doRender(context, executor)
+        recipe.render(context, executor, AndroidStudioEvent.TemplateRenderer.ANDROID_PROJECT)
         return
       }
 

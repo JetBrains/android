@@ -24,6 +24,11 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <!-- Android IDL support -->
+    <fileType name="AIDL"
+              implementationClass="com.android.tools.idea.lang.aidl.AidlFileType"
+              fieldName="INSTANCE"
+              language="AIDL"
+              extensions="aidl"/>
     <lang.parserDefinition language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlParserDefinition"/>
     <lang.syntaxHighlighterFactory language="AIDL"
                                    implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighterFactory"/>
@@ -107,13 +112,22 @@
     <completion.contributor language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCompletionContributor"/>
 
     <!-- Renderscript -->
+    <fileType name="Android RenderScript"
+              implementationClass="com.android.tools.idea.lang.rs.AndroidRenderscriptFileType"
+              fieldName="INSTANCE"
+              language="Renderscript"
+              extensions="rs;fs;rsh" />
     <lang.parserDefinition language="Renderscript"
                            implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
     <lang.syntaxHighlighterFactory language="Renderscript"
                                    implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
 
     <!-- SQL support -->
-    <fileTypeFactory implementation="com.android.tools.idea.lang.androidSql.AndroidSqlFileTypeFactory"/>
+    <fileType name="Android Room SQL"
+              implementationClass="com.android.tools.idea.lang.androidSql.AndroidSqlFileType"
+              fieldName="INSTANCE"
+              language="RoomSql" />
+
     <lang.parserDefinition language="RoomSql"
                            implementationClass="com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition"/>
     <lang.syntaxHighlighterFactory language="RoomSql"
@@ -161,7 +175,6 @@
     <!-- Multidex keep files support -->
     <fileTypeFactory implementation="com.android.tools.idea.lang.multiDexKeep.MultiDexKeepFileTypeFactory"/>
     <lang.parserDefinition language="MultiDexKeep" implementationClass="com.android.tools.idea.lang.multiDexKeep.MultiDexKeepParserDefinition"/>
-
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.lang.androidSql">

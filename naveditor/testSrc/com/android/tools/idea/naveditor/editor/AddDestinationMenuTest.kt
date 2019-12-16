@@ -109,6 +109,7 @@ class AddDestinationMenuTest : NavTestCase() {
   }
 
   fun testContent() {
+/* b/145856229
     val virtualFile = project.baseDir.findFileByRelativePath("../unitTest/res/layout/activity_main.xml")
     val xmlFile = PsiManager.getInstance(project).findFile(virtualFile!!) as XmlFile
 
@@ -191,6 +192,7 @@ class AddDestinationMenuTest : NavTestCase() {
     expected.remove(activity3)
     destinations = AddDestinationMenu(surface).destinations
     assertEquals(destinations, expected)
+b/145856229 */
   }
 
   private fun findClass(className: String) = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project))!!

@@ -18,16 +18,29 @@ package com.android.tools.idea.npw.module.recipes.androidProject
 import com.android.tools.idea.wizard.template.renderIf
 
 fun androidProjectGradleProperties(
-  addAndroidXSupport: Boolean
+  addAndroidXSupport: Boolean,
+  generateKotlin: Boolean,
+  overridePathCheck: Boolean?
 ): String {
-  val androidXBlock = renderIf(addAndroidXSupport) {
-    """
+  val androidXBlock = renderIf(addAndroidXSupport) { """
 # AndroidX package structure to make it clearer which packages are bundled with the
 # Android operating system, and which are packaged with your app"s APK
 # https://developer.android.com/topic/libraries/support-library/androidx-rn
 android.useAndroidX=true
 # Automatically convert third-party libraries to use AndroidX
 android.enableJetifier=true
+"""
+  }
+
+  val kotlinStyleBlock = renderIf(generateKotlin) { """
+# Kotlin code style for this project: "official" or "obsolete":
+kotlin.code.style=official
+"""
+  }
+
+  val overridePathCheckBlock = renderIf(overridePathCheck != null) { """
+# Allow non-ASCII characters in project path on Windows
+android.overridePathCheck=$overridePathCheck
 """
   }
 
@@ -51,6 +64,8 @@ org.gradle.jvmargs=-Xmx${maxHeapSize}m
 # org.gradle.parallel=true
 
 $androidXBlock
+$kotlinStyleBlock
+$overridePathCheckBlock
 """
 }
 

@@ -16,10 +16,13 @@
 package com.android.tools.idea.gradle.dsl.model.android;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_ADD_AND_APPLY_BLOCK_ELEMENTS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_ADD_AND_APPLY_BLOCK_ELEMENTS_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_REMOVE_AND_APPLY_BLOCK_ELEMENTS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_ADD_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_ADD_AND_APPLY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_ADD_AND_RESET;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_EDIT_AND_APPLY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_EDIT_AND_APPLY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_EDIT_AND_RESET;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_IN_SOURCE_SET_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SOURCE_SET_MODEL_SET_ROOT_OVERRIDE_STATEMENTS;
@@ -100,6 +103,8 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     verifySourceSetRoot(buildModel, "newRoot");
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, SOURCE_SET_MODEL_SET_ROOT_EDIT_AND_APPLY_EXPECTED);
+
     verifySourceSetRoot(buildModel, "newRoot");
     buildModel.reparse();
     verifySourceSetRoot(buildModel, "newRoot");
@@ -146,6 +151,8 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     assertEquals("root", "source", sourceSet.root());
 
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, SOURCE_SET_MODEL_SET_ROOT_ADD_AND_APPLY_EXPECTED);
+
     assertEquals("root", "source", sourceSet.root());
 
     buildModel.reparse();
@@ -202,6 +209,8 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     }
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     android = buildModel.android();
     assertNotNull(android);
     checkForInValidPsiElement(android, AndroidModelImpl.class); // the whole android block is deleted from the file.
@@ -254,6 +263,8 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     verifySourceSet(sourceSet, false /*to verify that the block elements are still not saved to the file*/);
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, SOURCE_SET_MODEL_ADD_AND_APPLY_BLOCK_ELEMENTS_EXPECTED);
+
     android = buildModel.android();
     assertNotNull(android);
     sourceSets = android.sourceSets();
@@ -336,6 +347,8 @@ public class SourceSetModelTest extends GradleFileModelTestCase {
     sourceSet.removeResources();
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     android = buildModel.android();
     assertNotNull(android);
     checkForInValidPsiElement(android, AndroidModelImpl.class); // Whole android block gets removed as it would become empty.

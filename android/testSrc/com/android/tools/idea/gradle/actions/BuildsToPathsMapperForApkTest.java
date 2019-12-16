@@ -15,18 +15,11 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import com.android.build.OutputFile;
-import com.android.builder.model.InstantAppProjectBuildOutput;
-import com.android.builder.model.InstantAppVariantBuildOutput;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.google.common.collect.Lists;
 import java.io.File;
 import java.util.Collections;
 import java.util.Map;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link BuildsToPathsMapper}.

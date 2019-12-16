@@ -999,9 +999,8 @@ public class NavigationSchema implements Disposable {
    * Classes derived from NavHostFragment will not be included.
    */
   @NotNull
-  public List<PsiClass> getProjectClassesForTag(@NotNull String tagName) {
+  public List<PsiClass> getProjectClassesForTag(@NotNull String tagName, @NotNull SearchScope scope) {
     Collection<PsiClass> destinationClasses = getDestinationClassesForTag(tagName);
-    SearchScope scope = GlobalSearchScope.moduleWithDependenciesScope(myModule);
     List<PsiClass> projectClasses = new ArrayList<>();
 
     for (PsiClass destinationClass : destinationClasses) {
@@ -1018,6 +1017,11 @@ public class NavigationSchema implements Disposable {
     }
 
     return projectClasses;
+  }
+
+  @NotNull
+  public List<PsiClass> getProjectClassesForTag(@NotNull String tagName) {
+    return getProjectClassesForTag(tagName, GlobalSearchScope.moduleWithDependenciesScope(myModule));
   }
 
   /**

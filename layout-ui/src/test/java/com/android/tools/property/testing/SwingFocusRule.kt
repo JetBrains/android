@@ -226,8 +226,6 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
 
     override fun toFront(c: JComponent?) {}
 
-    override fun getProject(): Project? = null
-
     override fun requestFocus(c: Component, forced: Boolean): ActionCallback = ActionCallback.DONE
 
     override fun dispose() {}

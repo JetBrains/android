@@ -19,7 +19,8 @@ import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.duration
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.issueIcon;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.percentageString;
 
-import com.android.build.attribution.ui.TaskIssueReporter;
+import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics;
+import com.android.build.attribution.ui.controllers.TaskIssueReporter;
 import com.android.build.attribution.ui.data.InterTaskIssueUiData;
 import com.android.build.attribution.ui.data.PluginSourceType;
 import com.android.build.attribution.ui.data.TaskIssueUiData;
@@ -37,17 +38,22 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import org.jetbrains.annotations.NotNull;
 
 public class TaskIssueInfoPanel extends JBPanel {
   private final TaskUiData myTaskData;
   private final TaskIssueUiData myIssue;
   private final TaskIssueReporter myIssueReporter;
+  private final BuildAttributionUiAnalytics myAnalytics;
 
-  public TaskIssueInfoPanel(TaskIssueUiData issue, TaskIssueReporter reporter) {
+  public TaskIssueInfoPanel(TaskIssueUiData issue, TaskIssueReporter reporter, BuildAttributionUiAnalytics analytics) {
     super(new GridBagLayout());
     myIssue = issue;
     myTaskData = issue.getTask();
     myIssueReporter = reporter;
+    myAnalytics = analytics;
 
     GridBagConstraints c = new GridBagConstraints();
     c.insets = JBUI.insetsBottom(15);
@@ -81,7 +87,23 @@ public class TaskIssueInfoPanel extends JBPanel {
       .getHtml();
 
     JLabel iconLabel = new JLabel(issueIcon(myIssue.getType()));
-    JLabel issueDescription = createWrappableHtmlLabel(text);
+    JBLabel issueDescription = new JBLabel() {
+      @NotNull
+      @Override
+      protected HyperlinkListener createHyperlinkListener() {
+        HyperlinkListener listener = super.createHyperlinkListener();
+        return new HyperlinkListener() {
+          @Override
+          public void hyperlinkUpdate(HyperlinkEvent e) {
+            myAnalytics.helpLinkClicked();
+            listener.hyperlinkUpdate(e);
+          }
+        };
+      }
+    };
+    issueDescription.setCopyable(true).setAllowAutoWrapping(true);
+    issueDescription.setVerticalTextPosition(SwingConstants.TOP);
+    issueDescription.setText(text);
 
     JBPanel<JBPanel> panel = new JBPanel<>(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
@@ -105,7 +127,10 @@ public class TaskIssueInfoPanel extends JBPanel {
       return new JPanel();
     }
     HyperlinkLabel recommendationLabel = new HyperlinkLabel();
-    recommendationLabel.addHyperlinkListener(e -> myIssueReporter.reportIssue(myIssue));
+    recommendationLabel.addHyperlinkListener(e -> {
+      myAnalytics.bugReportLinkClicked();
+      myIssueReporter.reportIssue(myIssue);
+    });
     recommendationLabel.setHyperlinkText("Consider filing a bug to report this issue to the plugin developer. ", "Generate report.", "");
 
     JPanel panel = new JPanel(new VerticalLayout(5));
@@ -161,10 +186,6 @@ public class TaskIssueInfoPanel extends JBPanel {
       .add(taskData.getExecutedIncrementally() ? "Yes" : "No")
       .closeHtmlBody()
       .getHtml();
-    return createWrappableHtmlLabel(text);
-  }
-
-  public static JLabel createWrappableHtmlLabel(String text) {
     JBLabel label = new JBLabel().setCopyable(true).setAllowAutoWrapping(true);
     label.setVerticalTextPosition(SwingConstants.TOP);
     label.setText(text);

@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.module.recipes
 
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
+import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
 fun RecipeExecutor.addKotlinPlugins()  {
@@ -24,9 +25,10 @@ fun RecipeExecutor.addKotlinPlugins()  {
   applyPlugin("kotlin-android-extensions")
 }
 
-fun RecipeExecutor.addKotlinDependencies(generateKotlin: Boolean) {
-  if (generateKotlin) {
-    addDependency("org.jetbrains.kotlin:kotlin-stdlib-jdk7:\$kotlin_version\"")
+fun RecipeExecutor.addKotlinDependencies(androidX: Boolean) {
+  addDependency("org.jetbrains.kotlin:kotlin-stdlib-jdk7:\$kotlin_version")
+  if (androidX) {
+    addDependency("androidx.core:core-ktx:+")
   }
 }
 
@@ -52,5 +54,13 @@ fun RecipeExecutor.addAllKotlinDependencies(data: ModuleTemplateData) {
       addDependency("org.jetbrains.kotlin:kotlin-stdlib-jdk7:\$kotlin_version")
       setKotlinVersion(projectData.kotlinVersion)
     }
+  }
+}
+
+fun RecipeExecutor.addKotlinIfNeeded(data: ProjectTemplateData) {
+  if (data.language == Language.Kotlin) {
+    addKotlinToBaseProject(data.language, data.kotlinVersion)
+    addKotlinPlugins()
+    addKotlinDependencies(data.androidXSupport)
   }
 }

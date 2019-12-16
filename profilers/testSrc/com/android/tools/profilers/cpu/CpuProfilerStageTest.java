@@ -686,7 +686,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void testElapsedTime() throws InterruptedException, IOException {
     // Before we capture, elapsed time should be unset (default set to 0)
-    assertThat(myStage.getCaptureElapsedTimeUs()).isEqualTo(0);
+    assertThat(myStage.currentTimeNs() - myStage.getCaptureStartTimeNs()).isEqualTo(0);
     Range dataRange = myStage.getTimeline().getDataRange();
 
     // Start capturing
@@ -696,7 +696,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
     // Check that we're capturing for three seconds
 
-    assertThat(myStage.getCaptureElapsedTimeUs()).isEqualTo(TimeUnit.SECONDS.toMicros(3));
+    assertThat(myStage.currentTimeNs() - myStage.getCaptureStartTimeNs()).isEqualTo(TimeUnit.SECONDS.toNanos(3));
 
     CpuProfilerTestUtils.stopCapturing(myStage, myCpuService, myTransportService, true, CpuProfilerTestUtils.readValidTrace());
     assertThat(myStage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.IDLE);
@@ -709,7 +709,8 @@ public final class CpuProfilerStageTest extends AspectObserver {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS * 10);
 
     // Check that we're capturing for 10 seconds.
-    assertThat(myStage.getCaptureElapsedTimeUs()).isEqualTo((long)dataRange.getMax() - traceStartTime);
+    assertThat(myStage.currentTimeNs() - myStage.getCaptureStartTimeNs())
+      .isEqualTo(TimeUnit.MICROSECONDS.toNanos((long)dataRange.getMax() - traceStartTime));
   }
 
   @Test
@@ -738,7 +739,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(stage.getCaptureState()).isEqualTo(CpuProfilerStage.CaptureState.CAPTURING);
 
     // Check that we're capturing for four seconds total
-    assertThat(stage.getCaptureElapsedTimeUs()).isEqualTo(TimeUnit.SECONDS.toMicros(4));
+    assertThat(stage.currentTimeNs() - stage.getCaptureStartTimeNs()).isEqualTo(TimeUnit.SECONDS.toNanos(4));
   }
 
   @Test
@@ -1080,16 +1081,11 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(metadataConfig.getTraceType()).isEqualTo(Cpu.CpuTraceType.ART);
     assertThat(metadataConfig.getMode()).isEqualTo(Cpu.CpuTraceMode.SAMPLED);
     // Capture duration is calculated from the elapsed time since recording has started.
-    long captureDuration;
-    if (myServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      captureDuration = (long)myStage.getTimeline().getDataRange().getMax() - captureStartTime;
-    }
-    else {
-      // The legacy pipeline gets the error status from the StopProfilingApp rpc right away and does not wait for the extra tick to
-      // process the metadata, hence we minus 1 second from the total amount of time passed on data range.
-      captureDuration =
-        (long)myStage.getTimeline().getDataRange().getMax() - captureStartTime - TimeUnit.SECONDS.toMicros(1);
-    }
+    // Note the legacy pipeline would generate two instances of metadata. First, it gets the error status from
+    // the StopProfilingApp rpc right away. Second, just like unified pipeline, InProgressTraceHandler will detect
+    // the latest trace info and generate a second piece of metadata. Compared to the first metadata, the second one
+    // happens after wait for the extra tick.
+    long captureDuration = (long)myStage.getTimeline().getDataRange().getMax() - captureStartTime;
     assertThat(metadata.getCaptureDurationMs()).isEqualTo(TimeUnit.MICROSECONDS.toMillis(captureDuration));
     // Trace was not generated, so trace size, parsing time and recording duration should be 0 (unset)
     assertThat(metadata.getParsingTimeMs()).isEqualTo(0);
@@ -1163,7 +1159,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  @Ignore ("TODO (b/140296690) Need to discuss how we handle preprocessing failures now it is a preprocessor.")
+  @Ignore("TODO (b/140296690) Need to discuss how we handle preprocessing failures now it is a preprocessor.")
   public void cpuMetadataFailurePreProcess() throws InterruptedException, IOException {
     // Make sure the TracePreProcessor fails to pre-process the trace
     ((FakeTracePreProcessor)myServices.getTracePreProcessor()).setFailedToPreProcess(true);
@@ -1331,7 +1327,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   }
 
   @Test
-  @Ignore ("TODO (b/140296690) Need to discuss how we handle preprocessing failures now it is a preprocessor.")
+  @Ignore("TODO (b/140296690) Need to discuss how we handle preprocessing failures now it is a preprocessor.")
   public void tracePreProcessingFailureShowsErrorBalloon() throws InterruptedException, IOException {
     // Make sure the TracePreProcessor fails to pre-process the trace
     ((FakeTracePreProcessor)myServices.getTracePreProcessor()).setFailedToPreProcess(true);
@@ -1533,7 +1529,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     Filter filter = Filter.EMPTY_FILTER;
     filterModel.setFilter(filter);
 
-    myStage.setCaptureFilter(filter);
+    myStage.applyCaptureFilter(filter);
 
     FilterMetadata filterMetadata = tracker.getLastFilterMetadata();
     assertThat(filterMetadata).isNotNull();
@@ -1544,7 +1540,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
     filter = new Filter("some", true, true);
     filterModel.setFilter(filter);
-    myStage.setCaptureFilter(filter);
+    myStage.applyCaptureFilter(filter);
     filterMetadata = tracker.getLastFilterMetadata();
     assertThat(filterMetadata).isNotNull();
     assertThat(filterMetadata.getFilterTextLength()).isEqualTo(4);

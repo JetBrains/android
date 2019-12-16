@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.editor
 
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
@@ -28,8 +29,10 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.keymap.KeymapUtil
+import com.intellij.openapi.project.DumbAware
 import com.intellij.pom.Navigatable
 import javax.swing.Icon
+import javax.swing.JComponent
 
 /**
  * [TextEditorWithPreview] with keyboard shortcuts to navigate between views, and code navigation when interacting with the preview portion
@@ -58,8 +61,15 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
 
   protected val actions: List<SplitEditorAction> by lazy { listOf(showEditorAction, showEditorAndPreviewAction, showPreviewAction) }
 
-  init {
-    registerModeNavigationShortcuts()
+  private var shortcutsRegistered = false
+
+  override fun getComponent(): JComponent {
+    val thisComponent = super.getComponent()
+    if (!shortcutsRegistered) {
+      shortcutsRegistered = true
+      registerModeNavigationShortcuts(thisComponent)
+    }
+    return thisComponent
   }
 
   override fun getFile() = myEditor.file
@@ -101,15 +111,16 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
 
   private fun List<SplitEditorAction>.previous(selectedIndex: Int): SplitEditorAction = this[(this.size + selectedIndex - 1) % this.size]
 
-  private fun registerModeNavigationShortcuts() {
-    navigateLeftAction.registerCustomShortcutSet(KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_PREVIOUS_EDITOR_TAB), component)
-    navigateRightAction.registerCustomShortcutSet(KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_NEXT_EDITOR_TAB), component)
+  @VisibleForTesting
+  protected fun registerModeNavigationShortcuts(applicableTo: JComponent) {
+    navigateLeftAction.registerCustomShortcutSet(KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_PREVIOUS_EDITOR_TAB), applicableTo)
+    navigateRightAction.registerCustomShortcutSet(KeymapUtil.getActiveKeymapShortcuts(IdeActions.ACTION_NEXT_EDITOR_TAB), applicableTo)
   }
 
   protected open inner class SplitEditorAction internal constructor(val name: String,
                                                                     val icon: Icon,
                                                                     val delegate: ToggleAction)
-    : ToggleAction(name, name, icon) {
+    : ToggleAction(name, name, icon), DumbAware {
 
     override fun isSelected(e: AnActionEvent) = delegate.isSelected(e)
 

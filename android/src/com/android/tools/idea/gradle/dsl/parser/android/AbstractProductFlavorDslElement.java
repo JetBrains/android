@@ -150,6 +150,15 @@ public abstract class AbstractProductFlavorDslElement extends AbstractFlavorType
   public void addParsedElement(@NotNull GradleDslElement element) {
     String property = element.getName();
 
+    // this method has the same name in Kotlin and Groovy
+    if (property.equals("missingDimensionStrategy") && element instanceof GradleDslMethodCall) {
+      GradleDslMethodCall methodCall = (GradleDslMethodCall)element;
+      GradleDslExpressionList argumentList = methodCall.getArgumentsElement();
+      argumentList.getNameElement().canonize(MISSING_DIMENSION_STRATEGY); // NOTYPO
+      super.addParsedElement(argumentList);
+      return;
+    }
+
     // these two methods have the same names in both currently-supported languages (Kotlin and Groovy)
     if (property.equals("resConfigs") || property.equals("resConfig")) {
       addToParsedExpressionList(RES_CONFIGS, element);

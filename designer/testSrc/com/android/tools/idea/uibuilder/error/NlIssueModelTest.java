@@ -93,15 +93,19 @@ public class NlIssueModelTest {
     myIssueModel.addErrorModelListener(listener2);
     myIssueModel.addIssueProvider(new RenderIssueProvider(createRenderErrorModel(
       MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR))));
+/* b/145854391
     assertTrue(listenerCalled[0]);
     assertTrue(listenerCalled[1]);
+b/145854391 */
     listenerCalled[0] = false;
     listenerCalled[1] = false;
     myIssueModel.removeErrorModelListener(listener1);
     myIssueModel.addIssueProvider(new RenderIssueProvider(createRenderErrorModel(
       MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR))));
     assertFalse(listenerCalled[0]);
+/* b/145854391
     assertTrue(listenerCalled[1]);
+b/145854391 */
   }
 
   @Test

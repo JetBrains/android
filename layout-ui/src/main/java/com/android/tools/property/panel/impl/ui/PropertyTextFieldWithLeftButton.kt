@@ -57,8 +57,16 @@ open class PropertyTextFieldWithLeftButton(
     setFromModel()
   }
 
+  override fun isFocusable(): Boolean {
+    return leftComponent.isFocusable || textField.isFocusable
+  }
+
   override fun requestFocus() {
-    leftComponent.requestFocusInWindow() || textField.requestFocusInWindow()
+    requestFocusInWindow()
+  }
+
+  override fun requestFocusInWindow(): Boolean {
+    return leftComponent.requestFocusInWindow() || textField.requestFocusInWindow()
   }
 
   override fun hasFocus(): Boolean {

@@ -15,171 +15,27 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidModule
 
-import com.android.ide.common.repository.GradleVersion
-import com.android.repository.Revision
-import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
-import com.android.tools.idea.npw.module.recipes.addKotlinPlugins
-import com.android.tools.idea.npw.module.recipes.addKotlinToBaseProject
-import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColors
-import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
-import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
-import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStyles
-import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestJava
-import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleInstrumentedTestKt
-import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestJava
-import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestKt
+import com.android.tools.idea.npw.module.recipes.generateCommonModule
 import com.android.tools.idea.npw.module.recipes.generateManifest
-import com.android.tools.idea.npw.module.recipes.gitignore
-import com.android.tools.idea.npw.module.recipes.proguardRecipe
 import com.android.tools.idea.wizard.template.FormFactor
-import java.io.File
-
-private fun resource(path: String) = File("templates/module", path)
-
-fun RecipeExecutor.copyMipmap(destination: File, icon: String) {
-  copy(resource("mipmap-hdpi/${icon}"), destination.resolve("mipmap-hdpi/${icon}"))
-  copy(resource("mipmap-mdpi/${icon}"), destination.resolve("mipmap-mdpi/${icon}"))
-  copy(resource("mipmap-xhdpi/${icon}"), destination.resolve("mipmap-xhdpi/${icon}"))
-  copy(resource("mipmap-xxhdpi/${icon}"), destination.resolve("mipmap-xxhdpi/${icon}"))
-  copy(resource("mipmap-xxxhdpi/${icon}"), destination.resolve("mipmap-xxxhdpi/${icon}"))
-}
-
-fun RecipeExecutor.copyIconCommands(buildApi: Int, targetApi: Int, destination: File) {
-  fun copyAdaptiveIcons() {
-    copy(
-      resource("mipmap-anydpi-v26/ic_launcher.xml"),
-      destination.resolve("mipmap-anydpi-v26/ic_launcher.xml")
-    )
-    copy(
-      resource("drawable/ic_launcher_background.xml"),
-      destination.resolve("drawable/ic_launcher_background.xml")
-    )
-    copy(
-      resource("drawable-v24/ic_launcher_foreground.xml"),
-      destination.resolve("drawable-v24/ic_launcher_foreground.xml")
-    )
-    copy(
-      resource("mipmap-anydpi-v26/ic_launcher_round.xml"),
-      destination.resolve("mipmap-anydpi-v26/ic_launcher_round.xml")
-    )
-  }
-
-  copyMipmap(destination, "ic_launcher.png")
-  copyMipmap(destination, "ic_launcher_round.png")
-  copyAdaptiveIcons()
-}
+import com.android.tools.idea.wizard.template.has
 
 fun RecipeExecutor.generateAndroidModule(
   data: ModuleTemplateData,
   appTitle: String?, // may be null only for libraries
   includeCppSupport: Boolean = false,
-  cppFlags: String = ""
+  cppFlags: String
 ) {
-  val (projectData, srcOut, resOut, manifestOut, testOut, unitTestOut, _, moduleOut) = data
-  val language = projectData.language
-  val isLibraryProject = data.isLibrary
-  val packageName = data.packageName
-  val topOut = projectData.rootDir
-  val apis = data.apis
-  val buildApi = apis.buildApi!!
-  val targetApi = apis.targetApi
-  val minApi = apis.minApiLevel
-  val useAndroidX = projectData.androidXSupport
-
-  createDirectory(moduleOut.resolve("libs"))
-  createDirectory(resOut.resolve("drawable"))
-  createDirectory(srcOut)
-  createDirectory(unitTestOut)
-
-  addIncludeToSettings(data.name)
-
-  val buildToolsVersion = projectData.buildToolsVersion
-  val supportsImprovedTestDeps = GradleVersion.parse(projectData.gradlePluginVersion).compareIgnoringQualifiers("3.0.0") >= 0
-  val buildGradle = buildGradle(
-    isLibraryProject,
-    data.baseFeature != null,
-    packageName,
-    apis.buildApiString!!,
-    needsExplicitBuildToolsVersion(GradleVersion.parse(projectData.gradlePluginVersion), Revision.parseRevision(buildToolsVersion)),
-    buildToolsVersion,
-    minApi,
-    targetApi,
-    projectData.androidXSupport,
-    language,
-    projectData.gradlePluginVersion,
-    supportsImprovedTestDeps,
-    includeCppSupport,
-    cppFlags
+  generateCommonModule(
+    data, appTitle, generateManifest(data.packageName, !data.isLibrary), true, includeCppSupport, cppFlags = cppFlags
   )
-
-  save(buildGradle, moduleOut.resolve("build.gradle"))
-
-  addKotlinToBaseProject(language, projectData.kotlinVersion)
-  if (language == Language.Kotlin) {
-    addKotlinPlugins()
-  }
-
-  save(
-    generateManifest(packageName, !isLibraryProject),
-    manifestOut.resolve("AndroidManifest.xml")
-  )
-
-  save(
-    gitignore(),
-    moduleOut.resolve(".gitignore")
-  )
-
-  if (!isLibraryProject) {
-    save(androidModuleStrings(appTitle!!), resOut.resolve("values/strings.xml"))
-  }
-  save(
-    if (language == Language.Kotlin)
-      exampleInstrumentedTestKt(packageName, useAndroidX, isLibraryProject)
-    else
-      exampleInstrumentedTestJava(packageName, useAndroidX, isLibraryProject) ,
-    testOut.resolve("ExampleInstrumentedTest.${language.extension}")
-  )
-  save(
-    if (language == Language.Kotlin)
-      exampleUnitTestKt(packageName)
-    else
-      exampleUnitTestJava(packageName),
-    unitTestOut.resolve("ExampleUnitTest.${language.extension}")
-  )
-  addDependency("junit:junit:4.12", "testCompile")
-
-  if (supportsImprovedTestDeps) {
-    addDependency("com.android.support.test:runner:+", "androidTestCompile")
-    addDependency("com.android.support.test.espresso:espresso-core:+", "androidTestCompile")
-  }
-
-  addDependency("com.android.support:appcompat-v7:${buildApi}.+")
-
-  proguardRecipe(moduleOut, data.isLibrary)
-
-  if (!isLibraryProject) {
-    copyIconCommands(buildApi, targetApi, resOut)
-  }
-
-  if (!isLibraryProject) {
-    save(androidModuleStyles(), resOut.resolve("values/styles.xml"))
-    save(androidModuleColors(), resOut.resolve("values/colors.xml"))
-  }
-
-  if (includeCppSupport) {
-    val nativeSrcOut = moduleOut.resolve("src/main/cpp")
-    createDirectory(nativeSrcOut)
-
-    save(cMakeListsTxt(), nativeSrcOut.resolve("CMakeLists.txt"))
-  }
-
-  if (projectData.hasFormFactor(FormFactor.Mobile) && projectData.hasFormFactor(FormFactor.Wear)) {
+  val projectData = data.projectTemplateData
+  val formFactorNames = projectData.includedFormFactorNames
+  addDependency("com.android.support:appcompat-v7:${data.apis.buildApi}.+")
+  // TODO(qumeric): currently only works for a new project
+  if (formFactorNames.has(FormFactor.Mobile) && formFactorNames.has(FormFactor.Wear)) {
     addDependency("com.google.android.gms:play-services-wearable:+", "compile")
-  }
-
-  if (projectData.language == Language.Kotlin && projectData.androidXSupport) {
-    addDependency("androidx.core:core-ktx:+")
   }
 }

@@ -227,10 +227,10 @@ public final class TransportFileManager implements TransportFileCopier {
    * Returns a list of the on-device paths of copied files.
    */
   @Override
-  public List<Path> copyFileToDevice(@NotNull DeployableFile hostFile)
+  public List<String> copyFileToDevice(@NotNull DeployableFile hostFile)
     throws AdbCommandRejectedException, IOException {
     final Path dirPath = hostFile.getDir().toPath();
-    List<Path> paths = new ArrayList<>();
+    List<String> paths = new ArrayList<>();
 
     if (!hostFile.isExecutable()) {
       Path path = dirPath.resolve(hostFile.getFileName());
@@ -253,9 +253,11 @@ public final class TransportFileManager implements TransportFileCopier {
     return paths;
   }
 
-  private Path pushFileToDevice(Path localPath, String fileName, boolean executable)
+  private String pushFileToDevice(Path localPath, String fileName, boolean executable)
     throws AdbCommandRejectedException, IOException {
-    Path deviceFilePath = Paths.get(DEVICE_DIR, fileName);
+    // Refrain from using platform independent utility to concatenate path (ex: Paths.get) because this file path is intended for Android
+    // file system which uses UNIX fashioned path whereas the host (the machine that executes this code) may be a Windows machine.
+    String deviceFilePath = DEVICE_DIR + fileName;
     try {
       // TODO: Handle the case where we don't have file for this platform.
       if (!Files.exists(localPath)) {
@@ -267,8 +269,8 @@ public final class TransportFileManager implements TransportFileCopier {
        */
       getLogger().info(String.format("Pushing %s to %s...", fileName, DEVICE_DIR));
       myDevice.executeShellCommand("rm -f " + deviceFilePath, new NullOutputReceiver());
-      myDevice.executeShellCommand("mkdir -p " + deviceFilePath.getParent(), new NullOutputReceiver());
-      myDevice.pushFile(localPath.toString(), deviceFilePath.toString());
+      myDevice.executeShellCommand("mkdir -p " + deviceFilePath.substring(0, deviceFilePath.lastIndexOf('/')), new NullOutputReceiver());
+      myDevice.pushFile(localPath.toString(), deviceFilePath);
 
       if (executable) {
         /*

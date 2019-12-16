@@ -733,13 +733,24 @@ public abstract class IconGenerator implements Disposable {
   }
 
   /**
-   * Returns the most specific resource directory of the given template.
+   * Returns the most specific resource directory of the given template. Does not consider resource
+   * directories located under "generated" (https://issuetracker.google.com/144939147).
    *
    * @see AndroidModulePaths#getResDirectories()
    */
+  // TODO(b/145991621)
   @Nullable
   public static File getResDirectory(@NotNull AndroidModulePaths paths) {
-    return Iterables.getLast(paths.getResDirectories(), null);
+    List<File> directories = paths.getResDirectories();
+    for (int i = directories.size(); --i >= 0;) {
+      File dir = directories.get(i);
+      File parent = dir.getParentFile();
+      if (parent == null || !"generated".equals(parent.getName())) {
+        return dir;
+      }
+    }
+
+    return Iterables.getLast(directories, null);
   }
 
   /**

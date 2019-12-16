@@ -64,17 +64,19 @@ import com.google.common.collect.SetMultimap
 import com.intellij.diff.comparison.ComparisonManager
 import com.intellij.diff.comparison.ComparisonPolicy
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.ReadonlyStatusHandler
 import com.intellij.openapi.vfs.VfsUtil.findFileByIoFile
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileVisitor
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.XmlElementFactory
+import com.intellij.util.LineSeparator
 import freemarker.template.Configuration
 import java.io.File
 import java.io.IOException
-import java.util.Arrays
 
 /**
  * Executor support for recipe instructions.
@@ -119,7 +121,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
 
   override fun addSourceSet(type: String, name: String, dir: String) {
     val buildFile = getBuildFilePath(context)
-    // TODO(qumeric) handle it in a better way?
     val buildModel = getBuildModel(buildFile, context.project) ?: return
     val sourceSet = buildModel.android().addSourceSet(name)
 
@@ -154,11 +155,10 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
 
   override fun setExtVar(name: String, value: String) {
     val rootBuildFile = findGradleBuildFile(getBaseDirPath(context.project))
-    // TODO(qumeric) handle it in more reliable way?
     val buildModel = getBuildModel(rootBuildFile, context.project) ?: return
     val property = buildModel.buildscript().ext().findProperty(name)
     if (property.valueType != GradlePropertyModel.ValueType.NONE) {
-      return // we do not override property value if it exists. TODO(qumeric): ask user?
+      return
     }
     property.setValue(value)
     io.applyChanges(buildModel)
@@ -197,6 +197,14 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
       return
     }
 
+    val sep = LineSeparator.getSystemLineSeparator().separatorString
+    fun formatClasspath(dependency: String) =
+      "buildscript {" + sep +
+      "  dependencies {" + sep +
+      "    classpath '" + dependency + "'" + sep +
+      "  }" + sep +
+      "}" + sep
+
     // The attempt above to merge the classpath using the GradleBuildModel failed, now attempt to merge the classpaths by merging the files.
     val destinationContents = if (rootBuildFile.exists()) nullToEmpty(readTextFile(rootBuildFile)) else ""
     val result = io.mergeBuildFiles(formatClasspath(mavenUrl), destinationContents, project, "")
@@ -229,7 +237,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     val configuration = FmGetConfigurationNameMethod.convertConfiguration(paramMap, configuration)
 
     val buildFile = findGradleBuildFile(File(toModule))
-
     val buildModel = getBuildModel(buildFile, context.project) ?: return
     buildModel.dependencies().addModule(configuration, ":$moduleName")
     io.applyChanges(buildModel)
@@ -386,8 +393,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
    */
   override fun setBuildFeature(name: String, value: String) {
     val buildFile = getBuildFilePath(context)
-
-    // TODO(qumeric) handle it in a better way?
     val buildModel = getBuildModel(buildFile, context.project) ?: return
 
     val feature = when(name) {
@@ -396,7 +401,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     }
 
     if (feature.valueType != GradlePropertyModel.ValueType.NONE) {
-      return // we do not override value if it exists. TODO(qumeric): ask user?
+      return
     }
 
     val boolValue = parseBoolean(value, "buildFeature")
@@ -416,8 +421,6 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     }
 
     val buildFile = getBuildFilePath(context)
-
-    // TODO(qumeric) handle it in a better way?
     val buildModel = getBuildModel(buildFile, context.project) ?: return
 
     val compileOptions = buildModel.android().compileOptions()
@@ -685,7 +688,7 @@ class DefaultRecipeExecutor(private val context: RenderingContext, dryRun: Boole
     if (sourceVFile.fileType.isBinary) {
       val source = sourceVFile.contentsToByteArray()
       val target = targetVFile.contentsToByteArray()
-      return Arrays.equals(source, target)
+      return source.contentEquals(target)
     }
     else {
       val source = readTextFile(sourceVFile)

@@ -21,6 +21,7 @@ object TemplateAttributes {
   const val ATTR_IS_LIBRARY_MODULE = "isLibraryProject"
   const val ATTR_IS_LOW_MEMORY = "isLowMemory"
   const val ATTR_ANDROIDX_SUPPORT = "addAndroidXSupport"
+  const val ATTR_OVERRIDE_PATH_CHECK = "overridePathCheck" // To disable android plugin checking for ascii in paths (windows tests)
 
   const val ATTR_TARGET_API = "targetApi"
   const val ATTR_TARGET_API_STRING = "targetApiString"

@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.panels
 
+import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
@@ -38,6 +39,7 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
+import javax.swing.event.HyperlinkListener
 
 private const val CRITICAL_PATH_LINK = "https://developer.android.com/r/tools/build-attribution/critical-path"
 
@@ -45,25 +47,28 @@ interface TreeLinkListener<T> {
   fun clickedOn(target: T)
 }
 
-fun pluginInfoPanel(pluginUiData: CriticalPathPluginUiData, listener: TreeLinkListener<TaskIssueType>): JComponent =
-  JBPanel<JBPanel<*>>(VerticalLayout(15)).apply {
-    add(commonPluginInfo(pluginUiData))
-    add(JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
-      add(JBLabel("Issues with this plugin").withFont(JBUI.Fonts.label().asBold()))
-      for (issueGroup in pluginUiData.issues) {
-        add(HyperlinkLabel("${issueGroup.type.uiName} (${issueGroup.size})").apply {
-          addHyperlinkListener { listener.clickedOn(issueGroup.type) }
-          border = JBUI.Borders.emptyLeft(15)
-          setIcon(issueIcon(issueGroup.type))
-        })
-      }
-      if (pluginUiData.issues.isEmpty()) {
-        add(JLabel("No issues found"))
-      }
-    })
-  }
+fun pluginInfoPanel(
+  pluginUiData: CriticalPathPluginUiData,
+  listener: TreeLinkListener<TaskIssueType>,
+  analytics: BuildAttributionUiAnalytics
+): JComponent = JBPanel<JBPanel<*>>(VerticalLayout(15)).apply {
+  add(commonPluginInfo(pluginUiData, analytics))
+  add(JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
+    add(JBLabel("Issues with this plugin").withFont(JBUI.Fonts.label().asBold()))
+    for (issueGroup in pluginUiData.issues) {
+      add(HyperlinkLabel("${issueGroup.type.uiName} (${issueGroup.size})").apply {
+        addHyperlinkListener { listener.clickedOn(issueGroup.type) }
+        border = JBUI.Borders.emptyLeft(15)
+        setIcon(issueIcon(issueGroup.type))
+      })
+    }
+    if (pluginUiData.issues.isEmpty()) {
+      add(JLabel("No issues found"))
+    }
+  })
+}
 
-private fun commonPluginInfo(data: CriticalPathPluginUiData): JBLabel {
+private fun commonPluginInfo(data: CriticalPathPluginUiData, analytics: BuildAttributionUiAnalytics): JBLabel {
   val pluginText = HtmlBuilder()
     .openHtmlBody()
     .add("This plugin has ${data.criticalPathTasks.size} ${pluralize("task", data.criticalPathTasks.size)} on the critical path. ")
@@ -71,13 +76,22 @@ private fun commonPluginInfo(data: CriticalPathPluginUiData): JBLabel {
     .newline()
     .add("Total duration ${data.criticalPathDuration.durationString()} / ${data.criticalPathDuration.percentageString()}")
     .closeHtmlBody()
-  return JBLabel(pluginText.html).setCopyable(true)
+  return object : JBLabel(pluginText.html) {
+    override fun createHyperlinkListener(): HyperlinkListener {
+      val hyperlinkListener = super.createHyperlinkListener()
+      return HyperlinkListener { e ->
+        analytics.helpLinkClicked()
+        hyperlinkListener.hyperlinkUpdate(e)
+      }
+    }
+  }.setCopyable(true)
 }
 
-fun pluginTasksListPanel(pluginData: CriticalPathPluginUiData): JComponent = JBPanel<JBPanel<*>>().apply {
-  layout = VerticalLayout(5, SwingConstants.LEFT)
-  add(commonPluginInfo(pluginData))
-}
+fun pluginTasksListPanel(pluginData: CriticalPathPluginUiData, analytics: BuildAttributionUiAnalytics): JComponent =
+  JBPanel<JBPanel<*>>().apply {
+    layout = VerticalLayout(5, SwingConstants.LEFT)
+    add(commonPluginInfo(pluginData, analytics))
+  }
 
 private fun commonTaskInfo(taskData: TaskUiData): JComponent {
   val text = HtmlBuilder()
@@ -172,10 +186,14 @@ fun createIssueTypeListPanel(issuesGroup: TaskIssuesGroup, listener: TreeLinkLis
     }
   }
 
-fun criticalPathHeader(prefix: String, duration: String): JComponent = JPanel().apply {
+fun criticalPathHeader(prefix: String, duration: String, analytics: BuildAttributionUiAnalytics): JComponent = JPanel().apply {
   layout = HorizontalLayout(10, SwingConstants.BOTTOM)
   add(headerLabel("${prefix} Determining Build Duration (${duration}) / Critical Path"))
-  add(HyperlinkLabel("Learn More").apply { setHyperlinkTarget(CRITICAL_PATH_LINK) })
+  add(HyperlinkLabel("Learn More").apply {
+    addHyperlinkListener { analytics.helpLinkClicked() }
+    setHyperlinkTarget(CRITICAL_PATH_LINK)
+  }
+  )
 }
 
 fun headerLabel(text: String): JLabel = JBLabel(text).withFont(JBUI.Fonts.label(13f).asBold())

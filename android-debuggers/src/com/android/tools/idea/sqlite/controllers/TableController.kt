@@ -21,8 +21,11 @@ import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteColumn
+import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.progress.ProcessCanceledException
@@ -35,13 +38,13 @@ import com.intellij.util.containers.ComparatorUtil.max
  * The ownership of the [SqliteResultSet] is transferred to the [TableController],
  * i.e. it is closed when [dispose] is called.
  *
- * The [SqliteResultSet] is not necessarily associated with a real table in the database, in those cases the [tableName] will be null.
+ * The [SqliteResultSet] is not necessarily associated with a real table in the database, in those cases [table] will be null.
  */
 @UiThread
 class TableController(
   private var rowBatchSize: Int = 50,
   private val view: TableView,
-  private val tableName: String?,
+  private val table: SqliteTable?,
   private val databaseConnection: DatabaseConnection,
   private val sqliteStatement: SqliteStatement,
   private val edtExecutor: FutureCallbackExecutor
@@ -51,11 +54,14 @@ class TableController(
   private var orderBy: OrderBy? = null
   private var start = 0
 
+  private var lastExecutedQuery = sqliteStatement
+
   fun setUp(): ListenableFuture<Unit> {
     view.startTableLoading()
 
     return edtExecutor.transform(databaseConnection.execute(sqliteStatement)) { newResultSet ->
       checkNotNull(newResultSet)
+      lastExecutedQuery = sqliteStatement
 
       if (Disposer.isDisposed(this)) {
         Disposer.dispose(newResultSet)
@@ -81,7 +87,7 @@ class TableController(
 
     view.startTableLoading()
 
-    return edtExecutor.transform(databaseConnection.execute(sqliteStatement)) { newResultSet ->
+    return edtExecutor.transform(databaseConnection.execute(lastExecutedQuery)) { newResultSet ->
       checkNotNull(newResultSet)
 
       if (Disposer.isDisposed(this)) {
@@ -153,7 +159,7 @@ class TableController(
     return edtExecutor.catching(future, Throwable::class.java) { error ->
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
 
-      val message = "Error retrieving rows ${if (tableName != null) "for table \"$tableName\"" else ""}"
+      val message = "Error retrieving rows ${if (table?.name != null) "for table \"${table.name}\"" else ""}"
       view.reportError(message, error)
     }
   }
@@ -173,8 +179,10 @@ class TableController(
       view.startTableLoading()
       Disposer.dispose(resultSet)
 
-      edtExecutor.transform(databaseConnection.execute(SqliteStatement(newQuery, sqliteStatement.parametersValues))) { newResultSet ->
+      val selectStatement = SqliteStatement(newQuery, sqliteStatement.parametersValues)
+      edtExecutor.transform(databaseConnection.execute(selectStatement)) { newResultSet ->
         checkNotNull(newResultSet)
+        lastExecutedQuery = selectStatement
 
         if (Disposer.isDisposed(this@TableController)) {
           newResultSet.dispose()
@@ -235,6 +243,51 @@ class TableController(
 
     override fun refreshDataInvoked() {
       refreshData()
+    }
+
+    override fun updateCellInvoked(targetRow: SqliteRow, targetColumn: SqliteColumn, newValue: Any?) {
+      if (table == null) {
+        view.reportError("Can't execute update. Table name unknown.", null)
+        return
+      }
+
+      val rowIdColumnValue = targetRow.values.firstOrNull { it.column.name == table.rowIdName?.stringName }
+
+      val parametersValues = mutableListOf<Any?>(newValue)
+
+      val whereExpression = if (rowIdColumnValue != null) {
+        parametersValues.add(rowIdColumnValue.value)
+        "${AndroidSqlLexer.getValidName(rowIdColumnValue.column.name)} = ?"
+      } else {
+        targetRow.values
+          .filter { it.column.inPrimaryKey }
+          .onEach { parametersValues.add(it.value) }
+          .joinToString(separator = " AND ") {
+            "${AndroidSqlLexer.getValidName(it.column.name)} = ?"
+          }
+      }
+
+      if (whereExpression.isEmpty()) {
+        view.reportError("Can't update. No primary keys or rowid column.", null)
+        return
+      }
+
+      val updateStatement =
+        "UPDATE ${AndroidSqlLexer.getValidName(table.name)} " +
+        "SET ${AndroidSqlLexer.getValidName(targetColumn.name)} = ? " +
+        "WHERE $whereExpression"
+
+      edtExecutor.addCallback(databaseConnection.execute(
+        SqliteStatement(updateStatement, parametersValues)
+      ), object : FutureCallback<SqliteResultSet?> {
+        override fun onSuccess(result: SqliteResultSet?) {
+          refreshData()
+        }
+
+        override fun onFailure(t: Throwable) {
+          view.reportError("Can't execute update", t)
+        }
+      })
     }
   }
 }

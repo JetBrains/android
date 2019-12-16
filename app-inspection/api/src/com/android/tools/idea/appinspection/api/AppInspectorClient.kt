@@ -16,7 +16,6 @@
 package com.android.tools.idea.appinspection.api
 
 import com.android.annotations.concurrency.WorkerThread
-import com.android.tools.app.inspection.AppInspection
 import com.google.common.util.concurrent.ListenableFuture
 
 /**
@@ -35,9 +34,8 @@ abstract class AppInspectorClient(
      * Upon the response this inspector will be considered disposed, no matter if the call succeeded or failed. (In case of the error
      * response the inspector is considered unusable). All pending commands on the moment of disposal are resolved with an exception.
      */
-    // TODO(b/142649889): do we need a response? should we move it to AppInspectorClient itself?
     @WorkerThread
-    fun disposeInspector(): ListenableFuture<AppInspection.AppInspectionResponse>
+    fun disposeInspector(): ListenableFuture<Unit>
 
     /**
      * Sends a raw command using the provided [rawData]. Returns a future of a raw response.

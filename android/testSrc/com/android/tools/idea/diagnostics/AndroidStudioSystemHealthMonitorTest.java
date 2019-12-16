@@ -33,7 +33,7 @@ public class AndroidStudioSystemHealthMonitorTest extends PlatformTestCase {
     // ExecutorAction class should yield simple name plus presentation text.
     assertEquals("ExecutorAction#Run", AndroidStudioSystemHealthMonitor.getActionName(ExecutorAction.class, new Presentation("Run")));
     // Anonymous inner-class should yield name of enclosing class.
-    assertEquals("AndroidStudioSystemHealthMonitorTest", AndroidStudioSystemHealthMonitor.getActionName(new AnAction(){
+    assertEquals("AnAction@AndroidStudioSystemHealthMonitorTest", AndroidStudioSystemHealthMonitor.getActionName(new AnAction(){
       @Override
       public void actionPerformed(AnActionEvent e) {
 
@@ -50,8 +50,9 @@ public class AndroidStudioSystemHealthMonitorTest extends PlatformTestCase {
       IdeErrorsDialog.getAndroidErrorReporter() instanceof ErrorReporter);
   }
 
-  /**
-   * Dummy class needed for {@link #testGetActionName()}.
-   */
-  public static class ExecutorAction {}
 }
+
+/**
+ * Dummy class needed for {@link #testGetActionName()}.
+ */
+class ExecutorAction {}

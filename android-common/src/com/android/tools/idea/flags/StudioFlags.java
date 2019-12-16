@@ -84,12 +84,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_NEW_PROJECT_TEMPLATE = Flag.create(
     NPW, "new.project.template", "Use the new project template",
     "Use the new Kotlin-based template system for new project creation over the old Freemarker system.",
-    false);
+    true);
 
   public static final Flag<Boolean> NPW_NEW_MODULE_TEMPLATES = Flag.create(
     NPW, "new.module.templates", "Use new module templates",
     "Use the new Kotlin-based template system for module templates over the old Freemarker system when it is available.",
-    false);
+    true);
 
   public static final Flag<Boolean> NPW_NEW_ACTIVITY_TEMPLATES = Flag.create(
     NPW, "new.activity.templates", "Use new activity templates",
@@ -180,6 +180,14 @@ public final class StudioFlags {
     false);
   //endregion
 
+  //region ML Kit
+  private static final FlagGroup MLKIT = new FlagGroup(FLAGS, "mlkit", "ML Kit");
+  public static final Flag<Boolean> MLKIT_TFLITE_MODEL_FILE_TYPE = Flag.create(
+    MLKIT, "modelfiletype", "Enable TFLite model file type",
+    "When enabled, TFLite model file can be recognized as a particular type and has its own viewer.",
+    false);
+  //endregion
+
   //region Layout Editor
   private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
   public static final Flag<Boolean> NELE_ANIMATIONS_PREVIEW = Flag.create(
@@ -232,6 +240,11 @@ public final class StudioFlags {
     "Show the popup picker for resource picking or attribute customization in layout editor.",
     true);
 
+  public static final Flag<Boolean> NELE_LOG_ANDROID_FRAMEWORK = Flag.create(
+    NELE, "log.android.framework", "Log messages coming from Layoutlib Native.",
+    "Log in the IDEA log the messages coming from Java and native code of Layoutlib Native.",
+    false);
+
   private static final FlagGroup ASSISTANT = new FlagGroup(FLAGS, "assistant", "Assistants");
   public static final Flag<Boolean> CONNECTION_ASSISTANT_ENABLED = Flag.create(
     ASSISTANT, "connection.enabled", "Enable the connection assistant",
@@ -268,11 +281,6 @@ public final class StudioFlags {
     "Support Actionbar in property panel",
     false);
 
-  public static final Flag<Boolean> NELE_CUSTOM_VIEW_PREVIEW = Flag.create(
-    NELE, "show.custom.view.preview", "Show Custom View Preview",
-    "Enable the feature which shows a graphical preview for Android custom View classes.",
-    false);
-
   public static final Flag<Boolean> NELE_DESIGN_SURFACE_ZOOM = Flag.create(
     NELE, "design.surface.zoom", "Zoom panel in Design Surface",
     "Enable zoom controls in the design surface, substitutes any zoom controls on the top toolbar of the editor.",
@@ -301,6 +309,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
     NELE, "show.source.code.editor", "New Source Code Editor",
     "Enable new source code editor with preview(s) coming as a substitute to Compose and Custom View editors.",
+    true);
+
+  public static final Flag<Boolean> NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW = Flag.create(
+    NELE, "toggle.tools.attributes.preview", "New Toggle for Tools namespaces attributes",
+    "Enable the new toggle in the Layout Editor. Allows toggling tools attributes in the Layout preview.",
     false);
   //endregion
 
@@ -313,6 +326,10 @@ public final class StudioFlags {
   public static final Flag<Boolean> NAV_NEW_COMPONENT_TREE = Flag.create(
     NAV_EDITOR, "new.component", "Enable the new Component Tree",
     "Enable the new Component Tree",
+    true);
+  public static final Flag<Boolean> NAV_DYNAMIC_SUPPORT = Flag.create(
+    NAV_EDITOR, "dynamic.support", "Support for Dynamic Feature Modules",
+    "Support for Dynamic Feature Modules",
     false);
   //endregion
 
@@ -549,7 +566,7 @@ public final class StudioFlags {
     EDITOR, "custom.new.class.dialog",
     "Enable custom New Class dialog",
     "If enabled, our custom UI for creating a new Java class is used. Otherwise the platform default is used.",
-    true
+    false
   );
 
 
@@ -564,6 +581,13 @@ public final class StudioFlags {
     EDITOR, "r8.support.enabled",
     "Enable support for R8 in editor",
     "If enabled, it offers support (such as code completion) for the R8 format.",
+    true
+  );
+
+  public static final Flag<Boolean> TWEAK_COLOR_SCHEME = Flag.create(
+    EDITOR, "tweak.color.scheme",
+    "Change the default color scheme",
+    "If enabled, we modify the default color scheme slightly.",
     true
   );
 

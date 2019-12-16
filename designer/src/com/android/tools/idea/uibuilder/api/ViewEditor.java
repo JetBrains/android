@@ -73,7 +73,7 @@ public abstract class ViewEditor {
    */
   @AndroidCoordinate
   public int dpToPx(@AndroidDpCoordinate int dp) {
-    return Coordinates.dpToPx(getScene().getDesignSurface(), dp);
+    return Coordinates.dpToPx(getScene().getSceneManager(), dp);
   }
 
   /**
@@ -84,7 +84,7 @@ public abstract class ViewEditor {
    */
   @AndroidDpCoordinate
   public int pxToDp(@AndroidCoordinate int px) {
-    return Coordinates.pxToDp(getScene().getDesignSurface(), px);
+    return Coordinates.pxToDp(getScene().getSceneManager(), px);
   }
 
   /**

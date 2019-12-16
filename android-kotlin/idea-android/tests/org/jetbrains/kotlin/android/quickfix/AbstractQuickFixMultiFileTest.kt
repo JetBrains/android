@@ -123,7 +123,7 @@ abstract class AbstractQuickFixMultiFileTest : LightJavaCodeInsightFixtureTestCa
               KotlinTestUtils.assertEqualsToFile(afterFile, file.text)
             }
             else {
-              KotlinTestUtils.assertEqualsToFile(File(extraFileFullPath), file.text)
+              KotlinTestUtils.assertEqualsToFile(File(testDataPath, extraFileFullPath), file.text)
             }
           }
         }

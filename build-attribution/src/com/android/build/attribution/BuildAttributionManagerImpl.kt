@@ -28,6 +28,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
 import org.gradle.tooling.events.ProgressEvent
 import java.io.File
+import java.util.UUID
 
 class BuildAttributionManagerImpl(
   val project: Project
@@ -48,8 +49,9 @@ class BuildAttributionManagerImpl(
 
   override fun onBuildSuccess(attributionFileDir: File) {
     val buildFinishedTimestamp = System.currentTimeMillis()
+    val buildSessionId = UUID.randomUUID().toString()
 
-    BuildAttributionAnalyticsManager(project).use { analyticsManager ->
+    BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
       analyticsManager.recordPostBuildAnalysis {
         val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
         if (attributionData != null) {
@@ -60,7 +62,7 @@ class BuildAttributionManagerImpl(
 
       analyticsManager.logAnalyzersData(analyzersProxy)
 
-      uiManager.showNewReport(BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp).build())
+      uiManager.showNewReport(BuildAttributionReportBuilder(analyzersProxy, buildFinishedTimestamp).build(), buildSessionId)
     }
   }
 

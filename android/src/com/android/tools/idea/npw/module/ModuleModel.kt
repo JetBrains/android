@@ -19,12 +19,9 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.FormFactor
-import com.android.tools.idea.npw.model.ExistingProjectModelData
 import com.android.tools.idea.npw.model.ModuleModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
 import com.android.tools.idea.npw.model.ProjectModelData
-import com.android.tools.idea.npw.model.ProjectSyncInvoker
-import com.android.tools.idea.npw.model.doRender
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.TemplateValueInjector
@@ -42,13 +39,12 @@ import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
 import com.android.tools.idea.templates.recipe.RenderingContext.Builder
 import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.model.WizardModel
-import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.Project
 import java.io.File
 
 private val log: Logger get() = logger<ModuleModel>()
@@ -68,16 +64,7 @@ abstract class ModuleModel(
   override val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
   override val moduleTemplateValues = mutableMapOf<String, Any>()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
-  protected abstract val renderer: MultiTemplateRenderer.TemplateRenderer
-
-  constructor(
-    project: Project,
-    templateFile: File?,
-    projectSyncInvoker: ProjectSyncInvoker,
-    moduleName: String,
-    commandName: String = "New Module",
-    isLibrary: Boolean
-  ): this(templateFile, moduleName, commandName, isLibrary, ExistingProjectModelData(project, projectSyncInvoker))
+  abstract val renderer: MultiTemplateRenderer.TemplateRenderer
 
   public override fun handleFinished() {
     multiTemplateRenderer.requestRender(renderer)
@@ -87,7 +74,7 @@ abstract class ModuleModel(
     multiTemplateRenderer.skipRender()
   }
 
-  protected abstract inner class ModuleTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
+  abstract inner class ModuleTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
     /**
      * A new system recipe which will should be run from [render] if the new system is used.
      */
@@ -158,7 +145,7 @@ abstract class ModuleModel(
         // assert(moduleRoot == (context.templateData as ModuleTemplateData).rootDir)
 
         val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
-        return recipe.doRender(context, executor)
+        return recipe.render(context, executor, null)
       }
 
       val projectRoot = File(project.basePath!!)

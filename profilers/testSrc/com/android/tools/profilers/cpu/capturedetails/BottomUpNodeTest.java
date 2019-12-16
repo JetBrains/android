@@ -15,17 +15,17 @@
  */
 package com.android.tools.profilers.cpu.capturedetails;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.nodemodel.SingleNameModel;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.junit.Assert.*;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 public class BottomUpNodeTest {
   private final static double EPS = 1e-5;
@@ -88,6 +88,20 @@ public class BottomUpNodeTest {
     childA.getChildren().get(0).addChild(newNode("C", 3, 4));
 
     traverseAndCheck(root, expectedNodes);
+  }
+
+  @Test
+  public void testEmptyNodesDoNotGetAddedAsChildren() {
+    CaptureNode root = newNode("", 0, 20);
+    CaptureNode childA = newNode("A", 0, 10);
+    root.addChild(childA);
+    root.addChild(newNode("B", 15, 20));
+
+    childA.addChild(newNode("B", 2, 7));
+    childA.getChildren().get(0).addChild(newNode("C", 3, 4));
+
+    BottomUpNode node = new BottomUpNode(root);
+    assertTrue(node.getChildren().stream().noneMatch((bottomUpNode) -> bottomUpNode.getId().equals(root.getData().getId())));
   }
 
   /**
@@ -251,7 +265,7 @@ public class BottomUpNodeTest {
                     newNode("A", 0, 20));
     addChainSubtree(root.getChildren().get(0), newNode("B", 45, 100), newNode("A", 50, 70),
                     newNode("B", 55, 65));
-    addChainSubtree(root.getChildren().get(0), newNode("B", 21, 40),
+    addChainSubtree(root.getChildren().get(0).getChildren().get(0), newNode("B", 21, 40),
                     newNode("A", 25, 28));
 
     BottomUpNode node = new BottomUpNode(root);
@@ -332,8 +346,8 @@ public class BottomUpNodeTest {
   }
 
   private static void addChildren(CaptureNode node, CaptureNode... children) {
-    for (int i = 0; i < children.length; ++i) {
-      node.addChild(children[i]);
+    for (CaptureNode child : children) {
+      node.addChild(child);
     }
   }
 
@@ -399,7 +413,7 @@ public class BottomUpNodeTest {
     private String myId;
     private double myTotal;
     private double myChildrenTotal;
-    private boolean myIsUnmatch = false;
+    private boolean myIsUnmatch;
 
     private ExpectedNode(String method, double total, double childrenTotal, boolean unmatch) {
       myId = new SingleNameModel(method).getId();

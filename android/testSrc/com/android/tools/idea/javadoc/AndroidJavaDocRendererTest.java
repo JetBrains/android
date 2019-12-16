@@ -17,7 +17,6 @@ package com.android.tools.idea.javadoc;
 
 import com.intellij.codeInsight.documentation.DocumentationManager;
 import com.intellij.lang.documentation.DocumentationProvider;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.Consumer;
@@ -98,10 +97,8 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                                             "res/drawable-hdpi/ic_launcher.png").getPath();
 
     String divTag = "<div style=\"background-color:gray;padding:10px\">";
-    String imgTag1 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p1.startsWith("/") ? p1 : '/' + p1),
-                                   FileUtil.toSystemDependentName(p1));
-    String imgTag2 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p2.startsWith("/") ? p2 : '/' + p2),
-                                   FileUtil.toSystemDependentName(p2));
+    String imgTag1 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p1.startsWith("/") ? p1 : '/' + p1), p1);
+    String imgTag2 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p2.startsWith("/") ? p2 : '/' + p2), p2);
     checkJavadoc("/javadoc/drawables/Activity1.java",
                  String.format("<html><body><table>" +
                                "<tr><th %1$s>Configuration</th><th %1$s>Value</th></tr>" +
@@ -122,12 +119,9 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
     String p3 = myFixture.copyFileToProject(getTestDataPath() + "/javadoc/drawables/ic_launcher.png",
                                             "res/drawable/button_disabled.png").getPath();
 
-    String imgTag1 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p1.startsWith("/") ? p1 : '/' + p1),
-                                   FileUtil.toSystemDependentName(p1));
-    String imgTag2 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p2.startsWith("/") ? p2 : '/' + p2),
-                                   FileUtil.toSystemDependentName(p2));
-    String imgTag3 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p3.startsWith("/") ? p3 : '/' + p3),
-                                   FileUtil.toSystemDependentName(p3));
+    String imgTag1 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p1.startsWith("/") ? p1 : '/' + p1), p1);
+    String imgTag2 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p2.startsWith("/") ? p2 : '/' + p2), p2);
+    String imgTag3 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p3.startsWith("/") ? p3 : '/' + p3), p3);
     checkJavadoc("/javadoc/drawables/Activity2.java",
                  String.format("<html><body><table><tr><td><div style=\"background-color:gray;padding:10px\">" +
                                "%3$s" +
@@ -149,10 +143,8 @@ public class AndroidJavaDocRendererTest extends AndroidTestCase {
                                             "res/mipmap-hdpi/ic_launcher.png").getPath();
 
     String divTag = "<div style=\"background-color:gray;padding:10px\">";
-    String imgTag1 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p1.startsWith("/") ? p1 : '/' + p1),
-                                   FileUtil.toSystemDependentName(p1));
-    String imgTag2 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p2.startsWith("/") ? p2 : '/' + p2),
-                                   FileUtil.toSystemDependentName(p2));
+    String imgTag1 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p1.startsWith("/") ? p1 : '/' + p1), p1);
+    String imgTag2 = String.format("<img src='file:%1$s' alt=\"%2$s\" />", (p2.startsWith("/") ? p2 : '/' + p2), p2);
     checkJavadoc("/javadoc/mipmaps/Activity1.java",
                  String.format("<html><body><table>" +
                                "<tr><th %1$s>Configuration</th><th %1$s>Value</th></tr>" +

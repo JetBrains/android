@@ -1,6 +1,9 @@
 // Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
+import static com.android.tools.idea.startup.Actions.moveAction;
+
+import com.android.tools.adtui.webp.WebpMetadata;
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
@@ -8,12 +11,22 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Anchor;
+import com.intellij.openapi.actionSystem.Constraints;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.IdeActions;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.components.BaseComponent;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.project.Project;
+import org.intellij.images.fileTypes.ImageFileTypeManager;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.startup.Actions.moveAction;
 
 public class AndroidPlugin implements BaseComponent {
   private static final String GROUP_ANDROID_TOOLS = "AndroidToolsGroup";
@@ -22,10 +35,20 @@ public class AndroidPlugin implements BaseComponent {
   @Override
   public void initComponent() {
     VirtualFileSystemOpener.INSTANCE.mount();
+    registerWebpSupport();
     if (!IdeInfo.getInstance().isAndroidStudio()) {
       initializeForNonStudio();
     }
     setUpActionsUnderFlag();
+  }
+
+  private static void registerWebpSupport() {
+    ApplicationManager.getApplication().invokeAndWait(() -> {
+      FileTypeManager fileTypeManager = FileTypeManager.getInstance();
+      FileType imageFileType = ImageFileTypeManager.getInstance().getImageFileType();
+      WriteAction.run(() -> fileTypeManager.associateExtension(imageFileType, WebpMetadata.EXT_WEBP));
+    });
+    WebpMetadata.ensureWebpRegistered();
   }
 
   /**

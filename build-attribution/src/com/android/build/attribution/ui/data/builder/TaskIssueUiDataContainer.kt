@@ -100,7 +100,7 @@ class TaskIssueUiDataContainer(
     .map { (issueType, issuesList) -> toTaskIssueGroup(issueType, issuesList) }
     .sortedBy { it.type.ordinal }
 
-  private inner class TaskSetupIssue(
+  class TaskSetupIssue(
     override val task: TaskUiData,
     override val connectedTask: TaskUiData,
     val outputFolder: String
@@ -117,7 +117,7 @@ and might need to run with each subsequent build.
     override val helpLink = "https://d.android.com/r/tools/build-attribution/duplicate-output-folder"
   }
 
-  private inner class AlwaysRunNoOutputIssue(
+  class AlwaysRunNoOutputIssue(
     override val task: TaskUiData
   ) : TaskIssueUiData {
     override val type = TaskIssueType.ALWAYS_RUN_TASKS
@@ -127,7 +127,7 @@ and might need to run with each subsequent build.
     override val helpLink = "https://d.android.com/r/tools/build-attribution/no-task-outputs-declared"
   }
 
-  private inner class AlwaysRunUpToDateOverride(
+  class AlwaysRunUpToDateOverride(
     override val task: TaskUiData
   ) : TaskIssueUiData {
     override val type = TaskIssueType.ALWAYS_RUN_TASKS

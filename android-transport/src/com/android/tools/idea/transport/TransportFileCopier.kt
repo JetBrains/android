@@ -17,15 +17,14 @@ package com.android.tools.idea.transport
 
 import com.android.ddmlib.AdbCommandRejectedException
 import java.io.IOException
-import java.nio.file.Path
 
 interface TransportFileCopier {
   /**
-   * Given a [DeployableFile] returns a list of on-device paths of the copied files.
+   * Given a [DeployableFile] returns a list of on-device paths of the copied files. Paths are expected to be UNIX paths.
    *
    * Most file formats result in only one file copied. For executable files, there may be multiple compatible ABI files, which will result
    * in multiple files copied over.
    */
   @Throws(AdbCommandRejectedException::class, IOException::class)
-  fun copyFileToDevice(deployableFile: DeployableFile): List<Path>
+  fun copyFileToDevice(deployableFile: DeployableFile): List<String>
 }

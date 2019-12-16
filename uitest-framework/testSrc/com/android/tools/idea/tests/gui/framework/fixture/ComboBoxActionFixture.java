@@ -68,6 +68,16 @@ public class ComboBoxActionFixture {
     return new ComboBoxActionFixture(robot, comboBoxButton);
   }
 
+  public static ComboBoxActionFixture findComboBoxByClientPropertyAndText(@NotNull Robot robot,
+                                                                          @NotNull Container root,
+                                                                          @NotNull Object key,
+                                                                          @NotNull Class<?> valueClass,
+                                                                          @NotNull String text) {
+    JButton comboBoxButton =
+      robot.finder().find(root, Matchers.byClientProperty(JButton.class, key, valueClass).and(Matchers.byText(JButton.class, text)));
+    return new ComboBoxActionFixture(robot, comboBoxButton);
+  }
+
   public ComboBoxActionFixture(@NotNull Robot robot, @NotNull JButton target) {
     myRobot = robot;
     myTarget = target;

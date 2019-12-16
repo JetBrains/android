@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class SourceFileModelImpl extends GradleDslBlockModel implements SourceFileModel {
-  @NonNls private static final String SRC_FILE = "srcFile";
+  @NonNls public static final String SRC_FILE = "mSrcFile";
 
   public SourceFileModelImpl(@NotNull SourceFileDslElement dslElement) {
     super(dslElement);
@@ -38,6 +38,6 @@ public class SourceFileModelImpl extends GradleDslBlockModel implements SourceFi
   @Override
   @NotNull
   public ResolvedPropertyModel srcFile() {
-    return getModelForProperty(SRC_FILE, true);
+    return getModelForProperty(SRC_FILE);
   }
 }

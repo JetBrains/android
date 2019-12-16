@@ -21,6 +21,10 @@ import static org.junit.Assert.fail;
 import com.android.testutils.AssumeUtil;
 import com.android.tools.idea.diagnostics.windows.WindowsDefenderPowerShellStatusProvider;
 import com.android.tools.idea.diagnostics.windows.WindowsDefenderRegistryStatusProvider;
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.process.ProcessOutput;
+import com.intellij.execution.util.ExecUtil;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +35,8 @@ import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public final class WindowsPerformanceHintsCheckerTest {
+  private static final int POWERSHELL_COMMAND_TIMEOUT_MS = 10000;
+
   private WindowsDefenderPowerShellStatusProvider myPowerShellStatusProvider;
   private WindowsDefenderRegistryStatusProvider myRegistryStatusProvider;
 
@@ -43,6 +49,23 @@ public final class WindowsPerformanceHintsCheckerTest {
   @Test
   public void excludedPathsMatches() {
     AssumeUtil.assumeWindows();
+
+    // Not guaranteed to work on test machines, so skip the test if that's the case
+    try {
+      ProcessOutput output = ExecUtil.execAndGetOutput(new GeneralCommandLine(
+        "powershell", "-inputformat", "none", "-outputformat", "text", "-NonInteractive", "-Command",
+        "Get-MpPreference"), POWERSHELL_COMMAND_TIMEOUT_MS);
+      if (output.getExitCode() != 0) {
+        System.out.println("Skipping excludedPathsMatches test. Exit code = " + output.getExitCode());
+        return;
+      }
+    }
+    catch (ExecutionException e) {
+      System.out.println("Skipping excludedPathsMatches test.");
+      e.printStackTrace(System.out);
+      return;
+    }
+    System.out.println("Get-MpPreference exists");
 
     try {
       List<String> powershellPaths = myPowerShellStatusProvider.getExcludedPaths();
@@ -60,6 +83,23 @@ public final class WindowsPerformanceHintsCheckerTest {
   @Test
   public void realtimeScanningEnabledMatches() {
     AssumeUtil.assumeWindows();
+
+    // Not guaranteed to work on test machines, so skip the test if that's the case
+    try {
+      ProcessOutput output = ExecUtil.execAndGetOutput(new GeneralCommandLine(
+        "powershell", "-inputformat", "none", "-outputformat", "text", "-NonInteractive", "-Command",
+        "Get-MpPreference"), POWERSHELL_COMMAND_TIMEOUT_MS);
+      if (output.getExitCode() != 0) {
+        System.out.println("Skipping realtimeScanningEnabledMatches test. Exit code = " + output.getExitCode());
+        return;
+      }
+    }
+    catch (ExecutionException e) {
+      System.out.println("Skipping realtimeScanningEnabledMatches test.");
+      e.printStackTrace(System.out);
+      return;
+    }
+    System.out.println("Get-MpPreference exists");
 
     try {
       assertEquals(myPowerShellStatusProvider.getRealtimeScanningStatus(), myRegistryStatusProvider.getRealtimeScanningStatus());

@@ -1,4 +1,4 @@
-PROJECT             : testCompatibilityWithAndroidStudio36Project
+PROJECT             : AS36
     MODULE              : AS36
         - ModuleGroupPath   : AS36
         ExternalModuleGroup :

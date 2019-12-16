@@ -16,7 +16,9 @@
 package com.android.tools.idea.appinspection.ide
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.appinspection.api.AutoPreferredProcess
+import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
+import com.android.tools.idea.appinspection.api.AppInspectorJar
+import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
@@ -26,6 +28,7 @@ import com.android.tools.idea.run.tasks.LaunchResult
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.LaunchTaskDurations
 import com.android.tools.idea.run.util.LaunchStatus
+import com.android.tools.idea.transport.DeployableFile
 import com.android.tools.idea.transport.TransportFileManager
 import com.android.tools.idea.transport.TransportService
 import com.intellij.execution.Executor
@@ -35,8 +38,7 @@ class AppInspectionLaunchTaskContributor : AndroidLaunchTaskContributor {
   override fun getTask(module: Module, applicationId: String, launchOptions: LaunchOptions): LaunchTask {
     return if (StudioFlags.SQLITE_APP_INSPECTOR_ENABLED.get()) {
       AppInspectionLaunchTask(module)
-    }
-    else {
+    } else {
       AppInspectionStubTask()
     }
   }
@@ -54,13 +56,23 @@ private class AppInspectionLaunchTask(private val module: Module) : LaunchTask {
   override fun run(executor: Executor, device: IDevice, launchStatus: LaunchStatus, printer: ConsolePrinter): LaunchResult {
     val packageName = AndroidModuleInfo.getInstance(module)?.`package`
 
-    AppInspectionHostService.instance.discoveryHost.connect(TransportFileManager(device, TransportService.getInstance().messageBus),
-                                                            AutoPreferredProcess(device, packageName))
+    AppInspectionHostService.instance.discoveryHost.connect(
+      object : AppInspectionJarCopier {
+        private val delegate = TransportFileManager(device, TransportService.getInstance().messageBus)
+        override fun copyFileToDevice(jar: AppInspectorJar): List<String> = delegate.copyFileToDevice(jar.toDeployableFile())
+      },
+      ProcessDescriptor(device, packageName)
+    )
     return LaunchResult.success()
   }
 
   override fun getId() = LAUNCH_TASK_ID
 }
+
+private fun AppInspectorJar.toDeployableFile() = DeployableFile.Builder(name).apply {
+  releaseDirectory?.let { this.setReleaseDir(it) }
+  developmentDirectory?.let { this.setDevDir(it) }
+}.build()
 
 private class AppInspectionStubTask : LaunchTask {
   override fun getDescription(): String {

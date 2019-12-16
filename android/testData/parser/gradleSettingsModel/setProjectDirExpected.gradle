@@ -2,4 +2,4 @@ include ':app'
 include ':lib'
 project(":lib").projectDir = new File(rootDir, "mylibrary")
 project(':app').projectDir = new File(rootDir, 'newAppLocation')
-rootProject.name='My Application'
+rootProject.name = 'My Application'

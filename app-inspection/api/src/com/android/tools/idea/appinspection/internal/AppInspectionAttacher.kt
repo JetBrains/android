@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.appinspection.internal
 
-import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
-import com.android.tools.idea.appinspection.api.AutoPreferredProcess
+import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.android.tools.idea.transport.TransportClient
-import com.android.tools.idea.transport.poller.TransportEventListener
-import com.android.tools.idea.transport.poller.TransportEventPoller
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Transport
-import com.google.common.util.concurrent.MoreExecutors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
@@ -31,44 +27,13 @@ private const val MAX_RETRY_COUNT = 60
 typealias AttachCallback = (Common.Stream, Common.Process) -> Unit
 
 // TODO(b/143628758): This Discovery must be called only behind the flag SQLITE_APP_INSPECTOR_ENABLED
-// This  copy pasted from layout inspector (DefaultInspectorClient.kt) with minor changes
-internal class AppInspectionAttacher(private val executor: ScheduledExecutorService,
-                                     channel: AppInspectionDiscoveryHost.Channel) {
-  private var client = TransportClient(channel.name)
-  private var transportPoller = TransportEventPoller.createPoller(client.transportStub,
-                                                                  TimeUnit.MILLISECONDS.toNanos(100),
-                                                                  Comparator.comparing(Common.Event::getTimestamp).reversed())
-
-  private var selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
-  private var selectedProcess: Common.Process = Common.Process.getDefaultInstance()
-
-
-  var isConnected = false
-    private set
-
-  init {
-    registerProcessEnded()
-  }
-
-  private fun registerProcessEnded() {
-    // TODO: unregister listeners
-    transportPoller.registerListener(TransportEventListener(
-      eventKind = Common.Event.Kind.PROCESS,
-      executor = MoreExecutors.directExecutor(),
-      streamId = selectedStream::getStreamId,
-      groupId = { selectedProcess.pid.toLong() },
-      processId = selectedProcess::getPid) {
-      if (selectedStream != Common.Stream.getDefaultInstance() &&
-          selectedProcess != Common.Process.getDefaultInstance() && isConnected && it.isEnded) {
-        selectedStream = Common.Stream.getDefaultInstance()
-        selectedProcess = Common.Process.getDefaultInstance()
-        isConnected = false
-      }
-      false
-    })
-  }
-
-  private fun loadProcesses(): Map<Common.Stream, List<Common.Process>> {
+class AppInspectionAttacher(private val executor: ScheduledExecutorService, private val client: TransportClient) {
+  /**
+   * Gets all active transport connections and returns a map of streams to their processes.
+   *
+   * This function should be called inside an executor because it contains a synchronous rpc call.
+   */
+  private fun queryProcesses(): Map<Common.Stream, List<Common.Process>> {
     // Get all streams of all types.
     val request = Transport.GetEventGroupsRequest.newBuilder()
       .setStreamId(-1)  // DataStoreService.DATASTORE_RESERVED_STREAM_ID
@@ -99,24 +64,22 @@ internal class AppInspectionAttacher(private val executor: ScheduledExecutorServ
   }
 
   /**
-   * Attempt to connect to the specified [preferredProcess].
+   * Attempt to connect to the specified [processDescriptor].
    *
    * The method called will retry itself up to MAX_RETRY_COUNT times.
+   *
+   * TODO(b/145303836): wrap in future or find some way to let caller know about errors.
    */
-  fun attach(preferredProcess: AutoPreferredProcess, callback: AttachCallback) {
-    executor.execute { attachWithRetry(preferredProcess, callback, 0) }
+  fun attach(processDescriptor: ProcessDescriptor, callback: AttachCallback) {
+    executor.execute { attachWithRetry(processDescriptor, callback, 0) }
   }
 
-  private fun attachWithRetry(preferredProcess: AutoPreferredProcess, callback: AttachCallback, timesAttempted: Int) {
-    if (selectedStream != Common.Stream.getDefaultInstance() ||
-        selectedProcess != Common.Process.getDefaultInstance()) {
-      return
-    }
-    val processesMap = loadProcesses()
+  private fun attachWithRetry(processDescriptor: ProcessDescriptor, callback: AttachCallback, timesAttempted: Int) {
+    val processesMap = queryProcesses()
     for ((stream, processes) in processesMap) {
-      if (preferredProcess.isDeviceMatch(stream.device)) {
+      if (processDescriptor.matchesDevice(stream.device)) {
         for (process in processes) {
-          if (process.name == preferredProcess.packageName) {
+          if (process.name == processDescriptor.applicationId) {
             callback(stream, process)
             return
           }
@@ -124,7 +87,7 @@ internal class AppInspectionAttacher(private val executor: ScheduledExecutorServ
       }
     }
     if (timesAttempted < MAX_RETRY_COUNT) {
-      executor.schedule({ attachWithRetry(preferredProcess, callback, timesAttempted + 1) }, 1, TimeUnit.SECONDS)
+      executor.schedule({ attachWithRetry(processDescriptor, callback, timesAttempted + 1) }, 1, TimeUnit.SECONDS)
     }
   }
 }

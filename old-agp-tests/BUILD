@@ -14,12 +14,14 @@ iml_module(
         "//prebuilts/studio/layoutlib/data:native_libs",
         "//prebuilts/studio/layoutlib/data/fonts",
         "//prebuilts/studio/layoutlib/data/icu",
+        "//prebuilts/studio/sdk:build-tools/28.0.3",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:docs",
         "//prebuilts/studio/sdk:licenses",
         "//prebuilts/studio/sdk:ndk",
         "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/android-28",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:platforms/latest-preview",
         "//prebuilts/studio/sdk:sources",
@@ -52,6 +54,7 @@ iml_module(
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
+        "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
         "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",

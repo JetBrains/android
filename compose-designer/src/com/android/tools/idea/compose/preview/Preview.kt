@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.annotations.concurrency.Slow
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.common.editor.ActionsToolbar
@@ -29,6 +28,8 @@ import com.android.tools.idea.common.util.setupBuildListener
 import com.android.tools.idea.common.util.setupChangeListener
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
+import com.android.tools.idea.concurrency.AndroidCoroutinesAware
+import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.notifications.NotificationPanel
@@ -55,6 +56,8 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.UserDataHolderBase
+import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.pom.Navigatable
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
@@ -64,6 +67,11 @@ import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.UIUtil
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.uipreview.ModuleClassLoader
 import org.jetbrains.kotlin.backend.common.pop
@@ -71,12 +79,10 @@ import java.awt.BorderLayout
 import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 import java.util.function.Supplier
-import javax.swing.Box
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.OverlayLayout
 import kotlin.properties.Delegates
-import kotlin.streams.asSequence
 
 /**
  * [ComposePreviewManager.Status] result for when the preview is refreshing. Only [ComposePreviewManager.Status.isRefreshing] will be true.
@@ -137,12 +143,15 @@ private fun configureExistingModel(existingModel: NlModel,
  */
 class ComposePreviewRepresentation(psiFile: PsiFile,
                                    previewProvider: PreviewElementProvider) :
-  PreviewRepresentation, ComposePreviewManager {
+  PreviewRepresentation, ComposePreviewManager, UserDataHolderEx by UserDataHolderBase(), AndroidCoroutinesAware {
   private val LOG = Logger.getInstance(ComposePreviewRepresentation::class.java)
   private val project = psiFile.project
   private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
 
   private val previewProvider = GroupNameFilteredPreviewProvider(previewProvider)
+
+  private val refreshDispatcher = AppExecutorUtil.createBoundedApplicationPoolExecutor("Compose Preview refresh thread", 1)
+    .asCoroutineDispatcher()
 
   override var groupNameFilter: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
     if (oldValue != newValue) {
@@ -382,14 +391,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The call will block until all the given [PreviewElement]s have completed rendering.
    */
-  @Slow
-  private fun doRefreshSync(filePreviewElements: List<PreviewElement>) {
+  private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>) = withContext(refreshDispatcher) {
     if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.size} elements.")
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
     val psiFile = psiFilePointer.element
     if (psiFile == null || !psiFile.isValid) {
       LOG.warn("doRefresh with invalid PsiFile")
-      return
+      return@withContext
     }
     val facet = AndroidFacet.getInstance(psiFile)!!
     val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
@@ -449,7 +457,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       .onEach {
         // We call addModel even though the model might not be new. If we try to add an existing model,
         // this will trigger a new render which is exactly what we want.
-        surface.addModel(it).get()
+        surface.addModel(it).await()
       }.ifEmpty {
         showModalErrorMessage(message("panel.no.previews.defined"))
       }
@@ -480,9 +488,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     hasRenderedAtLeastOnce = true
     savedIsShowingDecorations = showDecorations
 
-    AppUIExecutor.onUiThread().submit {
+    withContext(uiThread) {
       surface.zoomToFit()
-    }.blockingGet(1, TimeUnit.SECONDS)
+    }
 
     onRefresh?.invoke()
   }
@@ -491,32 +499,34 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Requests a refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
-  override fun refresh() = refreshExecutor.execute {
-    isContentBeingRendered = true
-    val filePreviewElements = previewProvider.previewElements
+  override fun refresh() {
+    refreshDispatcher.cancel()
+    launch(uiThread) {
+      isContentBeingRendered = true
+      val filePreviewElements = previewProvider.previewElements
 
-    if (filePreviewElements == previewElements && savedIsShowingDecorations == RenderSettings.getProjectSettings(project).showDecorations) {
-      LOG.debug("No updates on the PreviewElements, just refreshing the existing ones")
-      // In this case, there are no new previews. We need to make sure that the surface is still correctly
-      // configured and that we are showing the right size for components. For example, if the user switches on/off
-      // decorations, that will not generate/remove new PreviewElements but will change the surface settings.
-      val showingDecorations = RenderSettings.getProjectSettings(project).showDecorations
-      surface.models
-        .mapNotNull { surface.getSceneManager(it) }
-        .filterIsInstance<LayoutlibSceneManager>()
-        .forEach {
-          // When showing decorations, show the full device size
-          configureLayoutlibSceneManager(it, fullDeviceSize = showingDecorations)
+      if (filePreviewElements == previewElements && savedIsShowingDecorations == RenderSettings.getProjectSettings(
+          project).showDecorations) {
+        LOG.debug("No updates on the PreviewElements, just refreshing the existing ones")
+        // In this case, there are no new previews. We need to make sure that the surface is still correctly
+        // configured and that we are showing the right size for components. For example, if the user switches on/off
+        // decorations, that will not generate/remove new PreviewElements but will change the surface settings.
+        val showingDecorations = RenderSettings.getProjectSettings(project).showDecorations
+        withContext(refreshDispatcher) {
+          surface.models
+            .mapNotNull { surface.getSceneManager(it) }
+            .filterIsInstance<LayoutlibSceneManager>()
+            .forEach {
+              // When showing decorations, show the full device size
+              configureLayoutlibSceneManager(it, fullDeviceSize = showingDecorations)
+            }
+          surface.requestRender().await()
         }
+      }
+      else {
+        doRefreshSync(filePreviewElements)
+      }
 
-      // There are not elements, skip model creation
-      surface.requestRender().get()
-    }
-    else {
-      doRefreshSync(filePreviewElements)
-    }
-
-    ApplicationManager.getApplication().invokeLater {
       isContentBeingRendered = false
       updateSurfaceVisibilityAndNotifications()
     }

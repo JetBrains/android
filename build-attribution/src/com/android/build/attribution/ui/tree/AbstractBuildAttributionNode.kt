@@ -15,22 +15,36 @@
  */
 package com.android.build.attribution.ui.tree
 
+import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
+import com.android.build.attribution.ui.controllers.BuildAttributionViewControllersProvider
+import com.android.build.attribution.ui.controllers.TaskIssueReporter
+import com.android.build.attribution.ui.controllers.TreeNodeSelector
 import com.android.build.attribution.ui.panels.AbstractBuildAttributionInfoPanel
+import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.openapi.ui.ComponentContainer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.CachingSimpleNode
-import com.intellij.ui.treeStructure.SimpleNode
 import javax.swing.Icon
 import javax.swing.JComponent
 
+abstract class ControllersAwareBuildAttributionNode(
+  aParent: ControllersAwareBuildAttributionNode?
+) : CachingSimpleNode(aParent),
+    BuildAttributionViewControllersProvider
+
 abstract class AbstractBuildAttributionNode protected constructor(
-  aParent: SimpleNode,
+  parent: ControllersAwareBuildAttributionNode,
   val nodeName: String
-) : CachingSimpleNode(aParent), ComponentContainer {
+) : ControllersAwareBuildAttributionNode(parent), ComponentContainer {
 
-  val nodeId: String = if (aParent is AbstractBuildAttributionNode) "${aParent.nodeId} > $nodeName" else nodeName
+  open val nodeId: String = if (parent is AbstractBuildAttributionNode) "${parent.nodeId} > $nodeName" else nodeName
 
+  override val nodeSelector: TreeNodeSelector = parent.nodeSelector
+  override val analytics: BuildAttributionUiAnalytics = parent.analytics
+  override val issueReporter: TaskIssueReporter = parent.issueReporter
+
+  abstract val pageType: BuildAttributionUiEvent.Page.PageType
   abstract val presentationIcon: Icon?
   abstract val issuesCountsSuffix: String?
   abstract val timeSuffix: String?

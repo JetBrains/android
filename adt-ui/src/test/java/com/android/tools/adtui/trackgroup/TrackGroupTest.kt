@@ -26,8 +26,8 @@ class TrackGroupTest {
   @Test
   fun createTrackGroup() {
     val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group").build()
-    trackGroupModel.addTrackModel(TrackModel.newBuilder(true, TestTrackRendererType.FOO, "Foo"))
-    trackGroupModel.addTrackModel(TrackModel.newBuilder("text", TestTrackRendererType.BAR, "Bar"))
+    trackGroupModel.addTrackModel(TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "Foo"))
+    trackGroupModel.addTrackModel(TrackModel.newBuilder("text", TestTrackRendererType.STRING, "Bar"))
     val trackGroup = TrackGroup(trackGroupModel, TestTrackRendererFactory())
 
     assertThat(trackGroup.titleLabel.text).isEqualTo("Group")
@@ -40,21 +40,27 @@ class TrackGroupTest {
     val trackGroup = TrackGroup(trackGroupModel, TestTrackRendererFactory())
 
     assertThat(trackGroup.trackList.isVisible).isFalse()
-    assertThat(trackGroup.collapseButton.text).isEqualTo("Expand Selection")
+    assertThat(trackGroup.actionsDropdown.isVisible).isFalse()
+    assertThat(trackGroup.separator.isVisible).isFalse()
+    assertThat(trackGroup.collapseButton.text).isEqualTo("Expand Section")
 
     trackGroup.setCollapsed(false)
     assertThat(trackGroup.trackList.isVisible).isTrue()
+    assertThat(trackGroup.actionsDropdown.isVisible).isTrue()
+    assertThat(trackGroup.separator.isVisible).isFalse()
     assertThat(trackGroup.collapseButton.text).isNull()
 
     trackGroup.setCollapsed(true)
     assertThat(trackGroup.trackList.isVisible).isFalse()
-    assertThat(trackGroup.collapseButton.text).isEqualTo("Expand Selection")
+    assertThat(trackGroup.actionsDropdown.isVisible).isFalse()
+    assertThat(trackGroup.separator.isVisible).isFalse()
+    assertThat(trackGroup.collapseButton.text).isEqualTo("Expand Section")
   }
 
   @Test
   fun hideTrackGroupHeader() {
     val trackGroupModel = TrackGroupModel.newBuilder().setTitle("Group").setHideHeader(true).build()
-    trackGroupModel.addTrackModel(TrackModel.newBuilder("text", TestTrackRendererType.BAR, "Bar"))
+    trackGroupModel.addTrackModel(TrackModel.newBuilder("text", TestTrackRendererType.STRING, "Bar"))
     val trackGroup = TrackGroup(trackGroupModel, TestTrackRendererFactory())
 
     assertThat(trackGroup.titleLabel.parent).isNull()

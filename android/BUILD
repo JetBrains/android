@@ -46,6 +46,7 @@ iml_module(
     runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
@@ -213,25 +214,11 @@ iml_module(
             "com.android.tools.idea.ddms",
             "com.android.tools.idea.debug",
             "com.android.tools.idea.diagnostics",
-            "com.android.tools.idea.downloads",
-            "com.android.tools.idea.editors",
-            "com.android.tools.idea.exportSignedPackage",
-            "com.android.tools.idea.folding",
-            "com.android.tools.idea.fonts",
             "com.android.tools.idea.gradle",
-            "com.android.tools.idea.javadoc",
-            "com.android.tools.idea.lint",
-            "com.android.tools.idea.material.icons",
-            "com.android.tools.idea.memorysettings",
-            "com.android.tools.idea.navigator",
-            "com.android.tools.idea.npw",
-            "com.android.tools.idea.refactoring",
-            "com.android.tools.idea.rendering",
-            "com.android.tools.idea.run",
-            "com.android.tools.idea.sdk",
-            "com.android.tools.idea.startup",
-            "com.android.tools.idea.templates",
-            "com.android.tools.idea.ui.resourcemanager",
+            "com.android.tools.idea.navigator",  # testDependentNativeModules (ag/9872410)
+            "com.android.tools.idea.npw",  # leaks, json exceptions, etc.
+            "com.android.tools.idea.run",  # some test directory paths are too long
+            "com.android.tools.idea.ui.resourcemanager",  # leaks (b/145024498)
             "org.jetbrains.android",
         ],
         "//conditions:default": [],
@@ -262,6 +249,7 @@ iml_module(
     runtime_deps = [
         "//tools/adt/idea/databinding:intellij.android.databinding",
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
+        "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
         "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",

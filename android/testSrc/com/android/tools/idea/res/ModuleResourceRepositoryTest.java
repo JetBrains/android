@@ -264,8 +264,8 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     // Verify that an edit in a value file, both in a non-overridden and an overridden
     // value, is observed; and that an override in an overridden value is not observed.
 
-    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "app_name"));
-    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "title_layout_changes"));
+    assertThat(resources.getResources(RES_AUTO, ResourceType.STRING, "app_name")).hasSize(2);
+    assertThat(resources.getResources(RES_AUTO, ResourceType.STRING, "title_layout_changes")).hasSize(1);
     ResourceItem appName = getSingleItem(resources, ResourceType.STRING, "app_name", item -> item.getConfiguration().isDefault());
     assertItemIsInDir(res1, appName);
     assertThat(appName.getResourceValue().getValue()).isEqualTo("Very Different App Name");
@@ -279,7 +279,7 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
       document.insertString(offset, "Not ");
       documentManager.commitDocument(document);
     });
-    // The first edit to psiValues1 causes ResourceFolderRepository to transition from non-Psi -> Psi which requires a rescan.
+    // The first edit to psiValues1 causes ResourceFolderRepository to transition from non-PSI -> PSI which requires a rescan.
     assertTrue(resources.isScanPending(psiValues1));
     UIUtil.dispatchAllInvocationEvents();
     assertTrue(resources.getModificationCount() > generation);
@@ -287,9 +287,8 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
     // Should still be defined in res1 but have new value.
     // The order of items may have swapped if a full rescan is done.
     List<ResourceItem> list = resources.getResources(RES_AUTO, ResourceType.STRING, "app_name");
-    assertNotNull(list);
-    assertSize(2, list);
-    appName = ContainerUtil.find(list, resourceItem -> resourceItem.getConfiguration().getQualifierString().isEmpty());
+    assertThat(list).hasSize(2);
+    appName = ContainerUtil.find(list, resourceItem -> resourceItem.getConfiguration().isDefault());
     assertNotNull(appName);
     assertItemIsInDir(res1, appName);
     ResourceValue appNameResourceValue = appName.getResourceValue();
@@ -304,10 +303,11 @@ public class ModuleResourceRepositoryTest extends AndroidTestCase {
       documentManager.commitDocument(document);
     });
     assertTrue(resources.getModificationCount() > generation);
-    assertTrue(resources.hasResources(RES_AUTO, ResourceType.STRING, "rapp_name"));
+    assertThat(resources.getResources(RES_AUTO, ResourceType.STRING, "rapp_name")).hasSize(1);
 
+    assertThat(resources.getResources(RES_AUTO, ResourceType.STRING, "app_name")).hasSize(2);
     appName = getSingleItem(resources, ResourceType.STRING, "app_name", new DefinedInOrUnder(res1));
-    // The item is still under res1, but now it's in the Norwegian translation
+    // The item is still under res1, but now it's in the Norwegian translation.
     assertEquals("no", appName.getConfiguration().getQualifierString());
     assertStringIs(resources, "app_name", "Forskjellig Navn", new DefinedInOrUnder(res1));
 

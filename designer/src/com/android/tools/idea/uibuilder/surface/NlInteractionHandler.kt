@@ -33,11 +33,11 @@ import java.awt.Rectangle
 
 class NlInteractionHandler(private val surface: DesignSurface): InteractionHandlerBase(surface) {
 
-  override fun createInteractionOnClick(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Interaction? {
+  override fun createInteractionOnPressed(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int, modifiersEx: Int): Interaction? {
     val view = surface.getSceneView(mouseX, mouseY) ?: return null
     val screenView = view as ScreenView
-    if (surface.isResizeAvailable && isInResizeZone(view, mouseX, mouseY)) {
-      val configuration = surface.configuration!!
+    if (view.scene.isResizeAvailable && isInResizeZone(view, mouseX, mouseY)) {
+      val configuration = view.sceneManager.model.configuration
       return CanvasResizeInteraction(surface as NlDesignSurface, screenView, configuration)
     }
 
@@ -94,7 +94,9 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
     return resizeZone.contains(mouseX, mouseY)
   }
 
-  override fun createInteractionOnDrag(@SwingCoordinate mouseX: Int, @SwingCoordinate mouseY: Int): Interaction? {
+  override fun createInteractionOnDrag(@SwingCoordinate mouseX: Int,
+                                       @SwingCoordinate mouseY: Int,
+                                       @JdkConstants.InputEventMask modifiersEx: Int): Interaction? {
     val sceneView = surface.getSceneView(mouseX, mouseY) ?: return null
     val scene = sceneView.scene
     val selectionModel = sceneView.selectionModel
@@ -156,25 +158,25 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
     return DragDropInteraction(surface, dragged)
   }
 
-  override fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int) {
+  override fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
     if ((surface as NlDesignSurface).isPreviewSurface) {
       // Highlight the clicked widget but keep focus in DesignSurface.
       // TODO: Remove this after when b/136174865 is implemented, which removes the preview mode.
       clickPreview(x, y, false)
     }
     else {
-      super.singleClick(x, y)
+      super.singleClick(x, y, modifiersEx)
     }
   }
 
-  override fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int) {
+  override fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
     if ((surface as NlDesignSurface).isPreviewSurface) {
       // Navigate the caret to the clicked widget and focus on text editor.
       // TODO: Remove this after when b/136174865 is implemented, which removes the preview mode.
       clickPreview(x, y, true)
     }
     else {
-      super.doubleClick(x, y)
+      super.doubleClick(x, y, modifiersEx)
     }
   }
 
@@ -198,7 +200,7 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
                                           @JdkConstants.InputEventMask modifiersEx: Int): Cursor? {
     val sceneView = surface.getSceneView(mouseX, mouseY)
     // Check if the mouse position is at the bottom-right corner of sceneView.
-    if (sceneView != null && sceneView.surface.isResizeAvailable && isInResizeZone(sceneView, mouseX, mouseY)) {
+    if (sceneView != null && sceneView.scene.isResizeAvailable && isInResizeZone(sceneView, mouseX, mouseY)) {
       return Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR)
     }
     return super.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx)
