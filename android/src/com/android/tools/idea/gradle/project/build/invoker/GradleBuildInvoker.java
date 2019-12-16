@@ -267,30 +267,28 @@ public class GradleBuildInvoker {
   }
 
   public void assemble(@NotNull Module[] modules, @NotNull TestCompileType testCompileType) {
-    assemble(modules, testCompileType, Collections.emptyList(), null);
+    assemble(modules, testCompileType, null);
   }
 
   public void assemble(@NotNull Module[] modules,
                        @NotNull TestCompileType testCompileType,
-                       @NotNull List<String> arguments,
                        @Nullable BuildAction<?> buildAction) {
     BuildMode buildMode = ASSEMBLE;
     setProjectBuildMode(buildMode);
     ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, testCompileType);
     for (Path rootPath : tasks.keySet()) {
-      executeTasks(rootPath.toFile(), tasks.get(rootPath), arguments, buildAction);
+      executeTasks(rootPath.toFile(), tasks.get(rootPath), Collections.emptyList(), buildAction);
     }
   }
 
   public void bundle(@NotNull Module[] modules,
-                     @NotNull List<String> arguments,
                      @Nullable BuildAction<?> buildAction) {
     BuildMode buildMode = BUNDLE;
     setProjectBuildMode(buildMode);
     ListMultimap<Path, String> tasks =
       GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, TestCompileType.NONE);
     for (Path rootPath : tasks.keySet()) {
-      executeTasks(rootPath.toFile(), tasks.get(rootPath), arguments, buildAction);
+      executeTasks(rootPath.toFile(), tasks.get(rootPath), Collections.emptyList(), buildAction);
     }
   }
 

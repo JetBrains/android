@@ -36,7 +36,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.xdebugger.XDebugSession;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -49,7 +49,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link GradleBuildInvoker}.
  */
-public class GradleBuildInvokerTest extends PlatformTestCase {
+public class GradleBuildInvokerTest extends HeavyPlatformTestCase {
   @Mock private FileDocumentManager myFileDocumentManager;
   @Mock private GradleTasksExecutor myTasksExecutor;
   @Mock private NativeDebugSessionFinder myDebugSessionFinder;
@@ -213,13 +213,10 @@ public class GradleBuildInvokerTest extends PlatformTestCase {
     List<String> tasks = Arrays.asList("assembleTask1", "assembleTask2");
     when(myTaskFinder.findTasksToExecute(myModules, ASSEMBLE, TestCompileType.ALL)).thenReturn(createTasksMap(tasks));
 
-    List<String> commandLineArgs = Arrays.asList("commandLineArg1", "commandLineArg2");
-
-    myBuildInvoker.assemble(myModules, TestCompileType.ALL, commandLineArgs, null);
+    myBuildInvoker.assemble(myModules, TestCompileType.ALL, null);
 
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
     assertThat(request.getGradleTasks()).containsExactlyElementsIn(tasks);
-    assertThat(request.getCommandLineArguments()).containsExactlyElementsIn(commandLineArgs);
 
     verifyInteractionWithMocks(ASSEMBLE);
   }
