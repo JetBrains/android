@@ -87,7 +87,11 @@ private val List<ValueParameterDescriptor>.hasComposableChildren: Boolean get() 
  */
 class AndroidComposeCompletionContributor : CompletionContributor() {
   override fun fillCompletionVariants(parameters: CompletionParameters, resultSet: CompletionResultSet) {
-    if (parameters.position.getModuleSystem()?.usesCompose != true || parameters.position.language != KotlinLanguage.INSTANCE) return
+    if (!StudioFlags.COMPOSE_EDITOR_SUPPORT.get() ||
+        parameters.position.getModuleSystem()?.usesCompose != true ||
+        parameters.position.language != KotlinLanguage.INSTANCE) {
+      return
+    }
 
     resultSet.runRemainingContributors(parameters) { completionResult ->
       val lookupElement = completionResult.lookupElement
@@ -216,6 +220,7 @@ private val SHORT_NAMES_WITH_DOTS = BasicLookupElementFactory.SHORT_NAMES_RENDER
 class AndroidComposeCompletionWeigher : CompletionWeigher() {
   override fun weigh(element: LookupElement, location: CompletionLocation): Int {
     return when {
+      !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> 0
       !StudioFlags.COMPOSE_COMPLETION_WEIGHER.get() -> 0
       location.completionParameters.position.language != KotlinLanguage.INSTANCE -> 0
       location.completionParameters.position.getModuleSystem()?.usesCompose != true -> 0

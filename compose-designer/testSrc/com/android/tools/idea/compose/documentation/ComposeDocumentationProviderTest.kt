@@ -44,6 +44,7 @@ class ComposeDocumentationProviderTest {
 
   @Before
   fun setUp() {
+    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION.override(true)
 
     RenderService.shutdownRenderExecutor(5)
@@ -61,6 +62,7 @@ class ComposeDocumentationProviderTest {
   fun tearDown() {
     RenderService.setForTesting(projectRule.project, null)
     StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION.clearOverride()
+    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
   }
 
   @Test
