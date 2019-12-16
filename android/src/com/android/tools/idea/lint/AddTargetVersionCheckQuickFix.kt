@@ -118,7 +118,7 @@ class AddTargetVersionCheckQuickFix(private val api: Int) : LintIdeQuickFix {
 
   private fun handleJava(element: PsiElement) {
     val expression = PsiTreeUtil.getParentOfType(element, PsiExpression::class.java, false) ?: return
-    val editor = PsiEditorUtil.Service.getInstance().findEditorByPsiElement(expression) ?: return
+    val editor = PsiEditorUtil.findEditor(expression) ?: return
     val anchorStatement = PsiTreeUtil.getParentOfType(expression, PsiStatement::class.java) ?: return
     val file = expression.containingFile
     val project = expression.project
