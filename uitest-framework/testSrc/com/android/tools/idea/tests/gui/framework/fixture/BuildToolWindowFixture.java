@@ -40,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
 public class BuildToolWindowFixture extends ToolWindowFixture {
 
   BuildToolWindowFixture(@NotNull Project project, @NotNull Robot robot) {
-    super(ToolWindowId.BUILD, project, robot);
+    super("Build", project, robot);
   }
 
   /**
