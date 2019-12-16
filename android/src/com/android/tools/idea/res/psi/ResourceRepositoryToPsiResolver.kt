@@ -63,7 +63,8 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
   }
 
   /**
-   * Resolves the reference to a {@link ResourceReferencePsiElement} if any matching resources exist.
+   * Resolves the reference to a {@link ResourceReferencePsiElement} if any matching resources exist. We should avoid using the
+   * [ResourceValue] parameter and instead provide [ResourceReference] via the other implementation below.
    */
   override fun resolveReference(
     resourceValue: ResourceValue,
@@ -77,14 +78,17 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
         resourceValue.resourceName ?: return ResolveResult.EMPTY_ARRAY
       ).resolve(context)
       ?: return ResolveResult.EMPTY_ARRAY
-    val resourceName = if (resourceReference.resourceType == ResourceType.SAMPLE_DATA) {
-      SampleDataManager.getResourceNameFromSampleReference(resourceReference.name)
-    } else {
-      resourceReference.name
-    }
+    return resolveReference(resourceReference, context, facet)
+  }
+
+  fun resolveReference(
+    resourceReference: ResourceReference,
+    context: PsiElement,
+    facet: AndroidFacet
+  ): Array<out ResolveResult> {
     val allResources = ResourceRepositoryManager.getInstance(facet).allResources ?: return ResolveResult.EMPTY_ARRAY
 
-    return if (allResources.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceName)) {
+    return if (allResources.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)) {
       arrayOf(PsiElementResolveResult(ResourceReferencePsiElement(resourceReference, context.manager)))
     } else {
       ResolveResult.EMPTY_ARRAY

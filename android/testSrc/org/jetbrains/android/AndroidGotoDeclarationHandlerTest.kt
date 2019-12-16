@@ -383,6 +383,61 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     )
   }
 
+  fun testGotoDeclareStyleableFromXML() {
+    myFixture.addFileToProject(
+      "src/p1/p2/MyView.java",
+      //language=Java
+      """
+      package p1.p2;
+
+      import android.content.Context;
+      import android.util.AttributeSet;
+      import android.widget.Button;
+
+      @SuppressWarnings("UnusedDeclaration")
+      public class MyView extends Button {
+          public MyView(Context context, AttributeSet attrs, int defStyle) {
+              super(context, attrs, defStyle);
+          }
+      }
+    """.trimIndent())
+    val file = myFixture.addFileToProject(
+      "res/values/styles.xml",
+      //language=XML
+      """
+        <resources>
+          <declare-styleable name="My<caret>View">
+            <attr name="libAttr" format="string" />
+          </declare-styleable>
+        </resources>
+        """.trimIndent()
+    ).virtualFile
+    val expectedResult =
+      if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+        // In the new pipeline, the declare styleable name resolves to a ResourceReferencePsiElement. And the GotoDeclarationHandler can
+        // decide which element to point to, currently the declare-styleable name.
+        """
+          values/styles.xml:2:
+            <declare-styleable name="MyView">
+                                    ~|~~~~~~~
+
+        """.trimIndent()
+      }
+      else {
+        // In the old pipeline, the declare styleable name does not resolve to a ResourceReferencePsiElement, instead to the corresponding
+        // class of the same name that extends View.java, if it exists, otherwise nothing.
+        """
+          MyView.java:8:
+            @SuppressWarnings("UnusedDeclaration")
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        """.trimIndent()
+      }
+    assertEquals(expectedResult,
+                 describeElements(getDeclarationsFrom(file)))
+
+  }
+
   fun testGotoResourceFromToolsAttribute() {
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
     val file = myFixture.copyFileToProject(basePath + "tools_layout2.xml", "res/layout/layout2.xml")
