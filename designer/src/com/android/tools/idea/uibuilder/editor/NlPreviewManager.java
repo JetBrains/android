@@ -35,6 +35,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.*;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
+import com.intellij.openapi.wm.impl.commands.RequestFocusInToolWindowCommand;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -453,7 +454,7 @@ public class NlPreviewManager implements ProjectComponent {
    *
    * When a tool window is created a list of commands are supplied and executed.
    * One of these commands are
-   *   {@link com.intellij.openapi.wm.impl.commands.RequestFocusInToolWindowCmd}
+   *   {@link RequestFocusInToolWindowCommand}
    * which starts a timer and for the next 10 secs will attempt to set focus to
    * the component returned by {@link #getDefaultComponent}.
    *
