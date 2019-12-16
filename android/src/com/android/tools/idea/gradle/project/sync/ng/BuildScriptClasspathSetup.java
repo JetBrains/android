@@ -79,7 +79,7 @@ public class BuildScriptClasspathSetup {
     ExternalProjectBuildClasspathPojo projectBuildClasspathPojo = localProjectBuildClasspath.get(projectBaseDir);
     if (projectBuildClasspathPojo == null) {
       projectBuildClasspathPojo =
-        new ExternalProjectBuildClasspathPojo(project.getName(), ContainerUtil.newArrayList(), ContainerUtil.newHashMap());
+        new ExternalProjectBuildClasspathPojo(project.getName(), new ArrayList<>(), ContainerUtil.newHashMap());
       localProjectBuildClasspath.put(projectBaseDir, projectBuildClasspathPojo);
     }
 
