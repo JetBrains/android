@@ -70,7 +70,14 @@ val primaryContentBackground = JBColor.namedColor("Content.background", JBColor(
  *
  * Example: selected track in a track group.
  */
-val activeSelection = JBColor.namedColor("Selection.active", JBColor(0x4874D7, 0x1E67CE))
+val selectionBackground = JBColor.namedColor("List.selectionBackground", JBColor(0x4874D7, 0x1E67CE))
+
+/**
+ * Foreground color for an active selection.
+ *
+ * Example: title label of a selected track in a track group.
+ */
+val selectionForeground = JBColor.namedColor("List.selectionForeground", JBColor(0xFFFFFF, 0xFFFFFF))
 
 /**
  * Color of the underline when a intellij style tab is focused.
