@@ -111,7 +111,7 @@ open class MultiRepresentationPreview(private val psiFile: PsiFile,
     }
   }
 
-  protected fun updateRepresentations() {
+  protected fun updateRepresentations() = UIUtil.invokeLaterIfNeeded {
     val providers = providers.filter { it.accept(project, virtualFile) }.toList()
     val providerNames = providers.map { it.displayName }.toSet()
 
