@@ -122,7 +122,7 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
     private fun createQuickFixRunnable(fix: AndroidLintQuickFix): Runnable {
       return Runnable {
         val model = myIssue.component.model
-        val editor = PsiEditorUtil.Service.getInstance().findEditorByPsiElement(myIssue.startElement)
+        val editor = PsiEditorUtil.findEditor(myIssue.startElement)
         if (editor != null) {
           val project = model.project
           CommandProcessor.getInstance().executeCommand(
@@ -137,7 +137,7 @@ class LintIssueProvider(_lintAnnotationsModel: LintAnnotationsModel) : IssueProv
     private fun createQuickFixRunnable(fix: IntentionAction): Runnable {
       return Runnable {
         val model = myIssue.component.model
-        val editor = PsiEditorUtil.Service.getInstance().findEditorByPsiElement(myIssue.startElement)
+        val editor = PsiEditorUtil.findEditor(myIssue.startElement)
         if (editor != null) {
           val project = model.project
           CommandProcessor.getInstance().executeCommand(

@@ -90,7 +90,7 @@ public class AddTargetVersionCheckQuickFix implements AndroidLintQuickFix {
     }
 
     PsiStatement anchorStatement = PsiTreeUtil.getParentOfType(expression, PsiStatement.class);
-    Editor editor = PsiEditorUtil.Service.getInstance().findEditorByPsiElement(expression);
+    Editor editor = PsiEditorUtil.findEditor(expression);
     if (editor == null) {
       return;
     }
