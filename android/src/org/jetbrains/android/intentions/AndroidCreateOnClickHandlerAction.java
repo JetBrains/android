@@ -231,7 +231,7 @@ public class AndroidCreateOnClickHandlerAction extends AbstractIntentionAction i
       if (javaFile == null) {
         return;
       }
-      final Editor javaEditor = PsiEditorUtil.Service.getInstance().findEditorByPsiElement(method);
+      final Editor javaEditor = PsiEditorUtil.findEditor(method);
 
       if (javaEditor == null) {
         return;
