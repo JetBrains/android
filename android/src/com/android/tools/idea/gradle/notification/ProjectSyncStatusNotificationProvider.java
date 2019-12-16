@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.structure.editors.AndroidProjectSettingsSer
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.build.BuildContentManager;
 import com.intellij.ide.actions.RevealFileAction;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -50,8 +51,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowId;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
@@ -290,9 +289,9 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
                         () -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_TRY_AGAIN));
 
       createActionLabel("Open 'Build' View", () -> {
-        ToolWindow tw = ToolWindowManager.getInstance(project).getToolWindow(ToolWindowId.BUILD);
-        if (tw != null && !tw.isActive()) {
-          tw.activate(null, false);
+        ToolWindow toolWindow = BuildContentManager.getInstance(project).getOrCreateToolWindow();
+        if (!toolWindow.isActive()) {
+          toolWindow.activate(null, false);
         }
       });
 
