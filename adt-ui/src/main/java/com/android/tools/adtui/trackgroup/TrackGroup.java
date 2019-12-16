@@ -19,6 +19,7 @@ import com.android.tools.adtui.DragAndDropList;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.flat.FlatSeparator;
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.stdui.CommonAction;
 import com.android.tools.adtui.model.trackgroup.TrackGroupModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
@@ -46,7 +47,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A collapsible UI component that contains a list of {@link Track}s to visualize multiple horizontal data series.
  */
-public class TrackGroup {
+public class TrackGroup extends AspectObserver {
   private static final Icon EXPAND_ICON = AllIcons.Actions.FindAndShowNextMatches;
   private static final Icon COLLAPSE_ICON = AllIcons.Actions.FindAndShowPrevMatches;
   private static final Font TITLE_FONT = AdtUiUtils.DEFAULT_FONT.biggerOn(5f);
@@ -161,6 +162,23 @@ public class TrackGroup {
   @NotNull
   public DragAndDropList<TrackModel> getTrackList() {
     return myTrackList;
+  }
+
+  /**
+   * @return true if there are no tracks in this group.
+   */
+  public boolean isEmpty() {
+    return myTrackList.getModel().getSize() == 0;
+  }
+
+  /**
+   * Returns the track model at the specified index.
+   *
+   * @param index the requested index
+   * @return the track model at <code>index</code>
+   */
+  public TrackModel getTrackModelAt(int index) {
+    return myTrackList.getModel().getElementAt(index);
   }
 
   /**
