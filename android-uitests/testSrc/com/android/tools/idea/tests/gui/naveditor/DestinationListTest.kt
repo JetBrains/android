@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.naveditor
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.naveditor.scene.getBoundingBox
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
@@ -25,6 +26,7 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import com.intellij.util.ui.UIUtil
 import org.fest.swing.timing.Wait
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -36,11 +38,18 @@ class DestinationListTest {
   @JvmField
   val guiTest = GuiTestRule()
 
+  @After
+  fun tearDown() {
+    StudioFlags.NAV_NEW_COMPONENT_TREE.clearOverride()
+  }
+
   /**
    * Make sure the DestinationList is updated correctly when the nav file is updated outside studio.
    */
   @Test
   fun testExternalUpdate() {
+    StudioFlags.NAV_NEW_COMPONENT_TREE.override(false)
+
     guiTest.importProject("Navigation").waitForGradleProjectSyncToFinish()
     // Open file as XML and switch to design tab, wait for successful render
     val editor = guiTest.ideFrame().editor
@@ -76,6 +85,8 @@ class DestinationListTest {
   @Test
   @Throws(Exception::class)
   fun testSelectComponent() {
+    StudioFlags.NAV_NEW_COMPONENT_TREE.override(false)
+
     val frame = guiTest.importProject("Navigation")
     // Open file as XML and switch to design tab, wait for successful render
     val editor = frame
