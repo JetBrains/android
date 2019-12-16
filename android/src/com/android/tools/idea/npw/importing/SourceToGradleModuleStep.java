@@ -95,7 +95,7 @@ public final class SourceToGradleModuleStep extends SkippableWizardStep<SourceTo
   private JTextField myModuleNameField;
   private JLabel myPrimaryModuleState;
 
-  // TODO(qumeric): handle following fields better
+  // TODO(qumeric): Improve logic so these don't need to all be set to null in applyValidationResult
   @Nullable private VirtualFile myVFile;
   @Nullable private ModuleImporter myImporter;
   @Nullable private Collection<ModuleToImport> myModules;
