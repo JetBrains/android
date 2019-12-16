@@ -61,6 +61,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.ui.components.panels.VerticalLayout;
 import com.intellij.util.IncorrectOperationException;
@@ -276,16 +277,21 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
       return;
     }
 
+    Project project = mySurface.getProject();
+    if (project.isDisposed()) {
+      return;
+    }
+
     ViewEditor editor = new ViewEditorImpl(screenView);
 
     // TODO: Perform caching
     List<AnAction> actions = new ArrayList<>();
     if (component != null) {
-      ViewHandler handler = ViewHandlerManager.get(mySurface.getProject()).getHandler(component);
+      ViewHandler handler = ViewHandlerManager.get(project).getHandler(component);
       actions.addAll(getViewActionsForHandler(component, newSelection, editor, handler, toolbar));
     }
     if (parent != null) {
-      ViewHandler handler = ViewHandlerManager.get(mySurface.getProject()).getHandler(parent);
+      ViewHandler handler = ViewHandlerManager.get(project).getHandler(parent);
       List<NlComponent> selectedChildren = Lists.newArrayListWithCapacity(newSelection.size());
       for (NlComponent selected : newSelection) {
         if (selected.getParent() == parent) {
