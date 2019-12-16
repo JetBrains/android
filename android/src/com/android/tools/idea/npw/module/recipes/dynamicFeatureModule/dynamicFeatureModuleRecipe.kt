@@ -20,8 +20,7 @@ import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplic
 import com.android.tools.idea.npw.dynamicapp.DeviceFeatureModel
 import com.android.tools.idea.npw.dynamicapp.DownloadInstallKind
 import com.android.tools.idea.npw.model.NewProjectModel
-import com.android.tools.idea.npw.module.recipes.addAllKotlinDependencies
-import com.android.tools.idea.npw.module.recipes.addKotlinToBaseProject
+import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestJava
 import com.android.tools.idea.npw.module.recipes.androidModule.src.exampleUnitTestKt
 import com.android.tools.idea.npw.module.recipes.dynamicFeatureModule.androidManifestXml
@@ -58,8 +57,6 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   val agpVersion = projectData.gradlePluginVersion
   val baseFeature = moduleData.baseFeature!!
 
-  addAllKotlinDependencies(moduleData)
-  addKotlinToBaseProject(language, projectData.kotlinVersion)
   createDirectory(moduleOut)
   createDirectory(srcOut)
   createDirectory(resOut.resolve("drawable"))
@@ -116,4 +113,6 @@ fun RecipeExecutor.generateDynamicFeatureModule(
     mergeXml(baseAndroidManifestXml(), baseFeature.dir.resolve("src/main/AndroidManifest.xml"))
   }
   mergeXml(stringsXml(dynamicFeatureTitle, projectSimpleName), baseFeature.resDir.resolve("values/strings.xml"))
+
+  addKotlinIfNeeded(projectData)
 }
