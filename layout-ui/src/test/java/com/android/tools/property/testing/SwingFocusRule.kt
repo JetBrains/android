@@ -210,7 +210,7 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
 
     override fun doWhenFocusSettlesDown(runnable: ExpirableRunnable) = runnable.run()
 
-    override fun getFocusedDescendantFor(comp: Component?): Component? = null
+    override fun getFocusedDescendantFor(comp: Component): Component? = null
 
     override fun requestDefaultFocus(forced: Boolean): ActionCallback = ActionCallback.DONE
 
