@@ -24,6 +24,7 @@ import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.util.Disposer
 
 /**
@@ -73,13 +74,14 @@ class SqliteEvaluatorController(
     view.addDatabase(database, index)
   }
 
-  fun evaluateSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
+  fun evaluateSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     view.showSqliteStatement(sqliteStatement.toString())
     view.selectDatabase(database)
-    execute(database, sqliteStatement)
+    return execute(database, sqliteStatement)
   }
 
-  private fun execute(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
+  private fun execute(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
+    val settableFuture = SettableFuture.create<Unit>()
     val databaseConnection = database.databaseConnection
     edtExecutor.addCallback(databaseConnection.execute(sqliteStatement), object : FutureCallback<SqliteResultSet?> {
       override fun onSuccess(resultSet: SqliteResultSet?) {
@@ -99,12 +101,17 @@ class SqliteEvaluatorController(
           view.tableView.resetView()
           listeners.forEach { it.onSchemaUpdated(database) }
         }
+
+        settableFuture.set(Unit)
       }
 
       override fun onFailure(t: Throwable) {
         view.tableView.reportError("Error executing SQLite statement", t)
+        settableFuture.setException(t)
       }
     })
+
+    return settableFuture
   }
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorView.Listener {

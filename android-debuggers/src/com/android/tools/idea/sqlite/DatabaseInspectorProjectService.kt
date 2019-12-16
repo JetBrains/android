@@ -201,7 +201,6 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
     val name = file.path.split("data/data/").getOrNull(1)?.replace("databases/", "") ?: file.path
 
     val databaseFuture: ListenableFuture<SqliteDatabase> = taskExecutor.transform(databaseConnectionFuture) { databaseConnection ->
-      Disposer.register(project, databaseConnection)
       FileSqliteDatabase(name, databaseConnection, file)
     }
 
@@ -213,7 +212,6 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
     val databaseConnectionFuture = databaseConnectionFactory.getLiveDatabaseConnection(messenger, id, taskExecutor)
 
     val databaseFuture: ListenableFuture<SqliteDatabase> = taskExecutor.transform(databaseConnectionFuture) { databaseConnection ->
-      Disposer.register(project, databaseConnection)
       LiveSqliteDatabase(name, databaseConnection)
     }
 
