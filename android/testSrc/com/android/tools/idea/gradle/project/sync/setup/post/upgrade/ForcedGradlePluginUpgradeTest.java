@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
@@ -56,6 +57,8 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     initMocks(this);
 
     Project project = getProject();
+    when(myPluginInfo.getModule()).thenReturn(getModule());
+
     new IdeComponents(project).replaceProjectService(GradleSyncState.class, mySyncState);
     new IdeComponents(project).replaceProjectService(AndroidPluginVersionUpdater.class, myVersionUpdater);
     mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
@@ -125,5 +128,19 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
 
     verify(mySyncState).syncSucceeded();
     verify(myVersionUpdater, never()).updatePluginVersionAndSync(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION));
+  }
+
+  public void testDontForceUpgradeWithExternalFlagDisabled() {
+    StudioFlags.DISABLE_FORCED_UPGRADES.override(true);
+
+    GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
+    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
+    when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
+    when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.0.0-alpha9"));
+
+    boolean upgraded = GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), myPluginInfo);
+    assertFalse(upgraded);
+
+    StudioFlags.DISABLE_FORCED_UPGRADES.clearOverride();
   }
 }

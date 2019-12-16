@@ -20,6 +20,8 @@ import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.SdkConstants.GRADLE_PATH_SEPARATOR
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.GradleVersion
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.flags.StudioFlags.DISABLE_FORCED_UPGRADES
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.ARTIFACT_ID
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.GROUP_ID
@@ -31,10 +33,21 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.project.messages.MessageType.ERROR
 import com.android.tools.idea.project.messages.SyncMessage
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationGroup
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ApplicationManager.getApplication
 import com.intellij.openapi.application.ModalityState.NON_MODAL
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager
+import com.intellij.openapi.externalSystem.service.notification.NotificationCategory
+import com.intellij.openapi.externalSystem.service.notification.NotificationData
+import com.intellij.openapi.externalSystem.service.notification.NotificationSource
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.MessageType
+import com.intellij.openapi.util.text.StringUtil
+import org.jetbrains.plugins.gradle.util.GradleConstants
 
 private val LOG = Logger.getInstance("AndroidGradlePluginUpdates")
 
@@ -52,6 +65,14 @@ fun performForcedPluginUpgrade(project: Project) : Boolean {
   return performForcedPluginUpgrade(project, pluginInfo)
 }
 
+/**
+ * Returns whether or not the information in [pluginInfo] requires that the user be force to
+ * upgrade their Android Gradle Plugin.
+ *
+ * Note: This method does does not consider the state of the [StudioFlags.DISABLE_FORCED_UPGRADES]
+ * flag and will return true even if this is set. This is checked when calling
+ * [performForcedPluginUpgrade].
+ */
 @Slow
 @VisibleForTesting
 fun shouldForcePluginUpgrade(pluginInfo: AndroidPluginInfo) : Boolean {
@@ -62,6 +83,19 @@ fun shouldForcePluginUpgrade(pluginInfo: AndroidPluginInfo) : Boolean {
 @Slow
 @VisibleForTesting
 fun performForcedPluginUpgrade(project: Project, pluginInfo: AndroidPluginInfo) : Boolean {
+  // Check if forced upgrades have been disabled by internal only Android Studio flags.
+  // We don't check the flag if not running internally as it should never be disabled externally.
+  if (DISABLE_FORCED_UPGRADES.get() && getApplication().isInternal) {
+    // Show a warning as a reminder that errors seen may be due to this option.
+    val msg = "Forced upgrades are disabled, errors seen may be due to incompatibilities between " +
+              "the Android Gradle Plugin and the version of Android Studio.\nTo re-enable forced updates " +
+              "please go to 'Tools > Internal Actions > Edit Studio Flags' and set " +
+              "'${DISABLE_FORCED_UPGRADES.displayName}' to 'Off'."
+    val notification = AGP_UPGRADE_NOTIFICATION_GROUP.createNotification(msg, MessageType.WARNING)
+    notification.notify(pluginInfo.module.project)
+    return false
+  }
+
   val recommended = GradleVersion.parse(pluginInfo.latestKnownPluginVersionProvider.get())
 
   val syncState = GradleSyncState.getInstance(project)

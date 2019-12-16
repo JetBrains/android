@@ -93,9 +93,10 @@ public class PluginVersionUpgrade {
   @Slow
   public boolean checkAndPerformUpgrade() {
     // We try force upgrade first then try recommended upgrade.
-    if (isForcedUpgradable() && performForcedUpgrade()) {
-      return true;
+    if (isForcedUpgradable()) {
+      return performForcedUpgrade();
     }
+
     // performRecommendedUpgrade already checks to see if it should.
     return performRecommendedUpgrade();
   }
