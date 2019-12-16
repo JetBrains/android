@@ -106,7 +106,6 @@ fun RecipeExecutor.generateCommonModule(
     }
   }
 
-
   if (includeCppSupport) {
     with(moduleOut.resolve("src/main/cpp")) {
       createDirectory(this)
