@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.Density;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
@@ -106,6 +107,7 @@ public class SceneKeepDimensTest extends SceneTest {
     when(configuration.getResourceResolver()).thenReturn(resolver);
     when(configuration.getDensity()).thenReturn(Density.XHIGH);
     when(configuration.getConfigurationManager()).thenReturn(ConfigurationManager.getOrCreateInstance(myFacet));
+    when(configuration.getFullConfig()).thenReturn(FolderConfiguration.createDefault());
     myModel.setConfiguration(configuration);
   }
 

@@ -55,7 +55,8 @@ class SchemaTreeCellRenderer : TreeCellRenderer {
         }
 
         is SqliteColumn -> {
-          component.icon = AllIcons.Nodes.DataColumn
+          if (userObject.inPrimaryKey) component.icon = AllIcons.Nodes.EjbPrimaryKeyClass
+          else component.icon = AllIcons.Nodes.DataColumn
           component.append(userObject.name)
           component.append(" : ")
           component.append(userObject.type.name.toLowerCase(Locale.US))

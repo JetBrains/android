@@ -133,7 +133,11 @@ private fun CustomConfigurationAttribute.toNamedConfiguration(defaultConfig: Con
   val device = if (deviceId != null) configurationManager.getDeviceById(deviceId!!) else return null
   val target = configurationManager.targets.firstOrNull { it.version.apiLevel == apiLevel } ?: return null
   val state = device?.defaultState?.deepCopy()
-  if (state != null) {
+  state?.let {
+    // The state name is used for finding better match of orientation, and it should be the same as ScreenOrientation.shortDisplayValue.
+    // When the name is null, the default device orientation will be used. Here when orientation happens to be null, we want to keep the
+    // previous state name rather than using a default orientation.
+    orientation?.let { state.name = it.shortDisplayValue }
     state.orientation = orientation
   }
 

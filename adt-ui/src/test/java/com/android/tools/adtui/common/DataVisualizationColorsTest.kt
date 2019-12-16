@@ -19,12 +19,13 @@ import com.android.testutils.TestResources
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
+import java.io.FileInputStream
 
 class DataVisualizationColorsTest {
 
   @Before
   fun setup() {
-    DataVisualizationColors.initialize(TestResources.getFile(javaClass, "/palette/data-colors.json"))
+    DataVisualizationColors.initialize(FileInputStream(TestResources.getFile(javaClass, "/palette/data-colors.json")))
   }
   /**
    * This test loads the production palette and if passes validates that the current data-colors.json is in a valid format.

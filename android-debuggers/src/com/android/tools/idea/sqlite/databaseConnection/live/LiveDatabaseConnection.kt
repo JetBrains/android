@@ -87,7 +87,8 @@ class LiveDatabaseConnection(
   private fun SqliteInspection.Schema.toSqliteSchema(): SqliteSchema {
     val tables = tablesList.map { table ->
       val sqliteColumns = table.columnsList.map { it.toSqliteColumn() }
-      SqliteTable(table.name, sqliteColumns, false)
+      // TODO(blocked): add support for rowIdName
+      SqliteTable(table.name, sqliteColumns, null, false)
     }
     return SqliteSchema(tables)
   }
@@ -105,20 +106,21 @@ class LiveDatabaseConnection(
         JDBCType.OTHER
       }
     }
-    return SqliteColumn(name, type)
+    return SqliteColumn(name, type, false)
   }
 
   private fun SqliteInspection.CellValue.toSqliteColumn(): SqliteColumnValue {
+    // TODO(blocked): add support for primary keys
     return when (unionCase) {
       SqliteInspection.CellValue.UnionCase.STRING_VALUE ->
-        SqliteColumnValue(SqliteColumn(columnName, JDBCType.VARCHAR), stringValue)
+        SqliteColumnValue(SqliteColumn(columnName, JDBCType.VARCHAR, false), stringValue)
       SqliteInspection.CellValue.UnionCase.FLOAT_VALUE ->
-        SqliteColumnValue(SqliteColumn(columnName, JDBCType.FLOAT), floatValue)
+        SqliteColumnValue(SqliteColumn(columnName, JDBCType.FLOAT, false), floatValue)
       SqliteInspection.CellValue.UnionCase.BLOB_VALUE ->
-        SqliteColumnValue(SqliteColumn(columnName, JDBCType.BLOB), blobValue)
+        SqliteColumnValue(SqliteColumn(columnName, JDBCType.BLOB, false), blobValue)
       SqliteInspection.CellValue.UnionCase.INT_VALUE ->
-        SqliteColumnValue(SqliteColumn(columnName, JDBCType.INTEGER), intValue)
-      else -> SqliteColumnValue(SqliteColumn(columnName, JDBCType.NULL), "null")
+        SqliteColumnValue(SqliteColumn(columnName, JDBCType.INTEGER, false), intValue)
+      else -> SqliteColumnValue(SqliteColumn(columnName, JDBCType.NULL, false), "null")
     }
   }
 }

@@ -40,8 +40,8 @@ class CpuAnalysisModelTest {
     model.addTabModel(CpuAnalysisTabModel(CpuAnalysisTabModel.Type.TOP_DOWN))
 
     assertThat(model.getTabModelAt(0).tabType).isEqualTo(CpuAnalysisTabModel.Type.SUMMARY)
-    assertThat(model.getTabModelAt(1).tabType).isEqualTo(CpuAnalysisTabModel.Type.FLAME_CHART)
-    assertThat(model.getTabModelAt(2).tabType).isEqualTo(CpuAnalysisTabModel.Type.TOP_DOWN)
+    assertThat(model.getTabModelAt(1).tabType).isEqualTo(CpuAnalysisTabModel.Type.TOP_DOWN)
+    assertThat(model.getTabModelAt(2).tabType).isEqualTo(CpuAnalysisTabModel.Type.FLAME_CHART)
     assertThat(model.getTabModelAt(3).tabType).isEqualTo(CpuAnalysisTabModel.Type.BOTTOM_UP)
   }
 

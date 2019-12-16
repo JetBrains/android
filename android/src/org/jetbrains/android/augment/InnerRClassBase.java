@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiPredicate;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -101,31 +100,31 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
 
     for (String fieldName : otherFields) {
       int fieldId = nextId++;
-      AndroidLightField field = new AndroidLightField(AndroidResourceUtil.getFieldNameByResourceName(fieldName),
-                                                      context,
-                                                      PsiType.INT,
-                                                      fieldModifier,
-                                                      fieldModifier == AndroidLightField.FieldModifier.FINAL ? fieldId : null);
+      ResourceLightField field = new ResourceLightField(fieldName,
+                                                        context,
+                                                        PsiType.INT,
+                                                        fieldModifier,
+                                                        fieldModifier == AndroidLightField.FieldModifier.FINAL ? fieldId : null);
       field.setInitializer(factory.createExpressionFromText(Integer.toString(fieldId), field));
       result[i++] = field;
     }
 
     for (String fieldName : styleableFields) {
       int fieldId = nextId++;
-      AndroidLightField field = new AndroidLightField(AndroidResourceUtil.getFieldNameByResourceName(fieldName),
-                                                      context,
-                                                      INT_ARRAY,
-                                                      fieldModifier,
-                                                      fieldModifier == AndroidLightField.FieldModifier.FINAL ? fieldId : null);
+      ResourceLightField field = new ResourceLightField(fieldName,
+                                                        context,
+                                                        INT_ARRAY,
+                                                        fieldModifier,
+                                                        fieldModifier == AndroidLightField.FieldModifier.FINAL ? fieldId : null);
       field.setInitializer(factory.createExpressionFromText(Integer.toString(fieldId), field));
       result[i++] = field;
     }
 
     for (StyleableAttrFieldUrl fieldContents : styleableAttrFields) {
       int fieldId = nextId++;
-      AndroidLightField field = new AndroidStyleableAttrLightField(fieldContents,
-                                                                   context,
-                                                                   fieldModifier,
+      AndroidLightField field = new StyleableAttrLightField(fieldContents,
+                                                            context,
+                                                            fieldModifier,
                                                                    fieldModifier == AndroidLightField.FieldModifier.FINAL ? fieldId : null);
       field.setInitializer(factory.createExpressionFromText(Integer.toString(fieldId), field));
       result[i++] = field;

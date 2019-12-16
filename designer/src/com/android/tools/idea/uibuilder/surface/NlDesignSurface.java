@@ -15,15 +15,14 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
-import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_X;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
 
-import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.actions.LayoutPreviewHandler;
+import com.android.tools.idea.actions.LayoutPreviewHandlerKt;
 import com.android.tools.idea.common.editor.ActionManager;
-import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.DnDTransferComponent;
@@ -41,7 +40,6 @@ import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.gradle.project.BuildSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
@@ -86,7 +84,12 @@ import org.jetbrains.annotations.Nullable;
  * The {@link DesignSurface} for the layout editor, which contains the full background, rulers, one
  * or more device renderings, etc
  */
-public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.AccessoryPanelVisibility {
+public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.AccessoryPanelVisibility, LayoutPreviewHandler {
+
+  private boolean myPreviewWithToolsAttributes = true;
+
+  private static final double DEFAULT_MIN_SCALE = 0.1;
+  private static final double DEFAULT_MAX_SCALE = 10;
 
   public static class Builder {
     private final Project myProject;
@@ -99,6 +102,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     private SurfaceLayoutManager myLayoutManager;
     private NavigationHandler myNavigationHandler;
     @NotNull private State myDefaultSurfaceState = State.FULL;
+    private double myMinScale = DEFAULT_MIN_SCALE;
+    private double myMaxScale = DEFAULT_MAX_SCALE;
 
     /**
      * Factory to create an action manager for the NlDesignSurface
@@ -213,9 +218,44 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return this;
     }
 
+    /**
+     * Restrict the minimum zoom level to the given value. The default value is {@link #DEFAULT_MIN_SCALE}.
+     * For example, if this value is 0.15 then the zoom level of {@link DesignSurface} can never be lower than 15%.
+     * This restriction also effects to zoom-to-fit, if the measured size of zoom-to-fit is 10%, then the zoom level will be cut to 15%.
+     *
+     * This value should always be larger than 0, otherwise the {@link IllegalStateException} will be thrown.
+     *
+     * @see #setMaxScale(double)
+     */
+    public Builder setMinScale(double scale) {
+      if (scale <= 0) {
+        throw new IllegalStateException("The min scale (" + scale + ") is not larger than 0");
+      }
+      myMinScale = scale;
+      return this;
+    }
+
+    /**
+     * Restrict the max zoom level to the given value. The default value is {@link #DEFAULT_MAX_SCALE}.
+     * For example, if this value is 1.0 then the zoom level of {@link DesignSurface} can never be larger than 100%.
+     * This restriction also effects to zoom-to-fit, if the measured size of zoom-to-fit is 120%, then the zoom level will be cut to 100%.
+     *
+     * This value should always be larger than 0 and larger than min scale which is set by {@link #setMinScale(double)}. otherwise the
+     * {@link IllegalStateException} will be thrown when {@link #build()} is called.
+     *
+     * @see #setMinScale(double)
+     */
+    public Builder setMaxScale(double scale) {
+      myMaxScale = scale;
+      return this;
+    }
+
     @NotNull
     public NlDesignSurface build() {
       SurfaceLayoutManager layoutManager = myLayoutManager != null ? myLayoutManager : createDefaultSurfaceLayoutManager();
+      if (myMinScale > myMaxScale) {
+        throw new IllegalStateException("The max scale (" + myMaxScale + ") is lower than min scale (" + myMinScale +")");
+      }
       return new NlDesignSurface(myProject,
                                  myParentDisposable,
                                  myIsPreview,
@@ -226,7 +266,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  myActionManagerProvider,
                                  myInteractionHandlerProvider,
                                  myDefaultSurfaceState,
-                                 myNavigationHandler);
+                                 myNavigationHandler,
+                                 myMinScale,
+                                 myMaxScale);
     }
   }
 
@@ -270,6 +312,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Nullable private final NavigationHandler myNavigationHandler;
 
+  private final double myMinScale;
+  private final double myMaxScale;
+
   private boolean myIsRenderingSynchronously = false;
   private boolean myIsAnimationScrubbing = false;
 
@@ -283,7 +328,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
                           @NotNull Function<DesignSurface, InteractionHandler> interactionHandlerProvider,
                           @NotNull State defaultSurfaceMode,
-                          @Nullable NavigationHandler navigationHandler) {
+                          @Nullable NavigationHandler navigationHandler,
+                          double minScale,
+                          double maxScale) {
     super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, defaultSurfaceMode, isEditable);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
@@ -296,6 +343,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     if (myNavigationHandler != null) {
       Disposer.register(this, myNavigationHandler);
     }
+
+    myMinScale = minScale;
+    myMaxScale = maxScale;
   }
 
   /**
@@ -536,19 +586,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     myCentered = centered;
   }
 
-  /**
-   * In the layout editor, Scene uses {@link AndroidDpCoordinate}s whereas rendering is done in (zoomed and offset)
-   * {@link AndroidCoordinate}s. The scaling factor between them is the ratio of the screen density to the standard density (160).
-   */
-  @Override
-  public float getSceneScalingFactor() {
-    Configuration configuration = getConfiguration();
-    if (configuration != null) {
-      return configuration.getDensity().getDpiValue() / (float)DEFAULT_DENSITY;
-    }
-    return 1f;
-  }
-
   @Override
   public float getScreenScalingFactor() {
     return JBUIScale.sysScale(this);
@@ -727,12 +764,12 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Override
   protected double getMinScale() {
-    return Math.max(getFitScale(true), 0.01);
+    return Math.max(getFitScale(true), myMinScale);
   }
 
   @Override
   protected double getMaxScale() {
-    return 10;
+    return myMaxScale;
   }
 
   @Override
@@ -784,20 +821,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   }
 
   @Override
-  public boolean isResizeAvailable() {
-    Configuration configuration = getConfiguration();
-    if (configuration == null) {
-      return false;
-    }
-    Device device = configuration.getCachedDevice();
-    if (device == null) {
-      return false;
-    }
-
-    return true;
-  }
-
-  @Override
   protected void notifySelectionListeners(@NotNull List<NlComponent> newSelection) {
     super.notifySelectionListeners(newSelection);
     scrollToCenter(newSelection);
@@ -846,4 +869,24 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   public boolean isInAnimationScrubbing() { return myIsAnimationScrubbing; }
 
+  @Override
+  public Object getData(@NotNull String dataId) {
+    if (LayoutPreviewHandlerKt.LAYOUT_PREVIEW_HANDLER_KEY.is(dataId)) {
+      return this;
+    }
+    return super.getData(dataId);
+  }
+
+  @Override
+  public boolean getPreviewWithToolsAttributes() {
+    return myPreviewWithToolsAttributes;
+  }
+
+  @Override
+  public void setPreviewWithToolsAttributes(boolean isPreviewWithToolsAttributes) {
+    if (myPreviewWithToolsAttributes != isPreviewWithToolsAttributes) {
+      myPreviewWithToolsAttributes = isPreviewWithToolsAttributes;
+      forceUserRequestedRefresh();
+    }
+  }
 }

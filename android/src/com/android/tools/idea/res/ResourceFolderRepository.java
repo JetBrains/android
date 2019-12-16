@@ -42,6 +42,7 @@ import com.android.ide.common.resources.ResourceFile;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceMergerItem;
 import com.android.ide.common.resources.ResourceVisitor;
+import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.ide.common.resources.ValueResourceNameValidator;
 import com.android.ide.common.resources.configuration.DensityQualifier;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
@@ -738,7 +739,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         // TODO: Consider doing a deeper diff of the changes to the resource items
         //       to determine if the removed and added items actually differ.
         setModificationCount(ourModificationCounter.incrementAndGet());
-        invalidateParentCaches();
+        invalidateParentCaches(this, ResourceType.values());
       }
     } else if (isValidResourceFileName(file.getName(), folderType)) {
       ResourceItemSource<? extends ResourceItem> source = mySources.get(file.getVirtualFile());
@@ -803,7 +804,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
           // Identities may have changed even if the ids are the same, so update maps.
           setModificationCount(ourModificationCounter.incrementAndGet());
-          invalidateParentCaches(myNamespace, ResourceType.ID);
+          invalidateParentCaches(this, ResourceType.ID);
         }
       } else {
         // Either we're switching to PSI or the file is not XML (image or font), which is not incremental. Remove old items first, rescan
@@ -1036,7 +1037,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                         getOrCreateMap(type).put(name, item);
                         psiResourceFile.addItem(item);
                         setModificationCount(ourModificationCounter.incrementAndGet());
-                        invalidateParentCaches(myNamespace, type);
+                        invalidateParentCaches(ResourceFolderRepository.this, type);
                         return;
                       }
                     }
@@ -1102,7 +1103,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                       psiResourceFile.addItem(id);
                     }
                     setModificationCount(ourModificationCounter.incrementAndGet());
-                    invalidateParentCaches(myNamespace, ResourceType.ID);
+                    invalidateParentCaches(ResourceFolderRepository.this, ResourceType.ID);
                   }
                 }
                 return;
@@ -1124,7 +1125,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                       psiResourceFile.addItem(newIdResource);
                       getOrCreateMap(ResourceType.ID).put(newIdResource.getName(), newIdResource);
                       setModificationCount(ourModificationCounter.incrementAndGet());
-                      invalidateParentCaches(myNamespace, ResourceType.ID);
+                      invalidateParentCaches(ResourceFolderRepository.this, ResourceType.ID);
                       return;
                     }
                   }
@@ -1214,7 +1215,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                         boolean removed = removeItemsForTag(resourceFile, tag, type);
                         if (removed) {
                           setModificationCount(ourModificationCounter.incrementAndGet());
-                          invalidateParentCaches(myNamespace, type);
+                          invalidateParentCaches(ResourceFolderRepository.this, type);
                         }
                       }
                     }
@@ -1457,7 +1458,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                             }
                           }
                           setModificationCount(ourModificationCounter.incrementAndGet());
-                          invalidateParentCaches(myNamespace, type);
+                          invalidateParentCaches(ResourceFolderRepository.this, type);
                         }
                       }
 
@@ -1561,7 +1562,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
         commitToRepository(result);
         ids.forEach(psiResourceFile::addItem);
         setModificationCount(ourModificationCounter.incrementAndGet());
-        invalidateParentCaches(myNamespace, ResourceType.ID);
+        invalidateParentCaches(ResourceFolderRepository.this, ResourceType.ID);
         return true;
       }
     }
@@ -1706,7 +1707,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     boolean removed = removeItemsFromSource(source);
     if (removed) {
       setModificationCount(ourModificationCounter.incrementAndGet());
-      invalidateParentCaches();
+      invalidateParentCaches(this, ResourceType.values());
     }
 
     ResourceFolderType folderType = ResourceHelper.getFolderType(file);
@@ -1917,6 +1918,20 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
 
       Density density = Density.values()[encodedDensity - 1];
       return new BasicDensityBasedFileResourceItem(resourceType, name, configuration, visibility, relativePath, density);
+    }
+  }
+
+  @Override
+  protected void invalidateParentCaches() {
+    synchronized (ITEM_MAP_LOCK) {
+      super.invalidateParentCaches();
+    }
+  }
+
+  @Override
+  protected void invalidateParentCaches(@NotNull SingleNamespaceResourceRepository repository, @NotNull ResourceType... types) {
+    synchronized (ITEM_MAP_LOCK) {
+      super.invalidateParentCaches(repository, types);
     }
   }
 

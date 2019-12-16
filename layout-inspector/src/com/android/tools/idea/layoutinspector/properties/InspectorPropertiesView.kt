@@ -60,6 +60,6 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
                                            model, enumSupportProvider, controlTypeProvider))
     tab.builders.add(InspectorTableBuilder("Layout", { it.group == PropertySection.LAYOUT },
                                            model, enumSupportProvider, controlTypeProvider, androidSortOrder))
-    tab.builders.add(InspectorTableBuilder("All Attributes", { true }, model, enumSupportProvider, controlTypeProvider))
+    tab.builders.add(InspectorTableBuilder("All Attributes", { true }, model, enumSupportProvider, controlTypeProvider, searchable = true))
   }
 }

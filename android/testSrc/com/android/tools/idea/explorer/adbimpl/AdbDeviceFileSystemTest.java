@@ -524,6 +524,7 @@ public class AdbDeviceFileSystemTest {
 
     // Act
     AtomicReference<Long> totalBytesRef = new AtomicReference<>();
+/* b/145855147
     Void result = waitForFuture(deviceEntry.downloadFile(tempFile, new FileTransferProgress() {
       @Override
       public void progress(long currentBytes, long totalBytes) {
@@ -543,5 +544,6 @@ public class AdbDeviceFileSystemTest {
     assertThat(totalBytesRef.get()).isEqualTo(deviceEntry.getSize());
     assertThat(Files.exists(tempFile)).isTrue();
     assertThat(tempFile.toFile().length()).isEqualTo(deviceEntry.getSize());
+b/145855147 */
   }
 }

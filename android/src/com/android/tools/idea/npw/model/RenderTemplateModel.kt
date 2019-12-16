@@ -31,6 +31,9 @@ import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.AndroidModulePaths
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.templates.KeystoreUtils
+import com.android.tools.idea.templates.KeystoreUtils.getDebugKeystore
+import com.android.tools.idea.templates.KeystoreUtils.getOrCreateDefaultDebugKeystore
 import com.android.tools.idea.templates.ModuleTemplateDataBuilder
 import com.android.tools.idea.templates.ProjectTemplateDataBuilder
 import com.android.tools.idea.templates.Template
@@ -158,6 +161,8 @@ class RenderTemplateModel private constructor(
           }
 
           setFacet(androidFacet)
+          val sha1File = getDebugKeystore(androidFacet)
+          projectTemplateDataBuilder.debugKeyStoreSha1 = KeystoreUtils.sha1(sha1File)
 
           // Register application-wide settings
           val applicationPackage = androidFacet.getPackageForApplication()

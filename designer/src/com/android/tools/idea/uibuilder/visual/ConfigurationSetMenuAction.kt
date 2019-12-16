@@ -61,8 +61,18 @@ class ConfigurationSetMenuAction(private val listener: ConfigurationSetListener,
   private var currentConfigurationSet = defaultSet
 
   init {
-    for (configurationSet in ConfigurationSet.values().filter { it.visible }) {
-      add(SetConfigurationSetAction(configurationSet))
+    add(SetConfigurationSetAction(ConfigurationSet.PIXEL_DEVICES))
+    add(SetConfigurationSetAction(ConfigurationSet.PROJECT_LOCALES))
+    addSeparator()
+    add(SetConfigurationSetAction(ConfigurationSet.CUSTOM))
+    if (ConfigurationSet.COLOR_BLIND_MODE.visible || ConfigurationSet.LARGE_FONT.visible) {
+      addSeparator()
+      if (ConfigurationSet.COLOR_BLIND_MODE.visible) {
+        add(SetConfigurationSetAction(ConfigurationSet.COLOR_BLIND_MODE))
+      }
+      if (ConfigurationSet.LARGE_FONT.visible) {
+        add(SetConfigurationSetAction(ConfigurationSet.LARGE_FONT))
+      }
     }
   }
 

@@ -17,6 +17,7 @@ package com.android.build.attribution.ui.panels;
 
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.warningIcon;
 
+import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics;
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData;
 import com.android.utils.HtmlBuilder;
 import com.intellij.ui.components.JBLabel;
@@ -27,6 +28,9 @@ import java.awt.GridBagLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import org.jetbrains.annotations.NotNull;
 
 public class AnnotationProcessorIssueInfoPanel extends JBPanel {
   private static final String DESCRIPTION = "This annotation processor is non-incremental and causes the JavaCompile task " +
@@ -34,8 +38,14 @@ public class AnnotationProcessorIssueInfoPanel extends JBPanel {
                                             "Consider switching to using an incremental annotation processor.";
   private static final String HELP_LINK = "https://d.android.com/r/tools/build-attribution/non-incremental-ap";
 
-  public AnnotationProcessorIssueInfoPanel(AnnotationProcessorUiData annotationProcessorUiData) {
+  private final BuildAttributionUiAnalytics myAnalytics;
+
+  public AnnotationProcessorIssueInfoPanel(
+    AnnotationProcessorUiData annotationProcessorUiData,
+    BuildAttributionUiAnalytics analytics
+  ) {
     super(new GridBagLayout());
+    myAnalytics = analytics;
 
     GridBagConstraints c = new GridBagConstraints();
     c.insets = JBUI.insetsBottom(15);
@@ -62,7 +72,23 @@ public class AnnotationProcessorIssueInfoPanel extends JBPanel {
       .getHtml();
 
     JLabel iconLabel = new JLabel(warningIcon());
-    JLabel issueDescription = createWrappableHtmlLabel(text);
+    JBLabel issueDescription = new JBLabel() {
+      @NotNull
+      @Override
+      protected HyperlinkListener createHyperlinkListener() {
+        HyperlinkListener listener = super.createHyperlinkListener();
+        return new HyperlinkListener() {
+          @Override
+          public void hyperlinkUpdate(HyperlinkEvent e) {
+            myAnalytics.helpLinkClicked();
+            listener.hyperlinkUpdate(e);
+          }
+        };
+      }
+    };
+    issueDescription.setCopyable(true).setAllowAutoWrapping(true);
+    issueDescription.setVerticalTextPosition(SwingConstants.TOP);
+    issueDescription.setText(text);
 
     JBPanel<JBPanel> panel = new JBPanel<>(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
@@ -79,12 +105,5 @@ public class AnnotationProcessorIssueInfoPanel extends JBPanel {
     c.fill = GridBagConstraints.BOTH;
     panel.add(issueDescription, c);
     return panel;
-  }
-
-  public static JLabel createWrappableHtmlLabel(String text) {
-    JBLabel label = new JBLabel().setCopyable(true).setAllowAutoWrapping(true);
-    label.setVerticalTextPosition(SwingConstants.TOP);
-    label.setText(text);
-    return label;
   }
 }

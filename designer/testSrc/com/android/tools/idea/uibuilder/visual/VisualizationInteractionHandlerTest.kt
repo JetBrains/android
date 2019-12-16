@@ -60,7 +60,7 @@ class VisualizationInteractionHandlerTest : SceneTest() {
     val handler = VisualizationInteractionHandler(myModel.surface) { Mockito.mock(VisualizationModelsProvider::class.java) }
     val file = myModel.virtualFile
     val view = myModel.surface.sceneManager?.sceneView!!
-    handler.doubleClick(view.x + view.size.width, view.y + view.size.height)
+    handler.doubleClick(view.x + view.size.width, view.y + view.size.height, 0)
     Mockito.verify(navigationManager).pushFile(file, file)
   }
 

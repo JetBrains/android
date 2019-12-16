@@ -23,9 +23,9 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public class SourceDirectoryModelImpl extends GradleDslBlockModel implements SourceDirectoryModel {
-  @NonNls private static final String EXCLUDE = "exclude";
-  @NonNls private static final String INCLUDE = "include";
-  @NonNls private static final String SRC_DIRS = "srcDirs";
+  @NonNls public static final String EXCLUDES = "mExcludes";
+  @NonNls public static final String INCLUDES = "mIncludes";
+  @NonNls public static final String SRC_DIRS = "mSrcDirs";
 
   public SourceDirectoryModelImpl(@NotNull SourceDirectoryDslElement dslElement) {
     super(dslElement);
@@ -40,18 +40,18 @@ public class SourceDirectoryModelImpl extends GradleDslBlockModel implements Sou
   @Override
   @NotNull
   public ResolvedPropertyModel excludes() {
-    return getModelForProperty(EXCLUDE, true);
+    return getModelForProperty(EXCLUDES);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel includes() {
-    return getModelForProperty(INCLUDE, true);
+    return getModelForProperty(INCLUDES);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel srcDirs() {
-    return getModelForProperty(SRC_DIRS, true);
+    return getModelForProperty(SRC_DIRS);
   }
 }

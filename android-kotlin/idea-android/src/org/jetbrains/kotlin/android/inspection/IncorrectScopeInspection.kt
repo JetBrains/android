@@ -16,6 +16,7 @@
 package org.jetbrains.kotlin.android.inspection
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.kotlin.getQualifiedName
 import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInspection.LocalInspectionToolSession
 import com.intellij.codeInspection.ProblemHighlightType
@@ -30,6 +31,7 @@ import org.jetbrains.kotlin.idea.highlighter.IdeErrorMessages
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.KtVisitorVoid
@@ -57,7 +59,7 @@ class IncorrectScopeInspection : AbstractKotlinInspection() {
               val scope: GlobalSearchScope = expression.resolveScope
               val qualifiedName = when (resolveResult) {
                 is PsiClass ->  resolveResult.qualifiedName
-                is KtClass -> resolveResult.fqName?.asString()
+                is KtClass -> resolveResult.getQualifiedName()
                 else -> null
               } ?: return
               if (JavaPsiFacade.getInstance(expression.project).findClass(qualifiedName, scope) == null) {

@@ -44,59 +44,6 @@ import org.jetbrains.annotations.Nullable;
 public final class PredefinedSampleDataResourceRepository extends AbstractResourceRepository implements SingleNamespaceResourceRepository {
   public static final ResourceNamespace NAMESPACE = ResourceNamespace.TOOLS;
 
-  /**
-   * List of predefined data sources that are always available within Studio.
-   */
-  private static final SampleDataResourceItem[] PREDEFINED_SOURCES = {
-    SampleDataResourceItem.getFromStaticDataSource("full_names",
-                                                   new CombinerDataSource(
-                                                       getResourceAsStream("sampleData/names.txt"),
-                                                       getResourceAsStream("sampleData/surnames.txt")),
-                                                   TEXT),
-    SampleDataResourceItem.getFromStaticDataSource("first_names",
-                                                   ResourceContent.fromInputStream(getResourceAsStream("sampleData/names.txt")),
-                                                   TEXT),
-    SampleDataResourceItem.getFromStaticDataSource("last_names",
-                                                   ResourceContent.fromInputStream(getResourceAsStream("sampleData/surnames.txt")),
-                                                   TEXT),
-    SampleDataResourceItem.getFromStaticDataSource("cities",
-                                                   ResourceContent.fromInputStream(getResourceAsStream("sampleData/cities.txt")),
-                                                   TEXT),
-    SampleDataResourceItem.getFromStaticDataSource("us_zipcodes",
-                                                   new NumberGenerator("%05d", 20000, 99999),
-                                                   TEXT),
-    SampleDataResourceItem.getFromStaticDataSource("us_phones",
-                                                   new NumberGenerator("(800) 555-%04d", 0, 9999),
-                                                   TEXT),
-    SampleDataResourceItem.getFromStaticDataSource("lorem", new LoremIpsumGenerator(false),
-                                                   TEXT),
-    SampleDataResourceItem.getFromStaticDataSource("lorem/random", new LoremIpsumGenerator(true),
-                                                   TEXT),
-    SampleDataResourceItem.getFromStaticDataSource("avatars",
-                                                   ResourceContent.fromDirectory("avatars"),
-                                                   IMAGE),
-    SampleDataResourceItem.getFromStaticDataSource("backgrounds/scenic",
-                                                   ResourceContent.fromDirectory("backgrounds/scenic"),
-                                                   IMAGE),
-
-    // TODO: Delegate path parsing to the data source to avoid all these declarations.
-    SampleDataResourceItem.getFromStaticDataSource("date/day_of_week",
-                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("E"), ChronoUnit.DAYS),
-                                                   TEXT),
-    SampleDataResourceItem.getFromStaticDataSource("date/ddmmyy",
-                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("dd-MM-yy"), ChronoUnit.DAYS),
-                                                   TEXT),
-    SampleDataResourceItem.getFromStaticDataSource("date/mmddyy",
-                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("MM-dd-yy"), ChronoUnit.DAYS),
-                                                   TEXT),
-    SampleDataResourceItem.getFromStaticDataSource("date/hhmm",
-                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("hh:mm"), ChronoUnit.MINUTES),
-                                                   TEXT),
-    SampleDataResourceItem.getFromStaticDataSource("date/hhmmss",
-                                                   new DateTimeGenerator(DateTimeFormatter.ofPattern("hh:mm:ss"), ChronoUnit.SECONDS),
-                                                   TEXT)
-  };
-
   @NotNull private static final PredefinedSampleDataResourceRepository INSTANCE = new PredefinedSampleDataResourceRepository();
 
   @NotNull private final ImmutableListMultimap<String, ResourceItem> myResources;
@@ -108,7 +55,7 @@ public final class PredefinedSampleDataResourceRepository extends AbstractResour
 
   private PredefinedSampleDataResourceRepository() {
     ImmutableListMultimap.Builder<String, ResourceItem> builder = ImmutableListMultimap.builder();
-    for (SampleDataResourceItem resource : PREDEFINED_SOURCES) {
+    for (SampleDataResourceItem resource : getPredefinedSources()) {
       builder.put(resource.getName(), resource);
     }
     myResources = builder.build();
@@ -151,6 +98,76 @@ public final class PredefinedSampleDataResourceRepository extends AbstractResour
   @NotNull
   public Collection<ResourceItem> getPublicResources(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
     return myResources.values();
+  }
+
+  /**
+   * List of predefined data sources that are always available within Studio.
+   */
+  private SampleDataResourceItem[] getPredefinedSources() {
+    return new SampleDataResourceItem[]{
+      SampleDataResourceItem.getFromStaticDataSource(this,
+                                                     "full_names",
+                                                     new CombinerDataSource(
+                                                       getResourceAsStream("sampleData/names.txt"),
+                                                       getResourceAsStream("sampleData/surnames.txt")),
+                                                     TEXT),
+      SampleDataResourceItem.getFromStaticDataSource(this,
+                                                     "first_names",
+                                                     ResourceContent.fromInputStream(getResourceAsStream("sampleData/names.txt")),
+                                                     TEXT),
+      SampleDataResourceItem.getFromStaticDataSource(this,
+                                                     "last_names",
+                                                     ResourceContent.fromInputStream(getResourceAsStream("sampleData/surnames.txt")),
+                                                     TEXT),
+      SampleDataResourceItem.getFromStaticDataSource(this,
+                                                     "cities",
+                                                     ResourceContent.fromInputStream(getResourceAsStream("sampleData/cities.txt")),
+                                                     TEXT),
+      SampleDataResourceItem.getFromStaticDataSource(this,
+                                                     "us_zipcodes",
+                                                     new NumberGenerator("%05d", 20000, 99999),
+                                                     TEXT),
+      SampleDataResourceItem.getFromStaticDataSource(this,
+                                                     "us_phones",
+                                                     new NumberGenerator("(800) 555-%04d", 0, 9999),
+                                                     TEXT),
+      SampleDataResourceItem.getFromStaticDataSource(this,
+                                                     "lorem", new LoremIpsumGenerator(false),
+                                                     TEXT),
+      SampleDataResourceItem.getFromStaticDataSource(this,
+                                                     "lorem/random", new LoremIpsumGenerator(true),
+                                                     TEXT),
+      SampleDataResourceItem.getFromStaticDataSource(this,
+                                                     "avatars",
+                                                     ResourceContent.fromDirectory("avatars"),
+                                                     IMAGE),
+      SampleDataResourceItem.getFromStaticDataSource(this,
+                                                     "backgrounds/scenic",
+                                                     ResourceContent.fromDirectory("backgrounds/scenic"),
+                                                     IMAGE),
+
+      // TODO: Delegate path parsing to the data source to avoid all these declarations.
+      SampleDataResourceItem.getFromStaticDataSource(this,
+                                                     "date/day_of_week",
+                                                     new DateTimeGenerator(DateTimeFormatter.ofPattern("E"), ChronoUnit.DAYS),
+                                                     TEXT),
+      SampleDataResourceItem.getFromStaticDataSource(this,
+                                                     "date/ddmmyy",
+                                                     new DateTimeGenerator(DateTimeFormatter.ofPattern("dd-MM-yy"), ChronoUnit.DAYS),
+                                                     TEXT),
+      SampleDataResourceItem.getFromStaticDataSource(this,
+                                                     "date/mmddyy",
+                                                     new DateTimeGenerator(DateTimeFormatter.ofPattern("MM-dd-yy"), ChronoUnit.DAYS),
+                                                     TEXT),
+      SampleDataResourceItem.getFromStaticDataSource(this,
+                                                     "date/hhmm",
+                                                     new DateTimeGenerator(DateTimeFormatter.ofPattern("hh:mm"), ChronoUnit.MINUTES),
+                                                     TEXT),
+      SampleDataResourceItem.getFromStaticDataSource(this,
+                                                     "date/hhmmss",
+                                                     new DateTimeGenerator(DateTimeFormatter.ofPattern("hh:mm:ss"), ChronoUnit.SECONDS),
+                                                     TEXT)
+    };
   }
 
   private static InputStream getResourceAsStream(@NotNull String name) {

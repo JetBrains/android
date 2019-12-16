@@ -15,11 +15,10 @@
  */
 package com.android.tools.adtui.model.filter;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.function.Consumer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /*
  * A {@link Filter} with some additional support for firing listeners on event changes.
@@ -29,7 +28,7 @@ public class FilterModel {
 
   @Nullable private FilterHandler myHandler;
   @NotNull Filter myFilter = Filter.EMPTY_FILTER;
-  private FilterResult myResult = new FilterResult(0, false);
+  private FilterResult myResult = new FilterResult();
 
   public void setFilter(@NotNull Filter filter) {
     myFilter = filter;

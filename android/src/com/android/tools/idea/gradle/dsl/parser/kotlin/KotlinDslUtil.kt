@@ -34,6 +34,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
+import com.intellij.psi.PsiWhiteSpace
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.kotlin.KtNodeTypes.STRING_TEMPLATE
 import org.jetbrains.kotlin.KtNodeTypes.ARRAY_ACCESS_EXPRESSION
@@ -70,8 +71,6 @@ import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
 import kotlin.reflect.KClass
-
-internal val ESCAPE_CHILD = Regex("[\\t ]+")
 
 internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$this\"" else "'$this'"
 
@@ -121,6 +120,7 @@ internal fun getPsiElementForAnchor(parent : PsiElement, dslAnchor : GradleDslEl
           null
         }
       }
+      is KtScript -> anchorAfter.blockExpression.lastChild ?: null
       else -> anchorAfter
     }
   }
@@ -139,14 +139,14 @@ internal fun adjustForKtBlockExpression(blockExpression: KtBlockExpression) : Ps
   var element = blockExpression.firstChild
 
   // If the first child of the block is not an empty element, return it.
-  if (element != null && !(element.text.isNullOrEmpty() || element.text.matches(ESCAPE_CHILD))) {
+  if (element != null && !(element.text.isNullOrEmpty() || element is PsiWhiteSpace)) {
     return element
   }
 
   // Find first non-empty child of the block expression.
   while (element != null) {
     element = element.nextSibling
-    if (element != null && (element.text.isNullOrEmpty() || element.text.matches(ESCAPE_CHILD))) {
+    if (element != null && (element.text.isNullOrEmpty() || element is PsiWhiteSpace)) {
       // This is an empty element, so continue.
       continue
     }
@@ -235,12 +235,23 @@ fun gradleNameFor(expression: KtExpression): String? {
     }
 
     override fun visitCallExpression(expression: KtCallExpression) {
-      val name = methodCallBlockName(expression)
-      if (name == null) {
-        allValid = false
+      if (expression.name() == "project" && expression.valueArguments.size == 1) {
+        when (expression.valueArguments[0].getArgumentExpression()) {
+          is KtStringTemplateExpression -> {
+            // TODO(karimai): decide on checking for parameters with interpolations once these are supported.
+            sb.append(expression.text.replace("\\s".toRegex(), "").replace("\"", "'"))
+          }
+          else -> allValid = false
+        }
       }
       else {
-        sb.append(name)
+        val name = methodCallBlockName(expression)
+        if (name == null) {
+          allValid = false
+        }
+        else {
+          sb.append(name)
+        }
       }
     }
 
@@ -580,19 +591,21 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
   else {
     val project = element.psiElement?.project ?: return
     val factory = KtPsiFactory(project)
-    val psiElement : PsiElement = if (oldName.node.elementType == IDENTIFIER) {
-      factory.createNameIdentifier(newName)
-    } else if (oldName.node.elementType == STRING_TEMPLATE) {
-      factory.createExpression(StringUtil.unquoteString(newName).addQuotes(true))
-    }
-    // TODO(b/141842964): this is a bandage over the fact that we don't (yet) have a principled translation from Psi to Dsl to Psi.  We
-    //  parse extra["foo"] to ext.foo, so when writing we have to do the reverse.
-    else if (oldName.node.elementType == ARRAY_ACCESS_EXPRESSION && newName.startsWith("ext.")) {
-      val extraExpression = "extra[\"${newName.substring("ext.".length, newName.length)}\"]"
-      factory.createExpression(extraExpression)
-    } else {
-      factory.createExpression(newName)
-    }
+    val psiElement: PsiElement =
+      when (oldName.node.elementType) {
+        IDENTIFIER -> factory.createNameIdentifierIfPossible(newName)
+        STRING_TEMPLATE -> factory.createExpressionIfPossible(StringUtil.unquoteString(newName).addQuotes(true))
+        ARRAY_ACCESS_EXPRESSION -> when {
+          newName.startsWith("ext.") -> {
+            // TODO(b/141842964): this is a bandage over the fact that we don't (yet) have a principled translation from Psi to Dsl to Psi.
+            //  We parse extra["foo"] to ext.foo, so when writing we have to do the reverse.
+            val extraExpression = "extra[\"${newName.substring("ext.".length, newName.length)}\"]"
+            factory.createExpressionIfPossible(extraExpression)
+          }
+          else -> factory.createExpressionIfPossible(newName)
+        }
+        else -> factory.createExpressionIfPossible(newName)
+      } ?: throw IllegalStateException("Can't create new KtExpression for name element \"$newName\"")
 
     // For Kotlin, committing changes is a bit different, and if the psiElement is invalid, it throws an exception (unlike Groovy), so we
     // need to check if the oldName is still valid, otherwise, we use the psiElement created to update the name.

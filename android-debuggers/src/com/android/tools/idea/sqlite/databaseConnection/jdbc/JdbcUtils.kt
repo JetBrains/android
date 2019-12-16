@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.sqlite.databaseConnection.jdbc
 
+import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.model.SqliteTable
 import java.sql.Connection
 import java.sql.PreparedStatement
+import java.sql.ResultSet
 
 /**
  * Takes a [SqliteStatement] and returns a [PreparedStatement] by assigning values to parameters in the statement.
@@ -26,4 +29,28 @@ fun Connection.resolvePreparedStatement(sqliteStatement: SqliteStatement): Prepa
   val preparedStatement = prepareStatement(sqliteStatement.sqliteStatementText)
   sqliteStatement.parametersValues.forEachIndexed { index, value -> preparedStatement.setString(index+1, value.toString()) }
   return preparedStatement
+}
+
+fun <T> ResultSet.map(transform: ResultSet.() -> T): Sequence<T> {
+  val resultSet = this
+  return sequence {
+    while (resultSet.next()) {
+      yield(resultSet.transform())
+    }
+  }
+}
+
+fun Connection.getColumnNamesInPrimaryKey(tableName: String): List<String> {
+  val keySet = metaData.getPrimaryKeys(null, null, tableName)
+  return keySet.map {
+    getString("COLUMN_NAME")
+  }.toList()
+}
+
+fun selectAllAndRowIdFromTable(table: SqliteTable): String {
+  // We need to set an alias for rowid because even if the query is something like "SELECT *, _rowid_ FROM table",
+  // in the result set the column corresponding to rowid is always called "rowid".
+  // But in [SqliteTable] we save the name of the rowid column as "rowid", "_rowid_" or "oid"
+  val columnsToSelect = table.rowIdName?.let { rowIdName -> "*, ${rowIdName.stringName} as ${rowIdName.stringName}" } ?: "*"
+  return "SELECT $columnsToSelect FROM ${AndroidSqlLexer.getValidName(table.name)}"
 }

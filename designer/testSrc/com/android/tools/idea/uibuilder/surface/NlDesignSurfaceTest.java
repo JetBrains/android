@@ -505,7 +505,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     config.getFullConfig().setDensityQualifier(new DensityQualifier(Density.XHIGH));
     model.setConfiguration(config);
     mySurface.setModel(model);
-    assertEquals(2.f, mySurface.getSceneScalingFactor());
+    assertEquals(2.f, mySurface.getSceneManager(model).getSceneScalingFactor());
     mySurface.getScrollPane().setSize(1000, 1000);
     mySurface.zoomToFit();
     double origScale = mySurface.getScale();

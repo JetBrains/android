@@ -16,20 +16,9 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.lint.detector.api.TextFormat;
 import com.android.tools.idea.actions.CreateFileFromTemplateDialog;
-import com.android.tools.idea.actions.CreateFileFromTemplateDialog.Visibility;
-import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
-import org.fest.swing.fixture.JComboBoxFixture;
-import org.fest.swing.fixture.JRadioButtonFixture;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.Locale;
-
 
 public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<CreateFileFromTemplateDialog> {
 
@@ -49,95 +38,8 @@ public class CreateFileFromTemplateDialogFixture extends IdeaDialogFixture<Creat
     return this;
   }
 
-  @NotNull
-  public CreateFileFromTemplateDialogFixture selectKind(@NotNull final Kind kind) {
-    JComboBoxFixture kindFixture = new JComboBoxFixture(robot(), robot().finder().findByType(target(), JComboBox.class));
-    kindFixture.selectItem(kind.getTemplateName());
-    return this;
-  }
-
-  @NotNull
-  public CreateFileFromTemplateDialogFixture setPackage(@NotNull final String newPackage) {
-    EditorTextFieldFixture.findByLabel(robot(), target(), "Package:").replaceText(newPackage);
-    return this;
-  }
-
-  @NotNull
-  public CreateFileFromTemplateDialogFixture waitForErrorMessageToAppear(@NotNull final String errorMessage) {
-    GuiTests.waitUntilShowing(robot(), target(), new GenericTypeMatcher<JEditorPane>(JEditorPane.class) {
-      @Override
-      protected boolean isMatching(@NotNull JEditorPane pane) {
-        String labelText = pane.getText();
-        return labelText != null && errorMessage.equals(TextFormat.HTML.convertTo(labelText, TextFormat.TEXT).trim());
-      }
-    });
-    return this;
-  }
-
-  @NotNull
-  public <T extends Component> T find(@Nullable String name, @NotNull Class<T> type, @NotNull ComponentVisibility visibility) {
-    return robot().finder().findByName(target(), name, type, visibility.equals(ComponentVisibility.VISIBLE));
-  }
-
   public void clickOk() {
     GuiTests.findAndClickOkButton(this);
   }
 
-  public void setVisibility(@NotNull Visibility visibility) {
-    String buttonName = visibility.equals(Visibility.PUBLIC) ? "public_radio_button" : "package_private_radio_button";
-    JRadioButtonFixture visibilityButton = new JRadioButtonFixture(robot(), buttonName);
-    visibilityButton.setSelected(true);
-  }
-
-  public void setModifier(@NotNull Modifier modifier) {
-    String buttonName = modifier.toString().toLowerCase(Locale.US) + "_radio_button";
-    JRadioButtonFixture modifierButton = new JRadioButtonFixture(robot(), buttonName);
-    modifierButton.setSelected(true);
-  }
-
-  public void setInterface(@NotNull String iface) {
-    EditorTextFieldFixture.findByLabel(robot(), target(), "Interface(s):").replaceText(iface)
-      .requireText(iface);  // for debugging; this UI field appears to misbehave sometimes
-  }
-
-  public void setSuperclass(@NotNull String superclass) {
-    EditorTextFieldFixture.findByLabel(robot(), target(), "Superclass:").replaceText(superclass);
-  }
-
-  public enum Kind {
-    CLASS("class", "Class"),
-    ENUM("enum", "Enum"),
-    INTERFACE("interface", "Interface"),
-    ANNOTATION("@interface", "Annotation");
-
-    private final String myKindName;
-    private final String myTemplateName;
-
-    Kind(String kindName, String templateName) {
-      myKindName = kindName;
-      myTemplateName = templateName;
-    }
-
-    @Override
-    @NotNull
-    public String toString() {
-      return myKindName;
-    }
-
-    @NotNull
-    public String getTemplateName() {
-      return myTemplateName;
-    }
-  }
-
-  public enum ComponentVisibility {
-    VISIBLE,
-    NOT_VISIBLE
-  }
-
-  public enum Modifier {
-    ABSTRACT,
-    FINAL,
-    NONE
-  }
 }

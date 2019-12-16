@@ -131,7 +131,7 @@ public class AddKotlinTest {
     editorNotificationPanelFixture.performActionWithoutWaitingForDisappearance("Configure");
 
     // As default, "All modules containing Kotlin files" option is selected for now.
-    ConfigureKotlinDialogFixture cfgKotlin = ConfigureKotlinDialogFixture.find(ideFrameFixture);
+    ConfigureKotlinDialogFixture cfgKotlin = ConfigureKotlinDialogFixture.find(ideFrameFixture.robot());
     // OK button can take a while to be enabled. We just wait for the button to be available, and
     // then we explicitly wait a long time for it to be enabled. This lets us have a less
     // strict wait for the button to be clickable.

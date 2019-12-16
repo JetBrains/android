@@ -7,17 +7,6 @@
     <properties/>
     <border type="none"/>
     <children>
-      <scrollpane id="982f8" class="com.intellij.ui.components.JBScrollPane">
-        <constraints border-constraint="Center"/>
-        <properties/>
-        <border type="none"/>
-        <children>
-          <component id="e5b70" class="com.intellij.ui.table.JBTable" binding="myTable">
-            <constraints/>
-            <properties/>
-          </component>
-        </children>
-      </scrollpane>
       <grid id="5415f" binding="myControlsPanel" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="0">
         <constraints border-constraint="North"/>
         <properties/>

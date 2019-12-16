@@ -28,6 +28,7 @@ import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.project.Project
 import com.intellij.util.ArrayUtil
 import org.jetbrains.android.uipreview.AndroidEditorSettings
+import javax.swing.JComponent
 
 private const val SPLIT_MODE_PROPERTY_PREFIX = "SPLIT_EDITOR_MODE"
 
@@ -63,8 +64,14 @@ open class DesignToolsSplitEditor(textEditor: TextEditor,
       return String.format("%s_%s", SPLIT_MODE_PROPERTY_PREFIX, file.path)
     }
 
-  init {
-    restoreSurfaceState()
+  private var stateRestored = false
+
+  override fun getComponent(): JComponent {
+    if (!stateRestored) {
+      stateRestored = true
+      restoreSurfaceState()
+    }
+    return super.getComponent()
   }
 
   private fun restoreSurfaceState() {

@@ -84,7 +84,9 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
     @Override
     @NotNull
     public List<File> getResDirectories() {
-      return ImmutableList.of(new File("/other/root"), new File(getModuleRoot(), "resources"));
+      return ImmutableList.of(new File("/other/root"),
+                              new File(getModuleRoot(), "resources"),
+                              new File(getModuleRoot(), "generated/res"));
     }
 
     @Override

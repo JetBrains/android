@@ -335,7 +335,7 @@ b/137334921 */
   /**
    * Removes duplicate Android SDKs that could be created due to b/142005646.
    * To limit the negative impact of potential bugs in this method, removal of SDKs
-   * is triggered only if there are 40 or more duplicate Android SDKs in JDK table.
+   * is triggered only if there are 20 or more duplicate Android SDKs in JDK table.
    */
   private static void repairDuplicateAndroidSdks() {
     ProjectJdkTable jdkTable = ProjectJdkTable.getInstance();
@@ -352,8 +352,8 @@ b/137334921 */
         androidSdksByClasses.put(Arrays.asList(urls), sdk);
       }
     }
-    // Bail out if there are fewer than 40 duplicate SDKs.
-    if (androidSdksByClasses.size() - androidSdksByClasses.keySet().size() < 40) {
+    // Bail out if there are fewer than 20 duplicate SDKs.
+    if (androidSdksByClasses.size() - androidSdksByClasses.keySet().size() < 20) {
       return;
     }
 

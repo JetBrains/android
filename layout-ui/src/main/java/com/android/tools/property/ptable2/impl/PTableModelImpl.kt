@@ -70,6 +70,10 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     return tableModel.isCellEditable(items[rowIndex], PTableColumn.fromColumn(columnIndex))
   }
 
+  fun indexOf(item: PTableItem?): Int {
+    return if (item != null) items.indexOf(item) else -1
+  }
+
   fun parentOf(item: PTableItem): PTableGroupItem? {
     return parentItems[item]
   }
@@ -82,14 +86,18 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
     return expandedItems.contains(item)
   }
 
+  fun toggle(item: PTableGroupItem): Int {
+    val index = items.indexOf(item)
+    if (index < 0) {
+      return index
+    }
+    toggle(item, index)
+    return index
+  }
+
   fun toggle(index: Int) {
     val item = groupAt(index) ?: return
-    if (expandedItems.contains(item)) {
-      collapse(item, index)
-    }
-    else {
-      expand(item, index)
-    }
+    toggle(item, index)
   }
 
   fun expand(index: Int) {
@@ -151,6 +159,15 @@ class PTableModelImpl(val tableModel: PTableModel) : AbstractTableModel() {
         val newItem = items[index] as PTableGroupItem
         expand(newItem, index)
       }
+    }
+  }
+
+  private fun toggle(item: PTableGroupItem, index: Int) {
+    if (expandedItems.contains(item)) {
+      collapse(item, index)
+    }
+    else {
+      expand(item, index)
     }
   }
 

@@ -15,15 +15,14 @@
  */
 package com.android.build.attribution.ui.tree
 
-import com.android.build.attribution.ui.TreeNodeSelector
 import com.android.build.attribution.ui.colorIcon
 import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
-import com.android.build.attribution.ui.TaskIssueReporter
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.data.TaskIssuesGroup
 import com.android.build.attribution.ui.data.TaskUiData
+import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.issuesCountString
 import com.android.build.attribution.ui.panels.AbstractBuildAttributionInfoPanel
@@ -40,6 +39,7 @@ import com.android.build.attribution.ui.panels.pluginInfoPanel
 import com.android.build.attribution.ui.panels.pluginTasksListPanel
 import com.android.build.attribution.ui.panels.taskInfoPanel
 import com.android.build.attribution.ui.taskIcon
+import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.ui.treeStructure.SimpleNode
 import java.util.ArrayList
 import java.util.HashMap
@@ -48,9 +48,7 @@ import javax.swing.JComponent
 
 class CriticalPathPluginsRoot(
   private val criticalPathUiData: CriticalPathPluginsUiData,
-  parent: SimpleNode,
-  private val nodeSelector: TreeNodeSelector,
-  private val issueReporter: TaskIssueReporter
+  parent: ControllersAwareBuildAttributionNode
 ) : AbstractBuildAttributionNode(parent, "Plugins With Critical Path Tasks") {
 
   private val chartItems: List<ChartDataItem<CriticalPathPluginUiData>> = createPluginChartItems(criticalPathUiData)
@@ -61,11 +59,14 @@ class CriticalPathPluginsRoot(
 
   override val timeSuffix: String? = criticalPathUiData.criticalPathDuration.durationString()
 
+  override val pageType = BuildAttributionUiEvent.Page.PageType.PLUGINS_ROOT
+
   override fun createComponent(): AbstractBuildAttributionInfoPanel = object : ChartBuildAttributionInfoPanel() {
     override fun createChart(): JComponent = TimeDistributionChart(chartItems, null, true)
     override fun createLegend(): JComponent? = null
     override fun createRightInfoPanel(): JComponent? = null
-    override fun createHeader(): JComponent = criticalPathHeader("Plugins", criticalPathUiData.criticalPathDuration.durationString())
+    override fun createHeader(): JComponent =
+      criticalPathHeader("Plugins", criticalPathUiData.criticalPathDuration.durationString(), analytics)
   }
 
   override fun buildChildren(): Array<SimpleNode> {
@@ -73,9 +74,9 @@ class CriticalPathPluginsRoot(
     for (item in chartItems) {
       when (item) {
         is SingularChartDataItem<CriticalPathPluginUiData> ->
-          nodes.add(PluginNode(item.underlyingData, chartItems, item, this, nodeSelector, issueReporter))
+          nodes.add(PluginNode(item.underlyingData, chartItems, item, this))
         is AggregatedChartDataItem<CriticalPathPluginUiData> ->
-          item.underlyingData.forEach { nodes.add(PluginNode(it, chartItems, item, this, nodeSelector, issueReporter)) }
+          item.underlyingData.forEach { nodes.add(PluginNode(it, chartItems, item, this)) }
       }
     }
     return nodes.toTypedArray()
@@ -100,9 +101,7 @@ private class PluginNode(
   private val pluginData: CriticalPathPluginUiData,
   private val chartItems: List<ChartDataItem<CriticalPathPluginUiData>>,
   private val selectedChartItem: ChartDataItem<CriticalPathPluginUiData>,
-  parent: SimpleNode,
-  private val nodeSelector: TreeNodeSelector,
-  private val issueReporter: TaskIssueReporter
+  parent: CriticalPathPluginsRoot
 ) : AbstractBuildAttributionNode(parent, pluginData.name) {
 
   private val issueRoots = HashMap<TaskIssueType, PluginIssueRootNode>()
@@ -125,9 +124,11 @@ private class PluginNode(
 
   override val timeSuffix: String? = pluginData.criticalPathDuration.durationString()
 
+  override val pageType = BuildAttributionUiEvent.Page.PageType.PLUGIN_PAGE
+
   override fun createComponent(): AbstractBuildAttributionInfoPanel =
     object : ChartElementSelectedPanel(pluginData, chartItems, selectedChartItem) {
-      override fun createRightInfoPanel(): JComponent = pluginInfoPanel(pluginData, issueTypeClickListener)
+      override fun createRightInfoPanel(): JComponent = pluginInfoPanel(pluginData, issueTypeClickListener, analytics)
     }
 
   override fun buildChildren(): Array<SimpleNode> {
@@ -135,7 +136,7 @@ private class PluginNode(
     nodes.add(PluginTasksRootNode(pluginData, chartItems, selectedChartItem, this, issueClickListener))
     pluginData.issues.forEach { issuesGroup ->
       nodes.add(
-        PluginIssueRootNode(issuesGroup, pluginData, this, nodeSelector, issueReporter)
+        PluginIssueRootNode(issuesGroup, pluginData, this)
           .also { issueRoots[issuesGroup.type] = it }
       )
     }
@@ -147,7 +148,7 @@ private class PluginTasksRootNode(
   private val pluginData: CriticalPathPluginUiData,
   private val chartItems: List<ChartDataItem<CriticalPathPluginUiData>>,
   private val selectedChartItem: ChartDataItem<CriticalPathPluginUiData>,
-  parent: SimpleNode,
+  parent: PluginNode,
   private val issueClickListener: TreeLinkListener<TaskIssueUiData>
 ) : AbstractBuildAttributionNode(parent, "Critical Path Tasks") {
 
@@ -158,11 +159,12 @@ private class PluginTasksRootNode(
 
   override val timeSuffix: String? = pluginData.criticalPathTasks.criticalPathDuration.durationString()
 
+  override val pageType = BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASKS_ROOT
 
   override fun createComponent(): AbstractBuildAttributionInfoPanel =
     object : ChartElementSelectedPanel(pluginData, chartItems, selectedChartItem) {
       override fun createRightInfoPanel(): JComponent {
-        return pluginTasksListPanel(pluginData)
+        return pluginTasksListPanel(pluginData, analytics)
       }
     }.withPreferredWidth(300)
 
@@ -173,7 +175,7 @@ private class PluginTasksRootNode(
 
 private class PluginTaskNode(
   private val taskData: TaskUiData,
-  parent: SimpleNode,
+  parent: PluginTasksRootNode,
   private val issueClickListener: TreeLinkListener<TaskIssueUiData>
 ) : AbstractBuildAttributionNode(parent, taskData.taskPath) {
 
@@ -182,6 +184,8 @@ private class PluginTaskNode(
   override val issuesCountsSuffix: String? = null
 
   override val timeSuffix: String? = taskData.executionTime.durationString()
+
+  override val pageType = BuildAttributionUiEvent.Page.PageType.PLUGIN_CRITICAL_PATH_TASK_PAGE
 
   override fun createComponent(): AbstractBuildAttributionInfoPanel = object : AbstractBuildAttributionInfoPanel() {
     override fun createHeader(): JComponent = headerLabel(taskData.taskPath)
@@ -195,9 +199,7 @@ private class PluginTaskNode(
 private class PluginIssueRootNode(
   private val issuesGroup: TaskIssuesGroup,
   private val pluginUiData: CriticalPathPluginUiData,
-  parent: SimpleNode,
-  private val nodeSelector: TreeNodeSelector,
-  private val issueReporter: TaskIssueReporter
+  parent: PluginNode
 ) : AbstractBuildAttributionNode(parent, issuesGroup.type.uiName), TreeLinkListener<TaskIssueUiData> {
 
   override val presentationIcon: Icon? = null
@@ -205,6 +207,11 @@ private class PluginIssueRootNode(
   override val issuesCountsSuffix: String? = issuesCountString(issuesGroup.warningCount, issuesGroup.infoCount)
 
   override val timeSuffix: String? = issuesGroup.timeContribution.durationString()
+
+  override val pageType = when (issuesGroup.type) {
+    TaskIssueType.ALWAYS_RUN_TASKS -> BuildAttributionUiEvent.Page.PageType.PLUGIN_ALWAYS_RUN_ISSUE_ROOT
+    TaskIssueType.TASK_SETUP_ISSUE -> BuildAttributionUiEvent.Page.PageType.PLUGIN_TASK_SETUP_ISSUE_ROOT
+  }
 
   override fun createComponent(): AbstractBuildAttributionInfoPanel = object : AbstractBuildAttributionInfoPanel() {
     override fun createHeader(): JComponent = headerLabel(pluginUiData.name)
@@ -222,6 +229,18 @@ private class PluginIssueRootNode(
   }
 
   override fun buildChildren(): Array<SimpleNode> = issuesGroup.issues
-    .map { issue -> TaskIssueNode(issue, this, issueReporter) }
+    .map { issue ->
+      object : TaskIssueNode(issue, this) {
+        override val pageType = issue.toAnalyticsPageType()
+      }
+    }
     .toTypedArray()
+
+}
+
+private fun TaskIssueUiData.toAnalyticsPageType(): BuildAttributionUiEvent.Page.PageType = when {
+  this is TaskIssueUiDataContainer.AlwaysRunNoOutputIssue -> BuildAttributionUiEvent.Page.PageType.PLUGIN_ALWAYS_RUN_NO_OUTPUTS_PAGE
+  this is TaskIssueUiDataContainer.AlwaysRunUpToDateOverride -> BuildAttributionUiEvent.Page.PageType.PLUGIN_ALWAYS_RUN_UP_TO_DATE_OVERRIDE_PAGE
+  this is TaskIssueUiDataContainer.TaskSetupIssue -> BuildAttributionUiEvent.Page.PageType.PLUGIN_TASK_SETUP_ISSUE_PAGE
+  else -> BuildAttributionUiEvent.Page.PageType.UNKNOWN_PAGE
 }

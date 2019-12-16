@@ -29,6 +29,7 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -115,7 +116,7 @@ public class AndroidModuleInfoTest extends AndroidGradleTestCase {
   public void /*test*/ManifestPlaceholderCompletion() throws Exception {
     loadProject(MODULE_INFO_MERGE);
     assertNotNull(myAndroidFacet);
-    VirtualFile file = getProject().getBaseDir().findFileByRelativePath("src/main/AndroidManifest.xml");
+    VirtualFile file = PlatformTestUtil.getOrCreateProjectTestBaseDir(getProject()).findFileByRelativePath("src/main/AndroidManifest.xml");
     assertNotNull(file);
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
     assertNotNull(psiFile);

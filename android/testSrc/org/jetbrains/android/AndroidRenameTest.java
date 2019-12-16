@@ -73,6 +73,18 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
       }
     }
 
+    public void testRenameCustomView() throws Throwable {
+      // Make sure renaming a custom view causes the styleable references to be updated as well
+      createManifest();
+      myFixture.copyFileToProject(BASE_PATH + "attrs12.xml", "res/values/attrs12.xml");
+
+      final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "MyView3.java", "src/p1/p2/MyView.java");
+      myFixture.configureFromExistingVirtualFile(file);
+      checkAndRename("NewName");
+      myFixture.checkResultByFile(BASE_PATH + "MyView3_after.java", true);
+      myFixture.checkResultByFile("res/values/attrs12.xml", BASE_PATH + "attrs12_after.xml", true);
+    }
+
     public void testConstraintReferencedIds() throws Throwable {
       createManifest();
       myFixture.addClass(
@@ -152,29 +164,6 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
       assertNotNull(myFixture.findFileInTempDir("res/transition/good.xml"));
     }
 
-    public void testRenameDeclareStyleableFromJava() throws Throwable {
-      // Renaming an R styleable field should update the declare styleable declaration, as well as
-      // any field references, including those for the attributes
-      createManifest();
-      myFixture.copyFileToProject(BASE_PATH + "attrs10.xml", "res/values/attrs10.xml");
-
-      final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "MyView1.java", "src/p1/p2/MyView.java");
-      myFixture.configureFromExistingVirtualFile(file);
-      checkAndRename("NewName");
-      myFixture.checkResultByFile(BASE_PATH + "MyView1_after.java", true);
-      myFixture.checkResultByFile("res/values/attrs10.xml", BASE_PATH + "attrs10_after.xml", true);
-    }
-
-    public void testRenameDeclareStyleableAttrFromXml() throws Throwable {
-      createManifest();
-      myFixture.copyFileToProject(BASE_PATH + "MyView5.java", "src/p1/p2/MyView.java");
-      final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "attrs14.xml", "res/values/attrs14.xml");
-      myFixture.configureFromExistingVirtualFile(file);
-      doRename("newname");
-      myFixture.checkResultByFile(BASE_PATH + "attrs14_after.xml", true);
-      myFixture.checkResultByFile("src/p1/p2/MyView.java", BASE_PATH + "MyView5_after.java", true);
-    }
-
     public void testStyleInheritance10() throws Throwable {
       doTestStyleInheritance("styles11.xml", "styles11_after.xml", "myStyle.s1");
     }
@@ -197,6 +186,9 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
       assertEquals("icon.xml", iconInValue.getName());
     }
 
+    // We don't support this in the new renaming pipeline. This would require a custom RenameDialog for StyleableAttr fields. The old
+    // pipeline actually creates code that doesn't compile.
+    // TODO(lukeegan): Support renaming both references in StyleableAttrLightFields correctly
     public void testRenameDeclareStyleableAttrFromJava() throws Throwable {
       // Renaming a styleable field should update the attrs.xml and field references
       createManifest();
@@ -222,19 +214,6 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
       assertNotNull(myFixture.findFileInTempDir("res/drawable/pic1.png"));
     }
 
-    public void testRenameDeclareStyleableFromXmlWithNamespaces() throws Throwable {
-      // Like testRenameDeclareStyleableFromJava, but the rename request originates from
-      // the XML declare-styleable reference rather than a Java field reference.
-      createManifest();
-      enableNamespacing("p1.p2");
-      myFixture.copyFileToProject(BASE_PATH + "MyView4.java", "src/p1/p2/MyView.java");
-      final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "attrs13.xml", "res/values/attrs13.xml");
-      myFixture.configureFromExistingVirtualFile(file);
-      doRename("NewName");
-      myFixture.checkResultByFile(BASE_PATH + "attrs13_after.xml", true);
-      myFixture.checkResultByFile("src/p1/p2/MyView.java", BASE_PATH + "MyView4_after.java", true);
-    }
-
     /** Regression test for http://b.android.com/185634 */
     public void testThemeReferenceRename() throws Throwable {
       myFixture.copyFileToProject(BASE_PATH + "AndroidManifest_theme_before.xml", "AndroidManifest.xml");
@@ -243,22 +222,6 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
       doRename("newTheme");
       myFixture.checkResultByFile(BASE_PATH + "themes_after.xml");
       myFixture.checkResultByFile("AndroidManifest.xml", BASE_PATH + "AndroidManifest_theme_after.xml", true);
-    }
-
-    public void testStyleInheritance() throws Throwable {
-      doTestStyleInheritance("styles1.xml", "styles1_after.xml");
-    }
-
-    public void testRenameDeclareStyleableFromXml() throws Throwable {
-      // Like testRenameDeclareStyleableFromJava, but the rename request originates from
-      // the XML declare-styleable reference rather than a Java field reference.
-      createManifest();
-      myFixture.copyFileToProject(BASE_PATH + "MyView4.java", "src/p1/p2/MyView.java");
-      final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "attrs13.xml", "res/values/attrs13.xml");
-      myFixture.configureFromExistingVirtualFile(file);
-      doRename("NewName");
-      myFixture.checkResultByFile(BASE_PATH + "attrs13_after.xml", true);
-      myFixture.checkResultByFile("src/p1/p2/MyView.java", BASE_PATH + "MyView4_after.java", true);
     }
 
     public void testStyleInheritance2() throws Throwable {
@@ -408,6 +371,59 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
     super.tearDown();
     // Restore static flag to its default value.
     AndroidResourceRenameResourceProcessor.ASK = true;
+  }
+
+  public void testStyleInheritance() throws Throwable {
+    doTestStyleInheritance("styles1.xml", "styles1_after.xml");
+  }
+
+  public void testRenameDeclareStyleableAttrFromXml() throws Throwable {
+    createManifest();
+    myFixture.copyFileToProject(BASE_PATH + "MyView5.java", "src/p1/p2/MyView.java");
+    final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "attrs14.xml", "res/values/attrs14.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    doRename("newname");
+    myFixture.checkResultByFile(BASE_PATH + "attrs14_after.xml", true);
+    myFixture.checkResultByFile("src/p1/p2/MyView.java", BASE_PATH + "MyView5_after.java", true);
+  }
+
+  public void testRenameDeclareStyleableFromXml() throws Throwable {
+    // Like testRenameDeclareStyleableFromJava, but the rename request originates from
+    // the XML declare-styleable reference rather than a Java field reference.
+    createManifest();
+    myFixture.copyFileToProject(BASE_PATH + "MyView4.java", "src/p1/p2/MyView.java");
+    final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "attrs13.xml", "res/values/attrs13.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    doRename("NewName");
+    myFixture.checkResultByFile(BASE_PATH + "attrs13_after.xml", true);
+    myFixture.checkResultByFile("src/p1/p2/MyView.java", BASE_PATH + "MyView4_after.java", true);
+  }
+
+
+  public void testRenameDeclareStyleableFromXmlWithNamespaces() throws Throwable {
+    // Like testRenameDeclareStyleableFromJava, but the rename request originates from
+    // the XML declare-styleable reference rather than a Java field reference.
+    createManifest();
+    enableNamespacing("p1.p2");
+    myFixture.copyFileToProject(BASE_PATH + "MyView4.java", "src/p1/p2/MyView.java");
+    final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "attrs13.xml", "res/values/attrs13.xml");
+    myFixture.configureFromExistingVirtualFile(file);
+    doRename("NewName");
+    myFixture.checkResultByFile(BASE_PATH + "attrs13_after.xml", true);
+    myFixture.checkResultByFile("src/p1/p2/MyView.java", BASE_PATH + "MyView4_after.java", true);
+  }
+
+  public void testRenameDeclareStyleableFromJava() throws Throwable {
+    // Renaming an R styleable field should update the declare styleable declaration, as well as
+    // any field references, including those for the attributes
+    createManifest();
+    myFixture.copyFileToProject(BASE_PATH + "attrs10.xml", "res/values/attrs10.xml");
+
+    final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "MyView1.java", "src/p1/p2/MyView.java");
+    myFixture.configureFromExistingVirtualFile(file);
+    checkAndRename("NewName");
+    myFixture.checkResultByFile(BASE_PATH + "MyView1_after.java", true);
+    myFixture.checkResultByFile("res/values/attrs10.xml", BASE_PATH + "attrs10_after.xml", true);
   }
 
   public void testRenameColorFromJava() throws IOException {
@@ -808,18 +824,6 @@ public abstract class AndroidRenameTest extends AndroidTestCase {
       "    <attr name=\"attr1\" format=\"boolean\" />\n" +
       "  </declare-styleable>\n" +
       "</resources>", true);
-  }
-
-  public void testRenameCustomView() throws Throwable {
-    // Make sure renaming a custom view causes the styleable references to be updated as well
-    createManifest();
-    myFixture.copyFileToProject(BASE_PATH + "attrs12.xml", "res/values/attrs12.xml");
-
-    final VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "MyView3.java", "src/p1/p2/MyView.java");
-    myFixture.configureFromExistingVirtualFile(file);
-    checkAndRename("NewName");
-    myFixture.checkResultByFile(BASE_PATH + "MyView3_after.java", true);
-    myFixture.checkResultByFile("res/values/attrs12.xml", BASE_PATH + "attrs12_after.xml", true);
   }
 
   public void testRenameComponent() throws Throwable {

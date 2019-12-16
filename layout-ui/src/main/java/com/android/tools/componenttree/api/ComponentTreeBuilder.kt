@@ -33,6 +33,7 @@ import javax.swing.tree.TreeSelectionModel
  * A Handler which will display a context popup menu.
  */
 typealias ContextPopupHandler = (component: JComponent, x: Int, y: Int) -> Unit
+typealias DoubleClickHandler = () -> Unit
 
 /**
  * A component tree builder creates a tree that can hold multiple types of nodes.
@@ -43,6 +44,7 @@ typealias ContextPopupHandler = (component: JComponent, x: Int, y: Int) -> Unit
 class ComponentTreeBuilder {
   private val nodeTypeMap = mutableMapOf<Class<*>, NodeType<*>>()
   private var contextPopup: ContextPopupHandler = { _, _, _ -> }
+  private var doubleClick: DoubleClickHandler = { }
   private val badges = mutableListOf<BadgeItem>()
   private var selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
   private var invokeLater: (Runnable) -> Unit = SwingUtilities::invokeLater
@@ -63,6 +65,11 @@ class ComponentTreeBuilder {
    * Add a context popup menu on the tree node item.
    */
   fun withContextMenu(treeContextMenu: ContextPopupHandler) = apply { contextPopup = treeContextMenu }
+
+  /**
+   * Add a double click handler on the tree node item.
+   */
+  fun withDoubleClick(doubleClickHandler: DoubleClickHandler) = apply { doubleClick = doubleClickHandler }
 
   /**
    * Add key strokes on the tree.
@@ -90,7 +97,7 @@ class ComponentTreeBuilder {
   fun build(): Triple<JComponent, ComponentTreeModel, ComponentTreeSelectionModel> {
     val model = ComponentTreeModelImpl(nodeTypeMap, invokeLater)
     val selectionModel = ComponentTreeSelectionModelImpl(model)
-    val tree = TreeImpl(model, contextPopup, badges)
+    val tree = TreeImpl(model, contextPopup, doubleClick, badges)
     if (installTreeSearch) {
       TreeSpeedSearch(tree) { model.toSearchString(it.lastPathComponent) }
     }

@@ -19,7 +19,6 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.devices.Abi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.messages.MessageBus
-
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -32,7 +31,6 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.io.File
-import java.nio.file.Paths
 
 class TransportFileManagerTest {
   @JvmField
@@ -46,7 +44,7 @@ class TransportFileManagerTest {
   @Before
   fun setUp() {
     mockDevice = mock(IDevice::class.java)
-    messageBus = mock(MessageBus::class.java);
+    messageBus = mock(MessageBus::class.java)
     fileManager = TransportFileManager(mockDevice, messageBus)
   }
 
@@ -74,7 +72,7 @@ class TransportFileManagerTest {
       Pair("dev" + File.separator + "perfa.jar", "perfa.jar")
     ).map { (host, device) ->
       // maps from relative paths to absolute paths
-      Pair(temporaryFolder.root.absolutePath + File.separator + host, Paths.get(TransportFileManager.DEVICE_DIR, device).toString())
+      Pair(temporaryFolder.root.absolutePath + File.separator + host, TransportFileManager.DEVICE_DIR + device)
     }
 
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedPaths.map { it.first })
@@ -121,7 +119,7 @@ class TransportFileManagerTest {
       Pair("dev" + File.separator + Abi.ARMEABI_V7A + File.separator + "transport", "transport")
     ).map { (host, device) ->
       // maps from relative paths to absolute paths
-      Pair(temporaryFolder.root.absolutePath + File.separator + host, Paths.get(TransportFileManager.DEVICE_DIR, device).toString())
+      Pair(temporaryFolder.root.absolutePath + File.separator + host, TransportFileManager.DEVICE_DIR + device)
     }
 
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedPaths.map { it.first })
@@ -177,7 +175,7 @@ class TransportFileManagerTest {
     }
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedHostPaths)
 
-    val expectedDevicePaths = expectedAbis.map { Paths.get(TransportFileManager.DEVICE_DIR, "simpleperf_${it.cpuArch}").toString() }
+    val expectedDevicePaths = expectedAbis.map { "${TransportFileManager.DEVICE_DIR}simpleperf_${it.cpuArch}" }
     assertThat(devicePathCaptor.allValues).containsExactlyElementsIn(expectedDevicePaths)
   }
 
@@ -229,11 +227,10 @@ class TransportFileManagerTest {
     }
     assertThat(hostPathCaptor.allValues).containsExactlyElementsIn(expectedHostPaths)
 
-    val expectedDevicePaths = expectedAbis.map { Paths.get(TransportFileManager.DEVICE_DIR, it.cpuArch, "perfetto").toString() }
+    val expectedDevicePaths = expectedAbis.map { "${TransportFileManager.DEVICE_DIR}${it.cpuArch}/perfetto" }
     assertThat(devicePathCaptor.allValues).containsExactlyElementsIn(expectedDevicePaths)
     expectedAbis.map {
-      verify(mockDevice, times(1))
-        .executeShellCommand(eq("mkdir -p ${Paths.get(TransportFileManager.DEVICE_DIR, it.cpuArch)}"), any())
+      verify(mockDevice, times(1)).executeShellCommand(eq("mkdir -p ${TransportFileManager.DEVICE_DIR}${it.cpuArch}"), any())
     }
   }
 }

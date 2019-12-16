@@ -101,8 +101,6 @@ class DesignSurfaceTest : LayoutTestCase() {
     assertFalse(surface.setScale(0.664, -1, -1))
     assertTrue(surface.setScale(0.665, -1, -1))
 
-    surface.sceneScalingFactor = 2f
-
     surface.setScale(0.33, -1, -1)
     assertFalse(surface.setScale(0.332, -1, -1))
     assertTrue(surface.setScale(0.335, -1, -1))
@@ -142,9 +140,9 @@ class TestActionManager(surface: DesignSurface) : ActionManager<DesignSurface>(s
 }
 
 class TestInteractionHandler(surface: DesignSurface) : InteractionHandlerBase(surface) {
-  override fun createInteractionOnClick(mouseX: Int, mouseY: Int): Interaction? = null
+  override fun createInteractionOnPressed(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
 
-  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int): Interaction? = null
+  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int, modifiersEx: Int): Interaction? = null
 }
 
 private class TestDesignSurface(project: Project, disposible: Disposable)
@@ -166,12 +164,6 @@ private class TestDesignSurface(project: Project, disposible: Disposable)
     throw UnsupportedOperationException("Action handler not implemented for TestDesignSurface")
   }
 
-  fun setSceneScalingFactor(factor: Float) {
-    this.factor = factor
-  }
-
-  override fun getSceneScalingFactor() = factor
-
   override fun createSceneManager(model: NlModel) = SyncLayoutlibSceneManager(model as SyncNlModel)
 
   override fun getRenderableBoundsForInvisibleComponents(sceneView: SceneView, rectangle: Rectangle?): Rectangle {
@@ -183,8 +175,6 @@ private class TestDesignSurface(project: Project, disposible: Disposable)
   override fun layoutContent() = Unit
 
   override fun scrollToCenter(list: MutableList<NlComponent>) {}
-
-  override fun isResizeAvailable() = false
 
   override fun getScrolledAreaSize(): Dimension? = null
 

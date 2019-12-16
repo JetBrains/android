@@ -43,6 +43,7 @@ object InspectorBuilder {
     projectRule.fixture.copyFileToProject("res/drawable/dsl3.xml")
     projectRule.fixture.copyFileToProject("res/drawable/vd.xml")
     projectRule.fixture.copyFileToProject("res/layout/demo.xml")
+    projectRule.fixture.copyFileToProject("res/layout/design_tab_text.xml")
     projectRule.fixture.copyFileToProject("res/layout-w800dp/demo.xml")
     projectRule.fixture.copyFileToProject("res/values/colors.xml")
     projectRule.fixture.copyFileToProject("res/values/drawables.xml")

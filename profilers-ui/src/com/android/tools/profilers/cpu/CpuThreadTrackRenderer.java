@@ -24,8 +24,10 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.android.tools.adtui.trackgroup.TrackRenderer;
+import com.android.tools.adtui.util.SwingUtil;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.ProfilerTrackRendererType;
+import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer;
 import java.awt.Color;
@@ -45,7 +47,7 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
   public JComponent render(@NotNull TrackModel<CpuThreadTrackModel, ProfilerTrackRendererType> trackModel) {
     StateChart<CpuProfilerStage.ThreadState> threadStateChart = createStateChart(trackModel.getDataModel().getThreadStateChartModel());
     HTreeChart<CaptureNode> traceEventChart = createHChart(trackModel.getDataModel().getCallChartModel(),
-                                                           trackModel.getDataModel().getCaptureRange());
+                                                           trackModel.getDataModel().getCapture().getRange());
 
     JPanel panel = new JPanel(new TabularLayout("*", "8px,*"));
     panel.add(threadStateChart, new TabularLayout.Constraint(0, 0));
@@ -70,6 +72,23 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
         }
         else {
           trackModel.setActiveTooltipModel(null);
+        }
+      }
+    });
+    panel.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (traceEventChart.contains(e.getPoint())) {
+          // Translate mouse point to be relative of the tree chart component.
+          Point p = e.getPoint();
+          p.translate(-traceEventChart.getX(), -traceEventChart.getY());
+          CaptureNode node = traceEventChart.getNodeAt(p);
+          trackModel.getDataModel().getMultiSelectionModel().clearSelection();
+          if (node != null) {
+            trackModel.getDataModel().getMultiSelectionModel()
+              .addToSelection(new CaptureNodeAnalysisModel(node, trackModel.getDataModel().getCapture()));
+          }
+          traceEventChart.dispatchEvent(SwingUtil.convertMouseEventPoint(e, p));
         }
       }
     });

@@ -272,7 +272,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
     String elementName = !methodCall.getFullName().isEmpty() ? maybeTrimForParent(methodCall.getNameElement(), methodCall.getParent(), this).getFirst() + " " : "";
-    String methodCallText = methodCall.getMethodName() + "()";
+    String methodCallText = (methodCall.isConstructor() ? "new ": "") + methodCall.getMethodName() + "()";
     String statementText = (methodCall.shouldUseAssignment()) ? elementName + "= " + methodCallText : elementName + methodCallText;
     GrStatement statement = factory.createStatementFromText(statementText);
     PsiElement addedElement = parentPsiElement.addAfter(statement, anchor);

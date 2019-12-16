@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.Locale
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import org.intellij.lang.annotations.Language
+import org.junit.Ignore
 import org.mockito.Mockito
 
 class CustomModelsProviderTest : LayoutTestCase() {
@@ -76,7 +77,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val attributes = CustomConfigurationAttribute("Preview",
                                                   "pixel_3",
-                                                  28,
+                                                  29,
                                                   ScreenOrientation.PORTRAIT,
                                                   Locale.ANY.toString(),
                                                   configurationManager.computePreferredTheme(defaultConfig),
@@ -99,7 +100,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
     assertEquals(defaultConfig, nlModelsAfterRemoved[0].configuration)
   }
 
-  fun testAddCustomConfigLoadsCorrectFile() {
+  fun testAddCustomLocaleConfigLoadsCorrectFile() {
     val defaultFile = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
     val enFile = myFixture.addFileToProject("/res/layout-en/test.xml", LAYOUT_FILE_CONTENT)
 
@@ -111,7 +112,7 @@ class CustomModelsProviderTest : LayoutTestCase() {
 
     val attributes = CustomConfigurationAttribute("Preview",
                                                   "pixel_3",
-                                                  28,
+                                                  29,
                                                   ScreenOrientation.PORTRAIT,
                                                   Locale.create("en").toString(),
                                                   configurationManager.computePreferredTheme(defaultConfig),
@@ -123,6 +124,33 @@ class CustomModelsProviderTest : LayoutTestCase() {
     val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myFacet)
     assertEquals(defaultFile.virtualFile, nlModels[0].virtualFile)
     assertEquals(enFile.virtualFile, nlModels[1].virtualFile)
+  }
+
+  fun testAddCustomOrientationConfigLoadsCorrectFile() {
+    // Regression test for b/144923364.
+    val defaultFile = myFixture.addFileToProject("/res/layout/test.xml", LAYOUT_FILE_CONTENT)
+    val landFile = myFixture.addFileToProject("/res/layout-land/test.xml", LAYOUT_FILE_CONTENT)
+
+    val listener = Mockito.mock(ConfigurationSetListener::class.java)
+
+    val modelsProvider = CustomModelsProvider(listener)
+    val configurationManager = ConfigurationManager.getOrCreateInstance(myFacet)
+    val defaultConfig = configurationManager.getConfiguration(defaultFile.virtualFile)
+
+    val attributes = CustomConfigurationAttribute("Preview",
+                                                  "pixel_3",
+                                                  29,
+                                                  ScreenOrientation.LANDSCAPE,
+                                                  Locale.ANY.toString(),
+                                                  configurationManager.computePreferredTheme(defaultConfig),
+                                                  UiMode.NORMAL,
+                                                  NightMode.NOTNIGHT)
+    modelsProvider.addCustomConfigurationAttributes(attributes)
+
+    // Create models, first one is default one and second one is custom one, which should associate to en file.
+    val nlModels = modelsProvider.createNlModels(testRootDisposable, defaultFile, myFacet)
+    assertEquals(defaultFile.virtualFile, nlModels[0].virtualFile)
+    assertEquals(landFile.virtualFile, nlModels[1].virtualFile)
   }
 }
 

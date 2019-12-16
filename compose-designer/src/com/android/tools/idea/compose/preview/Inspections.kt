@@ -27,10 +27,13 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.KtVisitorVoid
+import org.jetbrains.kotlin.psi.allConstructors
+import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
 private const val INSPECTIONS_GROUP_NAME = "Compose Preview"
 
@@ -133,11 +136,20 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
 class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
   override fun getDisplayName() = message("inspection.top.level.function")
 
+  private fun KtClass.hasDefaultConstructor(): Boolean =
+    allConstructors.isEmpty()
+      .or(allConstructors.any { it.getValueParameters().isEmpty() })
+
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
                                              previewAnnotation: KtAnnotationEntry,
                                              functionAnnotations: Map<String, KtAnnotationEntry>) {
-    if (!function.isTopLevel) {
+    if (function.isTopLevel) {
+      return
+    }
+
+    val containingClass = function.containingClass() ?: return
+    if (!containingClass.isTopLevel() || !containingClass.hasDefaultConstructor()) {
       holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
                              message("inspection.top.level.function"),
                              ProblemHighlightType.ERROR)

@@ -34,6 +34,10 @@ typealias ProjectRenderRunner = (renderRunnable: (project: Project) -> Unit) -> 
 /**
  * Sometimes there are several separate classes which want to render templates, in some order, but the whole process should be aborted if
  * any of them fail a validation pass. This class acts as a central way to coordinate such render request.
+ *
+ * @param renderRunner a lambda which takes a single template renderer as an argument and:
+ * 1. Calls it with the right environment (e.g. in the proper thread).
+ * 2. Runs optional post-render tasks (e.g. Gradle Sync).
  */
 class MultiTemplateRenderer(private val renderRunner: ProjectRenderRunner) {
   interface TemplateRendererListener {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.stubs.android;
 
+import com.android.annotations.NonNull;
 import com.android.builder.model.BaseArtifact;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.level2.DependencyGraphs;
@@ -150,5 +151,11 @@ public class BaseArtifactStub implements BaseArtifact {
 
   public void addAdditionalClassesFolder(@NotNull File folder) {
     myAdditionalClassesFolders.add(folder);
+  }
+
+  @NonNull
+  @Override
+  public String getPostAssembleTaskModelFile() {
+    return new File(myFileStructure.getRootFolderPath(), "build/output/apk/" + myBuildType + "/output.json").getAbsolutePath();
   }
 }

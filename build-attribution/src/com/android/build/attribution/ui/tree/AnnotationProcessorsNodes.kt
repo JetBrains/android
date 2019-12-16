@@ -15,7 +15,6 @@
  */
 package com.android.build.attribution.ui.tree
 
-import com.android.build.attribution.ui.TreeNodeSelector
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData
 import com.android.build.attribution.ui.data.AnnotationProcessorsReport
 import com.android.build.attribution.ui.durationString
@@ -24,6 +23,7 @@ import com.android.build.attribution.ui.panels.AbstractBuildAttributionInfoPanel
 import com.android.build.attribution.ui.panels.AnnotationProcessorIssueInfoPanel
 import com.android.build.attribution.ui.panels.headerLabel
 import com.android.build.attribution.ui.warningIcon
+import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.panels.VerticalLayout
@@ -33,8 +33,7 @@ import javax.swing.JComponent
 
 class AnnotationProcessorsRoot(
   private val annotationProcessorsReport: AnnotationProcessorsReport,
-  parent: SimpleNode,
-  private val nodeSelector: TreeNodeSelector
+  parent: ControllersAwareBuildAttributionNode
 ) : AbstractBuildAttributionNode(parent, "Non-incremental Annotation Processors") {
 
   override val presentationIcon: Icon? = null
@@ -42,6 +41,8 @@ class AnnotationProcessorsRoot(
   override val issuesCountsSuffix: String? = issuesCountString(annotationProcessorsReport.issueCount, 0)
 
   override val timeSuffix: String? = null
+
+  override val pageType = BuildAttributionUiEvent.Page.PageType.ANNOTATION_PROCESSORS_ROOT
 
   override fun createComponent(): AbstractBuildAttributionInfoPanel = object : AbstractBuildAttributionInfoPanel() {
 
@@ -60,13 +61,13 @@ class AnnotationProcessorsRoot(
   }
 
   override fun buildChildren(): Array<SimpleNode> = annotationProcessorsReport.nonIncrementalProcessors
-    .map { processor -> AnnotationProcessorNode(this, processor) }
+    .map { processor -> AnnotationProcessorNode(processor, this) }
     .toTypedArray()
 }
 
 private class AnnotationProcessorNode(
-  parent: SimpleNode,
-  private val annotationProcessor: AnnotationProcessorUiData
+  private val annotationProcessor: AnnotationProcessorUiData,
+  parent: AnnotationProcessorsRoot
 ) : AbstractBuildAttributionNode(parent, annotationProcessor.className) {
 
   override val presentationIcon: Icon? = warningIcon()
@@ -75,11 +76,13 @@ private class AnnotationProcessorNode(
 
   override val timeSuffix: String? = durationString(annotationProcessor.compilationTimeMs)
 
+  override val pageType = BuildAttributionUiEvent.Page.PageType.ANNOTATION_PROCESSOR_PAGE
+
   override fun createComponent(): AbstractBuildAttributionInfoPanel = object : AbstractBuildAttributionInfoPanel() {
 
     override fun createHeader(): JComponent = headerLabel(annotationProcessor.className)
 
-    override fun createBody(): JComponent = AnnotationProcessorIssueInfoPanel(annotationProcessor)
+    override fun createBody(): JComponent = AnnotationProcessorIssueInfoPanel(annotationProcessor, analytics)
   }
 
   override fun buildChildren(): Array<SimpleNode> = emptyArray()

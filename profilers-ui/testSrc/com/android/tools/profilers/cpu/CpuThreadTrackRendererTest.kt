@@ -19,6 +19,7 @@ import com.android.tools.adtui.chart.hchart.HTreeChart
 import com.android.tools.adtui.chart.statechart.StateChart
 import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
@@ -57,11 +58,12 @@ class CpuThreadTrackRendererTest {
     Mockito.`when`(mockCapture.range).thenReturn(Range())
     val threadTrackModel = TrackModel.newBuilder(
       CpuThreadTrackModel(
-        CpuThreadStateDataSeries(profilerClient.transportClient, profilers.session.streamId, profilers.session.pid, 1, mockCapture),
+        profilers,
         Range(),
         mockCapture,
         threadInfo,
-        DefaultTimeline()
+        DefaultTimeline(),
+        MultiSelectionModel()
       ),
       ProfilerTrackRendererType.CPU_THREAD, "Foo").build()
     val renderer = CpuThreadTrackRenderer()

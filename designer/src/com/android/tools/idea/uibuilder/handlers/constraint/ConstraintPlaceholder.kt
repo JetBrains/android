@@ -70,8 +70,8 @@ class ConstraintPlaceholder(host: SceneComponent) : Placeholder(host) {
       }
       if (horizontalMatchParent || verticalMatchParent) {
         val transaction = nlComponent.startAttributeTransaction()
-        nlComponent.x = Coordinates.dpToPx(host.scene.designSurface, x.toFloat())
-        nlComponent.y = Coordinates.dpToPx(host.scene.designSurface, y.toFloat())
+        nlComponent.x = Coordinates.dpToPx(host.scene.sceneManager, x.toFloat())
+        nlComponent.y = Coordinates.dpToPx(host.scene.sceneManager, y.toFloat())
         val parentScoutWidget = ScoutWidget(host.nlComponent, null)
         val scoutWidgets = ScoutWidget.create(listOf(nlComponent), parentScoutWidget)
         val margin = Scout.getMargin()

@@ -91,8 +91,8 @@ public class ProjectWithKotlinTestUtil {
       editorNotificationPanelFixture.performActionWithoutWaitingForDisappearance("Configure");
 
       // As default, "All modules containing Kotlin files" option is selected for now.
-      ConfigureKotlinDialogFixture.find(ideFrameFixture)
-                                  .clickOk();
+      ConfigureKotlinDialogFixture.find(ideFrameFixture.robot())
+                                  .clickOkAndWaitDialogDisappear();
       ideFrameFixture.requestProjectSync();
     }
 

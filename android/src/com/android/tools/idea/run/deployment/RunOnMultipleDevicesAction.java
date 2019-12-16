@@ -33,7 +33,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
@@ -43,14 +45,21 @@ final class RunOnMultipleDevicesAction extends AnAction {
   @NotNull
   private final Function<Project, RunnerAndConfigurationSettings> myGetSelectedConfiguration;
 
+  @NotNull
+  private final Function<Project, Collection<Device>> myGetDevices;
+
   RunOnMultipleDevicesAction() {
-    this(project -> RunManager.getInstance(project).getSelectedConfiguration());
+    this(project -> RunManager.getInstance(project).getSelectedConfiguration(),
+         project -> ServiceManager.getService(project, AsyncDevicesGetter.class).get());
   }
 
   @VisibleForTesting
-  RunOnMultipleDevicesAction(@NotNull Function<Project, RunnerAndConfigurationSettings> getSelectedConfiguration) {
+  RunOnMultipleDevicesAction(@NotNull Function<Project, RunnerAndConfigurationSettings> getSelectedConfiguration,
+                             @NotNull Function<Project, Collection<Device>> getDevices) {
     super("Run on Multiple Devices", null, AllIcons.Actions.Execute);
+
     myGetSelectedConfiguration = getSelectedConfiguration;
+    myGetDevices = getDevices;
   }
 
   @Override
@@ -71,6 +80,11 @@ final class RunOnMultipleDevicesAction extends AnAction {
     }
 
     if (!isSupportedRunConfigurationType(settings.getType())) {
+      presentation.setEnabled(false);
+      return;
+    }
+
+    if (myGetDevices.apply(project).isEmpty()) {
       presentation.setEnabled(false);
       return;
     }

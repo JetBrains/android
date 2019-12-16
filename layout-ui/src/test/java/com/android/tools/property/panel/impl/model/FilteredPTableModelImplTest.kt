@@ -30,19 +30,18 @@ import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_TOP
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.ATTR_VISIBLE
-import com.android.SdkConstants.ATTR_WIDTH
 import com.android.SdkConstants.VALUE_MATCH_PARENT
 import com.android.SdkConstants.VALUE_TOP
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.tools.property.panel.api.FilteredPTableModel
-import com.android.tools.property.ptable2.PTableColumn
-import com.android.tools.property.ptable2.PTableGroupItem
-import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.panel.api.GroupSpec
 import com.android.tools.property.panel.impl.model.util.FakeNewPropertyItem
 import com.android.tools.property.panel.impl.model.util.FakePTableModelUpdateListener
 import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.android.tools.property.panel.impl.model.util.FakePropertyModel
+import com.android.tools.property.ptable2.PTableColumn
+import com.android.tools.property.ptable2.PTableGroupItem
+import com.android.tools.property.ptable2.PTableItem
 import com.google.common.truth.Truth.assertThat
 import org.junit.After
 import org.junit.Before
@@ -209,10 +208,13 @@ class FilteredPTableModelImplTest {
 
   @Test
   fun testIsCellEditable() {
-    val tableModel = FilteredPTableModel.create(model!!, itemFilter, deleteOp, alternateSortOrder!!, keepNewAfterFlyAway = false)
+    val tableModel = FilteredPTableModel.create(model!!, { true }, deleteOp, alternateSortOrder!!, listOf(MarginGroup()))
     val property = FakeNewPropertyItem()
+    val group = tableModel.items[1]
     assertThat(tableModel.isCellEditable(propWidth!!, PTableColumn.NAME)).isFalse()
     assertThat(tableModel.isCellEditable(propWidth!!, PTableColumn.VALUE)).isTrue()
+    assertThat(tableModel.isCellEditable(group, PTableColumn.NAME)).isTrue()
+    assertThat(tableModel.isCellEditable(group, PTableColumn.VALUE)).isTrue()
     assertThat(tableModel.isCellEditable(property, PTableColumn.NAME)).isTrue()
     assertThat(tableModel.isCellEditable(property, PTableColumn.VALUE)).isFalse()
     property.delegate = propGravity

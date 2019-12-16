@@ -16,8 +16,10 @@
 package com.android.tools.profilers.cpu
 
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -89,6 +91,30 @@ class CpuCaptureStageViewTest {
 
     val titleStrings = treeWalker.descendants().filterIsInstance<JLabel>().map(JLabel::getText).toList()
     assertThat(titleStrings).containsAllOf("Interaction", "Threads (3)").inOrder()
+  }
+
+  @Test
+  fun axisComponentsAreInitialized() {
+    val stageView = CpuCaptureStageView(profilersView, stage)
+    stage.enter()
+    val axisComponents = TreeWalker(stageView.component)
+      // Traverse depth first to make sure the order is top -> bottom
+      .descendants(TreeWalker.DescendantOrder.DEPTH_FIRST)
+      .filterIsInstance<AxisComponent>()
+
+    // Minimap axis and track group axis
+    assertThat(axisComponents.size).isEqualTo(2)
+
+    // Minimap axis always uses the capture range.
+    val minimapAxis = axisComponents[0]
+    assertThat(minimapAxis.model.range.isSameAs(stage.capture.range)).isTrue()
+
+    // Track group axis uses the selection range (initialized as capture range).
+    val trackGroupAxis = axisComponents[1]
+    assertThat(trackGroupAxis.model.range.isSameAs(stage.capture.range)).isTrue()
+    val selectionRange = Range(10.0, 11.0)
+    stage.minimapModel.rangeSelectionModel.selectionRange.set(selectionRange)
+    assertThat(trackGroupAxis.model.range.isSameAs(selectionRange)).isTrue()
   }
 
   @Test

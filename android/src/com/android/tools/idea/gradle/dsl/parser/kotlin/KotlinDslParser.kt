@@ -269,7 +269,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       }
       // We might need to apply the block to multiple DslElements.
       val blockElements = Lists.newArrayList<GradlePropertiesDslElement>()
-      // If the block is allprojects, we need to apply the closure to the project and to all its subprojetcs.
+      // If the block is allprojects, we need to apply the closure to the project and to all its subprojects.
       if (parent is GradleDslFile && referenceName == "allprojects") {
         // The block has to be applied to the project.
         blockElements.add(parent)
@@ -277,9 +277,9 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         referenceName = "subprojects"
       }
       val blockElement = methodCallBlock(expression, parent, name) ?: getBlockElement(listOf(referenceName), parent, name) ?: return
-      val argumentsBlock = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
+      val body = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
 
-      blockElement.setPsiElement(argumentsBlock ?: expression)
+      blockElement.setPsiElement(body ?: expression)
       blockElements.add(blockElement)
       blockElements.forEach { block ->
         // Visit the children of this element, with the current block set as parent.
@@ -292,9 +292,6 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       // Get args and block.
       val argumentsList = expression.valueArgumentList
       val argumentsBlock = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
-      val referenceExpression = expression.referenceExpression()
-      val name =
-        if (referenceExpression != null) GradleNameElement.from(referenceExpression, this) else GradleNameElement.create(referenceName)
       if (argumentsList != null) {
         val callExpression =
           getCallExpression(parent, expression, name, argumentsList, referenceName, true) ?: return
@@ -473,6 +470,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       "listOf", "mutableListOf" -> return getExpressionList(parentElement, psiElement, name, argumentsList.arguments, isLiteral, false)
       "setOf", "mutableSetOf" -> return getExpressionList(parentElement, psiElement, name, argumentsList.arguments, isLiteral, true)
       "kotlin" -> return GradleDslLiteral(parentElement, psiElement, name, psiElement, false)
+      FILE_CONSTRUCTOR_NAME -> return getMethodCall(parentElement, psiElement, name, FILE_CONSTRUCTOR_NAME, argumentsList, true)
     }
 
     // If the CallExpression has one argument only that is a callExpression, we skip the current CallExpression.

@@ -34,6 +34,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.lexer.KtTokens.*
 import org.jetbrains.kotlin.psi.KtArrayAccessExpression
 import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtConstantExpression
@@ -305,7 +306,14 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     maybeUpdateName(literal, this)
 
     val newLiteral = literal.unsavedValue ?: return
-    val psiExpression = literal.expression
+    var psiExpression = literal.expression
+
+    // Earlier, at the parser stage, if the literal value is typed (ex: val as Type), we trim the type psiElement from the expression. Make
+    // sure to include it in the psiExpression in case of update.
+    if (psiExpression?.parent is KtBinaryExpressionWithTypeRHS) {
+      psiExpression = psiExpression.parent
+    }
+
     if (psiExpression != null) {
       val replace = psiExpression.replace(newLiteral)
       // Make sure we replaced with the right psi element for the GradleDslLiteral.
@@ -363,14 +371,19 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       anchorAfter = null
     }
 
-    val parentPsiElement = methodParent.create() ?: return null
+    var parentPsiElement = methodParent.create() ?: return null
     val anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter)
     val psiFactory = KtPsiFactory(parentPsiElement.project)
 
     val statementText =
       if (methodCall.fullName.isNotEmpty() && methodCall.fullName != methodCall.methodName) {
         val externalNameInfo = maybeTrimForParent(methodCall.nameElement, methodCall.parent, this)
-        val propertyName = externalNameInfo.first
+        var propertyName = externalNameInfo.first
+        // If we are writing a project property, we should be make sure to use double quotes instead of single quotes
+        // since we use single quotes for ProjectPropertiesDslElement.
+        if (propertyName.startsWith("project(':")) {
+          propertyName = propertyName.replace("\\s".toRegex(), "").replace("'", "\"")
+        }
         val useAssignment = when (val asMethod = externalNameInfo.second) {
           null -> methodCall.shouldUseAssignment()
           else -> !asMethod
@@ -399,7 +412,14 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       addedElement = requireNotNull(addedArgument.getArgumentExpression())
     }
     else {
-      addedElement = parentPsiElement.addAfter(expression, anchor)
+      // If the parent is a KtFile, we should be careful adding the methodCall to it's main block.
+      if (parentPsiElement is KtFile) {
+        parentPsiElement = parentPsiElement.script?.blockExpression ?: parentPsiElement
+        addedElement = parentPsiElement.addAfter(expression, anchor)
+      }
+      else {
+        addedElement = parentPsiElement.addAfter(expression, anchor)
+      }
       // We need to add empty lines if we're adding expressions to a file because IDEA doesn't handle formatting
       // in kotlin the same way as GROOVY.
       val lineTerminator = psiFactory.createNewLine()

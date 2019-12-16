@@ -32,7 +32,7 @@ import com.android.sdklib.SdkVersionInfo.HIGHEST_KNOWN_STABLE_API as LATEST_API
  */
 class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
   @Throws(Exception::class)
-  fun testGetAvailableDependencyWithRequiredVersionMatching() {
+  fun ignoredTestGetAvailableDependencyWithRequiredVersionMatching() { // b/145135480
     loadSimpleApplication()
     verifyProjectDependsOnWildcardAppCompat()
     val moduleSystem = myModules.appModule.getModuleSystem()
@@ -90,7 +90,7 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
   }
 
   @Throws(Exception::class)
-  fun testGetRegisteredExistingDependency() {
+  fun ignoredTestGetRegisteredExistingDependency() { // b/145135480
     loadSimpleApplication()
     verifyProjectDependsOnWildcardAppCompat()
     val moduleSystem = myModules.appModule.getModuleSystem()
@@ -142,7 +142,7 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
   }
 
   @Throws(Exception::class)
-  fun testGetResolvedMatchingDependencies() {
+  fun ignoredTestGetResolvedMatchingDependencies() { // b/145135480
     loadSimpleApplication()
     verifyProjectDependsOnWildcardAppCompat()
     val moduleSystem = myModules.appModule.getModuleSystem()
@@ -171,7 +171,7 @@ class GradleModuleSystemIntegrationTest : AndroidGradleTestCase() {
   }
 
   @Throws(Exception::class)
-  fun testGetResolvedAarDependencies() {
+  fun ignoredTestGetResolvedAarDependencies() { // b/145135480
     loadSimpleApplication()
     verifyProjectDependsOnWildcardAppCompat()
 

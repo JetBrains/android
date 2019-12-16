@@ -24,6 +24,8 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import java.awt.event.InputEvent
 
+const val SEPARATOR_TEXT = "------------------------------------------------------"
+
 /**
  * Helper function to convert action to string for testing purpose. Use [filter] to ignore the actions if needed.
  */
@@ -40,7 +42,7 @@ fun prettyPrintActions(action: AnAction, filter: (action: AnAction) -> Boolean =
 private fun prettyPrintActions(action: AnAction, sb: StringBuilder, depth: Int, filter: (action: AnAction) -> Boolean) {
   val text: String?
   if (action is Separator) {
-    text = "------------------------------------------------------"
+    text = SEPARATOR_TEXT
   }
   else {
     text = action.templatePresentation.text

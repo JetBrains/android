@@ -28,6 +28,7 @@ import com.android.ide.common.rendering.api.ResourceValue
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.ResourceVisitor
+import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.resources.ResourceVisibility
@@ -247,6 +248,10 @@ open class NelePropertyItem(
     }
   }
 
+  fun getFolderConfiguration(): FolderConfiguration? {
+    return nlModel?.configuration?.fullConfig
+  }
+
   private fun resolveValue(resValue: ResourceValue?): String? {
     if (resValue == null) {
       return null
@@ -406,7 +411,8 @@ open class NelePropertyItem(
     if (text == NULL_RESOURCE) {
       return EDITOR_NO_ERROR
     }
-    val parsed = org.jetbrains.android.dom.resources.ResourceValue.parse(text, true, true, false)!!
+    val parsed = org.jetbrains.android.dom.resources.ResourceValue.parse(text, true, true, false) ?:
+                 return Pair(EditingErrorCategory.ERROR, "Invalid syntax")
     val error = parsed.errorMessage
     if (error != null) {
       return Pair(EditingErrorCategory.ERROR, error)

@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.sqlite.databaseConnection.jdbc
 
-import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
-import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteRow
+import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.SequentialTaskExecutor
@@ -41,7 +42,13 @@ class JdbcSqliteResultSet(
     val resultSet = preparedStatement.executeQuery()
 
     val metaData = resultSet.metaData
-    (1..metaData.columnCount).map { i -> SqliteColumn(metaData.getColumnName(i), JDBCType.valueOf(metaData.getColumnType(i))) }
+    (1..metaData.columnCount).map { i ->
+      val tableName = metaData.getTableName(i)
+      val columnName = metaData.getColumnName(i)
+
+      val keyColumnsNames = connection.getColumnNamesInPrimaryKey(tableName)
+      SqliteColumn(metaData.getColumnName(i), JDBCType.valueOf(metaData.getColumnType(i)), keyColumnsNames.contains(columnName))
+    }
   }
 
   private val _rowCount: Int by lazy(LazyThreadSafetyMode.NONE) {
@@ -89,16 +96,9 @@ class JdbcSqliteResultSet(
     }
   }
 
+  @WorkerThread
   private fun createCurrentRow(resultSet: ResultSet): SqliteRow {
-    val metaData = resultSet.metaData
-
-    val sqliteColumns = (1..metaData.columnCount).map { i ->
-      SqliteColumn(metaData.getColumnName(i), JDBCType.valueOf(metaData.getColumnType(i)))
-    }
-
-    return SqliteRow(sqliteColumns.mapIndexed { i, column ->
-      SqliteColumnValue(column, resultSet.getObject(i + 1))
-    })
+    return SqliteRow(_columns.mapIndexed { i, column -> SqliteColumnValue(column, resultSet.getObject(i + 1)) })
   }
 
   override fun dispose() {

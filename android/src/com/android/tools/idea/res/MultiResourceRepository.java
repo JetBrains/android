@@ -21,27 +21,44 @@ import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.ResourceVisitor;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
+import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.resources.aar.AarResourceRepository;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Table;
+import com.google.common.collect.Tables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
+import com.intellij.util.SmartList;
+import com.intellij.util.containers.ObjectIntHashMap;
+import java.util.AbstractCollection;
+import java.util.AbstractList;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.function.Predicate;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A super class for several of the other repositories. Its only purpose is to be able to combine
@@ -72,10 +89,24 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
       ImmutableListMultimap.of();
 
   @GuardedBy("ITEM_MAP_LOCK")
+  @NotNull private ResourceItemComparator myResourceComparator =
+      new ResourceItemComparator(new ResourcePriorityComparator(ImmutableList.of()));
+
+  @GuardedBy("ITEM_MAP_LOCK")
   private long[] myModificationCounts;
 
   @GuardedBy("ITEM_MAP_LOCK")
   private final ResourceTable myCachedMaps = new ResourceTable();
+
+  /** Names of resources from local leaf repositories. */
+  @GuardedBy("ITEM_MAP_LOCK")
+  private final Table<SingleNamespaceResourceRepository, ResourceType, Set<String>> myResourceNames =
+      Tables.newCustomTable(new HashMap<>(), () -> Maps.newEnumMap(ResourceType.class));
+
+  /** Describes groups of resources that are out of date in {@link #myCachedMaps}. */
+  @GuardedBy("ITEM_MAP_LOCK")
+  private final Table<ResourceNamespace, ResourceType, Set<SingleNamespaceResourceRepository>> myUnreconciledResources =
+      Tables.newCustomTable(new HashMap<>(), () -> Maps.newEnumMap(ResourceType.class));
 
   MultiResourceRepository(@NotNull String displayName) {
     super(displayName);
@@ -102,6 +133,8 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
       mapBuilder = ImmutableListMultimap.builder();
       computeNamespaceMap(this, mapBuilder);
       myRepositoriesByNamespace = mapBuilder.build();
+
+      myResourceComparator = new ResourceItemComparator(new ResourcePriorityComparator(myLeafsByNamespace.values()));
 
       myModificationCounts = new long[localResources.size()];
       if (localResources.size() == 1) {
@@ -246,40 +279,68 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   @Override
   @NotNull
   protected ListMultimap<String, ResourceItem> getMap(@NotNull ResourceNamespace namespace, @NotNull ResourceType type) {
-    ListMultimap<String, ResourceItem> map = myCachedMaps.get(namespace, type);
-    if (map != null) {
-      return map;
-    }
-
     ImmutableList<SingleNamespaceResourceRepository> repositoriesForNamespace = myLeafsByNamespace.get(namespace);
     if (repositoriesForNamespace.size() == 1) {
       SingleNamespaceResourceRepository repository = repositoriesForNamespace.get(0);
-      if (repository instanceof LocalResourceRepository) {
-        map = ((LocalResourceRepository)repository).getMapPackageAccessible(namespace, type);
-        return map == null ? ImmutableListMultimap.of() : map;
+      return getResourcesUnderLock(repository, namespace, type);
+    }
+
+    ListMultimap<String, ResourceItem> map = myCachedMaps.get(namespace, type);
+    Set<SingleNamespaceResourceRepository> unreconciledRepositories = null;
+    if (map != null) {
+      unreconciledRepositories = myUnreconciledResources.get(namespace, type);
+      if (unreconciledRepositories == null) {
+        return map;
       }
-      return repository.getResources(namespace, type);
     }
 
     // Merge all items of the given type.
     Stopwatch stopwatch = LOG.isDebugEnabled() ? Stopwatch.createStarted() : null;
 
-    map = ArrayListMultimap.create();
-    SetMultimap<String, String> seenQualifiers = HashMultimap.create();
-    for (ResourceRepository child : repositoriesForNamespace) {
-      ListMultimap<String, ResourceItem> items = child.getResources(namespace, type);
-      for (ResourceItem item : items.values()) {
-        String name = item.getName();
-        String qualifiers = item.getConfiguration().getQualifierString();
-        if (type == ResourceType.STYLEABLE || type == ResourceType.ID || !map.containsKey(name) ||
-            !seenQualifiers.containsEntry(name, qualifiers)) {
-          // We only add a duplicate item if there isn't an item with the same qualifiers and it is
-          // not a styleable or an id. Styleables and ids are allowed to be defined in multiple
-          // places even with the same qualifiers.
-          map.put(name, item);
-          seenQualifiers.put(name, qualifiers);
+    if (map == null) {
+      // Create a new map.
+      // We only add a duplicate item if there isn't an item with the same qualifiers and it is
+      // not a styleable or an id. Styleables and ids are allowed to be defined in multiple
+      // places even with the same qualifiers.
+      map = type == ResourceType.STYLEABLE || type == ResourceType.ID ?
+            ArrayListMultimap.create() : new PerConfigResourceMap(myResourceComparator);
+      for (SingleNamespaceResourceRepository repository : repositoriesForNamespace) {
+        ListMultimap<String, ResourceItem> items = getResourcesUnderLock(repository, namespace, type);
+        map.putAll(items);
+
+        if (repository instanceof LocalResourceRepository) {
+          myResourceNames.put(repository, type, ImmutableSet.copyOf(items.keySet()));
         }
       }
+    }
+    else {
+      // Update a partially out of date map.
+      for (SingleNamespaceResourceRepository unreconciledRepository : unreconciledRepositories) {
+        // Delete all resources that belonged to unreconciledRepository.
+        Predicate<ResourceItem> filter = item -> item.getRepository().equals(unreconciledRepository);
+        Set<String> names = myResourceNames.get(unreconciledRepository, type);
+        PerConfigResourceMap perConfigMap = map instanceof PerConfigResourceMap ? (PerConfigResourceMap)map : null;
+        for (String name : names) {
+          if (perConfigMap != null) {
+            perConfigMap.removeIf(name, filter);
+          }
+          else {
+            List<ResourceItem> items = map.get(name);
+            items.removeIf(filter);
+            if (items.isEmpty()) {
+              map.removeAll(name);
+            }
+          }
+        }
+        // Add all resources from unreconciledRepository.
+        ListMultimap<String, ResourceItem> unreconciledResources = getResourcesUnderLock(unreconciledRepository, namespace, type);
+        map.putAll(unreconciledResources);
+
+        assert unreconciledRepository instanceof LocalResourceRepository;
+        myResourceNames.put(unreconciledRepository, type, ImmutableSet.copyOf(unreconciledResources.keySet()));
+      }
+
+      myUnreconciledResources.remove(namespace, type);
     }
 
     if (stopwatch != null) {
@@ -294,6 +355,19 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
     myCachedMaps.put(namespace, type, map);
 
     return map;
+  }
+
+  @GuardedBy("ITEM_MAP_LOCK")
+  @NotNull
+  private static ListMultimap<String, ResourceItem> getResourcesUnderLock(@NotNull SingleNamespaceResourceRepository repository,
+                                                                          @NotNull ResourceNamespace namespace,
+                                                                          @NotNull ResourceType type) {
+    ListMultimap<String, ResourceItem> map;
+    if (repository instanceof LocalResourceRepository) {
+      map = ((LocalResourceRepository)repository).getMapPackageAccessible(namespace, type);
+      return map == null ? ImmutableListMultimap.of() : map;
+    }
+    return repository.getResources(namespace, type);
   }
 
   @Override
@@ -334,36 +408,45 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   }
 
   /**
-   * Notifies this delegating repository that the given dependent repository has invalidated all resources.
+   * Notifies this repository that all its caches are no longer valid.
    */
-  public void invalidateCache(@NotNull LocalResourceRepository repository) {
-    synchronized (ITEM_MAP_LOCK) {
-      assert myChildren.contains(repository) : repository;
+  @GuardedBy("ITEM_MAP_LOCK")
+  public void invalidateCache() {
+    myCachedMaps.clear();
+    myResourceNames.clear();
+    myUnreconciledResources.clear();
+    setModificationCount(ourModificationCounter.incrementAndGet());
 
-      myCachedMaps.clear();
-      setModificationCount(ourModificationCounter.incrementAndGet());
-
-      invalidateParentCaches();
-    }
+    invalidateParentCaches();
   }
 
   /**
    * Notifies this delegating repository that the given dependent repository has invalidated
-   * resources of the given types in the given namespace.
+   * resources of the given types.
    */
-  public void invalidateCache(@NotNull LocalResourceRepository repository, @NotNull ResourceNamespace namespace,
-                              @NotNull ResourceType... types) {
-    synchronized (ITEM_MAP_LOCK) {
-      assert myChildren.contains(repository) : repository;
+  @GuardedBy("ITEM_MAP_LOCK")
+  public void invalidateCache(@NotNull SingleNamespaceResourceRepository repository, @NotNull ResourceType... types) {
+    assert myLeafsByNamespace.values().contains(repository) : repository;
 
+    ResourceNamespace namespace = repository.getNamespace();
+
+    // Update myUnreconciledResources only if myCachedMaps is used for this namespace.
+    if (myLeafsByNamespace.get(namespace).size() != 1) {
       for (ResourceType type : types) {
-        myCachedMaps.remove(namespace, type);
+        if (myCachedMaps.get(namespace, type) != null) {
+          Set<SingleNamespaceResourceRepository> repositories = myUnreconciledResources.get(namespace, type);
+          if (repositories == null) {
+            repositories = new HashSet<>();
+            myUnreconciledResources.put(namespace, type, repositories);
+          }
+          repositories.add(repository);
+        }
       }
 
       setModificationCount(ourModificationCounter.incrementAndGet());
-
-      invalidateParentCaches(namespace, types);
     }
+
+    invalidateParentCaches(repository, types);
   }
 
   @Override
@@ -406,6 +489,440 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
   public Collection<SingleNamespaceResourceRepository> getLeafResourceRepositories() {
     synchronized (ITEM_MAP_LOCK) {
       return myLeafsByNamespace.values();
+    }
+  }
+
+  private static class ResourcePriorityComparator implements Comparator<ResourceItem> {
+    private final ObjectIntHashMap<SingleNamespaceResourceRepository> repositoryOrdering;
+
+    ResourcePriorityComparator(@NotNull Collection<SingleNamespaceResourceRepository> repositories) {
+      repositoryOrdering = new ObjectIntHashMap<>(repositories.size());
+      int i = 0;
+      for (SingleNamespaceResourceRepository repository : repositories) {
+        repositoryOrdering.put(repository, i++);
+      }
+    }
+
+    @Override
+    public int compare(@NotNull ResourceItem item1, @NotNull ResourceItem item2) {
+      return Integer.compare(getOrdering(item1), getOrdering(item2));
+    }
+
+    private int getOrdering(@NotNull ResourceItem item) {
+      int ordering = repositoryOrdering.get(item.getRepository());
+      assert ordering >= 0;
+      return ordering;
+    }
+  }
+
+  /**
+   * Custom implementation of {@link ListMultimap} that may store multiple resource items for
+   * the same folder configuration, but for readers exposes ot most one resource item per folder
+   * configuration.
+   *
+   * <p>This ListMultimap implementation is not as robust as Guava multimaps but is sufficient
+   * for MultiResourceRepository because the latter always copies data to immutable containers
+   * before exposing it to callers.
+   */
+  private static class PerConfigResourceMap implements ListMultimap<String, ResourceItem> {
+    private final Map<String, List<ResourceItem>> myMap = new HashMap<>();
+    private int mySize = 0;
+    @NotNull private final ResourceItemComparator myComparator;
+    @Nullable private Values myValues;
+
+    private PerConfigResourceMap(@NotNull ResourceItemComparator comparator) {
+      myComparator = comparator;
+    }
+
+    @Override
+    @Nullable
+    public List<ResourceItem> get(@Nullable String key) {
+      return myMap.get(key);
+    }
+
+    @Override
+    @NotNull
+    public Set<String> keySet() {
+      return myMap.keySet();
+    }
+
+    @Override
+    @NotNull
+    public Multiset<String> keys() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    @NotNull
+    public Collection<ResourceItem> values() {
+      Values values = myValues;
+      if (values == null) {
+        values = new Values();
+        myValues = values;
+      }
+      return values;
+    }
+
+    @Override
+    @NotNull
+    public Collection<Map.Entry<String, ResourceItem>> entries() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    @Nullable
+    public List<ResourceItem> removeAll(@Nullable Object key) {
+      //noinspection SuspiciousMethodCalls
+      List<ResourceItem> removed = myMap.remove(key);
+      if (removed != null) {
+        mySize -= removed.size();
+      }
+      return removed;
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    boolean removeIf(@NotNull String key, @NotNull Predicate<? super ResourceItem> filter) {
+      List<ResourceItem> list = myMap.get(key);
+      if (list == null) {
+        return false;
+      }
+      int oldSize = list.size();
+      boolean removed = list.removeIf(filter);
+      mySize += list.size() - oldSize;
+      if (list.isEmpty()) {
+        myMap.remove(key);
+      }
+      return removed;
+    }
+
+    @Override
+    public void clear() {
+      myMap.clear();
+      mySize = 0;
+    }
+
+    @Override
+    public int size() {
+      return mySize;
+    }
+
+    @Override
+    public boolean isEmpty() {
+      return myMap.isEmpty();
+    }
+
+    @Override
+    public boolean containsKey(@Nullable Object key) {
+      //noinspection SuspiciousMethodCalls
+      return myMap.containsKey(key);
+    }
+
+    @Override
+    public boolean containsValue(@Nullable Object value) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean containsEntry(@Nullable Object key, @Nullable Object value) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean put(@Nullable String key, @Nullable ResourceItem item) {
+      List<ResourceItem> list = myMap.computeIfAbsent(key, k -> new PerConfigResourceList());
+      int oldSize = list.size();
+      boolean added = list.add(item);
+      mySize += list.size() - oldSize;
+      return added;
+    }
+
+    @Override
+    public boolean remove(@Nullable Object key, @Nullable Object value) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean putAll(@Nullable String key, @NotNull Iterable<? extends ResourceItem> items) {
+      List<ResourceItem> list = myMap.computeIfAbsent(key, k -> new PerConfigResourceList());
+      int oldSize = list.size();
+      if (items instanceof Collection) {
+        //noinspection unchecked
+        boolean added = list.addAll((Collection<? extends ResourceItem>)items);
+        mySize += list.size() - oldSize;
+        return added;
+      }
+
+      boolean added = false;
+      for (ResourceItem item : items) {
+        added = list.add(item);
+      }
+      mySize += list.size() - oldSize;
+      return added;
+    }
+
+    @Override
+    public boolean putAll(Multimap<? extends String, ? extends ResourceItem> multimap) {
+      for (Map.Entry<? extends String, ? extends Collection<? extends ResourceItem>> entry : multimap.asMap().entrySet()) {
+        String key = entry.getKey();
+        Collection<? extends ResourceItem> items = entry.getValue();
+        List<ResourceItem> list = myMap.computeIfAbsent(key, k -> new PerConfigResourceList());
+        int oldSize = list.size();
+        list.addAll(items);
+        mySize += list.size() - oldSize;
+      }
+
+      return !multimap.isEmpty();
+    }
+
+    @Override
+    public List<ResourceItem> replaceValues(@Nullable String key, @NotNull Iterable<? extends ResourceItem> values) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Map<String, Collection<ResourceItem>> asMap() {
+      //noinspection unchecked
+      return (Map<String, Collection<ResourceItem>>)(Map<String, ?>)myMap;
+    }
+
+    /**
+     * This class has a split personality. The class may store multiple resource items for the same
+     * folder configuration, but for callers of non-mutating methods ({@link #get(int),
+     * {@link #size(), {@link java.util.Iterator#next(), etc} it exposes at most one resource item
+     * per folder configuration. Which of the resource items with the same folder configuration is
+     * visible to non-mutating methods is determined by {@link ResourcePriorityComparator}.
+     */
+    private class PerConfigResourceList extends AbstractList<ResourceItem> {
+      /** Resource items sorted by folder configurations. Nested lists are sorted by repository priority. */
+      private final List<List<ResourceItem>> myResourceItems = new ArrayList<>();
+
+      @Override
+      @NotNull
+      public ResourceItem get(int index) {
+        return myResourceItems.get(index).get(0);
+      }
+
+      @Override
+      public int size() {
+        return myResourceItems.size();
+      }
+
+      @Override
+      public boolean add(@NotNull ResourceItem item) {
+        add(item, 0);
+        return true;
+      }
+
+      @Override
+      public boolean addAll(@NotNull Collection<? extends ResourceItem> items) {
+        if (items.isEmpty()) {
+          return false;
+        }
+        if (items.size() == 1) {
+          return add(items.iterator().next());
+        }
+
+        List<ResourceItem> sortedItems = sortedItems(items);
+        int start = 0;
+        for (ResourceItem item : sortedItems) {
+          start = add(item, start);
+        }
+        return true;
+      }
+
+      private int add(ResourceItem item, int start) {
+        int index = findConfigIndex(item, start, myResourceItems.size());
+        if (index < 0) {
+          index = ~index;
+          myResourceItems.add(index, new SmartList<>(item));
+        }
+        else {
+          List<ResourceItem> nested = myResourceItems.get(index);
+          for (int i = 0; i < nested.size(); i++) {
+            if (myComparator.myPriorityComparator.compare(item, nested.get(i)) <= 0) {
+              nested.add(i, item);
+              return index;
+            }
+          }
+          nested.add(item);
+        }
+        return index;
+      }
+
+      @Override
+      public void clear() {
+        myResourceItems.clear();
+      }
+
+      @Override
+      public boolean remove(@Nullable Object item) {
+        assert item != null;
+        int index = remove((ResourceItem)item, myResourceItems.size());
+        return index >= 0;
+      }
+
+      @Override
+      public boolean removeAll(@NotNull Collection<?> items) {
+        if (items.isEmpty()) {
+          return false;
+        }
+        if (items.size() == 1) {
+          return remove(items.iterator().next());
+        }
+
+        @SuppressWarnings("unchecked")
+        List<ResourceItem> itemsToDelete = sortedItems((Collection<? extends ResourceItem>)items);
+        boolean modified = false;
+        int end = myResourceItems.size();
+        for (int i = itemsToDelete.size(); --i >= 0;) {
+          int index = remove(itemsToDelete.get(i), end);
+          if (index > 0) {
+            modified = true;
+            end = index;
+          }
+          else {
+            end = ~index;
+          }
+        }
+        return modified;
+      }
+
+      @Override
+      public boolean removeIf(@NotNull Predicate<? super ResourceItem> filter) {
+        boolean removed = false;
+        for (int i = myResourceItems.size(); --i >= 0;) {
+          List<ResourceItem> nested = myResourceItems.get(i);
+          for (int j = nested.size(); --j >= 0;) {
+            ResourceItem item = nested.get(j);
+            if (filter.test(item)) {
+              nested.remove(j);
+              removed = true;
+            }
+          }
+          if (nested.isEmpty()) {
+            myResourceItems.remove(i);
+          }
+        }
+        return removed;
+      }
+
+      /**
+       * Removes the given resource item from the first {@code end} elements of {@link #myResourceItems}.
+       *
+       * @param item the resource item to remove
+       * @param end the exclusive end of the range checked for existence of the item being deleted
+       * @return if the item to be deleted was found, returns its index, otherwise returns
+       *     the binary complement of the index pointing to where the item would be inserted
+       */
+      private int remove(@NotNull ResourceItem item, int end) {
+        int index = findConfigIndex(item, 0, end);
+        if (index < 0) {
+          return index;
+        }
+
+        List<ResourceItem> nested = myResourceItems.get(index);
+        if (!nested.remove(item)) {
+          return ~(index + 1);
+        }
+
+        if (nested.isEmpty()) {
+          myResourceItems.remove(index);
+          return index;
+        }
+        return index + 1;
+      }
+
+      @NotNull
+      private List<ResourceItem> sortedItems(@NotNull Collection<? extends ResourceItem> items) {
+        List<ResourceItem> sortedItems = new ArrayList<>(items);
+        sortedItems.sort(myComparator);
+        return sortedItems;
+      }
+
+      /**
+       * Returns index in {@link #myResourceItems} of the existing resource item with the same
+       * configuration as the {@code item} parameter. If {@link #myResourceItems} doesn't contains
+       * resources with the same configuration, returns binary complement of the insertion point.
+       */
+      private int findConfigIndex(@NotNull ResourceItem item, int start, int end) {
+        FolderConfiguration config = item.getConfiguration();
+        int low = start;
+        int high = end;
+
+        while (low < high) {
+          int mid = (low + high) >>> 1;
+          FolderConfiguration value = myResourceItems.get(mid).get(0).getConfiguration();
+          int c = value.compareTo(config);
+          if (c < 0) {
+            low = mid + 1;
+          }
+          else if (c > 0) {
+            high = mid;
+          }
+          else {
+            return mid;
+          }
+        }
+        return ~low; // Not found.
+      }
+    }
+
+    private class Values extends AbstractCollection<ResourceItem> {
+      @Override
+      public Iterator<ResourceItem> iterator() {
+        return new ValuesIterator();
+      }
+
+      @Override
+      public int size() {
+        return mySize;
+      }
+
+      private class ValuesIterator implements Iterator<ResourceItem> {
+        private Iterator<List<ResourceItem>> myOuterCursor = myMap.values().iterator();
+        private List<ResourceItem> myCurrentList;
+        private int myInnerCursor;
+
+        @Override
+        public boolean hasNext() {
+          return myCurrentList != null || myOuterCursor.hasNext();
+        }
+
+        @Override
+        public ResourceItem next() {
+          if (myCurrentList == null) {
+            myCurrentList = myOuterCursor.next();
+            myInnerCursor = 0;
+          }
+          try {
+            ResourceItem item = myCurrentList.get(myInnerCursor);
+            if (++myInnerCursor >= myCurrentList.size()) {
+              myCurrentList = null;
+            }
+            return item;
+          }
+          catch (IndexOutOfBoundsException e) {
+            throw new NoSuchElementException();
+          }
+        }
+      }
+    }
+  }
+
+  private static class ResourceItemComparator implements Comparator<ResourceItem> {
+    private final Comparator<ResourceItem> myPriorityComparator;
+
+    ResourceItemComparator(Comparator<ResourceItem> priorityComparator) {
+      myPriorityComparator = priorityComparator;
+    }
+
+    @Override
+    public int compare(@NotNull ResourceItem item1, @NotNull ResourceItem item2) {
+      int c = item1.getConfiguration().compareTo(item2.getConfiguration());
+      if (c != 0) {
+        return c;
+      }
+      return myPriorityComparator.compare(item1, item2);
     }
   }
 }

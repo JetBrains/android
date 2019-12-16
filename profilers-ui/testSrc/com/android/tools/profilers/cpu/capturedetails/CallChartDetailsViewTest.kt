@@ -93,7 +93,7 @@ class CallChartDetailsViewTest {
 
   @Test
   fun showsNoDataForThreadMessageWhenNodeIsNull() {
-    val callChart = CaptureDetails.Type.CALL_CHART.build(Range(), capture.getCaptureNode(1), capture) as CaptureDetails.CallChart
+    val callChart = CaptureDetails.Type.CALL_CHART.build(Range(), listOf(capture.getCaptureNode(1)), capture) as CaptureDetails.CallChart
     val callChartView = ChartDetailsView.CallChartDetailsView(profilersView, callChart)
 
     val noDataInstructions = TreeWalker(callChartView.component).descendants().filterIsInstance<InstructionsPanel>().first {
@@ -106,7 +106,7 @@ class CallChartDetailsViewTest {
 
   @Test
   fun showsContentWhenNodeIsNotNull() {
-    val callChart = CaptureDetails.Type.CALL_CHART.build(Range(), capture.getCaptureNode(capture.mainThreadId),
+    val callChart = CaptureDetails.Type.CALL_CHART.build(Range(), listOf(capture.getCaptureNode(capture.mainThreadId)),
                                                          capture) as CaptureDetails.CallChart
     val callChartView = ChartDetailsView.CallChartDetailsView(profilersView, callChart)
 
@@ -130,7 +130,7 @@ class CallChartDetailsViewTest {
                                        TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_PID1_PATH)),
                                      Cpu.CpuTraceType.ATRACE)!!.get()
     val callChart = CaptureDetails.Type.CALL_CHART.build(Range(Double.MIN_VALUE, Double.MAX_VALUE),
-                                                         atraceCapture.getCaptureNode(atraceCapture.mainThreadId),
+                                                         listOf(atraceCapture.getCaptureNode(atraceCapture.mainThreadId)),
                                                          atraceCapture) as CaptureDetails.CallChart
     val callChartView = ChartDetailsView.CallChartDetailsView(profilersView, callChart)
     val treeChart = TreeWalker(callChartView.component).descendants().filterIsInstance<HTreeChart<CaptureNode>>().first()
@@ -141,7 +141,7 @@ class CallChartDetailsViewTest {
   fun showsNoDataForRangeMessage() {
     // Select a range where we don't have trace data
     val range = Range(Double.MAX_VALUE - 10, Double.MAX_VALUE - 5)
-    val callChart = CaptureDetails.Type.CALL_CHART.build(range, capture.getCaptureNode(capture.mainThreadId),
+    val callChart = CaptureDetails.Type.CALL_CHART.build(range, listOf(capture.getCaptureNode(capture.mainThreadId)),
                                                          capture) as CaptureDetails.CallChart
     val callChartView = ChartDetailsView.CallChartDetailsView(profilersView, callChart)
 

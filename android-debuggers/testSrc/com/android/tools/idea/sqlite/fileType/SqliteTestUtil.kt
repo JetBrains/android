@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.fileType
 
+import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.util.io.ByteArraySequence
@@ -63,7 +64,25 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
     }
   }
 
-  fun createEmptyTempSqliteDatabase(name: String): VirtualFile = runReadAction {
+  fun createTestSqliteDatabase(
+    dbName: String = "sqlite-database",
+    tableName: String = "tab",
+    columns: List<String> = emptyList(),
+    primaryKeys: List<String> = emptyList(),
+    withoutRowId: Boolean = false
+  ): VirtualFile = runWriteAction {
+    createEmptyTempSqliteDatabase(dbName).also { file ->
+      // Note: We need to close the connection so the database file handle is released by the Sqlite engine.
+      openSqliteDatabase(file).use { connection ->
+        fillConfigurableTestDB(connection, tableName, columns, primaryKeys, withoutRowId)
+      }
+
+      // File as changed on disk, refresh virtual file cached data
+      file.refresh(false, false)
+    }
+  }
+
+  private fun createEmptyTempSqliteDatabase(name: String): VirtualFile = runReadAction {
     tempDirTestFixture.createFile(name).also { file ->
 
       // Note: We need to close the connection so the database file handle is released by the Sqlite engine.
@@ -96,35 +115,49 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
     }
   }
 
-  private fun fillDatabase(connection: Connection) = runWriteAction {
+  private fun fillConfigurableTestDB(
+    connection: Connection,
+    tableName: String,
+    columns: List<String>,
+    primaryKeys: List<String>,
+    withoutRowId: Boolean = false
+  ) {
+    var columnsString = primaryKeys.joinToString(
+      separator = ", ",
+      postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else " "
+    ) { "${AndroidSqlLexer.getValidName(it)} INTEGER NOT NULL" }
+    columnsString += columns.joinToString(separator = ", ") { AndroidSqlLexer.getValidName(it) }
+
+    val primaryKeysNames = primaryKeys.joinToString(separator = ",") { AndroidSqlLexer.getValidName(it) }
+
+    val createTableStatement = "CREATE TABLE ${AndroidSqlLexer.getValidName(tableName)} ( $columnsString " +
+                               ( if (primaryKeys.isNotEmpty()) ", PRIMARY KEY ( $primaryKeysNames ) " else "" ) +
+                               " ) " + if (withoutRowId) " WITHOUT rowid" else ""
+
     connection.createStatement().use { stmt ->
-      val sql = "CREATE TABLE contacts (\n" +
-          " contact_id integer PRIMARY KEY,\n" +
-          " first_name text NOT NULL,\n" +
-          " last_name text NOT NULL,\n" +
-          " email text NOT NULL UNIQUE,\n" +
-          " phone text NOT NULL UNIQUE\n" +
-          ");"
-      stmt.executeUpdate(sql)
+      stmt.executeUpdate(createTableStatement)
     }
 
-    // Batch insert a bunch of rows
-    connection.autoCommit = false
-    val sql = "INSERT INTO contacts(contact_id, first_name, last_name, email, phone) VALUES(?, ?, ?, ?, ?)"
-    connection.prepareStatement(sql).use { pstmt ->
-      // 300 rows so the file size is non trivial (currently about 40KB)
-      for (i in 0..299) {
-        pstmt.setInt(1, i * 10)
-        pstmt.setString(2, "MyName $i")
-        pstmt.setString(3, "MyLastName $i")
-        pstmt.setString(4, "MyEmail@$i")
-        pstmt.setString(5, "MyPhone: 555-$i")
-        pstmt.addBatch()
-      }
-      pstmt.executeBatch()
+    var colsNames = primaryKeys.joinToString(
+      separator = ", ",
+      postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else ""
+    ) { AndroidSqlLexer.getValidName(it) }
+    colsNames += columns.joinToString(separator = ", ") { AndroidSqlLexer.getValidName(it) }
+
+    var colsValues = primaryKeys.joinToString(
+      separator = ", ",
+      postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else ""
+    ) { "?" }
+    colsValues += columns.joinToString(separator = ", ") { "?" }
+
+    val insertStatement = "INSERT INTO ${AndroidSqlLexer.getValidName(tableName)} ( $colsNames ) VALUES ( $colsValues )"
+
+    var index = 1
+    connection.prepareStatement(insertStatement).use { preparedStatement ->
+      repeat(primaryKeys.size) { preparedStatement.setInt(index, index); index+=1 }
+      repeat(columns.size) { preparedStatement.setString(index, "val $index"); index+=1 }
+      preparedStatement.execute()
     }
-    connection.commit()
-    connection.autoCommit = true
   }
 
   private fun fillTestDatabase(connection: Connection) = runWriteAction {

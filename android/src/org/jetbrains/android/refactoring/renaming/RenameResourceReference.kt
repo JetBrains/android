@@ -15,16 +15,21 @@
  */
 package org.jetbrains.android.refactoring.renaming
 
+import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ValueResourceNameValidator
+import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.RESOURCE_CONTEXT_ELEMENT
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.RESOURCE_CONTEXT_SCOPE
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
+import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.TitledHandler
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.Project
@@ -35,9 +40,15 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiReference
 import com.intellij.psi.search.SearchScope
 import com.intellij.refactoring.listeners.RefactoringElementListener
+import com.intellij.refactoring.rename.BindablePsiReference
 import com.intellij.refactoring.rename.RenameDialog
 import com.intellij.refactoring.rename.RenameHandler
 import com.intellij.refactoring.rename.RenamePsiElementProcessor
+import com.intellij.refactoring.rename.RenameUtil
+import com.intellij.usageView.UsageInfo
+import org.jetbrains.android.augment.ResourceLightField
+import org.jetbrains.android.augment.StyleableAttrFieldUrl
+import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.util.AndroidBuildCommonUtils.PNG_EXTENSION
 import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -60,19 +71,81 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
     }
   }
 
+  override fun renameElement(element: PsiElement, newName: String, usages: Array<out UsageInfo>, listener: RefactoringElementListener?) {
+    for (usage in usages) {
+      // BindablePsiReference is a marker interface for elements that should be using bindToElement. It is rarely used and in practice we
+      // don't need to rename those elements.
+      if (usage.reference !is BindablePsiReference) {
+        val language = usage.element?.language
+        if (language != null &&
+            (language == KotlinLanguage.INSTANCE || language == JavaLanguage.INSTANCE) &&
+            element is ResourceReferencePsiElement) {
+          // Java and Kotlin Fields can require custom newName strings as do not control their references and so cannot provide custom
+          // implementation there.
+          renameAndroidLightField(element, usage, newName);
+        } else {
+          RenameUtil.rename(usage, newName)
+        }
+      }
+    }
+  }
+
+  private fun renameAndroidLightField(element: PsiElement, usage: UsageInfo, newName: String) {
+    val resolvedValue = usage.reference?.resolve()
+    if (resolvedValue is ResourceLightField) {
+      RenameUtil.rename(usage, newName)
+    }
+    else if (resolvedValue is StyleableAttrLightField) {
+      val fieldUrl = resolvedValue.styleableAttrFieldUrl
+      val resourceReference = (element as? ResourceReferencePsiElement)?.resourceReference ?: return
+      when (resourceReference.resourceType) {
+        ResourceType.ATTR -> {
+          val newAttrName = StyleableAttrFieldUrl(fieldUrl.styleable, ResourceReference(
+            fieldUrl.attr.namespace, ResourceType.ATTR, newName)).toFieldName()
+          RenameUtil.rename(usage, newAttrName)
+        }
+        ResourceType.STYLEABLE -> {
+          val newStyleableName = StyleableAttrFieldUrl(ResourceReference(
+            fieldUrl.styleable.namespace, ResourceType.STYLEABLE, newName), fieldUrl.attr).toFieldName()
+          RenameUtil.rename(usage, newStyleableName)
+        }
+        else -> {
+          //Cannot rename a styleable attr field any other ResourceType
+          if (LOG.isDebugEnabled) {
+            LOG.debug("Trying to rename styleable attr field from incorrect resource type: ${resourceReference.resourceType.displayName}")
+          }
+        }
+      }
+    }
+  }
+
   override fun findReferences(
     element: PsiElement,
     searchScope: SearchScope,
     searchInCommentsAndStrings: Boolean
   ): MutableCollection<PsiReference> {
+    val found = super.findReferences(element, searchScope, searchInCommentsAndStrings)
     val resourceElement =
-      (element as? ResourceReferencePsiElement) ?: return super.findReferences(element, searchScope, searchInCommentsAndStrings)
+      (element as? ResourceReferencePsiElement) ?: return found
     val contextElement =
-      resourceElement.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT) ?: return super.findReferences(element, searchScope, searchInCommentsAndStrings)
+      resourceElement.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT) ?: return found
+
+    // Add any file based resources not found in references search
     val fileResources =
       AndroidResourceToPsiResolver.getInstance().getGotoDeclarationFileBasedTargets(resourceElement.resourceReference, contextElement)
-    val found = super.findReferences(element, searchScope, searchInCommentsAndStrings)
     found.addAll(fileResources.map { ResourceFileReference(it) })
+
+    // Add styleableAttr fields not found in references search
+    val androidFacet = contextElement.androidFacet ?: return found
+    when (resourceElement.resourceReference.resourceType) {
+      ResourceType.ATTR -> {
+        val fields = AndroidResourceUtil.findStyleableAttrFieldsForAttr(androidFacet, resourceElement.resourceReference.name)
+        found.addAll(fields.map { super.findReferences(it, searchScope, searchInCommentsAndStrings) }.flatten())}
+      ResourceType.STYLEABLE -> {
+        val fields = AndroidResourceUtil.findStyleableAttrFieldsForStyleable(androidFacet, resourceElement.resourceReference.name)
+        found.addAll(fields.map { super.findReferences(it, searchScope, searchInCommentsAndStrings) }.flatten())}
+      else -> { /* Fields for other types are found in the references search */}
+    }
     return found
   }
 
@@ -104,7 +177,14 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
   }
 
   override fun getPostRenameCallback(element: PsiElement, newName: String, elementListener: RefactoringElementListener): Runnable? {
-    return Runnable { (element as? ResourceReferencePsiElement)?.psiManager?.dropResolveCaches() }
+    val psiManager = (element as? ResourceReferencePsiElement)?.psiManager ?: return null
+    return Runnable {
+      AndroidResourceUtil.scheduleNewResolutionAndHighlighting(psiManager)
+    }
+  }
+
+  companion object {
+    private val LOG = Logger.getInstance(ResourceReferenceRenameProcessor::class.java)
   }
 }
 

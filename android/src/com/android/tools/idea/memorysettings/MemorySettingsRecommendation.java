@@ -36,7 +36,7 @@ public class MemorySettingsRecommendation {
     int basedOnProject = getRecommendedBasedOnModuleCount(project);
     int recommended = Math.min(basedOnMachine, basedOnProject);
     if (basedOnMachine >= 2048 && recommended < 2048 && !SystemInfo.isWindows) {
-      // For machines with at least 8GB RAM, recommend at least 2GB
+      // For non-Windows machines with at least 8GB RAM, recommend at least 2GB
       recommended = 2048;
     }
     LOG.info(String.format(Locale.US, "recommendation based on machine: %d, on project: %d",

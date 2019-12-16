@@ -67,6 +67,7 @@ enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: 
   ANDROIDX_NAVIGATION_UI_KTX("androidx.navigation", "navigation-ui-ktx", false),
   // This is currently only used in tests
   NAVIGATION("androidx.navigation", "navigation-runtime", false),
+  ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT("androidx.navigation", "navigation-dynamic-features-fragment", false),
 
   // Testing
   TEST_RUNNER("com.android.support.test", "runner", false),

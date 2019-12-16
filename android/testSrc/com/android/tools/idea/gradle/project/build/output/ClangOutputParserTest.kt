@@ -497,7 +497,8 @@ class ClangOutputParserTest {
         // Record the current line and check if it's not supposed to be consumed by parsing it to the block.
         unconsumedLineIndices.add(reader.currentIndex)
         // Assert the reader is consistent with respect to the "current" line so there is no surprises for parsers after this parser.
-        Truth.assertThat(line).named("current line in reader").isEqualTo(reader.currentLine)
+        reader.pushBack()
+        Truth.assertThat(line).named("current line in reader").isEqualTo(reader.readLine())
       }
     }
     block(consumer.messageEvents.map { it as MessageEventImpl }, unconsumedLineIndices)

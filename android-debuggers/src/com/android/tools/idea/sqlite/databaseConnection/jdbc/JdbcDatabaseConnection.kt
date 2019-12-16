@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite.databaseConnection.jdbc
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
@@ -58,10 +59,23 @@ class JdbcDatabaseConnection(
     val tables = connection.metaData.getTables(null, null, null, null)
     val sqliteTables = mutableListOf<SqliteTable>()
     while (tables.next()) {
+      val columns = readColumnDefinitions(connection, tables.getString("TABLE_NAME"))
+      // if the db has an integer primary key there's no need to use rowid.
+      // otherwise we need to find the correct alias to use for the rowid column.
+      val hasIntegerPrimaryKey = columns.any { it.inPrimaryKey && it.type == JDBCType.INTEGER }
+      val rowIdName = when {
+        hasIntegerPrimaryKey -> null
+        columns.none { it.name == RowIdName._ROWID_.stringName } -> RowIdName._ROWID_
+        columns.none { it.name == RowIdName.ROWID.stringName } -> RowIdName.ROWID
+        columns.none { it.name == RowIdName.OID.stringName } -> RowIdName.OID
+        else -> null
+      }
+
       sqliteTables.add(
         SqliteTable(
           tables.getString("TABLE_NAME"),
-          readColumnDefinitions(connection, tables.getString("TABLE_NAME")),
+          columns,
+          rowIdName,
           isView = tables.getString("TABLE_TYPE") == "VIEW"
         )
       )
@@ -70,24 +84,18 @@ class JdbcDatabaseConnection(
     SqliteSchema(sqliteTables).apply { logger.info("Successfully read database schema: ${sqliteFile.path}") }
   }
 
-  private fun readColumnDefinitions(connection: Connection, tableName: String?): ArrayList<SqliteColumn> {
+  private fun readColumnDefinitions(connection: Connection, tableName: String): List<SqliteColumn> {
     val columnsSet = connection.metaData.getColumns(null, null, tableName, null)
-    val columns = ArrayList<SqliteColumn>()
-    while (columnsSet.next()) {
-      if (logger.isDebugEnabled) {
-        logger.debug("Table \"$tableName\" metadata:")
-        for (i in 1..columnsSet.metaData.columnCount) {
-          logger.debug("  Column \"${columnsSet.metaData.getColumnName(i)}\" = ${columnsSet.getString(i)}")
-        }
-      }
-      columns.add(
-        SqliteColumn(
-          columnsSet.getString("COLUMN_NAME"),
-          JDBCType.valueOf(columnsSet.getInt("DATA_TYPE"))
-        )
+    val keyColumnsNames = connection.getColumnNamesInPrimaryKey(tableName)
+
+    return columnsSet.map {
+      val columnName = columnsSet.getString("COLUMN_NAME")
+      SqliteColumn(
+        columnName,
+        JDBCType.valueOf(columnsSet.getInt("DATA_TYPE")),
+        keyColumnsNames.contains(columnName)
       )
-    }
-    return columns
+    }.toList()
   }
 
   override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet?> {

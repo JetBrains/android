@@ -117,11 +117,13 @@ public class GuiTestRule implements TestRule {
     }
   };
 
+  @NotNull
   public GuiTestRule withLeakCheck() {
     myLeakCheck.setEnabled(true);
     return this;
   }
 
+  @NotNull
   public GuiTestRule settingNdkPath() {
     mySetNdkPath = true;
     return this;
@@ -279,7 +281,7 @@ public class GuiTestRule implements TestRule {
     Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
     if (activeWindow instanceof Dialog) {
       Dialog dialog = (Dialog)activeWindow;
-      if (dialog.getModalityType() == Dialog.ModalityType.APPLICATION_MODAL) {
+      if (dialog.getModalityType() == Dialog.ModalityType.APPLICATION_MODAL && dialog.isDisplayable()) {
         return dialog;
       }
     }
@@ -310,19 +312,23 @@ public class GuiTestRule implements TestRule {
     return project;
   }
 
+  @NotNull
   public IdeFrameFixture importSimpleApplication() throws IOException {
     return importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
   }
 
+  @NotNull
   public IdeFrameFixture importMultiModule() throws IOException {
     return importProjectAndWaitForProjectSyncToFinish("MultiModule");
   }
 
+  @NotNull
   public IdeFrameFixture importProjectAndWaitForProjectSyncToFinish(@NotNull String projectDirName) throws IOException {
     importProject(projectDirName);
     return ideFrame().waitForGradleProjectSyncToFinish();
   }
 
+  @NotNull
   public IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
     File projectDir = setUpProject(projectDirName);
     return openProject(projectDir);
@@ -357,6 +363,7 @@ public class GuiTestRule implements TestRule {
    * @param projectDirName             the name of the project's root directory. Tests are located in testData/guiTests.
    * @throws IOException if an unexpected I/O error occurs.
    */
+  @NotNull
   public File setUpProject(@NotNull String projectDirName) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
 
@@ -368,6 +375,7 @@ public class GuiTestRule implements TestRule {
     return projectPath;
   }
 
+  @NotNull
   public File copyProjectBeforeOpening(@NotNull String projectDirName) throws IOException {
     File masterProjectPath = getMasterProjectDirPath(projectDirName);
 
@@ -492,6 +500,7 @@ public class GuiTestRule implements TestRule {
     return myIdeFrameFixture;
   }
 
+  @NotNull
   public GuiTestRule withTimeout(long timeout, @NotNull TimeUnit timeUnits) {
     myInnerTimeout = new DebugFriendlyTimeout(timeout, timeUnits).withThreadDumpOnTimeout();
     myOuterTimeout = new DebugFriendlyTimeout(timeUnits.toSeconds(timeout) + 120, TimeUnit.SECONDS);

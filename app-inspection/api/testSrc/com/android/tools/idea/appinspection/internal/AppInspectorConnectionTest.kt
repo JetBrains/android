@@ -17,8 +17,6 @@ package com.android.tools.idea.appinspection.internal
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection.AppInspectionEvent
-import com.android.tools.app.inspection.AppInspection.AppInspectionResponse.Status.ERROR
-import com.android.tools.app.inspection.AppInspection.AppInspectionResponse.Status.SUCCESS
 import com.android.tools.app.inspection.AppInspection.CrashEvent
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
@@ -57,24 +55,19 @@ class AppInspectorConnectionTest {
   val timeoutRule = Timeout(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
 
   @Test
-  fun disposeInspectorSucceedWithCallback() {
+  fun disposeInspectorSucceeds() {
     val connection = appInspectionRule.launchInspectorConnection()
 
-    val response = connection.disposeInspector().get()
-    assertThat(response.status).isEqualTo(SUCCESS)
-    assertThat(response.hasServiceResponse()).isTrue()
+    connection.disposeInspector().get()
   }
 
   @Test
-  fun disposeInspectorFailWithCallback() {
+  fun disposeFailsButInspectorIsDisposedAnyway() {
     val connection = appInspectionRule.launchInspectorConnection(
       commandHandler = TestInspectorCommandHandler(timer, false, "error")
     )
 
-    val response = connection.disposeInspector().get()
-    assertThat(response.status).isEqualTo(ERROR)
-    assertThat(response.errorMessage).isEqualTo("error")
-    assertThat(response.hasServiceResponse()).isTrue()
+    connection.disposeInspector().get()
   }
 
   @Test
@@ -124,9 +117,8 @@ class AppInspectorConnectionTest {
   fun disposeConnectionClosesConnection() {
     val connection = appInspectionRule.launchInspectorConnection(INSPECTOR_ID)
 
-    val response = connection.disposeInspector().get()
-    assertThat(response.status).isEqualTo(SUCCESS)
-    assertThat(response.hasServiceResponse()).isTrue()
+    connection.disposeInspector().get()
+
     // connection should be closed
     try {
       connection.sendRawCommand("Test".toByteArray()).get()

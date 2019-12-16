@@ -18,6 +18,7 @@ package org.jetbrains.android
 import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
@@ -101,6 +102,55 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     </attr>""".trim()))
   }
 
+  fun testGotoResourceFromStartOfReferenceXml() {
+    val file = myFixture.addFileToProject(
+      "res/values/colors.xml",
+      //language=XML
+      """<?xml version="1.0" encoding="utf-8"?>
+      <resources>
+        <color name="colorPrimary">#3f51b5</color>
+        <color name="colorPrimaryDark">${caret}@color/colorPrimary</color>
+      </resources>
+      """).virtualFile
+    val declaration = getDeclarationsFrom(file)
+    assertThat(declaration).hasLength(1)
+    assertThat(describeElements(declaration))
+      .isEqualTo("""
+        values/colors.xml:3:
+          <color name="colorPrimary">#3f51b5</color>
+                      ~|~~~~~~~~~~~~~               
+
+      """.trimIndent())
+  }
+
+  fun testGotoResourceFromStartOfReferenceLayoutXml() {
+    myFixture.addFileToProject(
+      "res/values/colors.xml",
+      //language=XML
+      """<?xml version="1.0" encoding="utf-8"?>
+      <resources>
+        <color name="colorPrimary">#3f51b5</color>
+      </resources>
+      """)
+    val layoutFile = myFixture.addFileToProject(
+      "res/layout/layout_main.xml",
+      //language=XML
+      """<?xml version="1.0" encoding="utf-8"?>
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android">
+          <TextView android:textColor="${caret}@color/colorPrimary"/>
+        </LinearLayout>
+      """).virtualFile
+    val declaration = getDeclarationsFrom(layoutFile)
+    assertThat(declaration).hasLength(1)
+    assertThat(describeElements(declaration))
+      .isEqualTo("""
+        values/colors.xml:3:
+          <color name="colorPrimary">#3f51b5</color>
+                      ~|~~~~~~~~~~~~~               
+
+      """.trimIndent())
+  }
+
   fun testGotoString() {
     myFixture.copyFileToProject(basePath + "strings.xml", "res/values/strings.xml")
     myFixture.copyFileToProject(basePath + "layout.xml", "res/layout/layout.xml")
@@ -108,6 +158,33 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
     assertEquals("values/strings.xml:2:\n" +
                  "  <string name=\"hello\">hello</string>\n" +
                  "               ~|~~~~~~              \n",
+                 describeElements(getDeclarationsFrom(file))
+    )
+  }
+
+  fun testGotoFlattenableResource() {
+    myFixture.addFileToProject(
+      "res/values/flattencolors.xml",
+      //language=XML
+      """<?xml version="1.0" encoding="utf-8"?>
+      <resources>
+          <color name="foo.bar" />
+      </resources>
+      """)
+    val file = myFixture.addFileToProject(
+      "src/p1/p2/Activity.kt",
+      """
+        package p1.p2
+        import android.app.Activity
+        class ExampleActivity: Activity() {
+            fun resource() {
+                R.color.foo_${caret}bar
+            }
+        }
+      """.trimIndent()).virtualFile
+    assertEquals("values/flattencolors.xml:3:\n" +
+                 "  <color name=\"foo.bar\" />\n" +
+                 "              ~|~~~~~~~~  \n",
                  describeElements(getDeclarationsFrom(file))
     )
   }
@@ -304,6 +381,61 @@ abstract class AndroidGotoDeclarationHandlerTestBase : AndroidTestCase() {
                  "  ~~~~~~~~~~~~~|~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",
                  describeElements(getDeclarationsFrom(file))
     )
+  }
+
+  fun testGotoDeclareStyleableFromXML() {
+    myFixture.addFileToProject(
+      "src/p1/p2/MyView.java",
+      //language=Java
+      """
+      package p1.p2;
+
+      import android.content.Context;
+      import android.util.AttributeSet;
+      import android.widget.Button;
+
+      @SuppressWarnings("UnusedDeclaration")
+      public class MyView extends Button {
+          public MyView(Context context, AttributeSet attrs, int defStyle) {
+              super(context, attrs, defStyle);
+          }
+      }
+    """.trimIndent())
+    val file = myFixture.addFileToProject(
+      "res/values/styles.xml",
+      //language=XML
+      """
+        <resources>
+          <declare-styleable name="My<caret>View">
+            <attr name="libAttr" format="string" />
+          </declare-styleable>
+        </resources>
+        """.trimIndent()
+    ).virtualFile
+    val expectedResult =
+      if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+        // In the new pipeline, the declare styleable name resolves to a ResourceReferencePsiElement. And the GotoDeclarationHandler can
+        // decide which element to point to, currently the declare-styleable name.
+        """
+          values/styles.xml:2:
+            <declare-styleable name="MyView">
+                                    ~|~~~~~~~
+
+        """.trimIndent()
+      }
+      else {
+        // In the old pipeline, the declare styleable name does not resolve to a ResourceReferencePsiElement, instead to the corresponding
+        // class of the same name that extends View.java, if it exists, otherwise nothing.
+        """
+          MyView.java:8:
+            @SuppressWarnings("UnusedDeclaration")
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        """.trimIndent()
+      }
+    assertEquals(expectedResult,
+                 describeElements(getDeclarationsFrom(file)))
+
   }
 
   fun testGotoResourceFromToolsAttribute() {

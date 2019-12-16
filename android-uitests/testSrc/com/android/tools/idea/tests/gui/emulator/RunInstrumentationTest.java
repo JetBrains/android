@@ -21,10 +21,8 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec;
 import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule;
-import com.android.tools.idea.tests.gui.framework.emulator.EmulatorGenerator;
 import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
@@ -100,9 +98,10 @@ public class RunInstrumentationTest {
   @Test
   public void runInstrumentationTest() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("InstrumentationTest");
-    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
 
-    ideFrameFixture.invokeMenuPath("Run", "Edit Configurations...");
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame()
+      .waitAndInvokeMenuPath("Run", "Edit Configurations...");
+
     EditConfigurationsDialogFixture.find(guiTest.robot())
       .clickAddNewConfigurationButton()
       .selectConfigurationType(ANDROID_INSTRUMENTED_TESTS)

@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidModule
 
+import com.android.ide.common.repository.GradleVersion
+import com.android.repository.Revision.parseRevision
+import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
 import com.android.tools.idea.npw.module.recipes.androidConfig
 import com.android.tools.idea.npw.module.recipes.getConfigurationName
-import com.android.tools.idea.npw.module.recipes.kotlinDependencies
+import com.android.tools.idea.npw.module.recipes.supportsImprovedTestDeps
 import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.templates.resolveDependency
+import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.GradlePluginVersion
 import com.android.tools.idea.wizard.template.Language
+import com.android.tools.idea.wizard.template.has
 import com.android.tools.idea.wizard.template.renderIf
 
 fun buildGradle(
@@ -29,23 +34,24 @@ fun buildGradle(
   isDynamicFeature: Boolean,
   packageName: String,
   buildApiString: String,
-  explicitBuildToolsVersion: Boolean,
   buildToolsVersion: String,
   minApi: Int,
   targetApi: Int,
   useAndroidX: Boolean,
   language: Language,
   gradlePluginVersion: GradlePluginVersion,
-  supportsImprovedTestDeps: Boolean,
-  includeCppSupport: Boolean,
+  includeCppSupport: Boolean = false,
   // TODO(qumeric): do something better
   cppFlags: String = "",
   isCompose: Boolean = false,
   baseFeatureName: String = "base",
   wearProjectName: String = "wear",
-  mobileIncluded: Boolean = true,
-  wearIncluded: Boolean = false
+  formFactorNames: Map<FormFactor, List<String>>,
+  hasTests: Boolean = true,
+  addLintOptions: Boolean = false
 ): String {
+  val explicitBuildToolsVersion = needsExplicitBuildToolsVersion(GradleVersion.parse(gradlePluginVersion), parseRevision(buildToolsVersion))
+  val supportsImprovedTestDeps = supportsImprovedTestDeps(gradlePluginVersion)
   val isApplicationProject = !isLibraryProject
   val kotlinPluginsBlock = renderIf(language == Language.Kotlin) {
     """
@@ -72,9 +78,10 @@ fun buildGradle(
     includeCppSupport,
     isApplicationProject,
     packageName,
-    hasTests = true,
+    hasTests = hasTests,
     canHaveCpp = true,
-    canUseProguard = true
+    canUseProguard = true,
+    addLintOptions = addLintOptions
   )
 
   val composeDependenciesBlock = renderIf(isCompose) { "kotlinPlugin \"androidx.compose:compose-compiler:+\"" }
@@ -89,13 +96,10 @@ fun buildGradle(
     """
   }
 
-  val kotlinDependenciesBlock = renderIf(language == Language.Kotlin) {
-    kotlinDependencies(gradlePluginVersion)
-  }
-
   val dynamicFeatureBlock = when {
     isDynamicFeature -> """implementation project (":${baseFeatureName}")"""
-    !wearProjectName.isBlank() && mobileIncluded && wearIncluded -> """wearApp project (":${wearProjectName}")"""
+    !wearProjectName.isBlank() && formFactorNames.has(FormFactor.Mobile) && formFactorNames.has(FormFactor.Wear) ->
+      """wearApp project (":${wearProjectName}")"""
     else -> ""
   }
 
@@ -104,7 +108,6 @@ fun buildGradle(
     $composeDependenciesBlock
     ${getConfigurationName("compile", gradlePluginVersion)} fileTree (dir: "libs", include: ["*.jar"])
     $oldTestDependenciesBlock
-    $kotlinDependenciesBlock
     $dynamicFeatureBlock
   }
   """

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual
 
+import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionHandler
@@ -24,6 +25,7 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import org.intellij.lang.annotations.JdkConstants
 import java.awt.Component
 import java.awt.Cursor
 import java.awt.dnd.DropTargetDragEvent
@@ -32,26 +34,34 @@ import java.awt.event.MouseWheelEvent
 
 class VisualizationInteractionHandler(private val surface: DesignSurface,
                                       private val getModelsProviderFunc: () -> VisualizationModelsProvider) : InteractionHandler {
-  override fun createInteractionOnClick(mouseX: Int, mouseY: Int): Interaction? = null
+  override fun createInteractionOnPressed(@SwingCoordinate mouseX: Int,
+                                          @SwingCoordinate mouseY: Int,
+                                          @JdkConstants.InputEventMask modifiersEx: Int): Interaction? = null
 
-  override fun createInteractionOnDrag(mouseX: Int, mouseY: Int): Interaction? = null
+  override fun createInteractionOnDrag(@SwingCoordinate mouseX: Int,
+                                       @SwingCoordinate mouseY: Int,
+                                       @JdkConstants.InputEventMask modifiersEx: Int): Interaction? = null
 
   override fun createInteractionOnDragEnter(dragEvent: DropTargetDragEvent): Interaction? = null
 
   override fun createInteractionOnMouseWheelMoved(mouseWheelEvent: MouseWheelEvent): Interaction? = null
 
-  override fun mouseReleaseWhenNoInteraction(x: Int, y: Int, modifierEx: Int) = Unit
+  override fun mouseReleaseWhenNoInteraction(@SwingCoordinate x: Int,
+                                             @SwingCoordinate y: Int,
+                                             @JdkConstants.InputEventMask modifiersEx: Int) = Unit
 
-  override fun singleClick(x: Int, y: Int) = Unit
+  override fun singleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) = Unit
 
-  override fun doubleClick(x: Int, y: Int) {
+  override fun doubleClick(@SwingCoordinate x: Int, @SwingCoordinate y: Int, @JdkConstants.InputEventMask modifiersEx: Int) {
     val view = surface.getHoverSceneView(x, y) ?: return
     val sourceFile = surface.sceneManager?.model?.virtualFile ?: return
     val targetFile = view.sceneManager.model.virtualFile
     LayoutNavigationManager.getInstance(surface.project).pushFile(sourceFile, targetFile)
   }
 
-  override fun hoverWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int) {
+  override fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
+                                      @SwingCoordinate mouseY: Int,
+                                      @JdkConstants.InputEventMask modifiersEx: Int) {
     val sceneView = surface.getHoverSceneView(mouseX, mouseY)
     if (sceneView != null) {
       val name = sceneView.sceneManager.model.configuration.toTooltips()
@@ -62,7 +72,7 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
     }
   }
 
-  override fun popupMenuTrigger(mouseEvent: MouseEvent, ignoredIfAlreadySelected: Boolean) {
+  override fun popupMenuTrigger(mouseEvent: MouseEvent) {
     // For now only custom models mode has popup menu.
     val customModelsProvider = getModelsProviderFunc.invoke() as? CustomModelsProvider ?: return
 
@@ -89,5 +99,7 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
     }
   }
 
-  override fun getCursorWhenNoInteraction(mouseX: Int, mouseY: Int, modifiersEx: Int): Cursor? = null
+  override fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,
+                                          @SwingCoordinate mouseY: Int,
+                                          @JdkConstants.InputEventMask modifiersEx: Int): Cursor? = null
 }

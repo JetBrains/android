@@ -895,7 +895,9 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     assertThat(event).isNotNull();
     FailureResult failureResult = (FailureResult)event.getResult();
     assertThat(failureResult.getFailures()).isNotEmpty();
+/* b/145809317
     assertThat(failureResult.getFailures().get(0).getMessage()).isNotEqualTo("Fake sync error");
+b/145809317 */
   }
 
   public void testUnresolvedDependency() throws IOException {

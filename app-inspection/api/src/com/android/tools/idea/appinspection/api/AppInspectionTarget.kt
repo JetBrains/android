@@ -18,13 +18,11 @@ package com.android.tools.idea.appinspection.api
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.appinspection.internal.attachAppInspectionTarget
-import com.android.tools.idea.transport.DeployableFile
-import com.android.tools.idea.transport.TransportClient
-import com.android.tools.idea.transport.TransportFileCopier
-import com.android.tools.profiler.proto.Common.Process
-import com.android.tools.profiler.proto.Common.Stream
+import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
-import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executor
+
+typealias TargetTerminatedListener = () -> Unit
 
 /**
  * Represents an app-inspection target process (on the device) being connected to from the host.
@@ -43,22 +41,26 @@ interface AppInspectionTarget {
   @WorkerThread
   fun <T : AppInspectorClient> launchInspector(
     inspectorId: String,
-    inspectorJar: DeployableFile,
+    inspectorJar: AppInspectorJar,
     @WorkerThread creator: (AppInspectorClient.CommandMessenger) -> T
   ): ListenableFuture<T>
+
+  /**
+   * Adds a listener to be notified (via [executor]) of when this connection is closed.
+   *
+   * Listener fires immediately if connection is already closed.
+   */
+  fun addTargetTerminatedListener(executor: Executor, listener: TargetTerminatedListener): TargetTerminatedListener
 
   companion object {
     /**
      * Creates an [AppInspectionTarget] for the given [process] on the given device ([stream])
      */
+    @VisibleForTesting
     @WorkerThread
     fun attach(
-      stream: Stream,
-      process: Process,
-      channelName: String,
-      executorService: ExecutorService,
-      fileCopier: TransportFileCopier,
-      transport: AppInspectionTransport = AppInspectionTransport(TransportClient(channelName), stream, process, executorService)
-    ): ListenableFuture<AppInspectionTarget> = attachAppInspectionTarget(stream, process, transport, fileCopier)
+      transport: AppInspectionTransport,
+      jarCopier: AppInspectionJarCopier
+    ): ListenableFuture<AppInspectionTarget> = attachAppInspectionTarget(transport, jarCopier)
   }
 }

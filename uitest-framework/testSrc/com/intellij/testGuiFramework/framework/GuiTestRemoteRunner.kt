@@ -72,7 +72,6 @@ open class GuiTestRemoteRunner(testClass: Class<*>): BlockJUnit4ClassRunner(test
       if (server.isRunning()) {
         server.closeIdeAndStop()
       }
-      server.launchIdeAndStart()
     }
 
     try {

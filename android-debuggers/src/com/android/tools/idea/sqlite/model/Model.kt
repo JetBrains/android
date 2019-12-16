@@ -56,7 +56,7 @@ data class SqliteSchema(val tables: List<SqliteTable>)
  *
  * @see [https://www.sqlite.org/lang_createview.html] for isView
  **/
-data class SqliteTable(val name: String, val columns: List<SqliteColumn>, val isView: Boolean)
+data class SqliteTable(val name: String, val columns: List<SqliteColumn>, val rowIdName: RowIdName?, val isView: Boolean)
 
 /** Representation of the Sqlite table row */
 data class SqliteRow(val values: List<SqliteColumnValue>)
@@ -65,7 +65,7 @@ data class SqliteRow(val values: List<SqliteColumnValue>)
 data class SqliteColumnValue(val column: SqliteColumn, val value: Any?)
 
 /** Representation of a Sqlite table column */
-data class SqliteColumn(val name: String, val type: JDBCType)
+data class SqliteColumn(val name: String, val type: JDBCType, val inPrimaryKey: Boolean)
 
 /**
  *  Representation of a SQLite statement that may contain positional parameters.
@@ -73,8 +73,8 @@ data class SqliteColumn(val name: String, val type: JDBCType)
  *  If the statement doesn't contain parameters, [parametersValues] is an empty list.
  *  If it does contain parameters, [parametersValues] contains their values, assigned by order.
  */
-data class SqliteStatement(val sqliteStatementText: String, val parametersValues: List<Any>) {
-  constructor(sqliteStatement: String) : this(sqliteStatement, emptyList<Any>())
+data class SqliteStatement(val sqliteStatementText: String, val parametersValues: List<Any?>) {
+  constructor(sqliteStatement: String) : this(sqliteStatement, emptyList<Any?>())
 
   override fun toString(): String {
     var renderedStatement = sqliteStatementText
@@ -85,4 +85,8 @@ data class SqliteStatement(val sqliteStatementText: String, val parametersValues
 
     return  renderedStatement
   }
+}
+
+enum class RowIdName(val stringName: String) {
+  ROWID("rowid"), OID("oid"), _ROWID_("_rowid_")
 }

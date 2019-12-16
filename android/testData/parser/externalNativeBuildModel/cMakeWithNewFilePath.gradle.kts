@@ -1,7 +1,7 @@
 android {
   externalNativeBuild {
     cmake {
-      path = File("foo/bar")
+      setPath(File("foo/bar"))
     }
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.build.invoker;
 
 import com.android.ide.common.blame.Message;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import org.gradle.tooling.BuildCancelledException;
@@ -30,7 +31,7 @@ public class GradleInvocationResult {
   @NotNull private final List<String> myTasks;
   @NotNull private final ListMultimap<Message.Kind, Message> myCompilerMessagesByKind = ArrayListMultimap.create();
   @Nullable private final Object myModel;
-  private final boolean myBuildSuccessful;
+  @Nullable private final Throwable myBuildError;
   private final boolean myBuildCancelled;
 
   public GradleInvocationResult(@NotNull List<String> tasks, @NotNull List<Message> compilerMessages, @Nullable Throwable buildError) {
@@ -42,7 +43,7 @@ public class GradleInvocationResult {
                                 @Nullable Throwable buildError,
                                 @Nullable Object model) {
     myTasks = tasks;
-    myBuildSuccessful = buildError == null;
+    myBuildError = buildError;
     myBuildCancelled = (buildError != null && hasCause(buildError, BuildCancelledException.class));
     for (Message msg : compilerMessages) {
       myCompilerMessagesByKind.put(msg.getKind(), msg);
@@ -61,7 +62,7 @@ public class GradleInvocationResult {
   }
 
   public boolean isBuildSuccessful() {
-    return myBuildSuccessful;
+    return myBuildError == null;
   }
 
   public boolean isBuildCancelled() {
@@ -71,5 +72,15 @@ public class GradleInvocationResult {
   @Nullable
   public Object getModel() {
     return myModel;
+  }
+
+  /**
+   * In production, the build error is intentionally wrapped, with relevant information exposed
+   * only through a public API, but for tests it could be useful to access it directly.
+   */
+  @VisibleForTesting
+  @Nullable
+  public Throwable getBuildError() {
+    return myBuildError;
   }
 }

@@ -1,4 +1,4 @@
-testCompatibilityWithAndroidStudio36NoImlProject (icon: /toolwindows/toolWindowProject.svg)
+AS36_noiml (icon: /toolwindows/toolWindowProject.svg)
     app (icon: /studio/icons/shell/filetree/android-module.svg)
         manifests (icon: /modules/sourceRoot.svg)
             AndroidManifest.xml (icon: /studio/icons/shell/filetree/manifest-file.svg)

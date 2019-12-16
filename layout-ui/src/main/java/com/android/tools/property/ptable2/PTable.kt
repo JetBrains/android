@@ -69,8 +69,14 @@ interface PTable {
   /** Returns the item at the specified [row] */
   fun item(row: Int): PTableItem
 
+  /** Returns the parent depth of a specified table item */
+  fun depth(item: PTableItem): Int
+
   /** Returns true if the item is currently expanded. */
   fun isExpanded(item: PTableGroupItem): Boolean
+
+  /** Toggles the expansion state of the specified [group] */
+  fun toggle(item: PTableGroupItem)
 
   /** Start editing the specified row, and stop editing if row is -1. */
   fun startEditing(row: Int)

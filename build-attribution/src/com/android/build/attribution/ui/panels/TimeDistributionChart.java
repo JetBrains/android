@@ -21,12 +21,13 @@ import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.percenta
 import com.android.build.attribution.ui.data.TimeWithPercentage;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
-import com.intellij.ui.components.panels.VerticalLayout;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
-import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -34,16 +35,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.Icon;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
+import org.jetbrains.annotations.NotNull;
 
 public class TimeDistributionChart<T> extends JPanel {
 
+  private static final int MIN_OTHER_TASKS_SECTION_HEIGHT_PX = 25;
   private static final int PIXELS_BY_PERCENT = 2;
-  private static final int BOX_WIDTH = 100;
-  public static final int MIN_OTHER_TASKS_SECTION_HEIGHT_PX = 25;
-  // Was decided to always have white (1px lines between boxes) for better visibility.
-  @SuppressWarnings("UseJBColor")
-  public static final Color BOXES_STACK_BACKGROUND = Color.WHITE;
 
   private final List<ChartItem> myChartItems;
   private final ChartDataItem<T> myHighlightedItem;
@@ -56,32 +53,20 @@ public class TimeDistributionChart<T> extends JPanel {
 
     myChartItems = dataItems.stream().map(ChartItem::new).collect(Collectors.toList());
 
-    JBPanel boxes = new JBPanel(new VerticalLayout(1, SwingConstants.RIGHT));
-    boxes.setBackground(BOXES_STACK_BACKGROUND);
-
-    myChartItems.forEach(item -> {
-      item.init();
-      boxes.add(item.leftBox);
-    });
-
-    ConnectionsPane connections = new ConnectionsPane();
-    connections.withMinimumWidth(50).withPreferredWidth(50);
-
     JPanel table = fullTable ? createFullPluginsTable() : createShortPluginsTable();
 
     GridBagConstraints c = new GridBagConstraints();
+    c.anchor = GridBagConstraints.FIRST_LINE_START;
     c.gridy = 0;
     c.gridx = 0;
-    c.anchor = GridBagConstraints.FIRST_LINE_START;
-    c.fill = GridBagConstraints.NONE;
-    add(boxes, c);
+    c.weightx = 0.0;
+    c.weighty = 1.0;
+    c.fill = GridBagConstraints.VERTICAL;
+    add(new ChartPane(), c);
 
     c.gridx = 1;
-    c.fill = GridBagConstraints.BOTH;
-    add(connections, c);
-
-    c.gridx = 2;
     c.weightx = 1.0;
+    c.weighty = 0.0;
     c.fill = GridBagConstraints.HORIZONTAL;
     add(table, c);
   }
@@ -92,20 +77,18 @@ public class TimeDistributionChart<T> extends JPanel {
     GridBagConstraints c = new GridBagConstraints();
     c.gridy = 0;
     myChartItems.forEach(item -> {
-      c.gridx = 0;
       c.weightx = 0d;
       c.anchor = GridBagConstraints.LINE_START;
       c.insets = JBUI.emptyInsets();
-      panel.add(item.rightAnchor, c);
-      c.gridx = 1;
+      c.gridx = 0;
       c.insets = JBUI.insets(0, 9, 0, 0);
-      panel.add(createTableLabel(durationString(item.time()), item), c);
-      c.gridx = 2;
+      panel.add(item.myTimeLabel, c);
+      c.gridx = 1;
       c.anchor = GridBagConstraints.LINE_END;
       panel.add(createTableLabel(percentageString(item.time()), item), c);
-      c.gridx = 3;
+      c.gridx = 2;
       panel.add(new JBLabel(item.getTableIcon()), c); //Warning / info icon placeholder
-      c.gridx = 4;
+      c.gridx = 3;
       c.anchor = GridBagConstraints.LINE_START;
       c.weightx = 1d;
       panel.add(createTableLabel(item.text(), item), c);
@@ -125,10 +108,8 @@ public class TimeDistributionChart<T> extends JPanel {
       c.weightx = 0d;
       c.anchor = GridBagConstraints.LINE_START;
       c.insets = JBUI.emptyInsets();
-      panel.add(item.rightAnchor, c);
-      c.gridx = 1;
       c.insets = JBUI.insets(0, 9, 0, 0);
-      panel.add(createTableLabel(durationString(item.time()), item), c);
+      panel.add(item.myTimeLabel, c);
 
       c.gridy++;
     });
@@ -170,24 +151,19 @@ public class TimeDistributionChart<T> extends JPanel {
   }
 
   private class ChartItem {
+    @NotNull
     final ChartDataItem<T> myDataItem;
-    Color myConnectorLineColor;
-    JBPanel leftBox;
-    JBPanel rightAnchor;
+    @NotNull
+    final Color myBaseColor;
+    final int myChartBoxHeight;
+    @NotNull
+    final JBLabel myTimeLabel;
 
-    private ChartItem(ChartDataItem<T> dataItem) {
+    private ChartItem(@NotNull ChartDataItem<T> dataItem) {
       myDataItem = dataItem;
-    }
-
-    public void init() {
-      this.leftBox = createMainBox();
-      this.rightAnchor = createBulletPointBox();
-      if (isSelected()) {
-        myConnectorLineColor = myDataItem.getLegendColor().selectionColor;
-      }
-      else {
-        myConnectorLineColor = myDataItem.getLegendColor().baseColor;
-      }
+      myChartBoxHeight = JBUIScale.scale(calculateBoxHeightPx());
+      myBaseColor = myDataItem.getLegendColor().baseColor;
+      myTimeLabel = createTableLabel(durationString(time()), this);
     }
 
     private int calculateBoxHeightPx() {
@@ -229,54 +205,119 @@ public class TimeDistributionChart<T> extends JPanel {
       }
     }
 
-    private Box createMainBox() {
-      int heightPx = calculateBoxHeightPx();
-      String boxText = myDataItem.chartBoxText();
-      Box box = new Box(myDataItem.getLegendColor().baseColor, BOX_WIDTH, heightPx);
-      if (boxText != null) {
-        JBLabel label = new JBLabel(boxText, SwingConstants.CENTER).withFont(JBUI.Fonts.smallFont());
-        label.setForeground(CriticalPathChartLegend.OTHER_TASKS_TEXT_COLOR);
-        box.add(label, BorderLayout.CENTER);
-      }
-
-      Color borderColor = isSelected() ? myDataItem.getLegendColor().selectionColor : myDataItem.getLegendColor().baseColor;
-      box.setBorder(JBUI.Borders.customLine(borderColor, 0, 0, 0, 5));
-      return box;
-    }
-
-    private Box createBulletPointBox() {
-      Color color = isSelected() ? myDataItem.getLegendColor().selectionColor : myDataItem.getLegendColor().baseColor;
-      return new Box(color, 5, 5);
+    private int getRowCenterVerticalLocation() {
+      return myTimeLabel.getY() + myTimeLabel.getHeight() / 2;
     }
   }
 
-  private static class Box extends JBPanel {
-    private Box(Color baseColor, int width, int height) {
-      super();
-      withMinimumWidth(width);
-      withPreferredWidth(width);
-      withMaximumWidth(width);
-      withMinimumHeight(height);
-      withPreferredHeight(height);
-      withMaximumHeight(height);
-      setBackground(baseColor);
-    }
-  }
+  @SuppressWarnings({"FieldCanBeLocal", "FieldMayBeStatic"})
+  private class ChartPane extends JBPanel<ChartPane> {
+    private final int myChartBoxMarginPx = JBUIScale.scale(1);
+    private final int myMinCursorHeight = JBUIScale.scale(10);
 
-  private class ConnectionsPane extends JBPanel<ConnectionsPane> {
+    private final int myCursorWidth = JBUIScale.scale(10);
+    private final int myChartBoxWidth = JBUIScale.scale(100);
+    private final int myConnectorsWidth = JBUIScale.scale(50);
+    private final int myBulletSize = JBUIScale.scale(5);
+    private final int myBulletSelectionBorderThickness = JBUIScale.scale(2);
+    private final int mySelectedBulletWidth = myBulletSize + 2 * myBulletSelectionBorderThickness;
+
+    private final int myCursorLeftBoundX = 0;
+    private final int myChartBoxLeftBoundX = myCursorLeftBoundX + myCursorWidth + myChartBoxMarginPx;
+    private final int myConnectorLeftBoundX = myChartBoxLeftBoundX + myChartBoxWidth;
+    private final int myBulletLeftBoundX = myConnectorLeftBoundX + myConnectorsWidth;
+    private final int myChartWidth = myBulletLeftBoundX + mySelectedBulletWidth;
+
+
+    private ChartPane() {
+      int itemsHeightSum = myChartItems.stream().mapToInt(item -> item.myChartBoxHeight).sum();
+      int itemsNumber = myChartItems.size();
+      int minHeight = myMinCursorHeight + itemsHeightSum + itemsNumber * myChartBoxMarginPx + myMinCursorHeight;
+      withMinimumHeight(minHeight);
+      withPreferredHeight(minHeight);
+      withMinimumWidth(myChartWidth);
+      withMaximumWidth(myChartWidth);
+      withPreferredWidth(myChartWidth);
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
       GraphicsUtil.setupAntialiasing(g);
       GraphicsUtil.setupAAPainting(g);
       super.paintComponent(g);
-      myChartItems.forEach(item -> {
-        g.setColor(item.myConnectorLineColor);
-        int lx = 0;
-        int ly = item.leftBox.getY() + item.leftBox.getHeight() / 2;
-        int rx = getWidth();
-        int ry = item.rightAnchor.getY() + item.rightAnchor.getHeight() / 2;
-        g.drawLine(lx, ly, rx, ry);
-      });
+      int curY = myMinCursorHeight;
+      for (ChartItem item : myChartItems) {
+        g.setColor(item.myBaseColor);
+        drawMainBox(g, item, curY);
+        drawBulletPoint(g, item);
+        drawConnector(g, item, curY);
+        if (item.isSelected()) {
+          drawCursor(g, item, curY);
+        }
+        if (item.myDataItem.chartBoxText() != null) {
+          drawTextInBox(g, item, curY);
+        }
+        curY += item.myChartBoxHeight + myChartBoxMarginPx;
+      }
+    }
+
+    private void drawMainBox(Graphics g, ChartItem item, int curY) {
+      g.fillRect(myChartBoxLeftBoundX, curY, myChartBoxWidth, item.myChartBoxHeight);
+    }
+
+    private void drawTextInBox(Graphics g, ChartItem item, int curY) {
+      g.setFont(JBUI.Fonts.smallFont());
+      g.setColor(CriticalPathChartLegend.OTHER_TASKS_TEXT_COLOR);
+
+      String boxText = item.myDataItem.chartBoxText();
+      FontMetrics metrics = g.getFontMetrics();
+      int textWidth = metrics.stringWidth(boxText);
+      int textX = myChartBoxLeftBoundX + (myChartBoxWidth - textWidth) / 2;
+
+      int textMiddleY = metrics.getAscent() / 2;
+      int textY = curY + item.myChartBoxHeight / 2 + textMiddleY;
+
+      g.drawString(boxText, textX, textY);
+    }
+
+    private void drawBulletPoint(Graphics g, ChartItem item) {
+      int bulletX = myBulletLeftBoundX + myBulletSelectionBorderThickness;
+      int rowCenterY = item.getRowCenterVerticalLocation();
+      int bulletY = rowCenterY - myBulletSize / 2;
+      g.fillRect(bulletX, bulletY, myBulletSize, myBulletSize);
+
+      if (item.isSelected()) {
+        int borderSize = this.myBulletSize + 2 * myBulletSelectionBorderThickness - 1;
+        int borderY = bulletY - myBulletSelectionBorderThickness;
+        g.drawRoundRect(myBulletLeftBoundX, borderY, borderSize, borderSize, 4, 4);
+      }
+      else {
+        g.drawLine(myBulletLeftBoundX, rowCenterY, myBulletLeftBoundX + myBulletSelectionBorderThickness, rowCenterY);
+      }
+    }
+
+    private void drawConnector(Graphics g, ChartItem item, int curY) {
+      int leftY = curY + item.myChartBoxHeight / 2;
+      int rightX = myConnectorLeftBoundX + myConnectorsWidth;
+      int rightY = item.getRowCenterVerticalLocation();
+      g.drawLine(myConnectorLeftBoundX, leftY, rightX, rightY);
+    }
+
+    private void drawCursor(Graphics g, ChartItem item, int curY) {
+      int rightX = myCursorLeftBoundX + myCursorWidth;
+      if (myMinCursorHeight > item.myChartBoxHeight) {
+        int middleY = curY + item.myChartBoxHeight / 2;
+        int leftTopY = middleY - myMinCursorHeight / 2;
+        int leftBottomY = middleY + myMinCursorHeight / 2;
+        g.fillPolygon(
+          new int[]{myCursorLeftBoundX, myCursorLeftBoundX, rightX, rightX},
+          new int[]{leftTopY, leftBottomY, curY + item.myChartBoxHeight, curY},
+          4
+        );
+      }
+      else {
+        g.fillRect(myCursorLeftBoundX, curY, myCursorWidth, item.myChartBoxHeight);
+      }
     }
   }
 }

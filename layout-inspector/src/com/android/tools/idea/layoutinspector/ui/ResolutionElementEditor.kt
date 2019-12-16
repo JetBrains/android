@@ -16,6 +16,8 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.idea.layoutinspector.model.ResolutionStackModel
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
@@ -58,6 +60,8 @@ class ResolutionElementEditor(
 
   override var isCustomHeight = false
 
+  override var updateRowHeight = {}
+
   init {
     background = UIUtil.TRANSPARENT_COLOR
     add(editor, BorderLayout.CENTER)
@@ -86,7 +90,7 @@ class ResolutionElementEditor(
       when (locations.size) {
         0 -> {}
         1 -> linkPanel.add(SourceLocationLink(locations.first(), isSelected, isOverridden))
-        else -> linkPanel.add(ExpansionPanel(model, editorModel, property, locations, isSelected, isOverridden))
+        else -> linkPanel.add(ExpansionPanel(model, this, property, locations, isSelected, isOverridden))
       }
     }
   }
@@ -95,13 +99,23 @@ class ResolutionElementEditor(
    * A panel with a expandable list of detail locations.
    */
   private class ExpansionPanel(
-    val model: ResolutionStackModel,
-    val editorModel: PropertyEditorModel,
-    val property: InspectorPropertyItem,
+    private val model: ResolutionStackModel,
+    private val editor: PTableVariableHeightCellEditor,
+    private val property: InspectorPropertyItem,
     locations: List<SourceLocation>,
-    isSelected: Boolean,
+    private val isSelected: Boolean,
     isOverridden: Boolean
   ) : JPanel(BorderLayout()) {
+
+    private val extraPanel = JPanel()
+    private val expandLabel = object : JBLabel() {
+      override fun paintComponent(g: Graphics) {
+        super.paintComponent(g)
+        if (hasFocus() && g is Graphics2D) {
+          DarculaUIUtil.paintFocusBorder(g, width, height, 0f, true)
+        }
+      }
+    }
 
     init {
       val mainPanel = JPanel()
@@ -109,17 +123,22 @@ class ResolutionElementEditor(
       mainPanel.background = UIUtil.TRANSPARENT_COLOR
       mainPanel.border = JBUI.Borders.emptyLeft(8)
       val isExtraPanelVisible = model.isExpanded(property)
-      val extraPanel = JPanel()
       extraPanel.layout = BoxLayout(extraPanel, BoxLayout.Y_AXIS)
       extraPanel.background = UIUtil.TRANSPARENT_COLOR
       extraPanel.isVisible = isExtraPanelVisible
       extraPanel.border = JBUI.Borders.emptyLeft(24)
-      val expandIcon = UIUtil.getTreeNodeIcon(isExtraPanelVisible, isSelected, isSelected)
-      val expandLabel = JBLabel(expandIcon)
+      expandLabel.icon = UIUtil.getTreeNodeIcon(isExtraPanelVisible, isSelected, isSelected)
+      expandLabel.registerActionKey({ toggle() }, KeyStrokes.SPACE, "space")
+      expandLabel.registerActionKey({ toggle() }, KeyStrokes.ENTER, "enter")
+      expandLabel.registerActionKey({ open() }, KeyStrokes.RIGHT, "open")
+      expandLabel.registerActionKey({ open() }, KeyStrokes.NUM_RIGHT, "open")
+      expandLabel.registerActionKey({ close() }, KeyStrokes.LEFT, "close")
+      expandLabel.registerActionKey({ close() }, KeyStrokes.NUM_LEFT, "close")
+      expandLabel.border = JBUI.Borders.empty(LINK_BORDER)
+      expandLabel.isFocusable = true
       expandLabel.addMouseListener(object : MouseAdapter() {
         override fun mousePressed(event: MouseEvent?) {
-          model.toggle(property)
-          editorModel.refresh()
+          toggle()
         }
       })
       val mainLocation = locations.first()
@@ -134,6 +153,26 @@ class ResolutionElementEditor(
       background = UIUtil.TRANSPARENT_COLOR
       alignmentX = Component.LEFT_ALIGNMENT
     }
+
+    private fun toggle() {
+      model.toggle(property)
+      val isExpanded = model.isExpanded(property)
+      expandLabel.icon = UIUtil.getTreeNodeIcon(isExpanded, isSelected, isSelected)
+      extraPanel.isVisible = isExpanded
+      editor.updateRowHeight()
+    }
+
+    private fun open() {
+      if (!model.isExpanded(property)) {
+        toggle()
+      }
+    }
+
+    private fun close() {
+      if (model.isExpanded(property)) {
+        toggle()
+      }
+    }
   }
 
   /**
@@ -143,7 +182,7 @@ class ResolutionElementEditor(
    * @param [isSelected] then the font color will use the table foreground for selected and focused.
    * @param [isOverridden] then the font will use strikeout to indicate the value is overridden.
    */
-  private class SourceLocationLink(location: SourceLocation, isSelected: Boolean, isOverridden: Boolean): JBLabel() {
+  private class SourceLocationLink(private val location: SourceLocation, isSelected: Boolean, isOverridden: Boolean): JBLabel() {
 
     init {
       val showAsLink = location.navigatable != null
@@ -158,12 +197,18 @@ class ResolutionElementEditor(
       isFocusable = true
       border = JBUI.Borders.empty(0, LINK_BORDER, LINK_BORDER, LINK_BORDER)
       alignmentX = Component.LEFT_ALIGNMENT
+      registerActionKey({ activateLink() }, KeyStrokes.SPACE, "space")
+      registerActionKey({ activateLink() }, KeyStrokes.ENTER, "enter")
 
       addMouseListener(object : MouseAdapter() {
         override fun mousePressed(event: MouseEvent?) {
-          location.navigatable?.navigate(true)
+          activateLink()
         }
       })
+    }
+
+    private fun activateLink() {
+      location.navigatable?.navigate(true)
     }
 
     override fun paintComponent(g: Graphics) {

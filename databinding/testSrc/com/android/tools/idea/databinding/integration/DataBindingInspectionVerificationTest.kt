@@ -82,7 +82,7 @@ class DataBindingInspectionVerificationTest {
     val buildGradle = File(testAppDst, "build.gradle")
     buildGradle.writeText(
       """
-        rootProject.ext.latestCompileSdk = 28
+        rootProject.ext.latestCompileSdk = 29
 
         buildscript {
           repositories {

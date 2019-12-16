@@ -55,7 +55,7 @@ class AddBenchmarkModuleTest {
   @Test
   @Throws(Exception::class)
   fun addJavaBenchmarkModule() {
-    val ideFrame = guiTest.importSimpleApplication()
+    val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToBenchmarkModule()
@@ -104,7 +104,7 @@ class AddBenchmarkModuleTest {
   @Test
   @Throws(Exception::class)
   fun addKotlinBenchmarkModule() {
-    val ideFrame = guiTest.importSimpleApplication()
+    val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
     ideFrame.invokeMenuPath("File", "New", "New Module...")
     NewModuleWizardFixture.find(ideFrame)
       .clickNextToBenchmarkModule()

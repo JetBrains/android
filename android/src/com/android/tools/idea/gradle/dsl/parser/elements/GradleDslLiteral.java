@@ -35,7 +35,7 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
   public GradleDslLiteral(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name, null);
     // Will be set in the call to #setValue
-    myIsReference = false;
+    setReference(false);
   }
 
   public GradleDslLiteral(@NotNull GradleDslElement parent,
@@ -44,7 +44,7 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
                           @NotNull PsiElement literal,
                           boolean isReference) {
     super(parent, psiElement, name, literal);
-    myIsReference = isReference;
+    setReference(isReference);
   }
 
   @Override
@@ -151,7 +151,7 @@ public final class GradleDslLiteral extends GradleDslSettableExpression {
   @Override
   @Nullable
   public String getReferenceText() {
-    if (!myIsReference) {
+    if (!isReference()) {
       return null;
     }
 

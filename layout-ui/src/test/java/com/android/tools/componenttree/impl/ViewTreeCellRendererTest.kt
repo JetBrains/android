@@ -17,6 +17,7 @@ package com.android.tools.componenttree.impl
 
 import com.android.SdkConstants.FQCN_TEXT_VIEW
 import com.android.tools.componenttree.api.ContextPopupHandler
+import com.android.tools.componenttree.api.DoubleClickHandler
 import com.android.tools.componenttree.impl.ViewTreeCellRenderer.ColoredViewRenderer
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
@@ -59,6 +60,7 @@ class ViewTreeCellRendererTest {
 
   private val type = ItemNodeType()
   private val contextPopupHandler: ContextPopupHandler = { _, _, _ -> }
+  private val doubleClickHandler: DoubleClickHandler = { }
   private val renderer = ViewTreeCellRenderer(type)
 
   private val model = ComponentTreeModelImpl(mapOf(Pair(Item::class.java, type)), SwingUtilities::invokeLater)
@@ -78,7 +80,7 @@ class ViewTreeCellRendererTest {
 (This should probably be moved to testFragmentsWithLessThanOptimalSpaceAndRowExpanded.) */
     doAnswer { focusOwner }.`when`<KeyboardFocusManager>(focusManager!!).focusOwner
     KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
-    tree = TreeImpl(model, contextPopupHandler, emptyList())
+    tree = TreeImpl(model, contextPopupHandler, doubleClickHandler, emptyList())
   }
 
   @After

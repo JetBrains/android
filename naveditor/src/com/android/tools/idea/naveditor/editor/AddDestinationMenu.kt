@@ -33,9 +33,12 @@ import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_TEXT
 import com.android.tools.idea.naveditor.scene.layout.NEW_DESTINATION_MARKER_PROPERTY
 import com.android.tools.idea.naveditor.structure.findReferences
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.rendering.DrawableIconProvider
+import com.android.tools.idea.util.addDependencies
+import com.android.tools.idea.util.dependsOn
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -71,6 +74,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.jetbrains.android.dom.navigation.getClassesForTag
 import org.jetbrains.android.dom.navigation.isInProject
 import org.jetbrains.android.resourceManagers.LocalResourceManager
 import org.jetbrains.android.util.AndroidUtils
@@ -94,6 +98,9 @@ import javax.swing.border.CompoundBorder
 import javax.swing.event.DocumentEvent
 
 const val DESTINATION_MENU_MAIN_PANEL_NAME = "destinationMenuMainPanel"
+// TODO: Replace revision when artifact available in maven
+private val DYNAMIC_DEPENDENCIES
+  = listOf(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT.getCoordinate("2.3.0-SNAPSHOT"))
 
 /**
  * "Add" popup menu in the navigation editor.
@@ -129,12 +136,13 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       val hosts = findReferences(model.file, module).map { it.containingFile }
 
       for (tag in schema.allTags) {
-        for (psiClass in schema.getProjectClassesForTag(tag).filter { !existingClasses.contains(it.qualifiedName) }) {
+        for ((psiClass, dynamicModule) in getClassesForTag(module, tag).filterKeys { !existingClasses.contains(it.qualifiedName) }) {
           val layoutFile = layoutFiles[psiClass]
           if (layoutFile !in hosts) {
             val inProject = psiClass.isInProject()
             val destination = Destination.RegularDestination(
-              parent, tag, destinationClass = psiClass, inProject = inProject, layoutFile = layoutFile)
+              parent, tag, destinationClass = psiClass, inProject = inProject, layoutFile = layoutFile,
+              dynamicModuleName = dynamicModule)
             classToDestination[psiClass] = destination
           }
         }
@@ -395,6 +403,9 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       // explicitly update so the new SceneComponent is created
       surface.sceneManager!!.update()
     }, surface.model?.file)
+
+    addDynamicDependency(destination)
+
     surface.selectionModel.setSelection(ImmutableList.of(component))
   }
 
@@ -411,6 +422,17 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
 
   override fun update(e: AnActionEvent) {
     e.project?.let { buttonPresentation?.isEnabled = !DumbService.isDumb(it) }
+  }
+
+  private fun addDynamicDependency(destination: Destination) {
+    (destination as? Destination.RegularDestination)?.dynamicModuleName ?: return
+
+    val module = surface.model?.module ?: return
+    if (module.dependsOn(GoogleMavenArtifactId.ANDROIDX_NAVIGATION_DYNAMIC_FEATURES_FRAGMENT)) {
+      return
+    }
+
+    module.addDependencies(DYNAMIC_DEPENDENCIES, promptUserBeforeAdding = true, requestSync = false)
   }
 
   companion object {

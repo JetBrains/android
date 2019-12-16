@@ -22,6 +22,7 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.google.common.util.concurrent.ListenableFuture;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,6 +34,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -70,6 +72,12 @@ public class Device {
 
   @NotNull
   public List<Client> findClientWithApplicationId(@NotNull String applicationId) {
+    if (myIDevice.supportsFeature(IDevice.Feature.REAL_PKG_NAME)) {
+      // If the device supports reporting the real package name, then just use that directly.
+      return Arrays.stream(myIDevice.getClients()).filter(client -> applicationId.equals(client.getClientData().getPackageName()))
+        .collect(Collectors.toList());
+    }
+
     if (isLegacyDevice()) {
       myResolutions.computeIfAbsent(applicationId, ignored -> resolveLegacyPid(applicationId));
     }
@@ -94,7 +102,15 @@ public class Device {
     return clients;
   }
 
+  /**
+   * Refreshes the pid to {@link Process} mapping since the {@link Client} list has changed.
+   */
   synchronized void refresh() {
+    if (myIDevice.supportsFeature(IDevice.Feature.REAL_PKG_NAME)) {
+      // If the device supports reporting the real package name, then just skip refresh.
+      return;
+    }
+
     Map<Integer, Client> clients = new HashMap<>(myIDevice.getClients().length);
     for (Client client : myIDevice.getClients()) {
       clients.put(client.getClientData().getPid(), client);

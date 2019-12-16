@@ -16,6 +16,9 @@
 package org.jetbrains.android.dom.navigation
 
 import com.android.SdkConstants.FQCN_NAV_HOST_FRAGMENT
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.util.DynamicAppUtils
+import com.android.tools.idea.gradle.util.GradleUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.JavaPsiFacade
@@ -35,7 +38,7 @@ fun extendsNavHostFragment(psiClass: PsiClass, module: Module): Boolean {
  */
 fun isNavHostFragment(className: String, module: Module): Boolean {
   if (className == FQCN_NAV_HOST_FRAGMENT) {
-    return true;
+    return true
   }
 
   val psiClass = getClass(className, module) ?: return false
@@ -49,3 +52,27 @@ private fun getClass(className: String, module: Module): PsiClass? {
 }
 
 fun PsiClass.isInProject() = ModuleUtilCore.findModuleForPsiElement(this) != null
+
+fun getClassesForTag(module: Module, tag: String): Map<PsiClass, String?> {
+  val result = mutableMapOf<PsiClass, String?>()
+  val schema = NavigationSchema.get(module)
+
+  if (StudioFlags.NAV_DYNAMIC_SUPPORT.get()) {
+    for (dynamicModule in dynamicModules(module)) {
+      val scope = GlobalSearchScope.moduleWithDependenciesScope(dynamicModule)
+      schema.getProjectClassesForTag(tag, scope)
+        .associateWithTo(result) { dynamicModule.name }
+    }
+  }
+
+  schema.getProjectClassesForTag(tag).associateWithTo(result) { null }
+
+  return result
+}
+
+fun dynamicModules(module: Module): List<Module> {
+  val project = GradleUtil.getAndroidProject(module) ?: return listOf()
+  return DynamicAppUtils.getDependentFeatureModulesForBase(module.project, project)
+}
+
+

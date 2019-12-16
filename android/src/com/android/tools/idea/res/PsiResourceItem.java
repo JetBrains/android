@@ -190,8 +190,9 @@ public final class PsiResourceItem implements ResourceItem {
     return myType;
   }
 
+  @Override
   @NotNull
-  ResourceFolderRepository getRepository() {
+  public ResourceFolderRepository getRepository() {
     return myOwner;
   }
 

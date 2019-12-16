@@ -473,7 +473,10 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   // ---- Implemented SelectionListener ----
   @Override
   public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
-    UIUtil.invokeLaterIfNeeded(this::updateSelection);
+    UIUtil.invokeLaterIfNeeded(() -> {
+      updateSelection();
+      scrollPathToVisible(getSelectionPath());
+    });
   }
 
   // ---- Implemented ModelListener ----

@@ -202,6 +202,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
     };
     ResourceNamespace appNamespace = ResourceNamespace.fromPackageName("com.example.app");
 
+/* b/145856230
     ModuleResourceRepository appModuleResources = ModuleResourceRepository.createForTest(
         myFacet,
         ImmutableSet.of(
@@ -286,6 +287,7 @@ public class AppResourceRepositoryTest extends AndroidTestCase {
                                  new ResourceReference(localLibNamespace, ResourceType.STRING, "this_namespace"),
                                  new ResourceReference(localLibNamespace, ResourceType.STRING, "app_name"),
                                  true);
+b/145856230 */
   }
 
   public void testLibraryResources() {

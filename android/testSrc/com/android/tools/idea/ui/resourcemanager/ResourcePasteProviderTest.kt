@@ -26,6 +26,8 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runUndoTransparentWriteAction
+import com.intellij.openapi.command.impl.UndoManagerImpl
+import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.actions.PasteAction
@@ -82,7 +84,14 @@ internal class ResourcePasteProviderTest {
 
   @After
   fun tearDown() {
-    runInEdtAndWait { EditorFactory.getInstance().releaseEditor(editor) }
+    runInEdtAndWait {
+      EditorFactory.getInstance().releaseEditor(editor)
+      with(UndoManager.getGlobalInstance() as UndoManagerImpl) {
+        // For AndroidProjectRule, have to manually clear the UndoManager.
+        dropHistoryInTests()
+        flushCurrentCommandMerger()
+      }
+    }
   }
 
   @Test

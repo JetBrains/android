@@ -163,6 +163,7 @@ public class RenderTask {
   private boolean myShowDecorations = true;
   private boolean myShadowEnabled = true;
   private boolean myHighQualityShadow = true;
+  private boolean myShowWithToolsAttributes = true;
   private AssetRepositoryImpl myAssetRepository;
   private long myTimeout;
   @NotNull private final Locale myLocale;
@@ -285,6 +286,10 @@ public class RenderTask {
     return myShowDecorations;
   }
 
+  public boolean getShowWithToolsAttributes() {
+    return myShowWithToolsAttributes;
+  }
+
   public boolean isDisposed() {
     return isDisposed.get();
   }
@@ -304,8 +309,9 @@ public class RenderTask {
       // Because we are clearing-up a ThreadLocal, the code must run on the Layoutlib Thread
       RenderService.runAsyncRenderAction(() -> {
         try {
-          ThreadLocal<?> gapWorkerFieldValue = (ThreadLocal)gapWorkerField.get(null);
+          ThreadLocal<?> gapWorkerFieldValue = (ThreadLocal<?>)gapWorkerField.get(null);
           gapWorkerFieldValue.set(null);
+          LOG.debug("GapWorker was cleared");
         }
         catch (IllegalAccessException e) {
           LOG.debug(e);
@@ -386,12 +392,7 @@ public class RenderTask {
       myImageFactoryDelegate = null;
       myAssetRepository = null;
 
-      clearGapWorkerCache();
       clearCompose();
-
-      RenderService.runAsyncRenderAction(() -> {
-        android.view.Choreographer.releaseInstance();
-      });
 
       return null;
     });
@@ -499,6 +500,19 @@ public class RenderTask {
    */
   public RenderTask setHighQualityShadows(boolean highQualityShadows) {
     myHighQualityShadow = highQualityShadows;
+    return this;
+  }
+
+  /**
+   * Sets whether the rendering should use 'tools' namespaced attributes. Including substituting 'android' and 'app' attributes with their
+   * 'tools' variants.
+   * <p>
+   * Default is {@code true}.
+   */
+  @SuppressWarnings("UnusedReturnValue")
+  @NotNull
+  public RenderTask setShowWithToolsAttributes(boolean showWithToolsAttributes) {
+    myShowWithToolsAttributes = showWithToolsAttributes;
     return this;
   }
 
@@ -680,6 +694,11 @@ public class RenderTask {
     XmlFile xmlFile = getXmlFile();
     if (xmlFile == null) {
       throw new IllegalStateException("getIncludingLayoutParser shouldn't be called on RenderTask without PsiFile");
+    }
+
+    if (!myShowWithToolsAttributes) {
+      // Don't support 'showIn' when 'tools' attributes are ignored for rendering.
+      return null;
     }
 
     // Code to support editing included layout.
@@ -868,6 +887,12 @@ public class RenderTask {
             myLogger.error(null, renderResult.getErrorMessage(), renderResult.getException(), null, null);
           }
           return result;
+        }).whenComplete((result, ex) -> {
+          // After render clean-up. Dispose the GapWorker cache and the Choreographer queued tasks.
+          clearGapWorkerCache();
+          RenderService.runAsyncRenderAction(() -> {
+            android.view.Choreographer.releaseInstance();
+          });
         });
       }
       catch (Exception e) {
