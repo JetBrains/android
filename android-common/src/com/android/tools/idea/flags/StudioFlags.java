@@ -727,25 +727,61 @@ public final class StudioFlags {
     "If enabled, the preview will automatically trigger a build after the user finishes typing.",
     false);
 
+  public static final Flag<Boolean> COMPOSE_EDITOR_SUPPORT = Flag.create(
+    COMPOSE, "editor",
+    "Compose-specific support in the code editor",
+    "Controls whether Compose-specific editor features, like completion tweaks, are enabled. This flag has priority over " +
+    "all flags in the `compose.editor.*` namespace.",
+    true
+  );
+
   public static final Flag<Boolean> COMPOSE_COMPLETION_PRESENTATION = Flag.create(
-    COMPOSE, "completion.presentation",
+    COMPOSE, "editor.completion.presentation",
     "Custom presentation for code completion items for composable functions",
     "If enabled, code completion items for composable functions use a custom presentation (icon, text).",
     true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_WEIGHER = Flag.create(
-    COMPOSE, "completion.weigher",
+    COMPOSE, "editor.completion.weigher",
     "Custom weigher for Compose",
     "If enabled, code completion puts composable functions above other completion suggestions.",
     true
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_INSERT_HANDLER = Flag.create(
-    COMPOSE, "completion.insert.handler",
+    COMPOSE, "editor.completion.insert.handler",
     "Custom insert handler for composable functions",
     "If enabled, code completion for composable functions uses a custom InsertHandler that inserts required parameter names.",
     true
+  );
+
+  public static final Flag<Boolean> COMPOSE_AUTO_DOCUMENTATION = Flag.create(
+    COMPOSE, "editor.auto.documentation",
+    "Show quick documentation automatically for Compose",
+    "If enabled, during code completion popup with documentation shows automatically",
+    true
+  );
+
+  public static final Flag<Boolean> COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION = Flag.create(
+    COMPOSE, "editor.render.sample",
+    "Render samples of compose elements inside documentation",
+    "If enabled, adds rendered image of sample for compose element if such exists",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION_SLOW = Flag.create(
+    COMPOSE, "editor.render.sample.slow",
+    "Slow down rendering of samples of compose elements inside documentation",
+    "If enabled, slow down rendering of samples of compose elements inside documentation, this flag is used for demonstration of non-blocking behavior",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_SURROUND_WITH_WIDGET = Flag.create(
+    COMPOSE, "editor.surround.with.widget.action",
+    "Enables \"Surround with widget\" intention and template",
+    "Enables \"Surround with widget\" intention inside composable functions and adds \"Surround with widget\" live template",
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_WIZARD_TEMPLATES = Flag.create(
@@ -754,35 +790,6 @@ public final class StudioFlags {
     "If enabled, allows adding new Compose Projects/Modules/Activities through the wizards",
     true
   );
-
-  public static final Flag<Boolean> COMPOSE_AUTO_DOCUMENTATION = Flag.create(
-    COMPOSE, "completion.auto.documentation",
-    "Show quick documentation automatically for Compose",
-    "If enabled, during code completion popup with documentation shows automatically",
-    true
-  );
-
-  public static final Flag<Boolean> COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION = Flag.create(
-    COMPOSE, "documentation.render.sample",
-    "Render samples of compose elements inside documentation",
-    "If enabled, adds rendered image of sample for compose element if such exists",
-    false
-  );
-
-  public static final Flag<Boolean> COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION_SLOW = Flag.create(
-    COMPOSE, "documentation.render.sample.slow",
-    "Slow down rendering of samples of compose elements inside documentation",
-    "If enabled, slow down rendering of samples of compose elements inside documentation, this flag is used for demonstration of non-blocking behavior",
-    false
-  );
-
-  public static final Flag<Boolean> COMPOSE_SURROUND_WITH_WIDGET = Flag.create(
-    COMPOSE, "surround.with.widget.action",
-    "Enables \"Surround with widget\" intention and template",
-    "Enables \"Surround with widget\" intention inside composable functions and adds \"Surround with widget\" live template",
-    false
-  );
-
   //endregion
 
   //region Manifests

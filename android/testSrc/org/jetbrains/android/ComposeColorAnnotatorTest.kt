@@ -33,6 +33,7 @@ import java.awt.Color
 class ComposeColorAnnotatorTest : AndroidTestCase() {
   override fun setUp() {
     super.setUp()
+    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     (myModule.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     myFixture.addClass(
       //language=kotlin
@@ -63,6 +64,11 @@ class ComposeColorAnnotatorTest : AndroidTestCase() {
           colorSpace: ColorSpace? = nul
       ): Color? = Color(1)
       """.trimIndent())
+  }
+
+  override fun tearDown() {
+    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
+    super.tearDown()
   }
 
   fun testColorLong() {

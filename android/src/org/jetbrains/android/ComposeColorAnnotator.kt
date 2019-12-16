@@ -17,6 +17,7 @@ package org.jetbrains.android
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.adtui.LightCalloutPopup
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerListener
@@ -55,14 +56,17 @@ import javax.swing.Icon
 class ComposeColorAnnotator : Annotator {
 
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
-    if (element.getModuleSystem()?.usesCompose != true) return
-    if (element is KtCallElement) {
-      val uElement = element.toUElement(UCallExpression::class.java) ?: return
-      val returnType = uElement.returnType ?: return
-      if (uElement.kind == UastCallKind.METHOD_CALL && isColorType(returnType) && COLOR_METHOD == uElement.methodName) {
-        val color = getColor(uElement.valueArguments) ?: return
-        holder.createInfoAnnotation(element, null).also { annotation ->
-          annotation.gutterIconRenderer = ColorIconRenderer(uElement, color)
+    when {
+      !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> return
+      element.getModuleSystem()?.usesCompose != true -> return
+      element is KtCallElement -> {
+        val uElement = element.toUElement(UCallExpression::class.java) ?: return
+        val returnType = uElement.returnType ?: return
+        if (uElement.kind == UastCallKind.METHOD_CALL && isColorType(returnType) && COLOR_METHOD == uElement.methodName) {
+          val color = getColor(uElement.valueArguments) ?: return
+          holder.createInfoAnnotation(element, null).also { annotation ->
+            annotation.gutterIconRenderer = ColorIconRenderer(uElement, color)
+          }
         }
       }
     }
