@@ -22,9 +22,9 @@ import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.ide.passwordSafe.impl.BasePasswordSafe
 import com.intellij.ide.wizard.CommitStepException
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.testFramework.IdeaTestCase
 import com.intellij.testFramework.replaceService
 import com.intellij.util.ThrowableRunnable
+import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
@@ -32,10 +32,8 @@ import org.junit.Assert.assertArrayEquals
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.io.File
-import java.util.*
-import kotlin.collections.ArrayList
 
-class KeystoreStepTest : IdeaTestCase() {
+class KeystoreStepTest : AndroidTestCase() {
   private lateinit var facets: MutableList<AndroidFacet>
 
   override fun setUp() {
@@ -229,7 +227,7 @@ class KeystoreStepTest : IdeaTestCase() {
     ApplicationManager.getApplication().replaceService(PasswordSafe::class.java, passwordSafe, testRootDisposable)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(myProject)
+    `when`(wizard.project).thenReturn(project)
     `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
@@ -278,7 +276,7 @@ class KeystoreStepTest : IdeaTestCase() {
     ApplicationManager.getApplication().replaceService(PasswordSafe::class.java, passwordSafe, testRootDisposable)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(myProject)
+    `when`(wizard.project).thenReturn(project)
     `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)

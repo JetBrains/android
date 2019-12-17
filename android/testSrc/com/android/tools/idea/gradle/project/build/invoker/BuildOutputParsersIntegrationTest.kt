@@ -23,14 +23,14 @@ import com.google.wireless.android.sdk.stats.BuildErrorMessage
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.testFramework.IdeaTestCase
+import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import java.io.File
 
-class BuildOutputParsersIntegrationTest: IdeaTestCase() {
+class BuildOutputParsersIntegrationTest: AndroidTestCase() {
   private val myTaskId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, "testId")
 
   private lateinit var myBuildInvoker: GradleBuildInvoker
@@ -52,9 +52,9 @@ class BuildOutputParsersIntegrationTest: IdeaTestCase() {
     myTracker = TestUsageTracker(scheduler)
     UsageTracker.setWriterForTest(myTracker)
 
-    myBuildInvoker = GradleBuildInvoker(myProject, myFileDocumentManager,
+    myBuildInvoker = GradleBuildInvoker(project, myFileDocumentManager,
                                         GradleBuildInvokerTest.GradleTasksExecutorFactoryStub(myTasksExecutor), myDebugSessionFinder)
-    myRequest = GradleBuildInvoker.Request(myProject, File(myProject.basePath), emptyList(), myTaskId)
+    myRequest = GradleBuildInvoker.Request(project, File(project.basePath), emptyList(), myTaskId)
   }
 
   override fun tearDown() {
@@ -78,7 +78,7 @@ class BuildOutputParsersIntegrationTest: IdeaTestCase() {
   @Test
   fun testAndroidGradlePluginErrors() {
     val buildListener = myBuildInvoker.createBuildTaskListener(myRequest, "")
-    val file = tempDir.createTempFile("styles.xml")
+    val file = createTempFile("styles.xml")
     val output = """Executing tasks: [clean, :app:assembleDebug]
                     > Task :clean UP-TO-DATE
                     > Task :app:clean
@@ -150,7 +150,7 @@ class BuildOutputParsersIntegrationTest: IdeaTestCase() {
   @Test
   fun testXmlParsingError() {
     val buildListener = myBuildInvoker.createBuildTaskListener(myRequest, "")
-    val file = tempDir.createTempFile("AndroidManifest.xml")
+    val file = createTempFile("AndroidManifest.xml")
     val output = """Executing tasks: [clean, :app:assembleDebug]
                     > Configure project :app
                     > Task :clean UP-TO-DATE

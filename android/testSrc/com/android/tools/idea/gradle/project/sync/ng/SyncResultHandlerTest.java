@@ -24,8 +24,8 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetu
 import com.intellij.mock.MockProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
 import java.util.Collections;
+import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mock;
 
 import static org.mockito.Mockito.*;
@@ -34,7 +34,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link SyncResultHandler}.
  */
-public class SyncResultHandlerTest extends IdeaTestCase {
+public class SyncResultHandlerTest extends AndroidTestCase {
   @Mock private SyncExecutionCallback mySyncCallback;
   @Mock private GradleProjectInfo myProjectInfo;
   @Mock private GradleSyncListener mySyncListener;

@@ -23,6 +23,7 @@ import com.intellij.execution.configurations.JavaRunConfigurationModule;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.testFramework.IdeaTestCase;
 import org.gradle.tooling.BuildAction;
+import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mock;
 
 import static org.mockito.Mockito.mock;
@@ -32,7 +33,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleTaskRunnerFactory}.
  */
-public class GradleTaskRunnerFactoryTest extends IdeaTestCase {
+public class GradleTaskRunnerFactoryTest extends AndroidTestCase {
   @Mock private GradleVersions myGradleVersions;
   private GradleTaskRunnerFactory myTaskRunnerFactory;
 

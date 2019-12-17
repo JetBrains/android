@@ -23,13 +23,14 @@ import com.android.tools.idea.project.AndroidKtsSupportNotification;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link GradleKtsBuildFilesWarningStep}
  */
-public class GradleKtsBuildFilesWarningStepTest extends IdeaTestCase {
+public class GradleKtsBuildFilesWarningStepTest extends AndroidTestCase {
 
   @Mock private AndroidKtsSupportNotification myNotification;
   @NotNull private GradleKtsBuildFilesWarningStep myWarningStep = new GradleKtsBuildFilesWarningStep();
@@ -38,14 +39,14 @@ public class GradleKtsBuildFilesWarningStepTest extends IdeaTestCase {
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    ServiceContainerUtil.replaceService(myProject, AndroidKtsSupportNotification.class, myNotification, getTestRootDisposable());
+    ServiceContainerUtil.replaceService(getProject(), AndroidKtsSupportNotification.class, myNotification, getTestRootDisposable());
   }
 
   /**
    * Check that a warning is created when the project uses kts build files
    */
   public void testNotificationShownForProjectWithKts() {
-    myWarningStep.doSetUpProject(myProject, true);
+    myWarningStep.doSetUpProject(getProject(), true);
     verify(myNotification).showWarningIfNotShown();
   }
 
@@ -53,17 +54,17 @@ public class GradleKtsBuildFilesWarningStepTest extends IdeaTestCase {
    * Check that a warning is *NOT* created when the project does not use kts build files
    */
   public void testNotificationNotShownForProjectWithoutKts() {
-    myWarningStep.doSetUpProject(myProject, false);
+    myWarningStep.doSetUpProject(getProject(), false);
     verify(myNotification, never()).showWarningIfNotShown();
   }
 
   public void testStateSavedToProjectUserDataWithKts() {
-    myWarningStep.doSetUpProject(myProject, true);
-    assertTrue(myProject.getUserData(GradleKtsBuildFilesWarningStep.HAS_KTS_BUILD_FILES));
+    myWarningStep.doSetUpProject(getProject(), true);
+    assertTrue(getProject().getUserData(GradleKtsBuildFilesWarningStep.HAS_KTS_BUILD_FILES));
   }
 
   public void testStateSavedToProjectUserDataWithoutKts() {
-    myWarningStep.doSetUpProject(myProject, false);
-    assertFalse(myProject.getUserData(GradleKtsBuildFilesWarningStep.HAS_KTS_BUILD_FILES));
+    myWarningStep.doSetUpProject(getProject(), false);
+    assertFalse(getProject().getUserData(GradleKtsBuildFilesWarningStep.HAS_KTS_BUILD_FILES));
   }
 }
