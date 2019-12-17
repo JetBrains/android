@@ -32,6 +32,7 @@ import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
+import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
@@ -212,6 +213,7 @@ class AndroidProjectRule private constructor(
       ApplicationManager.getApplication().runWriteAction { facetModel.commit() }
       facets.clear()
       CodeStyleSettingsManager.getInstance(project).dropTemporarySettings()
+      AndroidTestBase.cleanupMockitoThreadLocals()
     }
     fixture.tearDown()
   }
