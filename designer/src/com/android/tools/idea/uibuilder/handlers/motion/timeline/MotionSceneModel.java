@@ -174,6 +174,9 @@ public class MotionSceneModel {
   }
 
   public static String stripID(String id) {
+    if (id == null) {
+      return null;
+    }
     int index = id.indexOf('/');
     if (index < 0) {
       return id;
