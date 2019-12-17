@@ -19,18 +19,16 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.TaskIssueReporter
 import com.android.build.attribution.ui.controllers.TreeNodeSelector
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
-import com.android.build.attribution.ui.data.TaskIssueType
 import com.android.build.attribution.ui.data.TaskIssueUiData
 import com.android.build.attribution.ui.panels.TreeLinkListener
 import com.android.build.attribution.ui.tree.AbstractBuildAttributionNode
-import com.android.build.attribution.ui.tree.AnnotationProcessorsRoot
 import com.android.build.attribution.ui.tree.BuildAttributionNodeRenderer
 import com.android.build.attribution.ui.tree.BuildSummaryNode
 import com.android.build.attribution.ui.tree.ControllersAwareBuildAttributionNode
 import com.android.build.attribution.ui.tree.CriticalPathPluginsRoot
 import com.android.build.attribution.ui.tree.CriticalPathTasksRoot
 import com.android.build.attribution.ui.tree.PluginConfigurationTimeRoot
-import com.android.build.attribution.ui.tree.TaskIssuesRoot
+import com.android.build.attribution.ui.tree.WarningsRootNode
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.ComponentContainer
 import com.intellij.ui.OnePixelSplitter
@@ -176,24 +174,20 @@ class BuildAttributionTreeView(
   ) : ControllersAwareBuildAttributionNode(null) {
     val taskIssueLinkListener = object : TreeLinkListener<TaskIssueUiData> {
       override fun clickedOn(target: TaskIssueUiData) {
-        findIssueRoot(target.type)?.findNodeForIssue(target)?.let { nodeSelector.selectNode(it) }
+        children.asSequence()
+          .filterIsInstance<WarningsRootNode>()
+          .first()
+          .findIssueRoot(target.type)?.findNodeForIssue(target)?.let { nodeSelector.selectNode(it) }
       }
     }
-
-    private fun findIssueRoot(type: TaskIssueType): TaskIssuesRoot? =
-      children.asSequence().filterIsInstance<TaskIssuesRoot>().firstOrNull { it.issuesGroup.type == type }
 
     override fun buildChildren(): Array<SimpleNode> {
       val nodes = mutableListOf<SimpleNode>()
       nodes.add(BuildSummaryNode(reportData.buildSummary, this))
       nodes.add(CriticalPathPluginsRoot(reportData.criticalPathPlugins, this))
       nodes.add(CriticalPathTasksRoot(reportData.criticalPathTasks, this, taskIssueLinkListener))
-      reportData.issues.forEach {
-        nodes.add(TaskIssuesRoot(it, this))
-      }
       nodes.add(PluginConfigurationTimeRoot(reportData.configurationTime, this))
-      nodes.add(AnnotationProcessorsRoot(reportData.annotationProcessors, this))
-
+      nodes.add(WarningsRootNode(reportData, this))
       return nodes.toTypedArray()
     }
 

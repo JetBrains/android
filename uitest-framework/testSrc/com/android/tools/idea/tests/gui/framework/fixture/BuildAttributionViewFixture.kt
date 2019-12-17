@@ -42,15 +42,20 @@ class BuildAttributionViewFixture(robot: Robot, target: JPanel) : JPanelFixture(
       .clickLink(text)
 
   fun checkInitState() {
-    tree.requireSelection(" Plugins with tasks determining this build's duration 2 warnings")
+    tree.requireSelectedNodeNameContain("Plugins with tasks determining this build's duration")
     tree.requireRootContainInOrder(listOf(
       "Build: finished at",
       "Plugins with tasks determining this build's duration",
       "Tasks determining this build's duration",
-      "Always-run Tasks",
       "Plugin Configuration Time",
-      "Non-incremental Annotation Processors"
+      "Warnings"
     ))
+  }
+
+  fun checkWarningsNode(expectedChildren: List<String>) {
+    selectPageByPath(" Warnings", "Warnings")
+    expandSelectedNodeWithKeyStroke()
+    tree.requireSelectedNodeContainInOrder(expectedChildren)
   }
 
   fun requireOpenedPagePathAndHeader(selectedTreePath: String, pageHeaderPattern: String) {

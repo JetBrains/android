@@ -34,6 +34,8 @@ interface BuildAttributionReportUiData {
   val issues: List<TaskIssuesGroup>
   val configurationTime: ConfigurationUiData
   val annotationProcessors: AnnotationProcessorsReport
+  val totalIssuesCount: Int
+    get() = issues.sumBy { it.warningCount } + annotationProcessors.issueCount
 }
 
 interface BuildSummary {
