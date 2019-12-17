@@ -27,6 +27,7 @@ import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.android.tools.idea.testing.TestProjectPaths.BASIC;
 import static com.android.tools.idea.testing.TestProjectPaths.CENTRAL_BUILD_DIRECTORY;
+import static com.android.tools.idea.testing.TestProjectPaths.CUSTOM_BUILD_SCRIPT_DEPS;
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
@@ -244,6 +245,17 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     }
 
     assertTrue(cppSourceFolderFound);
+  }
+
+  public void testProjectWithCustomBuildScriptDeps() throws Exception {
+    // https://youtrack.jetbrains.com/issue/IDEA-228545
+    loadProject(CUSTOM_BUILD_SCRIPT_DEPS);
+
+    Module appModule = myModules.getAppModule();
+    AndroidModuleModel androidModel = AndroidModuleModel.get(appModule);
+    assertNotNull(androidModel);
+    Collection<SyncIssue> issues = androidModel.getSyncIssues();
+    assertThat(issues).isEmpty();
   }
 
   public void testWithUserDefinedLibrarySources() throws Exception {
