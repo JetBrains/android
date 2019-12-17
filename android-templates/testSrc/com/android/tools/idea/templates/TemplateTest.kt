@@ -501,16 +501,6 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
-  fun testCompareNewBenchmarkModule() {
-    checkCreateTemplate("gradle-projects", "NewBenchmarkModule", ActivityCreationMode.DO_NOT_CREATE, false, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareNewPureLibrary() {
-    checkCreateTemplate("gradle-projects", "NewJavaOrKotlinLibrary", ActivityCreationMode.DO_NOT_CREATE, false, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
   fun testNewBroadcastReceiver() {
     // No need to try this template with multiple platforms, one is adequate
     checkCreateTemplate("other", "BroadcastReceiver", ActivityCreationMode.WITHOUT_PROJECT)
