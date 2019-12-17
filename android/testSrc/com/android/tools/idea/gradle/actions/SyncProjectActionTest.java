@@ -27,14 +27,14 @@ import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
+import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link SyncProjectAction}.
  */
-public class SyncProjectActionTest extends IdeaTestCase {
+public class SyncProjectActionTest extends AndroidTestCase {
   @Mock private GradleSyncInvoker mySyncInvoker;
   @Mock GradleSyncState mySyncState;
   @Mock private AnActionEvent myEvent;

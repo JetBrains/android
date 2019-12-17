@@ -20,13 +20,13 @@ import com.android.tools.analytics.stubs.StubOperatingSystemMXBean;
 import com.android.tools.idea.gradle.project.sync.setup.post.MemorySettingsPostSyncChecker.MemorySettingsNotification;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationsManager;
-import com.intellij.testFramework.IdeaTestCase;
+import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mock;
 
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class MemorySettingsPostSyncCheckerTest extends IdeaTestCase {
+public class MemorySettingsPostSyncCheckerTest extends AndroidTestCase {
   @Mock
   private TimeBasedMemorySettingsCheckerReminder myReminder;
 
@@ -45,23 +45,23 @@ public class MemorySettingsPostSyncCheckerTest extends IdeaTestCase {
 
   public void testNoNotificationIfSmallRam() {
     stubHostData(4096);
-    MemorySettingsPostSyncChecker.checkSettings(myProject, myReminder);
+    MemorySettingsPostSyncChecker.checkSettings(getProject(), myReminder);
     Notification[] notifications = getNotifications();
     assertSize(0, notifications);
   }
 
   public void testNoNotificationIfShouldNotCheck() {
-    when(myReminder.shouldCheck(myProject)).thenReturn(false);
-    MemorySettingsPostSyncChecker.checkSettings(myProject, myReminder);
+    when(myReminder.shouldCheck(getProject())).thenReturn(false);
+    MemorySettingsPostSyncChecker.checkSettings(getProject(), myReminder);
     Notification[] notifications = getNotifications();
     assertSize(0, notifications);
   }
 
   public void testNotificationIfRecommended() {
-    when(myReminder.shouldCheck(myProject)).thenReturn(true);
+    when(myReminder.shouldCheck(getProject())).thenReturn(true);
     stubHostData(16 * 1024);
-    MemorySettingsPostSyncChecker.checkSettings(myProject, myReminder);
-    MemorySettingsPostSyncChecker.checkSettings(myProject, myReminder);
+    MemorySettingsPostSyncChecker.checkSettings(getProject(), myReminder);
+    MemorySettingsPostSyncChecker.checkSettings(getProject(), myReminder);
     Notification[] notifications = getNotifications();
     // Check twice but there should be only one notification
     assertSize(1, notifications);
@@ -76,7 +76,7 @@ public class MemorySettingsPostSyncCheckerTest extends IdeaTestCase {
 
   private Notification[] getNotifications() {
     return NotificationsManager.getNotificationsManager().getNotificationsOfType(
-      MemorySettingsNotification.class, myProject);
+      MemorySettingsNotification.class, getProject());
   }
 
   private void stubHostData(int machineMemInMB) {

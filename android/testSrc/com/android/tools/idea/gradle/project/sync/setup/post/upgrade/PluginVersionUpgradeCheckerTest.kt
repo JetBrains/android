@@ -18,15 +18,14 @@ package com.android.tools.idea.gradle.project.sync.setup.post.upgrade
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade
-import com.android.tools.idea.testing.IdeComponents
 import com.intellij.notification.NotificationsManager
-import com.intellij.testFramework.IdeaTestCase
 import com.intellij.testFramework.replaceService
+import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations.initMocks
 
-class PluginVersionUpgradeCheckerTest : IdeaTestCase() {
+class PluginVersionUpgradeCheckerTest : AndroidTestCase() {
   @Mock private lateinit var projectInfo: GradleProjectInfo
   @Mock private lateinit var upgradeReminder: TimeBasedUpgradeReminder
 
@@ -63,7 +62,7 @@ class PluginVersionUpgradeCheckerTest : IdeaTestCase() {
 
     replaceUpgradeService(upgradable = false)
 
-    checkUpgrade(myProject, upgradeReminder)
+    checkUpgrade(project, upgradeReminder)
 
     val notifications = NotificationsManager
       .getNotificationsManager()
@@ -77,7 +76,7 @@ class PluginVersionUpgradeCheckerTest : IdeaTestCase() {
 
     replaceUpgradeService(upgradable = true)
 
-    checkUpgrade(myProject, upgradeReminder)
+    checkUpgrade(project, upgradeReminder)
 
     val notifications = NotificationsManager
       .getNotificationsManager()
@@ -91,6 +90,6 @@ class PluginVersionUpgradeCheckerTest : IdeaTestCase() {
     @Suppress("UsePropertyAccessSyntax")
     Mockito.`when`<Boolean>(upgrade.isRecommendedUpgradable()).thenReturn(upgradable)
 
-    myProject.replaceService(PluginVersionUpgrade::class.java, upgrade, testRootDisposable)
+    project.replaceService(PluginVersionUpgrade::class.java, upgrade, testRootDisposable)
   }
 }

@@ -19,8 +19,8 @@ import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -35,7 +35,7 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests for {@link MissingPlatformsSetupStep}.
  */
-public class MissingPlatformsSetupStepTest extends IdeaTestCase {
+public class MissingPlatformsSetupStepTest extends AndroidTestCase {
   private MySyncMessages mySyncMessages;
   private MissingPlatformsSetupStep mySetupStep;
 

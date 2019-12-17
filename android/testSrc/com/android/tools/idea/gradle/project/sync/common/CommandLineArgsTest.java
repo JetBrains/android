@@ -40,15 +40,15 @@ import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSett
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.ServiceContainerUtil;
-import com.intellij.testFramework.IdeaTestCase;
 import java.util.List;
+import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link CommandLineArgs}.
  */
-public class CommandLineArgsTest extends IdeaTestCase {
+public class CommandLineArgsTest extends AndroidTestCase {
   @Mock private ApplicationInfo myApplicationInfo;
   @Mock private IdeInfo myIdeInfo;
   @Mock private GradleInitScripts myInitScripts;
