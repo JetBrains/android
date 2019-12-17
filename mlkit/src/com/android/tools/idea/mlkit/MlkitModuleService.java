@@ -55,11 +55,15 @@ public class MlkitModuleService {
     return CachedValuesManager.getManager(project).getCachedValue(myModule, () -> {
       List<LightModelClass> lightModelClassList = new ArrayList<>();
       FileBasedIndex index = FileBasedIndex.getInstance();
-      index.processValues(MlModelFileIndex.INDEX_ID, myModule.getName(), null, (file, value) -> {
-        LightModelClassConfig classConfig = MlModelClassGenerator.generateLightModelClass(myModule, value);
-        lightModelClassList.add(new LightModelClass(myModule, classConfig));
+      index.processAllKeys(MlModelFileIndex.INDEX_ID, key -> {
+        index.processValues(MlModelFileIndex.INDEX_ID, key, null, (file, value) -> {
+          LightModelClassConfig classConfig = MlModelClassGenerator.generateLightModelClass(myModule, value);
+          lightModelClassList.add(new LightModelClass(myModule, classConfig));
+          return true;
+        }, GlobalSearchScope.moduleScope(myModule));
+
         return true;
-      }, GlobalSearchScope.projectScope(project));
+      }, GlobalSearchScope.moduleScope(myModule), null);
       return CachedValueProvider.Result.create(lightModelClassList, myModelFileModificationTracker);
     });
   }
