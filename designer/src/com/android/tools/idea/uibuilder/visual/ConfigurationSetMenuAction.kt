@@ -31,9 +31,9 @@ enum class ConfigurationSet(val title: String,
                             val visible: Boolean = true) {
   PIXEL_DEVICES("Pixel Devices", { PixelDeviceModelsProvider }),
   PROJECT_LOCALES("Project Locales", { LocaleModelsProvider }),
-  CUSTOM("Custom Configuration Set", { CustomModelsProvider(it) }),
-  COLOR_BLIND_MODE("Color Blind Mode", { ColorBlindModeModelsProvider }, StudioFlags.NELE_COLOR_BLIND_MODE.get()),
-  LARGE_FONT("Large Font Mode", { LargeFontModelsProvider }, StudioFlags.NELE_LARGE_FONT_MODE.get())
+  CUSTOM("Custom", { CustomModelsProvider(it) }),
+  COLOR_BLIND_MODE("Color Blind", { ColorBlindModeModelsProvider }, StudioFlags.NELE_COLOR_BLIND_MODE.get()),
+  LARGE_FONT("Font Sizes", { LargeFontModelsProvider }, StudioFlags.NELE_LARGE_FONT_MODE.get())
 }
 
 interface ConfigurationSetListener {
