@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.analysis;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
@@ -50,6 +51,8 @@ public class CpuAnalysisChartModel<T> extends CpuAnalysisTabModel<T> {
   private final CaptureDetails.Type myDetailsType;
   private final AxisComponentModel myAxisComponentModel;
   private final Function<T, Collection<CaptureNode>> myCaptureNodesExtractor;
+  private final Range myClampedSelectionRange;
+  private final AspectObserver myObserver = new AspectObserver();
 
   /**
    * @param captureNodesExtractor a function that extracts capture nodes from the analysis object.
@@ -62,9 +65,18 @@ public class CpuAnalysisChartModel<T> extends CpuAnalysisTabModel<T> {
     assert TAB_TYPE_TO_DETAIL_TYPE.containsKey(tabType);
     myCapture = capture;
     mySelectionRange = selectionRange;
+    // Need to clone the selection range since the ClampedAxisComponent modifies the range. Without this it will cause weird selection
+    // behavior in the SelectionComponent / Minimap.
+    myClampedSelectionRange = new Range(selectionRange);
+    selectionRange.addDependency(myObserver).onChange(Range.Aspect.RANGE, this::selectionRangeSync);
+
     myDetailsType = TAB_TYPE_TO_DETAIL_TYPE.get(tabType);
     myCaptureNodesExtractor = captureNodesExtractor;
-    myAxisComponentModel = new ClampedAxisComponentModel.Builder(selectionRange, new PercentAxisFormatter(5, 10)).build();
+    myAxisComponentModel = new ClampedAxisComponentModel.Builder(myClampedSelectionRange, new PercentAxisFormatter(5, 10)).build();
+  }
+
+  private void selectionRangeSync() {
+    myClampedSelectionRange.set(mySelectionRange);
   }
 
   @NotNull
