@@ -50,10 +50,12 @@ public class ComponentModification implements NlAttributesHolder {
     }
   }
 
+  @NotNull
   public String getLabel() {
     return myLabel;
   }
 
+  @NotNull
   public NlComponent getComponent() {
     return myComponent;
   }

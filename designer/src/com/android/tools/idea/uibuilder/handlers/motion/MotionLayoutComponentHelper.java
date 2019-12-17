@@ -97,7 +97,7 @@ public class MotionLayoutComponentHelper {
 
   private MotionLayoutComponentHelper(@NotNull NlComponent component) {
     component = MotionUtils.getMotionLayoutAncestor(component);
-    ViewInfo info = NlComponentHelperKt.getViewInfo(component);
+    ViewInfo info = component != null ? NlComponentHelperKt.getViewInfo(component) : null;
     if (info == null) {
       myDesignTool = null;
       myMotionLayoutComponent = null;

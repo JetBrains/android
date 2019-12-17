@@ -34,6 +34,7 @@ import com.android.tools.idea.uibuilder.api.AccessorySelectionListener;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionUtils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
@@ -524,26 +525,8 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       return;
     }
 
-    NlComponent component = selection.get(0);
-
-    mySelection = component;
-    if (!NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {
-      component = component.getParent();
-      if (component != null && !NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {
-        return; // not found
-      }
-    }
-
-    if (!NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {
-      component = component.getParent();
-      if (component != null && !NlComponentHelperKt.isOrHasSuperclass(component, SdkConstants.CLASS_MOTION_LAYOUT)) {
-        return; // not found
-      }
-    }
-    // component is a motion layout
-    if (myMotionLayout != component) {
-      myMotionLayout = component;
-    }
+    mySelection = selection.get(0);
+    myMotionLayout = MotionUtils.getMotionLayoutAncestor(mySelection);
 
     fireSelectionChanged(selection);
   }
