@@ -83,8 +83,7 @@ public class NewGradleSync implements GradleSync {
   }
 
   public static boolean isEnabled(@NotNull Project project) {
-    return IdeInfo.getInstance().isAndroidStudio() &&
-           StudioFlags.NEW_SYNC_INFRA_ENABLED.get() || isSingleVariantSync(project);
+    return StudioFlags.NEW_SYNC_INFRA_ENABLED.get() || isSingleVariantSync(project);
   }
 
   public static boolean isSingleVariantSync(@NotNull Project project) {

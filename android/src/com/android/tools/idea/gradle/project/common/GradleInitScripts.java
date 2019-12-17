@@ -32,6 +32,7 @@ import com.google.common.escape.Escapers;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.serviceContainer.NonInjectable;
+import gnu.trove.THash;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -128,6 +129,7 @@ public final class GradleInitScripts {
       paths.add(getJarPathForClass(buildScriptModelBuilderClass));
       paths.add(getJarPathForClass(ModelBuilderService.class));
       paths.add(getJarPathForClass(Multimap.class));
+      paths.add(getJarPathForClass(THash.class));
       String content = myContentCreator.createInitScriptContent(paths, buildScriptModelBuilderClass.getName(), "BuildScriptClasspath");
 
       File buildScriptInitScriptFile = createInitScriptFile("sync.ng.build.script.classpath", content);
@@ -155,6 +157,7 @@ public final class GradleInitScripts {
     paths.add(getJarPathForClass(Unit.class));
     paths.add(getJarPathForClass(AbstractKotlinGradleModelBuilder.class));
     paths.add(getJarPathForClass(ModelBuilderService.class));
+    paths.add(getJarPathForClass(THash.class));
     String content = myContentCreator.createInitScriptContent(paths, kaptModelBuilderClass.getName(), "Kapt");
     return createInitScriptFile("sync.ng.kapt", content);
   }
