@@ -44,7 +44,7 @@ class SqliteFileTypeDetectorTest : PlatformTestCase() {
 
   fun testSqliteFileDetection() {
     // Prepare
-    val file = mySqliteUtil.createTempSqliteDatabase()
+    val file = mySqliteUtil.createTestSqliteDatabase()
     val detector = SqliteFileTypeDetector()
     val byteSequence = mySqliteUtil.createByteSequence(file, 4096)
 
@@ -57,7 +57,7 @@ class SqliteFileTypeDetectorTest : PlatformTestCase() {
 
   fun testSqliteFileDetectionShortSequence() {
     // Prepare
-    val file = mySqliteUtil.createTempSqliteDatabase()
+    val file = mySqliteUtil.createTestSqliteDatabase()
     val detector = SqliteFileTypeDetector()
     // Note: 10 bytes is smaller than the Sqlite header
     val byteSequence = mySqliteUtil.createByteSequence(file, 10)
