@@ -91,7 +91,7 @@ class ConfigurationSetMenuAction(private val listener: ConfigurationSetListener,
       currentConfigurationSet = newSet
       updatePresentation(templatePresentation)
       listener.onSelectedConfigurationSetChanged(newSet)
-      getChildren(null).map { it as SetConfigurationSetAction }.forEach { it.updatePresentation() }
+      getChildren(null).mapNotNull { it as? SetConfigurationSetAction }.forEach { it.updatePresentation() }
     }
   }
 
