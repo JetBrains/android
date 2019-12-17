@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.android
 
 import com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiJavaFile
@@ -42,7 +43,7 @@ class ConvertJavaToKotlinProviderImpl : ConvertJavaToKotlinProvider {
         return bundledRuntimeVersion()
     }
 
-    override fun convertToKotlin(project: Project, files: List<PsiJavaFile>): List<PsiFile> {
-        return JavaToKotlinAction.convertFiles(files, project, askExternalCodeProcessing = false)
+    override fun convertToKotlin(project: Project, module: Module, files: List<PsiJavaFile>): List<PsiFile> {
+        return JavaToKotlinAction.convertFiles(files, project, module, askExternalCodeProcessing = false)
     }
 }

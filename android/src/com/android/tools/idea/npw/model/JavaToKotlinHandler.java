@@ -22,6 +22,7 @@ import com.android.tools.idea.npw.template.ConvertJavaToKotlinProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -51,6 +52,7 @@ public class JavaToKotlinHandler {
   }
 
   static void convertJavaFilesToKotlin(@NotNull Project project,
+                                       @NotNull Module module,
                                        @NotNull List<File> files,
                                        @NotNull final Runnable postProcessFunction) {
     if (!hasJavaFiles(files)) {
@@ -63,7 +65,7 @@ public class JavaToKotlinHandler {
     Disposable tempDisposable = Disposer.newDisposable();
     project.getMessageBus().connect(tempDisposable).subscribe(PROJECT_SYSTEM_SYNC_TOPIC, result -> {
       if (result == ProjectSystemSyncManager.SyncResult.SUCCESS || result == ProjectSystemSyncManager.SyncResult.FAILURE) {
-        callConverter(project, provider, files, postProcessFunction);
+        callConverter(project, module, provider, files, postProcessFunction);
         Disposer.dispose(tempDisposable);
       }
     });
@@ -74,6 +76,7 @@ public class JavaToKotlinHandler {
   }
 
   private static void callConverter(@NotNull Project project,
+                                    @NotNull Module module,
                                     @NotNull ConvertJavaToKotlinProvider provider,
                                     @NotNull List<File> files,
                                     @NotNull Runnable postProcessFunction) {
@@ -81,7 +84,7 @@ public class JavaToKotlinHandler {
     DumbService.getInstance(project).smartInvokeLater(() -> {
       List<PsiJavaFile> psiJavaFiles = files2PsiJavaFiles(project, files);
       if (!psiJavaFiles.isEmpty()) {
-        provider.convertToKotlin(project, psiJavaFiles);
+        provider.convertToKotlin(project, module, psiJavaFiles);
       }
       postProcessFunction.run();
     });
