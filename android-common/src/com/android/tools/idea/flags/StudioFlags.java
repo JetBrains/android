@@ -337,6 +337,12 @@ public final class StudioFlags {
     NELE, "toggle.tools.attributes.preview", "New Toggle for Tools namespaces attributes",
     "Enable the new toggle in the Layout Editor. Allows toggling tools attributes in the Layout preview.",
     false);
+
+  public static final Flag<Boolean> NELE_SHOW_RECYCLER_VIEW_SETUP_WIZARD = Flag.create(
+    NELE, "recyclerview.setup.wizard", "Show setup wizard for recycler view",
+    "When you right click recycler view in layout editor, you can now see \"Generate Adapter\" " +
+    "that takes you through setup wizard",
+    false);
   //endregion
 
   //region Navigation Editor
