@@ -638,8 +638,7 @@ public class AndroidStudioSystemHealthMonitor extends PreloadingActivity {
         return false;
       }
     }
-
-    return !(t instanceof Logger.EmptyThrowable);
+    return true;
   }
 
   private static void incrementAndSaveExceptionCount(@NotNull Throwable t) {
