@@ -127,7 +127,7 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
   private val databaseConnectionFactory: DatabaseConnectionFactory = DatabaseConnectionFactoryImpl(),
   private val fileOpener: Consumer<VirtualFile> = Consumer { OpenFileAction.openFile(it, project) },
   private val viewFactory: DatabaseInspectorViewsFactory = DatabaseInspectorViewsFactoryImpl(),
-  private val model: DatabaseInspectorController.Model = Model(),
+  private val model: DatabaseInspectorController.Model = ModelImpl(),
   private val createController: (DatabaseInspectorController.Model) -> DatabaseInspectorController = { myModel ->
     DatabaseInspectorControllerImpl(
       project,
@@ -251,7 +251,7 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
   @AnyThread
   override fun getOpenDatabases(): Set<SqliteDatabase> = model.openDatabases.keys
 
-  private class Model : DatabaseInspectorController.Model {
+  private class ModelImpl : DatabaseInspectorController.Model {
 
     private val lock = ReentrantLock()
 

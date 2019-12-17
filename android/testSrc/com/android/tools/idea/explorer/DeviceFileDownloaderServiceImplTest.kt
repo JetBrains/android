@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.explorer
 
+import com.android.tools.idea.concurrency.AsyncTestUtils
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DeviceFileId
 import com.android.tools.idea.device.fs.DownloadProgress
@@ -26,7 +27,6 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.AndroidTestCase
-import com.android.tools.idea.concurrency.AsyncTestUtils
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
