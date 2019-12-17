@@ -33,7 +33,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 
-@org.junit.Ignore("b/146264899")
 class AndroidLintCustomCheckTest {
 
   @get:Rule
