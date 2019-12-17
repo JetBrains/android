@@ -46,6 +46,20 @@ iml_module(
 iml_module(
     name = "intellij.android.mlkit.tests",
     iml_files = ["intellij.android.mlkit.tests.iml"],
+    tags = [
+        "no_test_windows",  # b/135665870
+    ],
+    test_class = "com.android.tools.idea.mlkit.MlkitTestSuite",
+    test_coverage = True,
+    test_data = glob(["testData/**"]) + [
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/android/annotations",
+        "//tools/base/templates",
+        "//tools/adt/idea/android/testData",
+        "//tools/idea:platform-build-info",
+        "//tools/idea/java/jdkAnnotations",
+        "//tools/idea/java/mockJDK-1.7",
+    ],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
@@ -72,5 +86,14 @@ iml_module(
     deps = [
         "//tools/adt/idea/mlkit:intellij.android.mlkit[module, test]",
         "//tools/idea/.idea/libraries:JUnit4[test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
+        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/idea/.idea/libraries:truth[test]",
+        "//tools/idea/.idea/libraries:Guava[test]",
+        "//tools/adt/idea/android:intellij.android.core[module, test]",
     ],
 )
