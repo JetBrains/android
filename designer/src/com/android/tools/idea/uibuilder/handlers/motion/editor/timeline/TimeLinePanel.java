@@ -1070,10 +1070,11 @@ public class TimeLinePanel extends JPanel {
           TimeLineRowData data = list.get(i);
           boolean showTitle = true;
           if (data == null || data.mName == null) {
-            showTitle = !(data.mName.equals(lastName));
+            showTitle = false;
+          } else {
+            lastName = data.mName;
           }
           child.setRowData(model, data, i, false, false, mSelectedKeyFrame, showTitle);
-          lastName = data.mName;
 
           add(child);
         }

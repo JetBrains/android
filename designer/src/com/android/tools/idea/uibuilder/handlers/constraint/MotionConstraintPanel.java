@@ -40,7 +40,9 @@ public class MotionConstraintPanel extends WidgetConstraintPanel {
     }
     myComponent = components.get(0);
     MotionAttributes attr = MotionSceneUtils.getAttributes(myComponent);
-    mTitle.setText("Constraints from " + attr.getLayoutSource());
+    if (attr!=null) {
+      mTitle.setText("Constraints from " + attr.getLayoutSource());
+    }
   }
 
   @Override
@@ -53,7 +55,9 @@ public class MotionConstraintPanel extends WidgetConstraintPanel {
 
     MTag.TagWriter mTagWriter;
     private Timer myTimer = new Timer(DELAY_BEFORE_COMMIT, (c) -> {
-      TransactionGuard.getInstance().submitTransaction(myComponent.getModel(), () -> commit());
+      if (myComponent != null) {
+        TransactionGuard.getInstance().submitTransaction(myComponent.getModel(), () -> commit());
+      }
     });
 
     public MotionWidgetConstraintModel(@NotNull Runnable modelUpdateCallback) {
