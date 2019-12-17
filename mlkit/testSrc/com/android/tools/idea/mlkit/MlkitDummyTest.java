@@ -15,11 +15,47 @@
  */
 package com.android.tools.idea.mlkit;
 
-import org.junit.Test;
+import static com.google.common.truth.Truth.assertThat;
 
-public class MlkitDummyTest {
-  @Test
-  public void dummy() {
-    MlkitModuleService.class.getName();
+import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.collect.Iterables;
+import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.project.ProjectUtil;
+import com.intellij.testFramework.VfsTestUtil;
+import java.util.List;
+import org.jetbrains.android.AndroidTestCase;
+
+public class MlkitDummyTest extends AndroidTestCase {
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    StudioFlags.MLKIT_TFLITE_MODEL_FILE_TYPE.override(true);
+    StudioFlags.MLKIT_LIGHT_CLASSES.override(true);
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    try {
+      StudioFlags.MLKIT_TFLITE_MODEL_FILE_TYPE.clearOverride();
+      StudioFlags.MLKIT_LIGHT_CLASSES.clearOverride();
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
+    finally {
+      super.tearDown();
+    }
+  }
+
+  public void testModuleService() throws Exception {
+    VfsTestUtil.createFile(ProjectUtil.guessProjectDir(getProject()), "assets/my_model.tflite", new byte[]{1, 2, 3});
+
+    MlkitModuleService mlkitService = MlkitModuleService.getInstance(myModule);
+    List<LightModelClass> lightClasses = mlkitService.getLightModelClassList();
+    assertThat(lightClasses).hasSize(1);
+    LightModelClass lightClass = Iterables.getOnlyElement(lightClasses);
+    assertThat(lightClass.getName()).isEqualTo("MyModel");
+    assertThat(ModuleUtilCore.findModuleForPsiElement(lightClass)).isEqualTo(myModule);
   }
 }
