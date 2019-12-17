@@ -18,8 +18,7 @@ package org.jetbrains.kotlin.android
 
 import com.android.testutils.TestUtils
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleType
-import com.intellij.openapi.module.StdModuleTypes
+import com.intellij.openapi.module.ModuleTypeId
 import com.intellij.openapi.roots.ContentEntry
 import com.intellij.openapi.roots.ModifiableRootModel
 import com.intellij.openapi.roots.OrderRootType
@@ -39,7 +38,7 @@ open class KotlinLightProjectDescriptor : LightProjectDescriptor() {
     val INSTANCE = KotlinLightProjectDescriptor()
   }
 
-  override fun getModuleType(): ModuleType<*> = StdModuleTypes.JAVA
+  override fun getModuleTypeId(): String = ModuleTypeId.JAVA_MODULE
 
   override fun configureModule(module: Module, model: ModifiableRootModel, contentEntry: ContentEntry) {
     val editor = NewLibraryEditor()

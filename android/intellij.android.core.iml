@@ -165,7 +165,9 @@
     <orderEntry type="library" name="NanoXML" level="project" />
     <orderEntry type="library" name="batik-transcoder" level="project" />
     <orderEntry type="module" module-name="intellij.platform.serviceContainer" />
-    <orderEntry type="library" scope="RUNTIME" name="intellij.android.kotlin.idea" level="project" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="RUNTIME" />
+    <orderEntry type="module" module-name="intellij.android.kotlin.output.parser" scope="RUNTIME" />
     <orderEntry type="library" scope="PROVIDED" name="org.jetbrains.intellij.deps.android.tools:resources-aar" level="project" />
     <orderEntry type="module" module-name="intellij.platform.objectSerializer.annotations" />
     <orderEntry type="library" scope="PROVIDED" name="kotlin-plugin-android-compile-deps" level="project" />

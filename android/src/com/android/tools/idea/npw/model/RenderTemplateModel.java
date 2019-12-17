@@ -296,8 +296,8 @@ public final class RenderTemplateModel extends WizardModel {
       }.execute().getResultObject();
 
       if (success) {
-        if (isKotlinTemplate()) {
-          JavaToKotlinHandler.convertJavaFilesToKotlin(project, filesToReformat, () -> {
+        if (isKotlinTemplate() && getModule() != null) {
+          JavaToKotlinHandler.convertJavaFilesToKotlin(project, getModule(), filesToReformat, () -> {
             // replace .java w/ .kt files
             for (int i = 0; i < myCreatedFiles.size(); i++) {
               File file = myCreatedFiles.get(i);
