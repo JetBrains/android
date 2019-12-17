@@ -44,6 +44,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.ThreeState;
 import java.io.File;
 import java.util.ArrayList;
@@ -66,6 +67,7 @@ public class AndroidPluginVersionUpdater {
     this(project, syncState, GradleSyncInvoker.getInstance(), new TextSearch(project));
   }
 
+  @NonInjectable
   @VisibleForTesting
   AndroidPluginVersionUpdater(@NotNull Project project,
                               @NotNull GradleSyncState syncState,

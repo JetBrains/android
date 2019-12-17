@@ -35,10 +35,9 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.util.containers.ContainerUtilRt;
+import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
 import java.io.IOException;
-import java.util.Set;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,6 +64,7 @@ public class GradleProjectImporter {
     this(sdkSync, new NewProjectSetup(), new ProjectFolder.Factory());
   }
 
+  @NonInjectable
   @VisibleForTesting
   GradleProjectImporter(@NotNull SdkSync sdkSync,
                         @NotNull NewProjectSetup newProjectSetup,

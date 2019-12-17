@@ -84,6 +84,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.Key;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.SystemProperties;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -131,6 +132,7 @@ public class PostSyncProjectSetup {
          new ModuleSetup(project), pluginVersionUpgrade, projectBuilder, RunManagerEx.getInstanceEx(project));
   }
 
+  @NonInjectable
   @VisibleForTesting
   PostSyncProjectSetup(@NotNull Project project,
                        @NotNull IdeInfo ideInfo,

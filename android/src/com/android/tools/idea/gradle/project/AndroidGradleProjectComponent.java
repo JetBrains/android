@@ -46,6 +46,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.serviceContainer.NonInjectable;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -82,6 +83,7 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
     this(project, gradleProjectInfo, androidProjectInfo, gradleBuildInvoker, compilerManager, ideInfo, new LegacyAndroidProjects(project));
   }
 
+  @NonInjectable
   @VisibleForTesting
   public AndroidGradleProjectComponent(@NotNull Project project,
                                        @NotNull GradleProjectInfo gradleProjectInfo,

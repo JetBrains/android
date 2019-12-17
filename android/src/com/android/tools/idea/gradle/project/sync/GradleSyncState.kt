@@ -61,6 +61,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.io.FileUtil.toSystemDependentName
 import com.intellij.openapi.util.text.StringUtil.formatDuration
+import com.intellij.serviceContainer.NonInjectable
 import com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ThreeState
@@ -107,7 +108,7 @@ open class StateChangeNotification(private val project: Project) {
  * to any registered [GradleSyncListener]s via the projects [messageBus] or any one-time sync listeners passed into a specific invocation
  * of sync.
  */
-open class GradleSyncState(
+open class GradleSyncState @NonInjectable constructor(
   private val project: Project,
   private val androidProjectInfo: AndroidProjectInfo,
   private val gradleProjectInfo: GradleProjectInfo,
