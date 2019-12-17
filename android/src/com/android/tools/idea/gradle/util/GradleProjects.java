@@ -73,11 +73,12 @@ public final class GradleProjects {
    * @param project the project to open.
    */
   public static void open(@NotNull Project project) {
+    updateLastProjectLocation(project.getBasePath());
     if (WindowManager.getInstance().isFullScreenSupportedInCurrentOS()) {
       IdeFocusManager instance = IdeFocusManager.findInstance();
       IdeFrame lastFocusedFrame = instance.getLastFocusedFrame();
       if (lastFocusedFrame instanceof IdeFrameEx) {
-        boolean fullScreen = lastFocusedFrame.isInFullScreen();
+        boolean fullScreen = ((IdeFrameEx)lastFocusedFrame).isInFullScreen();
         if (fullScreen) {
           project.putUserData(SHOULD_OPEN_IN_FULL_SCREEN, TRUE);
         }

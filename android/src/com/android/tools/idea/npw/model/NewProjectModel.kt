@@ -57,7 +57,6 @@ import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.intellij.ide.impl.ProjectUtil
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
@@ -182,7 +181,6 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       return
     }
     multiTemplateRenderer.requestRender(ProjectTemplateRenderer())
-    ProjectUtil.updateLastProjectLocation(project.basePath)
   }
 
   private inner class ProjectTemplateRenderer : MultiTemplateRenderer.TemplateRenderer {
