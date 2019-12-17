@@ -27,6 +27,7 @@ import com.intellij.util.ui.JBUI;
 import java.awt.BorderLayout;
 import java.util.List;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -39,7 +40,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class CpuAnalysisPanel extends AspectObserver {
 
-  private final TabbedToolbar myTabs = new TabbedToolbar("Analysis");
+  private final TabbedToolbar myTabs;
   private final JBTabbedPane myTabView = new JBTabbedPane();
   private final JPanel myPanel = new JPanel(new BorderLayout());
   private final CpuCaptureStage myStage;
@@ -50,12 +51,15 @@ public class CpuAnalysisPanel extends AspectObserver {
   public CpuAnalysisPanel(@NotNull StudioProfilersView view, @NotNull CpuCaptureStage stage) {
     myStage = stage;
     myProfilersView = view;
+    JLabel tabsTitle = new JLabel("Analysis");
+    tabsTitle.setBorder(JBUI.Borders.empty(5));
+    myTabs = new TabbedToolbar(tabsTitle);
     setupBindings();
     stage.getAspect().addDependency(this).onChange(CpuCaptureStage.Aspect.ANALYSIS_MODEL_UPDATED, this::updateComponents);
     // TODO (b/139295622): Add action items and actions to analysis panel.
     // Need proper icons for configure and minimize.
     // myTabs.addAction(StudioIcons.Logcat.SETTINGS, (e) -> { });
-    myTabs.setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 0, 1, 1, 0));
+    myTabs.setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 0, 0, 1, 0));
     myPanel.add(myTabs, BorderLayout.NORTH);
     myPanel.add(myTabView, BorderLayout.CENTER);
     // Remove default border added by JBTabbedPane.
