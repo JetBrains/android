@@ -58,6 +58,7 @@ import static com.android.SdkConstants.*;
 import static com.android.xml.AndroidManifest.ATTRIBUTE_GLESVERSION;
 import static org.jetbrains.android.dom.attrs.ToolsAttributeUtil.ATTR_NODE;
 import static org.jetbrains.android.dom.attrs.ToolsAttributeUtil.ATTR_REMOVE;
+import static org.jetbrains.android.facet.IdeaSourceProviderUtil.isManifestFile;
 
 public class ManifestUtils {
 
@@ -181,33 +182,48 @@ public class ManifestUtils {
 
   @NotNull
   static SourceFilePosition getActionLocation(@NotNull Module module, @NotNull Actions.Record record) {
+    // This is an artifact of the way we generate the merged manifest: when the merger asks for the
+    // content of a manifest from a dependency, we use the FileStreamProvider to swap in the result of a
+    // recursive merged manifest computation for the corresponding module. This means that the record points
+    // to the manifest file as the source, but the record's source file position points to a node in the
+    // merged manifest for the corresponding module. To get the location in the actual manifest, we recurse
+    // back through the incremental merged manifests that lead to this one, stopping when we hit a source
+    // file that wasn't replaced by the FileStreamProvider.
     SourceFilePosition sourceFilePosition = record.getActionLocation();
     SourceFile sourceFile = sourceFilePosition.getFile();
     File file = sourceFile.getSourceFile();
     SourcePosition sourcePosition = sourceFilePosition.getPosition();
-    if (file != null && !SourcePosition.UNKNOWN.equals(sourcePosition)) {
-      VirtualFile vFile = VfsUtil.findFileByIoFile(file, false);
-      assert vFile != null;
-      Module fileModule = ModuleUtilCore.findModuleForFile(vFile, module.getProject());
-      if (fileModule != null && !fileModule.equals(module)) {
-        MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(fileModule);
-        Document document = manifest.getDocument();
-        assert document != null;
-        Element root = document.getDocumentElement();
-        assert root != null;
-        int startLine = sourcePosition.getStartLine();
-        int startColumn = sourcePosition.getStartColumn();
-        Node node = PositionXmlParser.findNodeAtLineAndCol(document, startLine, startColumn);
-        if (node == null) {
-          Logger.getInstance(ManifestPanel.class).warn("Can not find node in " + fileModule + " for " + sourceFilePosition);
-        }
-        else {
-          List<? extends Actions.Record> records = getRecords(manifest, node);
-          if (!records.isEmpty()) {
-            return getActionLocation(fileModule, records.get(0));
-          }
-        }
-      }
+    if (file == null || SourcePosition.UNKNOWN.equals(sourcePosition)) {
+      return sourceFilePosition;
+    }
+    VirtualFile vFile = VfsUtil.findFileByIoFile(file, false);
+    Module fileModule = vFile == null ? null : ModuleUtilCore.findModuleForFile(vFile, module.getProject());
+    if (module.equals(fileModule)) {
+      // When merging manifests for a module, we don't replace a file's content with a recursive merged manifest
+      // computation if that file belongs to that module (e.g. primary, flavor, and build type manifests).
+      // So in this case the source file position is already accurate.
+      return sourceFilePosition;
+    }
+    AndroidFacet facet = fileModule == null ? null : AndroidFacet.getInstance(fileModule);
+    if (facet == null || !isManifestFile(facet, vFile)) {
+      // Non-manifest files (e.g. navigation) don't get replaced either, so we already have the correct position.
+      return sourceFilePosition;
+    }
+    MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(fileModule);
+    Document document = manifest.getDocument();
+    assert document != null;
+    Element root = document.getDocumentElement();
+    assert root != null;
+    int startLine = sourcePosition.getStartLine();
+    int startColumn = sourcePosition.getStartColumn();
+    Node node = PositionXmlParser.findNodeAtLineAndCol(document, startLine, startColumn);
+    if (node == null) {
+      Logger.getInstance(ManifestPanel.class).warn("Can not find node in " + fileModule + " for " + sourceFilePosition);
+      return sourceFilePosition;
+    }
+    List<? extends Actions.Record> records = getRecords(manifest, node);
+    if (!records.isEmpty()) {
+      return getActionLocation(fileModule, records.get(0));
     }
     return sourceFilePosition;
   }
