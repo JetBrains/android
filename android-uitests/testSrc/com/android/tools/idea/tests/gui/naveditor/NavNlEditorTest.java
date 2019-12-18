@@ -42,6 +42,7 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import org.fest.swing.driver.BasicJListCellReader;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,8 +55,15 @@ public class NavNlEditorTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
+  @After
+  public void tearDown() {
+    StudioFlags.NAV_NEW_COMPONENT_TREE.clearOverride();
+  }
+
   @Test
   public void testSelectComponent() throws Exception {
+    StudioFlags.NAV_NEW_COMPONENT_TREE.override(false);
+
     IdeFrameFixture frame = guiTest.importProject("Navigation").waitForGradleProjectSyncToFinish();
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = frame.getEditor();
@@ -76,6 +84,8 @@ public class NavNlEditorTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/72238573
   @Test
   public void testCreateAndDelete() throws Exception {
+    StudioFlags.NAV_NEW_COMPONENT_TREE.override(false);
+
     NlEditorFixture layout = guiTest
       .importProject("Navigation")
       .waitForGradleProjectSyncToFinish()
@@ -114,6 +124,7 @@ public class NavNlEditorTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/137919011
   @Test
   public void testCreateNewFragmentFromWizard() throws Exception {
+    StudioFlags.NAV_NEW_COMPONENT_TREE.override(false);
     StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.override(true);
     try {
       NlEditorFixture layout = guiTest

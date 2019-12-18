@@ -67,6 +67,23 @@ class DataVisualizationColorsTest {
   @Test
   fun getColorByName() {
     assertThat(DataVisualizationColors.getColor("Gray", 0)).isEqualTo(
-      DataVisualizationColors.getColor(0, 0))
+      DataVisualizationColors.getColor(0, 0, false))
+  }
+
+  @Test
+  fun getFocusColor() {
+    val color = DataVisualizationColors.getColor(0)
+    assertThat(DataVisualizationColors.getFocusColor(color)).isNotEqualTo(color)
+  }
+
+  @Test
+  fun getFocusedColors() {
+    val color = DataVisualizationColors.getColor(0, false)
+    val focusedColor = DataVisualizationColors.getColor(0, true)
+    assertThat(focusedColor).isNotEqualTo(color)
+
+    val gray = DataVisualizationColors.getColor("Gray", false)
+    val focusedGray = DataVisualizationColors.getColor("Gray", true)
+    assertThat(gray).isNotEqualTo(focusedGray)
   }
 }

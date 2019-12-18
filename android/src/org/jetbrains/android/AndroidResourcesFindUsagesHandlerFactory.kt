@@ -16,18 +16,22 @@
 package org.jetbrains.android
 
 import com.android.ide.common.resources.ResourceRepository
+import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.RESOURCE_CONTEXT_ELEMENT
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.RESOURCE_CONTEXT_SCOPE
+import com.android.tools.idea.util.androidFacet
 import com.intellij.find.findUsages.FindUsagesHandler
 import com.intellij.find.findUsages.FindUsagesHandlerFactory
 import com.intellij.find.findUsages.FindUsagesOptions
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiField
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.Processor
+import org.jetbrains.android.util.AndroidResourceUtil
 
 /**
  * Provides a custom [FindUsagesHandler] that understands how to search for all relevant Android Resources.
@@ -60,11 +64,26 @@ class AndroidResourcesFindUsagesHandlerFactory : FindUsagesHandlerFactory() {
             options.searchScope = options.searchScope.intersectWith(reducedScope)
           }
           val contextElement = originalElement.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT)
+          val resourceReference = element.resourceReference
+
+          // Add any file based resources not found in a ReferencesSearch
           if (contextElement != null) {
             runReadAction {
               AndroidResourceToPsiResolver.getInstance()
-                .getGotoDeclarationFileBasedTargets(element.resourceReference, contextElement)
+                .getGotoDeclarationFileBasedTargets(resourceReference, contextElement)
                 .forEach { processor.process(UsageInfo(it, false)) }
+            }
+          }
+
+          // For Attr and Styleable resources, add any StyleableAttr fields that would not be found in ReferencesSearch
+          val androidFacet = contextElement?.androidFacet
+          if (androidFacet != null) {
+            runReadAction {
+              when (resourceReference.resourceType) {
+                ResourceType.ATTR -> AndroidResourceUtil.findStyleableAttrFieldsForAttr(androidFacet, resourceReference.name)
+                ResourceType.STYLEABLE -> AndroidResourceUtil.findStyleableAttrFieldsForStyleable(androidFacet, resourceReference.name)
+                else -> PsiField.EMPTY_ARRAY
+              }.forEach { super.processElementUsages(it, processor, options) }
             }
           }
         }

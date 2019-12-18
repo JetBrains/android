@@ -26,6 +26,7 @@ import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
@@ -73,6 +74,7 @@ public class AsyncDevicesGetter {
          new NameGetter(project));
   }
 
+  @NonInjectable
   @VisibleForTesting
   AsyncDevicesGetter(@NotNull Project project,
                      @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabled,

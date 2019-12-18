@@ -19,6 +19,7 @@ import com.android.tools.idea.concurrency.AndroidExecutors.Companion.getInstance
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.components.ServiceManager
+import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
@@ -28,7 +29,7 @@ import java.util.concurrent.ExecutorService
  *
  * Instances are provided by PicoContainer from calls to [getInstance].
  */
-class AndroidExecutors(
+class AndroidExecutors @NonInjectable constructor(
   /** Used to schedule work on the UI thread, following IntelliJ threading rules. */
   val uiThreadExecutor: (ModalityState, Runnable) -> Unit,
 

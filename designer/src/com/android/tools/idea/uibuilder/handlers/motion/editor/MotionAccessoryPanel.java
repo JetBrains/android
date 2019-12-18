@@ -158,7 +158,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       @Override
       public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag, int flags) {
         if (DEBUG) {
-          Debug.log("Selection changed " + selection);
+          Debug.logStack("Selection changed " + selection,10);
         }
         mSelectedConstraintTag = null;
         mLastSelection = selection;
@@ -393,6 +393,8 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     if (list.size() > 0) {
       myDesignSurface.getSelectionModel().setSelection(list);
     } else {
+      Debug.log("clear Selection");
+
       myDesignSurface.getSelectionModel().setSelection(Arrays.asList(myMotionLayoutNlComponent));
     }
   }
@@ -433,7 +435,11 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       for (NlComponent component : selection) {
         String tagName = component.getTagName();
         String id = component.getId();
-        MTag tag = mMotionEditor.getMeModel().findTag(tagName, id);
+
+        MTag tag = null;
+        if (mMotionEditor != null && mMotionEditor.getMeModel() != null) {
+          tag = mMotionEditor.getMeModel().findTag(tagName, id);
+        }
         if (tag != null) {
           if (tag instanceof NlComponentTag) {
             mMotionEditor.setSelection(MotionEditorSelector.Type.LAYOUT_VIEW, new MTag[]{tag}, 0);

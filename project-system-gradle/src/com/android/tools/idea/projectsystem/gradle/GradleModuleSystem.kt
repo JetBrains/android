@@ -49,7 +49,7 @@ import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifests
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifestsOfLibs
-import com.android.tools.idea.projectsystem.getNavigationFiles
+import com.android.tools.idea.projectsystem.getTransitiveNavigationFiles
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.templates.RepositoryUrlManager
@@ -422,7 +422,7 @@ class GradleModuleSystem(
       primaryManifest = facet.sourceProviders.mainManifestFile,
       flavorAndBuildTypeManifests = facet.getFlavorAndBuildTypeManifests(),
       libraryManifests = if (facet.configuration.isAppOrFeature) facet.getLibraryManifests(dependencies) else emptyList(),
-      navigationFiles = facet.getNavigationFiles(),
+      navigationFiles = facet.getTransitiveNavigationFiles(dependencies),
       flavorAndBuildTypeManifestsOfLibs = facet.getFlavorAndBuildTypeManifestsOfLibs(dependencies)
     )
   }

@@ -155,7 +155,7 @@ public class BaseArtifactStub implements BaseArtifact {
 
   @NonNull
   @Override
-  public String getPostAssembleTaskModelFile() {
+  public String getAssembleTaskOutputListingFile() {
     return new File(myFileStructure.getRootFolderPath(), "build/output/apk/" + myBuildType + "/output.json").getAbsolutePath();
   }
 }

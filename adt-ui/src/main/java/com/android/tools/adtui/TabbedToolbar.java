@@ -55,24 +55,16 @@ public class TabbedToolbar extends JPanel {
   private int myPreferredHeight;
 
   /**
-   * Creates a toolbar with a label as the left most element.
-   * The result is: [title] [tab][tab]                (X)(-)
-   */
-  public TabbedToolbar(String title) {
-    this(new JLabel(title));
-  }
-
-  /**
    * Creates a toolbar where the label can be replaces by a custom component.
    */
   public TabbedToolbar(@NotNull JComponent title) {
     // Set layout explicitly to remove default hgap/vgap.
     myTabsPanel.setLayout(new FlowLayout(FlowLayout.LEADING, 0, 0));
 
-    //     px     Fit                *                      Fit
-    // [Padding][Title][(Tab)(Tab)(Tab)              ][(Action)(Action)]
-    setLayout(new TabularLayout("5px,Fit,*,Fit", "*"));
-    add(title, new TabularLayout.Constraint(0, 1));
+    //    Fit    px                *                      Fit
+    // [Title][Padding][(Tab)(Tab)(Tab)              ][(Action)(Action)]
+    setLayout(new TabularLayout("Fit,5px,*,Fit", "*"));
+    add(title, new TabularLayout.Constraint(0, 0));
     add(myTabsPanel, new TabularLayout.Constraint(0, 2));
     add(myActionPanel, new TabularLayout.Constraint(0, 3));
   }
@@ -128,14 +120,9 @@ public class TabbedToolbar extends JPanel {
       }
     });
     myTabsPanel.add(tab);
-
-    // If this is the first tab added select it by default.
-    if (myActiveTab == 0) {
-      selectTab(tab, selectedListener);
-    }
-
     // Cache preferred height of control so we can properly adjust child elements sizes.
     myPreferredHeight = getPreferredSize().height;
+    selectTab(tab, selectedListener);
   }
 
   /**
@@ -143,6 +130,7 @@ public class TabbedToolbar extends JPanel {
    */
   public void clearTabs() {
     myTabsPanel.removeAll();
+    myPreferredHeight = 0; // Clear preferred height to prevent growing forever.
   }
 
   private void selectTab(@NotNull TabLabel tab, @NotNull TabListener listener) {
@@ -167,7 +155,7 @@ public class TabbedToolbar extends JPanel {
     TabLabel(String name, @Nullable TabListener onClosed) {
       setLayout(new BorderLayout());
       // Add spacing to match mocks.
-      setBorder(JBUI.Borders.empty(2, 10));
+      setBorder(JBUI.Borders.empty(5, 10));
       add(new JLabel(name), BorderLayout.CENTER);
       if (onClosed != null) {
         CommonButton closeButton = new CommonButton(StudioIcons.Common.CLOSE);

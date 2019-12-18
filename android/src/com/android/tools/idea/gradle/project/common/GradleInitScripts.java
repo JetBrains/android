@@ -31,6 +31,7 @@ import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,6 +57,7 @@ public class GradleInitScripts {
     this(embeddedDistributionPaths, new ContentCreator());
   }
 
+  @NonInjectable
   @VisibleForTesting
   GradleInitScripts(@NotNull EmbeddedDistributionPaths embeddedDistributionPaths, @NotNull ContentCreator contentCreator) {
     myEmbeddedDistributionPaths = embeddedDistributionPaths;

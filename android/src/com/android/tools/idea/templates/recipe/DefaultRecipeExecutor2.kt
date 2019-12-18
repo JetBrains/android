@@ -17,12 +17,6 @@ package com.android.tools.idea.templates.recipe
 
 import com.android.SdkConstants.ATTR_CONTEXT
 import com.android.SdkConstants.DOT_XML
-import com.android.SdkConstants.GRADLE_ANDROID_TEST_API_CONFIGURATION
-import com.android.SdkConstants.GRADLE_ANDROID_TEST_COMPILE_CONFIGURATION
-import com.android.SdkConstants.GRADLE_ANDROID_TEST_IMPLEMENTATION_CONFIGURATION
-import com.android.SdkConstants.GRADLE_API_CONFIGURATION
-import com.android.SdkConstants.GRADLE_COMPILE_CONFIGURATION
-import com.android.SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.repository.GradleVersion
 import com.android.resources.ResourceFolderType
@@ -88,7 +82,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
   private val readonlyStatusHandler: ReadonlyStatusHandler = ReadonlyStatusHandler.getInstance(project)
 
   private val projectTemplateData: ProjectTemplateData get() = context.projectTemplateData
-  private val moduleTemplateData: ModuleTemplateData? get() = context.templateData as? ModuleTemplateData
+  private val moduleTemplateData: ModuleTemplateData? get() = context.moduleTemplateData
   private val repositoryUrlManager: RepositoryUrlManager by lazy { RepositoryUrlManager.get() }
 
   private val projectBuildModel: ProjectBuildModel? by lazy { ProjectBuildModel.getOrLog(project) }
@@ -342,7 +336,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
       updateCompatibility(sourceCompatibility())
       updateCompatibility(targetCompatibility())
     }
-    if (kotlinSupport && (context.templateData as? ModuleTemplateData)?.isDynamic != true) {
+    if (kotlinSupport && (context.moduleTemplateData)?.isDynamic != true) {
       updateCompatibility(buildModel.android().kotlinOptions().jvmTarget())
     }
   }

@@ -43,28 +43,31 @@ public class MECreateKeyPositionTest extends BaseMotionEditorTest {
 
   public void testCreateKeyPositionLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,160,272\n" +
-                    "1,JLabel,5,2,150,15\n" +
-                    "1,JSeparator,5,20,150,2\n" +
-                    "1,JRadioButton,5,25,52,23\n" +
-                    "1,JRadioButton,67,25,88,23\n" +
-                    "1,JPanel,5,51,150,24\n" +
-                    "2,PromptedTextField,0,0,0,0\n" +
-                    "2,MEComboBox,0,0,0,0\n" +
-                    "1,JLabel,5,78,150,15\n" +
-                    "1,PromptedTextField,5,96,150,19\n" +
-                    "1,JLabel,5,118,150,15\n" +
-                    "1,MEComboBox,5,136,150,24\n" +
-                    "1,JLabel,5,163,150,15\n" +
-                    "1,PromptedTextField,5,181,150,19\n" +
-                    "1,JLabel,5,203,150,15\n" +
-                    "1,PromptedTextField,5,221,150,19\n" +
-                    "1,JButton,5,246,150,25\n";
+    String layout = "0,CreatorAccess      ,0,0,99,99\n" +
+                    "1,JLabel             ,3,0,93,5\n" +
+                    "1,JSeparator         ,3,7,93,0\n" +
+                    "1,JRadioButton       ,3,9,32,8\n" +
+                    "1,JRadioButton       ,41,9,54,8\n" +
+                    "1,JPanel             ,3,18,93,8\n" +
+                    "2,PromptedTextField  ,0,0,0,0\n" +
+                    "2,MEComboBox         ,0,0,0,0\n" +
+                    "1,JLabel             ,3,28,93,5\n" +
+                    "1,PromptedTextField  ,3,35,93,6\n" +
+                    "1,JLabel             ,3,43,93,5\n" +
+                    "1,MEComboBox         ,3,49,93,8\n" +
+                    "1,JLabel             ,3,59,93,5\n" +
+                    "1,PromptedTextField  ,3,66,93,6\n" +
+                    "1,JLabel             ,3,74,93,5\n" +
+                    "1,PromptedTextField  ,3,80,93,6\n" +
+                    "1,JButton            ,3,90,93,9\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
     panel.validate();
-    assertEquals(layout, componentTreeToString(panel, 0));
+    String actual = componentTreeToString(panel, 0, null);
+    if (!similar(layout, actual,5)) {
+      assertEquals(layout, actual);
+    }
   }
 
   public void testCreateKeyPositionAction() {

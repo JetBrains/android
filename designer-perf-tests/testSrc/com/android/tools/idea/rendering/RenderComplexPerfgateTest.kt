@@ -16,26 +16,20 @@
 package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.Result
+import com.android.testutils.TestUtils
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.rendering.PerfgateRenderUtil.computeAndRecordMetric
-import com.android.tools.idea.rendering.PerfgateRenderUtil.getInflateMetric
-import com.android.tools.idea.rendering.PerfgateRenderUtil.getRenderMetric
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths.PERFGATE_COMPLEX_LAYOUT
-import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.Mockito.mock
 import java.util.concurrent.TimeUnit
 
 private fun checkComplexLayoutInflateResult(result: RenderResult) {
@@ -57,17 +51,17 @@ class RenderComplexPerfgateTest {
   private lateinit var facet: AndroidFacet
   private lateinit var layoutFile: VirtualFile
   private lateinit var layoutConfiguration: Configuration
-  private val logger = mock(RenderLogger::class.java)
 
   @Before
   fun setUp() {
     RenderTestUtil.beforeRenderTestCase()
 
+    val baseTestPath = TestUtils.getWorkspaceFile("tools/adt/idea/designer-perf-tests/testData").path
+    gradleRule.fixture.testDataPath = baseTestPath
     gradleRule.load(PERFGATE_COMPLEX_LAYOUT)
     gradleRule.requestSyncAndWait()
     facet = gradleRule.androidFacet
-    val xmlPath = AndroidTestBase.getTestDataPath() +
-                  "/projects/perfgateComplexLayout/app/src/main/res/layout/activity_main.xml"
+    val xmlPath = "$baseTestPath/projects/perfgateComplexLayout/app/src/main/res/layout/activity_main.xml"
     layoutFile = LocalFileSystem.getInstance().findFileByPath(xmlPath)!!
     layoutConfiguration = RenderTestUtil.getConfiguration(facet.module, layoutFile)
   }
@@ -87,7 +81,7 @@ class RenderComplexPerfgateTest {
   @Test
   fun testComplexInflate() {
     val computable: ThrowableComputable<PerfgateRenderMetric, Exception> = ThrowableComputable {
-      val task = RenderTestUtil.createRenderTask(facet, layoutFile, layoutConfiguration, logger)
+      val task = RenderTestUtil.createRenderTask(facet, layoutFile, layoutConfiguration)
       val metric = getInflateMetric(task, ::checkComplexLayoutInflateResult)
       task.dispose().get(5, TimeUnit.SECONDS)
       metric
@@ -99,7 +93,7 @@ class RenderComplexPerfgateTest {
   @Test
   fun testComplexRender() {
     val computable: ThrowableComputable<PerfgateRenderMetric, Exception> = ThrowableComputable {
-      val task = RenderTestUtil.createRenderTask(facet, layoutFile, layoutConfiguration, logger)
+      val task = RenderTestUtil.createRenderTask(facet, layoutFile, layoutConfiguration)
       val metric = getRenderMetric(task, ::checkComplexLayoutInflateResult, ::checkComplexLayoutRenderResult)
       task.dispose().get(5, TimeUnit.SECONDS)
       metric

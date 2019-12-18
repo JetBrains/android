@@ -82,22 +82,25 @@ public class MEUI {
   public static final int ourHeaderHeight = JBUI.scale(30);
   public static final int ourGraphHeight = scale(60);
 
-  public static final Color ourErrorColor = makeColor("UIDesigner.motion.ErrorColor", 0x8f831b, 0xffa31b);
-  public static final Color ourBannerColor = makeColor("UIDesigner.motion.NotificationBackground", 0xfff8d1, 0x1d3857);
-  public static final Color myTimeCursorColor = makeColor("UIDesigner.motion.TimeCursorColor", 0xFF4A81FF, 0xFFB4D7FF);
-  public static final Color myTimeCursorStartColor = makeColor("UIDesigner.motion.TimeCursorStartColor", 0xff3da1f1, 0xff3dd1f1);
-  public static final Color myTimeCursorEndColor = makeColor("UIDesigner.motion.TimeCursorEndColor", 0xff3da1f1, 0xff3dd1f1);
-  public static final Color myGridColor = makeColor("UIDesigner.motion.timeLineGridColor", 0xDDDDDD, 0x555555);
+  public static final Color ourErrorColor = makeColor("UIDesigner.motion.Error.foreground", 0x8f831b, 0xffa31b);
+  public static final Color ourBannerColor = makeColor("UIDesigner.motion.Notification.background", 0xfff8d1, 0x1d3857);
+  public static final Color myTimeCursorColor = makeColor("UIDesigner.motion.TimeCursor.selectedForeground", 0xFF4A81FF, 0xFFB4D7FF);
+  public static final Color myGridColor = makeColor("UIDesigner.motion.timeLine.disabledBorderColor", 0xDDDDDD, 0x555555);
+  public static final Color ourMySelectedKeyColor = makeColor("UIDesigner.motion.Key.selectedForeground", 0xff3da1f1, 0xff3dd1f1);
+  public static final Color ourPrimaryPanelBackground = makeColor("UIDesigner.motion.PrimaryPanel.background", 0xf5f5f5, 0x2D2F31);
+  public static final Color ourSecondaryPanelBackground = makeColor("UIDesigner.motion.SecondaryPanel.background", 0xfcfcfc, 0x313435);
+  public static final Color ourAvgBackground = makeColor("UIDesigner.motion.ourAvg.background", 0xf8f8f8, 0x2f3133);
+  public static final Color ourBorder = makeColor("UIDesigner.motion.borderColor", 0xc9c9c9, 0x242627);
+  public static final Color ourBorderLight = makeColor("UIDesigner.motion.light.borderColor", 0xe8e6e6, 0x3c3f41);
+  public static final Color ourTextColor = makeColor("UIDesigner.motion.Component.foreground", 0x2C2C2C, 0x9E9E9E);
+
+  //Do we need these below?
+  public static final Color myTimeCursorStartColor =
+    makeColor("UIDesigner.motion.TimeCursor.Start.selectedForeground", 0xff3da1f1, 0xff3dd1f1);
+  public static final Color myTimeCursorEndColor = makeColor("UIDesigner.motion.TimeCursor.End.selectedForeground", 0xff3da1f1, 0xff3dd1f1);
   public static final Color myUnSelectedLineColor = new Color(0xe0759a);
-  public static final Color ourMySelectedKeyColor = makeColor("UIDesigner.motion.SelectedKeyColor", 0xff3da1f1, 0xff3dd1f1);
   public static final Color ourMySelectedLineColor = new Color(0x3879d9);
-  public static final Color ourPrimaryPanelBackground = makeColor("UIDesigner.motion.PrimaryPanelBackground", 0xf5f5f5, 0x2D2F31);
-  public static final Color ourSecondaryPanelBackground = makeColor("UIDesigner.motion.ourSelectedLineColor", 0xfcfcfc, 0x313435);
-  public static final Color ourAvgBackground = makeColor("UIDesigner.motion.ourAvgBackground", 0xf8f8f8, 0x2f3133);
-  public static final Color ourBorder = makeColor("UIDesigner.motion.ourBorder", 0xc9c9c9, 0x242627);
-  public static final Color ourBorderLight = makeColor("BorderLight", 0xe8e6e6, 0x3c3f41);
   public static final Color ourAddConstraintColor = makeColor("UIDesigner.motion.AddConstraintColor", 0xff838383, 0xff666666);
-  public static final Color ourTextColor = makeColor("UIDesigner.motion.TextColor", 0x2C2C2C, 0x9E9E9E);
   public static final Color ourAddConstraintPlus = makeColor("UIDesigner.motion.AddConstraintPlus", 0xffc9c9c9, 0xff333333);
 
   public static BufferedImage createImage(int w, int h, int type) {
@@ -126,34 +129,39 @@ public class MEUI {
   //0c283e
   public static class CSPanel {
     public static final Color our_SelectedFocusBackground =
-      makeColor("UIDesigner.motion.CSPanel.SelectedFocusBackground", 0x3973d6, 0x2E65CA);
+      makeColor("UIDesigner.motion.CSPanel.SelectedBackground", 0x3973d6, 0x2E65CA);
     public static final Color our_SelectedBackground =
       makeColor("UIDesigner.motion.CSPanel.SelectedBackground", 0xD3D3D3, 0x0C283E);
   }
 
   public static class Overview {
-    public static final Color ourCS = makeColor("UIDesigner.motion.ConstraintSet", 0xFFFFFF, 0x515658);
-    public static final Color ourCSText = makeColor("UIDesigner.motion.ConstraintSetText", 0x000000, 0xC7C7C7);
-    public static final Color ourCS_Hover = makeColor("UIDesigner.motion.HoverColor", 0XEAF2FE, 0X6E869B);
-    public static final Color ourCS_HoverBorder = makeColor("UIDesigner.motion.HoverColor", 0x7A7A7A, 0xA1A1A1);
-    public static final Color ourCS_SelectedFocusBorder = makeColor("UIDesigner.motion.ourCS_SelectedFocusBorder", 0x1886F7, 0x9CCDFF);
-    public static final Color ourCS_SelectedBorder = makeColor("UIDesigner.motion.ourCS_SelectedBorder", 0x7A7A7A, 0xA1A1A1);
+    public static final Color ourCS = makeColor("UIDesigner.motion.ConstraintSet.background", 0xFFFFFF, 0x515658);
+    public static final Color ourCSText = makeColor("UIDesigner.motion.ConstraintSetText.foreground", 0x000000, 0xC7C7C7);
+    public static final Color ourCS_Background = makeColor("UIDesigner.motion.ourCS.background", 0xFFFFFF, 0x515658);
+    public static final Color ourCS_Hover = makeColor("UIDesigner.motion.HoverColor.disabledBackground", 0XEAF2FE, 0X6E869B);
+    public static final Color ourCS_SelectedBackground =
+      makeColor("UIDesigner.motion.ourCS_SelectedBackground.selectionInactiveBackground", 0xD3D3D3, 0x797B7C);
     public static final Color ourCS_SelectedFocusBackground =
-      makeColor("UIDesigner.motion.ourCS_SelectedFocusBackground", 0xD1E7FD, 0x7691AB);
-    public static final Color ourCS_SelectedBackground = makeColor("UIDesigner.motion.ourCS_SelectedBackground", 0xD3D3D3, 0x797B7C);
-    public static final Color ourCS_Border = makeColor("UIDesigner.motion.ourCS_Border", 0xBEBEBE, 0x6D6D6E);
-    public static final Color ourCS_Background = makeColor("UIDesigner.motion.ourCS_Background", 0xFFFFFF, 0x515658);
-    public static final Color ourCS_TextColor = makeColor("UIDesigner.motion.ourCS_TextColor", 0x686868, 0xc7c7c7);
-    public static final Color ourCS_FocusTextColor = makeColor("UIDesigner.motion.cs_FocusText", 0x000000, 0xFFFFFF);
-    public static final Color ourML_BarColor = makeColor("UIDesigner.motion.ourML_BarColor", 0xd8d8d8, 0x808385);
+      makeColor("UIDesigner.motion.ourCS_SelectedFocusBackground.selectionForeground", 0xD1E7FD, 0x7691AB);
+
+
+    public static final Color ourCS_Border = makeColor("UIDesigner.motion.ourCS_Border.borderColor", 0xBEBEBE, 0x6D6D6E);
+    public static final Color ourCS_HoverBorder = makeColor("UIDesigner.motion.hoverBorderColor", 0x7A7A7A, 0xA1A1A1);
+    public static final Color ourCS_SelectedBorder =
+      makeColor("UIDesigner.motion.ourCS_SelectedBorder.pressedBorderColor", 0x7A7A7A, 0xA1A1A1);
+    public static final Color ourCS_SelectedFocusBorder =
+      makeColor("UIDesigner.motion.ourCS_SelectedFocusBorder.focusedBorderColor", 0x1886F7, 0x9CCDFF);
+
+    public static final Color ourCS_TextColor = makeColor("UIDesigner.motion.ourCS_TextColor.foreground", 0x686868, 0xc7c7c7);
+    public static final Color ourCS_FocusTextColor = makeColor("UIDesigner.motion.cs_FocusText.infoForeground", 0x000000, 0xFFFFFF);
+    public static final Color ourML_BarColor = makeColor("UIDesigner.motion.ourML_BarColor.separatorColor", 0xd8d8d8, 0x808385);
     public static final Color ourPositionColor = makeColor("UIDesigner.motion.PositionMarkColor", 0XF0A732, 0XF0A732);
   }
 
   public static class Graph {
-    public static final Color ourG_Background = makeColor("UIDesigner.motion.motionGraphBackground", 0xfcfcfc, 0x313334);
-    public static final Color ourG_line = makeColor("UIDesigner.motion.graphLine", 0xE66F9A, 0xA04E6C);
-    public static final Color ourCursorTextColor = makeColor("UIDesigner.motion.CursorTextColor", 0xFFFFFF, 0x000000);
-
+    public static final Color ourG_Background = makeColor("UIDesigner.motion.motionGraph.background", 0xfcfcfc, 0x313334);
+    public static final Color ourG_line = makeColor("UIDesigner.motion.graphLine.lineSeparatorColor", 0xE66F9A, 0xA04E6C);
+    public static final Color ourCursorTextColor = makeColor("UIDesigner.motion.CursorTextColor.foreground", 0xFFFFFF, 0x000000);
   }
 
   public static final Color ourSelectedSetColor = new JBColor(0xE1E2E1, 0xF0F1F0);

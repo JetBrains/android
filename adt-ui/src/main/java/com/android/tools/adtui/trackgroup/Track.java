@@ -18,6 +18,7 @@ package com.android.tools.adtui.trackgroup;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.MouseEventHandler;
 import java.awt.event.MouseAdapter;
@@ -38,12 +39,13 @@ public class Track {
   private static final int DEFAULT_TITLE_COL_PX = 150;
   public static final String COL_SIZES = DEFAULT_TITLE_COL_PX + "px,*";
 
-  private final JPanel myComponent;
+  @NotNull private final JPanel myComponent;
+  @NotNull private final JLabel myTitleLabel;
 
   private Track(@NotNull TrackModel trackModel, @NotNull JComponent trackContent) {
-    JLabel titleLabel = new JLabel(trackModel.getTitle());
-    titleLabel.setBorder(new JBEmptyBorder(4, 36, 4, 0));
-    titleLabel.setVerticalAlignment(SwingConstants.TOP);
+    myTitleLabel = new JLabel(trackModel.getTitle());
+    myTitleLabel.setBorder(new JBEmptyBorder(4, 36, 4, 0));
+    myTitleLabel.setVerticalAlignment(SwingConstants.TOP);
 
     trackContent.setBorder(new JBEmptyBorder(4, 0, 4, 0));
 
@@ -55,7 +57,7 @@ public class Track {
       myComponent.addMouseMotionListener(adapter);
     }
     else {
-      myComponent.add(titleLabel, new TabularLayout.Constraint(0, 0));
+      myComponent.add(myTitleLabel, new TabularLayout.Constraint(0, 0));
       myComponent.add(trackContent, new TabularLayout.Constraint(0, 1));
       // Offsets mouse event using width of the title column.
       MouseAdapter adapter = new TrackMouseEventHandler(trackContent, -DEFAULT_TITLE_COL_PX, 0);
@@ -85,7 +87,8 @@ public class Track {
    */
   @NotNull
   public Track updateSelected(boolean selected) {
-    myComponent.setBackground(selected ? StudioColorsKt.getActiveSelection() : null);
+    myComponent.setBackground(selected ? StudioColorsKt.getSelectionBackground() : null);
+    myTitleLabel.setForeground(selected ? StudioColorsKt.getSelectionForeground() : null);
     return this;
   }
 
@@ -95,6 +98,12 @@ public class Track {
   @NotNull
   public JComponent getComponent() {
     return myComponent;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  JLabel getTitleLabel() {
+    return myTitleLabel;
   }
 
   /**

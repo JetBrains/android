@@ -41,30 +41,32 @@ public class MECreateKeyCycleTest extends BaseMotionEditorTest {
 
   public void testCreateKeyCycleLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,189,282\n" +
-                    "1,JLabel,5,2,179,15\n" +
-                    "1,JSeparator,5,20,179,2\n" +
-                    "1,JRadioButton,5,25,52,23\n" +
-                    "1,JRadioButton,67,25,117,23\n" +
-                    "1,JPanel,5,51,179,24\n" +
-                    "2,PromptedTextField,0,0,0,0\n" +
-                    "2,MEComboBox,0,0,0,0\n" +
-                    "1,JSeparator,5,78,179,2\n" +
-                    "1,JLabel,5,83,179,15\n" +
-                    "1,PromptedTextField,5,101,179,19\n" +
-                    "1,JLabel,5,123,179,15\n" +
-                    "1,MEComboBox,5,141,179,24\n" +
-                    "1,JLabel,5,168,179,15\n" +
-                    "1,PromptedTextField,5,186,179,19\n" +
-                    "1,JLabel,5,208,179,15\n" +
-                    "1,MEComboBox,5,226,179,24\n" +
-                    "1,JButton,5,256,179,25\n";
+    String layout = "0,CreatorAccess      ,0,0,99,99\n" +
+                    "1,JLabel             ,2,0,93,5\n" +
+                    "1,JSeparator         ,2,7,93,0\n" +
+                    "1,JRadioButton       ,2,8,28,8\n" +
+                    "1,JRadioButton       ,36,8,60,8\n" +
+                    "1,JPanel             ,2,18,93,8\n" +
+                    "2,PromptedTextField  ,0,0,0,0\n" +
+                    "2,MEComboBox         ,0,0,0,0\n" +
+                    "1,JSeparator         ,2,27,93,0\n" +
+                    "1,JLabel             ,2,29,93,5\n" +
+                    "1,PromptedTextField  ,2,35,93,6\n" +
+                    "1,JLabel             ,2,43,93,5\n" +
+                    "1,MEComboBox         ,2,49,93,8\n" +
+                    "1,JLabel             ,2,59,93,5\n" +
+                    "1,PromptedTextField  ,2,65,93,6\n" +
+                    "1,JLabel             ,2,73,93,5\n" +
+                    "1,MEComboBox         ,2,79,93,8\n" +
+                    "1,JButton            ,2,90,93,8\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
     panel.validate();
-    assertEquals(layout, componentTreeToString(panel, 0));
-  }
+    String actual = componentTreeToString(panel, 0, null);
+    if (!similar(layout, actual,2)) {
+      assertEquals(layout, actual);
+    }  }
 
   public void testCreateKeyCycleAction() {
     CreatorAccess panel = new CreatorAccess();

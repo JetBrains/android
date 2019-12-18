@@ -16,6 +16,7 @@
 package org.jetbrains.android.compose
 
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_AUTO_DOCUMENTATION
+import com.android.tools.idea.flags.StudioFlags.COMPOSE_EDITOR_SUPPORT
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.CodeInsightSettings
 import com.intellij.codeInsight.completion.CompletionService
@@ -43,7 +44,10 @@ class AndroidComposeAutoDocumentation(
   private var documentationOpenedByCompose = false
 
   private val lookupListener = PropertyChangeListener { evt ->
-    if (COMPOSE_AUTO_DOCUMENTATION.get() && LookupManager.PROP_ACTIVE_LOOKUP == evt.propertyName && evt.newValue is Lookup) {
+    if (COMPOSE_EDITOR_SUPPORT.get() &&
+        COMPOSE_AUTO_DOCUMENTATION.get () &&
+        LookupManager.PROP_ACTIVE_LOOKUP == evt.propertyName &&
+        evt.newValue is Lookup) {
       val lookup = evt.newValue as Lookup
 
       val moduleSystem = FileDocumentManager.getInstance().getFile(lookup.editor.document)
@@ -61,7 +65,7 @@ class AndroidComposeAutoDocumentation(
   }
 
   init {
-    if (COMPOSE_AUTO_DOCUMENTATION.get() && !ApplicationManager.getApplication().isUnitTestMode) {
+    if (COMPOSE_EDITOR_SUPPORT.get() && COMPOSE_AUTO_DOCUMENTATION.get () && !ApplicationManager.getApplication().isUnitTestMode) {
       lookupManager.addPropertyChangeListener(lookupListener)
     }
   }

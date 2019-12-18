@@ -31,6 +31,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiTreeChangeAdapter
 import com.intellij.psi.PsiTreeChangeEvent
+import com.intellij.serviceContainer.NonInjectable
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
@@ -71,9 +72,11 @@ private fun createBuildNotificationPanel(project: Project,
  * [EditorNotifications.Provider] that displays the notification when a Kotlin file adds the preview import. The notification will close
  * the current editor and open one with the preview.
  */
-internal class ComposeNewPreviewNotificationProvider @JvmOverloads constructor(
-  private val filePreviewElementProvider: () -> FilePreviewElementFinder = ::defaultFilePreviewElementFinder) : EditorNotifications.Provider<EditorNotificationPanel>() {
+internal class ComposeNewPreviewNotificationProvider @NonInjectable constructor(
+  private val filePreviewElementProvider: () -> FilePreviewElementFinder) : EditorNotifications.Provider<EditorNotificationPanel>() {
   private val COMPONENT_KEY = Key.create<EditorNotificationPanel>("android.tools.compose.preview.new.notification")
+
+  constructor(): this(::defaultFilePreviewElementFinder)
 
   override fun createNotificationPanel(file: VirtualFile, fileEditor: FileEditor, project: Project): EditorNotificationPanel? =
     when {

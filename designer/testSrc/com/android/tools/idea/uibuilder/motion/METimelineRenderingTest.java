@@ -45,7 +45,7 @@ public class METimelineRenderingTest extends BaseMotionEditorTest {
     motionEditor.selectTag(trans[0], 0);
     int size = 1000;
     motionEditor.setBounds(0, 0, size, size);
-    BufferedImage bufferedImage = new BufferedImage(size, size, BufferedImage.TYPE_INT_RGB);
+    @SuppressWarnings("UndesirableClassUsage") BufferedImage bufferedImage = new BufferedImage(size, size, BufferedImage.TYPE_INT_RGB);
     Graphics2D g2d = bufferedImage.createGraphics();
     long time = System.nanoTime();
     motionEditor.paint(g2d);

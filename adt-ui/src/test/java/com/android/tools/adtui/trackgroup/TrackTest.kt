@@ -15,11 +15,14 @@
  */
 package com.android.tools.adtui.trackgroup
 
+import com.android.tools.adtui.common.selectionBackground
+import com.android.tools.adtui.common.selectionForeground
 import com.android.tools.adtui.model.trackgroup.TestTrackRendererType
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import javax.swing.JLabel
+import javax.swing.UIManager
 
 class TrackTest {
 
@@ -38,5 +41,16 @@ class TrackTest {
     val trackComponent = Track.create(trackModel, BooleanTrackRenderer()).component
     assertThat(trackComponent.componentCount).isEqualTo(1)
     assertThat(trackComponent.getComponent(0)).isInstanceOf(JLabel::class.java)
+  }
+
+  @Test
+  fun updateSelected() {
+    val trackModel = TrackModel.newBuilder(true, TestTrackRendererType.BOOLEAN, "foo").build()
+    val track = Track.create(trackModel, BooleanTrackRenderer())
+    assertThat(track.component.background).isEqualTo(UIManager.getColor("Panel.background"))
+    assertThat(track.titleLabel.foreground).isEqualTo(UIManager.getColor("Label.foreground"))
+    track.updateSelected(true)
+    assertThat(track.component.background).isEqualTo(selectionBackground)
+    assertThat(track.titleLabel.foreground).isEqualTo(selectionForeground)
   }
 }

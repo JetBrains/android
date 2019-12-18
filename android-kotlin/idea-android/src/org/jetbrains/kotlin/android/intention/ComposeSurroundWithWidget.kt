@@ -44,17 +44,21 @@ class ComposeSurroundWithWidget : IntentionAction, HighPriorityAction {
   override fun startInWriteAction(): Boolean = true
 
   override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean {
-    if (!StudioFlags.COMPOSE_SURROUND_WITH_WIDGET.get()) return false
+    when {
+      !StudioFlags.COMPOSE_EDITOR_SUPPORT.get() -> return false
+      !StudioFlags.COMPOSE_SURROUND_WITH_WIDGET.get() -> return false
+      file == null || editor == null -> return false
+      !file.isWritable || file !is KtFile || !editor.selectionModel.hasSelection() -> return false
+      else -> {
+        val element = file.findElementAt(editor.caretModel.offset) ?: return false
+        if (!element.isInsideComposableCode()) return false
 
-    if (file == null || editor == null) return false
-    if (!file.isWritable || file !is KtFile || !editor.selectionModel.hasSelection()) return false
-    val element = file.findElementAt(editor.caretModel.offset) ?: return false
-    if (!element.isInsideComposableCode()) return false
+        val statements = KotlinStatementSurroundDescriptor()
+          .getElementsToSurround(file, editor.selectionModel.selectionStart, editor.selectionModel.selectionEnd)
 
-    val statements = KotlinStatementSurroundDescriptor()
-      .getElementsToSurround(file, editor.selectionModel.selectionStart, editor.selectionModel.selectionEnd)
-
-    return statements.isNotEmpty()
+        return statements.isNotEmpty()
+      }
+    }
   }
 
   private fun getTemplate(): TemplateImpl? {

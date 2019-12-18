@@ -32,6 +32,9 @@ class TrackGroupTest {
 
     assertThat(trackGroup.titleLabel.text).isEqualTo("Group")
     assertThat(trackGroup.trackList.model.size).isEqualTo(2)
+    assertThat(trackGroup.isEmpty).isFalse()
+    assertThat(trackGroup.getTrackModelAt(0).dataModel).isEqualTo(true)
+    assertThat(trackGroup.getTrackModelAt(1).dataModel).isEqualTo("text")
   }
 
   @Test

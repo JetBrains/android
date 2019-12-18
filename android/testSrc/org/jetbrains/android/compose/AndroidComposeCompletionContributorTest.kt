@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.compose
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.caret
@@ -28,8 +29,14 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
 
   public override fun setUp() {
     super.setUp()
+    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
     (myModule.getModuleSystem() as DefaultModuleSystem).usesCompose = true
     myFixture.stubComposableAnnotation()
+  }
+
+  override fun tearDown() {
+    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
+    super.tearDown()
   }
 
   fun testSignatures() {
