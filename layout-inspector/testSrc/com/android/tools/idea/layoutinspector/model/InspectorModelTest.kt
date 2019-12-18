@@ -17,13 +17,18 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.view
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.UsefulTestCase.assertEmpty
 import com.intellij.testFramework.UsefulTestCase.assertSameElements
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNotSame
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.mockito.Mockito.mock
 
 class InspectorModelTest {
   @Test
@@ -156,5 +161,49 @@ class InspectorModelTest {
     assertEquals("v4Type", model[VIEW4]?.qualifiedName)
     assertEquals("v3Type", model[VIEW3]?.qualifiedName)
     assertEquals(8, model[VIEW3]?.y)
+  }
+
+  @Test
+  fun testWindows() {
+    val model = InspectorModel(mock(Project::class.java))
+    assertTrue(model.isEmpty)
+
+    // add first window
+    val window1 = view(ROOT, 2, 4, 6, 8, "rootType") {
+      view(VIEW1, 8, 6, 4, 2, "v1Type")
+    }
+    model.update(window1, ROOT, listOf(ROOT))
+    assertFalse(model.isEmpty)
+    assertNotNull(model[VIEW1])
+    assertEquals(listOf(ROOT), model.root.children.map { it.drawId })
+
+    // add second window
+    var window2 = view(VIEW2, 2, 4, 6, 8, "root2Type") {
+      view(VIEW3, 8, 6, 4, 2, "v3Type")
+    }
+    model.update(window2, VIEW2, listOf(ROOT, VIEW2))
+    assertFalse(model.isEmpty)
+    assertNotNull(model[VIEW1])
+    assertNotNull(model[VIEW3])
+    assertEquals(listOf(ROOT, VIEW2), model.root.children.map { it.drawId })
+
+    // reverse order of windows
+    // same content but new instances, so model.update sees a change
+    window2 = view(VIEW2, 2, 4, 6, 8, "root2Type") {
+      view(VIEW3, 8, 6, 4, 2, "v3Type")
+    }
+    model.update(window2, VIEW2, listOf(VIEW2, ROOT))
+    assertEquals(listOf(VIEW2, ROOT), model.root.children.map { it.drawId })
+
+    // remove a window
+    model.update(null, 0, listOf(VIEW2))
+    assertEquals(listOf(VIEW2), model.root.children.map { it.drawId })
+    assertNull(model[VIEW1])
+    assertNotNull(model[VIEW3])
+
+    // clear
+    model.update(null, 0, listOf())
+    assertEmpty(model.root.children)
+    assertTrue(model.isEmpty)
   }
 }
