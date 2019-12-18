@@ -61,6 +61,11 @@ class InspectorModel(val project: Project) {
   operator fun get(id: Long) = root.flatten().find { it.drawId == id }
 
   /**
+   * Get a ViewNode by viewId name
+   */
+  operator fun get(id: String) = root.flatten().find { it.viewId?.name == id }
+
+  /**
    * Update [root]'s bounds and children based on any updates to [roots]
    * Also adds a dark layer between windows if DIM_BEHIND is set.
    */

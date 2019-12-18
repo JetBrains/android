@@ -89,11 +89,11 @@ class InspectorPropertyItemTest {
                              source: ResourceReference?,
                              model: InspectorPropertiesModel): OpenFileDescriptor {
     val textViewId = "title"
-    val inspectorModel = model.layoutInspector?.layoutInspectorModel
-    val node = InspectorBuilder.findViewNode(model.layoutInspector!!, textViewId)!!
+    val inspectorModel = model.layoutInspector?.layoutInspectorModel!!
+    val node = inspectorModel[textViewId]!!
     val property = InspectorPropertyItem(ANDROID_URI, attrName, attrName, type, null, PropertySection.DECLARED,
                                          source ?: node.layout, node,
-                                         inspectorModel?.resourceLookup)
+                                         inspectorModel.resourceLookup)
     val fileManager = FileEditorManager.getInstance(projectRule.project)
     val file = ArgumentCaptor.forClass(OpenFileDescriptor::class.java)
     Mockito.`when`(fileManager.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))

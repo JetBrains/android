@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.tools.idea.layoutinspector.util.InspectorBuilder
+import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.mock
 import java.awt.BorderLayout
 import javax.swing.JComponent
 
@@ -32,7 +34,7 @@ class DeviceViewPanelTest {
 
   @JvmField
   @Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  val projectRule = AndroidProjectRule.inMemory()
 
   @JvmField
   @Rule
@@ -40,17 +42,13 @@ class DeviceViewPanelTest {
 
   @Before
   fun setUp() {
-    InspectorBuilder.setUpDemo(projectRule)
-  }
-
-  @After
-  fun tearDown() {
-    InspectorBuilder.tearDownDemo()
+    InspectorClient.clientFactory = { mock(InspectorClient::class.java) }
   }
 
   @Test
   fun testFocusableActionButtons() {
-    val inspector = InspectorBuilder.createLayoutInspectorForDemo(projectRule)
+    val model = model { view(1, 0, 0, 1200, 1600, "RelativeLayout") }
+    val inspector = LayoutInspector(model)
     val settings = DeviceViewSettings()
     val panel = DeviceViewPanel(inspector, settings, projectRule.fixture.projectDisposable)
     val toolbarPanel = findComponentAt(panel, BorderLayout.NORTH)
