@@ -181,6 +181,7 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
 
     if (image != null) {
       val composite = g2.composite
+      // Check hasSubImages, since it doesn't make sense to dim if we're only showing one image.
       if (selection != null && view != selection && inspectorModel.hasSubImages) {
         g2.composite = AlphaComposite.SrcOver.derive(0.6f)
       }
