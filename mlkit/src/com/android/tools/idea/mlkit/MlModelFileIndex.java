@@ -17,32 +17,43 @@ package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.util.indexing.DataIndexer;
 import com.intellij.util.indexing.FileBasedIndex;
+import com.intellij.util.indexing.FileBasedIndexExtension;
 import com.intellij.util.indexing.FileContent;
 import com.intellij.util.indexing.ID;
-import com.intellij.util.indexing.SingleEntryFileBasedIndexExtension;
-import com.intellij.util.indexing.SingleEntryIndexer;
 import com.intellij.util.io.DataExternalizer;
+import com.intellij.util.io.EnumeratorStringDescriptor;
+import com.intellij.util.io.KeyDescriptor;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 /** Indexes machine learning model (e.g. TFLite model) files under the assets folder. */
-public class MlModelFileIndex extends SingleEntryFileBasedIndexExtension<MlModelMetadata> {
-  public static final ID<Integer, MlModelMetadata> INDEX_ID = ID.create("MlModelFileIndex");
+public class MlModelFileIndex extends FileBasedIndexExtension<String, MlModelMetadata> {
+  public static final ID<String, MlModelMetadata> INDEX_ID = ID.create("MlModelFileIndex");
 
   @NotNull
   @Override
-  public SingleEntryIndexer<MlModelMetadata> getIndexer() {
-    return new SingleEntryIndexer<MlModelMetadata>(false) {
+  public DataIndexer<String, MlModelMetadata, FileContent> getIndexer() {
+    return new DataIndexer<String, MlModelMetadata, FileContent>() {
       @NotNull
       @Override
-      protected MlModelMetadata computeValue(@NotNull FileContent inputData) {
+      public Map<String, MlModelMetadata> map(@NotNull FileContent inputData) {
+        ProjectFileIndex projectFileIndex = ProjectFileIndex.getInstance(inputData.getProject());
+        Module module = Objects.requireNonNull(projectFileIndex.getModuleForFile(inputData.getFile()));
         // TODO(b/146356789): consider doing the model extraction here instead of light class generation time.
-        return new MlModelMetadata(inputData.getFile().getUrl());
+        Map<String, MlModelMetadata> map = new HashMap<>();
+        map.put(module.getName(), new MlModelMetadata(inputData.getFile().getUrl()));
+        return map;
       }
     };
   }
@@ -66,6 +77,12 @@ public class MlModelFileIndex extends SingleEntryFileBasedIndexExtension<MlModel
     };
   }
 
+  @NotNull
+  @Override
+  public KeyDescriptor<String> getKeyDescriptor() {
+    return EnumeratorStringDescriptor.INSTANCE;
+  }
+
   @Override
   public int getVersion() {
     return 1;
@@ -73,7 +90,7 @@ public class MlModelFileIndex extends SingleEntryFileBasedIndexExtension<MlModel
 
   @NotNull
   @Override
-  public ID<Integer, MlModelMetadata> getName() {
+  public ID<String, MlModelMetadata> getName() {
     return INDEX_ID;
   }
 
@@ -81,6 +98,11 @@ public class MlModelFileIndex extends SingleEntryFileBasedIndexExtension<MlModel
   @Override
   public FileBasedIndex.InputFilter getInputFilter() {
     return file -> StudioFlags.MLKIT_LIGHT_CLASSES.get() && MlkitUtils.isMlModelFileInAssetsFolder(file);
+  }
+
+  @Override
+  public boolean dependsOnFileContent() {
+    return true;
   }
 
   @NotNull
