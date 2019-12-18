@@ -38,7 +38,6 @@ import com.android.SdkConstants.TAG_USES_PERMISSION
 import com.android.SdkConstants.TAG_USES_PERMISSION_SDK_23
 import com.android.SdkConstants.TAG_USES_PERMISSION_SDK_M
 import com.android.SdkConstants.TAG_USES_SDK
-import com.android.SdkConstants.TOOLS_URI
 import com.android.tools.apk.analyzer.BinaryXmlParser
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -67,8 +66,6 @@ import com.intellij.util.io.DataInputOutputUtil.writeNullable
 import com.intellij.util.io.IOUtil.readUTF
 import com.intellij.util.io.IOUtil.writeUTF
 import com.intellij.util.text.CharArrayUtil
-import org.jetbrains.android.dom.attrs.ToolsAttributeUtil.ATTR_NODE
-import org.jetbrains.android.dom.attrs.ToolsAttributeUtil.ATTR_OVERRIDE_LIBRARY
 import org.jetbrains.android.facet.AndroidFacet
 import org.kxml2.io.KXmlParser
 import org.xmlpull.v1.XmlPullParser
@@ -101,7 +98,6 @@ import java.util.stream.Stream
 class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestRawText>() {
   companion object {
     private val LOG = Logger.getInstance(AndroidManifestIndex::class.java)
-
     @JvmField
     val NAME: ID<Int, AndroidManifestRawText> = ID.create(::NAME.qualifiedName)
 
@@ -174,13 +170,9 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
   }
 
   override fun getValueExternalizer() = AndroidManifestRawText.Externalizer
-
   override fun getName() = NAME
-
-  override fun getVersion() = 1
-
+  override fun getVersion() = 3
   override fun getIndexer() = Indexer
-
   override fun getInputFilter() = InputFilter
 
   object InputFilter : DefaultFileTypeSpecificInputFilter(XmlFileType.INSTANCE) {
@@ -241,18 +233,17 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
 
     private fun KXmlParser.parseManifestTag(): AndroidManifestRawText {
       require(START_TAG, null, TAG_MANIFEST)
-
       val activities = hashSetOf<ActivityRawText>()
       val activityAliases = hashSetOf<ActivityAliasRawText>()
-      val customPermissionGroupNames = hashSetOf<AndroidNameWithMergeRules>()
-      val customPermissionNames = hashSetOf<AndroidNameWithMergeRules>()
+      val customPermissionGroupNames = hashSetOf<String>()
+      val customPermissionNames = hashSetOf<String>()
       val debuggable = getAttributeValue(ANDROID_URI, ATTR_DEBUGGABLE)
       val enabled = getAttributeValue(ANDROID_URI, ATTR_ENABLED)
+      var minSdkLevel: String? = null
       val packageName = getAttributeValue(null, ATTR_PACKAGE)
-      val usedPermissionNames = hashSetOf<AndroidNameWithMergeRules>()
+      val usedPermissionNames = hashSetOf<String>()
+      var targetSdkLevel: String? = null
       var theme: String? = null
-      var usesSdk: SdkRawText? = null
-
       processChildTags {
         when (name) {
           TAG_APPLICATION -> {
@@ -266,33 +257,25 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
             }
           }
           TAG_PERMISSION -> {
-            androidName?.let { customPermissionNames.add(AndroidNameWithMergeRules(androidName, nodeOperationType)) }
+            androidName?.let(customPermissionNames::add)
             skipSubTree()
           }
           TAG_PERMISSION_GROUP -> {
-            androidName?.let { customPermissionGroupNames.add(AndroidNameWithMergeRules(androidName, nodeOperationType)) }
+            androidName?.let(customPermissionGroupNames::add)
             skipSubTree()
           }
           TAG_USES_PERMISSION, TAG_USES_PERMISSION_SDK_23, TAG_USES_PERMISSION_SDK_M -> {
-            androidName?.let { usedPermissionNames.add(AndroidNameWithMergeRules(androidName, nodeOperationType)) }
+            androidName?.let(usedPermissionNames::add)
             skipSubTree()
           }
           TAG_USES_SDK -> {
-            val sdkOverrideLibraries = HashSet<String>()
-            getAttributeValue(TOOLS_URI, ATTR_OVERRIDE_LIBRARY)?.let {
-              it.split(",").forEach { lib -> sdkOverrideLibraries.add(lib.trim()) }
-            }
-            usesSdk = SdkRawText(minSdkLevel = getAttributeValue(ANDROID_URI, ATTR_MIN_SDK_VERSION),
-                                 targetSdkLevel = getAttributeValue(ANDROID_URI, ATTR_TARGET_SDK_VERSION),
-                                 nodeMergeRule = nodeOperationType,
-                                 overrideLibraries = sdkOverrideLibraries
-            )
+            minSdkLevel = getAttributeValue(ANDROID_URI, ATTR_MIN_SDK_VERSION)
+            targetSdkLevel = getAttributeValue(ANDROID_URI, ATTR_TARGET_SDK_VERSION)
             skipSubTree()
           }
           else -> skipSubTree()
         }
       }
-
       return AndroidManifestRawText(
         activities = activities.toSet(),
         activityAliases = activityAliases.toSet(),
@@ -300,21 +283,19 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
         customPermissionNames = customPermissionNames.toSet(),
         debuggable = debuggable,
         enabled = enabled,
+        minSdkLevel = minSdkLevel,
         packageName = packageName,
         usedPermissionNames = usedPermissionNames.toSet(),
-        theme = theme,
-        usesSdk = usesSdk
+        targetSdkLevel = targetSdkLevel,
+        theme = theme
       )
     }
 
     private fun KXmlParser.parseActivityTag(): ActivityRawText {
       require(START_TAG, null, TAG_ACTIVITY)
-
       val activityName: String? = androidName
       val enabled: String? = getAttributeValue(ANDROID_URI, ATTR_ENABLED)
-      val nodeMergeRule: String? = getAttributeValue(TOOLS_URI, ATTR_NODE)
       val intentFilters = hashSetOf<IntentFilterRawText>()
-
       processChildTags {
         if (name == TAG_INTENT_FILTER) {
           intentFilters.add(parseIntentFilterTag())
@@ -323,24 +304,19 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
           skipSubTree()
         }
       }
-
       return ActivityRawText(
         name = activityName,
         enabled = enabled,
-        nodeMergeRule = nodeMergeRule,
         intentFilters = intentFilters.toSet()
       )
     }
 
     private fun KXmlParser.parseActivityAliasTag(): ActivityAliasRawText {
       require(START_TAG, null, TAG_ACTIVITY_ALIAS)
-
       val aliasName = androidName
       val targetActivity = getAttributeValue(ANDROID_URI, ATTR_TARGET_ACTIVITY)
       val enabled = getAttributeValue(ANDROID_URI, ATTR_ENABLED)
-      val nodeMergeRule: String? = getAttributeValue(TOOLS_URI, ATTR_NODE)
       val intentFilters = hashSetOf<IntentFilterRawText>()
-
       processChildTags {
         if (name == TAG_INTENT_FILTER) {
           intentFilters.add(parseIntentFilterTag())
@@ -349,22 +325,18 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
           skipSubTree()
         }
       }
-
       return ActivityAliasRawText(
         name = aliasName,
         targetActivity = targetActivity,
         enabled = enabled,
-        nodeMergeRule = nodeMergeRule,
         intentFilters = intentFilters.toSet()
       )
     }
 
     private fun KXmlParser.parseIntentFilterTag(): IntentFilterRawText {
       require(START_TAG, null, TAG_INTENT_FILTER)
-
       val actionNames = hashSetOf<String>()
       val categoryNames = hashSetOf<String>()
-
       processChildTags {
         when (name) {
           TAG_ACTION -> androidName?.let(actionNames::add)
@@ -372,7 +344,6 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
         }
         skipSubTree()
       }
-
       return IntentFilterRawText(
         actionNames = actionNames.toSet(),
         categoryNames = categoryNames.toSet()
@@ -414,7 +385,6 @@ private inline fun KXmlParser.processChildTags(crossinline processChildTag: KXml
 }
 
 private val KXmlParser.androidName get() = getAttributeValue(ANDROID_URI, ATTR_NAME)
-private val KXmlParser.nodeOperationType get() = getAttributeValue(TOOLS_URI, ATTR_NODE)
 
 /**
  * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of a manifest tag's
@@ -429,14 +399,15 @@ private val KXmlParser.nodeOperationType get() = getAttributeValue(TOOLS_URI, AT
 data class AndroidManifestRawText(
   val activities: Set<ActivityRawText>,
   val activityAliases: Set<ActivityAliasRawText>,
-  val customPermissionGroupNames: Set<AndroidNameWithMergeRules>,
-  val customPermissionNames: Set<AndroidNameWithMergeRules>,
+  val customPermissionGroupNames: Set<String>,
+  val customPermissionNames: Set<String>,
   val debuggable: String?,
   val enabled: String?,
+  val minSdkLevel: String?,
   val packageName: String?,
-  val usedPermissionNames: Set<AndroidNameWithMergeRules>,
-  val theme: String?,
-  val usesSdk: SdkRawText?
+  val usedPermissionNames: Set<String>,
+  val targetSdkLevel: String?,
+  val theme: String?
 ) {
   /**
    * Singleton responsible for serializing/de-serializing [AndroidManifestRawText]s to/from disk.
@@ -451,28 +422,30 @@ data class AndroidManifestRawText(
       value.apply {
         writeSeq(out, activities) { ActivityRawText.Externalizer.save(out, it) }
         writeSeq(out, activityAliases) { ActivityAliasRawText.Externalizer.save(out, it) }
-        writeSeq(out, customPermissionNames) { AndroidNameWithMergeRules.Externalizer.save(out, it) }
-        writeSeq(out, customPermissionGroupNames) { AndroidNameWithMergeRules.Externalizer.save(out, it) }
+        writeSeq(out, customPermissionNames) { writeUTF(out, it) }
+        writeSeq(out, customPermissionGroupNames) { writeUTF(out, it) }
         writeNullable(out, debuggable) { writeUTF(out, it) }
         writeNullable(out, enabled) { writeUTF(out, it) }
+        writeNullable(out, minSdkLevel) { writeUTF(out, it) }
         writeNullable(out, packageName) { writeUTF(out, it) }
-        writeSeq(out, usedPermissionNames) { AndroidNameWithMergeRules.Externalizer.save(out, it) }
+        writeSeq(out, usedPermissionNames) { writeUTF(out, it) }
+        writeNullable(out, targetSdkLevel) { writeUTF(out, it) }
         writeNullable(out, theme) { writeUTF(out, it) }
-        writeNullable(out, usesSdk) { SdkRawText.Externalizer.save(out, it) }
       }
     }
 
     override fun read(`in`: DataInput) = AndroidManifestRawText(
       activities = readSeq(`in`) { ActivityRawText.Externalizer.read(`in`) }.toSet(),
       activityAliases = readSeq(`in`) { ActivityAliasRawText.Externalizer.read(`in`) }.toSet(),
-      customPermissionNames = readSeq(`in`) { AndroidNameWithMergeRules.Externalizer.read(`in`) }.toSet(),
-      customPermissionGroupNames = readSeq(`in`) { AndroidNameWithMergeRules.Externalizer.read(`in`) }.toSet(),
+      customPermissionNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
+      customPermissionGroupNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
       debuggable = readNullable(`in`) { readUTF(`in`) },
       enabled = readNullable(`in`) { readUTF(`in`) },
+      minSdkLevel = readNullable(`in`) { readUTF(`in`) },
       packageName = readNullable(`in`) { readUTF(`in`) },
-      usedPermissionNames = readSeq(`in`) { AndroidNameWithMergeRules.Externalizer.read(`in`) }.toSet(),
-      theme = readNullable(`in`) { readUTF(`in`) },
-      usesSdk = readNullable(`in`) { SdkRawText.Externalizer.read(`in`) }
+      usedPermissionNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
+      targetSdkLevel = readNullable(`in`) { readUTF(`in`) },
+      theme = readNullable(`in`) { readUTF(`in`) }
     )
   }
 }
@@ -483,12 +456,7 @@ data class AndroidManifestRawText(
  *
  * @see AndroidManifestRawText
  */
-data class ActivityRawText(
-  val name: String?,
-  val enabled: String?,
-  val nodeMergeRule: String?,
-  val intentFilters: Set<IntentFilterRawText>
-) {
+data class ActivityRawText(val name: String?, val enabled: String?, val intentFilters: Set<IntentFilterRawText>) {
   /**
    * Singleton responsible for serializing/de-serializing [ActivityRawText]s to/from disk.
    *
@@ -502,7 +470,6 @@ data class ActivityRawText(
       value.apply {
         writeNullable(out, name) { writeUTF(out, it) }
         writeNullable(out, enabled) { writeUTF(out, it) }
-        writeNullable(out, nodeMergeRule) { writeUTF(out, it) }
         writeSeq(out, intentFilters) { IntentFilterRawText.Externalizer.save(out, it) }
       }
     }
@@ -510,7 +477,6 @@ data class ActivityRawText(
     override fun read(`in`: DataInput) = ActivityRawText(
       name = readNullable(`in`) { readUTF(`in`) },
       enabled = readNullable(`in`) { readUTF(`in`) },
-      nodeMergeRule = readNullable(`in`) { readUTF(`in`) },
       intentFilters = readSeq(`in`) { IntentFilterRawText.Externalizer.read(`in`) }.toSet()
     )
   }
@@ -526,7 +492,6 @@ data class ActivityAliasRawText(
   val name: String?,
   val targetActivity: String?,
   val enabled: String?,
-  val nodeMergeRule: String?,
   val intentFilters: Set<IntentFilterRawText>
 ) {
   /**
@@ -543,7 +508,6 @@ data class ActivityAliasRawText(
         writeNullable(out, name) { writeUTF(out, it) }
         writeNullable(out, targetActivity) { writeUTF(out, it) }
         writeNullable(out, enabled) { writeUTF(out, it) }
-        writeNullable(out, nodeMergeRule) { writeUTF(out, it) }
         writeSeq(out, intentFilters) { IntentFilterRawText.Externalizer.save(out, it) }
       }
     }
@@ -552,7 +516,6 @@ data class ActivityAliasRawText(
       name = readNullable(`in`) { readUTF(`in`) },
       targetActivity = readNullable(`in`) { readUTF(`in`) },
       enabled = readNullable(`in`) { readUTF(`in`) },
-      nodeMergeRule = readNullable(`in`) { readUTF(`in`) },
       intentFilters = readSeq(`in`) { IntentFilterRawText.Externalizer.read(`in`) }.toSet()
     )
   }
@@ -584,64 +547,6 @@ data class IntentFilterRawText(val actionNames: Set<String>, val categoryNames: 
     override fun read(`in`: DataInput) = IntentFilterRawText(
       actionNames = readSeq(`in`) { readUTF(`in`) }.toSet(),
       categoryNames = readSeq(`in`) { readUTF(`in`) }.toSet()
-    )
-  }
-}
-
-/**
- * Structured pieces of raw text from an AndroidManifest.xml file corresponding to a subset of a
- * uses-sdk tag's attributes
- *
- * @see AndroidManifestRawText
- */
-data class SdkRawText(
-  val minSdkLevel: String?,
-  val targetSdkLevel: String?,
-  val nodeMergeRule: String?,
-  val overrideLibraries: Set<String>
-) {
-  /**
-   * Singleton responsible for serializing/de-serializing [SdkRawText]s to/from disk.
-   *
-   * [AndroidManifestIndex] uses this externalizer to keep its cache within its memory limit
-   * and also to persist indexed data between IDE sessions. Any structural change to [SdkRawText]
-   * requires an update to the schema used here, and any update to the schema requires us to increment
-   * [AndroidManifestIndex.getVersion].
-   */
-  object Externalizer : DataExternalizer<SdkRawText> {
-    override fun save(out: DataOutput, value: SdkRawText) {
-      value.apply {
-        writeNullable(out, minSdkLevel) { writeUTF(out, it) }
-        writeNullable(out, targetSdkLevel) { writeUTF(out, it) }
-        writeNullable(out, nodeMergeRule) { writeUTF(out, it) }
-        writeSeq(out, overrideLibraries) { writeUTF(out, it) }
-      }
-    }
-
-    override fun read(`in`: DataInput) = SdkRawText(
-      minSdkLevel = readNullable(`in`) { readUTF(`in`) },
-      targetSdkLevel = readNullable(`in`) { readUTF(`in`) },
-      nodeMergeRule = readNullable(`in`) { readUTF(`in`) },
-      overrideLibraries = readSeq(`in`) { readUTF(`in`) }.toSet()
-    )
-  }
-}
-
-data class AndroidNameWithMergeRules(
-  val name: String?,
-  val nodeMergeRule: String?
-) {
-  object Externalizer : DataExternalizer<AndroidNameWithMergeRules> {
-    override fun save(out: DataOutput, value: AndroidNameWithMergeRules) {
-      value.apply {
-        writeNullable(out, name) { writeUTF(out, it) }
-        writeNullable(out, nodeMergeRule) { writeUTF(out, it) }
-      }
-    }
-
-    override fun read(`in`: DataInput) = AndroidNameWithMergeRules(
-      name = readNullable(`in`) { readUTF(`in`) },
-      nodeMergeRule = readNullable(`in`) { readUTF(`in`) }
     )
   }
 }
