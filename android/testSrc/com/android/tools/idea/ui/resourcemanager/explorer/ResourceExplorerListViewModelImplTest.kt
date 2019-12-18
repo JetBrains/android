@@ -46,7 +46,6 @@ import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
@@ -113,7 +112,6 @@ class ResourceExplorerListViewModelImplTest {
   }
 
   @Test
-  @Ignore("b/146464696")
   fun getSampleDataPreview() {
     val latch = CountDownLatch(1)
     val sampleDataResource = ResourceRepositoryManager.getAppResources(projectRule.module)!!.getResources(
