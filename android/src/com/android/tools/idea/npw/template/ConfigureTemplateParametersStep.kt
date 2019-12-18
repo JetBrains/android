@@ -184,7 +184,7 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
       val thumb = IconProperty(templateThumbLabel)
       val thumbVisibility = VisibleProperty(templateThumbLabel)
       bindings.bind(thumb, object : Expression<Optional<Icon>>(thumbPath) {
-        override fun get() = thumbnailsCache.getUnchecked(File(templateHandle.rootPath, thumbPath.get()))
+        override fun get() = thumbnailsCache.getUnchecked(File(templateHandle.rootPath, thumbPath.get()).toURI().toURL())
       })
       bindings.bind(thumbVisibility, object : Expression<Boolean>(thumb) {
         override fun get() = thumb.get().isPresent
