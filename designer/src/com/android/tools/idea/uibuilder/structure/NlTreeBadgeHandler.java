@@ -26,11 +26,11 @@ import com.android.utils.SdkUtils;
 import com.android.utils.SparseIntArray;
 import com.intellij.codeInsight.hint.HintUtil;
 import com.intellij.openapi.ui.popup.Balloon;
+import com.intellij.ui.ComponentUtil;
 import com.intellij.ui.HintHint;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LightweightHint;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -147,7 +147,7 @@ public class NlTreeBadgeHandler {
    * @param message The message to show in the tooltip
    */
   private void showErrorTooltip(@NotNull JTree tree, @NotNull TreePath path, @NotNull String message) {
-    Window activeFrame = UIUtil.getWindow(tree);
+    Window activeFrame = ComponentUtil.getWindow(tree);
     if (activeFrame == null) {
       return;
     }
