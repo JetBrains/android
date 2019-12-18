@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor.targets;
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.NlAttributesHolder;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.target.Target;
@@ -57,8 +58,9 @@ public class MotionLayoutResizeTarget extends MotionLayoutResizeBaseTarget {
       return;
     }
 
-    if (myComponent.getNlComponent().getParent() != null) {
-      MotionLayoutComponentHelper motionLayout = MotionLayoutComponentHelper.create(myComponent.getParent().getNlComponent());
+    NlComponent parent = myComponent.getNlComponent().getParent();
+    if (parent != null) {
+      MotionLayoutComponentHelper motionLayout = MotionLayoutComponentHelper.create(parent);
       if (motionLayout.isInTransition()) {
         return;
       }
