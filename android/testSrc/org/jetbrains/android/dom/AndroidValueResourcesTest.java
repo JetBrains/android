@@ -20,8 +20,13 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.AndroidProjectTypes;
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.resources.ResourceType;
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.intellij.codeInsight.completion.CompletionType;
@@ -55,9 +60,11 @@ import com.intellij.spellchecker.inspections.SpellCheckingInspection;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import javaslang.collection.Array;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.annotations.NotNull;
@@ -98,6 +105,8 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   }
 
   public void testContainingFile() {
+    // Containing file is not relevant in the new resources pipeline as ResourceReferencePsiElement has no containing file.
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) return;
     PsiFile styleFile = myFixture.addFileToProject("res/values/styles.xml",
                                "<resources><style name=\"AppTheme\" parent=\"Theme.AppCompat.Light.DarkActionBar\"/></resources>");
     PsiFile file = myFixture.addFileToProject("res/layout/foo.xml",
@@ -119,6 +128,9 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   }
 
   public void testTextRange() {
+    // TextRange is not relevant in the new resources pipeline as ResourceReferencePsiElement represents multiple resource declarations and
+    // so, has no TextRange.
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) return;
     PsiFile styleFile = myFixture.addFileToProject("res/values/styles.xml",
                                                "<resources><style name=\"AppTheme\" parent=\"Theme.AppCompat.Light.DarkActionBar\"/></resources>");
     PsiFile file = myFixture.addFileToProject("res/layout/foo.xml",
@@ -209,8 +221,14 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     assertNotNull(targets);
     assertEquals(1, targets.length);
     PsiElement targetElement = targets[0];
-    assertInstanceOf(targetElement, PsiClass.class);
-    assertEquals("android.widget.TextView", ((PsiClass)targetElement).getQualifiedName());
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+      // In the new resources pipeline, a styleable only refers to the resource, not the class that may not exist.
+      assertInstanceOf(targetElement, XmlAttributeValue.class);
+      assertThat(targetElement.getText()).isEqualTo("\"TextView\"");
+    } else {
+      assertInstanceOf(targetElement, PsiClass.class);
+      assertEquals("android.widget.TextView", ((PsiClass)targetElement).getQualifiedName());
+    }
   }
 
   public void testDeclareStyleableNameNavigation2() throws Exception {
@@ -221,10 +239,22 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     PsiElement[] targets =
       GotoDeclarationAction.findAllTargetElements(myFixture.getProject(), myFixture.getEditor(), myFixture.getCaretOffset());
     assertNotNull(targets);
-    assertEquals(1, targets.length);
-    PsiElement targetElement = targets[0];
-    assertInstanceOf(targetElement, PsiClass.class);
-    assertEquals("p1.p2.LabelView", ((PsiClass)targetElement).getQualifiedName());
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+      // In the new resources pipeline, a styleable only refers to the resource, not the class that may not exist.
+      assertEquals(3, targets.length);
+      for (PsiElement target : targets) {
+        assertThat(target).isInstanceOf(XmlAttributeValue.class);
+      }
+      List<String> getTextList = ContainerUtil.map(targets, it -> it.getText());
+      assertThat(getTextList).containsExactlyElementsIn(Array.of("\"LabelView\"", "\"LabelView\"", "\"LabelView\""));
+      List<String> containingFileList = ContainerUtil.map(targets, it -> it.getContainingFile().getName());
+      assertThat(containingFileList).containsExactlyElementsIn(Array.of("attrs5.xml", "attrs.xml", "attrs.xml"));
+    } else {
+      assertEquals(1, targets.length);
+      PsiElement targetElement = targets[0];
+      assertInstanceOf(targetElement, PsiClass.class);
+      assertEquals("p1.p2.LabelView", ((PsiClass)targetElement).getQualifiedName());
+    }
   }
 
   public void testResourceTypeCompletion() throws Throwable {
@@ -385,8 +415,14 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
     PsiReference rootReference = psiFile.findReferenceAt(rootOffset);
     assertNotNull(rootReference);
     PsiElement element = rootReference.resolve();
-    assertInstanceOf(element, LazyValueResourceElementWrapper.class);
-    assertNotNull(((LazyValueResourceElementWrapper)element).computeElement());
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+      assertInstanceOf(element, ResourceReferencePsiElement.class);
+      assertThat(((ResourceReferencePsiElement)element).getResourceReference())
+        .isEqualTo(new ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "Theme"));
+    } else {
+      assertInstanceOf(element, LazyValueResourceElementWrapper.class);
+      assertNotNull(((LazyValueResourceElementWrapper)element).computeElement());
+    }
   }
 
   // see getPathToCopy()
@@ -512,6 +548,9 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
   }
 
   public void testAttrReferenceHighlighting() throws Throwable {
+    // New resources pipeline does not treat ATTRs different to other ResourceTypes, having an incorrect type should be surfaced in a lint
+    // check, not reference resolution.
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) return;
     doTestHighlighting();
   }
 
@@ -704,10 +743,20 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
 
     IdentifierHighlighterPassFactory.doWithHighlightingEnabled(() -> {
       List<HighlightInfo> highlightInfos = myFixture.doHighlighting();
-      assertThat(highlightInfos).hasSize(1);
-      HighlightInfo highlightInfo = Iterables.getOnlyElement(highlightInfos);
-      assertThat(highlightInfo.getSeverity()).isEqualTo(HighlightInfoType.ELEMENT_UNDER_CARET_SEVERITY);
-      assertThat(highlightInfo.getText()).isEqualTo("@string/foo");
+      if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+        // With new resources pipeline, all highlight usages of resources are found.
+        assertThat(highlightInfos).hasSize(2);
+        highlightInfos.forEach(it -> {
+          assertThat(it.getSeverity()).isEqualTo(HighlightInfoType.ELEMENT_UNDER_CARET_SEVERITY);
+        });
+        List<String> getTextList = ContainerUtil.map(highlightInfos, it -> it.getText());
+        assertThat(getTextList).containsExactlyElementsIn(Array.of("foo", "@string/foo"));
+      } else {
+        assertThat(highlightInfos).hasSize(1);
+        HighlightInfo highlightInfo = Iterables.getOnlyElement(highlightInfos);
+        assertThat(highlightInfo.getSeverity()).isEqualTo(HighlightInfoType.ELEMENT_UNDER_CARET_SEVERITY);
+        assertThat(highlightInfo.getText()).isEqualTo("@string/foo");
+      }
 
       // b/139262116: manually commit the Document and clear some caches in an attempt to reduce flakiness of this test.
       myFixture.type('X');
@@ -718,19 +767,28 @@ public class AndroidValueResourcesTest extends AndroidDomTestCase {
       dispatchEvents();
 
       highlightInfos = myFixture.doHighlighting();
-
-      if (highlightInfos.size() == 1) {
-        // Expected case.
-        highlightInfo = Iterables.getOnlyElement(highlightInfos);
-        assertThat(highlightInfo.getSeverity()).isEqualTo(HighlightSeverity.ERROR);
-        assertThat(highlightInfo.getText()).isEqualTo("@string/foo");
-      }
-      else {
-        // Log additional details to debug flakiness of the test:
-        fail("Unexpected highlighting, highlightInfos: " +
-             Joiner.on(',').join(highlightInfos) +
-             " current resources: " +
-             Joiner.on(',').join(ResourceRepositoryManager.getInstance(myModule).getAppResources().getAllResources()));
+      if (StudioFlags.RESOLVE_USING_REPOS.get()) {
+        // With new resources pipeline, all highlight usages of resources are found.
+        assertThat(highlightInfos).hasSize(2);
+        List<Pair<HighlightSeverity, String>> severities =
+          ContainerUtil.map(highlightInfos, it -> new Pair<>(it.getSeverity(), it.getText()));
+        assertThat(severities).containsExactly(
+          Pair.create(HighlightInfoType.ELEMENT_UNDER_CARET_SEVERITY, "fXoo"),
+          Pair.create( HighlightSeverity.ERROR, "@string/foo"));
+      } else {
+        if (highlightInfos.size() == 1) {
+          // Expected case.
+          HighlightInfo highlightInfo = Iterables.getOnlyElement(highlightInfos);
+          assertThat(highlightInfo.getSeverity()).isEqualTo(HighlightSeverity.ERROR);
+          assertThat(highlightInfo.getText()).isEqualTo("@string/foo");
+        }
+        else {
+          // Log additional details to debug flakiness of the test:
+          fail("Unexpected highlighting, highlightInfos: " +
+               Joiner.on(',').join(highlightInfos) +
+               " current resources: " +
+               Joiner.on(',').join(ResourceRepositoryManager.getInstance(myModule).getAppResources().getAllResources()));
+        }
       }
     });
   }
