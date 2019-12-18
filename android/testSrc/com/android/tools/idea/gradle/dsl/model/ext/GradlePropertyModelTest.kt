@@ -2752,7 +2752,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     writeToBuildFile(GRADLE_PROPERTY_MODEL_ADD_REMOVE_REFERENCE_VALUES)
 
     val buildModel = gradleBuildModel
-    val extModel = buildModel.ext()
+    var extModel = buildModel.ext()
 
     run {
       val propertyModel = extModel.findProperty("propList")
@@ -2762,6 +2762,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
+    extModel = buildModel.ext()
 
     run {
       val propertyModel = extModel.findProperty("propList")
