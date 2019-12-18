@@ -18,22 +18,22 @@ package com.android.tools.idea.diagnostics.crash;
 
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.diagnostics.crash.exception.NoPiiException;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.idea.IdeaLogger;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-
-import java.util.Arrays;
-import java.util.Map;
 
 public class StudioExceptionReport extends BaseStudioReport {
   /**
@@ -50,6 +50,7 @@ public class StudioExceptionReport extends BaseStudioReport {
 
   public static final String KEY_EXCEPTION_INFO = "exception_info";
   private static final String ANDROID_EXCEPTION_TEXT = "com.android.diagnostic.LoggerErrorMessage";
+  private static final ImmutableList<String> LOGGER_CLASSES = ImmutableList.of(Logger.class.getName(), IdeaLogger.class.getName());
 
   @NonNull private final String exceptionInfo;
   private final boolean userReported;
@@ -176,20 +177,23 @@ public class StudioExceptionReport extends BaseStudioReport {
     StackTraceElement[] stackTraceElements = t.getStackTrace();
 
     // Detect if the exception is from Logger.error. If so, change the type to LoggerErrorMessage
-    // and remove the top frame.
-    boolean exceptionFromLoggerErrorMethod =
-      stackTraceElements != null &&
-      stackTraceElements.length >= 1 &&
-      Objects.equals(stackTraceElements[0].getMethodName(), "error") &&
-      Objects.equals(stackTraceElements[0].getClassName(), Logger.class.getName()) &&
-      Objects.equals(t.getClass(), Throwable.class);
+    // and remove the logger frames.
+    int startFrame = 0;
+    if (Objects.equals(t.getClass(), Throwable.class)) {
+      while (startFrame < stackTraceElements.length &&
+             Objects.equals(stackTraceElements[startFrame].getMethodName(), "error") &&
+             LOGGER_CLASSES.contains(stackTraceElements[startFrame].getClassName())) {
+        ++startFrame;
+      }
+    }
+    boolean exceptionFromLoggerErrorMethod = startFrame > 0;
 
     StringBuilder sb = new StringBuilder(256);
 
     sb.append(exceptionFromLoggerErrorMethod ? ANDROID_EXCEPTION_TEXT : t.getClass().getName());
     sb.append(": <elided>\n"); // note: some message is needed for the backend to parse the report properly
 
-    for (int i = exceptionFromLoggerErrorMethod ? 1 : 0; i < stackTraceElements.length; i++) {
+    for (int i = startFrame; i < stackTraceElements.length; i++) {
       StackTraceElement el = stackTraceElements[i];
       sb.append("\tat ");
       sb.append(el);
