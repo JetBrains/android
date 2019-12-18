@@ -111,8 +111,9 @@ public class CpuAnalysisPanel extends AspectObserver {
         String typeName = tabModel.getTabType().getName();
         myTabView.insertTab(typeName, null, new JPanel(), typeName, myTabView.getTabCount());
       });
-    myTabView.revalidate();
-    myTabView.repaint();
+    // Need to repaint panel instead of TabView because only repainting the TabView causes artifact's on the panel.
+    myPanel.revalidate();
+    myPanel.repaint();
   }
 
   @NotNull
