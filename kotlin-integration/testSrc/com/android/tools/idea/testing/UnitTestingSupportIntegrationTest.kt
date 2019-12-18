@@ -32,7 +32,6 @@ import com.intellij.execution.ExecutionManager
 import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.impl.ExecutionManagerImpl
-import com.intellij.execution.impl.ExecutionManagerKtImpl
 import com.intellij.execution.junit.JUnitConfiguration
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -82,9 +81,6 @@ class UnitTestingSupportIntegrationTest : AndroidGradleTestCase() {
 
       // Without this, the execution manager will not invoke gradle to compile the project, so no tests will be found.
       val executionManager = ExecutionManagerImpl.getInstance(project)
-      if (executionManager is ExecutionManagerKtImpl) {
-        executionManager.forceCompilationInTests = true
-      }
       log("project imported")
 
       // Calling the code below makes sure there are no mistakes in the test project and that all class files are in place. Doing this
