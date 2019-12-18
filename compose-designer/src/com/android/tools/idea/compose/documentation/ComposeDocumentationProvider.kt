@@ -65,7 +65,9 @@ class ComposeDocumentationProvider() : DocumentationProviderEx() {
   @AnyThread
   @VisibleForTesting
   fun generateDocAsync(element: PsiElement?, originalElement: PsiElement?): CompletableFuture<String> {
-    if (!StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION.get()) return CompletableFuture.completedFuture(null)
+    if (!StudioFlags.COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION.get() || !StudioFlags.COMPOSE_EDITOR_SUPPORT.get()) {
+      return CompletableFuture.completedFuture(null)
+    }
 
     val isComposableFunction = ReadAction.compute<Boolean, Throwable> {
       return@compute element != null && element.isValid && element.isComposableFunction()

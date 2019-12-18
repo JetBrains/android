@@ -24,7 +24,6 @@ import com.android.ide.common.util.AssetUtil;
 import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.tools.idea.concurrency.FutureUtils;
-import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.android.tools.idea.observable.core.BoolProperty;
@@ -63,7 +62,7 @@ import org.jetbrains.annotations.Nullable;
  */
 @SuppressWarnings("UseJBColor") // We are using colors for Android icons, no need for JBColor here.
 public class TvBannerGenerator extends IconGenerator {
-  private static final Color DEFAULT_BACKGROUND_COLOR = new Color(0xFFFFFF);
+  public static final Color DEFAULT_BACKGROUND_COLOR = new Color(0xFFFFFF);
   private static final Rectangle IMAGE_SIZE_ADAPTIVE_DP = new Rectangle(0, 0, 320, 180);
   private static final Dimension SIZE_ADAPTIVE_DP = IMAGE_SIZE_ADAPTIVE_DP.getSize();
   private static final double ADAPTIVE_ICON_SCALE_FACTOR = 72. / 108.;

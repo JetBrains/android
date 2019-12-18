@@ -71,7 +71,7 @@ public class CreateOnClick extends BaseCreatePanel {
     grid(gbc, 0, y++);
     gbc.weighty = 0;
     gbc.anchor = GridBagConstraints.CENTER;
-    add(new JLabel("Vew To Click"), gbc);
+    add(new JLabel("View To Click"), gbc);
     grid(gbc, 0, y++);
     gbc.anchor = GridBagConstraints.CENTER;
     add(viewIds, gbc);

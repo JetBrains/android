@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.assetstudio;
 
+import static com.android.tools.idea.tests.gui.assetstudio.FileUtilsKt.getNewFiles;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.testutils.filesystemdiff.Action;
-import com.android.testutils.filesystemdiff.CreateDirectoryAction;
-import com.android.testutils.filesystemdiff.CreateFileAction;
 import com.android.testutils.filesystemdiff.FileSystemEntry;
-import com.android.testutils.filesystemdiff.Script;
 import com.android.testutils.filesystemdiff.TreeBuilder;
 import com.android.testutils.filesystemdiff.TreeDifferenceEngine;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -29,16 +26,9 @@ import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudi
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.NewImageAssetStepFixture;
 import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -123,36 +113,4 @@ public class NewImageAssetTest {
                                          "app/src/main/res/drawable-anydpi-v24/ic_stat_name.xml");
   }
 
-  @NotNull
-  public static List<String> getNewFiles(@NotNull Path root, @NotNull Script script, @NotNull Predicate<Path> filter) {
-    List<String> newFiles = new ArrayList<>();
-    List<Action> actions = script.getActions();
-    for (Action action : actions) {
-      if (action instanceof CreateFileAction) {
-        addRelativePathConditionally(action.getSourceEntry().getPath(), root, filter, newFiles);
-      }
-      if (action instanceof CreateDirectoryAction) {
-        try (Stream<Path> stream = Files.walk(action.getSourceEntry().getPath())) {
-          stream.filter(Files::isRegularFile)
-              .forEach(path -> addRelativePathConditionally(path, root, filter, newFiles));
-        }
-        catch (IOException ex) {
-          throw new RuntimeException(ex);
-        }
-      }
-    }
-    return newFiles;
-  }
-
-  private static void addRelativePathConditionally(
-      @NotNull Path pathToAdd, @NotNull Path root, @NotNull Predicate<Path> condition, @NotNull Collection<String> result) {
-    if (condition.test(pathToAdd)) {
-      result.add(toString(root, pathToAdd));
-    }
-  }
-
-  @NotNull
-  private static String toString(@NotNull Path root, @NotNull Path path) {
-    return root.relativize(path).toString().replace('\\', '/');
-  }
 }

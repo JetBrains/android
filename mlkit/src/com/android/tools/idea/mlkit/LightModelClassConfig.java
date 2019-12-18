@@ -15,16 +15,15 @@
  */
 package com.android.tools.idea.mlkit;
 
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.project.Project;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * Project level component for ML Kit plugin/module.
- */
-public class MlkitProjectService {
-  private static final Logger LOGGER = Logger.getInstance(MlkitProjectService.class);
+/** Stores all values needed to generate a specific {@link LightModelClass}. */
+public class LightModelClassConfig {
+  public final String myClassName;
+  public final String myPackageName;
 
-  public MlkitProjectService(Project project) {
-    LOGGER.info("Hello from ML Kit.");
+  public LightModelClassConfig(@NotNull String className, @NotNull String packageName) {
+    myClassName = className;
+    myPackageName = packageName;
   }
 }

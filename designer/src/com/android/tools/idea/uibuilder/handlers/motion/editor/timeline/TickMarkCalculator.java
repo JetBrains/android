@@ -48,7 +48,7 @@ public class TickMarkCalculator {
     actual_maxx = max;
   }
 
-  void calcRangeTicks(int canvasWidth) {
+  public void calcRangeTicks(int canvasWidth) {
     mCanvasWidth = canvasWidth;
     double dx = actual_maxx - actual_minx;
     int sw = canvasWidth;
@@ -97,7 +97,7 @@ public class TickMarkCalculator {
     }
   }
 
-  int floatToPosition(float value) {
+  public int floatToPosition(float value) {
     int draw_width = mCanvasWidth - ins_left - ins_right;
     int ix = (int) (draw_width * (value - -minx) / (maxx - minx) + ins_left);
     return ix;

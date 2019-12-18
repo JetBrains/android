@@ -158,7 +158,7 @@ public class CreateKeyPosition extends BaseCreateKey {
     MTag.TagWriter toCommit;
     MTag.TagWriter keyPosition;
     if (mKeyFrameSet == null) {
-      mKeyFrameSet = toCommit = mSelectedTransition.getChildTagWriter("KeyFrameSet");
+      mKeyFrameSet = toCommit = mSelectedTransition.getChildTagWriter(MotionSceneAttrs.Tags.KEY_FRAME_SET);
       keyPosition = mKeyFrameSet.getChildTagWriter(KEY_TAG);
     } else {
       toCommit = keyPosition = mKeyFrameSet.getChildTagWriter(KEY_TAG);

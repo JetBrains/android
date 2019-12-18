@@ -222,6 +222,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareMasterDetailFlow() {
+    checkCreateTemplate("activities", "MasterDetailFlow", ActivityCreationMode.WITHOUT_PROJECT, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareMasterDetailFlowWithKotlin() {
+    checkCreateTemplate("activities", "MasterDetailFlow", ActivityCreationMode.WITHOUT_PROJECT, true, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewFullscreenActivity() {
     checkCreateTemplate("activities", "FullscreenActivity", ActivityCreationMode.WITHOUT_PROJECT, true)
   }
@@ -377,6 +387,19 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewProjectWithGoogleMapsActivity() {
     checkCreateTemplate("activities", "GoogleMapsActivity", ActivityCreationMode.WITH_PROJECT, true)
+  }
+
+  @TemplateCheck
+  fun testCompareGoogleMapsActivity() {
+    // TODO(qumeric): Change back to WITHOUT_PROJECT - b/78621322
+    checkCreateTemplate("activities", "GoogleMapsActivity",
+                        ActivityCreationMode.WITH_PROJECT, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareGoogleMapsActivityWithKotlin() {
+    checkCreateTemplate("activities", "GoogleMapsActivity",
+                        ActivityCreationMode.WITH_PROJECT, true, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck

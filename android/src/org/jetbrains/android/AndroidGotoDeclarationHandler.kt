@@ -51,7 +51,9 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
                                                                                        TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED,
                                                                                        offset)) {
       is ResourceReferencePsiElement -> {
-        AndroidResourceToPsiResolver.getInstance().getGotoDeclarationTargets(targetElement.resourceReference, sourceElement)
+        // We take the containing file of the source element as context as ModuleUtilCore can only find the module of an AAR file, not an
+        // element in that file.
+        AndroidResourceToPsiResolver.getInstance().getGotoDeclarationTargets(targetElement.resourceReference, sourceElement.containingFile)
       }
       is StyleableAttrLightField -> {
         if (!StudioFlags.RESOLVE_USING_REPOS.get()) {

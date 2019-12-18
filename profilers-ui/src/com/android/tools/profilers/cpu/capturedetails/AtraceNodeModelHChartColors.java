@@ -16,17 +16,17 @@
 
 package com.android.tools.profilers.cpu.capturedetails;
 
+import static com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer.toUnmatchColor;
+
 import com.android.tools.adtui.common.DataVisualizationColors;
 import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
+import com.intellij.ui.JBColor;
+import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
-
-import static com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer.toUnmatchColor;
 
 /**
  * Defines the colors (fill and border) of the rectangles used to represent {@link AtraceNodeModel} nodes in a
@@ -48,11 +48,16 @@ class AtraceNodeModelHChartColors {
   static Color getIdleCpuColor(@NotNull CaptureNodeModel model,
                                CaptureDetails.Type chartType,
                                boolean isUnmatched,
-                               boolean isFocused) {
+                               boolean isFocused,
+                               boolean isDeselected) {
     Color color;
     if (chartType == CaptureDetails.Type.CALL_CHART) {
-      threadColors.setColorIndex(isFocused ? 1 : 0);
-      color = threadColors.getColor(CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED);
+      if (isDeselected) {
+        color = DataVisualizationColors.INSTANCE.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 1, isFocused);
+      } else {
+        threadColors.setColorIndex(isFocused ? 1 : 0);
+        color = threadColors.getColor(CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED);
+      }
     }
     else {
       // Atrace captures do not know where calls come from so we always use APP.
@@ -65,12 +70,18 @@ class AtraceNodeModelHChartColors {
    * We use the usage captured color. This gives the UI a consistent look
    * across CPU, Kernel, Threads, and trace nodes.
    */
-  static Color getFillColor(@NotNull CaptureNodeModel model, CaptureDetails.Type chartType, boolean isUnmatched, boolean isFocused) {
+  static Color getFillColor(@NotNull CaptureNodeModel model,
+                            CaptureDetails.Type chartType,
+                            boolean isUnmatched,
+                            boolean isFocused,
+                            boolean isDeselected) {
     validateModel(model);
     Color color;
     if (chartType == CaptureDetails.Type.CALL_CHART) {
       int index = model.getFullName().hashCode();
-      color = DataVisualizationColors.INSTANCE.getColor(index + (isFocused ? 1 : 0));
+      color = isDeselected ?
+              DataVisualizationColors.INSTANCE.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, isFocused) :
+              DataVisualizationColors.INSTANCE.getColor(index, isFocused);
     }
     else {
       // Atrace captures do not know where calls come from so we always use APP.

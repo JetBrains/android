@@ -51,7 +51,7 @@ fun AndroidModuleSystem.defaultGetMergedManifestContributors(): MergedManifestCo
     primaryManifest = facet.sourceProviders.mainManifestFile,
     flavorAndBuildTypeManifests = facet.getFlavorAndBuildTypeManifests(),
     libraryManifests = if (facet.configuration.isAppOrFeature) facet.getLibraryManifests(dependencies) else emptyList(),
-    navigationFiles = facet.getNavigationFiles(),
+    navigationFiles = facet.getTransitiveNavigationFiles(dependencies),
     flavorAndBuildTypeManifestsOfLibs = facet.getFlavorAndBuildTypeManifestsOfLibs(dependencies)
   )
 }
@@ -77,11 +77,19 @@ private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): 
   return dependencies.mapNotNull { it.sourceProviders.mainManifestFile }
 }
 
+
 /**
- * Returns all navigation files for the facet's module, ordered from higher precedence to lower precedence.
+ * Returns all navigation files for the facet's module and its transitive dependencies,
+ * ordered from higher precedence to lower precedence.
  * TODO(b/70815924): Change implementation to use resource repository API
  */
-fun AndroidFacet.getNavigationFiles(): List<VirtualFile> {
+fun AndroidFacet.getTransitiveNavigationFiles(transitiveDependencies: List<AndroidFacet>): List<VirtualFile> {
+  return (sequenceOf(this) + transitiveDependencies.asSequence())
+    .flatMap { it.getNavigationFiles() }
+    .toList()
+}
+
+private fun AndroidFacet.getNavigationFiles() : Sequence<VirtualFile> {
   return sourceProviders.currentSourceProviders
     .asReversed() // iterate over providers in reverse order so higher precedence navigation files are first
     .asSequence()
@@ -90,7 +98,6 @@ fun AndroidFacet.getNavigationFiles(): List<VirtualFile> {
     .filter { resDirFolder -> ResourceFolderType.getFolderType(resDirFolder.name) == ResourceFolderType.NAVIGATION }
     .flatMapWithoutNulls { navDir -> navDir.children?.asSequence() }
     .filter { potentialNavFile -> !potentialNavFile.isDirectory }
-    .toList()
 }
 
 private fun <T, R : Any> Sequence<T>.flatMapWithoutNulls(transform: (T) -> Sequence<R?>?): Sequence<R> {

@@ -1,6 +1,7 @@
 package org.jetbrains.android.sdk;
 
 import com.android.testutils.TestUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.AndroidInternalRClassFinder;
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction;
 import com.intellij.openapi.editor.LogicalPosition;
@@ -17,6 +18,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.AndroidSdkResolveScopeProvider;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
@@ -106,7 +108,8 @@ public class AndroidSdkSourcesBrowsingTest extends AndroidTestCase {
 
   public void testNavigation_CanGoToDrawableResource() throws Exception {
     // Caret on menuitem_background int drawable_resource = android.R.drawable.menuitem_background;
-    verifySuccessfulResourceNavigation(new LogicalPosition(27, 56), "menuitem_background.xml", FileResourceElementWrapper.class);
+    verifySuccessfulResourceNavigation(new LogicalPosition(27, 56), "menuitem_background.xml",
+                                       StudioFlags.RESOLVE_USING_REPOS.get() ? XmlFile.class : FileResourceElementWrapper.class);
   }
 
   /**

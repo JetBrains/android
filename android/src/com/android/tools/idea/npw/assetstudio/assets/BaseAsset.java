@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio.assets;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.npw.assetstudio.wizard.PersistentState;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.core.BoolProperty;
@@ -112,6 +113,7 @@ public abstract class BaseAsset implements PersistentStateComponent<PersistentSt
   @Nullable
   public abstract ListenableFuture<BufferedImage> toImage();
 
+  @UiThread
   @Override
   @NotNull
   public PersistentState getState() {
@@ -124,6 +126,7 @@ public abstract class BaseAsset implements PersistentStateComponent<PersistentSt
     return state;
   }
 
+  @UiThread
   @Override
   public void loadState(@NotNull PersistentState state) {
     myTrimmed.set(state.get(TRIMMED_PROPERTY, false));

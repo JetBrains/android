@@ -71,13 +71,13 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
     context: XmlElement,
     facet: AndroidFacet
   ): Array<out ResolveResult> {
+    var resourceName = resourceValue.resourceName ?: return ResolveResult.EMPTY_ARRAY
+    val resourceType = resourceValue.type ?: return ResolveResult.EMPTY_ARRAY
+    if (resourceType == ResourceType.SAMPLE_DATA) {
+      resourceName = SampleDataManager.getResourceNameFromSampleReference(resourceName)
+    }
     val resourceReference =
-      ResourceUrl.create(
-        resourceValue.`package`,
-        resourceValue.type ?: return ResolveResult.EMPTY_ARRAY,
-        resourceValue.resourceName ?: return ResolveResult.EMPTY_ARRAY
-      ).resolve(context)
-      ?: return ResolveResult.EMPTY_ARRAY
+      ResourceUrl.create(resourceValue.`package`, resourceType, resourceName).resolve(context) ?: return ResolveResult.EMPTY_ARRAY
     return resolveReference(resourceReference, context, facet)
   }
 

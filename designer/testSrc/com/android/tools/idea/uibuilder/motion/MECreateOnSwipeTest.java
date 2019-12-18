@@ -35,23 +35,26 @@ public class MECreateOnSwipeTest extends BaseMotionEditorTest {
 
   public void testCreateOnSwipeLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,130,234\n" +
-      "1,JLabel,5,2,120,15\n" +
-      "1,JSeparator,5,20,120,2\n" +
-      "1,JLabel,5,25,120,15\n" +
-      "1,MEComboBox,5,43,120,24\n" +
-      "1,JLabel,5,70,120,15\n" +
-      "1,MEComboBox,5,88,120,24\n" +
-      "1,JLabel,5,115,120,15\n" +
-      "1,MEComboBox,5,133,120,24\n" +
-      "1,JLabel,5,160,120,15\n" +
-      "1,MEComboBox,5,178,120,24\n" +
-      "1,JButton,5,208,120,25\n";
+    String layout = "0,CreatorAccess      ,0,0,99,99\n" +
+                    "1,JLabel             ,3,0,91,6\n" +
+                    "1,JSeparator         ,3,8,91,0\n" +
+                    "1,JLabel             ,3,10,91,6\n" +
+                    "1,MEComboBox         ,3,18,91,10\n" +
+                    "1,JLabel             ,3,29,91,6\n" +
+                    "1,MEComboBox         ,3,37,91,10\n" +
+                    "1,JLabel             ,3,48,91,6\n" +
+                    "1,MEComboBox         ,3,56,91,10\n" +
+                    "1,JLabel             ,3,68,91,6\n" +
+                    "1,MEComboBox         ,3,75,91,10\n" +
+                    "1,JButton            ,3,88,91,10\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
     panel.validate();
-    assertEquals(layout, componentTreeToString(panel, 0));
+    String actual = componentTreeToString(panel, 0, null);
+    if (!similar(layout, actual,2)) {
+      assertEquals(layout, actual);
+    }
   }
 
   public void testCreateOnSwipeAction() {

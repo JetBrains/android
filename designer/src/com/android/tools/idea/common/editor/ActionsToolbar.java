@@ -235,6 +235,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     }
     myModel = model;
     myNorthToolbar.updateActionsImmediately();
+    myNorthEastToolbar.updateActionsImmediately();
     DesignerEditorFileType surfaceLayoutType = surface.getLayoutType();
     if (surfaceLayoutType != myLayoutType) {
       myLayoutType = surfaceLayoutType;

@@ -56,12 +56,12 @@ public final class TestProjectPaths {
   public static final String NAMESPACES_WITH_APPCOMPAT = "projects/namespaces_with_appcompat";
   public static final String NAVIGATION_EDITOR_BASIC = "projects/navigationEditor/basic";
   public static final String NAVIGATION_EDITOR_CUSTOMPROPERTIES = "projects/navigationEditor/customproperties";
+  public static final String NAVIGATION_EDITOR_INCLUDE_FROM_LIB = "projects/navigationEditor/includeFromLib";
   public static final String NAVIGATOR_PACKAGEVIEW_COMMONROOTS = "projects/navigator/packageview/commonroots";
   public static final String NAVIGATOR_PACKAGEVIEW_SIMPLE = "projects/navigator/packageview/simple";
   public static final String NESTED_MODULE = "projects/nestedModule";
   public static final String NESTED_MULTI_FEATURE = "projects/nestedMultiFeature";
   public static final String NEW_SYNC_KOTLIN_TEST = "projects/newSyncKotlinTest";
-  public static final String PERFGATE_COMPLEX_LAYOUT = "projects/perfgateComplexLayout";
   public static final String PLUGIN_IN_APP = "projects/pluginInApp";
   public static final String PROJECT_MODEL_MULTIFLAVOR = "projects/projectModel/multiflavor";
   public static final String PROJECT_WITH1_DOT5 = "projects/projectWith1Dot5";

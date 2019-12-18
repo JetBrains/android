@@ -46,16 +46,16 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.serviceContainer.NonInjectable;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.android.facet.AndroidFacetProperties;
 
 public class GradleTaskFinder {
   private final GradleRootPathFinder myRootPathFinder;
@@ -70,6 +70,7 @@ public class GradleTaskFinder {
     this(new GradleRootPathFinder());
   }
 
+  @NonInjectable
   @VisibleForTesting
   GradleTaskFinder(GradleRootPathFinder rootPathFinder) {
     myRootPathFinder = rootPathFinder;

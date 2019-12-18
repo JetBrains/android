@@ -19,6 +19,7 @@ import static com.google.common.base.Predicates.in;
 import static com.google.common.base.Predicates.not;
 import static com.google.common.base.Predicates.notNull;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_IMPORT_MODULES_COPIED;
+import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 import static com.intellij.openapi.vfs.VfsUtil.createDirectoryIfMissing;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
@@ -36,7 +37,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
-import com.google.common.base.Throwables;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -45,20 +45,19 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.ide.util.projectWizard.ModuleWizardStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import org.jetbrains.annotations.NotNull;
@@ -75,10 +74,6 @@ public final class GradleModuleImporter extends ModuleImporter {
 
   public GradleModuleImporter(@NotNull WizardContext context) {
     this(context.getProject(), true);
-  }
-
-  public GradleModuleImporter(@NotNull Project project) {
-    this(project, false);
   }
 
   private GradleModuleImporter(@Nullable Project project, boolean isWizard) {
@@ -102,7 +97,7 @@ public final class GradleModuleImporter extends ModuleImporter {
     try {
       importModules(this, projects, myProject, null);
     }
-    catch (IOException | ConfigurationException e) {
+    catch (IOException e) {
       LOG.error(e);
     }
   }
@@ -114,18 +109,12 @@ public final class GradleModuleImporter extends ModuleImporter {
 
   @Override
   public boolean canImport(@NotNull VirtualFile importSource) {
-    try {
-      return GradleProjects.canImportAsGradleProject(importSource) && (myIsWizard || findModules(importSource).size() == 1);
-    }
-    catch (IOException e) {
-      LOG.error(e);
-      return false;
-    }
+    return GradleProjects.canImportAsGradleProject(importSource) && (myIsWizard || findModules(importSource).size() == 1);
   }
 
   @Override
   @NotNull
-  public Set<ModuleToImport> findModules(@NotNull VirtualFile importSource) throws IOException {
+  public Set<ModuleToImport> findModules(@NotNull VirtualFile importSource) {
     assert myProject != null;
     return getRelatedProjects(importSource, myProject);
   }
@@ -229,7 +218,7 @@ public final class GradleModuleImporter extends ModuleImporter {
   static void importModules(@NotNull final Object requestor,
                             @NotNull final Map<String, VirtualFile> modules,
                             @Nullable final Project project,
-                            @Nullable final GradleSyncListener listener) throws IOException, ConfigurationException {
+                            @Nullable final GradleSyncListener listener) throws IOException {
     String error = validateProjectsForImport(modules);
     if (error != null) {
       if (listener != null && project != null) {
@@ -242,18 +231,7 @@ public final class GradleModuleImporter extends ModuleImporter {
     }
 
     assert project != null;
-    Throwable throwable = new WriteCommandAction.Simple(project) {
-      @Override
-      protected void run() throws Throwable {
-        copyAndRegisterModule(requestor, modules, project, listener);
-      }
-
-      @Override
-      public boolean isSilentExecution() {
-        return true;
-      }
-    }.execute().getThrowable();
-    rethrowAsProperlyTypedException(throwable);
+    writeCommandAction(project).run(() -> copyAndRegisterModule(requestor, modules, project, listener));
   }
 
   /**
@@ -282,23 +260,13 @@ public final class GradleModuleImporter extends ModuleImporter {
   }
 
   /**
-   * Recover actual type of the exception.
-   */
-  private static void rethrowAsProperlyTypedException(Throwable throwable) throws IOException, ConfigurationException {
-    if (throwable != null) {
-      Throwables.propagateIfPossible(throwable, IOException.class, ConfigurationException.class);
-      throw new IllegalStateException(throwable);
-    }
-  }
-
-  /**
    * Copy modules and adds it to settings.gradle
    */
   private static void copyAndRegisterModule(@NotNull Object requestor,
                                             @NotNull Map<String, VirtualFile> modules,
                                             @NotNull Project project,
                                             @Nullable GradleSyncListener listener) throws IOException {
-    VirtualFile projectRoot = project.getBaseDir();
+    VirtualFile projectRoot = Objects.requireNonNull(ProjectUtil.guessProjectDir(project));
     if (projectRoot.findChild(SdkConstants.FN_SETTINGS_GRADLE) == null) {
       projectRoot.createChildData(requestor, SdkConstants.FN_SETTINGS_GRADLE);
     }
@@ -346,7 +314,7 @@ public final class GradleModuleImporter extends ModuleImporter {
   private static class ResolvePath implements Function<File, VirtualFile> {
     private final File mySourceDir;
 
-    public ResolvePath(File sourceDir) {
+    ResolvePath(File sourceDir) {
       mySourceDir = sourceDir;
     }
 

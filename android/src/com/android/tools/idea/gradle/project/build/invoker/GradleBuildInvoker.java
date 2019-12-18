@@ -85,6 +85,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.MessageDialogBuilder;
 import com.intellij.openapi.util.Ref;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.xdebugger.XDebugSession;
 import java.io.File;
 import java.io.IOException;
@@ -130,6 +131,7 @@ public class GradleBuildInvoker {
     this(project, documentManager, new GradleTasksExecutorFactory(), new NativeDebugSessionFinder(project));
   }
 
+  @NonInjectable
   @VisibleForTesting
   protected GradleBuildInvoker(@NotNull Project project,
                                @NotNull FileDocumentManager documentManager,
@@ -267,30 +269,28 @@ public class GradleBuildInvoker {
   }
 
   public void assemble(@NotNull Module[] modules, @NotNull TestCompileType testCompileType) {
-    assemble(modules, testCompileType, Collections.emptyList(), null);
+    assemble(modules, testCompileType, null);
   }
 
   public void assemble(@NotNull Module[] modules,
                        @NotNull TestCompileType testCompileType,
-                       @NotNull List<String> arguments,
                        @Nullable BuildAction<?> buildAction) {
     BuildMode buildMode = ASSEMBLE;
     setProjectBuildMode(buildMode);
     ListMultimap<Path, String> tasks = GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, testCompileType);
     for (Path rootPath : tasks.keySet()) {
-      executeTasks(rootPath.toFile(), tasks.get(rootPath), arguments, buildAction);
+      executeTasks(rootPath.toFile(), tasks.get(rootPath), Collections.emptyList(), buildAction);
     }
   }
 
   public void bundle(@NotNull Module[] modules,
-                     @NotNull List<String> arguments,
                      @Nullable BuildAction<?> buildAction) {
     BuildMode buildMode = BUNDLE;
     setProjectBuildMode(buildMode);
     ListMultimap<Path, String> tasks =
       GradleTaskFinder.getInstance().findTasksToExecute(modules, buildMode, TestCompileType.NONE);
     for (Path rootPath : tasks.keySet()) {
-      executeTasks(rootPath.toFile(), tasks.get(rootPath), arguments, buildAction);
+      executeTasks(rootPath.toFile(), tasks.get(rootPath), Collections.emptyList(), buildAction);
     }
   }
 

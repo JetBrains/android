@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
+import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static java.util.Collections.emptyList;
@@ -44,7 +44,7 @@ import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -53,7 +53,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link BuildApkAction}.
  */
-public class BuildApkActionTest extends PlatformTestCase {
+public class BuildApkActionTest extends HeavyPlatformTestCase {
   @Mock private GradleProjectInfo myGradleProjectInfo;
   @Mock private GradleBuildInvoker myBuildInvoker;
   @Mock private ProjectStructure myProjectStructure;
@@ -87,7 +87,7 @@ public class BuildApkActionTest extends PlatformTestCase {
 
     myAction.actionPerformed(event);
 
-    verify(myBuildInvoker).assemble(eq(appModules), eq(TestCompileType.ALL), eq(emptyList()), any(OutputBuildAction.class));
+    verify(myBuildInvoker).assemble(eq(appModules), eq(TestCompileType.ALL), any(OutputBuildAction.class));
   }
 
   public void testActionPerformedForDynamicApp() {
@@ -109,7 +109,7 @@ public class BuildApkActionTest extends PlatformTestCase {
     myAction.actionPerformed(event);
 
     Module[] allModules = {appModule, featureModule};
-    verify(myBuildInvoker).assemble(eq(allModules), eq(TestCompileType.ALL), eq(emptyList()), any(OutputBuildAction.class));
+    verify(myBuildInvoker).assemble(eq(allModules), eq(TestCompileType.ALL), any(OutputBuildAction.class));
   }
 
   private static void setUpModuleAsAndroidModule(Module module, AndroidModuleModel androidModel, IdeAndroidProject ideAndroidProject) {

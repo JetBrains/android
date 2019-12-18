@@ -16,6 +16,7 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileTypeConsumer;
 import com.intellij.openapi.fileTypes.FileTypeFactory;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 public class MlModelFileTypeFactory extends FileTypeFactory {
   @Override
   public void createFileTypes(@NotNull FileTypeConsumer consumer) {
-    if (StudioFlags.MLKIT_TFLITE_MODEL_FILE_TYPE.get()) {
+    if (StudioFlags.MLKIT_TFLITE_MODEL_FILE_TYPE.get() || ApplicationManager.getApplication().isUnitTestMode()) {
       consumer.consume(TfliteModelFileType.INSTANCE, TfliteModelFileType.INSTANCE.getDefaultExtension());
     }
   }

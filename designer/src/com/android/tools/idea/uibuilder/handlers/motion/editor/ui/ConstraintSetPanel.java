@@ -206,11 +206,6 @@ class ConstraintSetPanel extends JPanel {
 
         if (index == -1) {
           mSelectedTag = null;
-          if (mConstraintSet != null) {
-            Track.selectConstraint();
-            mListeners
-              .notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{mConstraintSet}, 0);
-          }
           return;
         }
         mMultiSelectedTag = new MTag[allSelect.length];
@@ -604,6 +599,15 @@ class ConstraintSetPanel extends JPanel {
   }
 
   public void selectById(String[] ids) {
+    if (mConstraintSet == null) {
+      if (mConstraintSetModel != null) {
+        int count = mConstraintSetModel.getRowCount();
+        for (int i = 0; i < count; i++) {
+          mConstraintSetModel.removeRow(0);
+        }
+      }
+      return;
+    }
     updateModelIfNecessary();
     HashSet<String> selectedSet = new HashSet<>(Arrays.asList(ids));
     mConstraintSetTable.clearSelection();

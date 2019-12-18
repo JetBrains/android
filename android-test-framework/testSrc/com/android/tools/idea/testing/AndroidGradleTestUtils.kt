@@ -364,7 +364,9 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     null,
     null,
     "bundle".takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant),
+    buildPath.resolve("intermediates/bundle_ide_model/$variant/output.json"),
     "extractApksFor".takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant),
+    buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variant/output.json"),
     null,
     false
   )
@@ -404,8 +406,10 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     null,
     "bundle"
       .takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant)?.appendCapitalized("androidTest"),
+    buildPath.resolve("intermediates/bundle_ide_model/$variant/output.json"),
     "extractApksFor"
       .takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant)?.appendCapitalized("androidTest"),
+    buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variant/output.json"),
     null,
     false
   )

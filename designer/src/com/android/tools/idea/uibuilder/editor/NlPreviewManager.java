@@ -97,12 +97,20 @@ public class NlPreviewManager implements ProjectComponent {
 
     myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.preview", 100, true, null, project);
 
-    final MessageBusConnection connection = project.getMessageBus().connect(project);
-    connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
+    if (!StudioFlags.NELE_SPLIT_EDITOR.get()) {
+      // If the split editor is enabled, we shouldn't be listening to file open/close events.
+      final MessageBusConnection connection = project.getMessageBus().connect(project);
+      connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
+    }
   }
 
   @Override
   public void projectOpened() {
+    if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
+      // If the split editor is enabled, we shouldn't set up callbacks for project open events.
+      return;
+    }
+
     StartupManager.getInstance(myProject).registerPostStartupActivity(() -> {
       myToolWindowReady = true;
       processFileEditorChange(getActiveLayoutXmlEditor(null));

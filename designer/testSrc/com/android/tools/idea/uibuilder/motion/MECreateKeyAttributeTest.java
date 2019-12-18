@@ -43,25 +43,27 @@ public class MECreateKeyAttributeTest extends BaseMotionEditorTest {
 
   public void testCreateKeyAttributeLayout() {
     CreatorAccess panel = new CreatorAccess();
-    String layout = "0,CreatorAccess,0,0,189,192\n" +
-                    "1,JLabel,5,2,179,15\n" +
-                    "1,JSeparator,5,20,179,2\n" +
-                    "1,JRadioButton,5,25,52,23\n" +
-                    "1,JRadioButton,67,25,117,23\n" +
-                    "1,JPanel,5,51,179,24\n" +
-                    "2,PromptedTextField,0,0,0,0\n" +
-                    "2,MEComboBox,0,0,0,0\n" +
-                    "1,JLabel,5,78,179,15\n" +
-                    "1,PromptedTextField,5,96,179,19\n" +
-                    "1,JLabel,5,118,179,15\n" +
-                    "1,MEComboBox,5,136,179,24\n" +
-                    "1,JButton,5,166,179,25\n";
+    String layout = "0,CreatorAccess      ,0,0,99,99\n" +
+                    "1,JLabel             ,2,1,93,7\n" +
+                    "1,JSeparator         ,2,10,93,1\n" +
+                    "1,JRadioButton       ,2,12,28,11\n" +
+                    "1,JRadioButton       ,36,12,60,11\n" +
+                    "1,JPanel             ,2,26,93,12\n" +
+                    "2,PromptedTextField  ,0,0,0,0\n" +
+                    "2,MEComboBox         ,0,0,0,0\n" +
+                    "1,JLabel             ,2,40,93,7\n" +
+                    "1,PromptedTextField  ,2,49,93,9\n" +
+                    "1,JLabel             ,2,61,93,7\n" +
+                    "1,MEComboBox         ,2,70,93,12\n" +
+                    "1,JButton            ,2,86,93,12\n";
     Dimension size = panel.getPreferredSize();
     panel.setBounds(0, 0, size.width, size.height);
     panel.doLayout();
     panel.validate();
-    assertEquals(layout, componentTreeToString(panel, 0));
-  }
+    String actual = componentTreeToString(panel, 0, null);
+    if (!similar(layout, actual,2)) {
+      assertEquals(layout, actual);
+    }  }
 
   public void testCreateKeyAttributeAction() {
     CreatorAccess panel = new CreatorAccess();

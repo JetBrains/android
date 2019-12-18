@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionModel;
@@ -46,6 +47,7 @@ import com.android.tools.profilers.event.UserEventTooltipView;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -153,6 +155,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     JBSplitter splitter = new JBSplitter(false, 0.5f);
     splitter.setFirstComponent(container);
     splitter.setSecondComponent(myAnalysisPanel.getComponent());
+    splitter.getDivider().setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 0, 1, 0, 1));
     return splitter;
   }
 
@@ -196,6 +199,9 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
       .map(CpuAnalyzable::getAnalysisModel)
       .reduce(CpuAnalysisModel::mergeWith)
       .ifPresent(getStage()::addCpuAnalysisModel);
+
+    // Now update track groups
+    updateTrackGroupList();
   }
 
   @VisibleForTesting

@@ -73,13 +73,13 @@ public class Easing {
     return 1;
   }
 
-  static class CubicEasing extends Easing {
+  public static class CubicEasing extends Easing {
 
     private static double error = 0.01;
     private static double d_error = 0.0001;
     double x1, y1, x2, y2;
 
-    CubicEasing(String configString) {
+    public CubicEasing(String configString) {
       // done this way for efficiency
       str = configString;
       int start = configString.indexOf('(');

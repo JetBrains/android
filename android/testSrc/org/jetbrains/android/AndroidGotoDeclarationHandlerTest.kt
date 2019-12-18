@@ -30,7 +30,7 @@ import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.NavigatablePsiElement
+import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiUtilCore
@@ -865,13 +865,12 @@ class AndroidGotoDeclarationHandlerTestNonNamespaced : AndroidGotoDeclarationHan
   }
 
   private fun navigateToElementAtCaretFromDifferentFile() = with(myFixture) {
-    val element =
-      GotoDeclarationAction.findTargetElement(project, editor, editor.caretModel.offset) as NavigatablePsiElement
-    val destinationFile = element.navigationElement.containingFile.virtualFile
+    val element = GotoDeclarationAction.findTargetElement(project, editor, editor.caretModel.offset)
+    val destinationFile = element!!.navigationElement.containingFile.virtualFile
     assertThat(destinationFile).isNotEqualTo(myFixture.file.virtualFile)
 
     openFileInEditor(destinationFile)
-    element.navigate(true)
+    (element as Navigatable).navigate(true)
   }
 
   private val JavaCodeInsightTestFixture.elementAtCurrentOffset: PsiElement get() = file.findElementAt(editor.caretModel.offset)!!

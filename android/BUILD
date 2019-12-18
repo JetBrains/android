@@ -760,6 +760,7 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/com/google/guava/guava/23.0:jar",
         "//prebuilts/tools/common/m2/repository/com/google/guava/guava/27.0.1-jre:jar",
         "//prebuilts/tools/common/m2/repository/com/google/guava/listenablefuture/1.0:jar",
+        "//prebuilts/tools/common/m2/repository/com/google/jimfs/jimfs/1.1:jar",
         "//prebuilts/tools/common/m2/repository/com/linkedin/testbutler/test-butler-app/1.3.1:apk",
         "//prebuilts/tools/common/m2/repository/com/squareup/javawriter/2.1.1:jar",
         "//prebuilts/tools/common/m2/repository/com/squareup/kotlinpoet/1.0.0:jar",

@@ -20,6 +20,7 @@ import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.wizard.model.WizardModel
 import com.intellij.ide.util.projectWizard.WizardContext
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -44,6 +45,8 @@ class SourceToGradleModuleModel(
   override fun handleFinished() {
     runWriteAction {
       ModuleImporter.getImporter(context).importProjects(modulesToImport)
+    }
+    ApplicationManager.getApplication().invokeLater {
       projectSyncInvoker.syncProject(project)
     }
   }
