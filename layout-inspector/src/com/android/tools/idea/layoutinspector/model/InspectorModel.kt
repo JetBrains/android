@@ -79,12 +79,14 @@ class InspectorModel(val project: Project) {
       val viewNode = roots[id] ?: continue
       if (viewNode.isDimBehind) {
         val dimmer = ViewNode(-1, "DIM_BEHIND", null, 0, 0, 0, 0, maxWidth, maxHeight, null, "", 0)
-        // TODO: subclass ViewNode so we don't have to create and hold on to this image
-        val image = BufferedImage(maxWidth, maxHeight, BufferedImage.TYPE_INT_ARGB)
-        dimmer.imageBottom = image
-        val graphics = image.graphics
-        graphics.color = Color(0.0f, 0.0f, 0.0f, 0.5f)
-        graphics.fillRect(0, 0, maxWidth, maxHeight)
+        if (maxWidth > 0 && maxHeight > 0) {
+          // TODO: subclass ViewNode so we don't have to create and hold on to this image
+          val image = BufferedImage(maxWidth, maxHeight, BufferedImage.TYPE_INT_ARGB)
+          dimmer.imageBottom = image
+          val graphics = image.graphics
+          graphics.color = Color(0.0f, 0.0f, 0.0f, 0.5f)
+          graphics.fillRect(0, 0, maxWidth, maxHeight)
+        }
         root.children.add(dimmer)
         dimmer.parent = root
       }
@@ -103,6 +105,8 @@ class InspectorModel(val project: Project) {
   fun update(newRoot: ViewNode?, id: Long, allIds: List<Long>) {
     var structuralChange: Boolean = roots.keys.retainAll(allIds)
     val oldRoot = roots[id]
+    // changes in DIM_BEHIND will cause a structural change
+    structuralChange = structuralChange || (newRoot?.isDimBehind != oldRoot?.isDimBehind)
     if (newRoot == oldRoot && !structuralChange) {
       return
     }
@@ -149,6 +153,7 @@ class InspectorModel(val project: Project) {
       oldNode.height = newNode.height
       oldNode.x = newNode.x
       oldNode.y = newNode.y
+      oldNode.layoutFlags = newNode.layoutFlags
       oldNode.parent = parent
 
       oldNode.children.clear()
