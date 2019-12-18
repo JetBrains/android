@@ -52,7 +52,7 @@ class BuildInvokerTest : AndroidGradleTestCase() {
     project.replaceService(
         BuildViewManager::class.java,
         object : BuildViewManager(project) {
-          override fun onEvent(event: BuildEvent) {
+          override fun onEvent(buildId: Any, event: BuildEvent) {
             if (!enabled) return // Skip events until activated.
             when (event) {
               is StartBuildEvent -> {
