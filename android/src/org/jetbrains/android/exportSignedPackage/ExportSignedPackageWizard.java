@@ -16,13 +16,10 @@
 
 package org.jetbrains.android.exportSignedPackage;
 
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradlePath;
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static com.intellij.openapi.util.text.StringUtil.decapitalize;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
-import com.android.tools.idea.model.AndroidModel;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.sdklib.BuildToolInfo;
@@ -32,8 +29,10 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.run.OutputBuildAction;
+import com.android.tools.idea.gradle.run.OutputBuildActionUtil;
 import com.android.tools.idea.gradle.util.AndroidGradleSettings;
+import com.android.tools.idea.model.AndroidModel;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -65,7 +64,6 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.JComponent;
@@ -73,8 +71,8 @@ import org.jetbrains.android.AndroidCommonBundle;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -255,8 +253,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         else {
           gradleBuildInvoker.add(new GoToApkLocationTask(myProject, modules, "Generate Signed APK", myBuildVariants, myApkPath));
         }
-        gradleBuildInvoker.executeTasks(new File(rootProjectPath), gradleTasks, projectProperties,
-                                        new OutputBuildAction(getModuleGradlePaths(myFacet.getModule())));
+        gradleBuildInvoker.executeTasks(new File(rootProjectPath), gradleTasks, projectProperties, OutputBuildActionUtil.create(modules));
 
         getLog().info("Export " + StringUtil.toUpperCase(myTargetType) + " command: " +
                       Joiner.on(',').join(gradleTasks) +
@@ -268,16 +265,6 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
         return AndroidGradleSettings.createProjectProperty(name, value);
       }
     });
-  }
-
-  @NotNull
-  private static List<String> getModuleGradlePaths(@NotNull Module module) {
-    List<String> gradlePaths = new ArrayList<>();
-    String gradlePath = getGradlePath(module);
-    if (gradlePath != null) {
-      gradlePaths.add(gradlePath);
-    }
-    return gradlePaths;
   }
 
   @VisibleForTesting

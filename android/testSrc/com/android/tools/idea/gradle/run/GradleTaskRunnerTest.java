@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.gradle.run;
 
+import static org.mockito.Mockito.mock;
+
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
 import com.android.tools.idea.gradle.project.build.invoker.TestBuildAction;
 import com.android.tools.idea.gradle.util.BuildMode;
-import com.android.tools.idea.stats.RunStatsService;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ArrayListMultimap;
@@ -28,9 +29,6 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.TimeoutUtil;
 import com.intellij.util.ui.UIUtil;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.Answers;
-
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
@@ -39,8 +37,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.TimeUnit;
-
-import static org.mockito.Mockito.mock;
+import org.jetbrains.annotations.NotNull;
 
 public class GradleTaskRunnerTest extends AndroidGradleTestCase {
 
@@ -51,7 +48,7 @@ public class GradleTaskRunnerTest extends AndroidGradleTestCase {
     IdeComponents ideComponents = new IdeComponents(project);
     ideComponents.replaceProjectService(GradleBuildInvoker.class, buildInvoker);
 
-    GradleTaskRunner runner = GradleTaskRunner.newRunner(project);
+    GradleTaskRunner runner = GradleTaskRunner.newRunner(project, null);
     CountDownLatch countDownLatch = new CountDownLatch(1);
     ForkJoinPool.commonPool().execute(() -> {
       try {
