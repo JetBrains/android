@@ -41,7 +41,7 @@ class LayoutInspectorTreePanelTest {
 
   @JvmField
   @Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  val projectRule = AndroidProjectRule.onDisk()
 
   @JvmField
   @Rule
@@ -66,7 +66,7 @@ class LayoutInspectorTreePanelTest {
     val tree = LayoutInspectorTreePanel()
     val inspector = InspectorBuilder.createLayoutInspectorForDemo(projectRule)
     tree.setToolContext(inspector)
-    tree.componentTreeSelectionModel.selection = listOf(InspectorBuilder.findViewNode(inspector, "title")!!)
+    tree.componentTreeSelectionModel.selection = listOf(inspector.layoutInspectorModel["title"]!!)
     val treeComponent = UIUtil.findComponentOfType(tree.component, JTree::class.java)
 
     val fileManager = FileEditorManager.getInstance(projectRule.project)
