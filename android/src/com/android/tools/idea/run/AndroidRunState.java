@@ -71,7 +71,7 @@ public class AndroidRunState implements RunProfileState {
 
   @Nullable
   @Override
-  public ExecutionResult execute(Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
+  public ExecutionResult execute(Executor executor, @NotNull ProgramRunner<?> runner) throws ExecutionException {
     ProcessHandler processHandler;
     ExecutionConsole console;
     RunStats stats = RunStats.from(myEnv);
