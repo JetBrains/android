@@ -37,6 +37,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.android.ComponentStack
 import org.junit.rules.ExternalResource
 import org.mockito.ArgumentCaptor
@@ -112,14 +113,15 @@ class MotionAttributeRule(
     projectRule.fixture.copyFileToProject("attrs.xml", "res/values/attrs.xml")
     val layout = projectRule.fixture.copyFileToProject(motionLayoutFilename, "res/layout/$motionLayoutFilename")
     val layoutFile = AndroidPsiUtils.getPsiFileSafely(projectRule.project, layout) as XmlFile
+    val queue = MergingUpdateQueue("MQ", 100, true, null, projectRule.fixture.projectDisposable)
+    queue.isPassThrough = true
     val scene = projectRule.fixture.copyFileToProject(motionSceneFilename, "res/xml/$motionSceneFilename")
     sceneFile = AndroidPsiUtils.getPsiFileSafely(projectRule.project, scene) as XmlFile
     timeline = FakeMotionAccessoryPanel()
     runInEdtAndWait {
       nlModel = createNlModel(layoutFile, timeline!!)
       selectionFactory = MotionSelectionFactory(nlModel!!, sceneFile!!)
-      model = MotionLayoutAttributesModel(projectRule.fixture.projectDisposable, facet)
-      model!!.updateQueue.isPassThrough = true
+      model = MotionLayoutAttributesModel(projectRule.fixture.projectDisposable, facet, queue)
       model!!.surface = nlModel!!.surface
     }
   }

@@ -30,7 +30,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSc
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionAttributes;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.property2.NeleFlagsPropertyItem;
-import com.android.tools.idea.uibuilder.property2.NeleIdPropertyItem;
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel;
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem;
 import com.android.tools.idea.uibuilder.property2.NelePropertyType;
@@ -188,6 +187,7 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
     List<MotionAttributes.DefinedAttribute> inheritedAttributes = Collections.emptyList();
     MotionAttributes attributes = selection.getMotionAttributes();
     if (attributes != null) {
+      //noinspection SSBasedInspection
       inheritedAttributes = attributes.getAttrMap().values().stream()
         .filter(defined -> defined.isCustomAttribute())
         .collect(Collectors.toList());

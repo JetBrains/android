@@ -32,8 +32,9 @@ import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.impl.LaterInvocator
 import com.intellij.util.containers.toArray
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.update.MergingUpdateQueue
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
@@ -140,7 +141,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     model.addListener(listener)
 
     nlModel.notifyLiveUpdate(false)
-    UIUtil.dispatchAllInvocationEvents()
+    LaterInvocator.dispatchPendingFlushes()
     verify(listener).propertyValuesChanged(model)
   }
 
@@ -157,7 +158,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     model.addListener(listener)
 
     textView.fireLiveChangeEvent()
-    UIUtil.dispatchAllInvocationEvents()
+    LaterInvocator.dispatchPendingFlushes()
     verify(listener).propertyValuesChanged(model)
   }
 
@@ -197,13 +198,13 @@ class NelePropertiesModelTest: LayoutTestCase() {
 
     // Value changed should not be reported if the default values are unchanged
     manager.fireRenderCompleted()
-    UIUtil.dispatchAllInvocationEvents()
+    LaterInvocator.dispatchPendingFlushes()
     verify(listener, never()).propertyValuesChanged(model)
 
     // Value changed notification is expected since the default values have changed
     manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "@android:style/TextAppearance.Large")
     manager.fireRenderCompleted()
-    UIUtil.dispatchAllInvocationEvents()
+    LaterInvocator.dispatchPendingFlushes()
     verify(listener).propertyValuesChanged(model)
   }
 
@@ -291,9 +292,9 @@ class NelePropertiesModelTest: LayoutTestCase() {
   // The production code passes the property creation to a queue.
   // This code changes the queue to do a pass through during this test.
   private fun createModel(): NelePropertiesModel {
-    val model = NelePropertiesModel(testRootDisposable, myFacet)
-    model.updateQueue.isPassThrough = true
-    return model
+    val queue = MergingUpdateQueue("MQ", 100, true, null, testRootDisposable)
+    queue.isPassThrough = true
+    return NelePropertiesModel(testRootDisposable, myFacet, queue)
   }
 
   private class RecursiveValueChangedListener : PropertiesModelListener<NelePropertyItem> {
@@ -347,7 +348,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     fun waitUntilEventsProcessed(model: NelePropertiesModel) {
       if (model.lastSelectionUpdate.get()) {
         while (!model.lastUpdateCompleted) {
-          UIUtil.dispatchAllInvocationEvents()
+          LaterInvocator.dispatchPendingFlushes()
         }
       }
     }

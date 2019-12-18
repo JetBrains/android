@@ -460,7 +460,6 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     }
   }
 
-  @Override
   @Nullable
   public Object getSelectedAccessory() {
     if (DEBUG) {
@@ -478,10 +477,13 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     return null;
   }
 
-  @Override
   @Nullable
   public Object getSelectedAccessoryType() {
     return null;
+  }
+
+  @Override
+  public void requestSelection() {
   }
 
   @Override
@@ -496,7 +498,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
   private void fireSelectionChanged(@NotNull List<NlComponent> components) {
     List<AccessorySelectionListener> copy = new ArrayList<>(myListeners);
-    copy.forEach(listener -> listener.selectionChanged(this, components));
+    copy.forEach(listener -> listener.selectionChanged(this, null, myLastSelectedAccessory, components));
   }
 
   private void fireSelectionChanged() {
