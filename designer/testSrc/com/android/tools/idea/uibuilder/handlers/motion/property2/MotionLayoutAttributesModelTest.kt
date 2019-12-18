@@ -33,6 +33,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mock
+import org.mockito.Mockito.reset
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyZeroInteractions
 import org.mockito.MockitoAnnotations
@@ -60,7 +62,7 @@ class MotionLayoutAttributesModelTest {
   }
 
   @Test
-  fun testPropertiesGeneratedEventWhenDesignSurfaceIsHookedUp() {
+  fun testPropertiesEventsAfterHookupAndSelection() {
     val model = motionRule.attributesModel
     val surface = model.surface
     model.surface = null
@@ -69,13 +71,52 @@ class MotionLayoutAttributesModelTest {
     model.surface = surface
     verifyZeroInteractions(listener)
 
-    motionRule.selectConstraint("start", "widget")
-    verify(listener).propertiesGenerated(model)
-
-    // Verify that if the same motion tag is selected again we get a different notification:
+    // Verify that we get a generated event:
     motionRule.selectConstraint("start", "widget")
     UIUtil.dispatchAllInvocationEvents()
-    verify(listener).propertyValuesChanged(model)
+    verify(listener).propertiesGenerated(model)
+    reset(listener)
+
+    // Verify that if the same motion tag is selected again we get a changed event instead:
+    motionRule.selectConstraint("start", "widget")
+    UIUtil.dispatchAllInvocationEvents()
+    verify(listener, times(1)).propertyValuesChanged(model)
+    reset(listener)
+
+    // Verify that if the same motion tag is selected again after the model is deactivated, we get a generated event:
+    motionRule.attributesModel.deactivate()
+    motionRule.selectConstraint("start", "widget")
+    UIUtil.dispatchAllInvocationEvents()
+    verify(listener).propertiesGenerated(model)
+  }
+
+  @Test
+  fun testSelectBetweenTwoConstraintSets() {
+    val model = motionRule.attributesModel
+    val surface = model.surface
+    model.surface = null
+
+    model.addListener(listener)
+    model.surface = surface
+    verifyZeroInteractions(listener)
+
+    // Verify that we get a generated event:
+    motionRule.selectConstraint("start", "buttonEmptyConstraint")
+    UIUtil.dispatchAllInvocationEvents()
+    verify(listener).propertiesGenerated(model)
+    reset(listener)
+
+    // Verify that we get a generated event after selecting a different empty constraint:
+    motionRule.selectConstraint("end", "buttonEmptyConstraint")
+    UIUtil.dispatchAllInvocationEvents()
+    verify(listener).propertiesGenerated(model)
+    reset(listener)
+
+    // Verify that we get a generated event after selecting a different empty constraint:
+    motionRule.selectConstraint("start", "buttonEmptyConstraint")
+    UIUtil.dispatchAllInvocationEvents()
+    verify(listener).propertiesGenerated(model)
+    reset(listener)
   }
 
   @Test

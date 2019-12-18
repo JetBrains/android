@@ -19,8 +19,6 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface
 import com.android.tools.idea.uibuilder.api.AccessorySelectionListener
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionDesignSurfaceEdits
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag
-import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionSelection
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel
 import com.intellij.psi.SmartPsiElementPointer
@@ -30,8 +28,7 @@ import javax.swing.JPanel
 
 class FakeMotionAccessoryPanel: AccessoryPanelInterface, MotionDesignSurfaceEdits {
   private val listeners = mutableListOf<AccessorySelectionListener>()
-  private var type: MotionEditorSelector.Type? = null
-  private var tags: Array<MTag>? = null
+  private var lastSelection: MotionSelection? = null
 
   override fun getPanel(): JPanel {
     throw Error("should not be called")
@@ -82,17 +79,12 @@ class FakeMotionAccessoryPanel: AccessoryPanelInterface, MotionDesignSurfaceEdit
   }
 
   fun select(selection: MotionSelection) {
-    type = selection.type
-    tags = selection.tags
-    listeners.forEach { it.selectionChanged(this, selection.components) }
+    lastSelection = selection
+    listeners.forEach { it.selectionChanged(this, selection.type, selection.tags, selection.components) }
   }
 
-  override fun getSelectedAccessoryType(): Any? {
-    return type
-  }
-
-  override fun getSelectedAccessory(): Any? {
-    return tags
+  override fun requestSelection() {
+    lastSelection?.let { select(it) }
   }
 
   val listenerCount: Int
