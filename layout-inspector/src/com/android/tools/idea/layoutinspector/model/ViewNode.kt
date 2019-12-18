@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.ide.common.rendering.api.ResourceReference
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
@@ -23,7 +24,8 @@ import java.awt.Image
 import java.awt.Rectangle
 
 // This must have the same value as WindowManager.FLAG_DIM_BEHIND
-private const val WINDOW_MANAGER_FLAG_DIM_BEHIND = 0x2
+@VisibleForTesting
+const val WINDOW_MANAGER_FLAG_DIM_BEHIND = 0x2
 
 /**
  * A view node represents a view in the view hierarchy as seen on the device.
