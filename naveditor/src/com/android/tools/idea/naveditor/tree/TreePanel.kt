@@ -28,7 +28,6 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.model.isAction
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isNavigation
-import com.android.tools.idea.naveditor.model.uiName
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ApplicationManager
 import icons.StudioIcons
@@ -43,7 +42,6 @@ class TreePanel : ToolContent<DesignSurface> {
   @VisibleForTesting
   val componentTreeSelectionModel: ComponentTreeSelectionModel
   private val contextSelectionListener = SelectionListener { _, _ -> contextSelectionChanged() }
-  private var shouldScroll = true
   private val modelListener = NlModelListener()
 
   init {
@@ -58,12 +56,9 @@ class TreePanel : ToolContent<DesignSurface> {
     componentTreeModel = model
     componentTreeSelectionModel = selectionModel
     selectionModel.addSelectionListener {
-      if (shouldScroll) {
-        designSurface?.let {
-          val list = selectionModel.selection.filterIsInstance<NlComponent>()
-          it.selectionModel.setSelection(list)
-          it.scrollToCenter(list.filter { c -> c.isDestination && !c.isNavigation })
-        }
+      designSurface?.let {
+        val list = selectionModel.selection.filterIsInstance<NlComponent>()
+        it.selectionModel.setSelection(list)
       }
     }
   }
@@ -86,13 +81,7 @@ class TreePanel : ToolContent<DesignSurface> {
   }
 
   private fun contextSelectionChanged() {
-    shouldScroll = false
-    try {
-      componentTreeSelectionModel.selection = designSurface?.selectionModel?.selection ?: emptyList()
-    }
-    finally {
-      shouldScroll = true
-    }
+    componentTreeSelectionModel.selection = designSurface?.selectionModel?.selection ?: emptyList()
   }
 
   override fun getComponent() = componentTree
