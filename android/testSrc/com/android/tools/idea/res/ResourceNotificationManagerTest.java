@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.ResourceNotificationManager.Reason;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceVersion;
@@ -259,8 +260,10 @@ public class ResourceNotificationManagerTest extends AndroidTestCase {
     };
     manager.addListener(listener1, myFacet, layout1.getVirtualFile(), configuration1);
     manager.addListener(listener2, myFacet, null, null);
+    // New resource renaming does not require the extension anymore.
+    String newResourceName = StudioFlags.RESOLVE_USING_REPOS.get() ? "newLayout" : "newLayout.xml";
     ApplicationManager.getApplication()
-      .invokeAndWait(() -> new RenameDialog(getProject(), layout1, null, null).performRename("newLayout.xml"));
+      .invokeAndWait(() -> new RenameDialog(getProject(), layout1, null, null).performRename(newResourceName));
     ensureCalled(called1, calledValue1, called2, calledValue2, Reason.RESOURCE_EDIT);
   }
 

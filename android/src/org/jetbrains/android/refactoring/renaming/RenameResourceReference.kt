@@ -66,6 +66,10 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
   override fun prepareRenaming(element: PsiElement, newName: String, allRenames: MutableMap<PsiElement, String>) {
     if (element !is ResourceReferencePsiElement) {
       val resourceReferenceElement = ResourceReferencePsiElement.create(element)?.toWritableResourceReferencePsiElement() ?: return
+      resourceReferenceElement.putCopyableUserData(RESOURCE_CONTEXT_ELEMENT, element)
+      resourceReferenceElement.putCopyableUserData(
+        RESOURCE_CONTEXT_SCOPE,
+        ResourceRepositoryToPsiResolver.getResourceSearchScope(resourceReferenceElement.resourceReference, element))
       allRenames.remove(element)
       allRenames[resourceReferenceElement] = newName
     }
