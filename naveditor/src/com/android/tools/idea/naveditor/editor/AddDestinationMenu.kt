@@ -49,6 +49,7 @@ import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -74,6 +75,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import org.jetbrains.android.dom.navigation.NavigationSchema
+import org.jetbrains.android.dom.navigation.dynamicModules
 import org.jetbrains.android.dom.navigation.getClassesForTag
 import org.jetbrains.android.dom.navigation.isInProject
 import org.jetbrains.android.resourceManagers.LocalResourceManager
@@ -125,9 +127,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       val module = model.module
       val resourceManager = LocalResourceManager.getInstance(module) ?: return listOf()
 
-      val layoutFiles = resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
-        .filterIsInstance<XmlFile>()
-        .associateBy { AndroidUtils.getContextClass(module, it) }
+      val layoutFiles = getAllLayoutFiles()
 
       val classToDestination = mutableMapOf<PsiClass, Destination>()
       val schema = model.schema
@@ -433,6 +433,25 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     }
 
     module.addDependencies(DYNAMIC_DEPENDENCIES, promptUserBeforeAdding = true, requestSync = false)
+  }
+
+  private fun getAllLayoutFiles() : Map<PsiClass?, XmlFile> {
+    val module = surface.models.firstOrNull()?.module ?: return mapOf()
+    val result = getLayoutFilesForModule(module).toMutableMap()
+
+    for(dynamicModule in dynamicModules(module)) {
+      result.putAll(getLayoutFilesForModule(dynamicModule))
+    }
+
+    return result
+  }
+
+  private fun getLayoutFilesForModule(module: Module): Map<PsiClass?, XmlFile> {
+    val resourceManager = LocalResourceManager.getInstance(module) ?: return mapOf()
+
+    return resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
+      .filterIsInstance<XmlFile>()
+      .associateBy { AndroidUtils.getContextClass(module, it) }
   }
 
   companion object {

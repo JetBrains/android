@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.PropertyItem
 import com.intellij.openapi.application.TransactionGuard
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.resourceManagers.LocalResourceManager
@@ -34,7 +35,7 @@ import org.jetbrains.android.util.AndroidUtils
 
 data class ClassEnumValue(override val value: String,
                           override val display: String,
-                          val module: String?,
+                          val moduleName: String?,
                           val isInProject: Boolean) : EnumValue {
   override fun toString() = value
 
@@ -55,7 +56,7 @@ data class ClassEnumValue(override val value: String,
                                    "Set $component.tagName.${property.name} to $value") {
         property.value = value
         property.components.forEach { it.setAttribute(TOOLS_URI, ATTR_LAYOUT, layout) }
-        property.components.forEach { it.setAttribute(AUTO_URI, ATTR_MODULE_NAME, module) }
+        property.components.forEach { it.setAttribute(AUTO_URI, ATTR_MODULE_NAME, moduleName) }
       }
     })
 
@@ -63,7 +64,11 @@ data class ClassEnumValue(override val value: String,
   }
 
   private fun findLayoutForClass(component: NlComponent, className: String): String? {
-    val module = component.model.module
+    val module = when (moduleName) {
+      null -> component.model.module
+      else -> ModuleManager.getInstance(component.model.project)?.findModuleByName(moduleName) ?: return null
+    }
+
     val resourceManager = LocalResourceManager.getInstance(module) ?: return null
 
     for (resourceFile in resourceManager.findResourceFiles(ResourceNamespace.TODO(), ResourceFolderType.LAYOUT)
