@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run.ui;
 
-import static com.android.tools.idea.run.tasks.AbstractDeployTask.MIN_API_VERSION;
-
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.deployable.Deployable;
@@ -24,13 +22,7 @@ import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.android.tools.idea.util.CommonAndroidUtil;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
-import com.intellij.execution.ExecutionManager;
-import com.intellij.execution.ExecutionTargetManager;
-import com.intellij.execution.Executor;
-import com.intellij.execution.ExecutorRegistry;
-import com.intellij.execution.ProgramRunnerUtil;
-import com.intellij.execution.RunManager;
-import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.*;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.execution.executors.DefaultDebugExecutor;
@@ -45,11 +37,14 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
+import static com.android.tools.idea.run.tasks.AbstractDeployTask.MIN_API_VERSION;
 
 public abstract class BaseAction extends AnAction {
   private static final Logger LOG = Logger.getInstance(BaseAction.class);
@@ -200,11 +195,11 @@ public abstract class BaseAction extends AnAction {
     // Check if any executors are starting up (e.g. if the user JUST clicked on an executor, and deployment hasn't finished).
     Executor[] executors = ExecutorRegistry.getInstance().getRegisteredExecutors();
     for (Executor executor : executors) {
-      ProgramRunner programRunner = ProgramRunner.getRunner(executor.getId(), runConfiguration);
+      ProgramRunner<?> programRunner = ProgramRunner.getRunner(executor.getId(), runConfiguration);
       if (programRunner == null) {
         continue;
       }
-      if (ExecutorRegistry.getInstance().isStarting(project, executor.getId(), programRunner.getRunnerId())) {
+      if (ExecutionManager.getInstance(project).isStarting(executor.getId(), programRunner.getRunnerId())) {
         return true;
       }
     }
