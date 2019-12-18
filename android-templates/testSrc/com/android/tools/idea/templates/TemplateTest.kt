@@ -391,8 +391,9 @@ open class TemplateTest : TemplateTestBase() {
 
   @TemplateCheck
   fun testCompareGoogleMapsActivity() {
+    // TODO(qumeric): Change back to WITHOUT_PROJECT - b/78621322
     checkCreateTemplate("activities", "GoogleMapsActivity",
-                        ActivityCreationMode.WITHOUT_PROJECT, true, withNewRenderingContext)
+                        ActivityCreationMode.WITH_PROJECT, true, withNewRenderingContext)
   }
 
   @TemplateCheck
