@@ -54,7 +54,6 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.idea.uibuilder.actions.ToggleLiveRenderingAction;
@@ -73,10 +72,9 @@ import com.android.tools.idea.uibuilder.api.actions.ViewActionSeparator;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.MarginPopup;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BaseLineToggleViewAction;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.ChainCycleViewAction;
+import com.android.tools.idea.uibuilder.actions.ChainStyleViewActions;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scout.Scout;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -149,7 +147,6 @@ public class CommonActions {
    public static boolean getPopupMenuActions(@NotNull SceneComponent component, @NotNull List<ViewAction> actions) {
     actions.add(new BaseLineToggleViewAction());
     //TODO add actions.add(new ClearConstraintsSelectedComponentsAction());
-    actions.add(new ChainCycleViewAction());
 
     actions.add(new DisappearingActionMenu("Constrain", CREATE_CONSTRAINTS, ConstraintViewActions.CONNECT_ACTIONS));
     actions.add(new DisappearingActionMenu("Organize", PACK_HORIZONTAL, ConstraintViewActions.ORGANIZE_ACTIONS));
@@ -426,6 +423,12 @@ public class CommonActions {
       .build();
 
     public static final ImmutableList<ViewAction> CHAIN_ACTIONS = ImmutableList.of(
+      new DisappearingActionMenu("Horizontal Chain Style",
+                                 StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_SPREAD_INLINE,
+                                 ChainStyleViewActions.HORIZONTAL_CHAIN_STYLES),
+      new DisappearingActionMenu("Vertical Chain Style",
+                                 StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_SPREAD_INLINE,
+                                 ChainStyleViewActions.VERTICAL_CHAIN_STYLES),
       new AlignAction(Scout.Arrange.CreateHorizontalChain,
                       CREATE_HORIZ_CHAIN,
                       CREATE_HORIZ_CHAIN,
