@@ -114,6 +114,7 @@ abstract class CapturePane extends JPanel {
     // If we are using the new capture stage we do not want to enable any of the tabs for the capture pane.
     if (myStageView.getStage().getStudioProfilers().getIdeServices().getFeatureConfig().isCpuCaptureStageEnabled()) {
       // This needs to be done in update view (oppose to the constructor) due to dependencies between the CapturePane and the RecordingPane.
+      myRecordingPanel.removeAll();
       populateContent(myRecordingPanel);
       return;
     }
