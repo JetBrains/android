@@ -3,7 +3,7 @@ android {
     externalNativeBuild {
       cmake {
         cppFlags("")
-        arguments("-DCMAKE_MAKE_PROGRAM=////")
+        arguments = listOf("-DCMAKE_MAKE_PROGRAM=////")
       }
     }
   }

@@ -18,16 +18,17 @@ package com.android.tools.idea.gradle.dsl.model.android.productFlavors.externalN
 import com.android.tools.idea.gradle.dsl.api.android.productFlavors.externalNativeBuild.AbstractBuildOptionsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
+import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractBuildOptionsModelImpl extends GradleDslBlockModel implements AbstractBuildOptionsModel {
-  @NonNls private static final String ABI_FILTERS = "abiFilters";
-  @NonNls private static final String ARGUMENTS = "arguments";
-  @NonNls private static final String C_FLAGS = "cFlags";
-  @NonNls private static final String CPP_FLAGS = "cppFlags";
-  @NonNls private static final String TARGETS = "targets";
+  @NonNls public static final String ABI_FILTERS = "mAbiFilters";
+  @NonNls public static final String ARGUMENTS = "mArguments";
+  @NonNls public static final String C_FLAGS = "mcFlags";
+  @NonNls public static final String CPP_FLAGS = "mCppFlags";
+  @NonNls public static final String TARGETS = "mTargets";
 
   protected AbstractBuildOptionsModelImpl(@NotNull GradlePropertiesDslElement dslElement) {
     super(dslElement);
@@ -36,30 +37,30 @@ public abstract class AbstractBuildOptionsModelImpl extends GradleDslBlockModel 
   @Override
   @NotNull
   public ResolvedPropertyModel abiFilters() {
-    return getModelForProperty(ABI_FILTERS, true);
+    return GradlePropertyModelBuilder.create(myDslElement, ABI_FILTERS).asSet(true).buildResolved();
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel arguments() {
-    return getModelForProperty(ARGUMENTS, true);
+    return getModelForProperty(ARGUMENTS);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel cFlags() {
-    return getModelForProperty(C_FLAGS, true);
+    return getModelForProperty(C_FLAGS);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel cppFlags() {
-    return getModelForProperty(CPP_FLAGS, true);
+    return getModelForProperty(CPP_FLAGS);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel targets() {
-    return getModelForProperty(TARGETS, true);
+    return GradlePropertyModelBuilder.create(myDslElement, TARGETS).asSet(true).buildResolved();
   }
 }
