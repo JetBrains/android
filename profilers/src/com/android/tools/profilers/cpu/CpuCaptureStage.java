@@ -350,7 +350,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
       // track renderer to switch between its various tooltip models.
       threads.addTrackModel(
         TrackModel.newBuilder(
-          new CpuThreadTrackModel(getStudioProfilers(), selectionRange, capture, threadInfo, getTimeline(), myMultiSelectionModel),
+          new CpuThreadTrackModel(selectionRange, capture, threadInfo, getTimeline(), myMultiSelectionModel),
           ProfilerTrackRendererType.CPU_THREAD,
           threadInfo.getName()));
     }
