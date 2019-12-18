@@ -17,7 +17,6 @@ package com.android.tools.profilers.cpu
 
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.adtui.model.event.EventModel
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -103,15 +102,9 @@ class CpuCaptureStageTest {
     val stage = CpuCaptureStage.create(profilers, "Test", CpuProfilerTestUtils.getTraceFile("basic.trace"))
     profilers.stage = stage
 
-    assertThat(stage.trackGroupModels.size).isEqualTo(2)
+    assertThat(stage.trackGroupModels.size).isEqualTo(1)
 
-    val interactionTrackGroup = stage.trackGroupModels[0]
-    assertThat(interactionTrackGroup.title).isEqualTo("Interaction")
-    assertThat(interactionTrackGroup.size).isEqualTo(2)
-    assertThat(interactionTrackGroup[0].title).isEqualTo("User")
-    assertThat(interactionTrackGroup[1].title).isEqualTo("Lifecycle")
-
-    val threadsTrackGroup = stage.trackGroupModels[1]
+    val threadsTrackGroup = stage.trackGroupModels[0]
     assertThat(threadsTrackGroup.title).isEqualTo("Threads (1)")
     assertThat(threadsTrackGroup.size).isEqualTo(1)
   }
@@ -121,27 +114,21 @@ class CpuCaptureStageTest {
     val stage = CpuCaptureStage.create(profilers, "Test", CpuProfilerTestUtils.getTraceFile("atrace.ctrace"))
     profilers.stage = stage
 
-    assertThat(stage.trackGroupModels.size).isEqualTo(4)
+    assertThat(stage.trackGroupModels.size).isEqualTo(3)
 
-    val interactionTrackGroup = stage.trackGroupModels[0]
-    assertThat(interactionTrackGroup.title).isEqualTo("Interaction")
-    assertThat(interactionTrackGroup.size).isEqualTo(2)
-    assertThat(interactionTrackGroup[0].title).isEqualTo("User")
-    assertThat(interactionTrackGroup[1].title).isEqualTo("Lifecycle")
-
-    val displayTrackGroup = stage.trackGroupModels[1]
+    val displayTrackGroup = stage.trackGroupModels[0]
     assertThat(displayTrackGroup.title).isEqualTo("Display")
     assertThat(displayTrackGroup.size).isEqualTo(3)
     assertThat(displayTrackGroup[0].title).isEqualTo("Frames")
     assertThat(displayTrackGroup[1].title).isEqualTo("SurfaceFlinger")
     assertThat(displayTrackGroup[2].title).isEqualTo("VSYNC")
 
-    val coresTrackGroup = stage.trackGroupModels[2]
+    val coresTrackGroup = stage.trackGroupModels[1]
     assertThat(coresTrackGroup.title).isEqualTo("CPU cores (4)")
     assertThat(coresTrackGroup.size).isEqualTo(4)
     assertThat(coresTrackGroup[0].title).isEqualTo("CPU 0")
 
-    val threadsTrackGroup = stage.trackGroupModels[3]
+    val threadsTrackGroup = stage.trackGroupModels[2]
     assertThat(threadsTrackGroup.title).isEqualTo("Threads (40)")
     assertThat(threadsTrackGroup.size).isEqualTo(40)
   }
@@ -159,13 +146,13 @@ class CpuCaptureStageTest {
   fun minimapRangeSelectionUpdatesTrackGroups() {
     val stage = CpuCaptureStage.create(profilers, "Test", CpuProfilerTestUtils.getTraceFile("basic.trace"))
     profilers.stage = stage
-    assertThat(stage.trackGroupModels[0][0].dataModel.javaClass).isAssignableTo(EventModel::class.java)
-    val userEventModelRange = (stage.trackGroupModels[0][0].dataModel as EventModel<*>).rangedSeries.xRange
+    assertThat(stage.trackGroupModels[0][0].dataModel.javaClass).isAssignableTo(CpuThreadTrackModel::class.java)
+    val threadModelRange = (stage.trackGroupModels[0][0].dataModel as CpuThreadTrackModel).callChartModel.range
 
     // Select a new range
     stage.minimapModel.rangeSelectionModel.selectionRange.set(1.0, 2.0)
-    assertThat(userEventModelRange.min).isEqualTo(1.0)
-    assertThat(userEventModelRange.max).isEqualTo(2.0)
+    assertThat(threadModelRange.min).isEqualTo(1.0)
+    assertThat(threadModelRange.max).isEqualTo(2.0)
   }
 
   @Test

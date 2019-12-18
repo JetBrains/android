@@ -286,8 +286,10 @@ public class CpuCaptureStage extends Stage<Timeline> {
   private void initTrackGroupList(@NotNull Range selectionRange, @NotNull CpuCapture capture) {
     myTrackGroupModels.clear();
 
-    // Interaction events, e.g. user interaction, app lifecycle.
-    myTrackGroupModels.add(createInteractionTrackGroup(selectionRange));
+    // Interaction events, e.g. user interaction, app lifecycle. Recorded trace only.
+    if (getStudioProfilers().getSession().getPid() != 0) {
+      myTrackGroupModels.add(createInteractionTrackGroup(selectionRange));
+    }
 
     if (capture instanceof AtraceCpuCapture) {
       // Display pipeline events, e.g. frames, surfaceflinger. Systrace only.
