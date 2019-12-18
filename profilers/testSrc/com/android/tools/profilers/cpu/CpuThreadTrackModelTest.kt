@@ -15,7 +15,9 @@
  */
 package com.android.tools.profilers.cpu
 
+import com.android.tools.adtui.model.DefaultTimeline
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.adtui.model.MultiSelectionModel
 import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -45,10 +47,9 @@ class CpuThreadTrackModelTest {
   }
 
   @Test
-  fun buildThreadStatesFromImportedTrace() {
+  fun noThreadStatesFromArtTrace() {
     val capture = CpuProfilerTestUtils.getValidCapture()
-    val threadStateSeries = CpuThreadTrackModel.buildThreadStateDataSeries(profilers, capture, 516)
-    val rangedData = threadStateSeries.getDataForRange(Range(0.0, Double.MAX_VALUE))
-    assertThat(rangedData.size).isGreaterThan(0)
+    val threadTrackModel = CpuThreadTrackModel(Range(), capture, CpuThreadInfo(516, "Foo"), DefaultTimeline(), MultiSelectionModel())
+    assertThat(threadTrackModel.threadStateChartModel.series).isEmpty()
   }
 }

@@ -41,6 +41,7 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Track renderer for CPU threads in CPU capture stage.
@@ -51,7 +52,6 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
   @NotNull
   @Override
   public JComponent render(@NotNull TrackModel<CpuThreadTrackModel, ProfilerTrackRendererType> trackModel) {
-    StateChart<CpuProfilerStage.ThreadState> threadStateChart = createStateChart(trackModel.getDataModel().getThreadStateChartModel());
     HTreeChart<CaptureNode> traceEventChart = createHChart(trackModel.getDataModel().getCallChartModel(),
                                                            trackModel.getDataModel().getCapture().getRange());
     MultiSelectionModel<CpuAnalyzable> multiSelectionModel = trackModel.getDataModel().getMultiSelectionModel();
@@ -68,13 +68,21 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
       }
     });
 
-    JPanel panel = new JPanel(new TabularLayout("*", "8px,*"));
-    panel.add(threadStateChart, new TabularLayout.Constraint(0, 0));
-    panel.add(traceEventChart, new TabularLayout.Constraint(1, 0));
+    StateChart<CpuProfilerStage.ThreadState> threadStateChart = createStateChart(trackModel.getDataModel().getThreadStateChartModel());
+    JPanel panel = new JPanel();
+    if (threadStateChart == null) {
+      panel.setLayout(new TabularLayout("*", "*"));
+      panel.add(traceEventChart, new TabularLayout.Constraint(0, 0));
+    }
+    else {
+      panel.setLayout(new TabularLayout("*", "8px,*"));
+      panel.add(threadStateChart, new TabularLayout.Constraint(0, 0));
+      panel.add(traceEventChart, new TabularLayout.Constraint(1, 0));
+    }
     panel.addMouseMotionListener(new MouseAdapter() {
       @Override
       public void mouseMoved(MouseEvent e) {
-        if (threadStateChart.contains(e.getPoint())) {
+        if (threadStateChart != null && threadStateChart.contains(e.getPoint())) {
           trackModel.setActiveTooltipModel(trackModel.getDataModel().getThreadStateTooltip());
         }
         else if (traceEventChart.contains(e.getPoint())) {
@@ -114,7 +122,12 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
     return panel;
   }
 
+  @Nullable
   private static StateChart<CpuProfilerStage.ThreadState> createStateChart(@NotNull StateChartModel<CpuProfilerStage.ThreadState> model) {
+    if (model.getSeries().isEmpty()) {
+      // No thread state data, don't create chart.
+      return null;
+    }
     StateChart<CpuProfilerStage.ThreadState> threadStateChart = new StateChart<>(model, new CpuThreadColorProvider());
     threadStateChart.setHeightGap(0.0f);
     return threadStateChart;
