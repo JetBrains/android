@@ -95,7 +95,7 @@ class InspectorModel(val project: Project) {
   /**
    * Replaces all subtrees with differing root IDs. Existing views are updated.
    */
-  fun update(newRoot: ViewNode?, id: Any, allIds: List<Long>) {
+  fun update(newRoot: ViewNode?, id: Long, allIds: List<Long>) {
     var structuralChange: Boolean = roots.keys.retainAll(allIds)
     val oldRoot = roots[id]
     if (newRoot == oldRoot && !structuralChange) {
