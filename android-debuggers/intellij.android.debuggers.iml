@@ -26,5 +26,6 @@
     <orderEntry type="module" module-name="intellij.android.app-inspection.ide" />
     <orderEntry type="module" module-name="intellij.android.transport" />
     <orderEntry type="library" name="live-sql-proto" level="project" />
+    <orderEntry type="library" name="kotlinx-coroutines-guava" level="project" />
   </component>
 </module>

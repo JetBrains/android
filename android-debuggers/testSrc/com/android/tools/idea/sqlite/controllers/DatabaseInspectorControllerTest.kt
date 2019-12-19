@@ -34,16 +34,22 @@ import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.tableView.TableView
+import com.android.tools.idea.testing.runDispatching
+import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.TempDirTestFixture
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.concurrency.SameThreadExecutor
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.launch
 import org.mockito.InOrder
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
@@ -53,9 +59,10 @@ import org.mockito.Mockito.verify
 import java.util.concurrent.Executor
 import javax.swing.JComponent
 
-class DatabaseInspectorControllerTest : PlatformTestCase() {
+class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
   private lateinit var mockSqliteView: MockDatabaseInspectorView
   private lateinit var edtExecutor: EdtExecutorService
+  private lateinit var edtDispatcher: CoroutineDispatcher
   private lateinit var taskExecutor: Executor
   private lateinit var sqliteController: DatabaseInspectorControllerImpl
   private lateinit var orderVerifier: InOrder
@@ -91,6 +98,7 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
 
     mockSqliteView = mockViewFactory.databaseInspectorView
     edtExecutor = EdtExecutorService.getInstance()
+    edtDispatcher = edtExecutor.asCoroutineDispatcher()
     taskExecutor = SameThreadExecutor.INSTANCE
 
     sqliteController = DatabaseInspectorControllerImpl(
@@ -127,8 +135,9 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
 
     // Act
-    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
 
     // Assert
     orderVerifier.verify(mockSqliteView).startLoading("Getting database...")
@@ -138,28 +147,43 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
 
   fun testAddSqliteDatabaseFailure() {
     // Prepare
-    val exception = IllegalStateException()
+    val exception = IllegalStateException("expected")
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
 
     // Act
-    sqliteController.addSqliteDatabase(Futures.immediateFailedFuture(exception))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val result = runCatching {
+      runDispatching {
+        val deferred = CompletableDeferred<SqliteDatabase>()
+        deferred.completeExceptionally(exception)
+        sqliteController.addSqliteDatabase(deferred)
+      }
+    }
 
     // Assert
-    orderVerifier.verify(mockSqliteView).reportError("Error getting database", exception)
+    assertThat(result.exceptionOrNull()).isInstanceOf(IllegalStateException::class.java)
+    assertThat(result.exceptionOrNull()).hasMessageThat().isEqualTo("expected")
+    orderVerifier.verify(mockSqliteView).startLoading("Getting database...")
+
+    // Coroutines machinery makes a copy of the exception, so it won't be the same instance as `exception` above.
+    orderVerifier.verify(mockSqliteView).reportError(eq("Error getting database"), any(IllegalStateException::class.java))
     orderVerifier.verifyNoMoreInteractions()
   }
 
   fun testAddSqliteDatabaseFailureReadSchema() {
     // Prepare
-    val exception = IllegalStateException()
+    val exception = IllegalStateException("expected")
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFailedFuture(exception))
 
     // Act
-    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val result = runCatching {
+      runDispatching {
+        sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+      }
+    }
 
     // Assert
+    assertThat(result.exceptionOrNull()).isInstanceOf(IllegalStateException::class.java)
+    assertThat(result.exceptionOrNull()).hasMessageThat().isEqualTo("expected")
     orderVerifier.verify(mockSqliteView).startLoading("Getting database...")
     orderVerifier.verify(mockDatabaseConnection).readSchema()
     orderVerifier.verify(mockSqliteView).reportError("Error reading Sqlite database", exception)
@@ -167,13 +191,20 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
   }
 
   fun testAddSqliteDatabaseWhenControllerIsDisposed() {
-    // Prepare
-    `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
 
-    // Act
-    Disposer.dispose(sqliteController)
-    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      val deferredDatabase = CompletableDeferred<SqliteDatabase>()
+
+      val job = launch(edtDispatcher) {
+        sqliteController.addSqliteDatabase(deferredDatabase)
+      }
+
+      launch(edtDispatcher) {
+        // Simulate the job being cancelled while the schema is computed.
+        job.cancel()
+        deferredDatabase.complete(sqliteDatabase1)
+      }
+    }
 
     // Assert
     orderVerifier.verify(mockSqliteView).startLoading("Getting database...")
@@ -183,8 +214,9 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
   fun testDisplayResultSetIsCalledForTable() {
     // Prepare
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
 
     // Act
     mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, testSqliteTable)
@@ -200,8 +232,9 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
   fun testDisplayResultSetIsCalledForEvaluatorView() {
     // Prepare
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
 
     // Act
     mockSqliteView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
@@ -215,8 +248,9 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
   fun testCloseTabIsCalledForTable() {
     // Prepare
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
 
     // Act
     mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, testSqliteTable)
@@ -231,8 +265,9 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
   fun testCloseTabIsCalledForEvaluatorView() {
     // Prepare
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
 
     // Act
     mockSqliteView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
@@ -249,8 +284,9 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
   fun testFocusTabIsCalled() {
     // Prepare
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
 
     // Act
     mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, testSqliteTable)
@@ -270,16 +306,19 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
   fun testAddNewDatabaseAlphabeticOrder() {
     // Act
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
 
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema2))
-    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase2))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase2))
+    }
 
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema3))
-    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase3))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase3))
+    }
 
     // Assert
     orderVerifier.verify(mockSqliteView).addDatabaseSchema(sqliteDatabase1, testSqliteSchema1, 0)
@@ -294,16 +333,19 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
 
     // Act
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
 
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema2))
-    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase2))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase2))
+    }
 
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema3))
-    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase3))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase3))
+    }
 
     // Assert
     val evaluatorView = mockViewFactory.createEvaluatorView(project, MockSchemaProvider(), mockViewFactory.tableView)
@@ -315,8 +357,9 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
   fun testRemoveDatabase() {
     // Prepare
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
 
     mockSqliteView.viewListeners.single().openSqliteEvaluatorTabActionInvoked()
     val evaluatorView = mockViewFactory.createEvaluatorView(project, MockSchemaProvider(), mockViewFactory.tableView)
@@ -336,8 +379,9 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
     // Prepare
     val schema = SqliteSchema(listOf(SqliteTable("table1", emptyList(), null, false), testSqliteTable))
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
-    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
 
     mockSqliteView.viewListeners.single().tableNodeActionInvoked(sqliteDatabase1, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -359,7 +403,9 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(schema))
     `when`(mockDatabaseConnection.execute(SqliteStatement("INSERT"))).thenReturn(Futures.immediateFuture(null))
 
-    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
 
     mockSqliteView.viewListeners.first().openSqliteEvaluatorTabActionInvoked()
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -384,8 +430,9 @@ class DatabaseInspectorControllerTest : PlatformTestCase() {
     val fileDatabase = FileSqliteDatabase("db", mockDatabaseConnection, virtualFile)
 
     `when`(mockDatabaseConnection.readSchema()).thenReturn(Futures.immediateFuture(testSqliteSchema1))
-    sqliteController.addSqliteDatabase(Futures.immediateFuture(sqliteDatabase1))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    runDispatching {
+      sqliteController.addSqliteDatabase(CompletableDeferred(sqliteDatabase1))
+    }
 
     val mockSqliteExplorerProjectService = mock(DatabaseInspectorProjectService::class.java)
     `when`(mockSqliteExplorerProjectService.reDownloadAndOpenFile(any(FileSqliteDatabase::class.java), any(DownloadProgress::class.java)))

@@ -30,13 +30,20 @@ import com.intellij.psi.ResolveScopeEnlarger
 import com.intellij.refactoring.rename.RenameHandler
 import com.intellij.refactoring.rename.inplace.MemberInplaceRenameHandler
 import com.intellij.testFramework.EditorTestUtil
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.VfsTestUtil
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.AndroidRenameHandler
 import org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler
 import org.jetbrains.android.refactoring.renaming.ResourceRenameHandler
 import org.junit.Assert.assertTrue
+import javax.swing.SwingUtilities
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * Finds an [IntentionAction] with given name, if present.
@@ -148,4 +155,22 @@ fun CodeInsightTestFixture.goToElementAtCaret() {
  */
 fun JavaCodeInsightTestFixture.findClass(name: String, context: PsiElement): PsiClass? {
   return javaFacade.findClass(name, context.resolveScope)
+}
+
+/**
+ * Schedules the suspending [block] to run on the UI thread and "busy waits" for it to finish by draining the event queue.
+ *
+ * This is an alternative to [runBlocking] that avoids deadlocks if the current thread is the UI thread and the suspending [block] needs to
+ * schedule work on the UI thread.
+ */
+fun runDispatching(context: CoroutineContext = EmptyCoroutineContext, block: suspend CoroutineScope.() -> Unit) {
+  require(SwingUtilities.isEventDispatchThread()) // That's the thread dispatchAllEventsInIdeEventQueue requires.
+
+  val result = CoroutineScope(context).async(block = block)
+  while (!result.isCompleted) {
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+  }
+
+  runBlocking { result.await() } // Re-throws exceptions, if any.
+  PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 }

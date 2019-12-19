@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.appinspection.api.AppInspectorClient
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.fs.DeviceFileDownloaderService
 import com.android.tools.idea.device.fs.DeviceFileId
@@ -51,7 +52,15 @@ import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.concurrency.EdtExecutorService
-import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.async
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.guava.future
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.ide.PooledThreadExecutor
 import java.util.TreeMap
 import java.util.concurrent.Executor
@@ -143,6 +152,9 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
 
   private val edtExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(edtExecutor)
   private val taskExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(taskExecutor)
+  private val uiThread = edtExecutor.asCoroutineDispatcher()
+  private val workerThread = taskExecutor.asCoroutineDispatcher()
+  private val projectScope = AndroidCoroutineScope(project, workerThread)
 
   private val openFileSqliteDatabases = Sets.newConcurrentHashSet<FileSqliteDatabase>()
 
@@ -185,7 +197,9 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
           }
         }
 
-        toClose.forEach { controller.closeDatabase(it) }
+        for (database in toClose) {
+          projectScope.launch(NonCancellable) { controller.closeDatabase(database) }
+        }
       }
     }
 
@@ -194,43 +208,43 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
   }
 
   @AnyThread
-  override fun openSqliteDatabase(file: VirtualFile): ListenableFuture<SqliteDatabase> {
-    val databaseConnectionFuture = databaseConnectionFactory.getDatabaseConnection(file, taskExecutor)
-
-    // TODO(b/139525976)
+  override fun openSqliteDatabase(file: VirtualFile): ListenableFuture<SqliteDatabase> = projectScope.future {
+    // TODO(b/139525976): finalize naming convention
     val name = file.path.split("data/data/").getOrNull(1)?.replace("databases/", "") ?: file.path
 
-    val databaseFuture: ListenableFuture<SqliteDatabase> = taskExecutor.transform(databaseConnectionFuture) { databaseConnection ->
-      FileSqliteDatabase(name, databaseConnection, file)
+    val database = async {
+      val connection = databaseConnectionFactory.getDatabaseConnection(file, taskExecutor).await()
+      FileSqliteDatabase(name, connection, file)
     }
 
-    return openSqliteDatabaseInInspector(databaseFuture)
+    openSqliteDatabaseInInspector(database)
+    database.await()
   }
 
   @AnyThread
-  override fun openSqliteDatabase(messenger: AppInspectorClient.CommandMessenger, id: Int, name: String): ListenableFuture<SqliteDatabase> {
-    val databaseConnectionFuture = databaseConnectionFactory.getLiveDatabaseConnection(messenger, id, taskExecutor)
-
-    val databaseFuture: ListenableFuture<SqliteDatabase> = taskExecutor.transform(databaseConnectionFuture) { databaseConnection ->
-      LiveSqliteDatabase(name, databaseConnection)
+  override fun openSqliteDatabase(
+    messenger: AppInspectorClient.CommandMessenger,
+    id: Int,
+    name: String
+  ): ListenableFuture<SqliteDatabase> = projectScope.future {
+    val database = async {
+      val connection = databaseConnectionFactory.getLiveDatabaseConnection(messenger, id, taskExecutor).await()
+      LiveSqliteDatabase(name, connection)
     }
 
-    return openSqliteDatabaseInInspector(databaseFuture)
+    openSqliteDatabaseInInspector(database)
+    database.await()
   }
 
-  private fun openSqliteDatabaseInInspector(databaseFuture: ListenableFuture<SqliteDatabase>): ListenableFuture<SqliteDatabase> {
-    invokeLaterIfNeeded {
-      toolWindowManager.getToolWindow(DatabaseInspectorToolWindowFactory.TOOL_WINDOW_ID).show {
-        controller.addSqliteDatabase(databaseFuture)
-      }
+  private suspend fun openSqliteDatabaseInInspector(database: Deferred<SqliteDatabase>) = withContext(uiThread) {
+    toolWindowManager.getToolWindow(DatabaseInspectorToolWindowFactory.TOOL_WINDOW_ID).show {
+      launch { controller.addSqliteDatabase(database) }
     }
-
-    return databaseFuture
   }
 
   @UiThread
   override fun runSqliteStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) {
-    controller.runSqlStatement(database, sqliteStatement)
+    projectScope.launch { controller.runSqlStatement(database, sqliteStatement) }
   }
 
   @AnyThread
