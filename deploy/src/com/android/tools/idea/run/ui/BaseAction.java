@@ -232,8 +232,7 @@ public abstract class BaseAction extends AnAction {
    */
   private static boolean isExecutorStarting(@NotNull Project project, @NotNull RunConfiguration runConfiguration) {
     // Check if any executors are starting up (e.g. if the user JUST clicked on an executor, and deployment hasn't finished).
-    Executor[] executors = ExecutorRegistry.getInstance().getRegisteredExecutors();
-    for (Executor executor : executors) {
+    for (Executor executor : Executor.EXECUTOR_EXTENSION_NAME.getExtensionList()) {
       ProgramRunner programRunner = ProgramRunner.getRunner(executor.getId(), runConfiguration);
       if (programRunner == null) {
         continue;
