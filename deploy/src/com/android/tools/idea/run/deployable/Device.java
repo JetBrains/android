@@ -171,7 +171,7 @@ public class Device {
    */
   private void resolveApplicationId(@NotNull Process process) {
     myResolverExecutor.submit(() -> {
-      String command = String.format(Locale.US, "stat -c %%u /proc/%d | xargs -n 1 pm list packages --uid", process.getPid());
+      String command = String.format(Locale.US, "stat -c %%u /proc/%d | xargs -n 1 cmd package list packages --uid", process.getPid());
 
       CollectingOutputReceiver receiver = new CollectingOutputReceiver();
       myIDevice.executeShellCommand(command, receiver);
