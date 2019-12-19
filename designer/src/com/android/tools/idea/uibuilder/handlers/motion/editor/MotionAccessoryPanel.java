@@ -692,4 +692,8 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     }
     return found;
   }
+
+  public MotionSceneTag getMotionScene() {
+    return myMotionScene;
+  }
 }

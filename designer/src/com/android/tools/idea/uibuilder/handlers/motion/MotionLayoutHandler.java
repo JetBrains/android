@@ -44,6 +44,7 @@ import com.android.tools.idea.uibuilder.api.CustomPanel;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.assistant.MotionLayoutAssistantPanel;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.MotionConstraintPanel;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
@@ -54,6 +55,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineCyc
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineTarget;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionAccessoryPanel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionAttributePanel;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutDragTarget;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.targets.MotionLayoutResizeBaseTarget;
@@ -65,6 +67,7 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -77,9 +80,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public class MotionLayoutHandler extends ViewGroupHandler {
   private static final boolean DEBUG = false;
-
   // This is used to efficiently test if they are horizontal or vertical.
   private static HashSet<String> ourHorizontalBarriers = new HashSet<>(Arrays.asList(GRAVITY_VALUE_TOP, GRAVITY_VALUE_BOTTOM));
+  private static String MOTION_ACCESSORY = "MotionLayoutHandler.MotionAccessory";
 
   @Override
   @NotNull
@@ -210,19 +213,23 @@ public class MotionLayoutHandler extends ViewGroupHandler {
           if (DEBUG) {
             Debug.println("SOUTH PANEL");
           }
-          return new MotionAccessoryPanel((NlDesignSurface)surface, parent, panelVisibility);
+          MotionAccessoryPanel accessoryPanel = new MotionAccessoryPanel((NlDesignSurface)surface, parent, panelVisibility);
+          parent.putClientProperty(MOTION_ACCESSORY, accessoryPanel);
+          return accessoryPanel;
         case EAST_PANEL:
           if (DEBUG) {
             Debug.println("EAST PANEL");
           }
           return new MotionAttributePanel(parent, panelVisibility);
       }
-    } else {
+    }
+    else {
       switch (type) {
         case SOUTH_PANEL:
-          return new MotionAccessoryPanel((NlDesignSurface)surface, parent, panelVisibility);
         case EAST_PANEL:
-          return new MotionAccessoryPanel((NlDesignSurface)surface, parent, panelVisibility);
+          MotionAccessoryPanel accessoryPanel = new MotionAccessoryPanel((NlDesignSurface)surface, parent, panelVisibility);
+          parent.putClientProperty(MOTION_ACCESSORY, accessoryPanel);
+          return accessoryPanel;
       }
     }
     throw new IllegalArgumentException("Unsupported type");
@@ -231,9 +238,9 @@ public class MotionLayoutHandler extends ViewGroupHandler {
   @Override
   @Nullable
   public Interaction createInteraction(@NotNull ScreenView screenView,
-                                                 @SwingCoordinate int x,
-                                                 @SwingCoordinate int y,
-                                                 @NotNull NlComponent component) {
+                                       @SwingCoordinate int x,
+                                       @SwingCoordinate int y,
+                                       @NotNull NlComponent component) {
     MotionLayoutComponentHelper helper = MotionLayoutComponentHelper.create(component);
     if (helper.isInTransition()) {
       if (MotionLayoutSceneInteraction.hitKeyFrame(screenView, x, y, helper, component)) {
@@ -252,5 +259,35 @@ public class MotionLayoutHandler extends ViewGroupHandler {
   @NotNull
   public CustomPanel getLayoutCustomPanel() {
     return new MotionConstraintPanel(ImmutableList.of());
+  }
+
+  /**
+   * Called when one or more children are about to be deleted by the user.
+   *
+   * @param parent  the parent of the deleted children (which still contains
+   *                the children since this method is called before the deletion
+   *                is performed)
+   * @param deleted a nonempty list of children about to be deleted
+   * @return true if the children have been fully deleted by this participant; false if normal deletion should resume. Note that even though
+   * an implementation may return false from this method, that does not mean it did not perform any work. For example, a RelativeLayout
+   * handler could remove constraints pointing to now deleted components, but leave the overall deletion of the elements to the core
+   * designer.
+   */
+  @Override
+  public boolean deleteChildren(@NotNull NlComponent parent, @NotNull Collection<NlComponent> deleted) {
+    MotionAccessoryPanel accessoryPanel = (MotionAccessoryPanel)parent.getClientProperty(MOTION_ACCESSORY);
+    final int count = parent.getChildCount();
+    for (int i = 0; i < count; i++) {
+      NlComponent component = parent.getChild(i);
+      if (deleted.contains(component)) {
+        String id = component.getId();
+        if (id != null && accessoryPanel != null) {
+          MotionSceneUtils.deleteRelatedConstraintSets(accessoryPanel.getMotionScene(), id);
+        }
+        continue;
+      }
+      ConstraintLayoutHandler.willDelete(component, deleted);
+    }
+    return false;
   }
 }

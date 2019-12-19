@@ -1461,7 +1461,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
    * @param component the component we want to check
    * @param deleted   the list of components that are deleted
    */
-  private static void willDelete(NlComponent component, @NotNull Collection<NlComponent> deleted) {
+  public static void willDelete(NlComponent component, @NotNull Collection<NlComponent> deleted) {
     for (NlComponent deletedComponent : deleted) {
       String id = deletedComponent.getId();
       ConstraintComponentUtilities.updateOnDelete(component, id);
