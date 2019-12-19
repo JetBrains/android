@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.KTS_KNOWN_CONFIGURATIONS
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
@@ -114,10 +116,14 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
 
     val externalNameInfo = maybeTrimForParent(element.nameElement, element.parent, this)
     var statementText = externalNameInfo.first
-
     val useAssignment = when (val asMethod = externalNameInfo.second) {
       null -> element.shouldUseAssignment()
       else -> !asMethod
+    }
+    // TODO(xof): this is a bit horrible, and if there are any other examples where we need to adjust the syntax (as opposed to name)
+    //  of something depending on its context, try to figure out a useful generalization.
+    if (element.parent is DependenciesDslElement && !useAssignment && !KTS_KNOWN_CONFIGURATIONS.contains(statementText)) {
+      statementText = "\"${statementText}\""
     }
     if (element is GradleDslNamedDomainElement) {
       val parent = element.parent

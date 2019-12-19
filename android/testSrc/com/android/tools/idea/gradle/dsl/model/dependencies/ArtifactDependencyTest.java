@@ -1911,8 +1911,13 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     buildModel.dependencies().addArtifact("testCompile", "com.example.libs2:lib2:2.0");
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
-
     verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_INSERTION_ORDER_EXPECTED);
+
+    List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("feature");
+    assertThat(artifacts.get(1).configurationName()).isEqualTo("api");
+    assertThat(artifacts.get(2).configurationName()).isEqualTo("implementation");
+    assertThat(artifacts.get(3).configurationName()).isEqualTo("testCompile");
   }
 
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {

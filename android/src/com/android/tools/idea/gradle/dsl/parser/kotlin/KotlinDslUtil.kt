@@ -47,6 +47,7 @@ import org.jetbrains.kotlin.psi.KtArrayAccessExpression
 import org.jetbrains.kotlin.psi.KtBlockStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtConstantExpression
+import org.jetbrains.kotlin.psi.KtConstructorCalleeExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
@@ -93,7 +94,18 @@ internal fun PsiElement?.isParentOf(psiElement: PsiElement) : Boolean {
 }
 
 internal fun KtCallExpression.name() : String? {
-  return getCallNameExpression()?.getReferencedName()
+  return when (val callee = calleeExpression) {
+    null -> null
+    is KtSimpleNameExpression -> callee.getReferencedName()
+    // This clause arises from inlining KtCallElement.getCallNameExpression(), but we need not handle these (which are
+    // superconstructor calls) in the Dsl.  We leave this clause here explicitly in case we later have a need.
+    is KtConstructorCalleeExpression -> null
+    is KtStringTemplateExpression -> when {
+      callee.hasInterpolation() -> null // TODO(xof): even more ambition: handle "test$foo" as a configuration name
+      else -> callee.text
+    }
+    else -> null
+  }
 }
 
 internal fun getParentPsi(dslElement : GradleDslElement) : PsiElement? {
