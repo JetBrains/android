@@ -41,6 +41,7 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Track renderer for CPU threads in CPU capture stage.
@@ -51,9 +52,9 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
   @NotNull
   @Override
   public JComponent render(@NotNull TrackModel<CpuThreadTrackModel, ProfilerTrackRendererType> trackModel) {
-    StateChart<CpuProfilerStage.ThreadState> threadStateChart = createStateChart(trackModel.getDataModel().getThreadStateChartModel());
     HTreeChart<CaptureNode> traceEventChart = createHChart(trackModel.getDataModel().getCallChartModel(),
-                                                           trackModel.getDataModel().getCapture().getRange());
+                                                           trackModel.getDataModel().getCapture().getRange(),
+                                                           trackModel.isCollapsed());
     MultiSelectionModel<CpuAnalyzable> multiSelectionModel = trackModel.getDataModel().getMultiSelectionModel();
     multiSelectionModel.addDependency(myObserver).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, () -> {
       List<CpuAnalyzable> selection = multiSelectionModel.getSelection().asList();
@@ -68,69 +69,90 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
       }
     });
 
-    JPanel panel = new JPanel(new TabularLayout("*", "8px,*"));
-    panel.add(threadStateChart, new TabularLayout.Constraint(0, 0));
-    panel.add(traceEventChart, new TabularLayout.Constraint(1, 0));
-    panel.addMouseMotionListener(new MouseAdapter() {
-      @Override
-      public void mouseMoved(MouseEvent e) {
-        if (threadStateChart.contains(e.getPoint())) {
-          trackModel.setActiveTooltipModel(trackModel.getDataModel().getThreadStateTooltip());
-        }
-        else if (traceEventChart.contains(e.getPoint())) {
-          // Translate mouse point to be relative of the tree chart component.
-          Point p = e.getPoint();
-          p.translate(-traceEventChart.getX(), -traceEventChart.getY());
-          CaptureNode node = traceEventChart.getNodeAt(p);
-          if (node == null) {
-            trackModel.setActiveTooltipModel(null);
+    StateChart<CpuProfilerStage.ThreadState> threadStateChart = createStateChart(trackModel.getDataModel().getThreadStateChartModel());
+    JPanel panel = new JPanel();
+    if (trackModel.isCollapsed() || threadStateChart == null) {
+      // Don't show thread states if we don't have the chart for it or if the track is collapsed.
+      panel.setLayout(new TabularLayout("*", "*"));
+      panel.add(traceEventChart, new TabularLayout.Constraint(0, 0));
+    }
+    else {
+      panel.setLayout(new TabularLayout("*", "8px,*"));
+      panel.add(threadStateChart, new TabularLayout.Constraint(0, 0));
+      panel.add(traceEventChart, new TabularLayout.Constraint(1, 0));
+    }
+    if (!trackModel.isCollapsed()) {
+      panel.addMouseMotionListener(new MouseAdapter() {
+        @Override
+        public void mouseMoved(MouseEvent e) {
+          if (threadStateChart != null && threadStateChart.contains(e.getPoint())) {
+            trackModel.setActiveTooltipModel(trackModel.getDataModel().getThreadStateTooltip());
+          }
+          else if (traceEventChart.contains(e.getPoint())) {
+            // Translate mouse point to be relative of the tree chart component.
+            Point p = e.getPoint();
+            p.translate(-traceEventChart.getX(), -traceEventChart.getY());
+            CaptureNode node = traceEventChart.getNodeAt(p);
+            if (node == null) {
+              trackModel.setActiveTooltipModel(null);
+            }
+            else {
+              trackModel.setActiveTooltipModel(trackModel.getDataModel().getTraceEventTooltipBuilder().apply(node));
+            }
           }
           else {
-            trackModel.setActiveTooltipModel(trackModel.getDataModel().getTraceEventTooltipBuilder().apply(node));
+            trackModel.setActiveTooltipModel(null);
           }
         }
-        else {
-          trackModel.setActiveTooltipModel(null);
-        }
-      }
-    });
-    panel.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        if (traceEventChart.contains(e.getPoint())) {
-          // Translate mouse point to be relative of the tree chart component.
-          Point p = e.getPoint();
-          p.translate(-traceEventChart.getX(), -traceEventChart.getY());
-          CaptureNode node = traceEventChart.getNodeAt(p);
-          // Trace events only support single-selection.
-          multiSelectionModel.clearSelection();
-          if (node != null) {
-            multiSelectionModel.addToSelection(new CaptureNodeAnalysisModel(node, trackModel.getDataModel().getCapture()));
+      });
+      panel.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          if (traceEventChart.contains(e.getPoint())) {
+            // Translate mouse point to be relative of the tree chart component.
+            Point p = e.getPoint();
+            p.translate(-traceEventChart.getX(), -traceEventChart.getY());
+            CaptureNode node = traceEventChart.getNodeAt(p);
+            // Trace events only support single-selection.
+            multiSelectionModel.clearSelection();
+            if (node != null) {
+              multiSelectionModel.addToSelection(new CaptureNodeAnalysisModel(node, trackModel.getDataModel().getCapture()));
+            }
+            traceEventChart.dispatchEvent(SwingUtil.convertMouseEventPoint(e, p));
           }
-          traceEventChart.dispatchEvent(SwingUtil.convertMouseEventPoint(e, p));
         }
-      }
-    });
+      });
+    }
     return panel;
   }
 
+  @Nullable
   private static StateChart<CpuProfilerStage.ThreadState> createStateChart(@NotNull StateChartModel<CpuProfilerStage.ThreadState> model) {
+    if (model.getSeries().isEmpty()) {
+      // No thread state data, don't create chart.
+      return null;
+    }
     StateChart<CpuProfilerStage.ThreadState> threadStateChart = new StateChart<>(model, new CpuThreadColorProvider());
     threadStateChart.setHeightGap(0.0f);
     return threadStateChart;
   }
 
   private static HTreeChart<CaptureNode> createHChart(@NotNull CaptureDetails.CallChart callChartModel,
-                                                      @NotNull Range captureRange) {
+                                                      @NotNull Range captureRange,
+                                                      boolean isCollapsed) {
     CaptureNode node = callChartModel.getNode();
     Range selectionRange = callChartModel.getRange();
 
-    return new HTreeChart.Builder<>(node, selectionRange, new CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART))
-      .setGlobalXRange(captureRange)
-      .setOrientation(HTreeChart.Orientation.TOP_DOWN)
-      .setRootVisible(false)
-      .setNodeSelectionEnabled(true)
-      .build();
+    HTreeChart.Builder<CaptureNode> builder =
+      new HTreeChart.Builder<>(node, selectionRange, new CaptureNodeHRenderer(CaptureDetails.Type.CALL_CHART))
+        .setGlobalXRange(captureRange)
+        .setOrientation(HTreeChart.Orientation.TOP_DOWN)
+        .setRootVisible(false)
+        .setNodeSelectionEnabled(true);
+    if (isCollapsed) {
+      builder.setCustomNodeHeightPx(1).setNodeYPaddingPx(0);
+    }
+    return builder.build();
   }
 
   private static class CpuThreadColorProvider extends StateChartColorProvider<CpuProfilerStage.ThreadState> {

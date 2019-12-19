@@ -30,17 +30,24 @@ import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.debugger.ui.breakpoints.JavaFieldBreakpointType;
 import com.intellij.debugger.ui.breakpoints.JavaLineBreakpointType;
 import com.intellij.debugger.ui.breakpoints.JavaMethodBreakpointType;
+import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionHelper;
 import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.execution.process.ProcessAdapter;
+import com.intellij.execution.process.ProcessEvent;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.remote.RemoteConfiguration;
 import com.intellij.execution.remote.RemoteConfigurationType;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
+import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Ref;
@@ -51,6 +58,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -148,7 +156,46 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
     configuration.USE_SOCKET_TRANSPORT = true;
     configuration.SERVER_MODE = false;
 
-    ProgramRunnerUtil.executeConfiguration(runSettings, DefaultDebugExecutor.getDebugExecutorInstance());
+    ProgramRunner.Callback callback = new ProgramRunner.Callback() {
+      @Override
+      public void processStarted(RunContentDescriptor descriptor) {
+        // Callback to add a termination listener after the process handler gets created.
+        ProcessHandler handler = descriptor.getProcessHandler();
+        if (handler == null) {
+          return;
+        }
+        VMExitedNotifier notifier = new VMExitedNotifier(client);
+        ProcessAdapter processAdapter = new ProcessAdapter() {
+          @Override
+          public void processTerminated(@NotNull ProcessEvent event) {
+            handler.removeProcessListener(this);
+            notifier.notifyClient();
+          }
+        };
+        // Add the handler first, then check, as to avoid race condition where process terminates between checking then adding.
+        handler.addProcessListener(processAdapter, project);
+        if (handler.isProcessTerminated()) {
+          handler.removeProcessListener(processAdapter);
+          notifier.notifyClient();
+        }
+      }
+    };
+
+    try {
+      ProgramRunnerUtil.executeConfigurationAsync(
+        // Code lifted out of ProgramRunnerUtil. We do this because we need to access the callback field.
+        ExecutionEnvironmentBuilder.create(DefaultDebugExecutor.getDebugExecutorInstance(), runSettings)
+          .contentToReuse(null)
+          .dataContext(null)
+          .activeTarget()
+          .build(),
+        /*showSettings=*/true,
+        /*assignNewId=*/true,
+        callback);
+    }
+    catch (ExecutionException e) {
+      Logger.getInstance(AndroidJavaDebugger.class).error(e);
+    }
   }
 
   public DebuggerSession getDebuggerSession(@NotNull Client client) {
@@ -212,5 +259,21 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
       return activateDebugSessionWindow(project, descriptors.iterator().next());
     }
     return false;
+  }
+
+  private static class VMExitedNotifier {
+    @NotNull private final Client myClient;
+    @NotNull private final AtomicBoolean myNeedsToNotify = new AtomicBoolean(true);
+
+    private VMExitedNotifier(@NotNull Client client) {
+      myClient = client;
+    }
+
+    private void notifyClient() {
+      // The atomic boolean guarantees that we only ever notify the Client once.
+      if (myNeedsToNotify.getAndSet(false)) {
+        myClient.notifyVmMirrorExited();
+      }
+    }
   }
 }

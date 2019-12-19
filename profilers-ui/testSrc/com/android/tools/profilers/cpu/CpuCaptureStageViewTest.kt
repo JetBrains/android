@@ -86,11 +86,11 @@ class CpuCaptureStageViewTest {
   fun trackGroupListIsInitializedAfterParsing() {
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()
-    assertThat(stageView.trackGroupList.component.componentCount).isEqualTo(3) // track groups + tooltip component
+    assertThat(stageView.trackGroupList.component.componentCount).isEqualTo(2) // threads track group + tooltip component
     val treeWalker = TreeWalker(stageView.trackGroupList.component)
 
     val titleStrings = treeWalker.descendants().filterIsInstance<JLabel>().map(JLabel::getText).toList()
-    assertThat(titleStrings).containsAllOf("Interaction", "Threads (3)").inOrder()
+    assertThat(titleStrings).containsExactly("Threads (3)")
   }
 
   @Test
@@ -155,7 +155,7 @@ class CpuCaptureStageViewTest {
     assertThat(stageView.trackGroupList.activeTooltip).isNull()
 
     // Frame tooltip
-    val frameTracks = trackGroups[1].trackList
+    val frameTracks = trackGroups[0].trackList
     val frameTracksOrigin = SwingUtilities.convertPoint(frameTracks, Point(0, 0), stageView.component)
     ui.mouse.moveTo(frameTracksOrigin.x, frameTracksOrigin.y)
     assertThat(stageView.trackGroupList.activeTooltip).isInstanceOf(CpuFrameTooltip::class.java)

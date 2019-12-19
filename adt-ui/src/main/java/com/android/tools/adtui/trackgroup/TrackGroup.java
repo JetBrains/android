@@ -61,6 +61,7 @@ public class TrackGroup extends AspectObserver {
   private final FlatSeparator mySeparator = new FlatSeparator();
   private final CommonButton myCollapseButton;
   private final Map<Integer, Track> myTrackMap;
+  private final AspectObserver myObserver = new AspectObserver();
 
   /**
    * @param groupModel      {@link TrackGroup} data model
@@ -82,7 +83,14 @@ public class TrackGroup extends AspectObserver {
                                                     boolean isSelected,
                                                     boolean cellHasFocus) {
         return myTrackMap
-          .computeIfAbsent(value.getId(), id -> Track.create(value, rendererFactory.createRenderer(value.getRendererType())))
+          .computeIfAbsent(value.getId(), id -> {
+            TrackRenderer<?, ?> renderer = rendererFactory.createRenderer(value.getRendererType());
+            // When track's collapse state changes, render the track again.
+            value.getAspectModel().addDependency(myObserver).onChange(TrackModel.Aspect.COLLAPSE_CHANGE, () -> {
+              myTrackMap.put(id, Track.create(value, renderer));
+            });
+            return Track.create(value, renderer);
+          })
           .updateSelected(groupModel.isTrackSelectable() && isSelected)
           .getComponent();
       }

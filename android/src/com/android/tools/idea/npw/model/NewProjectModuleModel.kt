@@ -72,8 +72,8 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
 
   override fun handleFinished() {
     initMainModule()
-
-    if (hasCompanionApp.get()) {
+    val newRenderTemplateModel = createMainRenderModel()
+    if (hasCompanionApp.get() && newRenderTemplateModel.hasActivity) {
       val companionModuleModel = createCompanionModuleModel(projectModel)
       val companionRenderModel = createCompanionRenderModel(companionModuleModel)
 
@@ -82,8 +82,6 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
       companionModuleModel.handleFinished()
       companionRenderModel.handleFinished()
     }
-
-    val newRenderTemplateModel = createMainRenderModel()
 
     newModuleModel.handleFinished()
 

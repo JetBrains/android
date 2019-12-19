@@ -29,6 +29,7 @@ import java.util.concurrent.CompletableFuture;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
+import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -57,7 +58,7 @@ public class RefreshRenderAction extends AnAction {
   }
 
   public static void clearCache(@NotNull ImmutableCollection<Configuration> configurations) {
-    ModuleClassLoader.clearCache();
+    ModuleClassLoaderManager.get().clearCache();
 
     configurations.stream()
       .forEach(configuration -> {

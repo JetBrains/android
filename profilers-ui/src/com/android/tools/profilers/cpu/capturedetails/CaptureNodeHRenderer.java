@@ -62,7 +62,7 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
   }
 
   public CaptureNodeHRenderer(@NotNull CaptureDetails.Type type) {
-    this(type, (text, metrics, width) -> metrics.stringWidth(text) <= width);
+    this(type, (text, metrics, width, height) -> metrics.stringWidth(text) <= width && metrics.getHeight() <= height);
   }
 
   private Color getFillColor(CaptureNode node, boolean isFocused, boolean isDeselected) {
@@ -158,8 +158,10 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     }
     FontMetrics fontMetrics = g.getFontMetrics(font);
 
-    Float availableWidth = (float)drawingArea.getWidth() - 2 * MARGIN_PX; // Left and right margin
-    String text = generateFittingText(node.getData(), s -> myTextFitsPredicate.test(s, fontMetrics, availableWidth));
+    float availableWidth = (float)drawingArea.getWidth() - 2 * MARGIN_PX; // Left and right margin
+    float availableHeight = (float)drawingArea.getHeight();
+    String text = generateFittingText(
+      node.getData(), s -> myTextFitsPredicate.test(s, fontMetrics, availableWidth, availableHeight));
     float textPositionX = MARGIN_PX + (float)drawingArea.getX();
     float textPositionY = (float)(drawingArea.getY() + fontMetrics.getAscent());
     g.drawString(text, textPositionX, textPositionY);
@@ -214,6 +216,6 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
   }
 
   public interface TextFitsPredicate {
-    boolean test(String text, FontMetrics metrics, float width);
+    boolean test(String text, FontMetrics metrics, float width, float height);
   }
 }

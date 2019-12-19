@@ -33,6 +33,7 @@ import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.inOrder
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.timeout
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.initMocks
 
@@ -93,11 +94,13 @@ class AndroidProcessHandlerTest {
     verify(mockMonitorManager).add(eq(mockDevice) ?: mockDevice)
 
     monitorManagerListener.onAllTargetProcessesTerminated()
+    assertThat(handler.isProcessTerminating || handler.isProcessTerminated).isTrue()
+
+    inOrder.verify(mockProcessListener).processWillTerminate(any(), /*willBeDestroyed=*/eq(true))
+    inOrder.verify(mockProcessListener, timeout(1000)).processTerminated(any())
+    inOrder.verifyNoMoreInteractions()
 
     assertThat(handler.isProcessTerminated).isTrue()
-    inOrder.verify(mockProcessListener).processWillTerminate(any(), eq(true))
-    inOrder.verify(mockProcessListener).processTerminated(any())
-    inOrder.verifyNoMoreInteractions()
   }
 
   @Test
@@ -117,11 +120,13 @@ class AndroidProcessHandlerTest {
     assertThat(handler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).isEqualTo(AndroidVersion(27))
 
     monitorManagerListener.onAllTargetProcessesTerminated()
+    assertThat(handler.isProcessTerminating || handler.isProcessTerminated).isTrue()
+
+    inOrder.verify(mockProcessListener).processWillTerminate(any(), /*willBeDestroyed=*/eq(true))
+    inOrder.verify(mockProcessListener, timeout(1000)).processTerminated(any())
+    inOrder.verifyNoMoreInteractions()
 
     assertThat(handler.isProcessTerminated).isTrue()
-    inOrder.verify(mockProcessListener).processWillTerminate(any(), eq(true))
-    inOrder.verify(mockProcessListener).processTerminated(any())
-    inOrder.verifyNoMoreInteractions()
   }
 
   @Test
@@ -131,14 +136,33 @@ class AndroidProcessHandlerTest {
   }
 
   @Test
+  fun destroyProcess() {
+    val inOrder = inOrder(mockProcessListener)
+
+    handler.destroyProcess()
+    assertThat(handler.isProcessTerminating || handler.isProcessTerminated).isTrue()
+
+    inOrder.verify(mockProcessListener).startNotified(any())
+    inOrder.verify(mockProcessListener).processWillTerminate(any(), /*willBeDestroyed=*/eq(true))
+    inOrder.verify(mockProcessListener, timeout(1000)).processTerminated(any())
+    inOrder.verifyNoMoreInteractions()
+
+    assertThat(handler.isProcessTerminated).isTrue()
+  }
+
+  @Test
   fun detachProcess() {
     val inOrder = inOrder(mockProcessListener)
+
     handler.detachProcess()
-    assertThat(handler.isProcessTerminated).isTrue()
+    assertThat(handler.isProcessTerminating || handler.isProcessTerminated).isTrue()
+
     inOrder.verify(mockProcessListener).startNotified(any())
-    inOrder.verify(mockProcessListener).processWillTerminate(any(), eq(false))
-    inOrder.verify(mockProcessListener).processTerminated(any())
+    inOrder.verify(mockProcessListener).processWillTerminate(any(), /*willBeDestroyed=*/eq(false))
+    inOrder.verify(mockProcessListener, timeout(1000)).processTerminated(any())
     inOrder.verifyNoMoreInteractions()
+
+    assertThat(handler.isProcessTerminated).isTrue()
   }
 
   private fun createMockDevice(apiVersion: Int): IDevice {

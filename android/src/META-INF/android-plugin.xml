@@ -430,6 +430,8 @@
 
     <applicationService serviceImplementation="com.android.tools.idea.ddms.screenrecord.ScreenRecorderPersistentOptions"/>
 
+    <applicationService serviceImplementation="org.jetbrains.android.uipreview.ModuleClassLoaderManager"/>
+
     <errorHandler implementation="com.android.tools.idea.diagnostics.error.ErrorReporter"/>
 
     <fileType name="Android 9-Patch"

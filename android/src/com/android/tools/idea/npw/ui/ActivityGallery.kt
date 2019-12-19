@@ -59,9 +59,7 @@ fun getTemplateIcon(template: Template): TemplateIcon? {
     return TemplateIcon(AndroidIcons.Wizards.NoActivity)
   }
 
-  val thumb = template.thumb().path
-
-  val icon = IconLoader.findIcon(thumb.toURI().toURL()) ?: return null
+  val icon = IconLoader.findIcon(template.thumb().path) ?: return null
   return TemplateIcon(icon)
 }
 

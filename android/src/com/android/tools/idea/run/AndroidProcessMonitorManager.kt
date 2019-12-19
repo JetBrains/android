@@ -108,6 +108,7 @@ class AndroidProcessMonitorManager(
   /**
    * Terminates all target processes running on monitored devices and stops capturing logcat messages from devices.
    */
+  @WorkerThread
   @Synchronized
   override fun close() {
     myMonitors.values.forEach { it.close() }
@@ -119,6 +120,7 @@ class AndroidProcessMonitorManager(
    * Detaches monitor from devices and stops capturing logcat messages from devices.
    * Unlike [close], all target processes will not be terminated and leave running.
    */
+  @WorkerThread
   @Synchronized
   fun detachAndClose() {
     myMonitors.values.forEach { it.detachAndClose() }
