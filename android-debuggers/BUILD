@@ -52,6 +52,7 @@ iml_module(
         "//tools/adt/idea/app-inspection/ide:intellij.android.app-inspection.ide[module]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/idea/.idea/libraries:live-sql-proto",
+        "//tools/idea/.idea/libraries:kotlinx-coroutines-guava",
     ],
 )
 

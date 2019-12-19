@@ -38,6 +38,7 @@ import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.registerServiceInstance
+import kotlinx.coroutines.runBlocking
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
@@ -107,7 +108,9 @@ class DatabaseInspectorProjectServiceTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    verify(mockSqliteController).closeDatabase(databaseToClose!!)
+    runBlocking {
+      verify(mockSqliteController).closeDatabase(databaseToClose!!)
+    }
   }
 
   fun testReDownloadOpensFile() {

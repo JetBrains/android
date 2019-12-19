@@ -21,6 +21,7 @@ import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.UserDataHolderBase
@@ -35,6 +36,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import java.util.concurrent.Executor
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * [CoroutineDispatcher]s equivalent to executors defined in [AndroidExecutors].
@@ -113,8 +115,8 @@ fun SupervisorJob(disposable: Disposable): Job {
  *   - a [CoroutineExceptionHandler] that logs unhandled exception at `ERROR` level.
  */
 @Suppress("FunctionName") // Mirroring coroutines API, with many functions that look like constructors.
-fun AndroidCoroutineScope(disposable: Disposable): CoroutineScope {
-  return CoroutineScope(SupervisorJob(disposable) + AndroidDispatchers.workerThread + androidCoroutineExceptionHandler)
+fun AndroidCoroutineScope(disposable: Disposable, context: CoroutineContext = EmptyCoroutineContext): CoroutineScope {
+  return CoroutineScope(SupervisorJob(disposable) + AndroidDispatchers.workerThread + androidCoroutineExceptionHandler + context)
 }
 
 /**
@@ -138,3 +140,8 @@ interface AndroidCoroutinesAware : UserDataHolderEx, Disposable, CoroutineScope 
     return getUserData(CONTEXT) ?: putUserDataIfAbsent(CONTEXT, AndroidCoroutineScope(this).coroutineContext)
   }
 }
+
+private val PROJECT_SCOPE: Key<CoroutineScope> = Key.create(::PROJECT_SCOPE.qualifiedName)
+
+val Project.coroutineScope: CoroutineScope
+  get() = getUserData(PROJECT_SCOPE) ?: (this as UserDataHolderEx).putUserDataIfAbsent(PROJECT_SCOPE, AndroidCoroutineScope(this))

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.sqlite.controllers
 
-import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.device.fs.DownloadProgress
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
@@ -29,13 +29,19 @@ import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.mainView.DatabaseInspectorView
 import com.google.common.util.concurrent.FutureCallback
-import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.SettableFuture
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.text.trimMiddle
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.guava.await
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.TreeMap
 import java.util.concurrent.Executor
 import javax.swing.JComponent
@@ -45,7 +51,6 @@ import javax.swing.JComponent
  *
  * All methods are assumed to run on the UI (EDT) thread.
  */
-@UiThread
 class DatabaseInspectorControllerImpl(
   private val project: Project,
   private val model: DatabaseInspectorController.Model,
@@ -53,9 +58,10 @@ class DatabaseInspectorControllerImpl(
   edtExecutor: Executor,
   taskExecutor: Executor
 ) : DatabaseInspectorController {
-  private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
-  private val taskExecutor = FutureCallbackExecutor.wrap(taskExecutor)
 
+  private val edtExecutor = FutureCallbackExecutor.wrap(edtExecutor)
+  private val uiThread = edtExecutor.asCoroutineDispatcher()
+  private val workerThread = taskExecutor.asCoroutineDispatcher()
   private val view = viewFactory.createDatabaseInspectorView(project)
 
   /**
@@ -75,38 +81,28 @@ class DatabaseInspectorControllerImpl(
     view.addListener(sqliteViewListener)
   }
 
-  override fun addSqliteDatabase(sqliteDatabaseFuture: ListenableFuture<SqliteDatabase>): ListenableFuture<Unit> {
-    val settableFuture = SettableFuture.create<Unit>()
-
+  override suspend fun addSqliteDatabase(deferredDatabase: Deferred<SqliteDatabase>) = withContext(uiThread) {
     view.startLoading("Getting database...")
-    taskExecutor.addCallback(sqliteDatabaseFuture, object : FutureCallback<SqliteDatabase> {
-      override fun onSuccess(sqliteDatabase: SqliteDatabase?) {
-        if (Disposer.isDisposed(this@DatabaseInspectorControllerImpl)) return
 
-        Disposer.register(this@DatabaseInspectorControllerImpl, sqliteDatabase!!.databaseConnection)
-        readDatabaseSchema(sqliteDatabase) { schema -> addNewDatabase(sqliteDatabase, schema) }
-        settableFuture.set(Unit)
-      }
-
-      override fun onFailure(t: Throwable) {
-        view.reportError("Error getting database", t)
-        settableFuture.setException(t)
-      }
-    })
-
-    return settableFuture
-  }
-
-  override fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
-    val sqliteEvaluatorController = openNewEvaluatorTab()
-    return sqliteEvaluatorController.evaluateSqlStatement(database, sqliteStatement)
-  }
-
-  override fun closeDatabase(database: SqliteDatabase): ListenableFuture<Unit> {
-    // TODO(b/143873070) when a database is closed with the close button the corresponding file is not deleted.
-    if (!model.openDatabases.containsKey(database)) {
-      return Futures.immediateFuture(Unit)
+    val database = try {
+      deferredDatabase.await()
     }
+    catch (e: Exception) {
+      ensureActive()
+      view.reportError("Error getting database", e)
+      throw e
+    }
+    Disposer.register(this@DatabaseInspectorControllerImpl, database.databaseConnection)
+    addNewDatabase(database, readDatabaseSchema(database))
+  }
+
+  override suspend fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) = withContext(uiThread) {
+    openNewEvaluatorTab().evaluateSqlStatement(database, sqliteStatement).await()
+  }
+
+  override suspend fun closeDatabase(database: SqliteDatabase) = withContext(uiThread) {
+    // TODO(b/143873070) when a database is closed with the close button the corresponding file is not deleted.
+    if (!model.openDatabases.containsKey(database)) return@withContext
 
     val tabsToClose = resultSetControllers.keys
       .filterIsInstance<TabId.TableTab>()
@@ -124,12 +120,12 @@ class DatabaseInspectorControllerImpl(
 
     model.remove(database)
 
-    return taskExecutor.executeAsync {
+    withContext(workerThread) {
       Disposer.dispose(database.databaseConnection)
     }
   }
 
-  override fun dispose() {
+  override fun dispose() = invokeAndWaitIfNeeded {
     view.removeListener(sqliteViewListener)
 
     resultSetControllers.values
@@ -138,30 +134,22 @@ class DatabaseInspectorControllerImpl(
       .forEach { it.removeListeners() }
   }
 
-  private fun readDatabaseSchema(database: SqliteDatabase, onSchemaRead: (SqliteSchema) -> Unit) {
-    val futureSchema = database.databaseConnection.readSchema()
-
-    edtExecutor.addListener(futureSchema) {
-      if (!Disposer.isDisposed(this@DatabaseInspectorControllerImpl)) {
-        view.stopLoading()
-      }
+  private suspend fun readDatabaseSchema(database: SqliteDatabase): SqliteSchema = withContext(workerThread) {
+    try {
+      val schema = database.databaseConnection.readSchema().await()
+      withContext(uiThread) { view.stopLoading() }
+      schema
     }
-
-    edtExecutor.addCallback(futureSchema, object : FutureCallback<SqliteSchema> {
-      override fun onSuccess(sqliteSchema: SqliteSchema?) {
-        sqliteSchema?.let { onSchemaRead(sqliteSchema) }
+    catch (e: Exception) {
+      ensureActive()
+      withContext(uiThread) {
+        view.reportError("Error reading Sqlite database", e)
       }
-
-      override fun onFailure(t: Throwable) {
-        if (!Disposer.isDisposed(this@DatabaseInspectorControllerImpl)) {
-          view.reportError("Error reading Sqlite database", t)
-        }
-      }
-    })
+      throw e
+    }
   }
 
   private fun addNewDatabase(database: SqliteDatabase, sqliteSchema: SqliteSchema) {
-    if (Disposer.isDisposed(this)) return
     val index = model.getSortedIndexOf(database)
     view.addDatabaseSchema(database, sqliteSchema, index)
 
@@ -179,8 +167,9 @@ class DatabaseInspectorControllerImpl(
     controller?.let(Disposer::dispose)
   }
 
-  private fun updateDatabaseSchema(database: SqliteDatabase) {
-    readDatabaseSchema(database) { newSchema ->
+  private suspend fun updateDatabaseSchema(database: SqliteDatabase) {
+    val newSchema = readDatabaseSchema(database)
+    withContext(uiThread) {
       updateExistingDatabaseSchemaView(database, newSchema)
       model.add(database, newSchema)
     }
@@ -224,6 +213,10 @@ class DatabaseInspectorControllerImpl(
   }
 
   private inner class SqliteViewListenerImpl : DatabaseInspectorView.Listener {
+
+    /** [CoroutineScope] used for scheduling asynchronous tasks in response to UI events. */
+    private val scope = AndroidCoroutineScope(this@DatabaseInspectorControllerImpl)
+
     override fun tableNodeActionInvoked(database: SqliteDatabase, table: SqliteTable) {
       val tableId = TabId.TableTab(database, table.name)
       if (tableId in resultSetControllers) {
@@ -265,7 +258,8 @@ class DatabaseInspectorControllerImpl(
     }
 
     override fun removeDatabaseActionInvoked(database: SqliteDatabase) {
-      closeDatabase(database)
+      // TODO: display a spinner UI while closing?
+      scope.launch(uiThread) { closeDatabase(database) }
     }
 
     override fun reDownloadDatabaseFileActionInvoked(database: FileSqliteDatabase) {
@@ -292,9 +286,13 @@ class DatabaseInspectorControllerImpl(
     }
   }
 
-  private inner class SqliteEvaluatorControllerListenerImpl : SqliteEvaluatorController.Listener {
+  inner class SqliteEvaluatorControllerListenerImpl : SqliteEvaluatorController.Listener {
+    private val scope = AndroidCoroutineScope(this@DatabaseInspectorControllerImpl)
+
     override fun onSchemaUpdated(database: SqliteDatabase) {
-      updateDatabaseSchema(database)
+      scope.launch(uiThread) {
+        updateDatabaseSchema(database)
+      }
     }
   }
 }
@@ -306,9 +304,16 @@ interface DatabaseInspectorController : Disposable {
   val component: JComponent
 
   fun setUp()
-  fun addSqliteDatabase(sqliteDatabaseFuture: ListenableFuture<SqliteDatabase>): ListenableFuture<Unit>
-  fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit>
-  fun closeDatabase(database: SqliteDatabase): ListenableFuture<Unit>
+
+  /**
+   * Waits for [deferredDatabase] to be completed and adds it to the inspector UI.
+   *
+   * A loading UI is displayed while waiting for [deferredDatabase] to be ready.
+   */
+  suspend fun addSqliteDatabase(deferredDatabase: Deferred<SqliteDatabase>)
+
+  suspend fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement)
+  suspend fun closeDatabase(database: SqliteDatabase)
 
   /**
    * Model for Database Inspector. Used to store and access currently open [SqliteDatabase]s and their [SqliteSchema]s.

@@ -19,8 +19,7 @@ import com.android.tools.idea.sqlite.controllers.DatabaseInspectorController
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.coroutines.Deferred
 import javax.naming.OperationNotSupportedException
 import javax.swing.JComponent
 
@@ -31,20 +30,15 @@ open class MockDatabaseInspectorController(val model: DatabaseInspectorControlle
 
   override fun setUp() { }
 
-  override fun addSqliteDatabase(sqliteDatabaseFuture: ListenableFuture<SqliteDatabase>): ListenableFuture<Unit> {
-    val database = sqliteDatabaseFuture.get()
-    model.add(database, SqliteSchema(emptyList()))
-    return Futures.immediateFuture(Unit)
+  override suspend fun addSqliteDatabase(deferredDatabase: Deferred<SqliteDatabase>) {
+    model.add(deferredDatabase.await(), SqliteSchema(emptyList()))
   }
 
-  override fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
-    return Futures.immediateFuture(Unit)
-  }
+  override suspend fun runSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement) {}
 
-  override fun closeDatabase(database: SqliteDatabase): ListenableFuture<Unit> {
+  override suspend fun closeDatabase(database: SqliteDatabase) {
     model.remove(database)
     database.databaseConnection.close().get()
-    return Futures.immediateFuture(Unit)
   }
 
   override fun dispose() { }
