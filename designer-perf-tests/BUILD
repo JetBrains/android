@@ -4,7 +4,10 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.designer-perf-tests",
     iml_files = ["intellij.android.designer-perf-tests.iml"],
-    tags = ["no_test_windows"],
+    tags = [
+        "no_mac",
+        "no_test_windows",
+    ],
     test_class = "com.android.tools.idea.rendering.PerfgateRenderTestSuite",
     test_data = [
         "//prebuilts/studio/jdk",
