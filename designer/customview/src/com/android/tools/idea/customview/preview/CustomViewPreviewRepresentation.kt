@@ -19,6 +19,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.editor.ActionsToolbar
+import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.BuildListener
@@ -176,7 +177,9 @@ class CustomViewPreviewRepresentation(
    * [WorkBench] used to contain all the preview elements.
    */
   private val workbench = WorkBench<DesignSurface>(project, "Main Preview", null, this).apply {
-    init(editorPanel, surface, listOf(), false)
+    val issuePanelSplitter = IssuePanelSplitter(surface, editorPanel)
+
+    init(issuePanelSplitter, surface, listOf(), false)
   }
 
   init {
