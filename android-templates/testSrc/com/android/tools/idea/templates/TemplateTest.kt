@@ -187,6 +187,18 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareBlankWearActivity() {
+    checkCreateTemplate("activities", "BlankWearActivity",
+                        ActivityCreationMode.WITHOUT_PROJECT, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareBlankWearActivityWithKotlin() {
+    checkCreateTemplate("activities", "BlankWearActivity",
+                        ActivityCreationMode.WITHOUT_PROJECT, true, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewNavigationDrawerActivity() {
     checkCreateTemplate("activities", "NavigationDrawerActivity", ActivityCreationMode.WITHOUT_PROJECT, true)
   }
