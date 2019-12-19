@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.model.trackgroup;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.DragAndDropListModel;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +34,8 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
   private final boolean myHideHeader;
   private final boolean myTrackSelectable;
   private final int myTrackLimit;
+
+  private final AspectObserver myObserver = new AspectObserver();
 
   /**
    * Use builder to instantiate this class.
@@ -54,7 +57,16 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
    */
   public <M, R extends Enum> void addTrackModel(@NotNull TrackModel.Builder<M, R> builder) {
     // add() is disabled in DragAndDropListModel to support dynamically reordering elements. Use insertOrderedElement() instead.
-    insertOrderedElement(builder.setId(TRACK_ID_GENERATOR.getAndIncrement()).build());
+    TrackModel<M, R> trackModel = builder.setId(TRACK_ID_GENERATOR.getAndIncrement()).build();
+    insertOrderedElement(trackModel);
+
+    // Listen to track's collapse state change.
+    trackModel.getAspectModel().addDependency(myObserver).onChange(TrackModel.Aspect.COLLAPSE_CHANGE, () -> {
+      int index = indexOf(trackModel);
+      if (index != -1) {
+        fireContentsChanged(this, index, index);
+      }
+    });
   }
 
   public String getTitle() {

@@ -21,12 +21,14 @@ import static com.android.tools.idea.uibuilder.handlers.motion.editor.MotionScen
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
@@ -43,6 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -232,9 +235,13 @@ public class MotionUtils {
    * @param component
    * @return
    */
-  public static @Nullable NlComponent getMotionLayoutAncestor(NlComponent component) {
+  public static @Nullable NlComponent getMotionLayoutAncestor(@NotNull NlComponent component) {
     NlComponent motionLayout = component;
     while (!NlComponentHelperKt.isOrHasSuperclass(motionLayout, SdkConstants.MOTION_LAYOUT)) {
+      ViewHandler handler = NlComponentHelperKt.getViewHandler(motionLayout);
+      if (handler instanceof MotionLayoutHandler) {
+        return motionLayout;
+      }
       motionLayout = motionLayout.getParent();
       if (motionLayout == null) {
         return null;
@@ -251,9 +258,15 @@ public class MotionUtils {
    */
   public static MotionSceneTag getMotionScene(NlComponent component) {
     NlComponent motionLayout = getMotionLayoutAncestor(component);
+    if (motionLayout == null) {
+      return null;
+    }
     String ref = motionLayout.getAttribute(SdkConstants.AUTO_URI, "layoutDescription");
-    int index = ref.lastIndexOf("@xml/");
-    String fileName = ref.substring(index + 5);
+    ResourceUrl url = ref != null ? ResourceUrl.parse(ref) : null;
+    String fileName = null;
+    if (url != null) {
+      fileName = url.name;
+    }
     if (fileName == null || fileName.isEmpty()) {
       return null;
     }

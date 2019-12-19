@@ -86,6 +86,7 @@ import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.TemplateData
 import com.android.tools.idea.wizard.template.ThemesData
+import com.android.tools.idea.wizard.template.Thumb
 import com.android.tools.idea.wizard.template.WizardParameterData
 import com.google.common.base.Charsets.UTF_8
 import com.google.common.io.Files
@@ -102,6 +103,7 @@ import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
 import com.intellij.util.lang.JavaVersion
 import org.jetbrains.android.AndroidTestBase.refreshProjectFiles
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.mockito.Mockito.mock
 import java.io.File
 import java.io.IOException
@@ -398,6 +400,10 @@ data class ProjectChecker(
         if (isNewRenderingContext) {
           val newTemplates = TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }
           val newTemplate = newTemplates.find { it.name == template.metadata?.title }!!
+
+          // Make sure we didn't forgot to specify a thumbnail
+          assertNotEquals(newTemplate.thumb(), Thumb.NoThumb)
+
           createProjectForNewRenderingContext(this, moduleName, activityState, newTemplate)
         }
         else {

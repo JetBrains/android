@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
@@ -29,6 +30,7 @@ import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import com.intellij.util.concurrency.AppExecutorUtil
 import java.io.OutputStream
 
 /**
@@ -128,14 +130,36 @@ class AndroidProcessHandler @JvmOverloads constructor(
     }
   }
 
+  /**
+   * Initiates a termination of managed processes. This method returns without waiting for processes' termination.
+   * It just moves the process handler's state to to-be-destroyed state and [isProcessTerminating] becomes true
+   * after the method call. Upon the processes termination, the state moves to destroyed and [isProcessTerminated]
+   * becomes true. You can listen state changes by registering a lister by [addProcessListener]. When processes are
+   * being destroyed, [com.intellij.execution.process.ProcessListener.processWillTerminate] is called with
+   * willBeDestroyed = true.
+   */
+  @AnyThread
   override fun destroyProcessImpl() {
-    myMonitorManager.close()
-    notifyProcessTerminated(0)
+    AppExecutorUtil.getAppExecutorService().submit {
+      myMonitorManager.close()
+      notifyProcessTerminated(0)
+    }
   }
 
+  /**
+   * Initiates a detach of managed processes. This method returns without waiting for processes' to be detached.
+   * It just moves the process handler's state to to-be-destroyed state and [isProcessTerminating] becomes true
+   * after the method call. Upon the processes are detached, the state moves to destroyed and [isProcessTerminated]
+   * becomes true. You can listen state changes by registering a lister by [addProcessListener]. When processes are
+   * being destroyed, [com.intellij.execution.process.ProcessListener.processWillTerminate] is called with
+   * willBeDestroyed = false.
+   */
+  @AnyThread
   override fun detachProcessImpl() {
-    myMonitorManager.detachAndClose()
-    notifyProcessDetached()
+    AppExecutorUtil.getAppExecutorService().submit {
+      myMonitorManager.detachAndClose()
+      notifyProcessDetached()
+    }
   }
 
   override fun detachIsDefault() = false

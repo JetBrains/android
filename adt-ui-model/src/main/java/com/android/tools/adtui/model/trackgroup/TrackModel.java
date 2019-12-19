@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.model.trackgroup;
 
+import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.DragAndDropModelListElement;
 import com.android.tools.adtui.model.TooltipModel;
 import org.jetbrains.annotations.NotNull;
@@ -27,11 +28,21 @@ import org.jetbrains.annotations.Nullable;
  * @param <R> renderer enum type
  */
 public class TrackModel<M, R extends Enum> implements DragAndDropModelListElement {
+  public enum Aspect {
+    // The track's collapse state has changed.
+    COLLAPSE_CHANGE
+  }
+
   private final M myDataModel;
   private final R myRendererType;
-  private final String myTitle;
+  @NotNull private final String myTitle;
+  @Nullable private final String myTitleTooltip;
   private final boolean myHideHeader;
   private final int myId;
+  private final boolean myIsCollapsible;
+  private boolean myIsCollapsed;
+
+  @NotNull private final AspectModel<Aspect> myAspectModel = new AspectModel<>();
 
   /**
    * A track may have display different tooltips for its child components, so we need to provide a way to change the currently active
@@ -43,7 +54,10 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
     myDataModel = builder.myDataModel;
     myRendererType = builder.myRendererType;
     myTitle = builder.myTitle;
+    myTitleTooltip = builder.myTitleTooltip;
     myHideHeader = builder.myHideHeader;
+    myIsCollapsible = builder.myIsCollapsible;
+    myIsCollapsed = builder.myIsCollapsed;
     myId = builder.myId;
     myActiveTooltipModel = builder.myDefaultTooltipModel;
   }
@@ -61,6 +75,11 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
   @NotNull
   public String getTitle() {
     return myTitle;
+  }
+
+  @Nullable
+  public String getTitleTooltip() {
+    return myTitleTooltip;
   }
 
   /**
@@ -88,6 +107,29 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
   }
 
   /**
+   * Update the collapsed state. Fire {@link Aspect#COLLAPSE_CHANGE} if the state changes.
+   */
+  public void setCollapsed(boolean collapsed) {
+    if (myIsCollapsible && myIsCollapsed != collapsed) {
+      myIsCollapsed = collapsed;
+      myAspectModel.changed(Aspect.COLLAPSE_CHANGE);
+    }
+  }
+
+  public boolean isCollapsed() {
+    return myIsCollapsed;
+  }
+
+  public boolean isCollapsible() {
+    return myIsCollapsible;
+  }
+
+  @NotNull
+  public AspectModel<Aspect> getAspectModel() {
+    return myAspectModel;
+  }
+
+  /**
    * Instantiates a new builder with parameters required for the track model.
    *
    * @param dataModel    data model to visualize
@@ -103,26 +145,52 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
     private final R myRendererType;
     private final String myTitle;
     private boolean myHideHeader;
+    private boolean myIsCollapsed;
+    private boolean myIsCollapsible;
     private int myId;
     private TooltipModel myDefaultTooltipModel;
+    private String myTitleTooltip;
 
     private Builder(@NotNull M dataModel, @NotNull R rendererType, @NotNull String title) {
       myDataModel = dataModel;
       myRendererType = rendererType;
       myTitle = title;
       myHideHeader = false;
+      myIsCollapsed = false;
+      myIsCollapsible = false;
       myId = -1;
       myDefaultTooltipModel = null;
+      myTitleTooltip = null;
     }
 
+    @NotNull
+    public Builder<M, R> setTitleTooltip(@Nullable String titleTooltip) {
+      myTitleTooltip = titleTooltip;
+      return this;
+    }
+
+    @NotNull
     public Builder<M, R> setHideHeader(boolean hideHeader) {
       myHideHeader = hideHeader;
+      return this;
+    }
+
+    @NotNull
+    public Builder<M, R> setCollapsed(boolean collapsed) {
+      myIsCollapsed = collapsed;
+      return this;
+    }
+
+    @NotNull
+    public Builder<M, R> setCollapsible(boolean collapsible) {
+      myIsCollapsible = collapsible;
       return this;
     }
 
     /**
      * Only exposed to track model container (e.g. {@link TrackGroupModel} to set unique IDs automatically.
      */
+    @NotNull
     protected Builder<M, R> setId(int id) {
       myId = id;
       return this;
@@ -131,11 +199,13 @@ public class TrackModel<M, R extends Enum> implements DragAndDropModelListElemen
     /**
      * Sets the default tooltip model for the track when it's instantiated.
      */
+    @NotNull
     public Builder<M, R> setDefaultTooltipModel(TooltipModel defaultTooltipModel) {
       myDefaultTooltipModel = defaultTooltipModel;
       return this;
     }
 
+    @NotNull
     public TrackModel<M, R> build() {
       return new TrackModel<>(this);
     }
