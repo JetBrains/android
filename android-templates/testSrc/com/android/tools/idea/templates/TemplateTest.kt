@@ -382,6 +382,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareTvActivity() {
+    checkCreateTemplate("activities", "AndroidTVActivity", ActivityCreationMode.WITHOUT_PROJECT, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareTvActivityWithKotlin() {
+    checkCreateTemplate("activities", "AndroidTVActivity", ActivityCreationMode.WITHOUT_PROJECT, true, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testGoogleAdMobAdsActivity() {
     checkCreateTemplate("activities", "GoogleAdMobAdsActivity", ActivityCreationMode.WITHOUT_PROJECT, true)
   }
@@ -401,6 +411,7 @@ open class TemplateTest : TemplateTestBase() {
     checkCreateTemplate("activities", "GoogleMapsActivity", ActivityCreationMode.WITH_PROJECT, true)
   }
 
+  /* TODO: Restore the tests when b/78621322 is fixed
   @TemplateCheck
   fun testCompareGoogleMapsActivity() {
     // TODO(qumeric): Change back to WITHOUT_PROJECT - b/78621322
@@ -413,6 +424,7 @@ open class TemplateTest : TemplateTestBase() {
     checkCreateTemplate("activities", "GoogleMapsActivity",
                         ActivityCreationMode.WITH_PROJECT, true, withKotlin, withNewRenderingContext)
   }
+  */
 
   @TemplateCheck
   fun testGoogleMapsWearActivity() {
