@@ -21,21 +21,20 @@ import com.android.sdklib.AndroidVersion;
 import com.google.common.collect.Sets;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.impl.DebuggerSession;
-import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.Executor;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.execution.ui.RunContentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.xdebugger.XDebuggerUtil;
 import com.intellij.xdebugger.breakpoints.XBreakpointType;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Set;
 
 public abstract class AndroidDebuggerImplBase<S extends AndroidDebuggerState> implements AndroidDebugger<S> {
   @GuardedBy("this")
@@ -72,7 +71,7 @@ public abstract class AndroidDebuggerImplBase<S extends AndroidDebuggerState> im
     final Executor executor = DefaultDebugExecutor.getDebugExecutorInstance();
 
     if (processHandler.isProcessTerminated()) {
-      ExecutionManager.getInstance(project).getContentManager().removeRunContent(executor, descriptor);
+      RunContentManager.getInstance(project).removeRunContent(executor, descriptor);
       return false;
     }
     content.getManager().setSelectedContent(content);
