@@ -21,7 +21,6 @@ import com.android.tools.idea.uibuilder.api.AccessorySelectionListener
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionDesignSurfaceEdits
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionSelection
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel
-import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import javax.swing.JPanel
@@ -51,10 +50,6 @@ class FakeMotionAccessoryPanel: AccessoryPanelInterface, MotionDesignSurfaceEdit
   }
 
   override fun handlesWriteForComponent(id: String?): Boolean {
-    throw Error("should not be called")
-  }
-
-  override fun getSelectedConstraint(): SmartPsiElementPointer<XmlTag> {
     throw Error("should not be called")
   }
 

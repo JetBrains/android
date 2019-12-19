@@ -101,11 +101,6 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
   @Override
   public boolean handlesWriteForComponent(String id) {
-    SmartPsiElementPointer<XmlTag> constraint = getSelectedConstraint();
-    if (constraint != null) {
-      String constraintId = constraint.getElement().getAttribute("android:id").getValue();
-      return id.equals(stripID(constraintId));
-    }
     return false;
   }
 
@@ -152,11 +147,6 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
   public MotionSceneModel.ConstraintView getSelectedConstraintView() {
     return mySelection != null ? myPanel.getSelectedConstraintView(mySelection.getId()) : null;
-  }
-
-  @Override
-  public SmartPsiElementPointer<XmlTag> getSelectedConstraint() {
-    return myPanel.getChart().getSelectedConstraint();
   }
 
   @Override

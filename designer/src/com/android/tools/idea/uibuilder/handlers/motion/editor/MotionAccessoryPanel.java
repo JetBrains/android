@@ -50,8 +50,6 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.SmartPointerManager;
-import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -84,7 +82,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   ViewGroupHandler.AccessoryPanelVisibility mVisibility;
   MotionEditor mMotionEditor = new MotionEditor();
   public static final String TIMELINE = "Timeline";
-  private SmartPsiElementPointer<XmlTag> mSelectedConstraintTag;
 
   MotionLayoutComponentHelper myMotionHelper;
   private String mSelectedStartConstraintId;
@@ -161,7 +158,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         if (DEBUG) {
           Debug.logStack("Selection changed " + selection,10);
         }
-        mSelectedConstraintTag = null;
         mLastSelection = selection;
         myLastSelectedTags = tag;
         switch (selection) {
@@ -223,36 +219,18 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             if (xmlTag == null) {
               return;
             }
-            mSelectedConstraintTag = SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(xmlTag);
             break;
-          case LAYOUT_VIEW: {
-            xmlTag = null;
-
+          case LAYOUT_VIEW:
             if (tag.length > 0 && tag[0] instanceof NlComponentTag) {
               NlComponentTag nlComponent = (NlComponentTag)tag[0];
-              xmlTag = ((NlComponentTag)tag[0]).mComponent.getTag();
               myDesignSurface.getSelectionModel().setSelection(Arrays.asList(nlComponent.mComponent));
             }
-            if (xmlTag == null) {
-              return;
-            }
-            // TODO: is that mSelectedConstraintTag still going to be useful now we don't try to derive from CL handler?
-
-            mSelectedConstraintTag = SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(xmlTag);
-          }
-          break;
+            break;
           case KEY_FRAME_GROUP:
             // The NelePropertiesModel should be handling the properties in these cases...
             break;
         }
         if (!mMotionEditor.isUpdatingModel()) {
-          if (mLastSelection == MotionEditorSelector.Type.LAYOUT || mLastSelection == MotionEditorSelector.Type.LAYOUT_VIEW) {
-            if (myLastSelectedTags != null && myLastSelectedTags.length > 0) {
-              mySelection = ((NlComponentTag)myLastSelectedTags[0]).getComponent();
-            }
-            mLastSelection = null;
-            myLastSelectedTags = null;
-          }
           fireSelectionChanged(Collections.singletonList(mySelection));
         }
       }
@@ -631,11 +609,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     //  return id.equals(stripID(constraintId));
     //}
     //return false;
-  }
-
-  @Override
-  public SmartPsiElementPointer<XmlTag> getSelectedConstraint() {
-    return mSelectedConstraintTag;
   }
 
   @Override
