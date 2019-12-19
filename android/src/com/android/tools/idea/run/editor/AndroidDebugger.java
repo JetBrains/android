@@ -128,15 +128,6 @@ public interface AndroidDebugger<S extends AndroidDebuggerState> {
   void attachToClient(@NotNull Project project, @NotNull Client client);
 
   /**
-   * Returns a set of supported breakpoint types by this debugger.
-   *
-   * @deprecated this API is no longer used in Android plugin. To be deleted soon.
-   */
-  @Deprecated
-  @NotNull
-  Set<XBreakpointType<?, ?>> getSupportedBreakpointTypes(@NotNull Project project, @NotNull AndroidVersion version);
-
-  /**
    * Indicates whether this debugger should be the default.
    *
    * @return true if it should be the default.
