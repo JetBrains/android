@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
-import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.finishFailedSync;
 import static com.android.tools.idea.gradle.util.GradleProjects.open;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
@@ -120,6 +119,5 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
     ProjectBuildFileChecksums.removeFrom(myProject);
     // To ensure the errorDetails are logged by GradleSyncState, create a runtime exception.
     GradleSyncState.getInstance(myProject).syncFailed(messageWithGuide, null, mySyncListener);
-    finishFailedSync(externalTaskId, myProject, exceptionMessage);
   }
 }
