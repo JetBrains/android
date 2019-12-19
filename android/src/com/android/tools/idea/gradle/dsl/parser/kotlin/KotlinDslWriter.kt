@@ -399,13 +399,16 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
           null -> methodCall.shouldUseAssignment()
           else -> !asMethod
         }
-        val methodName = maybeTrimForParent(GradleNameElement.fake(methodCall.methodName), methodCall.parent, this).first
+        var methodName = maybeTrimForParent(GradleNameElement.fake(methodCall.methodName), methodCall.parent, this).first
         if (useAssignment) {
           // Ex: a = b().
           "$propertyName = $methodName()"
         }
         else {
-          // Ex: implementation(fileTree()).
+          // Ex: implementation(fileTree()), "feature"(fileTree())
+          if (methodCall.parent is DependenciesDslElement && !useAssignment && !KTS_KNOWN_CONFIGURATIONS.contains(propertyName)) {
+            propertyName = "\"$propertyName\""
+          }
           "$propertyName($methodName())"
         }
       }
