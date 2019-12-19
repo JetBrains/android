@@ -390,7 +390,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
               return CompletableFuture.completedFuture(null);
             }
             else {
-              return mySurface.addModel(model);
+              return mySurface.addAndRenderModel(model);
             }
           });
         }

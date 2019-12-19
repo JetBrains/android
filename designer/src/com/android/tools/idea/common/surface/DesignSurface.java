@@ -403,13 +403,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * Add an {@link NlModel} to DesignSurface and return the associated SceneManager.
-   * If it is added before then nothing happens.
+   * Add an {@link NlModel} to DesignSurface and return the created {@link SceneManager}.
+   * If it is added before then it just returns the associated {@link SceneManager} which created before.
    *
    * @param model the added {@link NlModel}
+   * @see #addAndRenderModel(NlModel)
    */
   @NotNull
-  private SceneManager addModelImpl(@NotNull NlModel model) {
+  private SceneManager addModel(@NotNull NlModel model) {
     SceneManager manager = getSceneManager(model);
     // No need to add same model twice.
     if (manager != null) {
@@ -436,13 +437,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, only
    * the refresh will be triggered.
+   * The callback {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} is triggered after rendering.
    * The method returns a {@link CompletableFuture} that will complete when the render of the new model has finished.
    *
    * @param model the added {@link NlModel}
+   * @see #addModel(NlModel)
    */
   @NotNull
-  public CompletableFuture<Void> addModel(@NotNull NlModel model) {
-    SceneManager modelSceneManager = addModelImpl(model);
+  public final CompletableFuture<Void> addAndRenderModel(@NotNull NlModel model) {
+    SceneManager modelSceneManager = addModel(model);
 
     // We probably do not need to request a render for all models but it is currently the
     // only point subclasses can override to disable the layoutlib render behaviour.
@@ -450,10 +453,33 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       .whenCompleteAsync((result, ex) -> {
         reactivateInteractionManager();
 
+        // TODO(b/147225165): The tasks depends on model inflating callback should be moved to ModelListener#modelDerivedDataChanged.
         for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
           listener.modelChanged(this, model);
         }
       }, EdtExecutorService.getInstance());
+  }
+
+  /**
+   * Add an {@link NlModel} to DesignSurface and return the created {@link SceneManager}.
+   * If it is added before then it just returns the associated {@link SceneManager} which created before.
+   * This function trigger {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} callback immediately.
+   * In the opposite, {@link #addAndRenderModel(NlModel)} triggers {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)}
+   * when render is completed.
+   *
+   * TODO(b/147225165): Remove #addAndRenderModel function and rename this function as #addModel
+   *
+   * @param model the added {@link NlModel}
+   * @see #addModel(NlModel)
+   * @see #addAndRenderModel(NlModel)
+   */
+  @NotNull
+  public final SceneManager addModelWithoutRender(@NotNull NlModel model) {
+    SceneManager manager = addModel(model);
+    for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
+      listener.modelChanged(this, model);
+    }
+    return manager;
   }
 
   /**
@@ -504,7 +530,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * Sets the current {@link NlModel} to DesignSurface.
    *
-   * @see #addModel(NlModel)
+   * @see #addAndRenderModel(NlModel)
    * @see #removeModel(NlModel)
    */
   public CompletableFuture<Void> setModel(@Nullable NlModel model) {
@@ -521,7 +547,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       return CompletableFuture.completedFuture(null);
     }
 
-    addModelImpl(model);
+    addModel(model);
     zoomToFit();
 
     return requestRender()

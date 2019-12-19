@@ -377,7 +377,7 @@ class CustomViewPreviewRepresentation(
       }
 
       val addModelFuture = withContext(uiThread) {
-        surface.addModel(model)
+        surface.addAndRenderModel(model)
       }
       addModelFuture.await()
       withContext(uiThread) {
