@@ -63,8 +63,8 @@ abstract class ObjectNavigator(val classStore: ClassStore, val instanceCount: Lo
 
   fun getInstanceFieldObjectId(className: String?, name: String): Long {
     val refs = getReferencesCopy()
-    className?.let {
-      assert(className == getClass().undecoratedName) { "Expected $className, got ${getClass().undecoratedName}" }
+    if (className != null && className != getClass().undecoratedName) {
+      throw NavigationException("Expected $className, got ${getClass().undecoratedName}")
     }
     val indexOfField = getClass().allRefFieldNames(classStore).indexOfFirst { it == name }
     if (indexOfField == -1) {
