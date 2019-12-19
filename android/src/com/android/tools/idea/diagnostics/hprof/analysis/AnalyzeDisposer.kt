@@ -30,7 +30,7 @@ import java.util.ArrayDeque
 
 class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
 
-  private var prepareException: ObjectNavigator.NavigationException? = null
+  private var prepareException: Exception? = null
 
   data class Grouping(val childClass: ClassDefinition,
                       val parentClass: ClassDefinition?,
@@ -73,11 +73,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
 
       analysisContext.diposerTreeObjectId = nav.id.toInt()
 
-      val clazzObjectTree = nav.getClass()
-      if (clazzObjectTree.undecoratedName != "com.intellij.openapi.util.objectTree.ObjectTree" &&
-          clazzObjectTree.undecoratedName != "com.intellij.openapi.util.ObjectTree") {
-        throw ObjectNavigator.NavigationException("Wrong type of Disposer.myObject2NodeMap: ${clazzObjectTree.name}")
-      }
+      verifyClassIsObjectTree(nav.getClass())
 
       if (nav.isNull()) {
         throw ObjectNavigator.NavigationException("Disposer.ourTree == null")
@@ -88,15 +84,16 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
         if (it == 0L) return@forEach true
 
         nav.goTo(it)
-        val objectNodeParentId = nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myParent")
-        val childId = nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myObject")
+        verifyClassIsObjectNode(nav.getClass())
+        val objectNodeParentId = nav.getInstanceFieldObjectId(null, "myParent")
+        val childId = nav.getInstanceFieldObjectId(null, "myObject")
         nav.goTo(objectNodeParentId)
 
         val parentId =
           if (nav.isNull())
             0L
           else
-            nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myObject")
+            nav.getInstanceFieldObjectId(null, "myObject")
 
         val childrenList = if (result.containsKey(parentId.toInt())) {
           result.get(parentId.toInt())
@@ -113,8 +110,22 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
         list.trimToSize()
         true
       }
-    } catch (navEx : ObjectNavigator.NavigationException) {
-      prepareException = navEx
+    } catch (ex : Exception) {
+      prepareException = ex
+    }
+  }
+
+  private fun verifyClassIsObjectNode(clazzObjectTree: ClassDefinition) {
+    if (clazzObjectTree.undecoratedName != "com.intellij.openapi.util.objectTree.ObjectNode" &&
+        clazzObjectTree.undecoratedName != "com.intellij.openapi.util.ObjectNode") {
+      throw ObjectNavigator.NavigationException("Wrong type, expected ObjectNode: ${clazzObjectTree.name}")
+    }
+  }
+
+  private fun verifyClassIsObjectTree(clazzObjectTree: ClassDefinition) {
+    if (clazzObjectTree.undecoratedName != "com.intellij.openapi.util.objectTree.ObjectTree" &&
+        clazzObjectTree.undecoratedName != "com.intellij.openapi.util.ObjectTree") {
+      throw ObjectNavigator.NavigationException("Wrong type, expected ObjectTree: ${clazzObjectTree.name}")
     }
   }
 
@@ -132,8 +143,11 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
 
     try {
       nav.goToStaticField("com.intellij.openapi.util.Disposer", "ourTree")
-      assert(!nav.isNull())
-      nav.goToInstanceField("com.intellij.openapi.util.objectTree.ObjectTree", "myObject2NodeMap")
+      if (nav.isNull()) {
+        throw ObjectNavigator.NavigationException("ourTree is null")
+      }
+      verifyClassIsObjectTree(nav.getClass())
+      nav.goToInstanceField(null, "myObject2NodeMap")
       nav.goToInstanceField("gnu.trove.THashMap", "_values")
 
       val groupingToObjectStats = HashMap<Grouping, InstanceStats>()
@@ -143,15 +157,18 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
         if (it == 0L) return@forEach true
 
         nav.goTo(it)
-        val objectNodeParentId = nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myParent")
-        val objectNodeObjectId = nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myObject")
+        verifyClassIsObjectNode(nav.getClass())
+        val objectNodeParentId = nav.getInstanceFieldObjectId(null, "myParent")
+        val objectNodeObjectId = nav.getInstanceFieldObjectId(null, "myObject")
         nav.goTo(objectNodeParentId)
 
         val parentId =
           if (nav.isNull())
             0L
-          else
-            nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myObject")
+          else {
+            verifyClassIsObjectNode(nav.getClass())
+            nav.getInstanceFieldObjectId(null, "myObject")
+          }
 
         val parentClass =
           if (parentId == 0L)
@@ -177,8 +194,9 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
           var iterationCount = 0
           do {
             nav.goTo(rootObjectNodeId)
-            rootObjectNodeId = nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myParent")
-            rootObjectId = nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myObject")
+            verifyClassIsObjectNode(nav.getClass())
+            rootObjectNodeId = nav.getInstanceFieldObjectId(null, "myParent")
+            rootObjectId = nav.getInstanceFieldObjectId(null, "myObject")
             iterationCount++
           }
           while (rootObjectNodeId != 0L && iterationCount < maxTreeDepth)
@@ -223,8 +241,8 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
           appendln(" * ${nav.classStore.getShortPrettyNameForClass(it)}")
         }
       }
-    } catch (navEx : ObjectNavigator.NavigationException) {
-      appendln(ExceptionUtil.getThrowableText(navEx))
+    } catch (ex : Exception) {
+      appendln(ExceptionUtil.getThrowableText(ex))
     }
   }
 
@@ -277,8 +295,11 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
       }
 
       nav.goToStaticField("com.intellij.openapi.util.Disposer", "ourTree")
-      assert(!nav.isNull())
-      nav.goToInstanceField("com.intellij.openapi.util.objectTree.ObjectTree", "myDisposedObjects")
+      if (nav.isNull()) {
+        throw ObjectNavigator.NavigationException("ourTree is null")
+      }
+      verifyClassIsObjectTree(nav.getClass())
+      nav.goToInstanceField(null, "myDisposedObjects")
       nav.goToInstanceField("com.intellij.util.containers.WeakHashMap", "myMap")
       nav.goToInstanceField("com.intellij.util.containers.RefHashMap\$MyMap", "_set")
       val weakKeyClass = nav.classStore["com.intellij.util.containers.WeakHashMap\$WeakKey"]
