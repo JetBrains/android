@@ -247,7 +247,10 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
         continue
       }
       // currentTask is executed completely within the given time range
-      tasksInBetween.add(currentTask)
+      // Critical path tasks are already added, this is to eliminate duplicates
+      if (!currentTask.isOnTheCriticalPath) {
+        tasksInBetween.add(currentTask)
+      }
     }
     return tasksInBetween
   }
