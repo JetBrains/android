@@ -478,7 +478,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       .onEach {
         // We call addModel even though the model might not be new. If we try to add an existing model,
         // this will trigger a new render which is exactly what we want.
-        surface.addModel(it).await()
+        surface.addAndRenderModel(it).await()
       }.ifEmpty {
         showModalErrorMessage(message("panel.no.previews.defined"))
       }

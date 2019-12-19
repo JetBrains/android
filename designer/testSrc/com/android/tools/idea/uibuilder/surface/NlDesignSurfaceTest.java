@@ -592,7 +592,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     NlDesignSurface surface = NlDesignSurface.builder(getProject(), getTestRootDisposable())
       .setDefaultSurfaceState(DesignSurface.State.SPLIT)
       .build();
-    surface.addModel(model);
+    surface.addAndRenderModel(model);
     surface.setSize(surfaceWidth, surfaceHeight);
     surface.doLayout();
     surface.zoomToFit();
@@ -604,7 +604,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       .setDefaultSurfaceState(DesignSurface.State.SPLIT)
       .setMinScale(fitScale * 2)
       .build();
-    surface.addModel(model);
+    surface.addAndRenderModel(model);
     surface.setSize(surfaceWidth, surfaceHeight);
     surface.doLayout();
     // Cannot zoom lower than min scale.
@@ -618,7 +618,7 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
       .setDefaultSurfaceState(DesignSurface.State.SPLIT)
       .setMaxScale(fitScale / 2)
       .build();
-    surface.addModel(model);
+    surface.addAndRenderModel(model);
     surface.setSize(surfaceWidth, surfaceHeight);
     surface.doLayout();
     // Cannot zoom larger than max scale.

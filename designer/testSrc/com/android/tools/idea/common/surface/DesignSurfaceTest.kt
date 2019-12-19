@@ -45,10 +45,10 @@ class DesignSurfaceTest : LayoutTestCase() {
 
     assertEquals(0, surface.models.size)
 
-    surface.addModel(model1)
+    surface.addModelWithoutRender(model1)
     assertEquals(1, surface.models.size)
 
-    surface.addModel(model2)
+    surface.addModelWithoutRender(model2)
     assertEquals(2, surface.models.size)
 
     surface.removeModel(model2)
@@ -66,10 +66,10 @@ class DesignSurfaceTest : LayoutTestCase() {
 
     assertEquals(0, surface.models.size)
 
-    surface.addModel(model)
+    surface.addModelWithoutRender(model)
     assertEquals(1, surface.models.size)
 
-    surface.addModel(model)
+    surface.addModelWithoutRender(model)
     // should not add model again and the callback should not be triggered.
     assertEquals(1, surface.models.size)
   }
@@ -86,7 +86,7 @@ class DesignSurfaceTest : LayoutTestCase() {
     // do nothing and the callback should not be triggered.
     assertEquals(0, surface.models.size)
 
-    surface.addModel(model1)
+    surface.addModelWithoutRender(model1)
     assertEquals(1, surface.models.size)
 
     surface.removeModel(model2)
@@ -116,8 +116,8 @@ class DesignSurfaceTest : LayoutTestCase() {
     val model2 = builder.build()
 
     val surface = TestDesignSurface(project, testRootDisposable)
-    surface.addModel(model1)
-    surface.addModel(model2)
+    surface.addModelWithoutRender(model1)
+    surface.addModelWithoutRender(model2)
 
     val scene1 = surface.getSceneManager(model1)!!.scene
     val scene2 = surface.getSceneManager(model2)!!.scene
