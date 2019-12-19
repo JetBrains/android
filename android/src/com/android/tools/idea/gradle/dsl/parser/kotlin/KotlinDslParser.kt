@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeRef
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
@@ -255,6 +256,12 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
   override fun visitCallExpression(expression: KtCallExpression, parent: GradlePropertiesDslElement) {
     // If the call expression has no name, we don't know how to handle it.
     var referenceName = expression.name() ?: return
+
+    if (parent is DependenciesDslElement) {
+      // There is an extension method on String.invoke() in KotlinScript dependencies.  (Meant to be used to add dependencies to
+      // configurations which are not predefined set, but would in principle work for all configurations)
+      referenceName = unquoteString(referenceName);
+    }
 
     val referenceExpression = expression.referenceExpression()
     var name =
