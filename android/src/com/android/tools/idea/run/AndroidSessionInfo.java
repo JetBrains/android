@@ -3,7 +3,6 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.ExecutionTarget;
@@ -13,8 +12,6 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import java.util.Collections;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -84,7 +81,7 @@ public class AndroidSessionInfo {
                                                   int currentID,
                                                   @NotNull ExecutionTarget executionTarget) {
     // Note: There are 2 alternatives here:
-    //    1. ExecutionManager.getInstance(project).getContentManager().getAllDescriptors()
+    //    1. RunContentManager.getInstance(project).getAllDescriptors()
     //    2. ExecutionManagerImpl.getInstance(project).getRunningDescriptors
     // The 2nd one doesn't work since its implementation relies on the same run descriptor to be alive as the one that is launched,
     // but that doesn't work for android debug sessions where we have 2 process handlers (one while installing and another while debugging)
