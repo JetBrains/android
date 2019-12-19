@@ -454,6 +454,18 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareGoogleMapsWearActivity() {
+    checkCreateTemplate("activities", "GoogleMapsWearActivity",
+                        ActivityCreationMode.WITHOUT_PROJECT, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareGoogleMapsWearActivityWithKotlin() {
+    checkCreateTemplate("activities", "GoogleMapsWearActivity",
+                        ActivityCreationMode.WITHOUT_PROJECT, true, withKotlin, withNewRenderingContext)
+  }
+
+    @TemplateCheck
   fun testNewAutomotiveProjectWithMediaService() {
     checkCreateTemplate("other", "AutomotiveMediaService", ActivityCreationMode.WITH_PROJECT, true)
   }
