@@ -69,6 +69,7 @@ import org.jetbrains.kotlin.android.synthetic.AndroidCommandLineProcessor;
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments;
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments;
 import org.jetbrains.kotlin.config.CoroutineSupport;
+import org.jetbrains.kotlin.config.JvmTarget;
 import org.jetbrains.kotlin.config.KotlinFacetSettings;
 import org.jetbrains.kotlin.config.LanguageFeature;
 import org.jetbrains.kotlin.gradle.model.AllOpen;
@@ -532,7 +533,7 @@ public class KotlinSyncModels {
       // We select the default platform instead of the one derived from the CompilerArguments since we need to call
       // configureFacet before configureCompilerArguments. Configuring the compiler arguments should correctly overwrite this
       // to the correct platform.
-      return JvmIdePlatformKind.INSTANCE.getDefaultPlatform();
+      return new JvmIdePlatformKind.Platform(JvmTarget.JVM_1_6);
     }
     else if (projectType == KotlinProject.ProjectType.PLATFORM_JS) {
       return JsIdePlatformKind.Platform.INSTANCE;
