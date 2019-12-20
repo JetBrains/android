@@ -103,8 +103,8 @@ class PsAndroidModuleAnalyzer(
     return ((model.dependencies.libraries as List<PsDeclaredDependency>) +
             (model.dependencies.jars as List<PsDeclaredDependency>) +
             (model.dependencies.modules as List<PsDeclaredDependency>))
-      .flatMap { dependency -> analyzeDependencyScope(dependency) }
       .asSequence()
+      .flatMap { dependency -> analyzeDependencyScope(dependency) }
   }
 
   private data class PathSpaceAndPromotedTo(val path: PsPath, val spec: PsArtifactDependencySpec, val promotedTo: PsArtifactDependencySpec) {
