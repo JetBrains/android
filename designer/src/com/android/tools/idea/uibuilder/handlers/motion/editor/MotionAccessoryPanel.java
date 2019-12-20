@@ -378,18 +378,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     }
   }
 
-  @Nullable
-  @Override
-  public Object getSelectedAccessory() {
-    return myLastSelectedTags;
-  }
-
-  @Nullable
-  @Override
-  public Object getSelectedAccessoryType() {
-    return mLastSelection;
-  }
-
   private void handleSelectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
     if (DEBUG) {
       Debug.log(" handleSelectionChanged ");
@@ -566,11 +554,37 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     myListeners.remove(listener);
   }
 
-  private void fireSelectionChanged(@NotNull List<NlComponent> components) {
-    List<AccessorySelectionListener> copy = new ArrayList<>(myListeners);
-    copy.forEach(listener -> listener.selectionChanged(this, components));
+  @Override
+  public void requestSelection() {
+    fireSelectionChanged(Collections.singletonList(mySelection));
   }
 
+  private void fireSelectionChanged(@NotNull List<NlComponent> components) {
+    boolean forLayout = mLastSelection == MotionEditorSelector.Type.LAYOUT || mLastSelection == MotionEditorSelector.Type.LAYOUT_VIEW;
+    MotionEditorSelector.Type type = forLayout ? null : mLastSelection;
+    MTag[] tags = forLayout ? null : myLastSelectedTags;
+    List<NlComponent> selectedComponents = forLayout ? convertToLayoutSelection() : components;
+    List<AccessorySelectionListener> copy = new ArrayList<>(myListeners);
+    copy.forEach(listener -> listener.selectionChanged(this, type, tags, selectedComponents));
+  }
+
+  private List<NlComponent> convertToLayoutSelection() {
+    List<NlComponent> views = new ArrayList<>();
+    for (MTag tag : myLastSelectedTags) {
+      if (tag instanceof NlComponentTag) {
+        NlComponent component = ((NlComponentTag)tag).getComponent();
+        if (component != null) {
+          views.add(component);
+        }
+      }
+    }
+    if (views.isEmpty()) {
+      if (myMotionLayoutNlComponent != null) {
+        views.add(myMotionLayoutNlComponent);
+      }
+    }
+    return views;
+  }
 
   ////////////////////////////////////////////////////////////////////////////////
   // MotionLayoutInterface

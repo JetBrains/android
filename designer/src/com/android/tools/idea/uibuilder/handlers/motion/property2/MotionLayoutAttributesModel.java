@@ -44,7 +44,9 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.update.MergingUpdateQueue;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -61,8 +63,12 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
   private final MotionLayoutPropertyProvider myMotionLayoutPropertyProvider;
   private Map<String, PropertiesTable<NelePropertyItem>> myAllProperties;
 
-  public MotionLayoutAttributesModel(@NotNull Disposable parentDisposable, @NotNull AndroidFacet facet) {
-    super(parentDisposable, new MotionLayoutPropertyProvider(facet), facet, false);
+  public MotionLayoutAttributesModel(
+    @NotNull Disposable parentDisposable,
+    @NotNull AndroidFacet facet,
+    @NotNull MergingUpdateQueue updateQueue
+  ) {
+    super(parentDisposable, new MotionLayoutPropertyProvider(facet), facet, updateQueue, false);
     myMotionLayoutPropertyProvider = (MotionLayoutPropertyProvider)getProvider();
     setDefaultValueProvider(new MotionDefaultPropertyValueProvider());
   }
@@ -165,6 +171,12 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
   }
 
   @Override
+  public void deactivate() {
+    super.deactivate();
+    myAllProperties = Collections.emptyMap();
+  }
+
+  @Override
   @Nullable
   public XmlTag getPropertyTag(@NotNull NelePropertyItem property) {
     MotionSelection selection = getMotionSelection(property);
@@ -212,7 +224,7 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     }
     if (tagWriter != null) {
       tagWriter.setAttribute(property.getNamespace(), attributeName, newValue);
-      tagWriter.commit(String.format("Set %1$s.%2$s to %3$s", tagWriter.getTagName(), property.getName(), String.valueOf(newValue)));
+      tagWriter.commit(String.format("Set %1$s.%2$s to %3$s", tagWriter.getTagName(), property.getName(), newValue));
     }
   }
 
@@ -369,18 +381,20 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
   }
 
   @Override
-  protected boolean wantComponentSelectionUpdate(@Nullable DesignSurface surface,
-                                                 @Nullable DesignSurface activeSurface,
-                                                 @Nullable AccessoryPanelInterface activePanel) {
-    return wantPanelSelectionUpdate(activePanel, activePanel);
-  }
-
-  @Override
-  protected boolean wantPanelSelectionUpdate(@Nullable AccessoryPanelInterface panel, @Nullable AccessoryPanelInterface activePanel) {
-    return panel == activePanel &&
-           panel != null &&
-           panel.getSelectedAccessoryType() != null &&
-           panel instanceof MotionDesignSurfaceEdits;
+  protected boolean wantSelectionUpdate(
+    @Nullable DesignSurface surface,
+    @Nullable DesignSurface activeSurface,
+    @Nullable AccessoryPanelInterface panel,
+    @Nullable AccessoryPanelInterface activePanel,
+    @Nullable Object selectedAccessoryType,
+    @Nullable Object selectedAccessory
+  ) {
+    return surface != null &&
+           surface == activeSurface &&
+           panel instanceof MotionDesignSurfaceEdits &&
+           panel == activePanel &&
+           selectedAccessoryType != null &&
+           selectedAccessory != null;
   }
 
   @Nullable
