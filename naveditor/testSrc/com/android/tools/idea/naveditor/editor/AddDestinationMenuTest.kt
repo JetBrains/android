@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.naveditor.editor
 
+import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.android.SdkConstants
 import com.android.SdkConstants.TAG_INCLUDE
-import com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY
 import com.android.tools.idea.actions.CREATED_FILES
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ModelBuilder
@@ -109,8 +109,7 @@ class AddDestinationMenuTest : NavTestCase() {
   }
 
   fun testContent() {
-/* b/145856229
-    val virtualFile = project.baseDir.findFileByRelativePath("../unitTest/res/layout/activity_main.xml")
+    val virtualFile = findVirtualProjectFile(project, "../unitTest/res/layout/activity_main.xml")
     val xmlFile = PsiManager.getInstance(project).findFile(virtualFile!!) as XmlFile
 
     addFragment("fragment1")
@@ -119,7 +118,7 @@ class AddDestinationMenuTest : NavTestCase() {
 
     addActivity("activity2")
     addActivityWithLayout("activity3")
-    val activity3VirtualFile = project.baseDir.findFileByRelativePath("../unitTest/res/layout/activity3.xml")
+    val activity3VirtualFile = findVirtualProjectFile(project, "../unitTest/res/layout/activity3.xml")
     val activity3XmlFile = PsiManager.getInstance(project).findFile(activity3VirtualFile!!) as XmlFile
 
     addActivityWithNavHost("activity1")
@@ -192,7 +191,6 @@ class AddDestinationMenuTest : NavTestCase() {
     expected.remove(activity3)
     destinations = AddDestinationMenu(surface).destinations
     assertEquals(destinations, expected)
-b/145856229 */
   }
 
   private fun findClass(className: String) = JavaPsiFacade.getInstance(project).findClass(className, GlobalSearchScope.allScope(project))!!
