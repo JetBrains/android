@@ -94,6 +94,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   private MotionEditorSelector.Type mLastSelection = MotionEditorSelector.Type.LAYOUT;
   private MTag[] myLastSelectedTags;
   private boolean mShowPath = true;
+  private boolean myUpdatingSelectionInLayoutEditor = false;
 
   private void applyMotionSceneValue(boolean apply) {
     if (TEMP_HACK_FORCE_APPLY) {
@@ -205,19 +206,16 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
                 MTag view = layoutViews[i];
                 String vid = Utils.stripID(view.getAttributeValue("id"));
                 if (vid.equals(id)) {
-                  NlComponentTag nlComponent = (NlComponentTag)view;
-                  myDesignSurface.getSelectionModel().setSelection(Arrays.asList(nlComponent.mComponent));
+                  updateSelectionInLayoutEditor((NlComponentTag)view);
                 }
               }
             } else if (tag[0] instanceof NlComponentTag) {
-              NlComponentTag nlComponent = (NlComponentTag)tag[0];
-              myDesignSurface.getSelectionModel().setSelection(Arrays.asList(nlComponent.mComponent));
+              updateSelectionInLayoutEditor((NlComponentTag)tag[0]);
             }
             break;
           case LAYOUT_VIEW:
             if (tag.length > 0 && tag[0] instanceof NlComponentTag) {
-              NlComponentTag nlComponent = (NlComponentTag)tag[0];
-              myDesignSurface.getSelectionModel().setSelection(Arrays.asList(nlComponent.mComponent));
+              updateSelectionInLayoutEditor((NlComponentTag)tag[0]);
             }
             break;
           case KEY_FRAME_GROUP:
@@ -303,6 +301,20 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     handleSelectionChanged(designSurfaceSelection, dsSelection);
   }
 
+  private void updateSelectionInLayoutEditor(@NotNull NlComponentTag tag) {
+    updateSelectionInLayoutEditor(Collections.singletonList(tag.mComponent));
+  }
+
+  private void updateSelectionInLayoutEditor(@NotNull List<NlComponent> selected) {
+    myUpdatingSelectionInLayoutEditor = true;
+    try {
+      myDesignSurface.getSelectionModel().setSelection(selected);
+    }
+    finally {
+      myUpdatingSelectionInLayoutEditor = false;
+    }
+  }
+
   private void selectSomething(@NotNull MotionSceneTag motionScene) {
     MTag[] sets = motionScene.getChildTags(MotionSceneAttrs.Tags.CONSTRAINTSET);
     if (sets.length == 0) {
@@ -346,7 +358,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     return ((NlDesignSurface)editor.getScene().getDesignSurface()).getAnalyticsManager();
   }
 
-
   private void selectOnDesignSurface(MTag[] tag) {
     if (DEBUG) {
       Debug.log("Selection changed " + ((tag.length > 0) ? tag[0] : "empty"));
@@ -359,20 +370,22 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         list.add(((NlComponentTag)mTag).mComponent);
       }
     }
+    if (list.isEmpty()) {
+      list.add(myMotionLayoutNlComponent);
+    }
 
     if (DEBUG) {
       Debug.log(" set section " + tag.length + " " + tag[0].getTagName());
     }
-    if (list.size() > 0) {
-      myDesignSurface.getSelectionModel().setSelection(list);
-    } else {
-      Debug.log("clear Selection");
-
-      myDesignSurface.getSelectionModel().setSelection(Arrays.asList(myMotionLayoutNlComponent));
-    }
+    updateSelectionInLayoutEditor(list);
   }
 
   private void handleSelectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
+    if (myUpdatingSelectionInLayoutEditor) {
+      // We initiated the selection change in the layout editor.
+      // There is no need to adjust the selection here.
+      return;
+    }
     if (DEBUG) {
       Debug.log(" handleSelectionChanged ");
     }
