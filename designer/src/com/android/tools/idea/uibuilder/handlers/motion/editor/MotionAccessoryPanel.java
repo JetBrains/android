@@ -196,11 +196,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             break;
           case CONSTRAINT:
             // TODO: This should always be a WrapMotionScene (remove this code when bug is fixed):
-            XmlTag xmlTag = null;
             selectOnDesignSurface(tag);
             if (tag[0] instanceof MotionSceneTag) {
               MotionSceneTag msTag = ((MotionSceneTag)tag[0]);
-              xmlTag = msTag.getXmlTag();
               id = Utils.stripID(msTag.getAttributeValue("id"));
               MTag[] layoutViews = myMotionLayoutTag.getChildTags();
               for (int i = 0; i < layoutViews.length; i++) {
@@ -213,11 +211,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
               }
             } else if (tag[0] instanceof NlComponentTag) {
               NlComponentTag nlComponent = (NlComponentTag)tag[0];
-              xmlTag = ((NlComponentTag)tag[0]).mComponent.getTag();
               myDesignSurface.getSelectionModel().setSelection(Arrays.asList(nlComponent.mComponent));
-            }
-            if (xmlTag == null) {
-              return;
             }
             break;
           case LAYOUT_VIEW:
