@@ -19,6 +19,7 @@ import static com.google.common.base.Verify.verify;
 import static com.google.common.base.Verify.verifyNotNull;
 
 import com.android.annotations.NonNull;
+import com.android.annotations.Nullable;
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
 import com.android.builder.model.NativeSettings;
@@ -197,7 +198,7 @@ public class IncludeLayout {
         throw new RuntimeException();
       }
 
-      @NonNull
+      @Nullable
       @Override
       public File getOutputFile() {
         throw new RuntimeException();
