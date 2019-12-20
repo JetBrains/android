@@ -63,6 +63,7 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import java.awt.Dimension;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -194,6 +195,7 @@ public class ModelBuilder {
       when(surface.getComponentRegistrar()).thenReturn(myComponentConsumer);
       SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myModelDisplayName, myFacet, xmlFile.getVirtualFile());
       when(surface.getModel()).thenReturn(model);
+      when(surface.getModels()).thenReturn(ImmutableList.of(model));
       when(surface.getConfigurations()).thenReturn(ImmutableList.of(model.getConfiguration()));
 
       // TODO: NlDesignSurface should not be referenced from here.

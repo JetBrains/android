@@ -53,4 +53,17 @@
     tools:layout_editor_width="10dp"
     tools:layout_editor_height="10dp"/>
 
+  <Button
+      android:id="@+id/buttonEmptyConstraint"
+      android:layout_width="32dp"
+      android:layout_height="10dp"
+      android:text="button1"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintEnd_toStartOf="parent"
+      app:layout_constraintTop_toTopOf="@id/button"
+      tools:layout_editor_absoluteX="10dp"
+      tools:layout_editor_absoluteY="40dp"
+      tools:layout_editor_width="10dp"
+      tools:layout_editor_height="10dp"/>
+
 </android.support.constraint.motion.MotionLayout>

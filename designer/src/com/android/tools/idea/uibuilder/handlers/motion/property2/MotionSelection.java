@@ -46,6 +46,7 @@ import org.jetbrains.annotations.Nullable;
 public class MotionSelection {
   private final MotionEditorSelector.Type myType;
   private final MTag[] myTags;
+  private final MTag[] myConstraintSetTags;
   private final List<? extends NlComponent> myComponents;
 
   public MotionSelection(@NotNull MotionEditorSelector.Type type,
@@ -53,14 +54,66 @@ public class MotionSelection {
                          @NotNull List<? extends NlComponent> components) {
     myType = type;
     myTags = tags;
+    myConstraintSetTags = computeConstraintSetTags(type, tags);
     myComponents = components;
+  }
+
+  @Nullable
+  private static MTag[] computeConstraintSetTags(@NotNull MotionEditorSelector.Type type, @NotNull MTag[] tags) {
+    if (type != MotionEditorSelector.Type.CONSTRAINT) {
+      return null;
+    }
+    MTag[] constraintSets = new MTag[tags.length];
+    for (int index = 0; index < tags.length; index++) {
+      MTag tag = tags[index];
+      MTag constraintSet = null;
+      if (tag instanceof NlComponentTag) {
+        MotionAttributes attributes = MotionSceneUtils.getAttributes(((NlComponentTag)tag).getComponent());
+        if (attributes != null) {
+          constraintSet = attributes.getConstraintSet();
+        }
+      }
+      else {
+        constraintSet = tag.getParent();
+      }
+      constraintSets[index] = constraintSet;
+    }
+    return constraintSets;
   }
 
   public boolean sameSelection(@NotNull MotionSelection other) {
     return myType == other.myType &&
            myComponents.equals(other.myComponents) &&
-           myTags.length == other.myTags.length &&
-           myTags[0].isSameTreeIdHierarchy(other.myTags[0]);
+           isSameTreeIdHierarchy(myTags, other.myTags) &&
+           isSameTreeIdHierarchy(myConstraintSetTags, other.myConstraintSetTags);
+  }
+
+  private static boolean isSameTreeIdHierarchy(@Nullable MTag[] tags, @Nullable MTag[] otherTags) {
+    if (tags == null || otherTags == null) {
+      return tags == null && otherTags == null;
+    }
+    if (tags.length != otherTags.length) {
+      return false;
+    }
+    if (Arrays.equals(tags, otherTags)) {
+      return true;
+    }
+    for (int index = 0; index < tags.length; index++) {
+      if (!isSameTreeIdHierarchy(tags[index], otherTags[index])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private static boolean isSameTreeIdHierarchy(@Nullable MTag tag, @Nullable MTag other) {
+    if (tag == null || other == null) {
+      return tag == null && other == null;
+    }
+    if (tag == other) {
+      return true;
+    }
+    return tag.isSameTreeIdHierarchy(other);
   }
 
   public void update(@NotNull MotionSelection newSelection) {
