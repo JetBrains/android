@@ -189,6 +189,10 @@ class VariablesTableTest : AndroidGradleTestCase() {
                 0
                 1
                 (null)
+            localList
+                0
+                1
+                (null)
             moreVariable
             mapVariable
                 a
@@ -217,6 +221,10 @@ class VariablesTableTest : AndroidGradleTestCase() {
             varBool
             varRefString
             varProGuardFiles
+                0
+                1
+                (null)
+            localList
                 0
                 1
                 (null)
@@ -251,6 +259,10 @@ class VariablesTableTest : AndroidGradleTestCase() {
             varRefString
             varProGuardFiles
                 0
+                (null)
+            localList
+                0
+                1
                 (null)
             moreVariable
             mapVariable
@@ -745,19 +757,19 @@ class VariablesTableTest : AndroidGradleTestCase() {
     val tableModel = variablesTable.tableModel
 
     val appNode = (tableModel.root as DefaultMutableTreeNode).appModuleChild as ModuleNode
-    assertThat(appNode.childCount, equalTo(10))
+    assertThat(appNode.childCount, equalTo(11))
 
     variablesTable.selectNode(appNode)
     variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
-    assertThat(appNode.childCount, equalTo(10))
+    assertThat(appNode.childCount, equalTo(11))
     variablesTable.editingStopped(null)
-    assertThat(appNode.childCount, equalTo(10))
+    assertThat(appNode.childCount, equalTo(11))
 
     variablesTable.selectNode(appNode)
     variablesTable.addVariable(GradlePropertyModel.ValueType.STRING)
-    assertThat(appNode.childCount, equalTo(10))
+    assertThat(appNode.childCount, equalTo(11))
     variablesTable.editingCanceled(null)
-    assertThat(appNode.childCount, equalTo(10))
+    assertThat(appNode.childCount, equalTo(11))
   }
 
   fun testVariableNodeDelete() {

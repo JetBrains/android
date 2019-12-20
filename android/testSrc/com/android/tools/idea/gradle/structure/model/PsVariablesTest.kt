@@ -63,7 +63,8 @@ class PsVariablesTest : AndroidGradleTestCase() {
         "rootBool" to ("scriptBool" to true).asParsed(),
         "rootBool3" to ("rootBool" to true).asParsed(),
         "rootBool2" to ("rootBool3" to true).asParsed(),
-        "rootFloat" to BigDecimal("3.14").asParsed()
+        "rootFloat" to BigDecimal("3.14").asParsed(),
+        "listProp" to listOf(15.asParsed(),16.asParsed(),45.asParsed()).asParsed()
       ))
     )
   }
@@ -83,6 +84,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
         "varBool",
         "varRefString",
         "varProGuardFiles",
+        "localList",
         "moreVariable",
         "mapVariable"))
     )
@@ -278,7 +280,7 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val variables = psProject.variables
     val otherVariables = PsVariables(psProject, "other", "other", null)
 
-    assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat")))
+    assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat", "listProp")))
 
     val someVar = variables.getVariable("someVar")
     someVar?.setName("tmp321")
@@ -286,10 +288,10 @@ class PsVariablesTest : AndroidGradleTestCase() {
     rootBool2?.delete()
     val tmp999 = variables.getOrCreateVariable("tmp999")
     tmp999.value = 999.asParsed()
-    assertThat(variables.map { it.name }.toSet(), equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999", "rootFloat")))
+    assertThat(variables.map { it.name }.toSet(), equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999", "rootFloat", "listProp")))
 
-    assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat")))
+    assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat", "listProp")))
     otherVariables.refresh()
-    assertThat(otherVariables.entries.keys, equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999", "rootFloat")))
+    assertThat(otherVariables.entries.keys, equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999", "rootFloat", "listProp")))
   }
 }
