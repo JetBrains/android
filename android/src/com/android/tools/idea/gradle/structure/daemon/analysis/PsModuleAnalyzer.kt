@@ -42,7 +42,7 @@ fun analyzeDeclaredDependency(dependency: PsDeclaredLibraryDependency): Sequence
   return emptySequence()
 }
 
-fun analyzeDependencyScope(dependency: PsDeclaredDependency): Iterable<PsIssue> {
+fun analyzeDependencyScope(dependency: PsDeclaredDependency): Sequence<PsIssue> {
   // TODO(xof): implement complete logic here.  cf. suggestApiConfigurationUse() in GradleDetector.kt
   fun shouldSuggestApiScopeReplacement(): Boolean {
     if (dependency.configurationName.startsWith("test") || dependency.configurationName.startsWith("androidTest")) {
@@ -62,48 +62,51 @@ fun analyzeDependencyScope(dependency: PsDeclaredDependency): Iterable<PsIssue> 
   }
 
   fun fixesFor(configurationName: String): List<PsQuickFix> {
+    val fixes = mutableListOf<PsQuickFix>()
     val suggestApi = shouldSuggestApiScopeReplacement()
-    val implementationReplacement: String
-    val apiReplacement: String
-
-    if (configurationName == "compile") {
-      implementationReplacement = "implementation"
-      apiReplacement = "api"
+    when {
+      configurationName == "compile" -> {
+        if (suggestApi) fixes.add(PsDependencyConfigurationQuickFixPath(dependency, "api"))
+        fixes.add(PsDependencyConfigurationQuickFixPath(dependency, "implementation"))
+      }
+      configurationName.endsWith("Compile") -> {
+        val base = configurationName.removeSuffix("Compile")
+        if(suggestApi) fixes.add(PsDependencyConfigurationQuickFixPath(dependency, base + "Api"))
+        fixes.add(PsDependencyConfigurationQuickFixPath(dependency, base + "Implementation"))
+      }
+      configurationName == "runtime" -> {
+        fixes.add(PsDependencyConfigurationQuickFixPath(dependency, "runtimeOnly"))
+        fixes.add(PsDependencyConfigurationQuickFixPath(dependency, "implementation"))
+      }
+      configurationName.endsWith("Runtime") -> {
+        val base = configurationName.removeSuffix("Runtime")
+        fixes.add(PsDependencyConfigurationQuickFixPath(dependency, base + "RuntimeOnly"))
+        fixes.add(PsDependencyConfigurationQuickFixPath(dependency, base + "Implementation"))
+      }
     }
-    else {
-      implementationReplacement = configurationName.removeSuffix("Compile") + "Implementation"
-      apiReplacement = configurationName.removeSuffix("Compile") + "Api"
-    }
-
-    val implementationFix = PsDependencyConfigurationQuickFixPath(dependency, implementationReplacement)
-    return if (suggestApi) {
-      listOf(
-        PsDependencyConfigurationQuickFixPath(dependency, apiReplacement),
-        implementationFix
-      )
-    }
-    else {
-      listOf(implementationFix)
-    }
+    return fixes
   }
 
   val issues = mutableListOf<PsIssue>()
   val configurationName = dependency.configurationName
-  if (configurationName == "") {
-    val path = dependency.path
-    if (path != null) {
-      val issue = PsGeneralIssue("Empty configuration", "", path, PROJECT_ANALYSIS, ERROR)
-      issues.add(issue)
+  when {
+    configurationName == "" -> {
+      val path = dependency.path
+      if (path != null) {
+        val issue = PsGeneralIssue("Empty configuration", "", path, PROJECT_ANALYSIS, ERROR)
+        issues.add(issue)
+      }
+    }
+    configurationName == "compile" || configurationName == "runtime" ||
+    configurationName.endsWith("Compile") || configurationName.endsWith("Runtime") -> {
+      val text = "Obsolete dependency configuration found: <b>$configurationName</b>"
+      val fixes = fixesFor(configurationName)
+      val path = dependency.path
+      if (path != null) {
+        val issue = PsGeneralIssue(text, "", path, PROJECT_ANALYSIS, WARNING, fixes)
+        issues.add(issue)
+      }
     }
   }
-  if (configurationName == "compile" || configurationName.endsWith("Compile")) {
-    val text = "Obsolete dependency configuration found: <b>$configurationName</b>"
-    val fixes = fixesFor(configurationName)
-    val path = dependency.path
-    if (path != null) {
-      val issue = PsGeneralIssue(text, "", path, PROJECT_ANALYSIS, WARNING, fixes)
-      issues.add(issue)
-    }
-  }
-  return issues.asIterable()
+  return issues.asSequence()
 }
