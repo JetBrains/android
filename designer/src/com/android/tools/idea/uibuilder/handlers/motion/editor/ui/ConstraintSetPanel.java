@@ -50,7 +50,6 @@ import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -523,11 +522,13 @@ class ConstraintSetPanel extends JPanel {
     }
     buildTable();
 
-    HashSet<String> selectedSet = new HashSet<>(Arrays.asList(selected));
-    for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
-      String id = (String)mConstraintSetModel.getValueAt(i, 1);
-      if (selectedSet.contains(id)) {
-        mConstraintSetTable.addRowSelectionInterval(i, i);
+    if (constraintSet != null) {
+      HashSet<String> selectedSet = new HashSet<>(Arrays.asList(selected));
+      for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
+        String id = (String)mConstraintSetModel.getValueAt(i, 1);
+        if (selectedSet.contains(id)) {
+          mConstraintSetTable.addRowSelectionInterval(i, i);
+        }
       }
     }
   }

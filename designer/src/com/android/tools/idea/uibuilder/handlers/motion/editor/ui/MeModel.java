@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
@@ -28,6 +29,8 @@ import java.util.List;
  * The data model for all the information in the MotionScene and Layout file
  */
 public class MeModel {
+  @SuppressWarnings("SSBasedInspection")
+  public static final String[] EMPTY_STRING_ARRAY = new String[0];
   public final boolean DEBUG = false;
   public final MTag motionScene;
   public final MTag layout;
@@ -36,7 +39,7 @@ public class MeModel {
   MotionEditorSelector.Type mSelectedType;
   public MTag[] mSelected;
   private float mProgress;
-  private String[] mSelectedViewIDs = new String[0];
+  private String[] mSelectedViewIDs = EMPTY_STRING_ARRAY;
 
   void clearViewInfo() {
     MTag[] view = layout.getChildTags();
@@ -252,7 +255,7 @@ public class MeModel {
   public String[] getLayoutViewNames() {
     ArrayList<String> ret = new ArrayList<>();
     if (layout == null) {
-      return new String[0];
+      return EMPTY_STRING_ARRAY;
     }
     MTag[] allViews = layout.getChildTags();
     for (int j = 0; j < allViews.length; j++) {
@@ -261,7 +264,7 @@ public class MeModel {
       String layoutId = Utils.stripID(view.getAttributeValue("id"));
       ret.add(layoutId);
     }
-    return ret.toArray(new String[0]);
+    return ret.toArray(EMPTY_STRING_ARRAY);
   }
 
   /**
@@ -445,7 +448,11 @@ public class MeModel {
    * @param ids
    */
   public void setSelectedViewIDs(List<String> ids) {
-    mSelectedViewIDs = ids.toArray(new String[0]);
+    mSelectedViewIDs = ids.toArray(EMPTY_STRING_ARRAY);
+  }
+
+  public void setSelectedViewIDs(@NotNull String[] ids) {
+    mSelectedViewIDs = ids;
   }
 
   public String[] getSelectedViewIDs() {
