@@ -9,6 +9,7 @@ val varInt by extra(1)
 val varBool by extra(true)
 val varRefString by extra(variable1)
 val varProGuardFiles by extra(listOf("proguard-rules.txt", "proguard-rules2.txt"))
+val localList by extra(listOf("26.1.1", "56.2.0"))
 
 android {
     compileSdkVersion(19)

@@ -91,16 +91,8 @@ internal fun convertToExternalTextValue(context: GradleDslSimpleExpression, refe
   // TODO(karimai): what if the type need to be imported ?
   val className = resolvedReference.value?.javaClass?.simpleName
   var externalName = ""
-  var currentParent = resolvedReference.parent
-  // TODO(karimai): we might need to do more if we have nested list properties.
-  if (currentParent is GradleDslExpressionList) return referenceText
-
-  // If the reference is an extra property declared using delegations (ex: val a by extra(b)) then we can use its name
-  // to get a resolved reference.
-  if (currentParent is ExtDslElement && currentParent.parent == context.dslFile && resolvedReference.name == resolvedReference.fullName){
-    return referenceText
-  }
   var lastArray = false
+  var currentParent = resolvedReference.parent
 
   // Trace parents to be used for reference resolution.
   val resolutionElements = ArrayList<GradleDslElement>()
@@ -130,7 +122,7 @@ internal fun convertToExternalTextValue(context: GradleDslSimpleExpression, refe
 
   // Now we can start appending names from the resolved reference file context.
   for (currentElement in resolutionElements) {
-    if (currentElement is ExtDslElement) {
+    if (currentElement is ExtDslElement && currentParent != context.dslFile) {
       externalName += "extra[\""
       lastArray = true
     }
@@ -143,18 +135,41 @@ internal fun convertToExternalTextValue(context: GradleDslSimpleExpression, refe
         externalName = "($externalName${currentElement.name}\"] as Map<*, *>)[\""
       }
     }
+    else if (currentElement is GradleDslExpressionList) {
+      if(!lastArray) {
+        externalName += "${currentElement.name}["
+        lastArray = true
+      }
+      else {
+        externalName = "($externalName${currentElement.name}\"] as List<*>)["
+      }
+    }
     else if (currentElement is GradleDslLiteral) {
       if (lastArray) {
-        // For ArrayExpression access, we need to use an explicit cast to the variable type.
-        externalName += "${currentElement.name}\"]${if (className != null) " as $className" else ""}"
-        lastArray = false
+        if (currentElement.parent is GradleDslExpressionList) {
+          var i = 0
+          for (property in (currentElement.parent as GradleDslExpressionList).simpleExpressions) {
+            if (property == currentElement) break
+            i++
+          }
+          externalName+= "$i]"
+          lastArray = false
+        }
+        else {
+          externalName += "${currentElement.name}\"]"
+          lastArray = false
+        }
       }
-      // If we are referencing to a variable using its name from the local space, we don't need to use an explicit cast in Kotlin.
-      else externalName += currentElement.name
+      else {
+        // TODO(karimai): support extra properties defined using array expressions.
+        // If we are referencing to a variable using its name from the local space, we don't need to use an explicit cast in Kotlin.
+        if (currentElement.name == currentElement.fullName) externalName += currentElement.name
+      }
     }
   }
 
-  return externalName
+  // Add a type cast to the resolved property if we are applying from a parent module context.
+  return externalName + if (currentParent != context.dslFile && className != null) " as $className" else ""
 }
 
 internal fun isValidBlockName(blockName : String?) =

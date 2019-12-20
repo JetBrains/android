@@ -27,3 +27,4 @@ allprojects {
 var rootBool3 by extra(extra["rootBool"])
 var rootBool2 by extra(rootBool3)
 var rootFloat by extra(3.14)
+val listProp by extra(listOf(15,16,45))

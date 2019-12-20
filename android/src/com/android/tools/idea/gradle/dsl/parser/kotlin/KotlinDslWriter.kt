@@ -330,7 +330,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       // Make sure we replaced with the right psi element for the GradleDslLiteral.
       when (replace) {
         is KtStringTemplateExpression, is KtConstantExpression, is KtNameReferenceExpression, is KtDotQualifiedExpression,
-        is KtArrayAccessExpression -> literal.setExpression(replace)
+        is KtArrayAccessExpression, is KtBinaryExpressionWithTypeRHS -> literal.setExpression(replace)
         else -> Unit
       }
     }
