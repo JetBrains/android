@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.api;
 import com.android.tools.idea.common.model.NlComponent;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Listener for selection changes in an {@link AccessoryPanelInterface}.
@@ -26,10 +25,10 @@ import org.jetbrains.annotations.Nullable;
 public interface AccessorySelectionListener {
 
   /**
-   * Called when the {@link AccessoryPanelInterface} is reporting a selection change.
+   * Called when the {@link AccessoryPanelInterface}
+   *
+   * @param accessoryPanel
+   * @param selection
    */
-  void selectionChanged(@NotNull AccessoryPanelInterface accessoryPanel,
-                        @Nullable Object selectedAccessoryType,
-                        @Nullable Object selectedAccessory,
-                        @NotNull List<NlComponent> selection);
+  void selectionChanged(@NotNull AccessoryPanelInterface accessoryPanel, @NotNull List<NlComponent> selection);
 }

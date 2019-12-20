@@ -107,8 +107,19 @@ public class MotionAttributePanel implements AccessoryPanelInterface {
     }
   }
 
+  @Nullable
   @Override
-  public void requestSelection() {
+  public Object getSelectedAccessory() {
+    if (DEBUG) {
+      Debug.log("getSelectedAccessory");
+    }
+    return null;
+  }
+
+  @Override
+  @Nullable
+  public Object getSelectedAccessoryType() {
+    return null;
   }
 
   @Override
@@ -117,5 +128,6 @@ public class MotionAttributePanel implements AccessoryPanelInterface {
 
   @Override
   public void removeListener(@NotNull AccessorySelectionListener listener) {
+
   }
 }
