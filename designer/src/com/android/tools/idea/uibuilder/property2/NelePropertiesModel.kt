@@ -73,7 +73,6 @@ private const val UPDATE_DELAY_MILLI_SECONDS = 250
 open class NelePropertiesModel(parentDisposable: Disposable,
                                val provider: PropertiesProvider,
                                val facet: AndroidFacet,
-                               private val updateQueue: MergingUpdateQueue,
                                private val updateOnComponentSelectionChanges: Boolean) : PropertiesModel<NelePropertyItem>, Disposable {
   val project: Project = facet.module.project
 
@@ -81,9 +80,7 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   private val designSurfaceListener = PropertiesDesignSurfaceListener()
   private val modelListener = NlModelListener()
   private val accessoryPanelListener = AccessoryPanelListener { panel: AccessoryPanelInterface? -> usePanel(panel) }
-  private val accessorySelectionListener = AccessorySelectionListener { panel, type, accessory, selection ->
-    handlePanelSelectionUpdate(panel, type, accessory, selection)
-  }
+  private val accessorySelectionListener = AccessorySelectionListener { panel, selection -> handlePanelSelectionUpdate(panel, selection) }
   private val renderListener = RenderListener { handleRenderingCompleted() }
   private var activeSurface: DesignSurface? = null
   private var activeSceneView: SceneView? = null
@@ -92,12 +89,8 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   private val liveComponents = mutableListOf<NlComponent>()
   private val liveChangeListener: ChangeListener = ChangeListener { firePropertyValueChangeIfNeeded() }
 
-  constructor(parentDisposable: Disposable, facet: AndroidFacet, updateQueue: MergingUpdateQueue) :
-    this(parentDisposable, NelePropertiesProvider(facet), facet, updateQueue, true)
-
   constructor(parentDisposable: Disposable, facet: AndroidFacet) :
-    this(parentDisposable, facet, MergingUpdateQueue(UPDATE_QUEUE_NAME, UPDATE_DELAY_MILLI_SECONDS, true, null, parentDisposable, null,
-                                                     Alarm.ThreadToUse.SWING_THREAD))
+    this(parentDisposable, NelePropertiesProvider(facet), facet, true)
 
   var surface: DesignSurface?
     get() = activeSurface
@@ -111,6 +104,9 @@ open class NelePropertiesModel(parentDisposable: Disposable,
       field = value
       firePropertyValueChangeIfNeeded()
     }
+
+  @VisibleForTesting
+  val updateQueue = createMergingUpdateQueue()
 
   @VisibleForTesting
   var lastSelectionUpdate: Future<Boolean> = Futures.immediateFuture(false)
@@ -222,6 +218,11 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     return null
   }
 
+  private fun createMergingUpdateQueue(): MergingUpdateQueue {
+    val name = "${this.javaClass.simpleName}.$UPDATE_QUEUE_NAME"
+    return MergingUpdateQueue(name, UPDATE_DELAY_MILLI_SECONDS, true, null, this, null, Alarm.ThreadToUse.SWING_THREAD)
+  }
+
   private fun useDesignSurface(surface: DesignSurface?) {
     if (surface != activeSurface) {
       updateDesignSurface(activeSurface, surface)
@@ -230,16 +231,10 @@ open class NelePropertiesModel(parentDisposable: Disposable,
       activeSceneView = surface?.focusedSceneView
       (activeSceneView as? ScreenView)?.sceneManager?.addRenderListener(renderListener)
     }
-    makeInitialSelection(surface, activePanel)
-  }
-
-  private fun makeInitialSelection(surface: DesignSurface?, panel: AccessoryPanelInterface?) {
-    if (panel != null) {
-      panel.requestSelection()
-    }
-    else if (surface != null) {
+    if (surface != null && wantComponentSelectionUpdate(surface, activeSurface, activePanel)) {
       val newSelection: List<NlComponent> = activeSceneView?.selectionModel?.selection ?: emptyList()
-      designSurfaceListener.componentSelectionChanged(surface, newSelection)
+      val displayedComponents = if (newSelection.isNotEmpty()) newSelection else getRootComponent(surface)
+      scheduleSelectionUpdate(surface, null, null, displayedComponents)
     }
   }
 
@@ -271,17 +266,11 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     new?.addListener(accessorySelectionListener)
   }
 
-  private fun scheduleSelectionUpdate(
-    surface: DesignSurface?,
-    panel: AccessoryPanelInterface?,
-    type: Any?,
-    accessory: Any?,
-    components: List<NlComponent>
-  ) {
+  private fun scheduleSelectionUpdate(surface: DesignSurface?, type: Any?, accessory: Any?, components: List<NlComponent>) {
     updateLiveListeners(Collections.emptyList())
     updateQueue.queue(object : Update(UPDATE_IDENTITY) {
       override fun run() {
-        handleSelectionUpdate(surface, panel, type, accessory, components)
+        handleSelectionUpdate(surface, type, accessory, components)
       }
     })
   }
@@ -290,33 +279,19 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     return surface?.models?.singleOrNull()?.components?.singleOrNull()?.let {listOf(it)} ?: return emptyList()
   }
 
-  protected open fun wantSelectionUpdate(
-    surface: DesignSurface?,
-    activeSurface: DesignSurface?,
-    accessoryPanel: AccessoryPanelInterface?,
-    activePanel: AccessoryPanelInterface?,
-    selectedAccessoryType: Any?,
-    selectedAccessory: Any?
-  ): Boolean {
-    return surface != null &&
-           surface == activeSurface &&
-           accessoryPanel == accessoryPanel &&
-           selectedAccessoryType == null &&
-           selectedAccessory == null &&
+  protected open fun wantComponentSelectionUpdate(surface: DesignSurface?,
+                                                  activeSurface: DesignSurface?,
+                                                  accessoryPanel: AccessoryPanelInterface?): Boolean {
+    return surface == activeSurface &&
+           (accessoryPanel == null || (accessoryPanel.selectedAccessoryType == null && accessoryPanel.selectedAccessory == null)) &&
            !facet.isDisposed
   }
 
-  private fun handleSelectionUpdate(
-    surface: DesignSurface?,
-    panel: AccessoryPanelInterface?,
-    type: Any?,
-    accessory: Any?,
-    components: List<NlComponent>
-  ) {
+  private fun handleSelectionUpdate(surface: DesignSurface?, type: Any?, accessory: Any?, components: List<NlComponent>) {
     // Obtaining the properties, especially the first time around on a big project
     // can take close to a second, so we do it on a separate thread..
     val application = ApplicationManager.getApplication()
-    val wantUpdate = { wantSelectionUpdate(surface, activeSurface, panel, activePanel, type, accessory) }
+    val wantUpdate = { wantComponentSelectionUpdate(surface, activeSurface, activePanel) }
     val future = application.executeOnPooledThread<Boolean> { loadProperties(type, accessory, components, wantUpdate) }
 
     // Enable our testing code to wait for the above pooled thread execution.
@@ -340,15 +315,12 @@ open class NelePropertiesModel(parentDisposable: Disposable,
     }
   }
 
-  private fun handlePanelSelectionUpdate(
-    panel: AccessoryPanelInterface,
-    selectedAccessoryType: Any?,
-    selectedAccessory: Any?,
-    components: List<NlComponent>
-  ) {
-    if (wantSelectionUpdate(activeSurface, activeSurface, panel, activePanel, selectedAccessoryType, selectedAccessory)) {
-      scheduleSelectionUpdate(activeSurface, panel, selectedAccessoryType, selectedAccessory, components)
-    }
+  protected open fun wantPanelSelectionUpdate(panel: AccessoryPanelInterface, activePanel: AccessoryPanelInterface?): Boolean {
+    return panel == activePanel && panel.selectedAccessory == null && panel.selectedAccessoryType == null && !facet.isDisposed
+  }
+
+  private fun handlePanelSelectionUpdate(panel: AccessoryPanelInterface, components: List<NlComponent>) {
+    scheduleSelectionUpdate(activeSurface, panel.selectedAccessoryType, panel.selectedAccessory, components)
   }
 
   protected open fun loadProperties(type: Any?, accessory: Any?, components: List<NlComponent>, wantUpdate: () -> Boolean): Boolean {
@@ -419,8 +391,8 @@ open class NelePropertiesModel(parentDisposable: Disposable,
   private inner class PropertiesDesignSurfaceListener : DesignSurfaceListener {
     override fun componentSelectionChanged(surface: DesignSurface, newSelection: List<NlComponent>) {
       val displayedComponents = if (newSelection.isNotEmpty()) newSelection else getRootComponent(surface)
-      if (activePanel == null && !sameAsTheCurrentLiveListeners(displayedComponents)) {
-        scheduleSelectionUpdate(surface, null, null, null, displayedComponents)
+      if (!sameAsTheCurrentLiveListeners(displayedComponents)) {
+        scheduleSelectionUpdate(surface, null, null, displayedComponents)
       }
     }
   }
