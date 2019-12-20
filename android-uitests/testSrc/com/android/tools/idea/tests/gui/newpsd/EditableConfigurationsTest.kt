@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.StudioRobot
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectSuggestionsConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.waitForDialogToClose
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
@@ -310,6 +311,32 @@ class EditableConfigurationsTest {
           assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("junit:junit:4.11", "implementation"))
           findDependenciesTable().cell("junit:junit:4.11").click()
           findConfigurationCombo().run { assertThat(selectedItem()).isEqualTo("implementation") }
+        }
+      }
+      clickCancel()
+    }
+  }
+
+  @Test
+  fun testEmptyConfigurationTriggersWarning() {
+    val ide = guiTest.importProjectAndWaitForProjectSyncToFinish("psdObsoleteScopes")
+    ide.openPsd().run {
+      selectDependenciesConfigurable().run {
+        findModuleSelector().selectModule("app")
+        findDependenciesPanel().run {
+          assertThat(findDependenciesTable().contents().map { it.toList() }).contains(listOf("mylibrary", "compile"))
+          findDependenciesTable().cell("mylibrary").click()
+          findConfigurationCombo().run {
+            assertThat(selectedItem()).isEqualTo("compile")
+            selectItem("")
+            assertThat(selectedItem()).isEqualTo("")
+          }
+        }
+      }
+      selectSuggestionsConfigurable().run {
+        waitForGroup("Errors")
+        findGroup("Errors").run {
+          assertThat(findMessageMatching("Empty configuration")).isNotNull()
         }
       }
       clickCancel()
