@@ -113,7 +113,7 @@ private fun getModuleSymbolsDirs(module: Module, abi: Abi): Collection<File> {
     for (variant in ndkModuleModel.variants.filter { it.isDebugVariant() == ndkModuleModel.selectedVariant.isDebugVariant() }) {
       val dirs = variant.artifacts
         .filter { it.abi == abiName }
-        .map { it.outputFile.parentFile }
+        .mapNotNull { it.outputFile?.parentFile }
       symDirs.addAll(dirs)
     }
   }
