@@ -190,10 +190,10 @@ public class VectorDrawableTransformerTest {
         "    android:viewportWidth=\"100\"\n" +
         "    android:viewportHeight=\"100\"\n" +
         "    android:autoMirrored=\"true\">\n" +
-        "  <group android:scaleX=\"0.7777778\"\n" +
-        "      android:scaleY=\"0.7777778\"\n" +
-        "      android:translateX=\"-15\"\n" +
-        "      android:translateY=\"-15\">\n" +
+        "  <group android:scaleX=\"1.5873016\"\n" +
+        "      android:scaleY=\"1.5873016\"\n" +
+        "      android:translateX=\"-44.285713\"\n" +
+        "      android:translateY=\"-44.285713\">\n" +
         "    <!-- This is a shadow -->\n" +
         "    <path\n" +
         "        android:fillType=\"evenOdd\"\n" +
