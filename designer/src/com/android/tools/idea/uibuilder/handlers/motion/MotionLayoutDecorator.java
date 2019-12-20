@@ -127,6 +127,7 @@ public class MotionLayoutDecorator extends SceneDecorator {
                                        @NotNull SceneComponent child) {
     boolean rtl = component.getScene().isInRTL();
     String[][] connections = ((rtl) ? ourConnections_rtl : ourConnections);
+
     for (int i = 0; i < ourDirections.length; i++) {
       getConnection(component, child, connections[i], ourDirections[i], ourDirectionsType[i]);
     }
@@ -197,6 +198,59 @@ public class MotionLayoutDecorator extends SceneDecorator {
     return null;
   }
   */
+
+  /**
+   * This caches connections on each child SceneComponent by accessing NLcomponent attributes
+   *
+   * @param component
+   * @param child
+   * @param attributes
+   * @param dir
+   * @param dirType
+   */
+  private static void getMargins(SceneComponent component, SceneComponent child, String[][] marginNames, String[] marginValues)  {
+    MotionLayoutComponentHelper motionLayout = MotionLayoutComponentHelper.create(component.getNlComponent());
+
+    if (motionLayout.isInTransition()) {
+      return;
+    }
+
+    String id = null;
+    ConnectionType type = ConnectionType.SAME;
+
+    if (!MotionUtils.isInBaseState(motionLayout)) {
+      Object properties = child.getNlComponent().getClientProperty(MOTION_LAYOUT_PROPERTIES);
+      if (properties instanceof MotionAttributes) {
+        MotionAttributes attrs = (MotionAttributes)properties;
+        HashMap<String, MotionAttributes.DefinedAttribute> a = attrs.getAttrMap();
+        for (int i = 0; i < marginNames.length; i++) {
+          String name = null;
+          MotionAttributes.DefinedAttribute attribute;
+          attribute = a.get(marginNames[i][0]);
+          if (attribute == null && marginNames[i].length==2) {
+              attribute = a.get(marginNames[i][1]);
+            }
+          if (attribute != null) {
+            marginValues[i]  = attribute.getValue();
+          } else  {
+            marginValues[i] = null;
+          }
+
+        }
+      }
+    }
+    else {
+      for (int i = 0; i < marginNames.length; i++) {
+          marginValues[i] = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.SHERPA_URI, marginNames[i][0]);
+        if (marginValues[i] == null && marginNames[i].length==2) {
+          marginValues[i] = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.SHERPA_URI, marginNames[i][1]);
+        }
+
+      }
+    }
+
+  }
+
 
   /**
    * This caches connections on each child SceneComponent by accessing NLcomponent attributes
@@ -505,6 +559,12 @@ public class MotionLayoutDecorator extends SceneDecorator {
     // Extract Scene Components constraints from cache (Table speeds up next step)
     ConnectionType[] connectionTypes = new ConnectionType[ourDirections.length];
     SceneComponent[] connectionTo = new SceneComponent[ourDirections.length];
+
+    String [][]marginNames =  ((constraintComponent.getScene().isInRTL()) ? MARGIN_ATTR_RTL : MARGIN_ATTR_LTR);
+    String []marginValues = new String[marginNames.length];
+    getMargins(constraintComponent, child, marginNames, marginValues);
+
+
     for (int i = 0; i < ourDirections.length; i++) {
       connectionTypes[i] = (ConnectionType)child.myCache.get(ourDirectionsType[i]);
       Object obj = child.myCache.get(ourDirections[i]);
@@ -558,22 +618,7 @@ public class MotionLayoutDecorator extends SceneDecorator {
         int marginDistance = 0;
         boolean isMarginReference = false;
         float bias = 0.5f;
-        boolean rtl = constraintComponent.getScene().isInRTL();
-        String[] margin_attr = (rtl) ? MARGIN_ATTR_RTL[i] : MARGIN_ATTR_LTR[i];
-        String marginString = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, margin_attr[0]);
-        if (marginString == null && margin_attr.length > 1) {
-          marginString = child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, margin_attr[1]);
-        }
-        if (marginString == null) {
-          if (i == 0) { // left check if it is start
-            marginString =
-              child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_START);
-          }
-          else if (i == 1) { // right check if it is end
-            marginString =
-              child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_END);
-          }
-        }
+        String marginString = marginValues[i]; //child.getAuthoritativeNlComponent().getLiveAttribute(SdkConstants.ANDROID_URI, margin_attr[0]);
         if (marginString != null) {
           if (marginString.startsWith("@")) {
             isMarginReference = true;
