@@ -86,6 +86,7 @@ import org.jetbrains.kotlin.idea.facet.KotlinFacetType;
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
 import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
 import org.jetbrains.kotlin.platform.IdePlatform;
+import org.jetbrains.kotlin.platform.IdePlatformKind;
 import org.jetbrains.kotlin.platform.impl.CommonIdePlatformKind;
 import org.jetbrains.kotlin.platform.impl.JsIdePlatformKind;
 import org.jetbrains.kotlin.platform.impl.JvmIdePlatformKind;
@@ -532,7 +533,7 @@ public class KotlinSyncModels {
       // We select the default platform instead of the one derived from the CompilerArguments since we need to call
       // configureFacet before configureCompilerArguments. Configuring the compiler arguments should correctly overwrite this
       // to the correct platform.
-      return JvmIdePlatformKind.INSTANCE.getDefaultPlatform();
+      return ((IdePlatformKind<?>)JvmIdePlatformKind.INSTANCE).getDefaultPlatform();
     }
     else if (projectType == KotlinProject.ProjectType.PLATFORM_JS) {
       return JsIdePlatformKind.Platform.INSTANCE;
