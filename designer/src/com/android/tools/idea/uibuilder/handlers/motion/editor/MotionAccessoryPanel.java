@@ -157,7 +157,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       @Override
       public void selectionChanged(MotionEditorSelector.Type selection, MTag[] tag, int flags) {
         if (DEBUG) {
-          Debug.logStack("Selection changed " + selection,10);
+          Debug.logStack("Selection changed " + selection, 23);
         }
         mLastSelection = selection;
         myLastSelectedTags = tag;
@@ -192,6 +192,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
               applyMotionSceneValue(false);
             }
             selectOnDesignSurface(tag);
+            if (DEBUG) {
+              Debug.log("LAYOUT myMotionHelper.setState(null); ");
+            }
             myMotionHelper.setState(null);
             mSelectedStartConstraintId = null;
             break;
@@ -217,6 +220,10 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             if (tag.length > 0 && tag[0] instanceof NlComponentTag) {
               updateSelectionInLayoutEditor((NlComponentTag)tag[0]);
             }
+            if (DEBUG) {
+              Debug.log("LAYOUT_VIEW myMotionHelper.setState(null); ");
+            }
+            myMotionHelper.setState(null);
             break;
           case KEY_FRAME_GROUP:
             // The NelePropertiesModel should be handling the properties in these cases...
@@ -577,11 +584,13 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
 
   private List<NlComponent> convertToLayoutSelection() {
     List<NlComponent> views = new ArrayList<>();
-    for (MTag tag : myLastSelectedTags) {
-      if (tag instanceof NlComponentTag) {
-        NlComponent component = ((NlComponentTag)tag).getComponent();
-        if (component != null) {
-          views.add(component);
+    if (myLastSelectedTags != null) {
+      for (MTag tag : myLastSelectedTags) {
+        if (tag instanceof NlComponentTag) {
+          NlComponent component = ((NlComponentTag)tag).getComponent();
+          if (component != null) {
+            views.add(component);
+          }
         }
       }
     }

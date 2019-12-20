@@ -464,15 +464,11 @@ public class MotionEditor extends JPanel {
       }
       else {
         Track.showLayoutTable();
-        boolean inlayout = (mCurrentlyDisplaying == LAYOUT_PANEL);
-
         mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = LAYOUT_PANEL);
-        mLayoutPanel.setMTag(mCombinedListPanel.mMotionLayout, mMeModel);
-        if (inlayout) {
           notifyListeners(MotionEditorSelector.Type.LAYOUT,
                           (mCombinedListPanel.mMotionLayout == null) ? new MTag[0] :
                           new MTag[]{mCombinedListPanel.mMotionLayout}, 0);
-        }
+        mLayoutPanel.setMTag(mCombinedListPanel.mMotionLayout, mMeModel);
 
         mSelectedTag = mCombinedListPanel.mMotionLayout;
       }

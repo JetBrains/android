@@ -63,6 +63,7 @@ class LayoutPanel extends JPanel {
   private MeModel mMeModel;
   private JLabel mTitle;
   private MotionEditorSelector mMotionEditorSelector;
+  private boolean mBuildingTable;
 
   LayoutPanel() {
     super(new BorderLayout());
@@ -79,7 +80,7 @@ class LayoutPanel extends JPanel {
     add(transitionProperties, BorderLayout.CENTER);
     add(top, BorderLayout.NORTH);
     mConstraintSetTable.getSelectionModel().addListSelectionListener(e -> {
-      if (!e.getValueIsAdjusting()) {
+      if (!e.getValueIsAdjusting()  && !mBuildingTable) {
         tableSelection();
       }
     });
@@ -119,6 +120,7 @@ class LayoutPanel extends JPanel {
   }
 
   public void buildTable() {
+    mBuildingTable = true;
     HashSet<String> found = new HashSet<>();
     mConstraintSetModel.setNumRows(0);
     mDisplayedRows.clear();
@@ -151,6 +153,7 @@ class LayoutPanel extends JPanel {
         mConstraintSetModel.addRow(row);
       }
     }
+    mBuildingTable = false;
 
     mConstraintSetModel.fireTableDataChanged();
   }
