@@ -46,5 +46,10 @@ enum class InspectorSection(val title: String) {
       visible = !visible
       getPropertiesToolContent(event.getData(CONTEXT_COMPONENT))?.firePropertiesGenerated()
     }
+
+    override fun update(event: AnActionEvent) {
+      super.update(event)
+      event.presentation.isVisible = getPropertiesToolContent(event.getData(CONTEXT_COMPONENT))?.isInspectorSectionsActive ?: false
+    }
   }
 }

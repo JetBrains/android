@@ -94,6 +94,9 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disp
 
   fun firePropertiesGenerated() = componentModel.firePropertiesGenerated()
 
+  val isInspectorSectionsActive
+    get() = !componentModel.properties.isEmpty
+
   private fun createFilterKeyListener() = object : KeyAdapter() {
     override fun keyPressed(event: KeyEvent) {
       if (properties.filter.isNotEmpty() && event.keyCode == KeyEvent.VK_ENTER && event.modifiers == 0 && properties.enterInFilter()) {
