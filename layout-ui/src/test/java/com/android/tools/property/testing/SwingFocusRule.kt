@@ -37,6 +37,7 @@ import java.awt.DefaultKeyboardFocusManager
 import java.awt.Frame
 import java.awt.GraphicsEnvironment
 import java.awt.KeyboardFocusManager
+import java.awt.Window
 import java.awt.peer.ComponentPeer
 import javax.swing.JComponent
 
@@ -220,9 +221,11 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
 
     override fun runOnOwnContext(context: DataContext, runnable: Runnable) = runnable.run()
 
-    override fun getLastFocusedFor(frame: IdeFrame?): Component? = null
+    override fun getLastFocusedFor(frame: Window?): Component? = null
 
     override fun getLastFocusedFrame(): IdeFrame? = null
+
+    override fun getLastFocusedIdeWindow(): Window? = null
 
     override fun toFront(c: JComponent?) {}
 
