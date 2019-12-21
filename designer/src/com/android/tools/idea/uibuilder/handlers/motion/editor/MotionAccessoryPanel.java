@@ -531,7 +531,8 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     // So everything was correctly working, updating the layoutparams of the concerned view,
     // but nothing was moving as what we will need to do here is to change the constraintset *live*
     // Additionally we need to correctly reset the state of the motionhelper if we recreate it.
-    if (mLastSelection == MotionEditorSelector.Type.LAYOUT) {
+    if (mLastSelection == MotionEditorSelector.Type.LAYOUT
+        || mLastSelection == MotionEditorSelector.Type.LAYOUT_VIEW) {
       myMotionHelper.setState(null);
       mSelectedStartConstraintId = null;
     } else if (mLastSelection == MotionEditorSelector.Type.CONSTRAINT_SET) {
