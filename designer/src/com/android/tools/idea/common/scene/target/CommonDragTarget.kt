@@ -31,7 +31,9 @@ import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawRegion
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification
+import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutComponentHelper
 import com.android.tools.idea.uibuilder.handlers.motion.MotionLayoutPlaceholder
+import com.android.tools.idea.uibuilder.handlers.motion.MotionUtils
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawBottom
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawLeft
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawRight
@@ -387,8 +389,11 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
 
     val attributesTransactions = draggedComponents.map {
       val modification = ComponentModification(it.authoritativeNlComponent, "Drag component")
-      if (!isPlaceholderLiveUpdatable(placeholder) || placeholder is MotionLayoutPlaceholder) {
-        // In constraint layout case, the attributes are updated during mouse dragging.
+      var update = !isPlaceholderLiveUpdatable(placeholder)
+      if (placeholder is MotionLayoutPlaceholder) {
+        update = !MotionUtils.isInBaseState(MotionLayoutComponentHelper.create(primaryNlComponent))
+      }
+      if (update) {
         placeholder.updateAttribute(it, modification)
       }
       modification
