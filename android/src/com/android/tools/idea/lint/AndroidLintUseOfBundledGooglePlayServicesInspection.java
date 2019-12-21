@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintUseOfBundledGooglePlayServicesInspection extends AndroidLintInspectionBase {
   public AndroidLintUseOfBundledGooglePlayServicesInspection() {
-    super(AndroidBundle.message("android.lint.inspections.bundled.gms"), GradleDetector.BUNDLED_GMS);
+    super(AndroidBundle.message("android.lint.inspections.use.of.bundled.google.play.services"), GradleDetector.BUNDLED_GMS);
   }
 
   @NotNull

@@ -21,6 +21,6 @@ import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintAuthLeakInspection extends AndroidLintInspectionBase {
   public AndroidLintAuthLeakInspection() {
-    super(AndroidBundle.message("android.lint.inspections.credential.leak"), StringAuthLeakDetector.AUTH_LEAK);
+    super(AndroidBundle.message("android.lint.inspections.auth.leak"), StringAuthLeakDetector.AUTH_LEAK);
   }
 }
