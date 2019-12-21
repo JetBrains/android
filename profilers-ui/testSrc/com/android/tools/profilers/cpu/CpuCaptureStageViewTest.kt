@@ -132,7 +132,8 @@ class CpuCaptureStageViewTest {
     val ui = FakeUi(stageView.component)
     val splitter = TreeWalker(stageView.component).descendants().filterIsInstance<JBSplitter>().first()
     val minimap = TreeWalker(splitter.firstComponent).descendants().elementAt(2)
-    val minimapOrigin = SwingUtilities.convertPoint(minimap, Point(0, 0), stageView.component)
+    // There's padding around the hover area.
+    val minimapOrigin = SwingUtilities.convertPoint(minimap, Point(8, 4), stageView.component)
 
     assertThat(stage.tooltip).isNull()
     // Move into minimap
