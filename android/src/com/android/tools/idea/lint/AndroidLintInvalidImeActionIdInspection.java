@@ -21,6 +21,6 @@ import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintInvalidImeActionIdInspection extends AndroidLintInspectionBase {
   public AndroidLintInvalidImeActionIdInspection() {
-    super(AndroidBundle.message("android.lint.inspections.invalid.imeActionId"), InvalidImeActionIdDetector.ISSUE);
+    super(AndroidBundle.message("android.lint.inspections.invalid.ime.action.id"), InvalidImeActionIdDetector.ISSUE);
   }
 }

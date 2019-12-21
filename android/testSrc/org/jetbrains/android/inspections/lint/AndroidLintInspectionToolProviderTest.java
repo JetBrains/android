@@ -15,8 +15,10 @@
  */
 package org.jetbrains.android.inspections.lint;
 
-import static com.android.tools.lint.checks.CheckResultDetector.CHECK_RESULT;
+import static com.android.SdkConstants.DOT_JAVA;
+import static com.android.SdkConstants.DOT_KT;
 import static com.android.tools.lint.checks.CheckResultDetector.CHECK_PERMISSION;
+import static com.android.tools.lint.checks.CheckResultDetector.CHECK_RESULT;
 import static com.android.tools.lint.checks.PermissionDetector.MISSING_PERMISSION;
 import static com.android.utils.SdkUtils.escapePropertyValue;
 import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
@@ -48,6 +50,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import kotlin.text.StringsKt;
 import org.jetbrains.android.AndroidTestCase;
 
 // TODO: For inspections that have safe fixes, mark the inspections with the interface
@@ -191,7 +194,7 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
         if (root != null) {
           String insert = desc.toString();
           // Try to make the edit directly
-          File plugin = new File(root, "tools/adt/idea/android/src/META-INF/android-plugin.xml");
+          File plugin = new File(root, "tools/adt/idea/android/src/org/jetbrains/android/inspections/lint/android-lint.xml");
           if (plugin.exists()) {
             String original = Files.toString(plugin, Charsets.UTF_8);
             int begin = 0;
@@ -264,7 +267,8 @@ public class AndroidLintInspectionToolProviderTest extends AndroidTestCase {
           File packageDir = new File(root, "tools/adt/idea/android/src/com/android/tools/idea/lint");
           assertTrue(packageDir.toString(), packageDir.exists());
           File to = new File(packageDir, "AndroidLint" + id + "Inspection.java");
-          if (!to.isFile()) {
+          if (!to.isFile() &&
+              !(new File(StringsKt.removeSuffix(to.getPath(), DOT_JAVA) + DOT_KT).exists())) {
             Files.write(code, to, Charsets.UTF_8);
             sb.append(" <automatically created ").append(to).append(">\n");
           } else {

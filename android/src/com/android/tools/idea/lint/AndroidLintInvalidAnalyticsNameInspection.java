@@ -21,7 +21,7 @@ import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintInvalidAnalyticsNameInspection extends AndroidLintInspectionBase {
   public AndroidLintInvalidAnalyticsNameInspection() {
-    super(AndroidBundle.message("android.lint.inspections.firebase.analytics.invalid.name"),
+    super(AndroidBundle.message("android.lint.inspections.invalid.analytics.name"),
           FirebaseAnalyticsDetector.INVALID_NAME);
   }
 }

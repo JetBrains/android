@@ -21,6 +21,7 @@ import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintMotionSceneFileValidationErrorInspection extends AndroidLintInspectionBase {
   public AndroidLintMotionSceneFileValidationErrorInspection() {
-    super(AndroidBundle.message("android.lint.inspections.motion.scene.error"), MotionSceneDetector.MOTION_SCENE_FILE_VALIDATION_ERROR);
+    super(AndroidBundle.message("android.lint.inspections.motion.scene.file.validation.error"),
+          MotionSceneDetector.MOTION_SCENE_FILE_VALIDATION_ERROR);
   }
 }

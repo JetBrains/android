@@ -24,7 +24,8 @@ import org.jetbrains.android.inspections.lint.AndroidLintQuickFix
 import org.jetbrains.android.util.AndroidBundle
 
 class AndroidLintMotionLayoutInvalidSceneFileReferenceInspection : AndroidLintInspectionBase(
-  AndroidBundle.message("android.lint.inspections.motion.layout.error"), MotionLayoutDetector.INVALID_SCENE_FILE_REFERENCE) {
+  AndroidBundle.message("android.lint.inspections.motion.layout.invalid.scene.file.reference"),
+  MotionLayoutDetector.INVALID_SCENE_FILE_REFERENCE) {
 
   override fun getQuickFixes(startElement: PsiElement,
                              endElement: PsiElement,
