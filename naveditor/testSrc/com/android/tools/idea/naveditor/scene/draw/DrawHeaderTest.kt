@@ -41,6 +41,6 @@ class DrawHeaderTest : NavTestCase() {
     assertEquals(3, drawHeader.commands.size)
     assertEquals(drawHeader.commands[0], DrawIcon(ICON_RECT1, DrawIcon.IconType.START_DESTINATION))
     assertEquals(drawHeader.commands[1], DrawIcon(ICON_RECT2, DrawIcon.IconType.DEEPLINK))
-    assertEquals(drawHeader.commands[2], DrawTruncatedText(0, TEXT, TEXT_RECT, TEXT_COLOR, FONT, false))
+    assertEquals(drawHeader.commands[2], DrawTruncatedText(TEXT, TEXT_RECT, TEXT_COLOR, FONT, false))
   }
 }

@@ -37,20 +37,18 @@ import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.stringToColor
 import com.android.tools.idea.naveditor.scene.NavColors.COMPONENT_BACKGROUND
 import com.android.tools.idea.naveditor.scene.regularFont
-import com.google.common.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Font
 
 // Swing defines rounded rectangle corners in terms of arc diameters instead of corner radii, so use 2x the desired radius value
-@VisibleForTesting
-val NAVIGATION_ARC_SIZE = scaledAndroidLength(12f)
+private val NAVIGATION_ARC_SIZE = scaledAndroidLength(12f)
 
-data class DrawNestedGraph(private val rectangle: SwingRectangle,
-                           private val scale: Scale,
-                           private val frameColor: Color,
-                           private val frameThickness: SwingLength,
-                           private val text: String,
-                           private val textColor: Color) : CompositeDrawCommand(COMPONENT_LEVEL) {
+class DrawNestedGraph(private val rectangle: SwingRectangle,
+                      private val scale: Scale,
+                      private val frameColor: Color,
+                      private val frameThickness: SwingLength,
+                      private val text: String,
+                      private val textColor: Color) : CompositeDrawCommand(COMPONENT_LEVEL) {
 
   constructor(serialized: String) : this(parse(serialized, 6))
 
@@ -69,7 +67,7 @@ data class DrawNestedGraph(private val rectangle: SwingRectangle,
     val drawRectangle = DrawShape(roundRectangle.value, frameColor, SwingStroke(frameThickness))
 
     val font = regularFont(scale, Font.BOLD)
-    val drawText = DrawTruncatedText(2, text, rectangle, textColor, font, true)
+    val drawText = DrawTruncatedText(text, rectangle, textColor, font, true)
 
     return listOf(fillRectangle, drawRectangle, drawText)
   }

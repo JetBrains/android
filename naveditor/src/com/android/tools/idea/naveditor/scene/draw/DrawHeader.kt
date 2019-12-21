@@ -67,7 +67,7 @@ class DrawHeader(@VisibleForTesting val rectangle: SwingRectangle,
     }
 
     val textRectangle = SwingRectangle(textX, rectangle.y + textPadding, textWidth, scale * HEADER_TEXT_HEIGHT)
-    list.add(DrawTruncatedText(0, text, textRectangle, SUBDUED_TEXT, scaledFont(scale, Font.PLAIN), false))
+    list.add(DrawTruncatedText(text, textRectangle, SUBDUED_TEXT, scaledFont(scale, Font.PLAIN), false))
 
     return list
   }

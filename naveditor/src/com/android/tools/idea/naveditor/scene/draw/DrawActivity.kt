@@ -82,7 +82,7 @@ class DrawActivity(@VisibleForTesting val rectangle: SwingRectangle,
     val textHeight = rectangle.height - imageRectangle.height - (imageRectangle.x - rectangle.x)
     val textRectangle = SwingRectangle(rectangle.x, imageRectangle.y + imageRectangle.height,
                                        rectangle.width, textHeight)
-    list.add(DrawTruncatedText(4, "Activity", textRectangle, textColor,
+    list.add(DrawTruncatedText("Activity", textRectangle, textColor,
                                scaledFont(scale, Font.BOLD), true))
 
     return list

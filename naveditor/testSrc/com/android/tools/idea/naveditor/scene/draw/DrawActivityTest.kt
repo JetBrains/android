@@ -55,7 +55,7 @@ class DrawActivityTest : NavTestCase() {
     assertDrawCommandsEqual(DrawShape(BORDER_RECT, FRAME_COLOR, FRAME_STROKE), drawFragment.commands[1])
     assertDrawCommandsEqual(DrawPlaceholder(IMAGE_RECT), drawFragment.commands[2])
     assertDrawCommandsEqual(DrawShape(IMAGE_RECT.value, IMAGE_BORDER_COLOR, IMAGE_BORDER_STROKE), drawFragment.commands[3])
-    assertEquals(drawFragment.commands[4], DrawTruncatedText(4, "Activity", TEXT_RECT, TEXT_COLOR, FONT, true))
+    assertEquals(drawFragment.commands[4], DrawTruncatedText("Activity", TEXT_RECT, TEXT_COLOR, FONT, true))
   }
 
   fun testDrawActivityWithPreview() {
@@ -67,6 +67,6 @@ class DrawActivityTest : NavTestCase() {
     assertDrawCommandsEqual(DrawShape(BORDER_RECT, FRAME_COLOR, SwingStroke(FRAME_THICKNESS)), drawFragment.commands[1])
     assertDrawCommandsEqual(DrawNavScreen(IMAGE_RECT, image), drawFragment.commands[2])
     assertDrawCommandsEqual(DrawShape(IMAGE_RECT.value, IMAGE_BORDER_COLOR, IMAGE_BORDER_STROKE), drawFragment.commands[3])
-    assertEquals(drawFragment.commands[4], DrawTruncatedText(4, "Activity", TEXT_RECT, TEXT_COLOR, FONT, true))
+    assertEquals(drawFragment.commands[4], DrawTruncatedText("Activity", TEXT_RECT, TEXT_COLOR, FONT, true))
   }
 }
