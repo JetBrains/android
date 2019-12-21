@@ -20,6 +20,5 @@
     <orderEntry type="module" module-name="intellij.android.compose-designer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="library" name="kotlin-plugin" level="project" />
-    <orderEntry type="module" module-name="intellij.android.core.tests" />
   </component>
 </module>
