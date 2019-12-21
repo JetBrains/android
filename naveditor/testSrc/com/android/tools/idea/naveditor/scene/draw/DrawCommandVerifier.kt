@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
-import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyFloat
@@ -45,11 +44,13 @@ private val FRAME_STROKE = BasicStroke(1f)
 private val HIGHLIGHTED_STROKE = BasicStroke(2f)
 
 private const val SPACING = 2f
+private const val ARC_SIZE = 12f
+private val NESTED_GRAPH_BACKGROUND = Color(0xfafafa)
 
 fun verifyDrawFragment(inOrder: InOrder,
                        g: Graphics2D,
                        rectangle: Rectangle2D.Float,
-                       scale: Scale,
+                       scale: Double,
                        highlightColor: Color? = null,
                        image: RefinableImage? = null) {
   verifyDrawShape(inOrder, g, rectangle, FRAME_COLOR, FRAME_STROKE)
@@ -57,13 +58,28 @@ fun verifyDrawFragment(inOrder: InOrder,
   verifyDrawImage(inOrder, g, imageRectangle, image)
 
   if (highlightColor != null) {
-    val spacing = 2 * SPACING * scale.value.toFloat()
+    val spacing = 2 * SPACING * scale.toFloat()
     val roundRectangle = RoundRectangle2D.Float(rectangle.x - spacing, rectangle.y - spacing,
                                                 rectangle.width + 2 * spacing, rectangle.height + 2 * spacing,
                                                 spacing, spacing)
 
     verifyDrawShape(inOrder, g, roundRectangle, highlightColor, HIGHLIGHTED_STROKE)
   }
+}
+
+fun verifyDrawNestedGraph(inOrder: InOrder,
+                          g: Graphics2D,
+                          rectangle: Rectangle2D.Float,
+                          scale: Double,
+                          frameColor: Color,
+                          frameThickness: Float,
+                          text: String,
+                          textColor: Color) {
+  val arcSize = ARC_SIZE * scale.toFloat()
+  val roundRectangle = RoundRectangle2D.Float(rectangle.x, rectangle.y, rectangle.width, rectangle.height, arcSize, arcSize)
+  verifyFillShape(inOrder, g, roundRectangle, NESTED_GRAPH_BACKGROUND)
+  verifyDrawShape(inOrder, g, roundRectangle, frameColor, BasicStroke(frameThickness))
+  verifyDrawTruncatedText(inOrder, g, text, textColor)
 }
 
 fun verifyDrawImage(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float, image: RefinableImage?) {
@@ -133,7 +149,7 @@ fun verifyFillShape(inOrder: InOrder, g: Graphics2D, shape: Shape, color: Color)
   inOrder.verify(g).create()
   inOrder.verify(g).setRenderingHints(any())
   inOrder.verify(g).color = color
-  inOrder.verify(g).fill(shape)
+  inOrder.verify(g).fill(argThat(ShapeArgumentMatcher(shape)))
   inOrder.verify(g).dispose()
 }
 
@@ -143,5 +159,14 @@ fun verifyDrawShape(inOrder: InOrder, g: Graphics2D, shape: Shape, color: Color,
   inOrder.verify(g).color = color
   inOrder.verify(g).stroke = stroke
   inOrder.verify(g).draw(argThat(ShapeArgumentMatcher(shape)))
+  inOrder.verify(g).dispose()
+}
+
+fun verifyDrawTruncatedText(inOrder: InOrder, g: Graphics2D, text: String, color: Color) {
+  inOrder.verify(g).create()
+  inOrder.verify(g).getFontMetrics(any())
+  inOrder.verify(g).color = color
+  inOrder.verify(g).font = any()
+  inOrder.verify(g).drawString(eq(text), anyFloat(), anyFloat())
   inOrder.verify(g).dispose()
 }

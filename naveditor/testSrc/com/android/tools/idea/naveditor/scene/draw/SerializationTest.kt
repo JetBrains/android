@@ -15,18 +15,15 @@
  */
 package com.android.tools.idea.naveditor.scene.draw
 
-import com.android.tools.adtui.common.SwingFont
 import com.android.tools.adtui.common.SwingLength
 import com.android.tools.adtui.common.SwingPoint
 import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.scene.draw.DrawCommand
-import com.android.tools.idea.common.scene.draw.DrawTruncatedText
 import com.android.tools.idea.naveditor.scene.RefinableImage
 import com.intellij.ui.JBColor
 import junit.framework.TestCase
 import java.awt.Color
-import java.awt.Font
 import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
@@ -54,18 +51,6 @@ class SerializationTest : TestCase() {
       SwingRectangle(Rectangle2D.Float(10f, 20f, 30f, 40f)),
       SwingRectangle(Rectangle2D.Float(50f, 60f, 70f, 80f)), Scale(1.0),
       JBColor.WHITE, false), factory)
-  }
-
-  fun testDrawTruncatedText() {
-    val factory = { s: String -> DrawTruncatedText(s) }
-
-    testSerialization("DrawTruncatedText,0,foo,10.0x20.0x30.0x40.0,ffff0000,Default:0:10,true",
-                      DrawTruncatedText(0, "foo", SwingRectangle(Rectangle2D.Float(10f, 20f, 30f, 40f)), Color.RED,
-                                        SwingFont("Default", Font.PLAIN, SwingLength(10f)), true), factory)
-
-    testSerialization("DrawTruncatedText,1,bar,50.0x60.0x70.0x80.0,ff0000ff,Helvetica:1:20,false",
-                      DrawTruncatedText(1, "bar", SwingRectangle(Rectangle2D.Float(50f, 60f, 70f, 80f)), Color.BLUE,
-                                        SwingFont("Helvetica", Font.BOLD, SwingLength(20f)), false), factory)
   }
 
   fun testDrawEmptyDesigner() {
