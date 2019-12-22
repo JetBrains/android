@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.data.builder
 
+import com.android.build.attribution.data.TaskData
 import com.android.build.attribution.ui.data.TimeWithPercentage
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -33,14 +34,19 @@ class BuildAttributionReportBuilderTest : AbstractBuildAttributionReportBuilderT
   fun testBuildSummary() {
     val analyzerResults = object : MockResultsProvider() {
       override fun getTotalBuildTimeMs(): Long = 1500
-      override fun getCriticalPathDurationMs(): Long = 1000
+      override fun getTasksDeterminingBuildDuration(): List<TaskData> {
+        return listOf(
+          TaskData("taskA", ":app", pluginA, 0, 123, TaskData.TaskExecutionMode.FULL, emptyList()),
+          TaskData("taskB", ":app", pluginA, 0, 456, TaskData.TaskExecutionMode.FULL, emptyList())
+        )
+      }
     }
 
     val report = BuildAttributionReportBuilder(analyzerResults, 12345).build()
 
     assertThat(report.buildSummary.buildFinishedTimestamp).isEqualTo(12345)
     assertThat(report.buildSummary.totalBuildDuration.timeMs).isEqualTo(1500)
-    assertThat(report.buildSummary.criticalPathDuration).isEqualTo(TimeWithPercentage(1000, 1500))
+    assertThat(report.buildSummary.criticalPathDuration).isEqualTo(TimeWithPercentage(123 + 456, 1500))
   }
 
 }

@@ -42,10 +42,8 @@ open class AbstractBuildAttributionReportBuilderTest {
   open class MockResultsProvider : BuildEventsAnalysisResult {
     override fun getAnnotationProcessorsData(): List<AnnotationProcessorData> = emptyList()
     override fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData> = emptyList()
-    override fun getCriticalPathDurationMs(): Long = 0
     override fun getTotalBuildTimeMs(): Long = 0
     override fun getCriticalPathTasks(): List<TaskData> = emptyList()
-    override fun getCriticalPathPlugins(): List<PluginBuildData> = emptyList()
     override fun getTasksDeterminingBuildDuration(): List<TaskData> = emptyList()
     override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = emptyList()
     override fun getTotalConfigurationData(): ProjectConfigurationData = getProjectsConfigurationData().first()

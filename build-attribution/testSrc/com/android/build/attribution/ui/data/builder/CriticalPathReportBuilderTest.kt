@@ -28,16 +28,19 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
   @Test
   fun testTasksCriticalPath() {
     val taskA = TaskData("taskA", ":app", pluginA, 0, 100, TaskData.TaskExecutionMode.FULL, emptyList())
+      .apply { isOnTheCriticalPath = true }
     val taskB = TaskData("taskB", ":app", pluginB, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList())
+      .apply { isOnTheCriticalPath = true }
     val taskC = TaskData("taskC", ":lib", pluginA, 0, 300, TaskData.TaskExecutionMode.FULL, emptyList())
+      .apply { isOnTheCriticalPath = true }
     val taskD = TaskData("taskD", ":app", pluginB, 0, 200, TaskData.TaskExecutionMode.FULL, emptyList())
+      .apply { isOnTheCriticalPath = true }
 
 
     val analyzerResults = object : MockResultsProvider() {
       override fun getTotalBuildTimeMs(): Long = 1500
-      override fun getCriticalPathDurationMs(): Long = 1000
-      override fun getCriticalPathTasks(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
-      override fun getCriticalPathPlugins(): List<PluginBuildData> = listOf(
+      override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
+      override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = listOf(
         PluginBuildData(pluginA, 400),
         PluginBuildData(pluginB, 600)
       )
@@ -66,9 +69,8 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
 
     val analyzerResults = object : MockResultsProvider() {
       override fun getTotalBuildTimeMs(): Long = 1500
-      override fun getCriticalPathDurationMs(): Long = 1000
-      override fun getCriticalPathTasks(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
-      override fun getCriticalPathPlugins(): List<PluginBuildData> = listOf(
+      override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
+      override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = listOf(
         PluginBuildData(pluginA, 400),
         PluginBuildData(pluginB, 600)
       )

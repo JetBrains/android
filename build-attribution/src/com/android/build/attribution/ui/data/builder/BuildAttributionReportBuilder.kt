@@ -27,6 +27,7 @@ import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
 import com.android.build.attribution.ui.data.CriticalPathTasksUiData
 import com.android.build.attribution.ui.data.IssueLevel
 import com.android.build.attribution.ui.data.TimeWithPercentage
+import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 
 
 /**
@@ -58,14 +59,17 @@ class BuildAttributionReportBuilder(
   private fun createBuildSummary(pluginConfigurationTimeReport: ConfigurationUiData) = object : BuildSummary {
     override val buildFinishedTimestamp = this@BuildAttributionReportBuilder.buildFinishedTimestamp
     override val totalBuildDuration = TimeWithPercentage(buildAnalysisResult.getTotalBuildTimeMs(), buildAnalysisResult.getTotalBuildTimeMs())
-    override val criticalPathDuration = TimeWithPercentage(buildAnalysisResult.getCriticalPathDurationMs(), buildAnalysisResult.getTotalBuildTimeMs())
+    override val criticalPathDuration = TimeWithPercentage(
+      buildAnalysisResult.getTasksDeterminingBuildDuration().sumByLong { it.executionTime },
+      buildAnalysisResult.getTotalBuildTimeMs()
+    )
     override val configurationDuration = pluginConfigurationTimeReport.totalConfigurationTime
   }
 
   private fun createCriticalPathTasks(criticalPathDuration: TimeWithPercentage) = object : CriticalPathTasksUiData {
     override val criticalPathDuration = criticalPathDuration
     override val miscStepsTime = criticalPathDuration.supplement()
-    override val tasks = buildAnalysisResult.getCriticalPathTasks()
+    override val tasks = buildAnalysisResult.getTasksDeterminingBuildDuration()
       .map { taskUiDataContainer.getByTaskData(it) }
       .sortedByDescending { it.executionTime }
     override val warningCount = tasks.flatMap { it.issues }.count { it.type.level == IssueLevel.WARNING }
@@ -73,11 +77,11 @@ class BuildAttributionReportBuilder(
   }
 
   private fun createCriticalPathPlugins(criticalPathDuration: TimeWithPercentage): CriticalPathPluginsUiData {
-    val taskByPlugin = buildAnalysisResult.getCriticalPathTasks().groupBy { it.originPlugin }
+    val taskByPlugin = buildAnalysisResult.getTasksDeterminingBuildDuration().groupBy { it.originPlugin }
     return object : CriticalPathPluginsUiData {
       override val criticalPathDuration = criticalPathDuration
       override val miscStepsTime = criticalPathDuration.supplement()
-      override val plugins = buildAnalysisResult.getCriticalPathPlugins()
+      override val plugins = buildAnalysisResult.getPluginsDeterminingBuildDuration()
         .map {
           createCriticalPathPluginUiData(taskByPlugin[it.plugin].orEmpty(), it)
         }
