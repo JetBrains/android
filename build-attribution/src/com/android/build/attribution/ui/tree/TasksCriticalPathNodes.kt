@@ -23,6 +23,7 @@ import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.issuesCountString
 import com.android.build.attribution.ui.mergedIcon
 import com.android.build.attribution.ui.panels.AbstractBuildAttributionInfoPanel
+import com.android.build.attribution.ui.panels.CRITICAL_PATH_LINK
 import com.android.build.attribution.ui.panels.ChartBuildAttributionInfoPanel
 import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.android.build.attribution.ui.panels.TimeDistributionChart
@@ -31,16 +32,19 @@ import com.android.build.attribution.ui.panels.criticalPathHeader
 import com.android.build.attribution.ui.panels.headerLabel
 import com.android.build.attribution.ui.panels.taskInfoPanel
 import com.android.build.attribution.ui.taskIcon
+import com.android.utils.HtmlBuilder
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.treeStructure.SimpleNode
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.event.HyperlinkListener
 
 class CriticalPathTasksRoot(
   private val data: CriticalPathTasksUiData,
   parent: ControllersAwareBuildAttributionNode,
   private val taskIssueLinkListener: TreeLinkListener<TaskIssueUiData>
-) : AbstractBuildAttributionNode(parent, "Critical Path Tasks") {
+) : AbstractBuildAttributionNode(parent, "Tasks determining this build's duration") {
   private val chartItems: List<TimeDistributionChart.ChartDataItem<TaskUiData>> = createTaskChartItems(data)
 
   override val presentationIcon: Icon? = null
@@ -68,7 +72,7 @@ class CriticalPathTasksRoot(
     return object : ChartBuildAttributionInfoPanel() {
 
       override fun createHeader(): JComponent {
-        return criticalPathHeader("Tasks", data.criticalPathDuration.durationString(), analytics)
+        return criticalPathHeader("Tasks", data.criticalPathDuration.durationString())
       }
 
       override fun createChart(): JComponent {
@@ -77,6 +81,28 @@ class CriticalPathTasksRoot(
 
       override fun createLegend(): JComponent {
         return CriticalPathChartLegend.createTasksLegendPanel()
+      }
+
+      override fun createDescription(): JComponent {
+        val text = HtmlBuilder()
+          .openHtmlBody()
+          .add("These tasks belong to a group of sequentially executed tasks that has the largest impact on this build's duration.")
+          .newline()
+          .add("Addressing this group provides the greatest likelihood of reducing the overall build duration.")
+          .newline()
+          .addLink("Learn more", CRITICAL_PATH_LINK)
+          .closeHtmlBody()
+        return object : JBLabel(text.html) {
+          override fun createHyperlinkListener(): HyperlinkListener {
+            val hyperlinkListener = super.createHyperlinkListener()
+            return HyperlinkListener { e ->
+              analytics.helpLinkClicked()
+              hyperlinkListener.hyperlinkUpdate(e)
+            }
+          }
+        }
+          .setAllowAutoWrapping(true)
+          .setCopyable(true)
       }
 
       override fun createRightInfoPanel(): JComponent? {
@@ -111,6 +137,8 @@ private class TaskNode(
       override fun createLegend(): JComponent {
         return CriticalPathChartLegend.createTasksLegendPanel()
       }
+
+      override fun createDescription(): JComponent? = null
 
       override fun createRightInfoPanel(): JComponent {
         return taskInfoPanel(taskData, taskIssueLinkListener)

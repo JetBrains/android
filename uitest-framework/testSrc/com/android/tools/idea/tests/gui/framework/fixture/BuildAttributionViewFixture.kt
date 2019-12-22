@@ -45,11 +45,11 @@ class BuildAttributionViewFixture(robot: Robot, target: JPanel) : JPanelFixture(
       .clickLink(text)
 
   fun checkInitState() {
-    tree.requireSelection(" Plugins With Critical Path Tasks 2 warnings")
+    tree.requireSelection(" Plugins with tasks determining this build's duration 2 warnings")
     tree.requireRootContainInOrder(listOf(
       "Build: finished at",
-      "Plugins With Critical Path Tasks",
-      "Critical Path Tasks",
+      "Plugins with tasks determining this build's duration",
+      "Tasks determining this build's duration",
       "Always-run Tasks",
       "Plugin Configuration Time",
       "Non-incremental Annotation Processors"
