@@ -69,6 +69,11 @@ public class AnnotationProcessorIssueInfoPanel extends JBPanel {
       .addHtml(DESCRIPTION)
       .newline()
       .addLink("Learn more", HELP_LINK)
+      .newline()
+      .newline()
+      .addBold("Recommendation")
+      .newline()
+      .add("Ensure that you are using the most recent version of this annotation processor.")
       .closeHtmlBody()
       .getHtml();
 

@@ -138,6 +138,7 @@ interface TaskIssueUiData {
   val bugReportBriefDescription: String
   val explanation: String
   val helpLink: String
+  val buildSrcRecommendation: String
 }
 
 /**
