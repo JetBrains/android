@@ -1,5 +1,7 @@
 package org.jetbrains.android.inspections.lint;
 
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
@@ -9,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author Eugene.Kudelevsky
  */
-public class RemoveAttributeQuickFix implements AndroidLintQuickFix {
+public class RemoveAttributeQuickFix implements LintIdeQuickFix {
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
     final XmlAttribute attribute = PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class);

@@ -24,6 +24,8 @@ import com.android.SdkConstants.FD_RES_XML
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts
+import com.android.tools.idea.lint.common.LintIdeQuickFix
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.templates.TemplateUtils
 import com.intellij.openapi.command.WriteCommandAction
@@ -35,8 +37,6 @@ import com.intellij.psi.xml.XmlTag
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts
 import org.jetbrains.android.util.AndroidUtils.createChildDirectoryIfNotExist
 import java.io.IOException
 
@@ -48,7 +48,7 @@ import java.io.IOException
  * <li>Set the layoutDescription attribute on the MotionLayout. </li>
  * </ul>
  */
-class GenerateMotionSceneFix(val url: ResourceUrl) : AndroidLintQuickFix {
+class GenerateMotionSceneFix(val url: ResourceUrl) : LintIdeQuickFix {
   override fun getName() = "Generate MotionScene file"
 
   override fun isApplicable(startElement: PsiElement, endElement: PsiElement, contextType: AndroidQuickfixContexts.ContextType): Boolean {
@@ -88,7 +88,7 @@ class GenerateMotionSceneFix(val url: ResourceUrl) : AndroidLintQuickFix {
 
   @Language("XML")
   private fun generateMotionSceneContent(widgetId: String): String =
-"""<?xml version="1.0" encoding="utf-8"?>
+    """<?xml version="1.0" encoding="utf-8"?>
 <MotionScene
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto">

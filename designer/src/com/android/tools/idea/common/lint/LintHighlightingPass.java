@@ -20,6 +20,10 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.LintEditorResult;
+import com.android.tools.idea.lint.common.LintExternalAnnotator;
+import com.android.tools.idea.lint.common.LintProblemData;
 import com.android.tools.lint.detector.api.Issue;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.codeHighlighting.HighlightingPass;
@@ -31,11 +35,6 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.xml.XmlFile;
 import java.lang.ref.WeakReference;
-import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintUtil;
-import org.jetbrains.android.inspections.lint.ProblemData;
-import org.jetbrains.android.inspections.lint.State;
 import org.jetbrains.annotations.NotNull;
 
 public class LintHighlightingPass implements HighlightingPass {
@@ -95,18 +94,18 @@ public class LintHighlightingPass implements HighlightingPass {
 
     XmlFile xmlFile = model.getFile();
 
-    AndroidLintExternalAnnotator annotator = new AndroidLintExternalAnnotator();
-    State state = annotator.collectInformation(xmlFile);
+    LintExternalAnnotator annotator = new LintExternalAnnotator();
+    LintEditorResult lintResult = annotator.collectInformation(xmlFile);
     // TODO: Separate analytics mode here?
-    if (state != null) {
-      state = annotator.doAnnotate(state);
+    if (lintResult != null) {
+      lintResult = annotator.doAnnotate(lintResult);
     }
 
-    if (state == null) {
+    if (lintResult == null) {
       return lintModel;
     }
 
-    for (ProblemData problemData : state.getProblems()) {
+    for (LintProblemData problemData : lintResult.getProblems()) {
       if (progress.isCanceled()) {
         break;
       }
@@ -129,7 +128,7 @@ public class LintHighlightingPass implements HighlightingPass {
 
       Issue issue = problemData.getIssue();
       Pair<AndroidLintInspectionBase, HighlightDisplayLevel> pair =
-        AndroidLintUtil.getHighlightLevelAndInspection(xmlFile.getProject(), issue, xmlFile);
+        LintExternalAnnotator.getHighlightLevelAndInspection(xmlFile.getProject(), issue, xmlFile);
       if (pair == null) {
         continue;
       }

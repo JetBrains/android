@@ -45,5 +45,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="intellij.lint" />
   </component>
 </module>

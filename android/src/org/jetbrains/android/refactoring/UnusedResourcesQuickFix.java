@@ -17,12 +17,12 @@ package org.jetbrains.android.refactoring;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class UnusedResourcesQuickFix implements AndroidLintQuickFix {
+public class UnusedResourcesQuickFix implements LintIdeQuickFix {
   private final String myResource;
 
   public UnusedResourcesQuickFix(@Nullable String resource) {

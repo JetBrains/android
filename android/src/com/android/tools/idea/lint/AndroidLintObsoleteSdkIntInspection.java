@@ -24,6 +24,9 @@ import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
@@ -50,9 +53,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -66,10 +66,10 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                             @NotNull PsiElement endElement,
-                                             @NotNull String message,
-                                             @Nullable LintFix fixData) {
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                         @NotNull PsiElement endElement,
+                                         @NotNull String message,
+                                         @Nullable LintFix fixData) {
     if (fixData instanceof LintFix.DataMap) {
       LintFix.DataMap map = (LintFix.DataMap)fixData;
 
@@ -77,13 +77,15 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
       if (constant != null) {
         PsiBinaryExpression subExpression = PsiTreeUtil.getParentOfType(startElement, PsiBinaryExpression.class, false);
         if (subExpression != null) {
-          return new AndroidLintQuickFix[]{
-            new AndroidLintQuickFix.LocalFixWrappee(new SimplifyBooleanExpressionFix(subExpression, constant))
+          return new LintIdeQuickFix[]{
+            new LintIdeQuickFix.LocalFixWrappee(new SimplifyBooleanExpressionFix(subExpression, constant))
           };
-        } else if (startElement.getLanguage() == KotlinLanguage.INSTANCE) {
-          return new AndroidLintQuickFix[]{ new RemoveSdkCheckFix(constant) };
         }
-      } else {
+        else if (startElement.getLanguage() == KotlinLanguage.INSTANCE) {
+          return new LintIdeQuickFix[]{new RemoveSdkCheckFix(constant)};
+        }
+      }
+      else {
         // Merge resource folder
         File file = map.get(File.class);
         AndroidVersion minSdkVersion = map.get(AndroidVersion.class);
@@ -93,7 +95,7 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
           AndroidFacet facet = AndroidFacet.getInstance(startElement);
           VirtualFile dir = StandardFileSystems.local().findFileByPath(file.getPath());
           if (facet != null && dir != null) {
-            return new AndroidLintQuickFix[]{
+            return new LintIdeQuickFix[]{
               new MergeResourceFolderFix(facet, dir, destFolder, minSdkVersion)
             };
           }
@@ -111,7 +113,7 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
    * <p>
    * TODO: Consider adding this as a refactoring action, or a context menu action on resource folders
    */
-  private static class MergeResourceFolderFix implements AndroidLintQuickFix {
+  private static class MergeResourceFolderFix implements LintIdeQuickFix {
     private final AndroidFacet facet;
     private final VirtualFile dir;
     private final String destFolderName;
@@ -130,6 +132,7 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
      * I may have to merge *multiple* folders to get to the base folder.
      * For example, if minSdkVersion is 14 and you have values-v5, values-v7, values-v14, and values,
      * we should merge values-v5 into values-v7, then value-v7 into values-v14, and then finally values-v14 into values/
+     *
      * @return a list of applicable folders, starting with {@link #dir} and including all similar folders
      * up to the {@link #destFolderName}
      */

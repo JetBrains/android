@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.checks.NamespaceDetector;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +28,7 @@ public class AndroidLintResAutoInspection extends AndroidLintInspectionBase {
 
   @Override
   @NotNull
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull String message) {
-    return new AndroidLintQuickFix[]{new ConvertNamespaceQuickFix()};
+  public LintIdeQuickFix[] getQuickFixes(@NotNull String message) {
+    return new LintIdeQuickFix[]{new ConvertNamespaceQuickFix()};
   }
 }

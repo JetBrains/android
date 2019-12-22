@@ -22,9 +22,10 @@ import com.android.SdkConstants
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.idea.gradle.project.common.GradleInitScripts
-import com.android.tools.idea.lint.LintIdeClient
-import com.android.tools.idea.lint.LintIdeIssueRegistry
-import com.android.tools.idea.lint.LintIdeRequest
+import com.android.tools.idea.lint.common.LintBatchResult
+import com.android.tools.idea.lint.common.LintIdeRequest
+import com.android.tools.idea.lint.common.LintIdeSupport
+import com.android.tools.idea.lint.common.LintProblemData
 import com.android.tools.idea.npw.FormFactor.Companion.get
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.template.TemplateValueInjector
@@ -66,7 +67,6 @@ import junit.framework.TestCase.assertTrue
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
-import org.jetbrains.android.inspections.lint.ProblemData
 import org.jetbrains.android.sdk.AndroidSdkData
 import org.junit.Assert.assertEquals
 import org.w3c.dom.Element
@@ -155,9 +155,10 @@ internal fun createRenderingContext(
  * Runs lint and returns a message with information about the first issue with severity at least X or null if there are no such issues.
  */
 internal fun getLintIssueMessage(project: Project, maxSeverity: Severity, ignored: Set<Issue>): String? {
-  val registry = LintIdeIssueRegistry()
-  val map = mutableMapOf<Issue, Map<File, List<ProblemData>>>()
-  val client = LintIdeClient.forBatch(project, map, AnalysisScope(project), registry.issues.toSet())
+  val registry = LintIdeSupport.get().getIssueRegistry()
+  val map = mutableMapOf<Issue, Map<File, List<LintProblemData>>>()
+  val result = LintBatchResult(project, map, AnalysisScope(project), registry.issues.toSet())
+  val client = LintIdeSupport.get().createBatchClient(result)
   val modules = ModuleManager.getInstance(project).modules.toList()
   val request = LintIdeRequest(client, project, null, modules, false)
   val scope = EnumSet.allOf(Scope::class.java).apply {

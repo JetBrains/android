@@ -23,6 +23,8 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.utils.Pair;
@@ -62,8 +64,6 @@ import org.jetbrains.android.actions.CreateResourceDirectoryDialog;
 import org.jetbrains.android.actions.ElementCreatingValidator;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -528,11 +528,11 @@ public class OverrideResourceAction extends AbstractIntentionAction {
   }
 
   /** Create a lint quickfix which overrides the resource at the given {@link PsiElement} */
-  public static AndroidLintQuickFix createFix(@Nullable String folder) {
+  public static LintIdeQuickFix createFix(@Nullable String folder) {
     return new OverrideElementFix(folder);
   }
 
-  private static class OverrideElementFix implements AndroidLintQuickFix {
+  private static class OverrideElementFix implements LintIdeQuickFix {
     private final String myFolder;
 
     private OverrideElementFix(@Nullable String folder) {
