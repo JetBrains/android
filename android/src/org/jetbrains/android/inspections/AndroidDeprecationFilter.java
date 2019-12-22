@@ -16,16 +16,27 @@
 package org.jetbrains.android.inspections;
 
 import com.android.sdklib.SdkVersionInfo;
-import com.android.tools.idea.lint.LintIdeClient;
-import com.android.tools.idea.lint.LintIdeUtils;
+import com.android.support.AndroidxNameUtils;
+import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.lint.checks.ApiLookup;
+import com.android.tools.lint.detector.api.Lint;
+import com.android.tools.lint.helpers.DefaultJavaEvaluator;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiMember;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,7 +55,7 @@ public class AndroidDeprecationFilter extends AndroidDeprecationInspection.Depre
     }
 
     if (deprecatedElement instanceof PsiClass) {
-      String owner = LintIdeUtils.getInternalName((PsiClass)deprecatedElement);
+      String owner = ((PsiClass)deprecatedElement).getQualifiedName();
       if (owner != null) {
         return apiLookup.getClassDeprecatedIn(owner);
       }
@@ -52,18 +63,17 @@ public class AndroidDeprecationFilter extends AndroidDeprecationInspection.Depre
     else if (deprecatedElement instanceof PsiMember) {
       PsiClass containingClass = ((PsiMember)deprecatedElement).getContainingClass();
       if (containingClass != null) {
-        String owner = LintIdeUtils.getInternalName(containingClass);
+        DefaultJavaEvaluator evaluator = new DefaultJavaEvaluator(project, null);
+        String owner = containingClass.getQualifiedName();
         if (owner != null) {
           if (deprecatedElement instanceof PsiField) {
             String name = ((PsiField)deprecatedElement).getName();
-            if (name != null) {
-              return apiLookup.getFieldDeprecatedIn(owner, name);
-            }
+            return apiLookup.getFieldDeprecatedIn(owner, name);
           }
           else if (deprecatedElement instanceof PsiMethod) {
             PsiMethod method = (PsiMethod)deprecatedElement;
-            String name = LintIdeUtils.getInternalMethodName(method);
-            String desc = LintIdeUtils.getInternalDescription(method, false, false);
+            String name = Lint.getInternalMethodName(method);
+            String desc = evaluator.getMethodDescription(method, false, false);
             if (desc != null) {
               return apiLookup.getMethodDeprecatedIn(owner, name, desc);
             }
@@ -158,7 +168,9 @@ public class AndroidDeprecationFilter extends AndroidDeprecationInspection.Depre
       }
       JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
       PsiElementFactory elementFactory = facade.getElementFactory();
-      PsiElement newReference = elementFactory.createReferenceFromText(myQualifiedName, replace);
+      boolean androidX = MigrateToAndroidxUtil.isAndroidx(project);
+      String newName = androidX ? AndroidxNameUtils.getNewName(myQualifiedName) : myQualifiedName;
+      PsiElement newReference = elementFactory.createReferenceFromText(newName, replace);
       newReference = replace.replace(newReference);
       JavaCodeStyleManager.getInstance(project).shortenClassReferences(newReference);
     }

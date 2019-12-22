@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.GradleDetector;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintLifecycleAnnotationProcessorWithJava8Inspection extends AndroidLintInspectionBase {
   public AndroidLintLifecycleAnnotationProcessorWithJava8Inspection() {
-    super(AndroidBundle.message("android.lint.inspections.lifecycle.annotation.processor.with.java8"), GradleDetector.LIFECYCLE_ANNOTATION_PROCESSOR_WITH_JAVA8);
+    super(AndroidBundle.message("android.lint.inspections.lifecycle.annotation.processor.with.java8"),
+          GradleDetector.LIFECYCLE_ANNOTATION_PROCESSOR_WITH_JAVA8);
   }
 }

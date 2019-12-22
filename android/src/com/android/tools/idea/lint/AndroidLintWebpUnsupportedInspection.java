@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.rendering.webp.ConvertFromWebpAction;
 import com.android.tools.lint.checks.IconDetector;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,8 +33,8 @@ public class AndroidLintWebpUnsupportedInspection extends AndroidLintInspectionB
 
   @Override
   @NotNull
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
-    return new AndroidLintQuickFix[]{
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+    return new LintIdeQuickFix[]{
       new ConvertWebpToPngFix()
     };
   }
@@ -49,7 +50,7 @@ public class AndroidLintWebpUnsupportedInspection extends AndroidLintInspectionB
                       @NotNull AndroidQuickfixContexts.Context context) {
       VirtualFile file = startElement.getContainingFile().getVirtualFile();
       if (file.exists()) {
-        new ConvertFromWebpAction().perform(startElement.getProject(), new VirtualFile[] {file }, true);
+        new ConvertFromWebpAction().perform(startElement.getProject(), new VirtualFile[]{file}, true);
       }
     }
   }

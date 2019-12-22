@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.intellij.diff.comparison.ComparisonManager;
 import com.intellij.diff.comparison.ComparisonManagerImpl;
 import com.intellij.diff.comparison.ComparisonPolicy;
@@ -30,7 +31,6 @@ import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

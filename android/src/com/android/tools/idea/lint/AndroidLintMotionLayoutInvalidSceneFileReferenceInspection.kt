@@ -16,11 +16,11 @@
 package com.android.tools.idea.lint
 
 import com.android.resources.ResourceUrl
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase
+import com.android.tools.idea.lint.common.LintIdeQuickFix
 import com.android.tools.lint.checks.MotionLayoutDetector
 import com.android.tools.lint.detector.api.LintFix
 import com.intellij.psi.PsiElement
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix
 import org.jetbrains.android.util.AndroidBundle
 
 class AndroidLintMotionLayoutInvalidSceneFileReferenceInspection : AndroidLintInspectionBase(
@@ -30,11 +30,11 @@ class AndroidLintMotionLayoutInvalidSceneFileReferenceInspection : AndroidLintIn
   override fun getQuickFixes(startElement: PsiElement,
                              endElement: PsiElement,
                              message: String,
-                             fixData: LintFix?): Array<AndroidLintQuickFix> {
+                             fixData: LintFix?): Array<LintIdeQuickFix> {
     return generateMotionSceneFix(fixData) ?: super.getQuickFixes(startElement, endElement, message, fixData)
   }
 
-  private fun generateMotionSceneFix(fixData: LintFix?): Array<AndroidLintQuickFix>? {
+  private fun generateMotionSceneFix(fixData: LintFix?): Array<LintIdeQuickFix>? {
     val urlString = LintFix.getData(fixData, String::class.java) ?: return null
     val url = ResourceUrl.parse(urlString) ?: return null
     return arrayOf(GenerateMotionSceneFix(url))

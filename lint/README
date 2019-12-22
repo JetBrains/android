@@ -1,0 +1,2 @@
+This module contains the code for lint without the Android specific
+parts in IntelliJ and Android Studio.

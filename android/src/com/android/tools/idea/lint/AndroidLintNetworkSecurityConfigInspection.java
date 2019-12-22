@@ -15,20 +15,20 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.lint.common.RenameAttributeQuickFix;
+import com.android.tools.idea.lint.common.RenameXmlTagQuickFix;
 import com.android.tools.lint.checks.NetworkSecurityConfigDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.RenameAttributeQuickFix;
+import java.util.List;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class AndroidLintNetworkSecurityConfigInspection extends AndroidLintInspectionBase {
   public AndroidLintNetworkSecurityConfigInspection() {
@@ -37,10 +37,10 @@ public class AndroidLintNetworkSecurityConfigInspection extends AndroidLintInspe
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                             @NotNull PsiElement endElement,
-                                             @NotNull String message,
-                                             @Nullable LintFix fixData) {
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                         @NotNull PsiElement endElement,
+                                         @NotNull String message,
+                                         @Nullable LintFix fixData) {
     if (NetworkSecurityConfigDetector.isAttributeSpellingError(message)) {
       XmlTag parentTag = PsiTreeUtil.getParentOfType(startElement, XmlTag.class, false);
       XmlAttribute currentAttr = PsiTreeUtil.getParentOfType(startElement, XmlAttribute.class, false);
@@ -48,7 +48,7 @@ public class AndroidLintNetworkSecurityConfigInspection extends AndroidLintInspe
       assert currentAttr != null;
       List<String> suggestions =
         NetworkSecurityConfigDetector.getAttributeSpellingSuggestions(currentAttr.getName(), parentTag.getName());
-      AndroidLintQuickFix[] attrFixes = new AndroidLintQuickFix[suggestions.size()];
+      LintIdeQuickFix[] attrFixes = new LintIdeQuickFix[suggestions.size()];
       for (int i = 0; i < attrFixes.length; i++) {
         attrFixes[i] = new RenameAttributeQuickFix(null /* no namespace */, suggestions.get(i));
       }
@@ -61,7 +61,7 @@ public class AndroidLintNetworkSecurityConfigInspection extends AndroidLintInspe
       assert parentTag != null;
       List<String> suggestions =
         NetworkSecurityConfigDetector.getTagSpellingSuggestions(currentTag.getName(), parentTag.getName());
-      AndroidLintQuickFix[] elementQuickFixes = new AndroidLintQuickFix[suggestions.size()];
+      LintIdeQuickFix[] elementQuickFixes = new LintIdeQuickFix[suggestions.size()];
       for (int i = 0; i < elementQuickFixes.length; i++) {
         elementQuickFixes[i] = new RenameXmlTagQuickFix(suggestions.get(i));
       }

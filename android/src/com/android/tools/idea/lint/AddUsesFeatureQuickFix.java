@@ -15,20 +15,28 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_NAME;
+import static com.android.SdkConstants.VALUE_FALSE;
+import static com.android.xml.AndroidManifest.ATTRIBUTE_REQUIRED;
+import static com.android.xml.AndroidManifest.NODE_MANIFEST;
+import static com.android.xml.AndroidManifest.NODE_PERMISSION;
+import static com.android.xml.AndroidManifest.NODE_USES_CONFIGURATION;
+import static com.android.xml.AndroidManifest.NODE_USES_FEATURE;
+import static com.android.xml.AndroidManifest.NODE_USES_SDK;
+
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.SdkConstants.*;
-import static com.android.xml.AndroidManifest.*;
 
 /**
  * Quickfix for adding a &lt;uses-feature&gt; element with required="false" to
  * the AndroidManifest.xml
- *
+ * <p>
  * Note: The quick fix attempts to add the uses-feature tag after tags to adhere
  * to the typical manifest ordering. It finds and adds the element after the following
  * elements if present and skips to the next element up the chain.
@@ -64,7 +72,8 @@ class AddUsesFeatureQuickFix extends DefaultLintQuickFix {
     if (ancestor != null) {
       // Add the uses-feature element after all uses-feature tags if any.
       usesFeatureTag = (XmlTag)parent.addAfter(usesFeatureTag, ancestor);
-    } else {
+    }
+    else {
       usesFeatureTag = parent.addSubTag(usesFeatureTag, true);
     }
     if (usesFeatureTag != null) {

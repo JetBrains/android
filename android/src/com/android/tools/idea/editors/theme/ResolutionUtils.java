@@ -15,7 +15,20 @@
  */
 package com.android.tools.idea.editors.theme;
 
-import com.android.ide.common.rendering.api.*;
+import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
+import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX_LEN;
+import static com.android.SdkConstants.PREFIX_ANDROID;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.PREFIX_THEME_REF;
+import static com.android.SdkConstants.TAG_ATTR;
+import static com.android.SdkConstants.TAG_STYLE;
+
+import com.android.ide.common.rendering.api.AttributeFormat;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.StyleItemResourceValue;
+import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.configuration.Configurable;
@@ -26,7 +39,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
-import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.lint.checks.ApiLookup;
@@ -34,6 +47,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
@@ -43,13 +60,6 @@ import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.android.SdkConstants.*;
 
 /**
  * Utility methods for style resolution.

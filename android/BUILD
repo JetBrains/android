@@ -160,6 +160,7 @@ iml_module(
         "//tools/idea/platform/object-serializer:intellij.platform.objectSerializer.annotations[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
         "//tools/idea/plugins/terminal:intellij.terminal[module]",
+        "//tools/adt/idea/lint:intellij.lint[module]",
     ],
 )
 
@@ -344,6 +345,7 @@ iml_module(
         "//tools/idea/platform/object-serializer:intellij.platform.objectSerializer[module, test]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
+        "//tools/adt/idea/lint:intellij.lint[module, test]",
     ],
 )
 

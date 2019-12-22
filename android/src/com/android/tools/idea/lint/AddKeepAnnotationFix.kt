@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.lint
 
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts
+import com.android.tools.idea.lint.common.LintIdeQuickFix
 import com.android.tools.idea.util.mapAndroidxName
 import com.android.tools.lint.checks.ObjectAnimatorDetector.KEEP_ANNOTATION
 import com.intellij.codeInsight.FileModificationService
@@ -24,14 +26,12 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.util.PsiTreeUtil
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.util.addAnnotation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
-class AddKeepAnnotationFix : AndroidLintQuickFix {
+class AddKeepAnnotationFix : LintIdeQuickFix {
   override fun apply(startElement: PsiElement,
                      endElement: PsiElement,
                      context: AndroidQuickfixContexts.Context) {
@@ -45,7 +45,7 @@ class AddKeepAnnotationFix : AndroidLintQuickFix {
     val container = PsiTreeUtil.getParentOfType(element, PsiModifierListOwner::class.java) ?: return
     val project = element.project
     val annotationName = ModuleUtilCore.findModuleForPsiElement(element).mapAndroidxName(KEEP_ANNOTATION)
-    AddAnnotationFix(annotationName, container).invoke(project,null, container.containingFile)
+    AddAnnotationFix(annotationName, container).invoke(project, null, container.containingFile)
   }
 
   private fun applyKotlin(element: PsiElement) {
@@ -54,7 +54,7 @@ class AddKeepAnnotationFix : AndroidLintQuickFix {
       return
     }
     val annotationName = FqName(ModuleUtilCore.findModuleForPsiElement(element).mapAndroidxName(KEEP_ANNOTATION))
-    method.addAnnotation(annotationName,null, whiteSpaceText =  " ")
+    method.addAnnotation(annotationName, null, whiteSpaceText = " ")
   }
 
   override fun isApplicable(startElement: PsiElement,

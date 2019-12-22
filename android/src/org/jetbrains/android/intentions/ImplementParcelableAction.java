@@ -23,7 +23,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.idea.lint.ParcelableQuickFix;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;

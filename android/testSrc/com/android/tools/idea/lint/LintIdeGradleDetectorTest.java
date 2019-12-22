@@ -15,12 +15,17 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintGradleDependencyInspection;
+import com.android.tools.idea.lint.common.AndroidLintGradleDeprecatedConfigurationInspection;
+import com.android.tools.idea.lint.common.AndroidLintGradleDynamicVersionInspection;
+import com.android.tools.idea.lint.common.AndroidLintGradleIdeErrorInspection;
+import com.android.tools.idea.lint.common.AndroidLintGradlePathInspection;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.GradleDetector;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

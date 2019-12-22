@@ -64,6 +64,7 @@ iml_module(
         "//tools/adt/idea/resources-base:intellij.android.resources-base[module]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
         "//prebuilts/studio/layoutlib/data:layoutlib_native",
+        "//tools/adt/idea/lint:intellij.lint[module]",
     ],
 )
 
@@ -167,5 +168,6 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
         "//prebuilts/studio/layoutlib/data:layoutlib_native[test]",
+        "//tools/adt/idea/lint:intellij.lint[module, test]",
     ],
 )

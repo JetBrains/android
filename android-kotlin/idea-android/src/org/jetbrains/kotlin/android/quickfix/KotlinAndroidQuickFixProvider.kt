@@ -16,24 +16,23 @@
 
 package org.jetbrains.kotlin.android.quickfix
 
-import com.android.tools.lint.checks.CommentDetector
+import com.android.tools.idea.lint.common.LintIdeQuickFix
+import com.android.tools.idea.lint.common.LintIdeQuickFixProvider
 import com.android.tools.lint.checks.ParcelDetector
 import com.android.tools.lint.detector.api.Issue
 import com.android.tools.lint.detector.api.LintFix
 import com.intellij.psi.PsiElement
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFixProvider
 
 
-class KotlinAndroidQuickFixProvider : AndroidLintQuickFixProvider {
+class KotlinAndroidQuickFixProvider : LintIdeQuickFixProvider {
     override fun getQuickFixes(
             issue: Issue,
             startElement: PsiElement,
             endElement: PsiElement,
             message: String,
             fixData: LintFix?
-    ): Array<AndroidLintQuickFix> {
-        val fixes: Array<AndroidLintQuickFix> = when (issue) {
+    ): Array<LintIdeQuickFix> {
+        val fixes: Array<LintIdeQuickFix> = when (issue) {
             ParcelDetector.ISSUE -> arrayOf(ParcelableQuickFix())
             else -> emptyArray()
         }

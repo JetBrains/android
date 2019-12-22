@@ -22,7 +22,7 @@ import com.android.ide.common.util.AssetUtil;
 import com.android.ide.common.util.PathString;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
 import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;

@@ -8,6 +8,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.lint.AndroidLintMotionLayoutInvalidSceneFileReferenceInspection
+import com.android.tools.idea.lint.common.LintExternalAnnotator
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
@@ -50,7 +51,6 @@ import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix
-import org.jetbrains.android.inspections.lint.AndroidLintExternalAnnotator
 import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction
 import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.junit.Test
@@ -2215,7 +2215,7 @@ b/145854589 */
   fun testMotionLayoutWithoutLayoutDescription() {
     myFixture.enableInspections(AndroidLintMotionLayoutInvalidSceneFileReferenceInspection())
     val file = copyFileToProject(getTestName(true) + DOT_XML)
-    doTestOnClickQuickfix(file, AndroidLintExternalAnnotator.MyFixingIntention::class.java, getTestName(true) + "_after" + DOT_XML)
+    doTestOnClickQuickfix(file, LintExternalAnnotator.MyFixingIntention::class.java, getTestName(true) + "_after" + DOT_XML)
     val sceneFile = "${getTestName(true)}_scene.xml"
     myFixture.checkResultByFile("res/xml/$sceneFile", "$myTestFolder/$sceneFile", false)
   }
