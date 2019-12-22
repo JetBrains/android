@@ -65,7 +65,8 @@ public class TaskIssueInfoPanel extends JBPanel {
 
     c.gridy = 1;
     c.fill = GridBagConstraints.HORIZONTAL;
-    add(createRecommendation(), c);
+    JComponent recommendation = createRecommendation();
+    add(recommendation, c);
 
     c.gridy = 2;
     add(createTaskInfo(), c);
@@ -75,6 +76,8 @@ public class TaskIssueInfoPanel extends JBPanel {
     c.weighty = 1.0;
     c.fill = GridBagConstraints.BOTH;
     add(new JBPanel(), c);
+
+    withPreferredWidth(recommendation.getPreferredSize().width);
   }
 
   protected JComponent createIssueDescription() {
@@ -101,7 +104,7 @@ public class TaskIssueInfoPanel extends JBPanel {
         };
       }
     };
-    issueDescription.setCopyable(true).setAllowAutoWrapping(true);
+    issueDescription.setAllowAutoWrapping(true).setCopyable(true);
     issueDescription.setVerticalTextPosition(SwingConstants.TOP);
     issueDescription.setText(text);
 
@@ -186,7 +189,7 @@ public class TaskIssueInfoPanel extends JBPanel {
       .add(taskData.getExecutedIncrementally() ? "Yes" : "No")
       .closeHtmlBody()
       .getHtml();
-    JBLabel label = new JBLabel().setCopyable(true).setAllowAutoWrapping(true);
+    JBLabel label = new JBLabel().setAllowAutoWrapping(true).setCopyable(true);
     label.setVerticalTextPosition(SwingConstants.TOP);
     label.setText(text);
     return label;

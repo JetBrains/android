@@ -60,6 +60,7 @@ public class AnnotationProcessorIssueInfoPanel extends JBPanel {
     c.weighty = 1.0;
     c.fill = GridBagConstraints.BOTH;
     add(new JBPanel(), c);
+    withPreferredWidth(500);
   }
 
   protected JComponent createIssueDescription() {
@@ -86,7 +87,7 @@ public class AnnotationProcessorIssueInfoPanel extends JBPanel {
         };
       }
     };
-    issueDescription.setCopyable(true).setAllowAutoWrapping(true);
+    issueDescription.setAllowAutoWrapping(true).setCopyable(true);
     issueDescription.setVerticalTextPosition(SwingConstants.TOP);
     issueDescription.setText(text);
 

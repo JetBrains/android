@@ -92,34 +92,37 @@ fun pluginTasksListPanel(pluginData: CriticalPathPluginUiData, analytics: BuildA
     add(commonPluginInfo(pluginData, analytics))
   }
 
-private fun commonTaskInfo(taskData: TaskUiData): JComponent {
-  val text = HtmlBuilder()
-    .openHtmlBody()
-    .beginParagraph()
-    .add(
-      if (taskData.onCriticalPath)
-        "This task frequently determines build duration because of dependencies between its inputs/outputs and other tasks."
-      else
-        "This task occasionally determines build duration because of parallelism constraints introduced by number of cores or other tasks in the same module."
-    )
-    .endParagraph()
-    .newline()
-    .add("Module: ${taskData.module}")
-    .newline()
-    .add("Plugin: ${taskData.pluginName}")
-    .newline()
-    .add("Type: ${taskData.taskType}")
-    .newline()
-    .add("Duration: ${taskData.executionTime.durationString()} / ${taskData.executionTime.percentageString()}")
-    .newline()
-    .add("Executed incrementally: ${if (taskData.executedIncrementally) "Yes" else "No"}")
-    .closeHtmlBody()
-  return JBLabel(text.html).setCopyable(true).setAllowAutoWrapping(true)
-}
-
 fun taskInfoPanel(taskData: TaskUiData, listener: TreeLinkListener<TaskIssueUiData>): JPanel {
-  val infoPanel = JPanel(GridBagLayout())
-  val taskInfo = commonTaskInfo(taskData)
+  val infoPanel = JBPanel<JBPanel<*>>(GridBagLayout())
+  val taskDescription = JBLabel(
+    HtmlBuilder()
+      .openHtmlBody()
+      .add(
+        if (taskData.onCriticalPath)
+          "This task frequently determines build duration because of dependencies between its inputs/outputs and other tasks."
+        else
+          "This task occasionally determines build duration because of parallelism constraints introduced by number of cores or other tasks in the same module."
+      )
+      .closeHtmlBody()
+      .html
+  )
+    .setAllowAutoWrapping(true).setCopyable(true)
+  val taskInfo = JBLabel(
+    HtmlBuilder()
+      .openHtmlBody()
+      .add("Module: ${taskData.module}")
+      .newline()
+      .add("Plugin: ${taskData.pluginName}")
+      .newline()
+      .add("Type: ${taskData.taskType}")
+      .newline()
+      .add("Duration: ${taskData.executionTime.durationString()} / ${taskData.executionTime.percentageString()}")
+      .newline()
+      .add("Executed incrementally: ${if (taskData.executedIncrementally) "Yes" else "No"}")
+      .closeHtmlBody()
+      .html
+  )
+    .setAllowAutoWrapping(true).setCopyable(true)
   val issuesList = JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
     add(JBLabel("Issues with this task").withFont(JBUI.Fonts.label().asBold()))
     for (issue in taskData.issues) {
@@ -143,26 +146,31 @@ fun taskInfoPanel(taskData: TaskUiData, listener: TreeLinkListener<TaskIssueUiDa
   c.anchor = GridBagConstraints.FIRST_LINE_START
   c.fill = GridBagConstraints.HORIZONTAL
   c.insets = JBUI.insetsBottom(8)
-  infoPanel.add(taskInfo, c)
+  infoPanel.add(taskDescription, c)
 
   c.gridy = 1
-  infoPanel.add(issuesList, c)
+  infoPanel.add(taskInfo, c)
 
   c.gridy = 2
+  infoPanel.add(issuesList, c)
+
+  c.gridy = 3
   c.insets = JBUI.insetsTop(8)
   infoPanel.add(reasonsToRunHeader, c)
 
-  c.gridy = 3
+  c.gridy = 4
   c.insets = JBUI.insetsTop(8)
   c.fill = GridBagConstraints.BOTH
   c.weighty = 1.0
   infoPanel.add(reasonsList, c)
+
+  infoPanel.withPreferredWidth(sequenceOf<JComponent>(taskInfo, issuesList).map { it.preferredSize.width}.max()!!)
   return infoPanel
 }
 
 private fun reasonsToRunList(taskData: TaskUiData) = JBLabel().apply {
-  setCopyable(true)
   setAllowAutoWrapping(true)
+  setCopyable(true)
   verticalTextPosition = SwingConstants.TOP
   text = createReasonsText(taskData.reasonsToRun)
 }
