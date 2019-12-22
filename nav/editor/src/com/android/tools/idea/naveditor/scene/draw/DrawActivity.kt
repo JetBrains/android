@@ -46,8 +46,7 @@ import java.awt.Font
 
 private val ACTIVITY_ARC_SIZE = scaledAndroidLength(12f)
 private val ACTIVITY_BORDER_WIDTH = scaledSwingLength(1f)
-@VisibleForTesting
-val ACTIVITY_BORDER_STROKE = SwingStroke(ACTIVITY_BORDER_WIDTH)
+private val ACTIVITY_BORDER_STROKE = SwingStroke(ACTIVITY_BORDER_WIDTH)
 
 class DrawActivity(@VisibleForTesting val rectangle: SwingRectangle,
                    @VisibleForTesting val imageRectangle: SwingRectangle,
