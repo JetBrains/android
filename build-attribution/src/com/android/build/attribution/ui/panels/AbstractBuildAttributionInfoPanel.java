@@ -19,21 +19,23 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.Arrays;
 import javax.swing.JComponent;
 
 public abstract class AbstractBuildAttributionInfoPanel extends JBPanel<AbstractBuildAttributionInfoPanel> {
 
-  public static final int PREFERRED_PANEL_WIDTH = 700;
+  private static final int BORDER_WIDTH = 16;
 
   public AbstractBuildAttributionInfoPanel() {
     super(new GridBagLayout());
-    setBorder(JBUI.Borders.empty(16));
-    withPreferredWidth(PREFERRED_PANEL_WIDTH);
+    setBorder(JBUI.Borders.empty(BORDER_WIDTH));
   }
 
   public AbstractBuildAttributionInfoPanel init() {
     addHeader();
     addBody();
+    int preferredWidth = calculatePreferredWidth() + BORDER_WIDTH * 2;
+    withPreferredWidth(preferredWidth);
     return this;
   }
 
@@ -60,6 +62,13 @@ public abstract class AbstractBuildAttributionInfoPanel extends JBPanel<Abstract
     JComponent body = createBody();
     body.setName("pageBody");
     add(body, c);
+  }
+
+  public int calculatePreferredWidth() {
+    return Arrays.stream(getComponents())
+      .mapToInt(c -> c.getPreferredSize().width)
+      .max()
+      .orElse(0);
   }
 
   public abstract JComponent createHeader();

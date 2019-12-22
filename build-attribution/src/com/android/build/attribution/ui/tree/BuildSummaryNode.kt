@@ -47,8 +47,8 @@ class BuildSummaryNode(
     override fun createBody(): JComponent {
       return JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
         add(JBLabel().apply {
-          setCopyable(true)
           setAllowAutoWrapping(true)
+          setCopyable(true)
           text = HtmlBuilder()
             .openHtmlBody()
             .add("Total build duration was ${buildSummary.totalBuildDuration.durationString()}, it includes:")
