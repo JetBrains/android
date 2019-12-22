@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 
-val HQ_RENDERING_HINTS = ImmutableMap.of(
+val HQ_RENDERING_HINTS: Map<RenderingHints.Key, Any> = ImmutableMap.of(
   RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON,
   RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY,
   RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR,
@@ -30,7 +30,7 @@ val HQ_RENDERING_HINTS = ImmutableMap.of(
 abstract class DrawCommandBase(private val level: Int = 0) : DrawCommand {
   override fun getLevel(): Int = level
 
-  override final fun paint(g: Graphics2D, sceneContext: SceneContext) {
+  final override fun paint(g: Graphics2D, sceneContext: SceneContext) {
     val g2 = g.create() as Graphics2D
     onPaint(g2, sceneContext)
     g2.dispose()

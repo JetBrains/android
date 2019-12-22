@@ -42,10 +42,12 @@ private val PLACEHOLDER_STROKE = BasicStroke(1f)
 private val FRAME_COLOR = Color(0xa7a7a7)
 private val FRAME_STROKE = BasicStroke(1f)
 private val HIGHLIGHTED_STROKE = BasicStroke(2f)
+private val ACTIVITY_BORDER_COLOR = Color(0xa7a7a7)
+private val ACTIVITY_BORDER_STROKE = BasicStroke(1f)
 
 private const val SPACING = 2f
 private const val ARC_SIZE = 12f
-private val NESTED_GRAPH_BACKGROUND = Color(0xfafafa)
+private val BACKGROUND = Color(0xfafafa)
 
 fun verifyDrawFragment(inOrder: InOrder,
                        g: Graphics2D,
@@ -77,9 +79,27 @@ fun verifyDrawNestedGraph(inOrder: InOrder,
                           textColor: Color) {
   val arcSize = ARC_SIZE * scale.toFloat()
   val roundRectangle = RoundRectangle2D.Float(rectangle.x, rectangle.y, rectangle.width, rectangle.height, arcSize, arcSize)
-  verifyFillShape(inOrder, g, roundRectangle, NESTED_GRAPH_BACKGROUND)
+  verifyFillShape(inOrder, g, roundRectangle, BACKGROUND)
   verifyDrawShape(inOrder, g, roundRectangle, frameColor, BasicStroke(frameThickness))
   verifyDrawTruncatedText(inOrder, g, text, textColor)
+}
+
+fun verifyDrawActivity(inOrder: InOrder,
+                       g: Graphics2D,
+                       rectangle: Rectangle2D.Float,
+                       imageRectangle: Rectangle2D.Float,
+                       scale: Double,
+                       frameColor: Color,
+                       frameThickness: Float,
+                       textColor: Color,
+                       image: RefinableImage?) {
+  val arcSize = ARC_SIZE * scale.toFloat()
+  val roundRectangle = RoundRectangle2D.Float(rectangle.x, rectangle.y, rectangle.width, rectangle.height, arcSize, arcSize)
+  verifyFillShape(inOrder, g, roundRectangle, BACKGROUND)
+  verifyDrawShape(inOrder, g, roundRectangle, frameColor, BasicStroke(frameThickness))
+  verifyDrawImage(inOrder, g, imageRectangle, image)
+  verifyDrawShape(inOrder, g, imageRectangle, ACTIVITY_BORDER_COLOR, ACTIVITY_BORDER_STROKE)
+  verifyDrawTruncatedText(inOrder, g, "Activity", textColor)
 }
 
 fun verifyDrawImage(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float, image: RefinableImage?) {
