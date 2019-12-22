@@ -77,7 +77,7 @@ public abstract class ChartBuildAttributionInfoPanel extends AbstractBuildAttrib
     c.gridy = 1;
     c.weightx = 1.0;
     c.gridwidth = GridBagConstraints.REMAINDER;
-    c.anchor = GridBagConstraints.FIRST_LINE_END;
+    c.anchor = GridBagConstraints.FIRST_LINE_START;
     c.fill = GridBagConstraints.NONE;
     c.insets = JBUI.insetsBottom(8);
     if (legend != null) {
