@@ -29,20 +29,24 @@ class TaskIssueReportGeneratorTest : AbstractBuildAttributionReportBuilderTest()
 
   val task1androidPlugin =
     TaskData("compileDebugJavaWithJavac", ":module1", applicationPlugin, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList())
-      .apply { setTaskType("org.gradle.api.tasks.compile.JavaCompile") }
+      .apply {
+        setTaskType("org.gradle.api.tasks.compile.JavaCompile")
+        isOnTheCriticalPath = true
+      }
 
   val taskAmodule1 = TaskData("taskA", ":module1", pluginA, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList())
 
   val taskBmodule1 = TaskData("taskB", ":module1", pluginB, 0, 300, TaskData.TaskExecutionMode.FULL, emptyList())
+    .apply { isOnTheCriticalPath = true }
   val taskBmodule2 = TaskData("taskB", ":module2", pluginB, 0, 100, TaskData.TaskExecutionMode.INCREMENTAL, emptyList())
   val taskBmodule3OtherPlugin = TaskData("taskB", ":module3", pluginC, 0, 300, TaskData.TaskExecutionMode.FULL, emptyList())
 
-  val taskCmodule2 = TaskData("taskC", ":module1", pluginC, 0, 300, TaskData.TaskExecutionMode.FULL, emptyList())
+  val taskCmodule1 = TaskData("taskC", ":module1", pluginC, 0, 7300, TaskData.TaskExecutionMode.FULL, emptyList())
+    .apply { isOnTheCriticalPath = true }
 
   private val mockAnalysisResult = object : AbstractBuildAttributionReportBuilderTest.MockResultsProvider() {
     override fun getTotalBuildTimeMs(): Long = 10000
-    override fun getCriticalPathDurationMs(): Long = 8000
-    override fun getCriticalPathTasks(): List<TaskData> = listOf(task1androidPlugin, taskBmodule1, taskCmodule2)
+    override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(task1androidPlugin, taskBmodule1, taskCmodule1)
     override fun getProjectsConfigurationData(): List<ProjectConfigurationData> = listOf(
       project(":module1", 1000, listOf(
         plugin(pluginA, 200),
