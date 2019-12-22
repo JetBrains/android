@@ -87,14 +87,16 @@ class BuildAttributionTest {
   }
 
   private fun BuildAttributionViewFixture.checkTasks() {
-    selectPageByPath(" Critical Path Tasks 2 warnings", "Tasks Determining Build Duration \\(\\d+\\.\\d\\d\\d s\\) / Critical Path")
+    selectPageByPath(
+      " Tasks determining this build's duration 2 warnings",
+      "Tasks determining this build's duration \\(\\d+\\.\\d\\d\\d s\\)")
     expandSelectedNodeWithKeyStroke()
 
-    selectPageByPath(" Critical Path Tasks 2 warnings/ :app:dummy1", ":app:dummy1")
+    selectPageByPath(" Tasks determining this build's duration 2 warnings/ :app:dummy1", ":app:dummy1")
     findHyperlabelByTextContainsAndClick("Always-run Tasks")
     requireOpenedPagePathAndHeader(" Always-run Tasks 2 warnings/ :app:dummy1", ":app:dummy1")
 
-    selectPageByPath(" Critical Path Tasks 2 warnings/ :app:dummy2", ":app:dummy2")
+    selectPageByPath(" Tasks determining this build's duration 2 warnings/ :app:dummy2", ":app:dummy2")
     findHyperlabelByTextContainsAndClick("Always-run Tasks")
     requireOpenedPagePathAndHeader(" Always-run Tasks 2 warnings/ :app:dummy2", ":app:dummy2")
   }
@@ -114,38 +116,38 @@ class BuildAttributionTest {
 
   private fun BuildAttributionViewFixture.checkPlugins() {
     selectPageByPath(
-      " Plugins With Critical Path Tasks 2 warnings",
-      "Plugins Determining Build Duration \\(\\d+\\.\\d\\d\\d s\\) / Critical Path"
+      " Plugins with tasks determining this build's duration 2 warnings",
+      "Plugins with tasks determining this build's duration \\(\\d+\\.\\d\\d\\d s\\)"
     )
-    tree.expandPath(" Plugins With Critical Path Tasks 2 warnings")
+    tree.expandPath(" Plugins with tasks determining this build's duration 2 warnings")
     tree.requireSelectedNodeContainInOrder(listOf("com.android.application", "DummyPlugin 2 warnings"))
 
     // Move to Dummy plugin node using keyboard
     selectedNextNodeWithKeyStroke()
     requireOpenedPagePathAndHeader(
-      " Plugins With Critical Path Tasks 2 warnings/ com.android.application ",
+      " Plugins with tasks determining this build's duration 2 warnings/ com.android.application ",
       "com.android.application"
     )
     selectedNextNodeWithKeyStroke()
     requireOpenedPagePathAndHeader(
-      " Plugins With Critical Path Tasks 2 warnings/ DummyPlugin 2 warnings",
+      " Plugins with tasks determining this build's duration 2 warnings/ DummyPlugin 2 warnings",
       "DummyPlugin"
     )
     expandSelectedNodeWithKeyStroke()
 
-    tree.requireSelectedNodeContainInOrder(listOf("Critical Path Tasks 2 warnings", "Always-run Tasks 2 warnings"))
+    tree.requireSelectedNodeContainInOrder(listOf("Tasks determining this build's duration 2 warnings", "Always-run Tasks 2 warnings"))
 
     selectedNextNodeWithKeyStroke()
     expandSelectedNodeWithKeyStroke()
     selectedNextNodeWithKeyStroke()
     requireOpenedPagePathAndHeader(
-      " Plugins With Critical Path Tasks 2 warnings/ DummyPlugin 2 warnings/ Critical Path Tasks 2 warnings/ :app:dummy1",
+      " Plugins with tasks determining this build's duration 2 warnings/ DummyPlugin 2 warnings/ Tasks determining this build's duration 2 warnings/ :app:dummy1",
       ":app:dummy1"
     )
 
     findHyperlabelByTextContainsAndClick("Always-run Tasks")
     requireOpenedPagePathAndHeader(
-      " Plugins With Critical Path Tasks 2 warnings/ DummyPlugin 2 warnings/ Always-run Tasks 2 warnings/ :app:dummy1",
+      " Plugins with tasks determining this build's duration 2 warnings/ DummyPlugin 2 warnings/ Always-run Tasks 2 warnings/ :app:dummy1",
       ":app:dummy1")
   }
 }

@@ -17,12 +17,15 @@ package com.android.build.attribution.ui.panels;
 
 import static com.android.build.attribution.ui.panels.BuildAttributionPanelsKt.verticalRuler;
 
+import com.android.utils.HtmlBuilder;
+import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public abstract class ChartBuildAttributionInfoPanel extends AbstractBuildAttributionInfoPanel {
 
@@ -30,6 +33,7 @@ public abstract class ChartBuildAttributionInfoPanel extends AbstractBuildAttrib
   public JComponent createBody() {
     JBPanel body = new JBPanel(new GridBagLayout());
 
+    addDescription(body);
     addLegend(body);
     addChart(body);
     addInfo(body);
@@ -40,7 +44,7 @@ public abstract class ChartBuildAttributionInfoPanel extends AbstractBuildAttrib
 
   private static void addBottomFiller(JBPanel body) {
     GridBagConstraints c = new GridBagConstraints();
-    c.gridy = 2;
+    c.gridy = 3;
     c.gridx = 0;
     c.weighty = 1.0;
     c.fill = GridBagConstraints.BOTH;
@@ -48,11 +52,29 @@ public abstract class ChartBuildAttributionInfoPanel extends AbstractBuildAttrib
     body.add(new JBPanel(), c);
   }
 
+  private void addDescription(JBPanel body) {
+    JComponent description = createDescription();
+    GridBagConstraints c = new GridBagConstraints();
+    c.gridx = 0;
+    c.gridy = 0;
+    c.weightx = 1.0;
+    c.gridwidth = GridBagConstraints.REMAINDER;
+    c.anchor = GridBagConstraints.FIRST_LINE_START;
+    c.fill = GridBagConstraints.HORIZONTAL;
+    c.insets = JBUI.insetsBottom(8);
+    if (description != null) {
+      body.add(description, c);
+    }
+    else {
+      body.add(new JBPanel(), c);
+    }
+  }
+
   private void addLegend(JBPanel body) {
     JComponent legend = createLegend();
     GridBagConstraints c = new GridBagConstraints();
     c.gridx = 0;
-    c.gridy = 0;
+    c.gridy = 1;
     c.weightx = 1.0;
     c.gridwidth = GridBagConstraints.REMAINDER;
     c.anchor = GridBagConstraints.FIRST_LINE_END;
@@ -70,8 +92,11 @@ public abstract class ChartBuildAttributionInfoPanel extends AbstractBuildAttrib
     JComponent chart = createChart();
     GridBagConstraints c = new GridBagConstraints();
     c.gridx = 0;
-    c.gridy = 1;
+    c.gridy = 2;
     c.weightx = 0.0;
+    c.weighty = 0.0;
+    c.gridheight = 1;
+    c.gridwidth = 1;
     c.anchor = GridBagConstraints.FIRST_LINE_START;
     c.fill = GridBagConstraints.NONE;
     c.insets = JBUI.insetsRight(8);
@@ -83,7 +108,7 @@ public abstract class ChartBuildAttributionInfoPanel extends AbstractBuildAttrib
 
     GridBagConstraints rulerConstraints = new GridBagConstraints();
     rulerConstraints.gridx = 1;
-    rulerConstraints.gridy = 1;
+    rulerConstraints.gridy = 2;
     rulerConstraints.weightx = 0.0;
     rulerConstraints.weighty = 0.0;
     rulerConstraints.gridheight = 1;
@@ -94,10 +119,11 @@ public abstract class ChartBuildAttributionInfoPanel extends AbstractBuildAttrib
 
     GridBagConstraints panelConstraints = new GridBagConstraints();
     panelConstraints.gridx = 2;
-    panelConstraints.gridy = 1;
+    panelConstraints.gridy = 2;
     panelConstraints.weightx = 1.0;
     panelConstraints.weighty = 1.0;
     panelConstraints.gridheight = 2;
+    panelConstraints.gridwidth = GridBagConstraints.REMAINDER;
     panelConstraints.insets = JBUI.insetsLeft(8);
     panelConstraints.fill = GridBagConstraints.BOTH;
     if (info != null) {
@@ -113,7 +139,12 @@ public abstract class ChartBuildAttributionInfoPanel extends AbstractBuildAttrib
   @NotNull
   public abstract JComponent createChart();
 
+  @Nullable
+  public abstract JComponent createDescription();
+
+  @Nullable
   public abstract JComponent createLegend();
 
+  @Nullable
   public abstract JComponent createRightInfoPanel();
 }
