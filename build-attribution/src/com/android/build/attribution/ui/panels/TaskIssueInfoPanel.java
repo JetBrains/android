@@ -126,19 +126,21 @@ public class TaskIssueInfoPanel extends JBPanel {
   }
 
   protected JComponent createRecommendation() {
-    if (myTaskData.getSourceType() == PluginSourceType.BUILD_SRC) {
-      return new JPanel();
-    }
-    HyperlinkLabel recommendationLabel = new HyperlinkLabel();
-    recommendationLabel.addHyperlinkListener(e -> {
-      myAnalytics.bugReportLinkClicked();
-      myIssueReporter.reportIssue(myIssue);
-    });
-    recommendationLabel.setHyperlinkText("Consider filing a bug to report this issue to the plugin developer. ", "Generate report.", "");
-
     JPanel panel = new JPanel(new VerticalLayout(5));
     panel.add(new JBLabel("Recommendation").withFont(JBFont.label().asBold()));
-    panel.add(recommendationLabel);
+    if (myTaskData.getSourceType() == PluginSourceType.BUILD_SRC) {
+      panel.add(new JBLabel(myIssue.getBuildSrcRecommendation()));
+    }
+    else {
+      HyperlinkLabel recommendationLabel = new HyperlinkLabel();
+      recommendationLabel.addHyperlinkListener(e -> {
+        myAnalytics.bugReportLinkClicked();
+        myIssueReporter.reportIssue(myIssue);
+      });
+      recommendationLabel.setHyperlinkText("Consider filing a bug to report this issue to the plugin developer. ", "Generate report.", "");
+
+      panel.add(recommendationLabel);
+    }
     return panel;
   }
 
