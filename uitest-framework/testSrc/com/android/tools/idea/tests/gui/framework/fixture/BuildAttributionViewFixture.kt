@@ -37,9 +37,6 @@ class BuildAttributionViewFixture(robot: Robot, target: JPanel) : JPanelFixture(
       return JPanelFixture(robot(), finder().findByName(infoPanelContainer, "infoPage", JPanel::class.java, true))
     }
 
-  fun findHyperlabel() =
-    HyperlinkLabelFixture(robot(), finder().findByType(visiblePage.target(), HyperlinkLabel::class.java))
-
   fun findHyperlabelByTextContainsAndClick(text: String) =
     HyperlinkLabelFixture(robot(), finder().find(visiblePage.target()) { it is HyperlinkLabel && it.text.contains(text) } as HyperlinkLabel)
       .clickLink(text)
