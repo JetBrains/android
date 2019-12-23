@@ -79,7 +79,7 @@ AGP versions: ${generateAgpVersionsString()}
       val occurrences = findAllIssueOccurrences(taskIssue)
       val timeSum = TimeWithPercentage(
         occurrences.sumByLong { it.task.executionTime.timeMs },
-        reportData.buildSummary.totalBuildDuration.totalMs
+        reportData.buildSummary.criticalPathDuration.timeMs
       )
       appendln("Issue detected in ${occurrences.size} module(s), total execution time was ${timeSum.commonString()}, by module:")
       for (issue in occurrences) {
