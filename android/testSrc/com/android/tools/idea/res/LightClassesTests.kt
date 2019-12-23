@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.tools.idea.model.MergedManifestModificationListener
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -71,7 +72,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
   open class SingleModule : LightClassesTestBase() {
     override fun setUp() {
       super.setUp()
-
+      MergedManifestModificationListener.ensureSubscribed(project)
       myFixture.addFileToProject(
         "/res/values/values.xml",
         // language=xml
