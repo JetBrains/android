@@ -35,9 +35,11 @@ import com.android.tools.idea.naveditor.scene.ArrowDirection
 import com.android.tools.idea.naveditor.scene.SELF_ACTION_RADII
 import com.android.tools.idea.naveditor.scene.getSelfActionIconRect
 import com.android.tools.idea.naveditor.scene.makeDrawArrowCommand
+import com.android.tools.idea.naveditor.scene.makeDrawImageCommand
 import com.android.tools.idea.naveditor.scene.selfActionPoints
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawConnectionUtils
 import com.google.common.annotations.VisibleForTesting
+import icons.StudioIcons.NavEditor.Surface.POP_ACTION
 import java.awt.Color
 
 
@@ -76,7 +78,7 @@ class DrawSelfAction(@VisibleForTesting val rectangle: SwingRectangle,
 
     if (isPopAction) {
       val iconRect = getSelfActionIconRect(points[0], scale)
-      list.add(DrawIcon(iconRect, DrawIcon.IconType.POP_ACTION, color))
+      list.add(makeDrawImageCommand(POP_ACTION, iconRect, color))
     }
 
     return list
