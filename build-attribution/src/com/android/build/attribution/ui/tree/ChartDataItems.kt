@@ -61,7 +61,6 @@ fun createTaskChartItems(data: CriticalPathTasksUiData): List<TimeDistributionCh
     ))
   }
 
-  result.add(MiscGradleStepsChartItem(data.miscStepsTime))
   return result
 }
 
@@ -95,7 +94,6 @@ fun createPluginChartItems(data: CriticalPathPluginsUiData): List<TimeDistributi
     ))
   }
 
-  result.add(MiscGradleStepsChartItem(data.miscStepsTime))
   return result
 }
 
