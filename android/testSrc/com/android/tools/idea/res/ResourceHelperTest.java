@@ -36,6 +36,7 @@ import com.android.tools.adtui.imagediff.ImageDiffUtil;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.model.MergedManifestModificationListener;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -64,6 +65,12 @@ import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.manifest.Permission;
 
 public class ResourceHelperTest extends AndroidTestCase {
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    MergedManifestModificationListener.ensureSubscribed(getProject());
+  }
+
   public void testIsFileBasedResourceType() {
     assertTrue(ResourceHelper.isFileBased(ResourceType.ANIMATOR));
     assertTrue(ResourceHelper.isFileBased(ResourceType.LAYOUT));

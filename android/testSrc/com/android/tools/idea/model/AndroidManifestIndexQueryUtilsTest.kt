@@ -15,19 +15,28 @@
  */
 package com.android.tools.idea.model
 
+import com.android.AndroidProjectTypes
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.run.activity.IndexedActivityWrapper
 import com.google.common.truth.Truth
-import com.intellij.openapi.application.ApplicationManager
-import junit.framework.TestCase
+import com.intellij.openapi.module.Module
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
+import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
-import java.io.IOException
 
 class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
+  private val LIB_MODULE_WITH_DEPENDENCY = "withDependency"
+
   override fun setUp() {
     super.setUp()
     MergedManifestModificationListener.ensureSubscribed(project)
+  }
+
+  override fun configureAdditionalModules(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
+                                          modules: MutableList<MyAdditionalModuleData>) {
+    super.configureAdditionalModules(projectBuilder, modules)
+    addModuleWithAndroidFacet(projectBuilder, modules, LIB_MODULE_WITH_DEPENDENCY, AndroidProjectTypes.PROJECT_TYPE_LIBRARY, true)
   }
 
   fun testQueryMinSdkAndTargetSdk() {
@@ -39,7 +48,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
     </manifest>
     """.trimIndent()
 
-    updateManifestContents(manifestContent)
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent)
     // not sure why it's 21 -1
     Truth.assertThat(myFacet.queryMinSdkAndTargetSdkFromManifestIndex().minSdk.apiLevel).isEqualTo(20)
     Truth.assertThat(myFacet.queryMinSdkAndTargetSdkFromManifestIndex().targetSdk.apiLevel).isEqualTo(28)
@@ -67,7 +76,7 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
     </manifest>
     """.trimIndent()
 
-    updateManifestContents(manifestContent)
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent)
 
     val activities = myFacet.queryActivitiesFromManifestIndex()
 
@@ -113,19 +122,52 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
     )
   }
 
-  private fun updateManifestContents(manifestContents: String) {
-    val manifest = myFixture.findFileInTempDir(FN_ANDROID_MANIFEST_XML)
-    ApplicationManager.getApplication().runWriteAction {
-      if (manifest != null) {
-        try {
-          manifest.delete(this)
-        }
-        catch (e: IOException) {
-          TestCase.fail("Could not delete manifest")
-        }
-      }
-    }
+  fun testQueryCustomPermissionsAndGroups() {
+    val manifestContent = """
+    <?xml version='1.0' encoding='utf-8'?>
+    <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
+      package='com.example' android:debuggable="false" android:enabled='true'>
+    <permission-group android:name='custom.permissions.CUSTOM_GROUP'/>
+    <permission android:name='custom.permissions.IN_CUSTOM_GROUP' android:permissionGroup='custom.permissions.CUSTOM_GROUP'/>
+    <permission android:name='custom.permissions.NO_GROUP'/>
+    </manifest>
+    """.trimIndent()
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent)
 
-    myFixture.addFileToProject(FN_ANDROID_MANIFEST_XML, manifestContents)
+    Truth.assertThat(myFacet.queryCustomPermissionsFromManifestIndex()).isEqualTo(
+      setOf("custom.permissions.IN_CUSTOM_GROUP", "custom.permissions.NO_GROUP"))
+    Truth.assertThat(myFacet.queryCustomPermissionGroupsFromManifestIndex()).isEqualTo(
+      setOf("custom.permissions.CUSTOM_GROUP"))
+
+    // Update the primary manifest file of additional module with dependency.
+    // Query results should be the union set of custom permissions and groups declared in primary manifest files of main
+    // module and additional module
+    val anotherManifestContent = """
+    <?xml version='1.0' encoding='utf-8'?>
+    <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
+      package='com.example' android:debuggable="false" android:enabled='true'>
+    <permission-group android:name='custom.permissions.CUSTOM_GROUP1'/>
+    <permission android:name='custom.permissions.IN_CUSTOM_GROUP1' android:permissionGroup='custom.permissions.CUSTOM_GROUP1'/>
+    <permission android:name='custom.permissions.NO_GROUP1'/>
+    </manifest>
+    """.trimIndent()
+
+    Truth.assertThat(myAdditionalModules.size).isEqualTo(1)
+    val libModule = myAdditionalModules[0]
+    updateManifest(libModule, "additionalModules/$LIB_MODULE_WITH_DEPENDENCY/$FN_ANDROID_MANIFEST_XML", anotherManifestContent)
+
+    Truth.assertThat(myFacet.queryCustomPermissionsFromManifestIndex()).isEqualTo(
+      setOf("custom.permissions.IN_CUSTOM_GROUP",
+            "custom.permissions.NO_GROUP",
+            "custom.permissions.IN_CUSTOM_GROUP1",
+            "custom.permissions.NO_GROUP1"))
+
+    Truth.assertThat(myFacet.queryCustomPermissionGroupsFromManifestIndex()).isEqualTo(
+      setOf("custom.permissions.CUSTOM_GROUP", "custom.permissions.CUSTOM_GROUP1"))
+  }
+
+  private fun updateManifest(module: Module, relativePath: String, manifestContents: String) {
+    deleteManifest(module)
+    myFixture.addFileToProject(relativePath, manifestContents)
   }
 }

@@ -27,7 +27,15 @@ import com.android.SdkConstants.TAG_PERMISSION_GROUP
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.model.AndroidManifestIndex
+import com.android.tools.idea.model.queryCustomPermissionGroupsFromManifestIndex
+import com.android.tools.idea.model.queryCustomPermissionsFromManifestIndex
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.IndexNotReadyException
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.XmlRecursiveElementVisitor
@@ -41,6 +49,7 @@ import com.intellij.util.xml.XmlName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
 
+private val LOG: Logger get() = logger(::LOG)
 /**
  * Returns the module's resource package name, or null if it could not be determined.
  *
@@ -84,10 +93,25 @@ fun isRequiredAttribute(attrName: XmlName, element: DomElement): Boolean {
 private val CUSTOM_PERMISSIONS = Key.create<CachedValue<Collection<String>?>>("merged.manifest.custom.permissions")
 
 /**
- * Returns the names of the custom permissions listed in the primary manifest of the module
+ * Returns the names of the custom permissions queried from [AndroidManifestIndex].
+ * However, if index is not ready, it falls back to the custom permissions listed in the primary manifest of the module
  * corresponding to the given [facet], or null if the primary manifest couldn't be found.
  */
 fun getCustomPermissions(facet: AndroidFacet): Collection<String>? {
+  if (AndroidManifestIndex.indexEnabled()) {
+    try {
+      return DumbService.getInstance(facet.module.project)
+        .runReadActionInSmartMode(Computable { facet.queryCustomPermissionsFromManifestIndex() })
+    }
+    catch (e: IndexNotReadyException) {
+      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+      //  We need to refactor the callers of this to require a *smart*
+      //  read action, at which point we can remove this try-catch.
+      //  It falls back to the original method when index isn't ready.
+      LOG.info(e)
+    }
+  }
+
   val cachedValue = facet.cachedValueFromPrimaryManifest { customPermissions }
   return facet.putUserDataIfAbsent(CUSTOM_PERMISSIONS, cachedValue).value
 }
@@ -95,10 +119,25 @@ fun getCustomPermissions(facet: AndroidFacet): Collection<String>? {
 private val CUSTOM_PERMISSION_GROUPS = Key.create<CachedValue<Collection<String>?>>("merged.manifest.custom.permission.groups")
 
 /**
- * Returns the names of the custom permission groups listed in the primary manifest of the module
- * corresponding to the given [facet], or null if the primary manifest couldn't be found.
+ * Returns the names of the custom permission groups queried from [AndroidManifestIndex].
+ * However, if index is not ready, it falls back to the custom permission groups listed in the primary manifest of the
+ * module corresponding to the given [facet], or null if the primary manifest couldn't be found.
  */
 fun getCustomPermissionGroups(facet: AndroidFacet): Collection<String>? {
+  if (AndroidManifestIndex.indexEnabled()) {
+    try {
+      return DumbService.getInstance(facet.module.project)
+        .runReadActionInSmartMode(Computable { facet.queryCustomPermissionGroupsFromManifestIndex() })
+    }
+    catch (e: IndexNotReadyException) {
+      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+      //  We need to refactor the callers of this to require a *smart*
+      //  read action, at which point we can remove this try-catch.
+      //  It falls back to the original method when index isn't ready.
+      LOG.info(e)
+    }
+  }
+
   val cachedValue = facet.cachedValueFromPrimaryManifest { customPermissionGroups }
   return facet.putUserDataIfAbsent(CUSTOM_PERMISSION_GROUPS, cachedValue).value
 }
