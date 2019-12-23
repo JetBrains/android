@@ -32,7 +32,8 @@ import com.android.build.attribution.ui.data.TimeWithPercentage
  */
 class TaskUiDataContainer(
   buildAnalysisResult: BuildEventsAnalysisResult,
-  val issuesContainer: TaskIssueUiDataContainer
+  val issuesContainer: TaskIssueUiDataContainer,
+  private val criticalPathDuration: Long
 ) {
 
   private val tasksCache: MutableMap<TaskData, TaskUiData> = HashMap()
@@ -52,7 +53,7 @@ class TaskUiDataContainer(
       override val name: String = task.taskName
       override val taskPath: String = task.getTaskPath()
       override val taskType: String = task.taskType
-      override val executionTime: TimeWithPercentage = TimeWithPercentage(task.executionTime, totalBuildTimeMs)
+      override val executionTime: TimeWithPercentage = TimeWithPercentage(task.executionTime, criticalPathDuration)
       override val executedIncrementally: Boolean = task.executionMode == TaskData.TaskExecutionMode.INCREMENTAL
       override val executionMode: String = task.executionMode.name
       override val onCriticalPath: Boolean = task.isOnTheCriticalPath
