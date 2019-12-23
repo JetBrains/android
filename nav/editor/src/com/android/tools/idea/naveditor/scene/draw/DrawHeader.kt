@@ -29,8 +29,11 @@ import com.android.tools.idea.naveditor.scene.HEADER_ICON_SIZE
 import com.android.tools.idea.naveditor.scene.HEADER_TEXT_HEIGHT
 import com.android.tools.idea.naveditor.scene.HEADER_TEXT_PADDING
 import com.android.tools.idea.naveditor.scene.NavColors.SUBDUED_TEXT
+import com.android.tools.idea.naveditor.scene.makeDrawImageCommand
 import com.android.tools.idea.naveditor.scene.scaledFont
 import com.google.common.annotations.VisibleForTesting
+import icons.StudioIcons.NavEditor.Surface.DEEPLINK
+import icons.StudioIcons.NavEditor.Surface.START_DESTINATION
 import java.awt.Font
 
 class DrawHeader(@VisibleForTesting val rectangle: SwingRectangle,
@@ -56,14 +59,15 @@ class DrawHeader(@VisibleForTesting val rectangle: SwingRectangle,
 
     if (isStart) {
       val startRect = SwingRectangle(rectangle.x, rectangle.y, iconSize, iconSize)
-      list.add(DrawIcon(startRect, DrawIcon.IconType.START_DESTINATION))
+      list.add(makeDrawImageCommand(START_DESTINATION, startRect))
       textX += iconSize + textPadding
+      textWidth -= iconSize + textPadding
     }
 
     if (hasDeepLink) {
       val deepLinkRect = SwingRectangle(rectangle.x + rectangle.width - iconSize, rectangle.y, iconSize, iconSize)
-      list.add(DrawIcon(deepLinkRect, DrawIcon.IconType.DEEPLINK))
-      textWidth -= rectangle.height + textPadding
+      list.add(makeDrawImageCommand(DEEPLINK, deepLinkRect))
+      textWidth -= iconSize + textPadding
     }
 
     val textRectangle = SwingRectangle(textX, rectangle.y + textPadding, textWidth, scale * HEADER_TEXT_HEIGHT)

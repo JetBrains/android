@@ -23,13 +23,13 @@ import org.mockito.ArgumentMatchers.argThat
 import org.mockito.ArgumentMatchers.eq
 import org.mockito.InOrder
 import org.mockito.Mockito.times
-import org.mockito.internal.verification.AtLeast
 import java.awt.BasicStroke
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.Shape
 import java.awt.Stroke
 import java.awt.geom.Line2D
+import java.awt.geom.Path2D
 import java.awt.geom.Rectangle2D
 import java.awt.geom.RoundRectangle2D
 import java.awt.image.BufferedImage
@@ -48,6 +48,14 @@ private val ACTIVITY_BORDER_STROKE = BasicStroke(1f)
 private const val SPACING = 2f
 private const val ARC_SIZE = 12f
 private val BACKGROUND = Color(0xfafafa)
+private val HEADER_TEXT = Color(0x656565)
+
+private const val HEADER_ICON_SIZE = 14f
+private const val HEADER_TEXT_PADDING = 2f
+
+private val ACTION_STROKE = BasicStroke(3f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
+
+private const val ACTION_ARROW_PARALLEL = 10f
 
 fun verifyDrawFragment(inOrder: InOrder,
                        g: Graphics2D,
@@ -57,7 +65,7 @@ fun verifyDrawFragment(inOrder: InOrder,
                        image: RefinableImage? = null) {
   verifyDrawShape(inOrder, g, rectangle, FRAME_COLOR, FRAME_STROKE)
   val imageRectangle = Rectangle2D.Float(rectangle.x + 1f, rectangle.y + 1f, rectangle.width - 2f, rectangle.height - 2f)
-  verifyDrawImage(inOrder, g, imageRectangle, image)
+  verifyDrawNavScreen(inOrder, g, imageRectangle, image)
 
   if (highlightColor != null) {
     val spacing = 2 * SPACING * scale.toFloat()
@@ -97,12 +105,36 @@ fun verifyDrawActivity(inOrder: InOrder,
   val roundRectangle = RoundRectangle2D.Float(rectangle.x, rectangle.y, rectangle.width, rectangle.height, arcSize, arcSize)
   verifyFillShape(inOrder, g, roundRectangle, BACKGROUND)
   verifyDrawShape(inOrder, g, roundRectangle, frameColor, BasicStroke(frameThickness))
-  verifyDrawImage(inOrder, g, imageRectangle, image)
+  verifyDrawNavScreen(inOrder, g, imageRectangle, image)
   verifyDrawShape(inOrder, g, imageRectangle, ACTIVITY_BORDER_COLOR, ACTIVITY_BORDER_STROKE)
   verifyDrawTruncatedText(inOrder, g, "Activity", textColor)
 }
 
-fun verifyDrawImage(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float, image: RefinableImage?) {
+fun verifyDrawHeader(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float,
+                     scale: Double, text: String, isStart: Boolean, hasDeepLink: Boolean) {
+
+  var textX = rectangle.x
+  var textWidth = rectangle.width
+  val textPadding = scale.toFloat() * HEADER_TEXT_PADDING
+  val iconSize = scale.toFloat() * HEADER_ICON_SIZE
+
+  if (isStart) {
+    val startRect = Rectangle2D.Float(rectangle.x, rectangle.y, iconSize, iconSize)
+    verifyDrawIcon(inOrder, g, startRect)
+    textX += iconSize + textPadding
+    textWidth -= iconSize + textPadding
+  }
+
+  if (hasDeepLink) {
+    val deepLinkRect = Rectangle2D.Float(rectangle.x + rectangle.width - iconSize, rectangle.y, iconSize, iconSize)
+    verifyDrawIcon(inOrder, g, deepLinkRect)
+    textWidth -= iconSize + textPadding
+  }
+
+  verifyDrawTruncatedText(inOrder, g, text, HEADER_TEXT)
+}
+
+fun verifyDrawNavScreen(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float, image: RefinableImage?) {
   if (image == null) {
     verifyDrawPlaceholder(inOrder, g, rectangle)
     return
@@ -177,7 +209,7 @@ fun verifyDrawShape(inOrder: InOrder, g: Graphics2D, shape: Shape, color: Color,
   inOrder.verify(g).create()
   inOrder.verify(g).setRenderingHints(any())
   inOrder.verify(g).color = color
-  inOrder.verify(g).stroke = stroke
+  inOrder.verify(g).stroke = argThat(StrokeArgumentMatcher(stroke))
   inOrder.verify(g).draw(argThat(ShapeArgumentMatcher(shape)))
   inOrder.verify(g).dispose()
 }
@@ -188,5 +220,39 @@ fun verifyDrawTruncatedText(inOrder: InOrder, g: Graphics2D, text: String, color
   inOrder.verify(g).color = color
   inOrder.verify(g).font = any()
   inOrder.verify(g).drawString(eq(text), anyFloat(), anyFloat())
+  inOrder.verify(g).dispose()
+}
+
+fun verifyDrawAction(inOrder: InOrder, g: Graphics2D, color: Color, isPopAction: Boolean) {
+  verifyDrawShape(inOrder, g, Path2D.Float(), color, ACTION_STROKE)
+  verifyFillShape(inOrder, g, Path2D.Float(), color)
+  if (isPopAction) {
+    verifyDrawIcon(inOrder, g)
+  }
+}
+
+fun verifyDrawHorizontalAction(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float,
+                               scale: Double, color: Color, isPopAction: Boolean) {
+  val x1 = rectangle.x
+  val x2 = x1 + rectangle.width - ACTION_ARROW_PARALLEL * scale.toFloat()
+  val y = rectangle.centerY.toFloat()
+
+  verifyDrawShape(inOrder, g, Line2D.Float(x1, y, x2, y), color, ACTION_STROKE)
+  verifyFillShape(inOrder, g, Path2D.Float(), color)
+  if (isPopAction) {
+    verifyDrawIcon(inOrder, g)
+  }
+}
+
+fun verifyDrawIcon(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float? = null) {
+  inOrder.verify(g).create()
+  inOrder.verify(g).setRenderingHints(any())
+  if (rectangle == null) {
+    inOrder.verify(g).drawImage(any(), anyInt(), anyInt(), anyInt(), anyInt(), eq(null))
+  }
+  else {
+    inOrder.verify(g).drawImage(any(), eq(rectangle.x.toInt()), eq(rectangle.y.toInt()),
+                                eq(rectangle.width.toInt()), eq(rectangle.height.toInt()), eq(null))
+  }
   inOrder.verify(g).dispose()
 }

@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.scene.draw
 import org.mockito.ArgumentMatcher
 import java.awt.Shape
 import java.awt.geom.Line2D
+import java.awt.geom.Path2D
 import java.awt.geom.RoundRectangle2D
 
 class ShapeArgumentMatcher(private val expected: Shape) : ArgumentMatcher<Shape> {
@@ -25,6 +26,7 @@ class ShapeArgumentMatcher(private val expected: Shape) : ArgumentMatcher<Shape>
     return when (argument) {
       is Line2D.Float -> matchLine(argument)
       is RoundRectangle2D.Float -> matchRoundRectangle(argument)
+      is Path2D.Float -> expected is Path2D.Float
       else -> expected == argument
     }
   }

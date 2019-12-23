@@ -36,8 +36,9 @@ import com.android.tools.idea.naveditor.scene.ACTION_STROKE
 import com.android.tools.idea.naveditor.scene.ArrowDirection
 import com.android.tools.idea.naveditor.scene.getHorizontalActionIconRect
 import com.android.tools.idea.naveditor.scene.makeDrawArrowCommand
+import com.android.tools.idea.naveditor.scene.makeDrawImageCommand
+import icons.StudioIcons.NavEditor.Surface.POP_ACTION
 import java.awt.Color
-import java.awt.geom.Line2D
 
 data class DrawHorizontalAction(private val rectangle: SwingRectangle,
                                 private val scale: Scale,
@@ -68,7 +69,7 @@ data class DrawHorizontalAction(private val rectangle: SwingRectangle,
 
     if (isPopAction) {
       val iconRect = getHorizontalActionIconRect(rectangle, scale)
-      val drawIcon = DrawIcon(iconRect, DrawIcon.IconType.POP_ACTION, color)
+      val drawIcon = makeDrawImageCommand(POP_ACTION, iconRect, color)
       list.add(drawIcon)
     }
 

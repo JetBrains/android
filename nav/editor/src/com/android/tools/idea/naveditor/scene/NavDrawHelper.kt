@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.naveditor.scene
 
+import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.SwingEllipse
 import com.android.tools.adtui.common.SwingFont
 import com.android.tools.adtui.common.SwingLength
@@ -30,12 +31,16 @@ import com.android.tools.idea.common.model.times
 import com.android.tools.idea.common.scene.LerpEllipse
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.android.tools.idea.common.scene.draw.DrawImage
 import com.android.tools.idea.common.scene.draw.FillShape
 import com.android.tools.idea.common.scene.inlineScale
+import com.android.tools.idea.common.util.iconToImage
 import com.android.tools.idea.naveditor.scene.draw.DrawNavScreen
 import com.android.tools.idea.naveditor.scene.draw.DrawPlaceholder
 import com.google.common.annotations.VisibleForTesting
 import java.awt.Color
+import java.awt.Image
+import javax.swing.Icon
 import kotlin.math.min
 
 @VisibleForTesting
@@ -132,5 +137,15 @@ fun makeDrawArrowCommand(rectangle: SwingRectangle, direction: ArrowDirection, c
   path.closePath()
 
   return FillShape(path, color)
+}
+
+fun makeDrawImageCommand(icon: Icon, rectangle: SwingRectangle) : DrawCommand {
+  val image = iconToImage(icon).getScaledInstance(rectangle.width.toInt(), rectangle.height.toInt(), Image.SCALE_SMOOTH)
+  return DrawImage(rectangle, image)
+}
+
+fun makeDrawImageCommand(icon: Icon, rectangle: SwingRectangle, color: Color) : DrawCommand {
+  val coloredIcon = ColoredIconGenerator.generateColoredIcon(icon, color.rgb)
+  return makeDrawImageCommand(coloredIcon, rectangle)
 }
 

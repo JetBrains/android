@@ -130,6 +130,56 @@ class DrawCommandTest : NavTestCase() {
     }
   }
 
+  fun testDrawHeader() {
+    testDrawHeader(false, false)
+    testDrawHeader(false, true)
+    testDrawHeader(true, false)
+    testDrawHeader(true, true)
+  }
+
+  private fun testDrawHeader(isStart: Boolean, hasDeepLinks: Boolean) {
+    val headerRect = Rectangle2D.Float(10f, 10f, 200f, 800f)
+    val headerString = "header"
+    val command = DrawHeader(SwingRectangle(headerRect), Scale(SCALE), headerString, isStart, hasDeepLinks)
+    verifyDrawCommand(command) { inOrder, g ->
+      verifyDrawHeader(inOrder, g, headerRect, SCALE, headerString, isStart, hasDeepLinks)
+    }
+  }
+
+  fun testDrawAction() {
+    val rectangle = SwingRectangle(Rectangle2D.Float())
+    val color = Color.RED
+    testDrawAction(DrawAction(rectangle, rectangle, Scale(SCALE), color, false), color, false)
+    testDrawAction(DrawAction(rectangle, rectangle, Scale(SCALE), color, true), color, true)
+  }
+
+  fun testDrawSelfAction() {
+    val rectangle = SwingRectangle(Rectangle2D.Float())
+    val color = Color.RED
+    testDrawAction(DrawSelfAction(rectangle, Scale(SCALE), color, false), color, false)
+    testDrawAction(DrawSelfAction(rectangle, Scale(SCALE), color, true), color, true)
+  }
+
+  fun testDrawHorizontalAction() {
+    testDrawHorizontalAction(true)
+    testDrawHorizontalAction(false)
+  }
+
+  private fun testDrawAction(action: DrawCommand, color: Color, isPopAction: Boolean) {
+    verifyDrawCommand(action) { inOrder, g ->
+      verifyDrawAction(inOrder, g, color, isPopAction)
+    }
+  }
+
+  private fun testDrawHorizontalAction(isPopAction: Boolean) {
+    val rectangle = Rectangle2D.Float(10f, 10f, 40f, 20f)
+    val color = Color.RED
+
+    verifyDrawCommand(DrawHorizontalAction(SwingRectangle(rectangle), Scale(SCALE), color, isPopAction)) { inOrder, g ->
+      verifyDrawHorizontalAction(inOrder, g, rectangle, SCALE, color, isPopAction)
+    }
+  }
+
   private fun verifyDrawCommand(command: DrawCommand, verifier: (InOrder, Graphics2D) -> Unit) {
     val graphics = mock(Graphics2D::class.java)
     `when`(graphics.create()).thenReturn(graphics)
