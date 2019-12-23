@@ -593,7 +593,9 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
           // retrieved earlier is for test Apk.
           if (configuration instanceof AndroidTestRunConfiguration) {
             Module baseModule = DynamicAppUtils.getBaseFeature(selectedModule);
-            modules.add(baseModule);
+            if (baseModule != null) {
+              modules.add(baseModule);
+            }
           }
         }
         return GradleTaskRunner.newRunner(myProject, OutputBuildActionUtil.create(modules));

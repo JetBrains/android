@@ -81,6 +81,26 @@ class GradleTaskRunnerFactoryTest : HeavyPlatformTestCase() {
     TestCase.assertNull(buildAction)
   }
 
+  fun testCreateTaskRunnerForInstrumentedTest() {
+    setupTestProjectFromAndroidModel(
+      project,
+      projectDir,
+      androidModule(":app", "3.5.0")
+    )
+    val taskRunnerFactory = GradleTaskRunnerFactory(project)
+    val configuration = Mockito.mock(AndroidTestRunConfiguration::class.java)
+    val configurationModule = Mockito.mock(JavaRunConfigurationModule::class.java)
+    `when`(configurationModule.module).thenReturn(myModules.getModule("app"))
+    `when`(configuration.configurationModule).thenReturn(configurationModule)
+
+    val taskRunner = taskRunnerFactory.createTaskRunner(configuration)
+    val buildAction = taskRunner.buildAction
+
+    Truth.assertThat(buildAction).isInstanceOf(OutputBuildAction::class.java)
+    val outputBuildAction = buildAction as OutputBuildAction
+    Truth.assertThat(outputBuildAction.myGradlePaths).containsExactly(":app")
+  }
+
   fun testCreateTaskRunnerForDynamicFeatureInstrumentedTest() {
     setupTestProjectFromAndroidModel(
       project,
