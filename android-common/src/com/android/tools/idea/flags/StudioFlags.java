@@ -804,5 +804,15 @@ public final class StudioFlags {
     true);
 
   //endregion
+
+  // region App Inspection
+  private static final FlagGroup APP_INSPECTION = new FlagGroup(FLAGS, "appinspection", "App Inspection");
+  public static final Flag<Boolean> ENABLE_APP_INSPECTION_TOOL_WINDOW = Flag.create(
+    APP_INSPECTION, "enable.tool.window", "Enable App Inspection Tool Window",
+    "Enables the top-level App Inspection tool window, which will contain tabs to various feature inspectors",
+    false
+  );
+  // endregion
+
   private StudioFlags() { }
 }

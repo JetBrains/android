@@ -41,5 +41,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-transport:intellij.android.transport[module]",
         "//tools/idea/platform/util:intellij.platform.util[module]",
+        "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
     ],
 )
