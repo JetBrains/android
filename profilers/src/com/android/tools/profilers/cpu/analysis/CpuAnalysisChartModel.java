@@ -15,6 +15,7 @@
  */
 package com.android.tools.profilers.cpu.analysis;
 
+import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
@@ -22,12 +23,15 @@ import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterResult;
 import com.android.tools.adtui.model.formatter.PercentAxisFormatter;
+import com.android.tools.perflib.vmtrace.ClockType;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
+import com.android.tools.profilers.cpu.CpuProfilerAspect;
 import com.android.tools.profilers.cpu.VisualNodeCaptureNode;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +44,10 @@ import org.jetbrains.annotations.NotNull;
  * The title is used as both the tab title, and the tab tool tip.
  */
 public class CpuAnalysisChartModel<T> extends CpuAnalysisTabModel<T> {
+  public enum Aspect {
+    CLOCK_TYPE
+  }
+
   private static final Map<Type, CaptureDetails.Type> TAB_TYPE_TO_DETAIL_TYPE = ImmutableMap.of(
     Type.FLAME_CHART, CaptureDetails.Type.FLAME_CHART,
     Type.TOP_DOWN, CaptureDetails.Type.TOP_DOWN,
@@ -51,8 +59,11 @@ public class CpuAnalysisChartModel<T> extends CpuAnalysisTabModel<T> {
   private final CaptureDetails.Type myDetailsType;
   private final AxisComponentModel myAxisComponentModel;
   private final Function<T, Collection<CaptureNode>> myCaptureNodesExtractor;
-  private final Range myClampedSelectionRange;
-  private final AspectObserver myObserver = new AspectObserver();
+  @NotNull private final Range myClampedSelectionRange;
+  @NotNull private final Range myCaptureConvertedRange;
+  @NotNull private final AspectObserver myObserver = new AspectObserver();
+  @NotNull private final AspectModel<Aspect> myAspectModel = new AspectModel<>();
+  @NotNull private ClockType myClockType;
 
   /**
    * @param captureNodesExtractor a function that extracts capture nodes from the analysis object.
@@ -68,11 +79,15 @@ public class CpuAnalysisChartModel<T> extends CpuAnalysisTabModel<T> {
     // Need to clone the selection range since the ClampedAxisComponent modifies the range. Without this it will cause weird selection
     // behavior in the SelectionComponent / Minimap.
     myClampedSelectionRange = new Range(selectionRange);
+    myCaptureConvertedRange = new Range();
     selectionRange.addDependency(myObserver).onChange(Range.Aspect.RANGE, this::selectionRangeSync);
+    myClampedSelectionRange.addDependency(myObserver).onChange(Range.Aspect.RANGE, this::updateCaptureConvertedRange);
+    myCaptureConvertedRange.addDependency(myObserver).onChange(Range.Aspect.RANGE, this::updateSelectionRange);
 
     myDetailsType = TAB_TYPE_TO_DETAIL_TYPE.get(tabType);
     myCaptureNodesExtractor = captureNodesExtractor;
     myAxisComponentModel = new ClampedAxisComponentModel.Builder(myClampedSelectionRange, new PercentAxisFormatter(5, 10)).build();
+    setClockType(ClockType.GLOBAL);
   }
 
   private void selectionRangeSync() {
@@ -96,7 +111,7 @@ public class CpuAnalysisChartModel<T> extends CpuAnalysisTabModel<T> {
       .map(node -> node.applyFilter(filter))
       .reduce(FilterResult::combine)
       .orElseGet(FilterResult::new);
-    return new CaptureDetailsWithFilterResult(myDetailsType.build(mySelectionRange, nodes, myCapture), combinedResult);
+    return new CaptureDetailsWithFilterResult(myDetailsType.build(myCaptureConvertedRange, nodes, myCapture), combinedResult);
   }
 
   @NotNull
@@ -107,6 +122,103 @@ public class CpuAnalysisChartModel<T> extends CpuAnalysisTabModel<T> {
   @NotNull
   public AxisComponentModel getAxisComponentModel() {
     return myAxisComponentModel;
+  }
+
+  public boolean isCaptureDualClock() {
+    return myCapture.isDualClock();
+  }
+
+  @NotNull
+  public List<ClockType> getClockTypes() {
+    return ImmutableList.of(ClockType.GLOBAL, ClockType.THREAD);
+  }
+
+  @VisibleForTesting
+  public Range getCaptureConvertedRange() {
+    return myCaptureConvertedRange;
+  }
+
+  @NotNull
+  public ClockType getClockType() {
+    return myClockType;
+  }
+
+  public void setClockType(@NotNull ClockType clockType) {
+    if (myClockType == clockType || (!isCaptureDualClock() && clockType == ClockType.THREAD)) {
+      return;
+    }
+    myClockType = clockType;
+    myCapture.updateClockType(clockType);
+    updateCaptureConvertedRange();
+    myAspectModel.changed(Aspect.CLOCK_TYPE);
+  }
+
+  @NotNull
+  public AspectModel<Aspect> getAspectModel() {
+    return myAspectModel;
+  }
+
+  /**
+   * When using ClockType.THREAD, we need to scale the selection to actually select a relevant range in the capture.
+   * That happens because selection is based on wall-clock time, which is usually way greater than thread time.
+   * As the two types of clock are synced at start time, making a selection starting at a time
+   * greater than (start + thread time length) will result in no feedback for the user, which is wrong.
+   * Therefore, we scale the selection so we can provide relevant thread time data as the user changes selection.
+   */
+  private void updateCaptureConvertedRange() {
+    // TODO: improve performance of select range conversion.
+    Range selection = myClampedSelectionRange;
+    ClockType clockType = getClockType();
+    if (clockType == ClockType.GLOBAL || getDataSeries().isEmpty()) {
+      setConvertedRange(selection);
+      return;
+    }
+    CaptureNode node = myCaptureNodesExtractor.apply(getDataSeries().get(0)).iterator().next();
+    double convertedMin = node.getStartThread() + node.threadGlobalRatio() * (selection.getMin() - node.getStartGlobal());
+    double convertedMax = convertedMin + node.threadGlobalRatio() * selection.getLength();
+    setConvertedRange(new Range(convertedMin, convertedMax));
+  }
+
+  /**
+   * Updates the selection range based on the converted range in case THREAD clock is being used.
+   */
+  private void updateSelectionRange() {
+    // TODO: improve performance of range conversion.
+    ClockType clockType = getClockType();
+    if (clockType == ClockType.GLOBAL || getDataSeries().isEmpty()) {
+      setSelectionRange(myCaptureConvertedRange);
+      return;
+    }
+    // Use the ratio of the first node.
+    CaptureNode node = myCaptureNodesExtractor.apply(getDataSeries().get(0)).iterator().next();
+    double threadToGlobal = 1 / node.threadGlobalRatio();
+    double convertedMin = node.getStartGlobal() + threadToGlobal * (myCaptureConvertedRange.getMin() - node.getStartThread());
+    double convertedMax = convertedMin + threadToGlobal * myCaptureConvertedRange.getLength();
+    setSelectionRange(new Range(convertedMin, convertedMax));
+  }
+
+  /**
+   * Converted range updates selection range and vice-versa.
+   * <p>
+   * If it's almost identical to the selection range, don't update it.
+   * This prevents from updating each other in a loop.
+   */
+  private void setSelectionRange(Range range) {
+    if (!myClampedSelectionRange.isSameAs(range)) {
+      myClampedSelectionRange.set(range);
+    }
+  }
+
+  /**
+   * Converted range updates selection range and vice-versa.
+   * <p>
+   * If it's almost identical to the range, don't update it.
+   * This prevents from updating each other in a loop.
+   */
+  private void setConvertedRange(Range range) {
+    if(!myCaptureConvertedRange.isSameAs(range)) {
+      myCaptureConvertedRange.set(range);
+    }
   }
 
   /**
