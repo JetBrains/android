@@ -133,6 +133,7 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Name")
                    .setPreferredWidth(900)
+                   .setMinWidth(160)
                    .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
                    .setHeaderAlignment(SwingConstants.LEFT)
                    .setRenderer(new MethodNameRenderer())
