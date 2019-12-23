@@ -188,7 +188,7 @@ private class OtherChartItem<T>(
   }
 }
 
-private class MiscGradleStepsChartItem<T>(val miscStepsTime: TimeWithPercentage) : TimeDistributionChart.ChartDataItem<T> {
+class MiscGradleStepsChartItem<T>(val miscStepsTime: TimeWithPercentage) : TimeDistributionChart.ChartDataItem<T> {
 
   override fun time(): TimeWithPercentage {
     return miscStepsTime

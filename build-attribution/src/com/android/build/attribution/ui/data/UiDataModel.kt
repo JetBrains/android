@@ -41,6 +41,11 @@ interface BuildSummary {
   val totalBuildDuration: TimeWithPercentage
   val criticalPathDuration: TimeWithPercentage
   val configurationDuration: TimeWithPercentage
+  val miscStepsTime: TimeWithPercentage
+    get() = TimeWithPercentage(
+      totalBuildDuration.timeMs - configurationDuration.timeMs - criticalPathDuration.timeMs,
+      totalBuildDuration.totalMs
+    )
 }
 
 interface CriticalPathTasksUiData {
