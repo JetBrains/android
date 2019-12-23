@@ -25,6 +25,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
+import com.android.tools.idea.run.activity.DefaultActivityLocator.ActivityWrapper;
 import com.android.utils.XmlUtils;
 import com.intellij.execution.Executor;
 import com.intellij.execution.impl.ExecutionManagerImpl;
@@ -83,7 +84,10 @@ public class LaunchUtils {
     }
 
     MergedManifestSnapshot info = MergedManifestManager.getSnapshot(facet);
-    if (!info.getActivities().isEmpty()) {
+    List<ActivityWrapper> activities =
+      ActivityWrapper.get(info.getActivities(), info.getActivityAliases());
+    boolean foundExportedActivity = activities.stream().anyMatch((activity) -> activity.isLogicallyExported());
+    if (foundExportedActivity) {
       return false;
     }
 
@@ -93,10 +97,15 @@ public class LaunchUtils {
     }
 
     Element service = services.get(0);
-    Element first = XmlUtils.getFirstSubTag(service);
-    return first != null && XmlUtils.getNextTag(first) == null &&
-           ActivityLocatorUtils.containsAction(first, AndroidUtils.WALLPAPER_SERVICE_ACTION_NAME) &&
-           ActivityLocatorUtils.containsCategory(first, AndroidUtils.WATCHFACE_CATEGORY_NAME);
+    Element subTag = XmlUtils.getFirstSubTag(service);
+    while (subTag != null) {
+      if (ActivityLocatorUtils.containsAction(subTag, AndroidUtils.WALLPAPER_SERVICE_ACTION_NAME) &&
+          ActivityLocatorUtils.containsCategory(subTag, AndroidUtils.WATCHFACE_CATEGORY_NAME)) {
+        return true;
+      }
+      subTag = XmlUtils.getNextTag(subTag);
+    }
+    return false;
   }
 
   /**
