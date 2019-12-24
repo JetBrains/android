@@ -410,6 +410,7 @@ public class StudioIcons {
       public static final Icon ORIENT_VERTICAL = load("/studio/icons/layout-editor/toolbar/orient-vertical.svg"); // 16x16
       public static final Icon PACK_HORIZONTAL = load("/studio/icons/layout-editor/toolbar/pack-horizontal.svg"); // 16x16
       public static final Icon PACK_VERTICAL = load("/studio/icons/layout-editor/toolbar/pack-vertical.svg"); // 16x16
+      public static final Icon PAN_TOOL_SELECTED = load("/studio/icons/layout-editor/toolbar/pan-tool-selected.svg"); // 16x16
       public static final Icon PAN_TOOL = load("/studio/icons/layout-editor/toolbar/pan-tool.svg"); // 16x16
       public static final Icon PERCENT = load("/studio/icons/layout-editor/toolbar/percent.svg"); // 16x16
       public static final Icon QUESTION = load("/studio/icons/layout-editor/toolbar/question.svg"); // 16x16
