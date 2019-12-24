@@ -23,39 +23,33 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import icons.StudioIcons
 
-internal class CustomViewPreviewToolbar(private val surface: DesignSurface) :
-  ToolbarActionGroups(surface) {
+internal class CustomViewPreviewToolbar(private val surface: DesignSurface) : ToolbarActionGroups(surface) {
 
-  private fun findPreviewEditors(): List<CustomViewPreviewManager> = FileEditorManager.getInstance(surface.project)?.let { fileEditorManager ->
-    surface.models.flatMap { fileEditorManager.getAllEditors(it.virtualFile).asIterable() }
-      .filterIsInstance<SeamlessTextEditorWithPreview<out FileEditor>>()
-      .mapNotNull { it.preview.getCustomViewPreviewManager() }
-      .distinct()
-  } ?: listOf()
-
-  private class CustomViewOption(val viewName: String, val parent: CustomViewPreviewToolbar) : AnAction(viewName) {
+  private class CustomViewOption(val viewName: String) : AnAction(viewName) {
     override fun actionPerformed(e: AnActionEvent) {
       // Here we iterate over all editors as change in selection (write) should trigger updates in all of them
-      parent.findPreviewEditors().forEach { it.currentView = viewName }
+      findPreviewEditorsForContext(e.dataContext).forEach { it.currentView = viewName }
     }
   }
 
-  private class CustomViewSelector(val parent: CustomViewPreviewToolbar) :
+  private class CustomViewSelector() :
     DropDownAction(null, "Custom View for Preview", StudioIcons.LayoutEditor.Palette.CUSTOM_VIEW) {
     override fun update(e: AnActionEvent) {
       super.update(e)
       removeAll()
 
       // We need just a single previewEditor here (any) to retrieve (read) the states and currently selected state
-      parent.findPreviewEditors().firstOrNull()?.let { previewEditor ->
+      findPreviewEditorsForContext(e.dataContext).firstOrNull()?.let { previewEditor ->
         previewEditor.views.forEach {
-          add(CustomViewOption(it, parent))
+          add(CustomViewOption(it))
         }
         e.presentation.setText(previewEditor.currentView, false)
       }
@@ -65,21 +59,21 @@ internal class CustomViewPreviewToolbar(private val surface: DesignSurface) :
 
   override fun getNorthGroup(): ActionGroup {
     val customViewPreviewActions = DefaultActionGroup()
-    val customViews = CustomViewSelector(this)
+    val customViews = CustomViewSelector()
 
     val wrapWidth = object : ToggleAction(null, "Set preview width to wrap content", StudioIcons.LayoutEditor.Toolbar.WRAP_WIDTH) {
-      override fun isSelected(e: AnActionEvent) = findPreviewEditors().any { it.shrinkWidth }
+      override fun isSelected(e: AnActionEvent) = findPreviewEditorsForContext(e.dataContext).any { it.shrinkWidth }
 
       override fun setSelected(e: AnActionEvent, state: Boolean) {
-        findPreviewEditors().forEach { it.shrinkWidth = state }
+        findPreviewEditorsForContext(e.dataContext).forEach { it.shrinkWidth = state }
       }
     }
 
     val wrapHeight = object : ToggleAction(null, "Set preview height to wrap content", StudioIcons.LayoutEditor.Toolbar.WRAP_HEIGHT) {
-      override fun isSelected(e: AnActionEvent) = findPreviewEditors().any { it.shrinkHeight }
+      override fun isSelected(e: AnActionEvent) = findPreviewEditorsForContext(e.dataContext).any { it.shrinkHeight }
 
       override fun setSelected(e: AnActionEvent, state: Boolean) {
-        findPreviewEditors().forEach { it.shrinkHeight = state }
+        findPreviewEditorsForContext(e.dataContext).forEach { it.shrinkHeight = state }
       }
     }
 
@@ -93,4 +87,13 @@ internal class CustomViewPreviewToolbar(private val surface: DesignSurface) :
   override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup().apply {
     add(IssueNotificationAction(surface))
   }
+}
+
+private fun findPreviewEditorsForContext(context: DataContext): List<CustomViewPreviewManager> {
+  val project = context.getData(CommonDataKeys.PROJECT) ?: return emptyList()
+  val file = context.getData(CommonDataKeys.VIRTUAL_FILE) ?: return emptyList()
+  return FileEditorManager.getInstance(project)?.getAllEditors(file)
+           ?.filterIsInstance<SeamlessTextEditorWithPreview<out FileEditor>>()
+           ?.mapNotNull { it.preview.getCustomViewPreviewManager() }
+           ?.distinct() ?: emptyList()
 }
