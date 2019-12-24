@@ -1070,6 +1070,9 @@ public class LayoutlibSceneManager extends SceneManager {
   private CompletableFuture<RenderResult> renderImpl(@Nullable LayoutEditorRenderResult.Trigger trigger) {
     return inflate(myForceInflate.getAndSet(false))
       .whenCompleteAsync((result, ex) -> {
+        if (ex != null) {
+          Logger.getInstance(LayoutlibSceneManager.class).warn(ex);
+        }
         if (result) {
           notifyListenersModelUpdateComplete();
         }
