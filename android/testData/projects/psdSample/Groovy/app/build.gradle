@@ -24,6 +24,8 @@ ext {
     varRefString = variable1
     varProGuardFiles = ['proguard-rules.txt', 'proguard-rules2.txt']
     localList = ["26.1.1", "56.2.0"]
+    localMap = [KTSApp: "com.example.text.KTSApp", LocalApp: "com.android.localApp"]
+    valVersion = 15
 }
 
 android {

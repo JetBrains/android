@@ -152,24 +152,28 @@ internal fun convertToExternalTextValue(context: GradleDslSimpleExpression, refe
             if (property == currentElement) break
             i++
           }
-          externalName+= "$i]"
+          // Type cast is needed only if we are applying from a parent module context.
+          externalName+= "$i]" + if (currentParent != context.dslFile && className != null) " as $className" else ""
           lastArray = false
         }
         else {
-          externalName += "${currentElement.name}\"]"
+          // Type cast is needed only if we are applying from a parent module context.
+          externalName += "${currentElement.name}\"]" + if (currentParent != context.dslFile && className != null) " as $className" else ""
           lastArray = false
         }
       }
       else {
-        // TODO(karimai): support extra properties defined using array expressions.
         // If we are referencing to a variable using its name from the local space, we don't need to use an explicit cast in Kotlin.
         if (currentElement.name == currentElement.fullName) externalName += currentElement.name
+        else if (currentElement.parent is ExtDslElement) {
+          // This is for extra properties declared using array access expressions
+          externalName += "extra[\"${currentElement.name}\"] as $className"
+        }
       }
     }
   }
 
-  // Add a type cast to the resolved property if we are applying from a parent module context.
-  return externalName + if (currentParent != context.dslFile && className != null) " as $className" else ""
+  return externalName
 }
 
 internal fun isValidBlockName(blockName : String?) =
