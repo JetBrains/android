@@ -15,18 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
-import com.android.tools.idea.io.FilePaths;
-import com.google.common.annotations.VisibleForTesting;
+import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
+
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.text.StringUtil;
+import java.io.File;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
-
-import java.io.File;
-import java.util.*;
-
-import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
-import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
 
 /**
  * An IDEA module's dependency on a library (e.g. a jar file.)
@@ -38,7 +36,7 @@ public class LibraryDependency extends Dependency {
   @NotNull
   public static final String NAME_PREFIX = GradleConstants.SYSTEM_ID.getReadableName() + ": ";
 
-  @NotNull private final Collection<File> myBinaryPaths = new LinkedHashSet<>();
+  @NotNull private final Collection<File> myBinaryPaths;
   @NotNull private final File myArtifactPath;
 
   private String myName;
@@ -47,35 +45,18 @@ public class LibraryDependency extends Dependency {
    * Creates a new {@link LibraryDependency}.
    *
    * @param artifactPath the path, in the file system, of the binary file that represents the library to depend on.
+   * @param name         the name of the library to depend on.
    * @param scope        the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
    * @throws IllegalArgumentException if the given scope is not supported.
    */
-  @VisibleForTesting
-  public LibraryDependency(@NotNull File artifactPath, @NotNull DependencyScope scope) {
-    this(artifactPath, getNameWithoutExtension(artifactPath), scope);
-    addBinaryPath(artifactPath);
-  }
-
-  /**
-   * Creates a new {@link LibraryDependency}.
-   *
-   * @param artifactPath the path, in the file system, of the binary file that represents the library to depend on.
-   * @param name  the name of the library to depend on.
-   * @param scope the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
-   * @throws IllegalArgumentException if the given scope is not supported.
-   */
-  LibraryDependency(@NotNull File artifactPath, @NotNull String name, @NotNull DependencyScope scope) {
+  public LibraryDependency(@NotNull File artifactPath,
+                           @NotNull String name,
+                           @NotNull DependencyScope scope,
+                           @NotNull Collection<File> binaryPaths) {
     super(scope);
+    myBinaryPaths = new LinkedHashSet<>(binaryPaths);
     myArtifactPath = artifactPath;
     setName(name);
-  }
-
-  void addBinaryPath(@NotNull File path) {
-    myBinaryPaths.add(path);
-  }
-
-  void addBinaryPath(@NotNull String path) {
-    addBinaryPath(FilePaths.toSystemDependentPath(path));
   }
 
   @NotNull
