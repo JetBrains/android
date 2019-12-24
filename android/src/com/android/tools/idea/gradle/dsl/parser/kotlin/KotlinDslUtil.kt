@@ -73,7 +73,6 @@ import org.jetbrains.kotlin.psi.KtSimpleNameStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.KtValueArgumentList
-import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
 import kotlin.reflect.KClass
@@ -85,7 +84,7 @@ internal fun KtCallExpression.isBlockElement() : Boolean {
                                       isValidBlockName(this.name()))
 }
 
-internal fun convertToExternalTextValue(context: GradleDslSimpleExpression, referenceText : String) : String {
+internal fun convertToExternalTextValue(context: GradleDslSimpleExpression, applyContext: GradleDslFile, referenceText : String) : String {
   val resolvedReference = context.resolveReference(referenceText, false) as? GradleDslLiteral ?: return referenceText
   // Get the resolvedReference value type that might be used for the final cast.
   // TODO(karimai): what if the type need to be imported ?
@@ -122,26 +121,28 @@ internal fun convertToExternalTextValue(context: GradleDslSimpleExpression, refe
 
   // Now we can start appending names from the resolved reference file context.
   for (currentElement in resolutionElements) {
+    // Get the external name for the resolve reference.
+    val elementExternalName = applyContext.parser.externalNameForParent(currentElement.name, currentElement.parent!!).first
     if (currentElement is ExtDslElement && currentParent != context.dslFile) {
       externalName += "extra[\""
       lastArray = true
     }
     else if (currentElement is GradleDslExpressionMap) {
       if (!lastArray) {
-        externalName += "${currentElement.name}[\""
+        externalName += "${elementExternalName}[\""
         lastArray = true
       }
       else  {
-        externalName = "($externalName${currentElement.name}\"] as Map<*, *>)[\""
+        externalName = "($externalName${elementExternalName}\"] as Map<*, *>)[\""
       }
     }
     else if (currentElement is GradleDslExpressionList) {
       if(!lastArray) {
-        externalName += "${currentElement.name}["
+        externalName += "${elementExternalName}["
         lastArray = true
       }
       else {
-        externalName = "($externalName${currentElement.name}\"] as List<*>)["
+        externalName = "($externalName${elementExternalName}\"] as List<*>)["
       }
     }
     else if (currentElement is GradleDslLiteral) {
@@ -158,16 +159,16 @@ internal fun convertToExternalTextValue(context: GradleDslSimpleExpression, refe
         }
         else {
           // Type cast is needed only if we are applying from a parent module context.
-          externalName += "${currentElement.name}\"]" + if (currentParent != context.dslFile && className != null) " as $className" else ""
+          externalName += "${elementExternalName}\"]" + if (currentParent != context.dslFile && className != null) " as $className" else ""
           lastArray = false
         }
       }
       else {
         // If we are referencing to a variable using its name from the local space, we don't need to use an explicit cast in Kotlin.
-        if (currentElement.name == currentElement.fullName) externalName += currentElement.name
+        if (currentElement.name == currentElement.fullName) externalName += elementExternalName
         else if (currentElement.parent is ExtDslElement) {
           // This is for extra properties declared using array access expressions
-          externalName += "extra[\"${currentElement.name}\"] as $className"
+          externalName += "extra[\"${elementExternalName}\"] as $className"
         }
       }
     }
@@ -274,7 +275,7 @@ internal fun getOriginalName(methodName : String?, blockName : String): String {
 }
 
 @Throws(IncorrectOperationException::class)
-internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : GradleDslElement, value : Any) : PsiElement? {
+internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : GradleDslFile, value : Any) : PsiElement? {
    when (value) {
     is String ->  {
       var valueText : String?
@@ -290,7 +291,7 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
     is Int, is Boolean, is BigDecimal -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.toString())
     // References are canonicals and need to be resolved first before converted to KTS psiElement.
     is ReferenceTo -> {
-      val externalTextValue = convertToExternalTextValue(context, value.text)
+      val externalTextValue = convertToExternalTextValue(context, applyContext, value.text)
       return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(externalTextValue)
     }
     is RawText -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.getText())
