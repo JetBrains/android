@@ -286,7 +286,7 @@ class CustomViewPreviewRepresentation(
       val model = NlModel.create(this@CustomViewPreviewRepresentation,
                                  className,
                                  facet,
-                                 virtualFile,
+                                 customPreviewXml,
                                  configuration,
                                  surface.componentRegistrar,
                                  BiFunction { project, _ -> AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile })
