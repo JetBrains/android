@@ -10,6 +10,8 @@ val varBool by extra(true)
 val varRefString by extra(variable1)
 val varProGuardFiles by extra(listOf("proguard-rules.txt", "proguard-rules2.txt"))
 val localList by extra(listOf("26.1.1", "56.2.0"))
+val localMap by extra(mapOf("KTSApp" to "com.example.text.KTSApp", "LocalApp" to "com.android.localApp"))
+extra["valVersion"] = 15
 
 android {
     compileSdkVersion(19)
