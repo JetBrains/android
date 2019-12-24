@@ -174,6 +174,7 @@ public class StudioIcons {
       public static final Icon LOOP = load("/studio/icons/layout-editor/motion/loop.svg"); // 16x16
       public static final Icon MAX_SCALE = load("/studio/icons/layout-editor/motion/max-scale.svg"); // 16x16
       public static final Icon MIN_SCALE = load("/studio/icons/layout-editor/motion/min-scale.svg"); // 16x16
+      public static final Icon MOTION_LAYOUT = load("/studio/icons/layout-editor/motion/motion-layout.svg"); // 16x16
       public static final Icon NEXT_TICK = load("/studio/icons/layout-editor/motion/next-tick.svg"); // 16x16
       public static final Icon PAUSE = load("/studio/icons/layout-editor/motion/pause.svg"); // 16x16
       public static final Icon PLAY_BACKWARD = load("/studio/icons/layout-editor/motion/play-backward.svg"); // 16x16
