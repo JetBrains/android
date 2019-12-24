@@ -162,9 +162,6 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     // Make sure that is a "compile" dependency, even if specified as "test".
     assertEquals(COMPILE, dependency.getScope());
     assertSame(libModule, dependency.getModule());
-
-    LibraryDependency backup = dependency.getBackupDependency();
-    assertNull(backup);
   }
 
   public void testGetDependencyDisplayName() {

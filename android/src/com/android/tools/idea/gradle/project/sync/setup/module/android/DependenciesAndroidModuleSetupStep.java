@@ -131,7 +131,6 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
                               @NotNull ModuleDependency dependency,
                               @NotNull AndroidModuleModel moduleModel) {
     Module moduleDependency = dependency.getModule();
-    LibraryDependency compiledArtifact = dependency.getBackupDependency();
 
     if (moduleDependency != null) {
       ModuleOrderEntry orderEntry = modelsProvider.getModifiableRootModel(module).addModuleOrderEntry(moduleDependency);
@@ -141,13 +140,7 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
     }
 
     DependencySetupIssues dependencySetupIssues = DependencySetupIssues.getInstance(module.getProject());
-    String backupName = compiledArtifact != null ? compiledArtifact.getName() : null;
-    dependencySetupIssues.addMissingModule(dependency.getGradlePath(), module.getName(), backupName);
-
-    // fall back to library dependency, if available.
-    if (compiledArtifact != null) {
-      updateLibraryDependency(module, modelsProvider, compiledArtifact, moduleModel);
-    }
+    dependencySetupIssues.addMissingModule(dependency.getGradlePath(), module.getName());
   }
 
   public void updateLibraryDependency(@NotNull Module module,
