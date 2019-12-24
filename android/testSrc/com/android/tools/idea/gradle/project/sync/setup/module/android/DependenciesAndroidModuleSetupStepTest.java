@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep.isSelfDependencyByTest;
+import static com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep.maybeAdjustLocalLibraryName;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
@@ -39,6 +40,7 @@ import com.android.tools.idea.gradle.project.sync.setup.module.dependency.Depend
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.android.tools.idea.model.AndroidModel;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -114,8 +116,14 @@ public class DependenciesAndroidModuleSetupStepTest extends PlatformTestCase {
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
     // Make sure DependenciesSetup#setUpLibraryDependency was invoked.
-    verify(myDependenciesSetup).setUpLibraryDependency(myModule, modelsProvider, dependency.getName(), COMPILE, dependency.getArtifactPath(),
-                                                       dependency.getBinaryPaths(), exported);
+    verify(myDependenciesSetup)
+      .setUpLibraryDependency(myModule,
+                              modelsProvider,
+                              maybeAdjustLocalLibraryName(dependency.getName(), getProject().getBasePath()),
+                              COMPILE,
+                              dependency.getArtifactPath(),
+                              dependency.getBinaryPaths(),
+                              exported);
   }
 
   @NotNull
@@ -152,7 +160,8 @@ public class DependenciesAndroidModuleSetupStepTest extends PlatformTestCase {
 
   @NotNull
   private static LibraryDependency createFakeLibraryDependency(@NotNull File jarsFolderPath) {
-    return new LibraryDependency(new File(jarsFolderPath, "myLibrary.jar"), COMPILE);
+    File path = new File(jarsFolderPath, "myLibrary.jar");
+    return new LibraryDependency(path, "Gradle: __local_aars__:" + path + "@jar", COMPILE, ImmutableList.of());
   }
 
   @NotNull
