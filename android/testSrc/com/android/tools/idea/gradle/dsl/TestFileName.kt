@@ -445,6 +445,8 @@ enum class TestFileName(val path: String) {
   PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_NOT_REMOVED("productFlavorsElement/productFlavorsNotRemoved"),
   PRODUCT_FLAVORS_ELEMENT_PRODUCT_FLAVORS_NOT_REMOVED_EXPECTED("productFlavorsElement/productFlavorsNotRemovedExpected"),
   PRODUCT_FLAVORS_ELEMENT_RENAME_PRODUCT_FLAVOR_EXPECTED("productFlavorsElement/renameProductFlavorExpected"),
+  PROPERTY_MODEL_UTILS_TEST_DSL_TEXT("propertyModelUtils/testDslText"),
+  PROPERTY_MODEL_UTILS_TEST_AS_FILE("propertyModelUtils/testAsFile"),
   SIGNING_CONFIG_MODEL_SIGNING_CONFIG_BLOCK_WITH_APPLICATION_STATEMENTS("signingConfigModel/signingConfigBlockWithApplicationStatements"),
   SIGNING_CONFIG_MODEL_RENAME_SIGNING_CONFIG_MODEL_EXPECTED("signingConfigModel/renameSigningConfigModelExpected"),
   SIGNING_CONFIG_MODEL_SIGNING_CONFIG_BLOCK_WITH_ASSIGNMENT_STATEMENTS("signingConfigModel/signingConfigBlockWithAssignmentStatements"),

@@ -75,10 +75,8 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
     assertThat(viewBindingEnabled.parsedValue.asTestValue(), nullValue())
   }
 
-  fun testSetProperties() {
+  private fun doTestSetProperties() {
     // Note: this test does not attempt to sync because it won't succeed without installing older SDKs.
-    loadProject(PSD_SAMPLE_GROOVY)
-
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -101,6 +99,16 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
     verifyValues(appModule)
     appModule.applyChanges()
     verifyValues(appModule)
+  }
+
+  fun testSetPropertiesKotlin() {
+    loadProject(PSD_SAMPLE_KOTLIN)
+    doTestSetProperties()
+  }
+
+  fun testSetPropertiesGroovy() {
+    loadProject(PSD_SAMPLE_GROOVY)
+    doTestSetProperties()
   }
 
   fun testSetListReferencesKotlin() {
