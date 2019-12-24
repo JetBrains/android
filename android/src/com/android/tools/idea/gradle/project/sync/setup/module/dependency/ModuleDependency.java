@@ -54,17 +54,6 @@ public class ModuleDependency extends Dependency {
     return myGradlePath;
   }
 
-  /**
-   * Sets the scope of this dependency. It also updates the scope of this dependency's backup dependency if it is not {@code null}.
-   *
-   * @param scope the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
-   * @throws IllegalArgumentException if the given scope is not supported.
-   */
-  @Override
-  void setScope(@NotNull DependencyScope scope) throws IllegalArgumentException {
-    super.setScope(scope);
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
