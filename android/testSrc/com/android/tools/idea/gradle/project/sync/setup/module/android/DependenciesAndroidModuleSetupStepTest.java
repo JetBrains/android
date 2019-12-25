@@ -16,14 +16,12 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep.isSelfDependencyByTest;
-import static com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep.maybeAdjustLocalLibraryName;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static com.intellij.util.PathUtil.toSystemDependentName;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -86,17 +84,6 @@ public class DependenciesAndroidModuleSetupStepTest extends PlatformTestCase {
     updateLibraryDependency("3.0.0", false);
   }
 
-  public void testMaybeAdjustLocalLibraryName() {
-    assertEquals("Gradle: __local_aars__:" + toSystemDependentName("./kml/xyz.jar:unspecified@jar"),
-                 DependenciesAndroidModuleSetupStep
-                   .maybeAdjustLocalLibraryName("Gradle: __local_aars__:" + toSystemDependentName("/abc/kml/xyz.jar:unspecified@jar"),
-                                                toSystemDependentName("/abc")));
-    assertEquals("Gradle: __local_aars__:" + toSystemDependentName("/abc/kml/xyz.jar:unspecified@jar"),
-                 DependenciesAndroidModuleSetupStep
-                   .maybeAdjustLocalLibraryName("Gradle: __local_aars__:" + toSystemDependentName("/abc/kml/xyz.jar:unspecified@jar"),
-                                                null));
-  }
-
   private void updateLibraryDependency(@NotNull String modelVersion, boolean exported) throws IOException {
     // Create gradle facet and mock AndroidModuleModel.
     AndroidModuleModel moduleModel = createAndroidFacetAndModuleModel(modelVersion);
@@ -119,7 +106,7 @@ public class DependenciesAndroidModuleSetupStepTest extends PlatformTestCase {
     verify(myDependenciesSetup)
       .setUpLibraryDependency(myModule,
                               modelsProvider,
-                              maybeAdjustLocalLibraryName(dependency.getName(), getProject().getBasePath()),
+                              dependency.getName(),
                               COMPILE,
                               dependency.getArtifactPath(),
                               dependency.getBinaryPaths(),

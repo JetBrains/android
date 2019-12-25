@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
+import static com.android.ide.common.gradle.model.IdeMavenCoordinates.LOCAL_AARS;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.util.ArrayUtilRt.EMPTY_FILE_ARRAY;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Objects;
+import kotlin.io.FilesKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
@@ -49,14 +54,54 @@ public class LibraryDependency extends Dependency {
    * @param scope        the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
    * @throws IllegalArgumentException if the given scope is not supported.
    */
+  public static LibraryDependency create(@NotNull File basePath,
+                                         @NotNull File artifactPath,
+                                         @NotNull String artifactAddress,
+                                         @NotNull DependencyScope scope,
+                                         @NotNull Collection<File> binaryPaths) {
+    String adjustedArtifactAddress;
+    if (artifactAddress.startsWith(LOCAL_AARS)) {
+      adjustedArtifactAddress = createShortLocalArtifactAddress(basePath, artifactPath);
+    } else {
+      adjustedArtifactAddress = artifactAddress;
+    }
+    return new LibraryDependency(artifactPath, adjustedArtifactAddress, scope, binaryPaths);
+  }
+
+  /**
+   * Creates a short
+   */
+  @NotNull
+  private static String createShortLocalArtifactAddress(@NotNull File basePath, @NotNull File artifactPath) {
+    File maybeRelative = FilesKt.relativeToOrSelf(artifactPath, basePath);
+    String suffix;
+    if (filesEqual(maybeRelative, artifactPath)) {
+      suffix = "";
+    }
+    else {
+      suffix = "./";
+    }
+    return suffix + toSystemIndependentName(maybeRelative.getPath()).replace(':', '.');
+  }
+
+
+  /**
+   * Creates a new {@link LibraryDependency}.
+   *
+   * @param artifactPath     the path, in the file system, of the binary file that represents the library to depend on.
+   * @param artifactAddress  the artifact address to bu sed a a base for the library name
+   * @param scope            the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
+   * @throws IllegalArgumentException if the given scope is not supported.
+   */
+  @VisibleForTesting
   public LibraryDependency(@NotNull File artifactPath,
-                           @NotNull String name,
+                           @NotNull String artifactAddress,
                            @NotNull DependencyScope scope,
                            @NotNull Collection<File> binaryPaths) {
     super(scope);
     myBinaryPaths = new LinkedHashSet<>(binaryPaths);
     myArtifactPath = artifactPath;
-    setName(name);
+    setName(artifactAddress);
   }
 
   @NotNull

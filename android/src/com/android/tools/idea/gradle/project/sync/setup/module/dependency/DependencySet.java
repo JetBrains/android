@@ -77,7 +77,7 @@ public class DependencySet {
     }
 
     if (toAdd != null) {
-      String newName = allStored.size() + "_" + dependency.getName();
+      String newName = dependency.getName() + "_" + allStored.size();
       dependency.setName(newName);
       myLibrariesByName.put(originalName, dependency);
     }
