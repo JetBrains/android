@@ -54,15 +54,17 @@ public class DependenciesExtractor {
    * @return Instance of {@link DependencySet} retrieved from given variant.
    */
   @NotNull
-  public DependencySet extractFrom(@NotNull IdeVariant variant, @NotNull ModuleFinder moduleFinder) {
+  public DependencySet extractFrom(@NotNull File basePath,
+                                   @NotNull IdeVariant variant,
+                                   @NotNull ModuleFinder moduleFinder) {
     DependencySet dependencies = new DependencySet();
 
     for (IdeBaseArtifact testArtifact : variant.getTestArtifacts()) {
-      populate(dependencies, testArtifact, moduleFinder, TEST);
+      populate(basePath, dependencies, testArtifact, moduleFinder, TEST);
     }
 
     IdeAndroidArtifact mainArtifact = variant.getMainArtifact();
-    populate(dependencies, mainArtifact, moduleFinder, COMPILE);
+    populate(basePath, dependencies, mainArtifact, moduleFinder, COMPILE);
 
     return dependencies;
   }
@@ -73,15 +75,17 @@ public class DependenciesExtractor {
    * @return Instance of {@link DependencySet} retrieved from given artifact.
    */
   @NotNull
-  public DependencySet extractFrom(@NotNull IdeBaseArtifact artifact,
+  public DependencySet extractFrom(@NotNull File basePath,
+                                   @NotNull IdeBaseArtifact artifact,
                                    @NotNull DependencyScope scope,
                                    @NotNull ModuleFinder moduleFinder) {
     DependencySet dependencies = new DependencySet();
-    populate(dependencies, artifact, moduleFinder, scope);
+    populate(basePath, dependencies, artifact, moduleFinder, scope);
     return dependencies;
   }
 
-  private static void populate(@NotNull DependencySet dependencies,
+  private static void populate(@NotNull File basePath,
+                               @NotNull DependencySet dependencies,
                                @NotNull IdeBaseArtifact artifact,
                                @NotNull ModuleFinder moduleFinder,
                                @NotNull DependencyScope scope) {
@@ -89,12 +93,13 @@ public class DependenciesExtractor {
 
     for (Library library : artifactDependencies.getJavaLibraries()) {
       LibraryDependency libraryDependency =
-        new LibraryDependency(library.getArtifact(), library.getArtifactAddress(), scope, ImmutableList.of(library.getArtifact()));
+        LibraryDependency
+          .create(basePath, library.getArtifact(), library.getArtifactAddress(), scope, ImmutableList.of(library.getArtifact()));
       dependencies.add(libraryDependency);
     }
 
     for (Library library : artifactDependencies.getAndroidLibraries()) {
-      dependencies.add(createLibraryDependencyFromAndroidLibrary(library, scope));
+      dependencies.add(createLibraryDependencyFromAndroidLibrary(basePath, library, scope));
     }
 
     for (Library library : artifactDependencies.getModuleDependencies()) {
@@ -118,7 +123,8 @@ public class DependenciesExtractor {
   }
 
   @NotNull
-  private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull Library library,
+  private static LibraryDependency createLibraryDependencyFromAndroidLibrary(@NotNull File basePath,
+                                                                             @NotNull Library library,
                                                                              @NotNull DependencyScope scope) {
     ImmutableList.Builder<File> binaryPaths = new ImmutableList.Builder<>();
     binaryPaths.add(FilePaths.toSystemDependentPath(library.getCompileJarFile()));
@@ -126,7 +132,7 @@ public class DependenciesExtractor {
     for (String localJar : library.getLocalJars()) {
       binaryPaths.add(FilePaths.toSystemDependentPath(localJar));
     }
-    return new LibraryDependency(library.getArtifact(), library.getArtifactAddress(), scope, binaryPaths.build());
+    return LibraryDependency.create(basePath, library.getArtifact(), library.getArtifactAddress(), scope, binaryPaths.build());
   }
 
   /**
