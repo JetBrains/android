@@ -24,6 +24,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureBasicActi
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
@@ -53,7 +54,8 @@ public class CreateDefaultActivityTest {
 
   @Before
   public void setUp() throws IOException {
-    guiTest.importSimpleApplication();
+    guiTest.importProject("SimpleApplication");
+    guiTest.ideFrame().waitForGradleProjectSyncToFinish(Wait.seconds(120));
     guiTest.ideFrame().getProjectView().selectProjectPane();
     myEditor = guiTest.ideFrame().getEditor();
     myEditor.open(PROVIDED_ACTIVITY);

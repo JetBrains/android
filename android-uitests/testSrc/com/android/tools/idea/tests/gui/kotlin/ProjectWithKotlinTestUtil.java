@@ -181,7 +181,7 @@ public class ProjectWithKotlinTestUtil {
     }
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
-    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(240));
+    ideFrame.waitForGradleProjectSyncToFinish(Wait.seconds(300));
 
     // TODO remove the following hack: b/110174414
     File androidSdk = IdeSdks.getInstance().getAndroidSdkPath();
