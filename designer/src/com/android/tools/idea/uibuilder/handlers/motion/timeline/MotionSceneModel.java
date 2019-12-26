@@ -27,7 +27,6 @@ import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.CustomAttributes_customFloatValue;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.CustomAttributes_customIntegerValue;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.CustomAttributes_customStringValue;
-import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.CustomLabel;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyAttributesTitle;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyAttributes_curveFit;
 import static com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString.KeyAttributes_customAttribute;
@@ -75,6 +74,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.handlers.motion.AttrName;
 import com.android.tools.idea.uibuilder.handlers.motion.Debug;
+import com.android.tools.idea.uibuilder.handlers.motion.MotionSceneString;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
@@ -1095,7 +1095,7 @@ public class MotionSceneModel {
       AttrName.androidAttr("translationX"),
       AttrName.androidAttr("translationY"),
       AttrName.androidAttr("translationZ"),
-      AttrName.customAttr(CustomLabel),
+      AttrName.customAttr(MotionSceneString.getCustomLabel()),
     };
     public static String[][] ourDefaults = {
       {},
