@@ -551,6 +551,7 @@ java_test(
 # sanity test
 java_test(
     name = "FlavorsExecutionTest",
+    size = "enormous",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
