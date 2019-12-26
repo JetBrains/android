@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.profiler.proto.Common
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -61,7 +62,8 @@ class LegacyClient(private val project: Project) : InspectorClient {
 
   private val processToClient: MutableMap<Common.Process, Client> = mutableMapOf()
 
-  override val treeLoader = LegacyTreeLoader
+  override var treeLoader = LegacyTreeLoader
+    @VisibleForTesting set
 
   val eventListeners: MutableMap<Common.Event.EventGroupIds, MutableList<(Any) -> Unit>> = mutableMapOf()
 
