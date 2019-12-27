@@ -564,7 +564,7 @@ public class SigningConfigModelTest extends GradleFileModelTestCase {
     BuildTypeModel buildType = androidModel.buildTypes().stream().filter(type -> type.name().equals("release")).findFirst().orElse(null);
     assertNotNull(buildType);
 
-    buildType.signingConfig().setValue(new ReferenceTo(signingConfig, isGroovy()));
+    buildType.signingConfig().setValue(new ReferenceTo(signingConfig));
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, SIGNING_CONFIG_MODEL_ADDED_TO_TOP_OF_ANDROID_BLOCK_EXPECTED);

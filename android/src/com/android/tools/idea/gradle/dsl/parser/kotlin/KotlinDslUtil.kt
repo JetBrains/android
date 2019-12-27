@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
@@ -85,10 +86,10 @@ internal fun KtCallExpression.isBlockElement() : Boolean {
 }
 
 internal fun convertToExternalTextValue(context: GradleDslSimpleExpression, applyContext: GradleDslFile, referenceText : String) : String {
-  val resolvedReference = context.resolveReference(referenceText, false) as? GradleDslLiteral ?: return referenceText
+  val resolvedReference = context.resolveReference(referenceText, false) ?: return referenceText
   // Get the resolvedReference value type that might be used for the final cast.
   // TODO(karimai): what if the type need to be imported ?
-  val className = resolvedReference.value?.javaClass?.simpleName
+  val className = if (resolvedReference is GradleDslLiteral) resolvedReference.value?.javaClass?.simpleName else null
   var externalName = ""
   var lastArray = false
   var currentParent = resolvedReference.parent
@@ -154,7 +155,7 @@ internal fun convertToExternalTextValue(context: GradleDslSimpleExpression, appl
             i++
           }
           // Type cast is needed only if we are applying from a parent module context.
-          externalName+= "$i]" + if (currentParent != context.dslFile && className != null) " as $className" else ""
+          externalName += "$i]" + if (currentParent != context.dslFile && className != null) " as $className" else ""
           lastArray = false
         }
         else {
@@ -172,9 +173,15 @@ internal fun convertToExternalTextValue(context: GradleDslSimpleExpression, appl
         }
       }
     }
+    else if (currentElement is GradleDslNamedDomainContainer) {
+      externalName += "$elementExternalName."
+    }
+    else if (currentElement is GradleDslNamedDomainElement) {
+      externalName += "getByName(\"$elementExternalName\")."
+    }
   }
 
-  return externalName
+  return if (externalName.isNotEmpty()) externalName.trimEnd('.') else referenceText
 }
 
 internal fun isValidBlockName(blockName : String?) =
