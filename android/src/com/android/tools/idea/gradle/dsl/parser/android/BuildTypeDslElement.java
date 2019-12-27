@@ -48,13 +48,18 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement impl
       {"isDebuggable", property, DEBUGGABLE, VAR},
       {"isEmbedMicroApp", property, EMBED_MICRO_APP, VAR},
       {"isJniDebuggable", property, JNI_DEBUGGABLE, VAR},
+      {"setJniDebuggable", exactly(1), JNI_DEBUGGABLE, SET},
       {"isMinifyEnabled", property, MINIFY_ENABLED, VAR},
+      {"setMinifyEnabled", exactly(1), MINIFY_ENABLED, SET},
       {"isPseudoLocalesEnabled", property, PSEUDO_LOCALES_ENABLED, VAR},
       {"isRenderscriptDebuggable", property, RENDERSCRIPT_DEBUGGABLE, VAR},
+      {"setRenderscriptDebuggable", exactly(1), RENDERSCRIPT_DEBUGGABLE, SET},
       {"renderscriptOptimLevel", property, RENDERSCRIPT_OPTIM_LEVEL, VAR},
+      {"setRenderscriptOptimLevel", exactly(1), RENDERSCRIPT_OPTIM_LEVEL, SET},
       {"isShrinkResources", property, SHRINK_RESOURCES, VAR},
       {"isTestCoverageEnabled", property, TEST_COVERAGE_ENABLED, VAR},
-      {"isZipAlignEnabled", property, ZIP_ALIGN_ENABLED, VAR}
+      {"isZipAlignEnabled", property, ZIP_ALIGN_ENABLED, VAR},
+      {"setZipAlignEnabled", exactly(1), ZIP_ALIGN_ENABLED, SET}
     }))
     .collect(toModelMap());
 

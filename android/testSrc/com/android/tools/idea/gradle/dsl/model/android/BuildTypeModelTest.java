@@ -153,8 +153,6 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypeApplicationStatements() throws Exception {
-    // TOD(karimai) : enable this test once binaryexpression assignment is supported.
-    assumeTrue(isGroovy());
     writeToBuildFile(BUILD_TYPE_MODEL_BUILD_TYPE_APPLICATION_STATEMENTS);
 
     BuildTypeModel buildType = getXyzBuildType(getGradleBuildModel());
