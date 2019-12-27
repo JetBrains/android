@@ -29,7 +29,9 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.JBSplitter
 import org.junit.Before
@@ -166,5 +168,32 @@ class CpuCaptureStageViewTest {
 
     // CPU core tooltip
     // TODO: use a trace with CPU cores data
+  }
+
+  @Test
+  fun zoomToSelectionButton() {
+    profilersView.studioProfilers.stage = stage
+    val captureNode = CaptureNode(FakeCaptureNodeModel("Foo", "Bar", "123"))
+    captureNode.startGlobal = 0
+    captureNode.endGlobal = 10
+
+    assertThat(profilersView.zoomToSelectionButton.isEnabled).isFalse()
+    stage.multiSelectionModel.addToSelection(CaptureNodeAnalysisModel(captureNode, stage.capture))
+    assertThat(profilersView.zoomToSelectionButton.isEnabled).isTrue()
+    assertThat(profilersView.stageView.zoomToSelectionRange.isSameAs(Range(0.0, 10.0))).isTrue()
+  }
+
+  private class FakeCaptureNodeModel(val aName: String, val aFullName: String, val anId: String) : CaptureNodeModel {
+    override fun getName(): String {
+      return aName
+    }
+
+    override fun getFullName(): String {
+      return aFullName
+    }
+
+    override fun getId(): String {
+      return anId
+    }
   }
 }

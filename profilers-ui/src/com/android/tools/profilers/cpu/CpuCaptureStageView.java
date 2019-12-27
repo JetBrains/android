@@ -33,6 +33,7 @@ import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
 import com.android.tools.profilers.ProfilerTrackRendererFactory;
 import com.android.tools.profilers.StageView;
 import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisModel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisPanel;
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable;
@@ -45,6 +46,7 @@ import com.android.tools.profilers.event.LifecycleTooltipView;
 import com.android.tools.profilers.event.UserEventTooltip;
 import com.android.tools.profilers.event.UserEventTooltipView;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableCollection;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
@@ -89,6 +91,28 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   @Override
   public JComponent getToolbar() {
     return new JPanel();
+  }
+
+  @Override
+  public boolean shouldEnableZoomToSelection() {
+    // Zoom to Selection only works for trace event (i.e. CaptureNodeAnalysisModel) selection.
+    ImmutableCollection<CpuAnalyzable> selection = getStage().getMultiSelectionModel().getSelection();
+    return !selection.isEmpty() && selection.iterator().next() instanceof CaptureNodeAnalysisModel;
+  }
+
+  @NotNull
+  @Override
+  public Range getZoomToSelectionRange() {
+    assert shouldEnableZoomToSelection();
+    // Zoom to Selection works on the range of the selected trace event.
+    CaptureNodeAnalysisModel selectedNode = (CaptureNodeAnalysisModel)getStage().getMultiSelectionModel().getSelection().iterator().next();
+    return selectedNode.getNodeRange();
+  }
+
+  @Override
+  public void addTimelineControlUpdater(@NotNull Runnable timelineControlUpdater) {
+    getStage().getMultiSelectionModel().addDependency(getProfilersView()).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION,
+                                                                                   timelineControlUpdater);
   }
 
   private void updateComponents() {
@@ -200,7 +224,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
       .reduce(CpuAnalysisModel::mergeWith)
       .ifPresent(getStage()::addCpuAnalysisModel);
 
-    // Now update track groups
+    // Now update track groups.
     updateTrackGroupList();
   }
 
