@@ -183,6 +183,20 @@ class CpuCaptureStageViewTest {
     assertThat(profilersView.stageView.zoomToSelectionRange.isSameAs(Range(0.0, 10.0))).isTrue()
   }
 
+  @Test
+  fun deselectAllLabel() {
+    profilersView.studioProfilers.stage = stage
+    val captureNode = CaptureNode(FakeCaptureNodeModel("Foo", "Bar", "123"))
+    profilersView.deselectAllLabel.setBounds(0, 0, 100, 100)
+    val ui = FakeUi(profilersView.deselectAllLabel)
+
+    assertThat(profilersView.deselectAllToolbar.isVisible).isFalse()
+    stage.multiSelectionModel.setSelection(setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
+    assertThat(profilersView.deselectAllToolbar.isVisible).isTrue()
+    ui.mouse.click(0, 0)
+    assertThat(stage.multiSelectionModel.isEmpty).isTrue()
+  }
+
   private class FakeCaptureNodeModel(val aName: String, val aFullName: String, val anId: String) : CaptureNodeModel {
     override fun getName(): String {
       return aName

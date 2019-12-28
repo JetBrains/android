@@ -181,6 +181,18 @@ public abstract class StageView<T extends Stage> extends AspectObserver {
     getStage().getTimeline().getSelectionRange().addDependency(getProfilersView()).onChange(Range.Aspect.RANGE, timelineControlUpdater);
   }
 
+  /**
+   * @return true if the Deselect All label should be visible.
+   */
+  public boolean shouldShowDeselectAllLabel() {
+    return false;
+  }
+
+  /**
+   * Perform action for when the Deselect All label is clicked.
+   */
+  public void onDeselectAllAction() {}
+
   protected void tooltipChanged() {
     if (myActiveTooltipView != null) {
       myActiveTooltipView.dispose();
