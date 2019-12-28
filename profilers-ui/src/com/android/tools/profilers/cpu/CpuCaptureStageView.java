@@ -115,6 +115,16 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
                                                                                    timelineControlUpdater);
   }
 
+  @Override
+  public boolean shouldShowDeselectAllLabel() {
+    return !getStage().getMultiSelectionModel().getSelection().isEmpty();
+  }
+
+  @Override
+  public void onDeselectAllAction() {
+    getStage().getMultiSelectionModel().clearSelection();
+  }
+
   private void updateComponents() {
     getComponent().removeAll();
     if (getStage().getState() == CpuCaptureStage.State.PARSING) {
