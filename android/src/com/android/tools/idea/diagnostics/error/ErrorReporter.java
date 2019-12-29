@@ -17,7 +17,6 @@
 package com.android.tools.idea.diagnostics.error;
 
 import com.android.annotations.Nullable;
-import com.android.tools.idea.diagnostics.crash.StudioCrashReport;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.google.common.collect.ImmutableMap;
@@ -54,7 +53,6 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ErrorReporter extends ErrorReportSubmitter {
   private static final String FEEDBACK_TASK_TITLE = "Submitting error report";
@@ -108,7 +106,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
       callback.consume(reportInfo);
 
       ReportMessages.GROUP
-        .createNotification(ReportMessages.ERROR_REPORT, "Submitted", NotificationType.INFORMATION, null)
+        .createNotification(ReportMessages.getERROR_REPORT(), "Submitted", NotificationType.INFORMATION, null)
         .setImportant(false)
         .notify(project);
     };
@@ -117,7 +115,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
       String message = AndroidBundle.message("error.report.at.b.android", e.getMessage());
 
       ReportMessages.GROUP
-        .createNotification(ReportMessages.ERROR_REPORT, message, NotificationType.ERROR, NotificationListener.URL_OPENING_LISTENER)
+        .createNotification(ReportMessages.getERROR_REPORT(), message, NotificationType.ERROR, NotificationListener.URL_OPENING_LISTENER)
         .setImportant(false)
         .notify(project);
     };
