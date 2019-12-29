@@ -339,9 +339,9 @@ final class EditLogFilterDialog extends DialogWrapper {
                                 myFilterNameField);
     }
 
-    if (name.equals(AndroidLogcatView.NO_FILTERS)
-        || name.equals(AndroidLogcatView.SELECTED_APP_FILTER)
-        || name.equals(AndroidLogcatView.EDIT_FILTER_CONFIGURATION)) {
+    if (name.equals(AndroidLogcatView.getNO_FILTERS())
+        || name.equals(AndroidLogcatView.getSELECTED_APP_FILTER())
+        || name.equals(AndroidLogcatView.getEDIT_FILTER_CONFIGURATION())) {
       return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.name.busy.error", name));
     }
 
