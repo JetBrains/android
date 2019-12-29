@@ -33,7 +33,6 @@ import java.util.List;
  * A data model for the Android Gradle module dependencies table.
  */
 public class ModuleDependenciesTableModel extends AbstractTableModel implements ItemRemovable {
-  private static final String SCOPE_COLUMN_NAME = ProjectBundle.message("modules.order.export.scope.column");
   public static final int ITEM_COLUMN = 0;
   public static final int SCOPE_COLUMN = 1;
   private final List<ModuleDependenciesTableItem> myItems = Lists.newArrayList();
@@ -98,7 +97,7 @@ public class ModuleDependenciesTableModel extends AbstractTableModel implements 
   @Override
   public String getColumnName(int column) {
     if (column == SCOPE_COLUMN) {
-      return SCOPE_COLUMN_NAME;
+      return getSCOPE_COLUMN_NAME();
     }
     return "";
   }
@@ -168,5 +167,9 @@ public class ModuleDependenciesTableModel extends AbstractTableModel implements 
       }
     }
     return -1;
+  }
+
+  static String getSCOPE_COLUMN_NAME() {
+    return ProjectBundle.message("modules.order.export.scope.column");
   }
 }
