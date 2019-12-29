@@ -72,11 +72,11 @@ public class AndroidLogcatView {
    * This is a fake version of the selected app filter that acts as a placeholder before a real one
    * is swapped in, which happens when the pulldown of processes is populated.
    */
-  static final AndroidLogcatFilter FAKE_SHOW_ONLY_SELECTED_APPLICATION_FILTER = new MatchAllFilter(SELECTED_APP_FILTER);
-  static final AndroidLogcatFilter NO_FILTERS_ITEM = new MatchAllFilter(NO_FILTERS);
+  static final AndroidLogcatFilter FAKE_SHOW_ONLY_SELECTED_APPLICATION_FILTER = new MatchAllFilter(getSELECTED_APP_FILTER());
+  static final AndroidLogcatFilter NO_FILTERS_ITEM = new MatchAllFilter(getNO_FILTERS());
 
   // TODO Refactor all this filter combo box stuff to its own class
-  static final AndroidLogcatFilter EDIT_FILTER_CONFIGURATION_ITEM = new MatchAllFilter(EDIT_FILTER_CONFIGURATION);
+  static final AndroidLogcatFilter EDIT_FILTER_CONFIGURATION_ITEM = new MatchAllFilter(getEDIT_FILTER_CONFIGURATION());
 
   private final Project myProject;
   final Disposable parentDisposable;
@@ -242,7 +242,7 @@ public class AndroidLogcatView {
     updateUserFilters();
     String selectName = AndroidLogcatPreferences.getInstance(myProject).TOOL_WINDOW_CONFIGURED_FILTER;
     if (StringUtil.isEmpty(selectName)) {
-      selectName = myDeviceContext != null ? SELECTED_APP_FILTER : NO_FILTERS;
+      selectName = myDeviceContext != null ? getSELECTED_APP_FILTER() : getNO_FILTERS();
     }
     selectFilterByName(selectName);
 
@@ -453,5 +453,17 @@ public class AndroidLogcatView {
         myView.myLogConsole.refresh();
       }
     }
+  }
+
+  static String getSELECTED_APP_FILTER() {
+    return AndroidBundle.message("android.logcat.filters.selected");
+  }
+
+  static String getNO_FILTERS() {
+    return AndroidBundle.message("android.logcat.filters.none");
+  }
+
+  static String getEDIT_FILTER_CONFIGURATION() {
+    return AndroidBundle.message("android.logcat.filters.edit");
   }
 }
