@@ -109,7 +109,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
       callback.consume(reportInfo);
 
       ReportMessages.GROUP
-        .createNotification(ReportMessages.ERROR_REPORT, "Submitted", NotificationType.INFORMATION, null)
+        .createNotification(ReportMessages.getERROR_REPORT(), "Submitted", NotificationType.INFORMATION, null)
         .setImportant(false)
         .notify(project);
     };
@@ -118,7 +118,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
       String message = AndroidBundle.message("error.report.at.b.android", e.getMessage());
 
       ReportMessages.GROUP
-        .createNotification(ReportMessages.ERROR_REPORT, message, NotificationType.ERROR, NotificationListener.URL_OPENING_LISTENER)
+        .createNotification(ReportMessages.getERROR_REPORT(), message, NotificationType.ERROR, NotificationListener.URL_OPENING_LISTENER)
         .setImportant(false)
         .notify(project);
     };
