@@ -105,16 +105,14 @@ open class ContextualCallPathBrowser(
 ) : CallHierarchyBrowserBase(project, element) {
 
   override fun createHierarchyTreeStructure(kind: String, psiElement: PsiElement): HierarchyTreeStructure {
-    val reverseEdges = kind == CallHierarchyBrowserBase.CALLER_TYPE
+    val reverseEdges = kind == getCALLER_TYPE()
     return ContextualCallPathTreeStructure(myProject, graph, psiElement, reverseEdges)
   }
 
   override fun createTrees(typeToTreeMap: MutableMap<String, JTree>) {
     val group = ActionManager.getInstance().getAction(IdeActions.GROUP_CALL_HIERARCHY_POPUP) as ActionGroup
     val baseOnThisMethodAction = BaseOnThisMethodAction()
-    val kinds = arrayOf(
-        CallHierarchyBrowserBase.CALLEE_TYPE,
-        CallHierarchyBrowserBase.CALLER_TYPE)
+    val kinds = arrayOf(getCALLEE_TYPE(), getCALLER_TYPE())
     for (kind in kinds) {
       val tree = createTree(false)
       PopupHandler.installPopupHandler(tree, group, ActionPlaces.CALL_HIERARCHY_VIEW_POPUP, ActionManager.getInstance())
@@ -149,7 +147,7 @@ class ContextualCallPathProvider(val graph: ContextualCallGraph) : HierarchyProv
   override fun createHierarchyBrowser(target: PsiElement) = ContextualCallPathBrowser(target.project, graph, target)
 
   override fun browserActivated(hierarchyBrowser: HierarchyBrowser) {
-    (hierarchyBrowser as ContextualCallPathBrowser).changeView(CallHierarchyBrowserBase.CALLEE_TYPE)
+    (hierarchyBrowser as ContextualCallPathBrowser).changeView(CallHierarchyBrowserBase.getCALLEE_TYPE())
   }
 }
 
