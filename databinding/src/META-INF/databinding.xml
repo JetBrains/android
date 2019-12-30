@@ -33,7 +33,7 @@
 
     <annotator language="kotlin" implementationClass="com.android.tools.idea.databinding.validation.DataBindingKotlinAnnotator" />
     <intentionAction>
-      <className>com.android.tools.idea.actions.ConvertLayoutToDataBindingAction</className>
+      <className>com.android.tools.idea.databinding.actions.ConvertLayoutToDataBindingAction</className>
       <category>Android</category>
     </intentionAction>
   </extensions>
