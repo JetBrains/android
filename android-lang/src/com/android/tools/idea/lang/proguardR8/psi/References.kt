@@ -16,6 +16,7 @@
 package com.android.tools.idea.lang.proguardR8.psi
 
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder
+import com.intellij.codeInsight.completion.util.ParenthesesInsertHandler
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.psi.PsiElementResolveResult
 import com.intellij.psi.PsiField
@@ -110,7 +111,11 @@ class ProguardR8ClassMemberNameReference(
 
   override fun getVariants(): Array<LookupElementBuilder> {
     val fields = (if (parameters == null) getFields() else emptyList()).map(JavaLookupElementBuilder::forField)
-    val methods = getMethods().map { JavaLookupElementBuilder.forMethod(it, PsiSubstitutor.EMPTY) }
+    val methods = getMethods().map {
+      JavaLookupElementBuilder
+        .forMethod(it, PsiSubstitutor.EMPTY)
+        .withInsertHandler(ParenthesesInsertHandler.WITH_PARAMETERS)
+    }
     return (fields + methods).toTypedArray()
   }
 }

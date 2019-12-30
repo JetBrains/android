@@ -623,4 +623,35 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
     assertThat(methods).hasSize(2)
     assertThat(methods.map { it.element!!.text }).containsExactly("boolean[] myMethod();", "int myMethod();")
   }
+
+
+  fun testInsertMethodWithParentheses() {
+    myFixture.addClass(
+      //language=JAVA
+      """
+      package test;
+
+      class MyClass {
+        int myMethod();
+      }
+    """.trimIndent())
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+      -keep class test.MyClass {
+         my${caret};
+      }
+      """.trimIndent()
+    )
+    myFixture.completeBasic()
+
+    myFixture.checkResult(
+      """
+      -keep class test.MyClass {
+         myMethod();
+      }
+      """.trimIndent()
+    )
+  }
 }
