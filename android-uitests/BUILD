@@ -979,6 +979,7 @@ java_test(
         "qa_sanity",
         "qa_sanity_emu",
         "qa_sanity_unreliable",  # b/145991485
+        "qa_unreliable",  # b/145991485
         "requires-fakeroot",
         "requires_emulator",
     ],
