@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.appinspection.ide.ui
 
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ToolWindow
-import javax.swing.JComponent
+import com.android.tools.adtui.common.AdtUiUtils
+import com.android.tools.idea.appinspection.ide.model.AppInspectionTargetsComboBoxModel
+import com.intellij.ide.plugins.newui.VerticalLayout
+import javax.swing.JPanel
 
-class AppInspectionToolWindow(window: ToolWindow, project: Project) : Disposable {
-  private val appInspectionView = AppInspectionView()
-  val component: JComponent = appInspectionView.component
+class AppInspectionView {
+  val component = JPanel(VerticalLayout(0))
+  private val comboBoxModel = AppInspectionTargetsComboBoxModel.newInstance()
 
-  override fun dispose() {
-    // Although we do nothing here, because this class is disposable, other components can register
-    // against it
+  init {
+    component.border = AdtUiUtils.DEFAULT_RIGHT_BORDER
+    component.add(AppInspectionTargetsComboBox(comboBoxModel))
   }
 }

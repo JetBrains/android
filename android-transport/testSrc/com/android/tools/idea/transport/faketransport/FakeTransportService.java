@@ -141,6 +141,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
         .setTimestamp(myTimer.getCurrentTimeNs())
         .setKind(Common.Event.Kind.PROCESS)
         .setGroupId(process.getPid())
+        .setPid(process.getPid())
         .setProcess(Common.ProcessData.newBuilder()
                       .setProcessStarted(Common.ProcessData.ProcessStarted.newBuilder()
                                            .setProcess(process)))
@@ -151,6 +152,7 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
         .setTimestamp(myTimer.getCurrentTimeNs())
         .setKind(Common.Event.Kind.PROCESS)
         .setGroupId(process.getPid())
+        .setPid(process.getPid())
         .setIsEnded(true)
         .build());
     }
