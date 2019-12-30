@@ -196,7 +196,7 @@ class ProguardR8CompletionContributor : CompletionContributor() {
     // Add completion for java key words ("private", "public" ...) inside class specification body
     extend(
       CompletionType.BASIC,
-      or(startOfNewJavaRule, afterFieldOrMethodModifier),
+      or(startOfNewJavaRule, afterFieldOrMethodModifier, insideClassSpecification.afterLeaf("!")),
       modifierCompletionProvider
     )
 
