@@ -52,6 +52,8 @@ interface AppInspectionTarget {
    */
   fun addTargetTerminatedListener(executor: Executor, listener: TargetTerminatedListener): TargetTerminatedListener
 
+  val processDescriptor: ProcessDescriptor
+
   companion object {
     /**
      * Creates an [AppInspectionTarget] for the given [process] on the given device ([stream])
