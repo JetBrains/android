@@ -15,6 +15,12 @@
  */
 package org.jetbrains.android.facet;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_FEATURE;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.model.AndroidModel;
 import com.intellij.facet.FacetConfiguration;
@@ -28,6 +34,8 @@ import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.ArrayList;
+import java.util.List;
 import org.jdom.Element;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -36,11 +44,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.AndroidImportableProperty;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.android.builder.model.AndroidProject.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -95,7 +98,7 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
 
   public void setFacet(@NotNull AndroidFacet facet) {
     myFacet = facet;
-    facet.getModule().getMessageBus().syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(facet);
+    FacetManager.getInstance(facet.getModule()).facetConfigurationChanged(facet);
   }
 
   @Override
@@ -177,7 +180,7 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   public void setModel(@Nullable AndroidModel model) {
     myAndroidModel = model;
     if (myFacet != null) {
-      myFacet.getModule().getMessageBus().syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(myFacet);
+      FacetManager.getInstance(myFacet.getModule()).facetConfigurationChanged(myFacet);
     }
   }
 
