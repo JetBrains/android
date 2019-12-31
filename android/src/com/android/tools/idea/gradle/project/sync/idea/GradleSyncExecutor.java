@@ -171,7 +171,7 @@ public class GradleSyncExecutor {
 
   /**
    * Attempts to find and link a Gradle project based at the current Project's base path.
-   *
+   * <p>
    * This method should only be called when running and Android Studio since intellij needs to support legacy Gradle projects
    * which should not be linked via the ExternalSystem API.
    *
@@ -183,7 +183,7 @@ public class GradleSyncExecutor {
     @SystemIndependent String projectBasePath = project.getBasePath();
     // We can't link anything if we have no path
     if (projectBasePath == null) {
-     return null;
+      return null;
     }
 
     String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(projectBasePath);
@@ -213,8 +213,8 @@ public class GradleSyncExecutor {
    * We use the projects user data as a way of passing this information across since the resolver is create by the
    * external system infrastructure.
    *
-   * @param singleVariant         whether or not only a single variant should be synced
-   * @param listener              the listener that is being used for the current sync.
+   * @param singleVariant whether or not only a single variant should be synced
+   * @param listener      the listener that is being used for the current sync.
    */
   private void setProjectUserDataForAndroidGradleProjectResolver(boolean singleVariant,
                                                                  @Nullable GradleSyncListener listener) {
@@ -280,6 +280,9 @@ public class GradleSyncExecutor {
       rootManager.orderEntries().withoutModuleSourceEntries().withoutDepModules().forEach(entry -> {
         for (OrderRootType type : OrderRootType.getAllTypes()) {
           List<String> expectedUrls = asList(entry.getUrls(type));
+          if (expectedUrls.isEmpty()) {
+            continue;
+          }
           // CLASSES root contains jar file and res folder, and none of them are guaranteed to exist. Fail validation only if
           // all files are missing.
           if (type.equals(CLASSES)) {
