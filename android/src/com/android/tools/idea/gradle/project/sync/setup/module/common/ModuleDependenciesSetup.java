@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.common;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -25,9 +26,12 @@ import com.intellij.openapi.roots.LibraryOrderEntry;
 import com.intellij.openapi.roots.OrderEntry;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import java.io.File;
+import java.io.UncheckedIOException;
+import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class ModuleDependenciesSetup {
@@ -84,5 +88,46 @@ public abstract class ModuleDependenciesSetup {
         }
       }
     }
+  }
+
+  /**
+   * Check if the cached Library instance is still valid, by comparing the cached classes url and the current
+   * binary url. This can be false if a library is recompiled with updated sources but the same version, in which
+   * case the artifact will be exploded to a different directory.
+   * <p>
+   * If the library has already been created for another module during the current sync, treat library as valid,
+   * because recreating it leads to "already disposed" exception when committing the models. Although the library
+   * might have different binary paths due to different classpath in modules, using the previous path works because
+   * it was returned by the same Gradle Sync invocation.
+   */
+  protected static boolean isLibraryValid(@NotNull Library.ModifiableModel library, @NotNull File[] binaryPaths) {
+    // The same library model has been setup by previous module. Don't recreate the library to avoid "already disposed" error.
+    if (library.isChanged()) {
+      return true;
+    }
+
+    String[] cachedUrls = library.getUrls(CLASSES);
+
+    if (cachedUrls.length != binaryPaths.length) {
+      return false;
+    }
+
+    if (binaryPaths.length == 0) {
+      return true;
+    }
+
+    // All of the class files are extracted to the same Gradle cache folder, it is sufficient to only check one of the files.
+    String newUrl = VfsUtil.getUrlForLibraryRoot(binaryPaths[0]);
+    for (String url : cachedUrls) {
+      try {
+        if (Objects.equals(url, newUrl)) {
+          return true;
+        }
+      }
+      catch (UncheckedIOException ignored) {
+        return false;
+      }
+    }
+    return false;
   }
 }
