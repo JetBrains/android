@@ -76,7 +76,7 @@ public class AndroidLogcatView {
   static final AndroidLogcatFilter NO_FILTERS_ITEM = new MatchAllFilter(getNoFilters());
 
   // TODO Refactor all this filter combo box stuff to its own class
-  static final AndroidLogcatFilter EDIT_FILTER_CONFIGURATION_ITEM = new MatchAllFilter(getEDIT_FILTER_CONFIGURATION());
+  static final AndroidLogcatFilter EDIT_FILTER_CONFIGURATION_ITEM = new MatchAllFilter(getEditFilterConfiguration());
 
   private final Project myProject;
   final Disposable parentDisposable;
@@ -463,7 +463,7 @@ public class AndroidLogcatView {
     return AndroidBundle.message("android.logcat.filters.none");
   }
 
-  static String getEDIT_FILTER_CONFIGURATION() {
+  static String getEditFilterConfiguration() {
     return AndroidBundle.message("android.logcat.filters.edit");
   }
 }
