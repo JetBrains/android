@@ -89,28 +89,6 @@ internal fun isBroken(templateName: String): Boolean {
   return false
 }
 
-/**
- * Is the given api level interesting for testing purposes? This is used to skip gaps,
- * such that we for example only check say api 14, 16, 21, 23, etc -- versions where the **templates** are doing conditional changes.
- *
- * Note: To be EXTRA comprehensive, occasionally try returning true unconditionally here to test absolutely everything.
- */
-internal fun isInterestingApiLevel(api: Int, manualApi: Int, apiSensitiveTemplate: Boolean): Boolean = when {
-  // If a manual api version was specified then accept only that version
-  manualApi > 0 -> api == manualApi
-  // For templates that aren't API sensitive, only test with latest API
-  !apiSensitiveTemplate -> api == SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
-  // Always accept the highest known version
-  api == SdkVersionInfo.HIGHEST_KNOWN_STABLE_API -> true
-  // Relevant versions, used to prune down the set of targets we need to check on.
-  // This is determined by looking at the minApi and minBuildApi versions found in the template.xml files.
-  else -> when (api) {
-    14, 16, 21, 23 -> true
-    25, 28 -> !TEST_FEWER_API_VERSIONS
-    else -> false
-  }
-}
-
 internal fun createNewProjectState(sdkData: AndroidSdkData, moduleTemplate: Template): TestNewProjectWizardState {
   val projectState = TestNewProjectWizardState(moduleTemplate)
   val moduleState = projectState.moduleTemplateState.apply {

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.templates
 
-import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
@@ -24,7 +23,6 @@ import com.android.tools.analytics.UsageTracker.setWriterForTest
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.Parameter.Type
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_ANDROIDX_SUPPORT
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API_STRING
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_HAS_APPLICATION_THEME
@@ -35,7 +33,6 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_MIN_API_LEVEL
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_THEME_EXISTS
 import com.android.tools.idea.templates.TemplateMetadata.TemplateConstraint.ANDROIDX
-import com.android.tools.idea.templates.TemplateMetadata.getBuildApiString
 import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.testing.AndroidGradleTestCase
@@ -100,7 +97,7 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
     activityCreationMode: ActivityCreationMode = ActivityCreationMode.WITHOUT_PROJECT,
     apiSensitive: Boolean = true,
     customizer: ProjectStateCustomizer
-  ): Unit = checkCreateTemplate(category, name, activityCreationMode, apiSensitive, customizer, { _, _ -> })
+  ): Unit = checkCreateTemplate(category, name, activityCreationMode, customizer, { _, _ -> })
 
   /**
    * Checks the given template in the given category. Supports overridden template values.
@@ -116,7 +113,6 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
     category: String,
     name: String,
     activityCreationMode: ActivityCreationMode = ActivityCreationMode.WITHOUT_PROJECT,
-    apiSensitive: Boolean = false,
     vararg customizers: ProjectStateCustomizer
   ) {
     if (DISABLED) {
@@ -131,80 +127,57 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
       it(templateOverrides, moduleOverrides)
     }
     val msToCheck = measureTimeMillis {
-      checkTemplate(templateFile, activityCreationMode, apiSensitive)
+      checkTemplate(templateFile, activityCreationMode)
     }
     println("Checked ${templateFile.name} successfully in ${msToCheck}ms")
   }
 
   /**
-   * Generates "interesting" API level combinations (min, target, and build) and runs [checkApiTarget] for each.
-   * [TEST_JUST_ONE_MIN_SDK] etc. may be useful for manual testing.
-   *
-   * @see isInterestingApiLevel
+   * Runs [checkApiTarget] with proper min and build apis. Currently only runs it with only one combination.
+   * See b/143199720 for context.
    */
   private fun checkTemplate(
     templateFile: File,
-    activityCreationMode: ActivityCreationMode,
-    apiSensitive: Boolean
+    activityCreationMode: ActivityCreationMode
   ) {
     require(!isBroken(templateFile.name))
-    val sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk()!!
 
+    val sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk()!!
     val projectState = createNewProjectState(sdkData, getModuleTemplateForFormFactor(templateFile))
     val moduleState = projectState.moduleTemplateState
-    val activityState = projectState.activityTemplateState.apply { setTemplateLocation(templateFile) }
-
     val moduleMetadata = moduleState.template.metadata!!
+    val activityState = projectState.activityTemplateState.apply { setTemplateLocation(templateFile) }
     val activityMetadata = activityState.template.metadata!!
-
     val hasEnums = moduleMetadata.parameters.any { it.type == Type.ENUM }
+
     if (hasEnums && templateOverrides.isEmpty()) {
       // TODO: Handle all enums here. None of the projects have this currently at this level.
       return fail("Not expecting enums at the root level")
     }
 
-    val lowestSupportedApi = maxOf(
+    // TODO: Assert that the SDK manager has required SDKs
+    val buildSdk = SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
+    val minSdk = maxOf(
       moduleState.getString(ATTR_MIN_API).toInt(),
       moduleMetadata.minSdk,
       activityMetadata.minSdk
     )
 
-    val buildTargets = sdkData.targets.reversed()
-      .filter { it.isPlatform && isInterestingApiLevel(it.version.apiLevel, MANUAL_BUILD_API, apiSensitive) }
-      .takeOneIfTrueElseAll(TEST_JUST_ONE_BUILD_TARGET)
-
-    // Iterate over all (valid) combinations of build target, minSdk and targetSdk
-    // TODO: Assert that the SDK manager has a minimum set of SDKs installed needed to be certain the test is comprehensive
-    // For now make sure there's at least one
-    var ranTest = false
-    for (buildTarget in buildTargets) {
-      val buildSdk = buildTarget.version.apiLevel
-      val interestingMinSdks = (lowestSupportedApi..SdkVersionInfo.HIGHEST_KNOWN_API)
-        .filter { isInterestingApiLevel(it, MANUAL_MIN_API, apiSensitive) }
-        .takeOneIfTrueElseAll(TEST_JUST_ONE_MIN_SDK)
-
-      interestingMinSdks
-        .filter { moduleMetadata.validateTemplate(it, buildSdk) == null && activityMetadata.validateTemplate(it, buildSdk) == null }
-        .forEach { minSdk ->
-          var base = "${templateFile.name}_min_${minSdk}_build_${buildSdk}"
-          if (templateOverrides.isNotEmpty()) {
-            base += "_overrides"
-          }
-          checkApiTarget(minSdk, buildTarget.version, projectState, base, activityState, activityCreationMode)
-          ranTest = true
-        }
+    var base = "${templateFile.name}_min_${minSdk}_build_${buildSdk}"
+    if (templateOverrides.isNotEmpty()) {
+      base += "_overrides"
     }
-    assertTrue("Didn't run any tests! Make sure you have the right platforms installed.", ranTest)
+
+    checkApiTarget(minSdk, buildSdk, projectState, base, activityState, activityCreationMode)
   }
 
   /**
    * Checks creating the given project and template for the given SDK versions.
-   *
    * If [COMPREHENSIVE] run check for all possible versions of each enum and boolean parameter.
    */
   protected fun checkApiTarget(
     minSdk: Int,
-    buildVersion: AndroidVersion,
+    buildVersion: Int,
     projectState: TestNewProjectWizardState,
     projectNameBase: String,
     activityState: TestTemplateWizardState,
@@ -219,8 +192,8 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
     val moduleState = projectState.moduleTemplateState.apply {
       put(ATTR_MIN_API, minSdk.toString())
       put(ATTR_MIN_API_LEVEL, minSdk)
-      put(ATTR_BUILD_API, buildVersion.apiLevel)
-      put(ATTR_BUILD_API_STRING, getBuildApiString(buildVersion))
+      put(ATTR_BUILD_API, buildVersion)
+      put(ATTR_BUILD_API_STRING, buildVersion.toString())
       putAll(moduleOverrides)
     }
 
@@ -341,22 +314,6 @@ internal val DISABLED = getBoolFromEnvironment("DISABLE_STUDIO_TEMPLATE_TESTS")
  * Whether we should enforce that lint passes cleanly on the projects
  */
 internal const val CHECK_LINT = false // Needs work on closing projects cleanly
-/**
- * Manual sdk version selections
- */
-private val MANUAL_BUILD_API =
-  System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_BUILD_API")?.toIntOrNull() ?: -1
-private val MANUAL_MIN_API =
-  System.getProperty("com.android.tools.idea.templates.TemplateTest.MANUAL_MIN_API")?.toIntOrNull() ?: -1
-/**
- * Flags used to quickly check each template once (for one version), to get
- * quicker feedback on whether something is broken instead of waiting for
- * all the versions for each template first
- */
-internal val TEST_FEWER_API_VERSIONS = !COMPREHENSIVE
-private val TEST_JUST_ONE_MIN_SDK = !COMPREHENSIVE
-private val TEST_JUST_ONE_BUILD_TARGET = !COMPREHENSIVE
-
 /**
  * Const for toggling the behavior of a test.
  *
