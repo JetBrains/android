@@ -105,14 +105,14 @@ open class ContextualCallPathBrowser(
 ) : CallHierarchyBrowserBase(project, element) {
 
   override fun createHierarchyTreeStructure(kind: String, psiElement: PsiElement): HierarchyTreeStructure {
-    val reverseEdges = kind == getCALLER_TYPE()
+    val reverseEdges = kind == getCallerType()
     return ContextualCallPathTreeStructure(myProject, graph, psiElement, reverseEdges)
   }
 
   override fun createTrees(typeToTreeMap: MutableMap<String, JTree>) {
     val group = ActionManager.getInstance().getAction(IdeActions.GROUP_CALL_HIERARCHY_POPUP) as ActionGroup
     val baseOnThisMethodAction = BaseOnThisMethodAction()
-    val kinds = arrayOf(getCalleeType(), getCALLER_TYPE())
+    val kinds = arrayOf(getCalleeType(), getCallerType())
     for (kind in kinds) {
       val tree = createTree(false)
       PopupHandler.installPopupHandler(tree, group, ActionPlaces.CALL_HIERARCHY_VIEW_POPUP, ActionManager.getInstance())
