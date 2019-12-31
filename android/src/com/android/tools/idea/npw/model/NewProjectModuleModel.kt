@@ -34,6 +34,7 @@ import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.templates.TemplateManager.CATEGORY_ACTIVITY
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.Template
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import org.jetbrains.android.util.AndroidBundle.message
@@ -61,6 +62,8 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
   val extraRenderTemplateModel = RenderTemplateModel.fromModuleModel(newModuleModel, null, message("android.wizard.config.activity.title"))
   @JvmField
   val renderTemplateHandle = OptionalValueProperty<TemplateHandle>()
+  @JvmField
+  val newRenderTemplate = OptionalValueProperty<Template>()
   @JvmField
   val hasCompanionApp = BoolValueProperty()
 
