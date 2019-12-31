@@ -92,7 +92,7 @@ class DeviceViewContentPanelTest {
     var graphics = generatedImage.createGraphics()
 
     val settings = DeviceViewSettings(scalePercent = 100)
-    val panel = DeviceViewContentPanel(model, settings)
+    val panel = DeviceViewContentPanel(model, settings, null)
     panel.setSize(200, 300)
 
     panel.paint(graphics)
