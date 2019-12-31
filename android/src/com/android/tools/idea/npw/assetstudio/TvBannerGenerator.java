@@ -73,7 +73,7 @@ public class TvBannerGenerator extends IconGenerator {
   private static final double DEFAULT_TEXT_SCALE = 0.82;
   /** Margin between image and the edge of the icon relative to the icon width. */
   private static final double IMAGE_MARGIN = 0.03;
-  public static final double PREVIEW_SCALE = 0.32;
+  private static final double PREVIEW_SCALE = 0.31;
 
   private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(DEFAULT_BACKGROUND_COLOR);
   private final BoolProperty myGenerateLegacyIcon = new BoolValueProperty(true);
