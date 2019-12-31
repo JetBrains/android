@@ -187,7 +187,6 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   private class FormFactorInfo(
     internal var templateFile: File,
     internal val formFactor: FormFactor,
-    internal var minSdk: Int,
     internal val tabPanel: ChooseAndroidProjectPanel<TemplateRendererWithDescription>)
 
   interface TemplateRendererWithDescription : ChooseGalleryItemStep.TemplateRenderer {
@@ -226,29 +225,16 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
       "Navigation Drawer Activity", "Google Maps Activity", "Login Activity", "Scrolling Activity", "Tabbed Activity"
     )
 
-    private fun createFormFactors(wizardTitle: String): List<FormFactorInfo> {
-      val formFactorInfoMap = mutableMapOf<FormFactor, FormFactorInfo>()
-      val manager = TemplateManager.getInstance()
-
-      manager!!.getTemplatesInCategory(CATEGORY_APPLICATION)
-        .filter { manager.getTemplateMetadata(it)?.formFactor != null }
-        .forEach { templateFile ->
-          val metadata = manager.getTemplateMetadata(templateFile)!!
-          val formFactor = get(metadata.formFactor!!)
-          val prevFormFactorInfo = formFactorInfoMap[formFactor]
-          val templateMinSdk = metadata.minSdk
-          if (prevFormFactorInfo == null) {
-            // TODO(qumeric) validate templates with minimum api instead
-            val minSdk = templateMinSdk.coerceAtLeast(formFactor.minOfflineApiLevel)
-            val tabPanel = ChooseAndroidProjectPanel(createGallery(wizardTitle, formFactor))
-            formFactorInfoMap[formFactor] = FormFactorInfo(templateFile, formFactor, minSdk, tabPanel)
-          }
-          else if (templateMinSdk > prevFormFactorInfo.minSdk) {
-            prevFormFactorInfo.minSdk = templateMinSdk
-            prevFormFactorInfo.templateFile = templateFile
-          }
+    private fun createFormFactors(wizardTitle: String): List<FormFactorInfo> = with(TemplateManager.getInstance()!!) {
+      getTemplatesInCategory(CATEGORY_APPLICATION).mapNotNull { templateFile ->
+        val ffString = getTemplateMetadata(templateFile)?.formFactor
+        if (ffString != null) {
+          val formFactor = get(ffString)
+          FormFactorInfo(templateFile, formFactor, ChooseAndroidProjectPanel(createGallery(wizardTitle, formFactor)))
+        } else {
+          null
         }
-      return formFactorInfoMap.values.sortedBy(FormFactorInfo::formFactor)
+      }.sortedBy(FormFactorInfo::formFactor)
     }
 
     private fun getFilteredTemplateHandles(formFactor: FormFactor): List<TemplateHandle?> {
