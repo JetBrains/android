@@ -97,7 +97,7 @@ public class ModuleDependenciesTableModel extends AbstractTableModel implements 
   @Override
   public String getColumnName(int column) {
     if (column == SCOPE_COLUMN) {
-      return getSCOPE_COLUMN_NAME();
+      return getScopeColumnName();
     }
     return "";
   }
@@ -169,7 +169,7 @@ public class ModuleDependenciesTableModel extends AbstractTableModel implements 
     return -1;
   }
 
-  static String getSCOPE_COLUMN_NAME() {
+  static String getScopeColumnName() {
     return ProjectBundle.message("modules.order.export.scope.column");
   }
 }
