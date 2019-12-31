@@ -293,7 +293,8 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
     val moduleState = projectState.moduleTemplateState
     val templateMetadata = activityState.template.metadata
     val checkLib = "Activity" == templateMetadata?.category && "Mobile" == templateMetadata.formFactor &&
-                   activityCreationMode == ActivityCreationMode.WITHOUT_PROJECT
+                   activityCreationMode == ActivityCreationMode.WITHOUT_PROJECT && "default" in projectName &&
+                   activityState[COMPARE_NEW_RENDERING_CONTEXT] != true
     val language = Language.fromName(moduleState[ATTR_LANGUAGE] as String?, Language.JAVA)
     val projectChecker = ProjectChecker(CHECK_LINT, projectState, activityState, usageTracker, language, activityCreationMode)
 
