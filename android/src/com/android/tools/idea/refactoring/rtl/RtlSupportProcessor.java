@@ -620,7 +620,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
   @NotNull
   @Override
   protected String getCommandName() {
-    return getREFACTORING_NAME();
+    return getRefactoringName();
   }
 
   /**
@@ -666,7 +666,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
     return false;
   }
 
-  private static String getREFACTORING_NAME() {
+  private static String getRefactoringName() {
     return AndroidBundle.message("android.refactoring.rtl.addsupport.title");
   }
 }

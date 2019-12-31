@@ -44,7 +44,7 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
   @SuppressWarnings("InspectionDescriptionNotFoundInspection")
   @NonNls public static final String SHORT_NAME = DeprecationUtil.DEPRECATION_SHORT_NAME;
   @NonNls public static final String ID = DeprecationUtil.DEPRECATION_ID;
-  public static final String DISPLAY_NAME = DeprecationUtil.getDEPRECATION_DISPLAY_NAME();
+  public static final String DISPLAY_NAME = DeprecationUtil.getDeprecationDisplayName();
   public static final String IGNORE_METHODS_OF_DEPRECATED_NAME = "IGNORE_METHODS_OF_DEPRECATED";
 
   public boolean IGNORE_INSIDE_DEPRECATED;
