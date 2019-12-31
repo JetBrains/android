@@ -15,10 +15,11 @@
  */
 package com.android.tools.adtui.model;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A multi-selection model that supports creating, adding and removing selection of multiple items.
@@ -35,28 +36,20 @@ public class MultiSelectionModel<T> extends AspectModel<MultiSelectionModel.Aspe
   /**
    * @return an immutable collection of the selected objects to prevent caller from modifying the selection.
    */
-  public ImmutableCollection<T> getSelection() {
+  public ImmutableList<T> getSelection() {
     return ImmutableList.<T>builder().addAll(mySelection).build();
   }
 
   /**
-   * Add an item to the current selection.
+   * Replaces the current selection with a new one. Only fires {@link Aspect#CHANGE_SELECTION} if the new selection is not identical to the
+   * current one.
    *
-   * @param itemToAdd
+   * @param newSelection new selection to replace with.
    */
-  public void addToSelection(T itemToAdd) {
-    if (mySelection.add(itemToAdd)) {
-      changed(Aspect.CHANGE_SELECTION);
-    }
-  }
-
-  /**
-   * Remove an item from current selection, if already selected.
-   *
-   * @param selection
-   */
-  public void deselect(T selection) {
-    if (mySelection.remove(selection)) {
+  public void setSelection(@NotNull Set<T> newSelection) {
+    if (!mySelection.containsAll(newSelection) || !newSelection.containsAll(mySelection)) {
+      mySelection.clear();
+      mySelection.addAll(newSelection);
       changed(Aspect.CHANGE_SELECTION);
     }
   }
@@ -65,8 +58,7 @@ public class MultiSelectionModel<T> extends AspectModel<MultiSelectionModel.Aspe
    * Deselect everything selected.
    */
   public void clearSelection() {
-    mySelection.clear();
-    changed(Aspect.CHANGE_SELECTION);
+    setSelection(Collections.emptySet());
   }
 
   /**
@@ -77,5 +69,12 @@ public class MultiSelectionModel<T> extends AspectModel<MultiSelectionModel.Aspe
    */
   public boolean isSelected(T selection) {
     return mySelection.contains(selection);
+  }
+
+  /**
+   * @return true if no item is selected.
+   */
+  public boolean isEmpty() {
+    return mySelection.isEmpty();
   }
 }
