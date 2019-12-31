@@ -10,6 +10,15 @@
     <orderEntry type="library" name="kotlin-plugin" level="project" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.platform.lang" />
+    <orderEntry type="module" module-name="intellij.platform.indexing" />
+    <orderEntry type="module" module-name="intellij.java.indexing.impl" />
+    <orderEntry type="module" module-name="intellij.xml.psi.impl" />
+    <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
+    <orderEntry type="module" module-name="android.sdktools.common" />
     <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.android.core" />
+    <orderEntry type="library" name="NanoXML" level="project" />
+    <orderEntry type="library" name="jcip" level="project" />
+    <orderEntry type="library" name="Guava" level="project" />
   </component>
 </module>

@@ -14,4 +14,7 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
+  <extensions defaultExtensionNs="com.intellij">
+    <fileBasedIndex implementation="com.android.tools.idea.nav.safeargs.index.NavXmlIndex"/>
+  </extensions>
 </idea-plugin>
