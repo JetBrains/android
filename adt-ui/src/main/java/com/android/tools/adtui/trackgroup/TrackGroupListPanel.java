@@ -34,7 +34,9 @@ import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
@@ -233,9 +235,12 @@ public class TrackGroupListPanel implements TrackGroupMover {
       // For example, multiple track groups share the same MultiSelectionModel in CPU capture stage. Selecting a track in Track Group A
       // should clear the track selection in Track Group B and vice versa.
       multiSelectionModel.addDependency(trackGroup).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, () -> {
-        if (!multiSelectionModel.getSelection().isEmpty() && !trackGroup.isEmpty()) {
+        if (multiSelectionModel.isEmpty()) {
+          trackGroup.getTrackList().clearSelection();
+        }
+        else if (!trackGroup.isEmpty()) {
           // Selection is changed and may come from another source.
-          T selection = multiSelectionModel.getSelection().iterator().next();
+          T selection = multiSelectionModel.getSelection().get(0);
           T listModel = (T)trackGroup.getTrackModelAt(0).getDataModel();
           // This may cause false positives if both selection are of the same type and isCompatibleWith() performs a type check only.
           if (!listModel.isCompatibleWith(selection)) {
@@ -248,20 +253,11 @@ public class TrackGroupListPanel implements TrackGroupMover {
 
     @Override
     public void valueChanged(ListSelectionEvent e) {
-      for (int i = e.getFirstIndex(); i <= e.getLastIndex(); ++i) {
-        T selectedModel = (T)myTrackGroup.getTrackModelAt(i).getDataModel();
-        if (myTrackGroup.getTrackList().isSelectedIndex(i)) {
-          if (!myMultiSelectionModel.getSelection().isEmpty() &&
-              // This may cause false positives if both selection are of the same type and isCompatibleWith() performs a type check only.
-              !selectedModel.isCompatibleWith(myMultiSelectionModel.getSelection().iterator().next())) {
-            myMultiSelectionModel.clearSelection();
-          }
-          myMultiSelectionModel.addToSelection(selectedModel);
-        }
-        else {
-          myMultiSelectionModel.deselect(selectedModel);
-        }
+      Set<T> selection = new HashSet<>();
+      for (int selectedIndex : myTrackGroup.getTrackList().getSelectedIndices()) {
+        selection.add((T)myTrackGroup.getTrackModelAt(selectedIndex).getDataModel());
       }
+      myMultiSelectionModel.setSelection(selection);
     }
   }
 

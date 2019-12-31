@@ -37,6 +37,7 @@ import java.awt.Color;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Collections;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -57,7 +58,7 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
                                                            trackModel.isCollapsed());
     MultiSelectionModel<CpuAnalyzable> multiSelectionModel = trackModel.getDataModel().getMultiSelectionModel();
     multiSelectionModel.addDependency(myObserver).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, () -> {
-      List<CpuAnalyzable> selection = multiSelectionModel.getSelection().asList();
+      List<CpuAnalyzable> selection = multiSelectionModel.getSelection();
       if (!selection.isEmpty() && selection.get(0) instanceof CaptureNodeAnalysisModel) {
         // A trace event is selected, possibly in another thread track.
         // Update all tracks so that they render the deselection state (i.e. gray-out) for all of their nodes.
@@ -114,9 +115,12 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
             p.translate(-traceEventChart.getX(), -traceEventChart.getY());
             CaptureNode node = traceEventChart.getNodeAt(p);
             // Trace events only support single-selection.
-            multiSelectionModel.clearSelection();
             if (node != null) {
-              multiSelectionModel.addToSelection(new CaptureNodeAnalysisModel(node, trackModel.getDataModel().getCapture()));
+              multiSelectionModel.setSelection(
+                Collections.singleton(new CaptureNodeAnalysisModel(node, trackModel.getDataModel().getCapture())));
+            }
+            else {
+              multiSelectionModel.clearSelection();
             }
             traceEventChart.dispatchEvent(SwingUtil.convertMouseEventPoint(e, p));
           }

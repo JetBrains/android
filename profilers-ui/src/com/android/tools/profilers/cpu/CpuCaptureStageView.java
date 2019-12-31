@@ -46,7 +46,7 @@ import com.android.tools.profilers.event.LifecycleTooltipView;
 import com.android.tools.profilers.event.UserEventTooltip;
 import com.android.tools.profilers.event.UserEventTooltipView;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
@@ -96,8 +96,8 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   @Override
   public boolean shouldEnableZoomToSelection() {
     // Zoom to Selection only works for trace event (i.e. CaptureNodeAnalysisModel) selection.
-    ImmutableCollection<CpuAnalyzable> selection = getStage().getMultiSelectionModel().getSelection();
-    return !selection.isEmpty() && selection.iterator().next() instanceof CaptureNodeAnalysisModel;
+    ImmutableList<CpuAnalyzable> selection = getStage().getMultiSelectionModel().getSelection();
+    return !selection.isEmpty() && selection.get(0) instanceof CaptureNodeAnalysisModel;
   }
 
   @NotNull
@@ -105,7 +105,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   public Range getZoomToSelectionRange() {
     assert shouldEnableZoomToSelection();
     // Zoom to Selection works on the range of the selected trace event.
-    CaptureNodeAnalysisModel selectedNode = (CaptureNodeAnalysisModel)getStage().getMultiSelectionModel().getSelection().iterator().next();
+    CaptureNodeAnalysisModel selectedNode = (CaptureNodeAnalysisModel)getStage().getMultiSelectionModel().getSelection().get(0);
     return selectedNode.getNodeRange();
   }
 
