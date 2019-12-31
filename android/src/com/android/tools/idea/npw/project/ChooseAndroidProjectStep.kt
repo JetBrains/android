@@ -38,6 +38,7 @@ import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.ModelWizard.Facade
 import com.android.tools.idea.wizard.model.ModelWizardStep
+import com.android.tools.idea.wizard.template.Template
 import com.google.common.base.Suppliers
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -68,8 +69,9 @@ import javax.swing.event.ListSelectionListener
  * First page in the New Project wizard that allows user to select the [FormFactor] (Mobile, Wear, TV, etc.) and its
  * template ("Empty Activity", "Basic", "Navigation Drawer", etc.)
  */
-class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProjectModel>(model,
-                                                                                          message("android.wizard.project.new.choose")) {
+class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProjectModel>(
+  model, message("android.wizard.project.new.choose")
+) {
   private var loadingPanel = JBLoadingPanel(BorderLayout(), this)
   private val tabsPanel = CommonTabbedPane()
   private val rootPanel = JPanel(GridLayoutManager(1, 1))
@@ -160,8 +162,19 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     with(newProjectModuleModel!!) {
       formFactor.set(formFactorInfo.formFactor)
       setModuleTemplateFile(formFactorInfo.templateFile)
-      renderTemplateHandle.setNullableValue(selectedTemplate.template)
-      extraRenderTemplateModel.templateHandle = if (formFactorInfo.formFactor === FormFactor.THINGS) selectedTemplate.template else null
+      when (selectedTemplate) {
+        is OldTemplateRendererWithDescription -> {
+          renderTemplateHandle.setNullableValue(selectedTemplate.template)
+          extraRenderTemplateModel.templateHandle = selectedTemplate.template.takeIf { formFactorInfo.formFactor === FormFactor.THINGS }
+        }
+        is NewTemplateRendererWithDescription -> {
+         TODO("Add support for new template renderers")
+        }
+        is CppTemplateRendererWithDescription -> {
+          // Do nothing
+        }
+        else -> throw IllegalArgumentException("Add support for additional template renderer")
+      }
     }
   }
 
@@ -177,27 +190,33 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     internal var minSdk: Int,
     internal val tabPanel: ChooseAndroidProjectPanel<TemplateRendererWithDescription>)
 
-  private interface TemplateRendererWithDescription : ChooseGalleryItemStep.TemplateRenderer {
-    val template: TemplateHandle?
+  interface TemplateRendererWithDescription : ChooseGalleryItemStep.TemplateRenderer {
     val description: String
   }
 
   data class CppTemplateRendererWithDescription(
-    override val template: TemplateHandle? = null,
     override val description: String = message("android.wizard.gallery.item.add.cpp.Desc"),
     override val label: String = message("android.wizard.gallery.item.add.cpp"),
     override val icon: Icon? = cppIcon,
-    override val exists: Boolean = template != null
+    override val exists: Boolean = true
   ) : TemplateRendererWithDescription {
     override fun toString() = label
   }
 
-  private class HandleTemplateRendererWithDescription(
-    t: TemplateHandle?
-  ) : ChooseGalleryItemStep.OldTemplateRenderer(t), TemplateRendererWithDescription {
+  private class OldTemplateRendererWithDescription(
+    template: TemplateHandle?
+  ) : ChooseGalleryItemStep.OldTemplateRenderer(template), TemplateRendererWithDescription {
     override val label: String get() = getTemplateImageLabel(template)
     override val icon: Icon? get() = getTemplateIcon(template)
     override val description: String get() = getTemplateDescription(template)
+  }
+
+  private class NewTemplateRendererWithDescription(
+    template: Template
+  ) : TemplateRendererWithDescription, ChooseGalleryItemStep.NewTemplateRenderer(template) {
+    override val label: String get() = template.name
+    override val icon: Icon? get() = getTemplateIcon(template)
+    override val description: String get() = template.description
   }
 
   companion object {
@@ -244,9 +263,9 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     private fun createGallery(title: String, formFactor: FormFactor): ASGallery<TemplateRendererWithDescription> {
       val templateHandles = getFilteredTemplateHandles(formFactor)
       val listItems = sequence {
-        yield(HandleTemplateRendererWithDescription(null)) // "No Activity" entry
+        yield(OldTemplateRendererWithDescription(null)) // "No Activity" entry
 
-        yieldAll(templateHandles.map { HandleTemplateRendererWithDescription(it) })
+        yieldAll(templateHandles.map { OldTemplateRendererWithDescription(it) })
         if (formFactor === FormFactor.MOBILE) {
           yield(CppTemplateRendererWithDescription())
         }

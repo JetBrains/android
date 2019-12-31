@@ -186,7 +186,7 @@ abstract class ChooseGalleryItemStep(
     override fun toString(): String = label
   }
 
-  class NewTemplateRenderer(internal val template: Template) : TemplateRenderer {
+  open class NewTemplateRenderer(internal val template: Template) : TemplateRenderer {
     override val label: String
       get() = template.name
 
