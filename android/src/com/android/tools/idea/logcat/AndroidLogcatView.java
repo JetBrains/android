@@ -46,7 +46,7 @@ public class AndroidLogcatView {
   public static final Key<AndroidLogcatView> ANDROID_LOGCAT_VIEW_KEY = Key.create("ANDROID_LOGCAT_VIEW_KEY");
 
   static final AndroidLogcatFilter FAKE_SHOW_ONLY_SELECTED_APPLICATION_FILTER = new MatchAllFilter(getSelectedAppFilter());
-  static final AndroidLogcatFilter NO_FILTERS_ITEM = new MatchAllFilter(getNO_FILTERS());
+  static final AndroidLogcatFilter NO_FILTERS_ITEM = new MatchAllFilter(getNoFilters());
 
   // TODO Refactor all this filter combo box stuff to its own class
   static final AndroidLogcatFilter EDIT_FILTER_CONFIGURATION_ITEM = new MatchAllFilter(getEDIT_FILTER_CONFIGURATION());
@@ -215,7 +215,7 @@ public class AndroidLogcatView {
     updateUserFilters();
     String selectName = AndroidLogcatPreferences.getInstance(myProject).TOOL_WINDOW_CONFIGURED_FILTER;
     if (StringUtil.isEmpty(selectName)) {
-      selectName = myDeviceContext != null ? getSelectedAppFilter() : getNO_FILTERS();
+      selectName = myDeviceContext != null ? getSelectedAppFilter() : getNoFilters();
     }
     selectFilterByName(selectName);
 
@@ -432,7 +432,7 @@ public class AndroidLogcatView {
     return AndroidBundle.message("android.logcat.filters.selected");
   }
 
-  static String getNO_FILTERS() {
+  static String getNoFilters() {
     return AndroidBundle.message("android.logcat.filters.none");
   }
 
