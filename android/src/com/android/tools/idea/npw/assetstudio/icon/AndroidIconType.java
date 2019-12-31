@@ -43,9 +43,14 @@ public enum AndroidIconType {
   NOTIFICATION("Notification Icons", "ic_stat_%s"),
 
   /**
-   * Banner icons to be shown on Android TV.
+   * Banner icons for Android TV.
    */
-  TV_BANNER("TV Banners", "ic_banner");
+  TV_BANNER("TV Banners", "ic_banner"),
+
+  /**
+   * Channel icons for Android TV.
+   */
+  TV_CHANNEL("TV Channel Icons", "ic_channel");
 
   @NotNull private final String myDisplayName;
   /** Default asset name format, for use in generating a name for the final asset. */
