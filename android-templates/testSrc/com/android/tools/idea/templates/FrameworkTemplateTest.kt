@@ -47,7 +47,7 @@ class FrameworkTemplateTest : TemplateTestBase() {
     val activity = findTemplate("activities", "BasicActivity")
     state.activityTemplateState.setTemplateLocation(activity)
     state.activityTemplateState.put(ATTR_JAVA_VERSION, "1.7")
-    checkApiTarget(LOLLIPOP, target.version, state, "Test17", TestTemplateWizardState())
+    checkApiTarget(LOLLIPOP, target.version.apiLevel, state, "Test17", TestTemplateWizardState())
   }
 
   fun testTemplateFormatting() {
