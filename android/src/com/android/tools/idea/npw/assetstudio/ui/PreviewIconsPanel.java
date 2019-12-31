@@ -20,13 +20,13 @@ import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
 import com.android.tools.idea.npw.assetstudio.GeneratedImageIcon;
 import com.android.tools.idea.npw.assetstudio.IconCategory;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
-import com.android.tools.idea.npw.assetstudio.icon.CategoryIconMap;
 import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
 import com.android.utils.Pair;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.IconUtil;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
@@ -60,8 +60,6 @@ public class PreviewIconsPanel extends JPanel {
   @NotNull private final Theme myTheme;
   @NotNull private final Map<String, ImageComponent> myIconImages = new HashMap<>();
 
-  @Nullable private CategoryIconMap.Filter myFilter;
-
   private JPanel myRootPanel;
   private JPanel myIconsPanel;
   private JBLabel myTitleLabel;
@@ -78,11 +76,6 @@ public class PreviewIconsPanel extends JPanel {
     myRootPanel.setOpaque(myTheme != Theme.TRANSPARENT);
     myTitleLabel.setForeground(myTheme.getAltColor());
     setName("PreviewIconsPanel"); // for UI tests
-  }
-
-  public PreviewIconsPanel(@NotNull String title, @NotNull Theme theme, @NotNull CategoryIconMap.Filter filter) {
-    this(title, theme);
-    myFilter = filter;
   }
 
   private static void showPreviewImageImpl(@NotNull ImageComponent imageComponent, @NotNull BufferedImage sourceImage) {
@@ -196,7 +189,7 @@ public class PreviewIconsPanel extends JPanel {
   }
 
   protected void showPreviewImagesImpl(@NotNull List<Pair<String, BufferedImage>> images) {
-    initializeIconComponents(images.stream().map(Pair::getFirst).collect(Collectors.toList()));
+    initializeIconComponents(ContainerUtil.map(images, Pair::getFirst));
     images.forEach(pair -> showPreviewImageImpl(myIconImages.get(pair.getFirst()), pair.getSecond()));
   }
 

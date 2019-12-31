@@ -233,7 +233,7 @@ public abstract class IconGenerator implements Disposable {
    * an exception will be thrown.
    */
   @NotNull
-  private Map<File, GeneratedIcon> generateIntoIconMap(@NotNull AndroidModulePaths paths, Options options) {
+  private Map<File, GeneratedIcon> generateIntoIconMap(@NotNull AndroidModulePaths paths, @NotNull Options options) {
     if (myOutputName.get().isEmpty()) {
       throw new IllegalStateException("Can't save icons to disk if a filename isn't set first");
     }
