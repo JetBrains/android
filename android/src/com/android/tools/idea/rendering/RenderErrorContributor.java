@@ -1454,7 +1454,7 @@ public class RenderErrorContributor {
       final String moduleToSelect = !myProblemModules.isEmpty()
                                     ? myProblemModules.iterator().next().getName()
                                     : null;
-      if (ModulesConfigurator.showDialog(myProject, moduleToSelect, ClasspathEditor.getNAME())) {
+      if (ModulesConfigurator.showDialog(myProject, moduleToSelect, ClasspathEditor.getName())) {
         askAndRebuild(myProject);
       }
     }
