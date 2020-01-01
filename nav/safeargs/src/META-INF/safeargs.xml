@@ -16,5 +16,20 @@
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
     <fileBasedIndex implementation="com.android.tools.idea.nav.safeargs.index.NavXmlIndex"/>
+    <moduleService serviceImplementation="com.android.tools.idea.nav.safeargs.module.SafeArgsCacheModuleService" />
+    <resolveScopeEnlarger implementation="com.android.tools.idea.nav.safeargs.finder.SafeArgsScopeEnlarger" />
+    <java.shortNamesCache implementation="com.android.tools.idea.nav.safeargs.cache.DirectionsShortNamesCache"/>
+    <java.elementFinder implementation="com.android.tools.idea.nav.safeargs.finder.DirectionsClassFinder"/>
   </extensions>
+
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <resolveScopeEnlarger implementation="com.android.tools.idea.nav.safeargs.finder.SafeArgsKotlinScopeEnlarger" />
+  </extensions>
+
+  <project-components>
+    <component>
+      <implementation-class>com.android.tools.idea.nav.safeargs.project.SafeArgsProjectComponent</implementation-class>
+      <loadForDefaultProject/>
+    </component>
+  </project-components>
 </idea-plugin>
