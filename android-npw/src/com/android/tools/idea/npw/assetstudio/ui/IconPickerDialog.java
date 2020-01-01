@@ -236,7 +236,7 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
     myCategoriesBox.setEnabled(false);
     MaterialVdIconsProvider.loadMaterialVdIcons((materialVdIcons, status) -> {
       assert ApplicationManager.getApplication().isDispatchThread();
-      myIconTable.getEmptyText().setText(StatusText.getDEFAULT_EMPTY_TEXT());
+      myIconTable.getEmptyText().setText(StatusText.getDefaultEmptyText());
       populateIcons(materialVdIcons);
       if (status == MaterialVdIconsProvider.Status.FINISHED) {
         // Enable the combo boxes once it has finished loading all icons.
