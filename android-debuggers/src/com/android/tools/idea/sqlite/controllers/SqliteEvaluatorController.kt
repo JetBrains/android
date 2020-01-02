@@ -75,7 +75,7 @@ class SqliteEvaluatorController(
   }
 
   fun evaluateSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
-    view.showSqliteStatement(sqliteStatement.toString())
+    view.showSqliteStatement(sqliteStatement.assignValuesToParameters())
     view.selectDatabase(database)
     return execute(database, sqliteStatement)
   }
