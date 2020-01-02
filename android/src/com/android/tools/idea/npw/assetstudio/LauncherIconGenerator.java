@@ -653,7 +653,7 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
 
   @Override
   @NotNull
-  protected Rectangle getFullBleedRectangle(@NotNull Options options) {
+  protected Rectangle getFullBleedRectangle(@NotNull AdaptiveIconOptions options) {
     if (((LauncherIconOptions)options).generatePlayStoreIcon) {
       return IMAGE_SIZE_FULL_BLEED_PLAY_STORE_PX;
     }
@@ -662,7 +662,7 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
 
   @Override
   @NotNull
-  protected Rectangle getViewportRectangle(@NotNull Options options) {
+  protected Rectangle getViewportRectangle(@NotNull AdaptiveIconOptions options) {
     if (((LauncherIconOptions)options).generatePlayStoreIcon) {
       return IMAGE_SIZE_VIEWPORT_PLAY_STORE_PX;
     }
@@ -671,7 +671,7 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
 
   @Override
   @NotNull
-  protected Rectangle getLegacyRectangle(@NotNull Options options) {
+  protected Rectangle getLegacyRectangle(@NotNull AdaptiveIconOptions options) {
     if (((LauncherIconOptions)options).generatePlayStoreIcon) {
       return options.generatePreviewIcons ? IMAGE_SIZE_VIEWPORT_PREVIEW_PLAY_STORE_PX : IMAGE_SIZE_VIEWPORT_PLAY_STORE_PX;
     }
@@ -893,7 +893,7 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
     /** Display name, when shape is displayed to the end-user */
     public final String displayName;
 
-    PreviewShape(String id, String displayName) {
+    PreviewShape(@NotNull String id, @NotNull String displayName) {
       this.id = id;
       this.displayName = displayName;
     }

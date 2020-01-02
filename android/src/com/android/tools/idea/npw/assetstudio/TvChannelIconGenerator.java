@@ -23,8 +23,6 @@ import com.android.resources.Density;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
-import com.android.tools.idea.observable.core.BoolProperty;
-import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.awt.Color;
@@ -54,8 +52,6 @@ public class TvChannelIconGenerator extends AdaptiveIconGenerator {
   private static final Rectangle IMAGE_SIZE_LEGACY_DP = new Rectangle(0, 0, 80, 80);
   private static final Density LEGACY_DENSITY = Density.XHIGH;
   private static final double PREVIEW_SCALE = 0.6;
-
-  private final BoolProperty myGenerateLegacyIcon = new BoolValueProperty(true);
 
   /**
    * Initializes the icon generator. Every icon generator has to be disposed by calling {@link #dispose()}.
@@ -108,7 +104,7 @@ public class TvChannelIconGenerator extends AdaptiveIconGenerator {
     options.previewDensity = LEGACY_DENSITY;
     options.foregroundLayerName = foregroundLayerName().get();
     options.backgroundLayerName = backgroundLayerName().get();
-    options.generateLegacyIcon = myGenerateLegacyIcon.get();
+    options.generateLegacyIcon = generateLegacyIcon().get();
     return options;
   }
 
@@ -376,7 +372,7 @@ public class TvChannelIconGenerator extends AdaptiveIconGenerator {
     AnnotatedImage mergedImage = generateMergedLayers(context, options, null);
     BufferedImage image = cropImageToViewport(options, mergedImage.getImage());
     if (options.generatePreviewIcons && options.showSafeZone) {
-      drawSafeZone(options, image);
+      drawSafeZone(image);
     }
     return new AnnotatedImage(image, mergedImage.getErrorMessage());
   }
@@ -387,12 +383,12 @@ public class TvChannelIconGenerator extends AdaptiveIconGenerator {
     AnnotatedImage mergedImage = generateMergedLayers(context, options, null);
     BufferedImage image = cropImageToViewport(options, mergedImage.getImage());
     if (options.showSafeZone) {
-      drawSafeZone(options, image);
+      drawSafeZone(image);
     }
     return new AnnotatedImage(image, mergedImage.getErrorMessage());
   }
 
-  private static void drawSafeZone(@NotNull TvChannelIconOptions options, @NotNull BufferedImage image) {
+  private static void drawSafeZone(@NotNull BufferedImage image) {
     Graphics2D gOut = (Graphics2D) image.getGraphics();
 
     Color c = new Color(0f, 0f, 0f, 0.20f);
@@ -406,19 +402,19 @@ public class TvChannelIconGenerator extends AdaptiveIconGenerator {
 
   @Override
   @NotNull
-  protected Rectangle getFullBleedRectangle(@NotNull Options options) {
+  protected Rectangle getFullBleedRectangle(@NotNull AdaptiveIconOptions options) {
     return scaleRectangle(IMAGE_SIZE_FULL_BLEED_DP, computeScaleFactor(options));
   }
 
   @Override
   @NotNull
-  protected Rectangle getViewportRectangle(@NotNull Options options) {
+  protected Rectangle getViewportRectangle(@NotNull AdaptiveIconOptions options) {
     return scaleRectangle(IMAGE_SIZE_VIEWPORT_DP, computeScaleFactor(options));
   }
 
   @Override
   @NotNull
-  protected Rectangle getLegacyRectangle(@NotNull Options options) {
+  protected Rectangle getLegacyRectangle(@NotNull AdaptiveIconOptions options) {
     return scaleRectangle(IMAGE_SIZE_LEGACY_DP, computeScaleFactor(options));
   }
 
@@ -478,7 +474,7 @@ public class TvChannelIconGenerator extends AdaptiveIconGenerator {
     /** Display name, when shape is displayed to the end-user */
     public final String displayName;
 
-    PreviewShape(String id, String displayName) {
+    PreviewShape(@NotNull String id, @NotNull String displayName) {
       this.id = id;
       this.displayName = displayName;
     }

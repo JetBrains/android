@@ -54,8 +54,8 @@ import org.jetbrains.annotations.Nullable;
 public abstract class AdaptiveIconGenerator extends IconGenerator {
   public static final Color DEFAULT_FOREGROUND_COLOR = Color.BLACK;
   public static final Color DEFAULT_BACKGROUND_COLOR = new Color(0x3DDC84);
-  protected final BoolProperty myShowSafeZone = new BoolValueProperty(true);
 
+  private final BoolProperty myShowSafeZone = new BoolValueProperty(true);
   private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(DEFAULT_BACKGROUND_COLOR);
   private final OptionalProperty<ImageAsset> myBackgroundImageAsset = new OptionalValueProperty<>();
   private final StringProperty myForegroundLayerName = new StringValueProperty();
@@ -98,7 +98,7 @@ public abstract class AdaptiveIconGenerator extends IconGenerator {
   }
 
   /**
-   * If {@code true}, generate the "Legacy" icon (API 24 and earlier)
+   * If {@code true}, generate the "Legacy" icon (API 25 and earlier)
    */
   @NotNull
   public BoolProperty generateLegacyIcon() {
@@ -212,13 +212,13 @@ public abstract class AdaptiveIconGenerator extends IconGenerator {
   }
 
   @NotNull
-  protected abstract Rectangle getFullBleedRectangle(@NotNull Options options);
+  protected abstract Rectangle getFullBleedRectangle(@NotNull AdaptiveIconOptions options);
 
   @NotNull
-  protected abstract Rectangle getViewportRectangle(@NotNull Options options);
+  protected abstract Rectangle getViewportRectangle(@NotNull AdaptiveIconOptions options);
 
   @NotNull
-  protected abstract Rectangle getLegacyRectangle(@NotNull Options options);
+  protected abstract Rectangle getLegacyRectangle(@NotNull AdaptiveIconOptions options);
 
   @NotNull
   protected AnnotatedImage generateIconBackgroundLayer(@NotNull GraphicGeneratorContext context, @NotNull AdaptiveIconOptions options) {
@@ -244,15 +244,6 @@ public abstract class AdaptiveIconGenerator extends IconGenerator {
     }
 
     return new AnnotatedImage(image, errorMessage);
-  }
-
-  @NotNull
-  private static String composeErrorMessage(@NotNull Exception e, @NotNull String role, @NotNull TransformedImageAsset imageAsset) {
-    String errorMessage = imageAsset.isDrawable() ?
-               String.format("Unable to generate image, possibly invalid %s drawable", role) :
-               String.format("Failed to transform %s image", role);
-    String exceptionMessage = e.getMessage();
-    return exceptionMessage == null ? errorMessage : errorMessage + ": " + exceptionMessage;
   }
 
   @NotNull
@@ -282,7 +273,16 @@ public abstract class AdaptiveIconGenerator extends IconGenerator {
     return new AnnotatedImage(image, errorMessage);
   }
 
-  protected BufferedImage cropImageToViewport(@NotNull Options options, @NotNull BufferedImage image) {
+  @NotNull
+  private static String composeErrorMessage(@NotNull Exception e, @NotNull String role, @NotNull TransformedImageAsset imageAsset) {
+    String errorMessage = imageAsset.isDrawable() ?
+                          String.format("Unable to generate image, possibly invalid %s drawable", role) :
+                          String.format("Failed to transform %s image", role);
+    String exceptionMessage = e.getMessage();
+    return exceptionMessage == null ? errorMessage : errorMessage + ": " + exceptionMessage;
+  }
+
+  protected BufferedImage cropImageToViewport(@NotNull AdaptiveIconOptions options, @NotNull BufferedImage image) {
     return cropImage(image, getViewportRectangle(options));
   }
 
