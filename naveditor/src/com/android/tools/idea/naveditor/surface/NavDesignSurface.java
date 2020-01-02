@@ -114,6 +114,7 @@ import javax.swing.JViewport;
 import org.jetbrains.android.dom.navigation.NavigationSchema;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
+import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -160,8 +161,8 @@ public class NavDesignSurface extends DesignSurface {
    * {@code editorPanel} should only be null in tests
    */
   public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
-    super(
-      project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), NavInteractionHandler::new, State.FULL, true);
+    super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), NavInteractionHandler::new,
+          getDefaultSurfaceState(), true);
     setBackground(JBColor.white);
 
     // TODO: add nav-specific issues
@@ -177,6 +178,21 @@ public class NavDesignSurface extends DesignSurface {
     });
 
     getSelectionModel().addListener((unused, selection) -> updateCurrentNavigation(selection));
+  }
+
+  private static State getDefaultSurfaceState() {
+    AndroidEditorSettings.EditorMode preferredMode = AndroidEditorSettings.getInstance().getGlobalState().getPreferredEditorMode();
+    if (preferredMode == null) {
+      return State.FULL;
+    }
+    switch (preferredMode) {
+      case CODE:
+        return State.DEACTIVATED;
+      case SPLIT:
+        return State.SPLIT;
+      default:
+        return State.FULL;
+    }
   }
 
   @Override

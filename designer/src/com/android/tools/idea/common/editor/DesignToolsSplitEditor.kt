@@ -24,6 +24,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileEditor.TextEditor
+import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.project.Project
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import javax.swing.JComponent
@@ -37,14 +38,7 @@ open class DesignToolsSplitEditor(textEditor: TextEditor,
                                   val designerEditor: DesignerEditor,
                                   editorName: String,
                                   private val project: Project)
-  : SplitEditor<DesignerEditor>(textEditor, designerEditor, editorName,
-                if (AndroidEditorSettings.getInstance().globalState.isPreferXmlEditor) Layout.SHOW_EDITOR else {
-                  when (designerEditor.component.surface.state) {
-                    DesignSurface.State.FULL -> Layout.SHOW_PREVIEW
-                    DesignSurface.State.SPLIT -> Layout.SHOW_EDITOR_AND_PREVIEW
-                    DesignSurface.State.DEACTIVATED -> Layout.SHOW_EDITOR
-                  }
-                }) {
+  : SplitEditor<DesignerEditor>(textEditor, designerEditor, editorName, defaultLayout(designerEditor)) {
 
   private val propertiesComponent = PropertiesComponent.getInstance()
 
@@ -181,4 +175,10 @@ open class DesignToolsSplitEditor(textEditor: TextEditor,
       return HighlightingPass.EMPTY_ARRAY
     }
   }
+}
+
+private fun defaultLayout(designerEditor: DesignerEditor) = when(designerEditor.component.surface.state) {
+  DesignSurface.State.FULL -> TextEditorWithPreview.Layout.SHOW_PREVIEW
+  DesignSurface.State.SPLIT -> TextEditorWithPreview.Layout.SHOW_EDITOR_AND_PREVIEW
+  DesignSurface.State.DEACTIVATED -> TextEditorWithPreview.Layout.SHOW_EDITOR
 }
