@@ -98,8 +98,7 @@ import org.jetbrains.annotations.Nullable;
  * options used by each {@link AndroidIconType}, but the relevant options are shown / hidden based
  * on the exact type passed into the constructor.
  */
-// TODO: Rename to ConfigureAdaptiveIconPanel.
-public class ConfigureLauncherIconPanel extends JPanel implements Disposable, ConfigureIconView, PersistentStateComponent<PersistentState> {
+public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, ConfigureIconView, PersistentStateComponent<PersistentState> {
   private static final boolean HIDE_INAPPLICABLE_CONTROLS = false; // TODO Decide on hiding or disabling.
 
   private static final File DEFAULT_FOREGROUND_IMAGE = getTemplateImage("drawable-v24", "ic_launcher_foreground.xml");
@@ -299,7 +298,7 @@ public class ConfigureLauncherIconPanel extends JPanel implements Disposable, Co
    * will be presented to the user in a combo box (unless there's only one supported type). If no
    * supported types are passed in, then all types will be supported by default.
    */
-  public ConfigureLauncherIconPanel(@NotNull Disposable disposableParent,
+  public ConfigureAdaptiveIconPanel(@NotNull Disposable disposableParent,
                                     @NotNull AndroidFacet facet,
                                     @NotNull AndroidIconType iconType,
                                     @NotNull BoolProperty showGrid,
