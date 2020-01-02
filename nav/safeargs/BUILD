@@ -69,12 +69,15 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
+        "//tools/idea/platform/core-api:intellij.platform.core[module, test]",
+        "//tools/idea/uast/uast-common:intellij.platform.uast[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/base/build-system/builder-model:studio.android.sdktools.builder-model[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/idea/.idea/libraries:studio-analytics-proto[test]",
+        "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
     ],
 )
 

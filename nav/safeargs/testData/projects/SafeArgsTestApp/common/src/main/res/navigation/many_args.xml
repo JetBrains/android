@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- An action with every argument type under the sun -->
+
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            app:startDestination="@+id/many_args_main_fragment">
+    <fragment android:id="@+id/many_args_main_fragment"
+              android:name="androidx.navigation.testapp.ManyArgsMainFragment">
+        <argument android:name="myarg1" android:defaultValue="one" />
+        <action android:id="@+id/next" app:destination="@+id/many_args_next_fragment">
+            <argument android:name="myarg2" app:argType="string"/>
+            <argument android:name="randomArgument" app:argType="string"/>
+            <argument android:name="intArgument" app:argType="integer" android:defaultValue="261"/>
+            <argument android:name="referenceZeroDefaultValue" app:argType="reference" android:defaultValue="0"/>
+            <argument android:name="activityInfo" app:argType="android.content.pm.ActivityInfo"/>
+            <argument android:name="activityInfoNull"
+                      app:nullable="true"
+                      app:argType="android.content.pm.ActivityInfo"
+                      android:defaultValue="@null"
+            />
+            <argument android:name="intArrayArg" app:argType="integer[]"/>
+            <argument android:name="stringArrayArg" app:argType="string[]"/>
+            <argument android:name="objectArrayArg" app:argType="android.content.pm.ActivityInfo[]"/>
+            <argument android:name="enumArg" app:argType="java.nio.file.AccessMode"
+                      android:defaultValue="READ"/>
+            <argument android:name="objectRelativeArg" app:argType=".pkg.ClassName"/>
+            <argument android:name="objectRelativeArg2" app:argType=".ClassName"/>
+            <argument android:name="objectRelativeArg3" app:argType=".OuterClass$InnerClass"/>
+            <argument android:name="implicitNullString" android:defaultValue="@null" />
+            <argument android:name="explicitNullString" app:argType="string" app:nullable="true" android:defaultValue="@null" />
+        </action>
+    </fragment>
+    <fragment android:id="@+id/many_args_next_fragment"
+              android:name=".ManyArgsNextFragment">
+        <argument android:name="myarg2" app:argType="string" />
+        <action android:id="@+id/next" app:destination="@+id/many_args_main_fragment"/>
+        <action android:id="@+id/finish" app:popUpTo="@id/many_args_main_fragment" />
+    </fragment>
+</navigation>

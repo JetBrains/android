@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- A graph which includes another graph (and references it) -->
+
+<navigation
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        app:startDestination="@id/nested_include_start">
+
+    <fragment
+            android:id="@+id/nested_include_start"
+            android:name=".MainFragment">
+        <action
+                android:id="@+id/start"
+                app:destination="@id/to_nested_included_start"/>
+    </fragment>
+
+    <include app:graph="@navigation/to_nested_included"/>
+</navigation>
