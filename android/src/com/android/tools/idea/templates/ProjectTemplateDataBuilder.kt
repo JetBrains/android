@@ -68,7 +68,10 @@ class ProjectTemplateDataBuilder(private val isNew: Boolean) {
     kotlinVersion = bundledRuntimeVersion()
     gradlePluginVersion = determineGradlePluginVersion(project)
     javaVersion = determineJavaVersion(project)
-    androidXSupport = project.hasAndroidxSupport()
+    // If we create a new project, then we have a checkbox for androidX support
+    if (!isNew) {
+      androidXSupport = project.isAndroidx()
+    }
   }
 
   /**
@@ -133,10 +136,6 @@ class ProjectTemplateDataBuilder(private val isNew: Boolean) {
     val androidPluginInfo = AndroidPluginInfo.findFromBuildFiles(project)
     return versionInUse ?: androidPluginInfo?.pluginVersion ?: defaultGradleVersion
   }
-
-  // Note: New projects are always created with androidx dependencies
-  private fun Project?.hasAndroidxSupport(): Boolean =
-    this == null || isNew || this.isAndroidx()
 
   fun build() = ProjectTemplateData(
     androidXSupport!!,
