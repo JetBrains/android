@@ -179,6 +179,24 @@ class TableControllerTest : PlatformTestCase() {
     verify(tableView, times(2)).setEditable(false)
   }
 
+  fun testRowIdColumnIsNotShownInView() {
+    // Prepare
+    val sqliteTable = SqliteTable("tableName", emptyList(), RowIdName.ROWID, false)
+
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+
+    // Assert
+    orderVerifier.verify(tableView).showTableColumns(mockResultSet._columns.filter { it.name != sqliteTable.rowIdName?.stringName })
+  }
+
   fun testSetUpError() {
     // Prepare
     val mockResultSet = mock(SqliteResultSet::class.java)
