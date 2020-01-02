@@ -488,10 +488,6 @@ public final class StudioFlags {
     LAYOUT_INSPECTOR, "dynamic.layout.editor", "Enable dynamic layout editor",
     "If enabled, users can edit layout properties with live updates on a device while the dynamic layout inspector is running.",
     false);
-  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT = Flag.create(
-    LAYOUT_INSPECTOR, "dynamic.layout.inspector.legacy.devices", "View legacy devices in the dynamic layout inspector",
-    "If enabled, pre-api 29 devices will be available in the dynamic layout inspector in a reduced-functionality compatibility mode.",
-    false);
   //endregion
 
   //region Refactorings

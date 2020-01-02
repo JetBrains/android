@@ -47,15 +47,9 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel) {
   init {
     val defaultClient = InspectorClient.createInstance(layoutInspectorModel)
     registerClientListeners(defaultClient)
-
-    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get()) {
-      val legacyClient = LegacyClient(layoutInspectorModel.project)
-      registerClientListeners(legacyClient)
-      allClients = listOf(defaultClient, legacyClient)
-    }
-    else {
-      allClients = listOf(defaultClient)
-    }
+    val legacyClient = LegacyClient(layoutInspectorModel.project)
+    registerClientListeners(legacyClient)
+    allClients = listOf(defaultClient, legacyClient)
   }
 
   private fun registerClientListeners(client: InspectorClient) {
