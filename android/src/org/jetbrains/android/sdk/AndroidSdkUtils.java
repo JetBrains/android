@@ -394,7 +394,6 @@ public final class AndroidSdkUtils {
   public static File getAdb(@Nullable Project project) {
     String path = System.getProperty(ADB_PATH_PROPERTY);
     if (path != null) {
-      LOG.info("Using adb specified by " + ADB_PATH_PROPERTY +" instead of project SDK. Path to adb: " + path);
       File adb = new File(path);
       if (adb.exists()) {
         return adb;
