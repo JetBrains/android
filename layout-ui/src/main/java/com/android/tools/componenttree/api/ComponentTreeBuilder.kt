@@ -50,6 +50,7 @@ class ComponentTreeBuilder {
   private var invokeLater: (Runnable) -> Unit = SwingUtilities::invokeLater
   private val keyStrokes = mutableMapOf<KeyStroke, Pair<String, () -> Unit>>()
   private var installTreeSearch = true
+  private var isRootVisible = true
 
   /**
    * Register a [NodeType].
@@ -92,12 +93,19 @@ class ComponentTreeBuilder {
   fun withBadgeSupport(badge: BadgeItem) = apply { badges.add(badge) }
 
   /**
+   * Don't show the root node
+   */
+  fun withHiddenRoot() = apply { isRootVisible = false }
+
+  /**
    * Build the tree component and return it with the tree model.
    */
   fun build(): Triple<JComponent, ComponentTreeModel, ComponentTreeSelectionModel> {
     val model = ComponentTreeModelImpl(nodeTypeMap, invokeLater)
     val selectionModel = ComponentTreeSelectionModelImpl(model)
     val tree = TreeImpl(model, contextPopup, doubleClick, badges)
+    tree.isRootVisible = isRootVisible
+    tree.showsRootHandles = !isRootVisible
     if (installTreeSearch) {
       TreeSpeedSearch(tree) { model.toSearchString(it.lastPathComponent) }
     }

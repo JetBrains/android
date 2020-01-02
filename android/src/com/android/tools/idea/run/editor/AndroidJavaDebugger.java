@@ -25,11 +25,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.OrchestratorUtilsKt;
-import com.google.common.collect.ImmutableSet;
 import com.intellij.debugger.impl.DebuggerSession;
-import com.intellij.debugger.ui.breakpoints.JavaFieldBreakpointType;
-import com.intellij.debugger.ui.breakpoints.JavaLineBreakpointType;
-import com.intellij.debugger.ui.breakpoints.JavaMethodBreakpointType;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionHelper;
 import com.intellij.execution.ProgramRunnerUtil;
@@ -53,7 +49,6 @@ import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.Ref;
 import com.intellij.util.NotNullFunction;
 import com.intellij.xdebugger.XDebugSession;
-import com.intellij.xdebugger.breakpoints.XBreakpointType;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
@@ -66,19 +61,6 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebuggerState> {
   public static final String ID = "Java";
   private static final String RUN_CONFIGURATION_NAME_PATTERN = "Android Debugger (%s)";
-
-  // This set of breakpoints is by no means is fully complete because
-  // it stands for validation purposes which improves user's experience.
-  public static final Set<Class<? extends XBreakpointType<?, ?>>> JAVA_BREAKPOINT_TYPES =
-    ImmutableSet.of(
-      JavaLineBreakpointType.class,
-      JavaMethodBreakpointType.class,
-      JavaFieldBreakpointType.class
-    );
-
-  public AndroidJavaDebugger() {
-    super(JAVA_BREAKPOINT_TYPES);
-  }
 
   @NotNull
   @Override

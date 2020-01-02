@@ -29,6 +29,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_A
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_MISSING_DIMENSION_STRATEGY
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_MISSING_DIMENSION_STRATEGY_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_NATIVE_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_NATIVE_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_TO_AND_APPLY_LIST_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ADD_TO_AND_RESET_LIST_ELEMENTS
@@ -47,6 +48,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_EDIT_
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_EDIT_AND_RESET_LITERAL_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_EDIT_NATIVE_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_ENSURE_SDK_VERSION_USES_APPLICATION_SYNTAX_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_FUNCTION_CALL_WITH_PARENTHESES
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_MISSING_DIMENSION_TEXT
@@ -65,6 +67,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOV
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_FROM_AND_RESET_LIST_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_MISSING_DIMENSION_STRATEGY_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_NATIVE_BLOCK_ELEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_ONE_OF_NATIVE_ELEMENTS_IN_THE_LIST_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_ONLY_NATIVE_ELEMENT_IN_THE_LIST
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_RES_CONFIG_IN_LIST_METHOD_CALL
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_REMOVE_RES_CONFIG_IN_LIST_METHOD_CALL_EXPECTED
@@ -1578,8 +1581,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     ndk.abiFilters().getListValue("abiFilter6")!!.setValue("abiFilterZ")
 
     applyChangesAndReparse(buildModel)
-    // TODO(b/142114586)
-    //verifyFileContents(myBuildFile, "")
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_EDIT_NATIVE_ELEMENTS_EXPECTED)
 
     android = buildModel.android()
     assertNotNull(android)
@@ -1633,8 +1635,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     ndk.abiFilters().addListValue().setValue("abiFilterZ")
 
     applyChangesAndReparse(buildModel)
-    // TODO(b/142114586)
-    //verifyFileContents(myBuildFile, "")
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_ADD_NATIVE_ELEMENTS_EXPECTED)
 
     android = buildModel.android()
     assertNotNull(android)
@@ -1722,8 +1723,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     ndk.abiFilters().getListValue("abiFilter6")!!.delete()
 
     applyChangesAndReparse(buildModel)
-    // TODO(b/142114586)
-    //verifyFileContents(myBuildFile, "")
+    verifyFileContents(myBuildFile, PRODUCT_FLAVOR_MODEL_REMOVE_ONE_OF_NATIVE_ELEMENTS_IN_THE_LIST_EXPECTED)
 
     android = buildModel.android()
     assertNotNull(android)

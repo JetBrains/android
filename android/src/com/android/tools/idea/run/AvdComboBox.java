@@ -23,6 +23,7 @@ import com.android.sdklib.internal.avd.AvdManager;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.tools.idea.avdmanager.AvdManagerUtils;
 import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -69,7 +70,8 @@ public abstract class AvdComboBox extends ComboboxWithBrowseButton {
         Messages.showErrorDialog(avdComboBox, "Cannot find any configured Android SDK");
         return;
       }
-      RunAndroidAvdManagerAction action = new RunAndroidAvdManagerAction();
+      RunAndroidAvdManagerAction action =
+        (RunAndroidAvdManagerAction)ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID);
       action.openAvdManager(myProject);
       AvdInfo selected = action.getSelected();
       if (selected != null) {

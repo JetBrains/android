@@ -51,7 +51,7 @@ import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest.Companion.waitUntilEventsProcessed
+import com.android.tools.idea.uibuilder.property2.NelePropertiesModelTest.Companion.waitUntilLastSelectionUpdateCompleted
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.property2.testutils.MinApiLayoutTestCase
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
@@ -339,7 +339,7 @@ class NelePropertyItemTest {
     val components = property.components
     val manager = getSceneManager(property)
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
-    waitUntilEventsProcessed(property.model)
+    waitUntilLastSelectionUpdateCompleted(property.model)
 
     assertThat(property.value).isNull()
     assertThat(property.defaultValue).isEqualTo("@android:style/TextAppearance.Material.Small")
@@ -376,7 +376,7 @@ class NelePropertyItemTest {
     val keyStroke = KeymapUtil.getShortcutText(ToggleShowResolvedValueAction.SHORTCUT)  // Platform dependent !!!
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_LINE_SPACING_EXTRA, "16sp")
     manager.putDefaultPropertyValue(components[0], ResourceNamespace.ANDROID, ATTR_TEXT_SIZE, "@dimen/text_size_button_material")
-    waitUntilEventsProcessed(util.model)
+    waitUntilLastSelectionUpdateCompleted(util.model)
 
     assertThat(emptyProperty.tooltipForValue).isEmpty()
     assertThat(hardcodedProperty.tooltipForValue).isEmpty()

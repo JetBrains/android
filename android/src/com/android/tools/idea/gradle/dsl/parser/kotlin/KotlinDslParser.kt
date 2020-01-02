@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeRef
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION
 import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
@@ -96,9 +97,9 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     }
   }
 
-  override fun convertToPsiElement(literal: Any): PsiElement? {
+  override fun convertToPsiElement(context: GradleDslSimpleExpression, literal: Any): PsiElement? {
     return try {
-      createLiteral(dslFile, literal)
+      createLiteral(context, dslFile, literal)
     }
     catch (e : IncorrectOperationException) {
       dslFile.context.getNotificationForType(dslFile, INVALID_EXPRESSION).addError(e)
@@ -107,8 +108,12 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
   }
 
   override fun setUpForNewValue(context: GradleDslLiteral, newValue: PsiElement?) {
-    val isReference = newValue is KtNameReferenceExpression || newValue is KtDotQualifiedExpression ||
-                      newValue is KtClassLiteralExpression || newValue is KtArrayAccessExpression
+    val newPsiElement = when (newValue) {
+      is KtBinaryExpressionWithTypeRHS -> newValue.left
+      else -> newValue
+    }
+    val isReference = newPsiElement is KtNameReferenceExpression || newPsiElement is KtDotQualifiedExpression ||
+                      newPsiElement is KtClassLiteralExpression || newPsiElement is KtArrayAccessExpression
     context.isReference = isReference
   }
 
@@ -185,7 +190,11 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
             }
           }
         }
-        return literal.text
+        return ReferenceTo(literal.text)
+      }
+      is KtBinaryExpressionWithTypeRHS -> return when (val expressionInfo = literal.left) {
+        is KtArrayAccessExpression -> this.extractValue(context, expressionInfo, resolve)
+        else -> unquoteString(literal.text)
       }
       else -> return ReferenceTo(literal.text)
     }
@@ -255,6 +264,12 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
   override fun visitCallExpression(expression: KtCallExpression, parent: GradlePropertiesDslElement) {
     // If the call expression has no name, we don't know how to handle it.
     var referenceName = expression.name() ?: return
+
+    if (parent is DependenciesDslElement) {
+      // There is an extension method on String.invoke() in KotlinScript dependencies.  (Meant to be used to add dependencies to
+      // configurations which are not predefined set, but would in principle work for all configurations)
+      referenceName = unquoteString(referenceName);
+    }
 
     val referenceExpression = expression.referenceExpression()
     var name =
@@ -473,8 +488,12 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       FILE_CONSTRUCTOR_NAME -> return getMethodCall(parentElement, psiElement, name, FILE_CONSTRUCTOR_NAME, argumentsList, true)
     }
 
-    // If the CallExpression has one argument only that is a callExpression, we skip the current CallExpression.
     val arguments = argumentsList.arguments
+    // If nontrivially-all the arguments are named, return a GradleDslExpressionMap
+    if (isFirstCall && arguments.size > 0 && arguments.all { it.isNamed() }) {
+      return getArglistMap(parentElement, psiElement, name, argumentsList.arguments)
+    }
+    // If the CallExpression has one argument only that is a callExpression, we skip the current CallExpression.
     if (arguments.size != 1) {
       return getMethodCall(parentElement, psiElement, name, methodName, argumentsList, false)
     }
@@ -541,6 +560,22 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     }.forEach(expressionMap::addParsedElement)
 
     return expressionMap
+  }
+
+  private fun getArglistMap(
+    parentElement: GradleDslElement,
+    arglistPsiElement: PsiElement,
+    propertyName: GradleNameElement,
+    arguments: List<KtValueArgument>
+  ): GradleDslExpressionMap {
+    val map = GradleDslExpressionMap(parentElement, arglistPsiElement, propertyName, false)
+    map.asNamedArgs = true
+    arguments
+      .map { arg -> arg.getArgumentName() to arg.getArgumentExpression() }
+      .filter { e -> e.first != null && e.second != null }
+      .mapNotNull { e -> createExpressionElement(map, arglistPsiElement, GradleNameElement.from(e.first!!, this), e.second!!) }
+      .forEach(map::addParsedElement)
+    return map
   }
 
   private fun getExpressionList(parentElement : GradleDslElement,

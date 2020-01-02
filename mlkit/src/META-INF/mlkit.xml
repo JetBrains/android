@@ -20,6 +20,14 @@
     <fileTypeFactory implementation="com.android.tools.idea.mlkit.MlModelFileTypeFactory"/>
     <fileEditorProvider implementation="com.android.tools.idea.mlkit.TfliteModelFileEditorProvider"/>
     <fileBasedIndex implementation="com.android.tools.idea.mlkit.MlModelFileIndex"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.mlkit.MlkitShortNamesCache"/>
+    <java.elementFinder implementation="com.android.tools.idea.mlkit.MlkitClassFinder" id="mlkit.MlkitClassFinder"
+                        order="first, before java"/>
+    <resolveScopeEnlarger implementation="com.android.tools.idea.mlkit.MlkitResolveScopeEnlarger"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <resolveScopeEnlarger implementation="com.android.tools.idea.mlkit.MlkitResolveScopeEnlarger$MlkitKotlinResolveScopeEnlarger"/>
   </extensions>
 
 </idea-plugin>

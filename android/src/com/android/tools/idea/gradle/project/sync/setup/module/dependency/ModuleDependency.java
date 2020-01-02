@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
@@ -24,16 +23,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-
 /**
  * An IDEA module's dependency on another IDEA module.
  */
 public class ModuleDependency extends Dependency {
   @NotNull private final String myGradlePath;
   @Nullable private final Module myModule;
-
-  @Nullable private LibraryDependency myBackupDependency;
 
   /**
    * Creates a new {@link ModuleDependency}.
@@ -59,39 +54,6 @@ public class ModuleDependency extends Dependency {
     return myGradlePath;
   }
 
-  /**
-   * @return the backup library that can be used as dependency in case it is not possible to use the module dependency (e.g. the module is
-   * outside the project and we don't have the path of the module folder.)
-   */
-  @Nullable
-  public LibraryDependency getBackupDependency() {
-    return myBackupDependency;
-  }
-
-  @VisibleForTesting
-  public void setBackupDependency(@Nullable LibraryDependency backupDependency) {
-    myBackupDependency = backupDependency;
-    updateBackupDependencyScope();
-  }
-
-  /**
-   * Sets the scope of this dependency. It also updates the scope of this dependency's backup dependency if it is not {@code null}.
-   *
-   * @param scope the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
-   * @throws IllegalArgumentException if the given scope is not supported.
-   */
-  @Override
-  void setScope(@NotNull DependencyScope scope) throws IllegalArgumentException {
-    super.setScope(scope);
-    updateBackupDependencyScope();
-  }
-
-  private void updateBackupDependencyScope() {
-    if (myBackupDependency != null) {
-      myBackupDependency.setScope(getScope());
-    }
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -101,13 +63,12 @@ public class ModuleDependency extends Dependency {
       return false;
     }
     ModuleDependency that = (ModuleDependency)o;
-    return Objects.equals(myGradlePath, that.myGradlePath) &&
-           Objects.equals(myBackupDependency, that.myBackupDependency);
+    return Objects.equals(myGradlePath, that.myGradlePath);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(myGradlePath, myBackupDependency);
+    return myGradlePath.hashCode();
   }
 
   @Override
@@ -115,7 +76,6 @@ public class ModuleDependency extends Dependency {
     return getClass().getSimpleName() + "[" +
            "gradlePath=" + myGradlePath +
            ", scope=" + getScope() +
-           ", backUpDependency=" + myBackupDependency +
            "]";
   }
 }

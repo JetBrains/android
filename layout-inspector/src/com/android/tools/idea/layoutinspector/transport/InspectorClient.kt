@@ -117,6 +117,7 @@ interface InspectorClient {
 object DisconnectedClient : InspectorClient {
   override val treeLoader: TreeLoader = object: TreeLoader {
     override fun loadComponentTree(data: Any?, resourceLookup: ResourceLookup, client: InspectorClient): ViewNode? = null
+    override fun getAllWindowIds(data: Any?, client: InspectorClient) = listOf<Long>()
   }
   override fun register(groupId: EventGroupIds, callback: (Any) -> Unit) {}
   override fun registerProcessChanged(callback: () -> Unit) {}

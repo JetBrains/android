@@ -16,15 +16,15 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.SdkConstants;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.project.Project;
+import com.google.common.base.CaseFormat;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.annotations.NotNull;
 
-/** Provides common utility methods. */
+/**
+ * Provides common utility methods.
+ */
 public class MlkitUtils {
 
   private MlkitUtils() {
@@ -38,12 +38,9 @@ public class MlkitUtils {
            && file.getParent().getName().equals(SdkConstants.FD_ASSETS);
   }
 
-  /** Returns the light model classes auto-generated for ML model files in the assets folder across all project modules. */
-  public List<LightModelClass> getLightModelClassList(@NotNull Project project) {
-    List<LightModelClass> lightModelClassList = new ArrayList<>();
-    for (Module module : ModuleManager.getInstance(project).getModules()) {
-      lightModelClassList.addAll(MlkitModuleService.getInstance(module).getLightModelClassList());
-    }
-    return lightModelClassList;
+  // TODO(b/144867508): revisit later.
+  public static String computeModelClassName(@NotNull String modelFileUrl) {
+    String modelFileName = FileUtil.getNameWithoutExtension(VfsUtil.extractFileName(modelFileUrl));
+    return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, modelFileName);
   }
 }

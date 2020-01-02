@@ -50,7 +50,6 @@ import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -416,7 +415,6 @@ class ConstraintSetPanel extends JPanel {
             }
 
             row[1] = layoutId;
-            //row[2] = "";
             row[2] = row[3] = (derived == null) ? "layout" : findFirstDefOfView(layoutId, mConstraintSet);
             row[0] = ("layout".equals(row[3])) ? null : MEIcons.LIST_STATE_DERIVED;
             mDisplayedRows.add(view);
@@ -506,7 +504,6 @@ class ConstraintSetPanel extends JPanel {
     mDerived = null;
     if (mConstraintSet != null) {
       mMeModel.setSelected(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{constraintSet});
-      mListeners.notifyListeners(MotionEditorSelector.Type.CONSTRAINT_SET, new MTag[]{constraintSet}, 0);
       String derived = mConstraintSet.getAttributeValue("deriveConstraintsFrom");
       if (derived != null) {
         mDerived = Utils.stripID(derived);
@@ -523,11 +520,13 @@ class ConstraintSetPanel extends JPanel {
     }
     buildTable();
 
-    HashSet<String> selectedSet = new HashSet<>(Arrays.asList(selected));
-    for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
-      String id = (String)mConstraintSetModel.getValueAt(i, 1);
-      if (selectedSet.contains(id)) {
-        mConstraintSetTable.addRowSelectionInterval(i, i);
+    if (constraintSet != null) {
+      HashSet<String> selectedSet = new HashSet<>(Arrays.asList(selected));
+      for (int i = 0; i < mConstraintSetModel.getRowCount(); i++) {
+        String id = (String)mConstraintSetModel.getValueAt(i, 1);
+        if (selectedSet.contains(id)) {
+          mConstraintSetTable.addRowSelectionInterval(i, i);
+        }
       }
     }
   }
@@ -569,6 +568,7 @@ class ConstraintSetPanel extends JPanel {
           return;
         }
         in = true;
+        mBuildingTable = true;
         if (DEBUG) {
           Debug.log(" selectionChanged " + selection);
         }
@@ -594,6 +594,7 @@ class ConstraintSetPanel extends JPanel {
           mMeModel.setSelectedViewIDs(selectedIds);
         }
         in = false;
+        mBuildingTable = false;
       }
     });
   }

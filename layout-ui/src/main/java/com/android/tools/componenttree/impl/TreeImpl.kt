@@ -99,16 +99,10 @@ class TreeImpl(
 
   override fun getModel() = super.getModel() as? ComponentTreeModelImpl
 
-  override fun getShowsRootHandles(): Boolean {
-    // This is needed because the intelliJ Tree class ignore setShowsRootHandles()
-    // Without this override the tree is not aligned to the left side of the component.
-    return false
-  }
-
   override fun setExpandedState(path: TreePath?, state: Boolean) {
     // We never want to collapse the root
     val isRoot = getRowForPath(path) == 0
-    if (!isRoot) {
+    if (!isRoot || showsRootHandles) {
       super.setExpandedState(path, state)
     }
   }

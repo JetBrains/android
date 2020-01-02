@@ -16,10 +16,8 @@
 package com.android.tools.idea.layoutinspector.legacydevice
 
 import com.android.ddmlib.AndroidDebugBridge
-import com.android.ddmlib.ChunkHandler
 import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
-import com.android.ddmlib.HandleViewDebug
 import com.android.ddmlib.IDevice
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.ddms.DevicePropertyUtil
@@ -27,7 +25,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.profiler.proto.Common
-import com.google.common.collect.Lists
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -35,8 +33,6 @@ import com.intellij.util.containers.ContainerUtil
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
 import org.jetbrains.android.sdk.AndroidSdkUtils
-import java.io.IOException
-import java.nio.ByteBuffer
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 
@@ -44,11 +40,10 @@ private const val MAX_RETRY_COUNT = 60
 
 /**
  * [InspectorClient] that supports pre-api 28 devices.
- * Since it doesn't use [TransportService], some relevant event listeners are manually fired.
+ * Since it doesn't use [com.android.tools.idea.transport.TransportService], some relevant event listeners are manually fired.
  */
 class LegacyClient(private val project: Project) : InspectorClient {
 
-  var selectedWindow: String? = null
   var selectedClient: Client? = null
 
   override var selectedStream: Common.Stream = Common.Stream.getDefaultInstance()
@@ -67,7 +62,8 @@ class LegacyClient(private val project: Project) : InspectorClient {
 
   private val processToClient: MutableMap<Common.Process, Client> = mutableMapOf()
 
-  override val treeLoader = LegacyTreeLoader
+  override var treeLoader = LegacyTreeLoader
+    @VisibleForTesting set
 
   val eventListeners: MutableMap<Common.Event.EventGroupIds, MutableList<(Any) -> Unit>> = mutableMapOf()
 
@@ -152,7 +148,6 @@ class LegacyClient(private val project: Project) : InspectorClient {
   override fun attach(stream: Common.Stream, process: Common.Process) {
     val client = processToClient[process] ?: return
     selectedClient = client
-    selectedWindow = ListViewRootsHandler().getWindows(client, 5, TimeUnit.SECONDS)[0]
     selectedProcess = process
     selectedStream = stream
 
@@ -168,12 +163,24 @@ class LegacyClient(private val project: Project) : InspectorClient {
       }
     })
 
-    eventListeners[Common.Event.EventGroupIds.COMPONENT_TREE]?.forEach { it(Any()) }
+    reloadAllWindows()
+  }
+
+  fun reloadAllWindows() {
+    val windowIds = treeLoader.getAllWindowIds(null, this) ?: return
+    if (windowIds.isEmpty()) {
+      // isn't loaded enough yet, retry
+      throw StatusRuntimeException(Status.NOT_FOUND)
+    }
+    val propertiesUpdater = LegacyPropertiesProvider.Updater()
+    for (windowId in windowIds) {
+      eventListeners[Common.Event.EventGroupIds.COMPONENT_TREE]?.forEach { it(Pair(windowId, propertiesUpdater)) }
+    }
+    propertiesUpdater.apply(provider)
   }
 
   override fun disconnect() {
     if (selectedClient != null) {
-      selectedWindow = null
       selectedClient = null
       selectedProcess = Common.Process.getDefaultInstance()
       selectedStream = Common.Stream.getDefaultInstance()
@@ -186,27 +193,4 @@ class LegacyClient(private val project: Project) : InspectorClient {
   override fun register(groupId: Common.Event.EventGroupIds, callback: (Any) -> Unit) {
     eventListeners.getOrPut(groupId, { mutableListOf() }).add(callback)
   }
-
-  private class ListViewRootsHandler :
-    HandleViewDebug.ViewDumpHandler(HandleViewDebug.CHUNK_VULW) {
-
-    private val viewRoots = Lists.newCopyOnWriteArrayList<String>()
-
-    override fun handleViewDebugResult(data: ByteBuffer) {
-      val nWindows = data.int
-
-      for (i in 0 until nWindows) {
-        val len = data.int
-        viewRoots.add(ChunkHandler.getString(data, len))
-      }
-    }
-
-    @Throws(IOException::class)
-    fun getWindows(c: Client, timeout: Long, unit: TimeUnit): List<String> {
-      HandleViewDebug.listViewRoots(c, this)
-      waitForResult(timeout, unit)
-      return viewRoots
-    }
-  }
-
 }

@@ -61,6 +61,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -888,16 +889,17 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     requestSyncAndGetExpectedFailure();
 
     ArgumentCaptor<BuildEvent> eventCaptor = ArgumentCaptor.forClass(BuildEvent.class);
-    verify(viewManager, atLeastOnce()).onEvent(any(), eventCaptor.capture());
+    // FinishBuildEvents are not consumed immediately by AbstractOutputMessageDispatcher.onEvent(), thus we need to allow some timeout
+    verify(viewManager, timeout(1000).atLeast(2)).onEvent(any(), eventCaptor.capture());
 
-    FinishBuildEvent event =
-      eventCaptor.getAllValues().stream().filter(e -> e instanceof FinishBuildEvent).map(e -> (FinishBuildEvent)e).findFirst().orElse(null);
-    assertThat(event).isNotNull();
+    List<BuildEvent> events = eventCaptor.getAllValues();
+    assertThat(events).hasSize(2);
+    assertThat(events.get(0)).isInstanceOf(StartBuildEvent.class);
+    assertThat(events.get(1)).isInstanceOf(FinishBuildEvent.class);
+    FinishBuildEvent event = (FinishBuildEvent)events.get(1);
     FailureResult failureResult = (FailureResult)event.getResult();
     assertThat(failureResult.getFailures()).isNotEmpty();
-/* b/145809317
-    assertThat(failureResult.getFailures().get(0).getMessage()).isNotEqualTo("Fake sync error");
-b/145809317 */
+    assertThat(failureResult.getFailures().get(0).getMessage()).isEqualTo("Fake sync error");
   }
 
   public void testUnresolvedDependency() throws IOException {

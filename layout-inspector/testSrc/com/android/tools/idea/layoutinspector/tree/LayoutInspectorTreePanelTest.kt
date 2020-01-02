@@ -15,8 +15,17 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.VIEW1
+import com.android.tools.idea.layoutinspector.model.VIEW2
+import com.android.tools.idea.layoutinspector.model.VIEW3
+import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.layoutinspector.util.InspectorBuilder
+import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import com.intellij.openapi.fileEditor.FileEditor
@@ -41,7 +50,7 @@ class LayoutInspectorTreePanelTest {
 
   @JvmField
   @Rule
-  val projectRule = AndroidProjectRule.withSdk()
+  val projectRule = AndroidProjectRule.onDisk()
 
   @JvmField
   @Rule
@@ -66,7 +75,7 @@ class LayoutInspectorTreePanelTest {
     val tree = LayoutInspectorTreePanel()
     val inspector = InspectorBuilder.createLayoutInspectorForDemo(projectRule)
     tree.setToolContext(inspector)
-    tree.componentTreeSelectionModel.selection = listOf(InspectorBuilder.findViewNode(inspector, "title")!!)
+    tree.componentTreeSelectionModel.selection = listOf(inspector.layoutInspectorModel["title"]!!)
     val treeComponent = UIUtil.findComponentOfType(tree.component, JTree::class.java)
 
     val fileManager = FileEditorManager.getInstance(projectRule.project)
@@ -81,5 +90,28 @@ class LayoutInspectorTreePanelTest {
 
     Truth.assertThat(descriptor.file.name).isEqualTo("demo.xml")
     Truth.assertThat(CheckUtil.findLineAtOffset(descriptor.file, descriptor.offset)).isEqualTo("<TextView")
+  }
+
+  @Test
+  fun testMultiWindow() {
+    val tree = LayoutInspectorTreePanel()
+    val model = InspectorModel(projectRule.project)
+    val inspector = LayoutInspector(model)
+    tree.setToolContext(inspector)
+    val jtree = UIUtil.findComponentOfType(tree.component, JTree::class.java) as JTree
+    model.update(view(ROOT) { view(VIEW1) }, ROOT, listOf(ROOT))
+    UIUtil.dispatchAllInvocationEvents()
+    Truth.assertThat(jtree.rowCount).isEqualTo(1)
+    Truth.assertThat(jtree.getPathForRow(0).lastPathComponent).isEqualTo(model[ROOT])
+
+    model.update(view(VIEW2) { view(VIEW3) }, VIEW2, listOf(ROOT, VIEW2))
+    UIUtil.dispatchAllInvocationEvents()
+    Truth.assertThat(jtree.rowCount).isEqualTo(2)
+    Truth.assertThat(jtree.getPathForRow(1).lastPathComponent).isEqualTo(model[VIEW2])
+
+    model.update(view(VIEW2, layoutFlags = WINDOW_MANAGER_FLAG_DIM_BEHIND) { view(VIEW3) }, VIEW2, listOf(ROOT, VIEW2))
+    UIUtil.dispatchAllInvocationEvents()
+    Truth.assertThat(jtree.rowCount).isEqualTo(3)
+    Truth.assertThat((jtree.getPathForRow(1).lastPathComponent as ViewNode).qualifiedName).isEqualTo("DIM_BEHIND")
   }
 }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.activity;
 
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryActivitiesFromManifestIndex;
 import static com.android.xml.AndroidManifest.NODE_INTENT;
 
 import com.android.SdkConstants;
@@ -25,28 +26,21 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.flags.StudioFlags.DefaultActivityLocatorStrategy;
+import com.android.tools.idea.model.AndroidManifestIndex;
 import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.idea.model.MergedManifestModificationTracker;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.utils.concurrency.AsyncSupplier;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
-import com.android.tools.idea.model.AndroidManifestIndex;
-import com.android.tools.idea.projectsystem.ManifestOverrides;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.Lists;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.DefaultActivityLocatorStats;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -108,6 +102,7 @@ public class DefaultActivityLocator extends ActivityLocator {
   /**
    * Retrieves the list of activities from the merged manifest of the Android module
    * corresponding to the given facet.
+   *
    * @see DefaultActivityLocatorStrategy
    */
   @VisibleForTesting
@@ -143,29 +138,10 @@ public class DefaultActivityLocator extends ActivityLocator {
 
   @NotNull
   private static List<ActivityWrapper> getActivitiesFromManifestIndex(@NotNull final AndroidFacet facet) {
-    Module module = facet.getModule();
-    Project project = module.getProject();
-    MergedManifestModificationTracker modificationTracker = MergedManifestModificationTracker.getInstance(module);
-    assert !DumbService.isDumb(project) && ApplicationManager.getApplication().isReadAccessAllowed();
     boolean onEdt = ApplicationManager.getApplication().isDispatchThread();
     Stopwatch timer = Stopwatch.createStarted();
-    List<ActivityWrapper> activityWrappers = CachedValuesManager.getManager(project)
-      .getCachedValue(facet, () -> CachedValueProvider.Result.create(doGetActivitiesFromManifestIndex(facet), modificationTracker));
+    List<ActivityWrapper> activityWrappers = queryActivitiesFromManifestIndex(facet);
     logManifestLatency(onEdt, true, false, timer.elapsed(TimeUnit.MILLISECONDS));
-    return activityWrappers;
-  }
-
-  @NotNull
-  private static List<ActivityWrapper> doGetActivitiesFromManifestIndex(@NotNull final AndroidFacet facet) {
-    ManifestOverrides overrides = ProjectSystemUtil.getModuleSystem(facet.getModule()).getManifestOverrides();
-    LinkedList<ActivityWrapper> activityWrappers = new LinkedList<>();
-    LinkedList<ActivityWrapper> activityAliasWrappers = new LinkedList<>();
-    AndroidManifestIndex.getDataForMergedManifestContributors(facet)
-      .forEach(manifest -> {
-        activityWrappers.addAll(IndexedActivityWrapper.getActivities(manifest, overrides));
-        activityAliasWrappers.addAll(IndexedActivityWrapper.getActivityAliases(manifest, overrides));
-      });
-    activityWrappers.addAll(activityAliasWrappers);
     return activityWrappers;
   }
 
@@ -269,7 +245,9 @@ public class DefaultActivityLocator extends ActivityLocator {
     return launchableActivities.get(0).getQualifiedName();
   }
 
-  /** Returns a launchable activity specific to the given device. */
+  /**
+   * Returns a launchable activity specific to the given device.
+   */
   @Nullable
   @Slow
   @WorkerThread
@@ -335,10 +313,14 @@ public class DefaultActivityLocator extends ActivityLocator {
     return activityWrappers;
   }
 
-  /** {@link ActivityWrapper} is a simple wrapper class around an {@link Activity} or an {@link ActivityAlias}. */
+  /**
+   * {@link ActivityWrapper} is a simple wrapper class around an {@link Activity} or an {@link ActivityAlias}.
+   */
   public static abstract class ActivityWrapper {
     public abstract boolean hasCategory(@NotNull String name);
+
     public abstract boolean hasAction(@NotNull String name);
+
     public abstract boolean isEnabled();
 
     /**
@@ -530,7 +512,7 @@ public class DefaultActivityLocator extends ActivityLocator {
       Node node = myActivity.getFirstChild();
       while (node != null) {
         if (node.getNodeType() == Node.ELEMENT_NODE && NODE_INTENT.equals(node.getNodeName())) {
-          Element filter = (Element) node;
+          Element filter = (Element)node;
           if (ActivityLocatorUtils.containsCategory(filter, name)) {
             return true;
           }
@@ -546,7 +528,7 @@ public class DefaultActivityLocator extends ActivityLocator {
       Node node = myActivity.getFirstChild();
       while (node != null) {
         if (node.getNodeType() == Node.ELEMENT_NODE && NODE_INTENT.equals(node.getNodeName())) {
-          Element filter = (Element) node;
+          Element filter = (Element)node;
           if (ActivityLocatorUtils.containsAction(filter, name)) {
             return true;
           }

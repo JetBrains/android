@@ -150,15 +150,17 @@ public class MotionLayoutAttributePanel implements AccessoryPanelInterface {
   }
 
   @Nullable
-  @Override
   public Object getSelectedAccessory() {
     return null;
   }
 
   @Nullable
-  @Override
   public Object getSelectedAccessoryType() {
     return null;
+  }
+
+  @Override
+  public void requestSelection() {
   }
 
   @Override

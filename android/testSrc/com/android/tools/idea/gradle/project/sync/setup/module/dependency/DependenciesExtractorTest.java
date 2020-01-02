@@ -24,6 +24,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 
 import com.android.builder.model.level2.Library;
+import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStub;
 import com.android.ide.common.gradle.model.stubs.level2.AndroidLibraryStubBuilder;
 import com.android.ide.common.gradle.model.stubs.level2.IdeDependenciesStubBuilder;
@@ -44,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link DependenciesExtractor}.
@@ -88,7 +90,8 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     myVariant.getMainArtifact().setLevel2Dependencies(builder.build());
     myVariant.getInstrumentTestArtifact().setLevel2Dependencies(builder.build());
 
-    Collection<LibraryDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant, myModuleFinder).onLibraries();
+    Collection<LibraryDependency> dependencies =
+      myDependenciesExtractor.extractFrom(getProjectBasePath(), myVariant, myModuleFinder).onLibraries();
     assertThat(dependencies).hasSize(1);
 
     LibraryDependency dependency = getFirstItem(dependencies);
@@ -123,7 +126,7 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     myVariant.getMainArtifact().setLevel2Dependencies(dependenciesStubBuilder.build());
     myVariant.getInstrumentTestArtifact().setLevel2Dependencies(dependenciesStubBuilder.build());
 
-    DependencySet dependencySet = myDependenciesExtractor.extractFrom(myVariant, myModuleFinder);
+    DependencySet dependencySet = myDependenciesExtractor.extractFrom(getProjectBasePath(), myVariant, myModuleFinder);
     List<LibraryDependency> dependencies = new ArrayList<>(dependencySet.onLibraries());
     assertThat(dependencies).hasSize(1);
 
@@ -153,7 +156,8 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     dependenciesStubBuilder.setModuleDependencies(ImmutableList.of(library));
     myVariant.getMainArtifact().setLevel2Dependencies(dependenciesStubBuilder.build());
     myVariant.getInstrumentTestArtifact().setLevel2Dependencies(dependenciesStubBuilder.build());
-    Collection<ModuleDependency> dependencies = myDependenciesExtractor.extractFrom(myVariant, myModuleFinder).onModules();
+    Collection<ModuleDependency> dependencies =
+      myDependenciesExtractor.extractFrom(getProjectBasePath(), myVariant, myModuleFinder).onModules();
     assertThat(dependencies).hasSize(1);
 
     ModuleDependency dependency = getFirstItem(dependencies);
@@ -162,9 +166,6 @@ public class DependenciesExtractorTest extends PlatformTestCase {
     // Make sure that is a "compile" dependency, even if specified as "test".
     assertEquals(COMPILE, dependency.getScope());
     assertSame(libModule, dependency.getModule());
-
-    LibraryDependency backup = dependency.getBackupDependency();
-    assertNull(backup);
   }
 
   public void testGetDependencyDisplayName() {
@@ -179,5 +180,10 @@ public class DependenciesExtractorTest extends PlatformTestCase {
 
     Library library4 = new JavaLibraryStub(LIBRARY_JAVA, "foo:bar:1.0", new File(""));
     assertThat(getDependencyDisplayName(library4)).isEqualTo("foo:bar:1.0");
+  }
+
+  @NotNull
+  private File getProjectBasePath() {
+    return new File(getProject().getBasePath());
   }
 }

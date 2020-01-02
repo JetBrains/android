@@ -31,10 +31,8 @@ import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 interface BuildEventsAnalysisResult {
   fun getAnnotationProcessorsData(): List<AnnotationProcessorData>
   fun getNonIncrementalAnnotationProcessorsData(): List<AnnotationProcessorData>
-  fun getCriticalPathDurationMs(): Long
   fun getTotalBuildTimeMs(): Long
   fun getCriticalPathTasks(): List<TaskData>
-  fun getCriticalPathPlugins(): List<PluginBuildData>
   fun getTasksDeterminingBuildDuration(): List<TaskData>
   fun getPluginsDeterminingBuildDuration(): List<PluginBuildData>
   /**
@@ -87,32 +85,12 @@ class BuildEventsAnalyzersProxy(
     return annotationProcessorsAnalyzer.getNonIncrementalAnnotationProcessorsData()
   }
 
-  // TODO: delete this method when UI is updated to show the tasks determining the build duration
-  override fun getCriticalPathDurationMs(): Long {
-    return getCriticalPathTasks().sumByLong { it.executionTime }
-  }
-
   override fun getTotalBuildTimeMs(): Long {
     return criticalPathAnalyzer.totalBuildTime
   }
 
-  // TODO: delete this method when UI is updated to show the tasks determining the build duration
   override fun getCriticalPathTasks(): List<TaskData> {
     return criticalPathAnalyzer.tasksDeterminingBuildDuration.filter(TaskData::isOnTheCriticalPath)
-  }
-
-  // TODO: delete this method when UI is updated to show the plugins determining the build duration
-  override fun getCriticalPathPlugins(): List<PluginBuildData> {
-    // Group tasks in the critical path by plugin to get the plugins critical path
-    val pluginBuildDurationMap = HashMap<PluginData, Long>()
-    getCriticalPathTasks().forEach { task ->
-      val currentDuration = pluginBuildDurationMap.getOrDefault(task.originPlugin, 0L)
-      pluginBuildDurationMap[task.originPlugin] = currentDuration + task.executionTime
-    }
-
-    return pluginBuildDurationMap.map { (plugin, duration) ->
-      PluginBuildData(plugin, duration)
-    }.sortedByDescending { it.buildDuration }
   }
 
   override fun getTasksDeterminingBuildDuration(): List<TaskData> {

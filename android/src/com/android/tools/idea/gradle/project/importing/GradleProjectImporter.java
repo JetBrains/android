@@ -143,6 +143,7 @@ public class GradleProjectImporter {
     String externalProjectPath = toCanonicalPath(projectFolderPath.getPath());
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     GradleProjectImportUtil.setupGradleSettings(projectSettings, externalProjectPath, newProject, null);
+    GradleSettings.getInstance(newProject).setStoreProjectFilesExternally(false);
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(newProject, SYSTEM_ID).linkProject(projectSettings);
 

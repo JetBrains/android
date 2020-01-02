@@ -32,8 +32,9 @@ import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.impl.LaterInvocator
 import com.intellij.util.containers.toArray
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.update.MergingUpdateQueue
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
@@ -52,7 +53,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
 
     // test
     model.surface = nlModel.surface
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
     verify(listener).propertiesGenerated(model)
   }
 
@@ -66,12 +67,12 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val textView = nlModelB.find(TEXT_VIEW)!!
     nlModelB.surface.selectionModel.setSelection(listOf(textView))
     model.surface = nlModelA.surface
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
     model.addListener(listener)
 
     // test
     model.surface = nlModelB.surface
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
     verify(listener).propertiesGenerated(model)
     assertThat(model.properties[ANDROID_URI, ATTR_TEXT].components[0].model).isEqualTo(nlModelB)
   }
@@ -83,14 +84,14 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     model.surface = nlModel.surface
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
     model.addListener(listener)
     val textView = nlModel.find(TEXT_VIEW)!!
 
     // test
     nlModel.surface.selectionModel.setSelection(listOf(textView))
     model.firePropertyValueChangeIfNeeded()
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
     assertThat(listener.wasValuePropertyGeneratedCalledBeforeValueChanged).isTrue()
   }
 
@@ -101,13 +102,13 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     model.surface = nlModel.surface
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
     model.addListener(listener)
     val textView = nlModel.find(TEXT_VIEW)!!
 
     // test
     nlModel.surface.selectionModel.setSelection(listOf(textView))
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
     verify(listener).propertiesGenerated(model)
   }
 
@@ -119,11 +120,13 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val nlModel = createNlModel(TEXT_VIEW)
     val textView = nlModel.find(TEXT_VIEW)!!
     model.surface = nlModel.surface
+    waitUntilLastSelectionUpdateCompleted(model)
     nlModel.surface.selectionModel.setSelection(listOf(textView))
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
     model.addListener(listener)
 
     nlModel.resourcesChanged(EnumSet.of(ResourceNotificationManager.Reason.EDIT))
+    LaterInvocator.dispatchPendingFlushes()
     verify(listener).propertyValuesChanged(model)
   }
 
@@ -135,12 +138,14 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val nlModel = createNlModel(TEXT_VIEW)
     val textView = nlModel.find(TEXT_VIEW)!!
     model.surface = nlModel.surface
+    waitUntilLastSelectionUpdateCompleted(model)
+
     nlModel.surface.selectionModel.setSelection(listOf(textView))
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
     model.addListener(listener)
 
     nlModel.notifyLiveUpdate(false)
-    UIUtil.dispatchAllInvocationEvents()
+    LaterInvocator.dispatchPendingFlushes()
     verify(listener).propertyValuesChanged(model)
   }
 
@@ -152,12 +157,13 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val nlModel = createNlModel(TEXT_VIEW)
     val textView = nlModel.find(TEXT_VIEW)!!
     model.surface = nlModel.surface
+    waitUntilLastSelectionUpdateCompleted(model)
     nlModel.surface.selectionModel.setSelection(listOf(textView))
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
     model.addListener(listener)
 
     textView.fireLiveChangeEvent()
-    UIUtil.dispatchAllInvocationEvents()
+    LaterInvocator.dispatchPendingFlushes()
     verify(listener).propertyValuesChanged(model)
   }
 
@@ -172,7 +178,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
                                     null, "", "", model, listOf(textView))
     manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     model.surface = nlModel.surface
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
 
     // test
     assertThat(model.provideDefaultValue(property)).isEqualTo("@android:style/TextAppearance.Small")
@@ -190,20 +196,21 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, null, "", "", model, listOf(textView))
     manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     model.surface = nlModel.surface
+    waitUntilLastSelectionUpdateCompleted(model)
     nlModel.surface.selectionModel.setSelection(listOf(textView))
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
     assertThat(model.provideDefaultValue(property)).isEqualTo("@android:style/TextAppearance.Small")
     model.addListener(listener)
 
     // Value changed should not be reported if the default values are unchanged
     manager.fireRenderCompleted()
-    UIUtil.dispatchAllInvocationEvents()
+    LaterInvocator.dispatchPendingFlushes()
     verify(listener, never()).propertyValuesChanged(model)
 
     // Value changed notification is expected since the default values have changed
     manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "@android:style/TextAppearance.Large")
     manager.fireRenderCompleted()
-    UIUtil.dispatchAllInvocationEvents()
+    LaterInvocator.dispatchPendingFlushes()
     verify(listener).propertyValuesChanged(model)
   }
 
@@ -213,8 +220,9 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val nlModel = createNlModel(TEXT_VIEW)
     val textView = nlModel.find(TEXT_VIEW)!!
     model.surface = nlModel.surface
+    waitUntilLastSelectionUpdateCompleted(model)
     nlModel.surface.selectionModel.setSelection(listOf(textView))
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
 
     val listener = RecursiveValueChangedListener()
     model.addListener(listener)
@@ -229,40 +237,41 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val textView = nlModel.find(TEXT_VIEW)!!
     val button = nlModel.find(BUTTON)!!
     model.surface = nlModel.surface
+    waitUntilLastSelectionUpdateCompleted(model)
 
     nlModel.surface.selectionModel.setSelection(listOf(textView))
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
 
     var lastSelectionUpdate = model.lastSelectionUpdate
 
     nlModel.surface.selectionModel.setSecondarySelection(textView, null)
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
     assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
 
     nlModel.surface.selectionModel.setSecondarySelection(textView, null)
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
     assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
 
     nlModel.surface.selectionModel.setSecondarySelection(textView, Any())
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
     assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
 
     nlModel.surface.selectionModel.setSecondarySelection(textView, Any())
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
     assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
 
     nlModel.surface.selectionModel.setSecondarySelection(textView, null)
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
     assertEquals(lastSelectionUpdate, model.lastSelectionUpdate)
 
     nlModel.surface.selectionModel.setSecondarySelection(button, null)
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
     assertNotEquals(lastSelectionUpdate, model.lastSelectionUpdate)
 
     lastSelectionUpdate = model.lastSelectionUpdate
 
     nlModel.surface.selectionModel.setSecondarySelection(textView, Any())
-    waitUntilEventsProcessed(model)
+    waitUntilLastSelectionUpdateCompleted(model)
     assertNotEquals(lastSelectionUpdate, model.lastSelectionUpdate)
   }
 
@@ -291,9 +300,9 @@ class NelePropertiesModelTest: LayoutTestCase() {
   // The production code passes the property creation to a queue.
   // This code changes the queue to do a pass through during this test.
   private fun createModel(): NelePropertiesModel {
-    val model = NelePropertiesModel(testRootDisposable, myFacet)
-    model.updateQueue.isPassThrough = true
-    return model
+    val queue = MergingUpdateQueue("MQ", 100, true, null, testRootDisposable)
+    queue.isPassThrough = true
+    return NelePropertiesModel(testRootDisposable, myFacet, queue)
   }
 
   private class RecursiveValueChangedListener : PropertiesModelListener<NelePropertyItem> {
@@ -344,10 +353,10 @@ class NelePropertiesModelTest: LayoutTestCase() {
     // The production code is executing the properties creation on a separate thread.
     // This code makes sure that the last scheduled worker thread is finished,
     // then we also need to wait for events on the UI thread.
-    fun waitUntilEventsProcessed(model: NelePropertiesModel) {
+    fun waitUntilLastSelectionUpdateCompleted(model: NelePropertiesModel) {
       if (model.lastSelectionUpdate.get()) {
         while (!model.lastUpdateCompleted) {
-          UIUtil.dispatchAllInvocationEvents()
+          LaterInvocator.dispatchPendingFlushes()
         }
       }
     }

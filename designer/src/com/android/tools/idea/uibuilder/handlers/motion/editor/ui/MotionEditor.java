@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel.EMPTY_STRING_ARRAY;
+
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.NlComponentTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
@@ -333,10 +337,13 @@ public class MotionEditor extends JPanel {
 
   @Nullable
   private MTag findSelectedTagInNewModel(MeModel newModel) {
-    if (mSelectedTag == null) {
-      return null;
+    if (mSelectedTag instanceof MotionSceneTag) {
+      return newModel.motionScene.getChildTagWithTreeId(mSelectedTag.getTagName(), mSelectedTag.getTreeId());
     }
-    return newModel.motionScene.getChildTagWithTreeId(mSelectedTag.getTagName(), mSelectedTag.getTreeId());
+    if (mSelectedTag instanceof NlComponentTag) {
+      return newModel.layout;
+    }
+    return null;
   }
 
   @Nullable
@@ -349,6 +356,11 @@ public class MotionEditor extends JPanel {
     return selection != null && selection.getTagName().equals(Tags.TRANSITION) ? selection : null;
   }
 
+  @Nullable
+  private static MTag asLayout(@Nullable MTag selection) {
+    return selection instanceof NlComponentTag ? selection : null;
+  }
+
   public void clearSelectedTags() {
     mSelectedTag = null;
   }
@@ -357,12 +369,13 @@ public class MotionEditor extends JPanel {
     mUpdatingModel = true;
     try {
       MTag newSelection = findSelectedTagInNewModel(model);
-      selectTag(newSelection, 0);
+      model.setSelectedViewIDs(mMeModel != null ? mMeModel.getSelectedViewIDs() : EMPTY_STRING_ARRAY);
+      mSelectedTag = newSelection;
       mMeModel = model;
       mMotionSceneTabb.setMTag(mMeModel.motionScene);
       mCombinedListPanel.setMTag(mMeModel.motionScene, mMeModel.layout);
       mOverviewPanel.setMTag(mMeModel.motionScene, mMeModel.layout);
-      mLayoutPanel.setMTag(mMeModel.layout, mMeModel);
+      mLayoutPanel.setMTag(asLayout(newSelection), mMeModel);
       mConstraintSetPanel.setMTag(asConstraintSet(newSelection), mMeModel);
       mTransitionPanel.setMTag(asTransition(newSelection), mMeModel);
       mSelectedTag = newSelection;
@@ -451,15 +464,11 @@ public class MotionEditor extends JPanel {
       }
       else {
         Track.showLayoutTable();
-        boolean inlayout = (mCurrentlyDisplaying == LAYOUT_PANEL);
-
         mCardLayout.show(mCenterPanel, mCurrentlyDisplaying = LAYOUT_PANEL);
-        mLayoutPanel.setMTag(mCombinedListPanel.mMotionLayout, mMeModel);
-        if (inlayout) {
           notifyListeners(MotionEditorSelector.Type.LAYOUT,
                           (mCombinedListPanel.mMotionLayout == null) ? new MTag[0] :
                           new MTag[]{mCombinedListPanel.mMotionLayout}, 0);
-        }
+        mLayoutPanel.setMTag(mCombinedListPanel.mMotionLayout, mMeModel);
 
         mSelectedTag = mCombinedListPanel.mMotionLayout;
       }

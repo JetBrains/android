@@ -113,7 +113,7 @@ public class DependenciesModuleSetupStep extends JavaModuleSetupStep {
       }
       return;
     }
-    setupIssues.addMissingModule(moduleName, module.getName(), null);
+    setupIssues.addMissingModule(moduleName, module.getName());
   }
 
   /**

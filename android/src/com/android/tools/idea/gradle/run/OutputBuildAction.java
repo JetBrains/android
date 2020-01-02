@@ -43,7 +43,7 @@ import java.util.Map;
 public class OutputBuildAction implements BuildAction<OutputBuildAction.PostBuildProjectModels>, Serializable {
   @NotNull private final ImmutableCollection<String> myGradlePaths;
 
-  public OutputBuildAction(@NotNull Collection<String> moduleGradlePaths) {
+  OutputBuildAction(@NotNull Collection<String> moduleGradlePaths) {
     myGradlePaths = ImmutableSet.copyOf(moduleGradlePaths);
   }
 
@@ -73,13 +73,17 @@ public class OutputBuildAction implements BuildAction<OutputBuildAction.PostBuil
 
     private PostBuildProjectModels() {}
 
-    public void populate(@NotNull GradleProject rootProject, @NotNull Collection<String> gradleModulePaths, @NotNull BuildController controller) {
+    public void populate(@NotNull GradleProject rootProject,
+                         @NotNull Collection<String> gradleModulePaths,
+                         @NotNull BuildController controller) {
       for (String gradleModulePath : gradleModulePaths) {
         populateModule(rootProject, gradleModulePath, controller);
       }
     }
 
-    private void populateModule(@NotNull GradleProject rootProject, @NotNull String moduleProjectPath, @NotNull BuildController controller) {
+    private void populateModule(@NotNull GradleProject rootProject,
+                                @NotNull String moduleProjectPath,
+                                @NotNull BuildController controller) {
       if (myModelsByModule.containsKey(moduleProjectPath)) {
         // Module models already found
         return;

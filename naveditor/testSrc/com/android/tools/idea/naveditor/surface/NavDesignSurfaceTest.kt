@@ -47,7 +47,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.util.indexing.UnindexedFilesUpdater
@@ -70,7 +69,6 @@ import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.MouseEvent
-import java.io.File
 import java.util.concurrent.Future
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -499,8 +497,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val navConfigurationManager = NavDesignSurface(project, project).getConfigurationManager(myFacet)
     assertNotEquals(defaultConfigurationManager, navConfigurationManager)
 
-/* b/145856229
-    val navFile = VfsUtil.findFileByIoFile(File(project.basePath, "../unitTest/res/navigation/navigation.xml"), true)!!
+    val navFile = findVirtualProjectFile(project, "../unitTest/res/navigation/navigation.xml")!!
     val defaultConfiguration = defaultConfigurationManager.getConfiguration(navFile)
     val navConfiguration = navConfigurationManager.getConfiguration(navFile)
     val navDevice = navConfiguration.device
@@ -514,7 +511,6 @@ class NavDesignSurfaceTest : NavTestCase() {
 
     assertEquals(navDevice, navConfiguration.device)
     assertEquals(pixelC, defaultConfiguration.device)
-b/145856229 */
   }
 
   fun testActivateWithSchemaChange() {

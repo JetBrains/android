@@ -47,7 +47,6 @@ import com.intellij.internal.statistic.persistence.UsageStatisticsPersistenceCom
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
@@ -64,7 +63,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.openapi.util.text.TextWithMnemonic;
 import com.intellij.ui.AppUIUtil;
 import java.io.File;
 import java.util.Arrays;
@@ -93,7 +91,6 @@ public class AndroidStudioInitializer implements Runnable {
     setupAnalytics();
     disableIdeaJUnitConfigurations();
     hideRarelyUsedIntellijActions();
-    renameSynchronizeAction();
     setupResourceManagerActions();
     if (StudioFlags.TWEAK_COLOR_SCHEME.get()) {
       tweakDefaultColorScheme();
@@ -285,12 +282,6 @@ public class AndroidStudioInitializer implements Runnable {
   private static void hideRarelyUsedIntellijActions() {
     // Hide the Save File as Template action due to its rare use in Studio.
     hideAction("SaveFileAsTemplate");
-  }
-
-  private static void renameSynchronizeAction() {
-    // Rename the Synchronize action to Sync with File System to look better next to Sync Project with Gradle Files.
-    AnAction action = ActionManager.getInstance().getAction(IdeActions.ACTION_SYNCHRONIZE);
-    action.getTemplatePresentation().setTextWithMnemonic(TextWithMnemonic.parse("S_ync with File System"));
   }
 
   @NotNull

@@ -20,6 +20,7 @@ import static com.android.tools.idea.rendering.classloading.ClassConverter.getCu
 import static com.android.tools.idea.rendering.classloading.ClassConverter.isValidClassFile;
 
 import com.android.SdkConstants;
+import com.google.common.base.Suppliers;
 import com.google.common.io.ByteStreams;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -29,6 +30,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -62,7 +64,7 @@ public abstract class RenderClassLoader extends ClassLoader {
 
   private final Object myJarClassLoaderLock = new Object();
   @GuardedBy("myJarClassLoaderLock")
-  private UrlClassLoader myJarClassLoader = null;
+  private Supplier<UrlClassLoader> myJarClassLoader = Suppliers.memoize(() -> createJarClassLoader(getExternalJars()));
   protected boolean myInsideJarClassLoader;
 
   public RenderClassLoader(@Nullable ClassLoader parent) {
@@ -94,10 +96,7 @@ public abstract class RenderClassLoader extends ClassLoader {
   protected Class<?> loadClassFromNonProjectDependency(@NotNull String name) throws ClassNotFoundException {
     UrlClassLoader jarClassLoaders;
     synchronized (myJarClassLoaderLock) {
-      if (myJarClassLoader == null) {
-        myJarClassLoader = createJarClassLoader(getExternalJars());
-      }
-      jarClassLoaders = myJarClassLoader;
+      jarClassLoaders = myJarClassLoader.get();
     }
 
     myInsideJarClassLoader = true;
@@ -174,7 +173,7 @@ public abstract class RenderClassLoader extends ClassLoader {
     List<URL> updatedDependencies = getExternalJars();
     List<URL> currentDependencies;
     synchronized (myJarClassLoaderLock) {
-      currentDependencies = myJarClassLoader.getUrls();
+      currentDependencies = myJarClassLoader.get().getUrls();
     }
 
     if (updatedDependencies.size() != currentDependencies.size()) {

@@ -26,4 +26,7 @@ ext {
     rootBool3 = rootBool
     rootBool2 = rootBool3
     rootFloat = 3.14
+    listProp = [15,16,45]
+    mapProp = [key1: "val1", key2: "val2"]
+    boolRoot = true
 }

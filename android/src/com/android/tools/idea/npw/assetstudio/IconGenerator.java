@@ -114,9 +114,7 @@ public abstract class IconGenerator implements Disposable {
    * @param minSdkVersion the minimal supported Android SDK version
    * @param context the content used to render vector drawables
    */
-  public IconGenerator(@NotNull Project project,
-                       int minSdkVersion,
-                       @NotNull GraphicGeneratorContext context) {
+  public IconGenerator(@NotNull Project project, int minSdkVersion, @NotNull GraphicGeneratorContext context) {
     myMinSdkVersion = minSdkVersion;
     myContext = context;
     myApiLookup = new AtomicNullableLazyValue<ApiLookup>() {

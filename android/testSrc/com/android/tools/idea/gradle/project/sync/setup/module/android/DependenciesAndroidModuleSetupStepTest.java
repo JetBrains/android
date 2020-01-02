@@ -22,7 +22,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.TEST;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static com.intellij.util.PathUtil.toSystemDependentName;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -39,6 +38,7 @@ import com.android.tools.idea.gradle.project.sync.setup.module.dependency.Depend
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.android.tools.idea.model.AndroidModel;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -84,17 +84,6 @@ public class DependenciesAndroidModuleSetupStepTest extends PlatformTestCase {
     updateLibraryDependency("3.0.0", false);
   }
 
-  public void testMaybeAdjustLocalLibraryName() {
-    assertEquals("Gradle: __local_aars__:" + toSystemDependentName("./kml/xyz.jar:unspecified@jar"),
-                 DependenciesAndroidModuleSetupStep
-                   .maybeAdjustLocalLibraryName("Gradle: __local_aars__:" + toSystemDependentName("/abc/kml/xyz.jar:unspecified@jar"),
-                                                toSystemDependentName("/abc")));
-    assertEquals("Gradle: __local_aars__:" + toSystemDependentName("/abc/kml/xyz.jar:unspecified@jar"),
-                 DependenciesAndroidModuleSetupStep
-                   .maybeAdjustLocalLibraryName("Gradle: __local_aars__:" + toSystemDependentName("/abc/kml/xyz.jar:unspecified@jar"),
-                                                null));
-  }
-
   private void updateLibraryDependency(@NotNull String modelVersion, boolean exported) throws IOException {
     // Create gradle facet and mock AndroidModuleModel.
     AndroidModuleModel moduleModel = createAndroidFacetAndModuleModel(modelVersion);
@@ -114,8 +103,14 @@ public class DependenciesAndroidModuleSetupStepTest extends PlatformTestCase {
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
     // Make sure DependenciesSetup#setUpLibraryDependency was invoked.
-    verify(myDependenciesSetup).setUpLibraryDependency(myModule, modelsProvider, dependency.getName(), COMPILE, dependency.getArtifactPath(),
-                                                       dependency.getBinaryPaths(), exported);
+    verify(myDependenciesSetup)
+      .setUpLibraryDependency(myModule,
+                              modelsProvider,
+                              dependency.getName(),
+                              COMPILE,
+                              dependency.getArtifactPath(),
+                              dependency.getBinaryPaths(),
+                              exported);
   }
 
   @NotNull
@@ -152,7 +147,8 @@ public class DependenciesAndroidModuleSetupStepTest extends PlatformTestCase {
 
   @NotNull
   private static LibraryDependency createFakeLibraryDependency(@NotNull File jarsFolderPath) {
-    return new LibraryDependency(new File(jarsFolderPath, "myLibrary.jar"), COMPILE);
+    File path = new File(jarsFolderPath, "myLibrary.jar");
+    return new LibraryDependency(path, "Gradle: __local_aars__:" + path + "@jar", COMPILE, ImmutableList.of());
   }
 
   @NotNull

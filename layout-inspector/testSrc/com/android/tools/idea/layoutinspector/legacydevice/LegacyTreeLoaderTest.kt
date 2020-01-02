@@ -15,51 +15,109 @@
  */
 package com.android.tools.idea.layoutinspector.legacydevice
 
-import com.android.SdkConstants.ANDROID_URI
-import com.android.SdkConstants.ATTR_ALPHA
-import com.android.SdkConstants.ATTR_GRAVITY
-import com.android.SdkConstants.ATTR_ID
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_LEFT
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT
-import com.android.SdkConstants.ATTR_LAYOUT_MARGIN_TOP
-import com.android.SdkConstants.ATTR_TEXT
-import com.android.SdkConstants.ATTR_TEXT_COLOR
-import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
-import com.android.tools.property.panel.api.PropertiesTable
+import com.android.ddmlib.ByteBufferUtil
+import com.android.ddmlib.FakeClientBuilder
+import com.android.ddmlib.HandleViewDebug.CHUNK_VULW
+import com.android.ddmlib.JdwpPacket
+import com.android.tools.idea.layoutinspector.FakeAdbRule
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
+import org.junit.Rule
 import org.junit.Test
+import org.mockito.ArgumentMatcher
+import org.mockito.Mockito.mock
+import java.nio.ByteBuffer
 
 class LegacyTreeLoaderTest {
 
-  private val example = """androidx.appcompat.widget.AppCompatTextView@29a4a1f text:mCurTextColor=11,-1979711488 text:mGravity=7,8388659 text:mText=21,Hello\nWorld , =  @ : getEllipsize()=4,null text:getScaledTextSize()=4,14.0 text:getSelectionEnd()=2,-1 text:getSelectionStart()=2,-1 text:getTextSize()=4,49.0 text:getTypefaceStyle()=6,NORMAL bg_=4,null layout:mBottom=3,189 drawing:mClipBounds=4,null theme:com.example.myapplication:style/AppTheme()=6,forced theme:android:style/Theme.DeviceDefault.Light.DarkActionBar()=6,forced fg_=4,null mID=11,id/textView drawing:mLayerType=4,NONE layout:mLeft=1,0 measurement:mMeasuredHeight=3,123 measurement:mMeasuredWidth=4,1432 measurement:mMinHeight=1,0 measurement:mMinWidth=1,0 padding:mPaddingBottom=1,0 padding:mPaddingLeft=1,0 padding:mPaddingRight=1,0 padding:mPaddingTop=1,0 mPrivateFlags_DRAWN=4,0x20 mPrivateFlags=9,0x1008830 layout:mRight=4,1432 scrolling:mScrollX=1,0 scrolling:mScrollY=1,0 mSystemUiVisibility=3,0x0 layout:mTop=2,66 padding:mUserPaddingBottom=1,0 padding:mUserPaddingEnd=11,-2147483648 padding:mUserPaddingLeft=1,0 padding:mUserPaddingRight=1,0 padding:mUserPaddingStart=11,-2147483648 mViewFlags=10,0x18000010 drawing:getAlpha()=3,1.0 layout:getBaseline()=2,52 accessibility:getContentDescription()=4,null focus:getDefaultFocusHighlightEnabled()=4,true drawing:getElevation()=3,0.0 getFilterTouchesWhenObscured()=5,false getFitsSystemWindows()=5,false focus:getFocusable()=14,FOCUSABLE_AUTO layout:getHeight()=3,123 accessibility:getImportantForAccessibility()=3,yes getImportantForAutofill()=3,yes accessibility:getLabelFor()=2,-1 layout:getLayoutDirection()=22,RESOLVED_DIRECTION_LTR layout:layout_gravity=4,NONE layout:layout_weight=3,0.0 layout:layout_bottomMargin=1,0 layout:layout_endMargin=11,-2147483648 layout:layout_leftMargin=1,0 layout:layout_mMarginFlags_LEFT_MARGIN_UNDEFINED_MASK=3,0x4 layout:layout_mMarginFlags_RIGHT_MARGIN_UNDEFINED_MASK=3,0x8 layout:layout_mMarginFlags=4,0x0C layout:layout_rightMargin=1,0 layout:layout_startMargin=11,-2147483648 layout:layout_topMargin=1,0 layout:layout_height=12,WRAP_CONTENT layout:layout_width=12,MATCH_PARENT layout:getLocationOnScreen_x()=1,4 layout:getLocationOnScreen_y()=3,350 measurement:getMeasuredHeightAndState()=3,123 measurement:getMeasuredWidthAndState()=4,1432 drawing:getPivotX()=5,716.0 drawing:getPivotY()=4,61.5 layout:getRawLayoutDirection()=7,INHERIT text:getRawTextAlignment()=7,GRAVITY text:getRawTextDirection()=7,INHERIT drawing:getRotation()=3,0.0 drawing:getRotationX()=3,0.0 drawing:getRotationY()=3,0.0 drawing:getScaleX()=3,1.0 drawing:getScaleY()=3,1.0 getScrollBarStyle()=14,INSIDE_OVERLAY drawing:getSolidColor()=1,0 getTag()=4,null text:getTextAlignment()=7,GRAVITY text:getTextDirection()=12,FIRST_STRONG drawing:getTransitionAlpha()=3,1.0 getTransitionName()=4,null drawing:getTranslationX()=3,0.0 drawing:getTranslationY()=3,0.0 drawing:getTranslationZ()=3,0.0 getVisibility()=7,VISIBLE layout:getWidth()=4,1432 drawing:getX()=3,0.0 drawing:getY()=4,66.0 drawing:getZ()=3,0.0 focus:hasFocus()=5,false drawing:hasOverlappingRendering()=5,false drawing:hasShadow()=5,false layout:hasTransientState()=5,false isActivated()=5,false isClickable()=5,false drawing:isDrawingCacheEnabled()=5,false isEnabled()=4,true focus:isFocusable()=5,false focus:isFocusableInTouchMode()=5,false focus:isFocused()=5,false focus:isFocusedByDefault()=5,false isHapticFeedbackEnabled()=4,true drawing:isHardwareAccelerated()=4,true isHovered()=5,false isInTouchMode()=4,true focus:isKeyboardNavigationCluster()=5,false layout:isLayoutRtl()=5,false drawing:isOpaque()=5,false isPressed()=5,false isSelected()=5,false isSoundEffectsEnabled()=4,true drawing:willNotCacheDrawing()=5,false drawing:willNotDraw()=5,false
+  @Rule
+  @JvmField
+  val adb = FakeAdbRule()
+
+  private val treeSample = """
+com.android.internal.policy.DecorView@41673e3 mID=5,NO_ID layout:getHeight()=4,1920 layout:getLocationOnScreen_x()=1,0 layout:getLocationOnScreen_y()=1,0 layout:getWidth()=4,1080
+ android.widget.LinearLayout@8dc1681 mID=5,NO_ID layout:getHeight()=4,1794 layout:getLocationOnScreen_x()=1,0 layout:getLocationOnScreen_y()=1,0 layout:getWidth()=4,1080
+  androidx.appcompat.widget.FitWindowsLinearLayout@d0e237b mID=18,id/action_bar_root layout:getHeight()=4,1794 layout:getLocationOnScreen_x()=1,0 layout:getLocationOnScreen_y()=1,0 layout:getWidth()=4,1080
+  androidx.coordinatorlayout.widget.CoordinatorLayout@1d72495 mID=5,NO_ID layout:getHeight()=4,1794 layout:getLocationOnScreen_x()=1,0 layout:getLocationOnScreen_y()=1,0 layout:getWidth()=4,1080
+   com.google.android.material.appbar.AppBarLayout@51a200b mID=9,id/appbar layout:getHeight()=3,730 layout:getLocationOnScreen_x()=1,0 layout:getLocationOnScreen_y()=1,0 layout:getWidth()=4,1080
+   androidx.appcompat.widget.Toolbar@fbf7138 mID=10,id/toolbar layout:getHeight()=3,147 layout:getLocationOnScreen_x()=1,0 layout:getLocationOnScreen_y()=2,63 layout:getWidth()=4,1080
+    androidx.appcompat.widget.AppCompatImageButton@2527511 mID=5,NO_ID layout:getHeight()=3,147 layout:getLocationOnScreen_x()=1,0 layout:getLocationOnScreen_y()=2,63 layout:getWidth()=3,147
+    androidx.appcompat.widget.ActionMenuView@29668e4 mID=5,id/actionMenu layout:getHeight()=3,147 layout:getLocationOnScreen_x()=3,932 layout:getLocationOnScreen_y()=2,63 layout:getWidth()=3,148
+   androidx.core.widget.NestedScrollView@5652ee8 mID=26,id/plant_detail_scrollview layout:getHeight()=4,1584 layout:getLocationOnScreen_x()=1,0 layout:getLocationOnScreen_y()=3,730 layout:getWidth()=4,1080
+    com.google.android.material.textview.MaterialTextView@2d35b6f mID=20,id/plant_detail_name layout:getHeight()=2,85 layout:getLocationOnScreen_x()=2,63 layout:getLocationOnScreen_y()=3,772 layout:getWidth()=3,954
+    com.google.android.material.textview.MaterialTextView@b3f07c needs mID=24,id/plant_watering_header layout:getHeight()=2,51 layout:getLocationOnScreen_x()=2,63 layout:getLocationOnScreen_y()=3,899 layout:getWidth()=3,954
+   com.google.android.material.floatingactionbutton.FloatingActionButton@fcfd901 mID=6,id/fab layout:getHeight()=3,147 layout:getLocationOnScreen_x()=4,1856 layout:getLocationOnScreen_y()=4,1388 layout:getWidth()=3,147
+ android.view.View@3d2ff9c mID=22,id/statusBarBackground layout:getHeight()=2,63 layout:getLocationOnScreen_x()=1,0 layout:getLocationOnScreen_y()=1,0 layout:getWidth()=4,1080
 DONE.
-"""
+""".trim()
 
   @Test
-  fun testExample() {
+  fun testParseNodes() {
     val provider = LegacyPropertiesProvider()
-    val (root, hash) = LegacyTreeLoader.parseLiveViewNode(example.toByteArray(Charsets.UTF_8), provider)!!
-    var properties = PropertiesTable.emptyTable<InspectorPropertyItem>()
-    provider.resultListeners.add { _, _, table -> properties = table}
+    val propertiesUpdater = LegacyPropertiesProvider.Updater()
+    val (root, hash) = LegacyTreeLoader.parseLiveViewNode(treeSample.toByteArray(Charsets.UTF_8), propertiesUpdater)!!
+    propertiesUpdater.apply(provider)
     provider.requestProperties(root)
-    assertThat(hash).isEqualTo("androidx.appcompat.widget.AppCompatTextView@29a4a1f")
-    assertThat(root.drawId).isEqualTo(0x29a4a1f)
+    assertThat(hash).isEqualTo("com.android.internal.policy.DecorView@41673e3")
+    assertThat(root.drawId).isEqualTo(0x41673e3)
     assertThat(root.x).isEqualTo(0)
-    assertThat(root.y).isEqualTo(66)
-    assertThat(root.width).isEqualTo(1432)
-    assertThat(root.height).isEqualTo(123)
+    assertThat(root.y).isEqualTo(0)
+    assertThat(root.width).isEqualTo(1080)
+    assertThat(root.height).isEqualTo(1920)
     assertThat(root.scrollX).isEqualTo(0)
     assertThat(root.scrollY).isEqualTo(0)
-    assertThat(root.viewId.toString()).isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=textView}")
-    assertThat(properties[ANDROID_URI, ATTR_ID].value).isEqualTo("@id/textView")
-    assertThat(properties[ANDROID_URI, ATTR_TEXT].value).isEqualTo("Hello\\nWorld , =  @ :")
-    assertThat(properties[ANDROID_URI, ATTR_TEXT_COLOR].value).isEqualTo("#8A000000")
-    assertThat(properties[ANDROID_URI, ATTR_ALPHA].value).isEqualTo("1.0")
-    assertThat(properties[ANDROID_URI, ATTR_GRAVITY].value).isEqualTo("top|start")
-    assertThat(properties[ANDROID_URI, ATTR_LAYOUT_MARGIN_TOP].value).isEqualTo("0")
-    assertThat(properties[ANDROID_URI, ATTR_LAYOUT_MARGIN_BOTTOM].value).isEqualTo("0")
-    assertThat(properties[ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT].value).isEqualTo("0")
-    assertThat(properties[ANDROID_URI, ATTR_LAYOUT_MARGIN_RIGHT].value).isEqualTo("0")
+    assertThat(root.viewId).isNull()
+    assertThat(printTree(root).trim()).isEqualTo("""
+          0x41673e3
+           0x8dc1681
+            0xd0e237b
+            0x1d72495
+             0x51a200b
+             0xfbf7138
+              0x2527511
+              0x29668e4
+             0x5652ee8
+              0x2d35b6f
+              0xb3f07c
+             0xfcfd901
+           0x3d2ff9c
+           """.trimIndent())
+    val actionMenuView = findView(listOf(root), 0x29668e4)
+    assertThat(actionMenuView.drawId).isEqualTo(0x29668e4)
+    assertThat(actionMenuView.x).isEqualTo(932)
+    assertThat(actionMenuView.y).isEqualTo(63)
+    assertThat(actionMenuView.width).isEqualTo(148)
+    assertThat(actionMenuView.height).isEqualTo(147)
+    assertThat(actionMenuView.scrollX).isEqualTo(0)
+    assertThat(actionMenuView.scrollY).isEqualTo(0)
+    assertThat(actionMenuView.viewId.toString()).isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=ac}")
+  }
+
+  private fun printTree(node: ViewNode, indent: Int = 0): String =
+    " ".repeat(indent) + "0x${node.drawId.toString(16)}\n${node.children.joinToString("") { printTree(it, indent + 1) }}"
+
+  private fun findView(nodes: List<ViewNode>, drawId: Long): ViewNode =
+    nodes.find { it.drawId == drawId } ?: findView(nodes.flatMap { it.children }, drawId)
+
+  @Test
+  fun testGetAllWindowIds() {
+    val requestMatcher: ArgumentMatcher<JdwpPacket> = ArgumentMatcher { it.payload.getInt(0) == CHUNK_VULW }
+    val window1 = "myWindowNumberOne"
+    val window2 = "theOtherWindow"
+    val responseBytes = ByteBuffer.allocate(window1.length * 2 + window2.length * 2 + 4 * 3)
+    responseBytes.putInt(2)
+    responseBytes.putInt(window1.length)
+    ByteBufferUtil.putString(responseBytes, window1)
+    responseBytes.putInt(window2.length)
+    ByteBufferUtil.putString(responseBytes, window2)
+    val ddmClient = FakeClientBuilder().registerResponse(requestMatcher, CHUNK_VULW, responseBytes).build()
+
+    val legacyClient = LegacyClient(mock(Project::class.java))
+    legacyClient.selectedClient = ddmClient
+
+
+    val result = LegacyTreeLoader.getAllWindowIds(null, legacyClient)
+    assertThat(result).containsExactly(window1.hashCode().toLong(), window2.hashCode().toLong())
   }
 }

@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.KTS_KNOWN_CONFIGURATIONS
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
@@ -114,10 +116,14 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
 
     val externalNameInfo = maybeTrimForParent(element.nameElement, element.parent, this)
     var statementText = externalNameInfo.first
-
     val useAssignment = when (val asMethod = externalNameInfo.second) {
       null -> element.shouldUseAssignment()
       else -> !asMethod
+    }
+    // TODO(xof): this is a bit horrible, and if there are any other examples where we need to adjust the syntax (as opposed to name)
+    //  of something depending on its context, try to figure out a useful generalization.
+    if (element.parent is DependenciesDslElement && !useAssignment && !KTS_KNOWN_CONFIGURATIONS.contains(statementText)) {
+      statementText = "\"${statementText}\""
     }
     if (element is GradleDslNamedDomainElement) {
       val parent = element.parent
@@ -177,7 +183,12 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       }
     }
     else if (element is GradleDslExpressionMap) {
-      statementText += "mapOf()"
+      if (element.asNamedArgs) {
+        statementText += "()"
+      }
+      else {
+        statementText += "mapOf()"
+      }
     }
     else {
       statementText += "()"
@@ -319,7 +330,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       // Make sure we replaced with the right psi element for the GradleDslLiteral.
       when (replace) {
         is KtStringTemplateExpression, is KtConstantExpression, is KtNameReferenceExpression, is KtDotQualifiedExpression,
-        is KtArrayAccessExpression -> literal.setExpression(replace)
+        is KtArrayAccessExpression, is KtBinaryExpressionWithTypeRHS -> literal.setExpression(replace)
         else -> Unit
       }
     }
@@ -388,13 +399,16 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
           null -> methodCall.shouldUseAssignment()
           else -> !asMethod
         }
-        val methodName = maybeTrimForParent(GradleNameElement.fake(methodCall.methodName), methodCall.parent, this).first
+        var methodName = maybeTrimForParent(GradleNameElement.fake(methodCall.methodName), methodCall.parent, this).first
         if (useAssignment) {
           // Ex: a = b().
           "$propertyName = $methodName()"
         }
         else {
-          // Ex: implementation(fileTree()).
+          // Ex: implementation(fileTree()), "feature"(fileTree())
+          if (methodCall.parent is DependenciesDslElement && !useAssignment && !KTS_KNOWN_CONFIGURATIONS.contains(propertyName)) {
+            propertyName = "\"$propertyName\""
+          }
           "$propertyName($methodName())"
         }
       }

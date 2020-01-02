@@ -41,9 +41,8 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
 
     val analyzerResults = object : MockResultsProvider() {
       override fun getTotalBuildTimeMs(): Long = 1500
-      override fun getCriticalPathDurationMs(): Long = 1000
-      override fun getCriticalPathTasks(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
-      override fun getCriticalPathPlugins(): List<PluginBuildData> = listOf(
+      override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(taskA, taskB, taskC, taskD)
+      override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = listOf(
         PluginBuildData(pluginA, 400),
         PluginBuildData(pluginB, 600)
       )
@@ -82,9 +81,8 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
 
     val analyzerResults = object : MockResultsProvider() {
       override fun getTotalBuildTimeMs(): Long = 1500
-      override fun getCriticalPathDurationMs(): Long = 1000
-      override fun getCriticalPathTasks(): List<TaskData> = listOf(taskA, taskB)
-      override fun getCriticalPathPlugins(): List<PluginBuildData> = listOf(
+      override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(taskA, taskB)
+      override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = listOf(
         PluginBuildData(pluginA, 400),
         PluginBuildData(pluginB, 300)
       )
@@ -129,9 +127,8 @@ class TaskIssuesReportBuilderTest : AbstractBuildAttributionReportBuilderTest() 
 
     val analyzerResults = object : MockResultsProvider() {
       override fun getTotalBuildTimeMs(): Long = 1500
-      override fun getCriticalPathDurationMs(): Long = 1000
-      override fun getCriticalPathTasks(): List<TaskData> = listOf(taskA, taskB)
-      override fun getCriticalPathPlugins(): List<PluginBuildData> = listOf(
+      override fun getTasksDeterminingBuildDuration(): List<TaskData> = listOf(taskA, taskB)
+      override fun getPluginsDeterminingBuildDuration(): List<PluginBuildData> = listOf(
         PluginBuildData(pluginA, 400),
         PluginBuildData(pluginB, 600)
       )

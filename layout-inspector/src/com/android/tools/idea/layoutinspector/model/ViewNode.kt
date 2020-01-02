@@ -16,13 +16,16 @@
 package com.android.tools.idea.layoutinspector.model
 
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
-import com.android.tools.property.panel.api.PropertiesTable
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
 import java.awt.Image
 import java.awt.Rectangle
+
+// This must have the same value as WindowManager.FLAG_DIM_BEHIND
+@VisibleForTesting
+const val WINDOW_MANAGER_FLAG_DIM_BEHIND = 0x2
 
 /**
  * A view node represents a view in the view hierarchy as seen on the device.
@@ -34,7 +37,7 @@ import java.awt.Rectangle
  * @param viewId the id set by the developer in the View.id attribute
  * @param textValue the text value if present
  */
-class ViewNode(val drawId: Long,
+class ViewNode(var drawId: Long,
                val qualifiedName: String,
                val layout: ResourceReference?,
                var x: Int,
@@ -44,7 +47,8 @@ class ViewNode(val drawId: Long,
                var width: Int,
                var height: Int,
                var viewId: ResourceReference?,
-               var textValue: String) {
+               var textValue: String,
+               var layoutFlags: Int) {
 
   val bounds: Rectangle
     get() = Rectangle(x, y, width, height)
@@ -70,6 +74,9 @@ class ViewNode(val drawId: Long,
     get() = qualifiedName.substringAfterLast('.')
 
   var visible = true
+
+  val isDimBehind: Boolean
+    get() = (layoutFlags and WINDOW_MANAGER_FLAG_DIM_BEHIND) > 0
 
   fun flatten(): Collection<ViewNode> {
     return children.flatMap { it.flatten() }.plus(this)

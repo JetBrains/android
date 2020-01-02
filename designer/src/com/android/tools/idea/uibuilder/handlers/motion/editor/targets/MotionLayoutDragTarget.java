@@ -104,17 +104,15 @@ public class MotionLayoutDragTarget extends DragBaseTarget implements MultiCompo
         return;
       }
       String state = motionLayout.getState();
-      HashMap<String, MotionAttributes.DefinedAttribute> componentAttributes = null;
-      if (state != null && !state.equals("motion_base")) {
-        Object properties = myComponent.getNlComponent().getClientProperty(MOTION_LAYOUT_PROPERTIES);
-        MotionAttributes attrs = (MotionAttributes)properties;
-        componentAttributes = attrs.getAttrMap();
+      NlAttributesHolder componentAttributes = attributes;
+      if (state == null || state.equals("motion_base")) {
+        componentAttributes = myComponent.getAuthoritativeNlComponent();
       }
 
-      SceneComponent targetStartComponent = getTargetComponent(attributes, parent, ConstraintComponentUtilities.ourStartAttributes);
-      SceneComponent targetEndComponent = getTargetComponent(attributes, parent, ConstraintComponentUtilities.ourEndAttributes);
-      SceneComponent targetLeftComponent = getTargetComponent(attributes, parent, ConstraintComponentUtilities.ourLeftAttributes);
-      SceneComponent targetRightComponent = getTargetComponent(attributes, parent, ConstraintComponentUtilities.ourRightAttributes);
+      SceneComponent targetStartComponent = getTargetComponent(componentAttributes, parent, ConstraintComponentUtilities.ourStartAttributes);
+      SceneComponent targetEndComponent = getTargetComponent(componentAttributes, parent, ConstraintComponentUtilities.ourEndAttributes);
+      SceneComponent targetLeftComponent = getTargetComponent(componentAttributes, parent, ConstraintComponentUtilities.ourLeftAttributes);
+      SceneComponent targetRightComponent = getTargetComponent(componentAttributes, parent, ConstraintComponentUtilities.ourRightAttributes);
       String targetStartMargin = SdkConstants.ATTR_LAYOUT_MARGIN_START;
       String targetEndMargin = SdkConstants.ATTR_LAYOUT_MARGIN_END;
       boolean useStartEnd = myComponent.useRtlAttributes();
@@ -132,16 +130,16 @@ public class MotionLayoutDragTarget extends DragBaseTarget implements MultiCompo
         useStartEnd = false;
         isInRTL = false;
         if (targetStartComponent != null) {
-          dx1 = getLeftTargetOrigin(attributes, targetStartComponent) + getMarginValue(attributes, targetStartMargin);
+          dx1 = getLeftTargetOrigin(componentAttributes, targetStartComponent) + getMarginValue(componentAttributes, targetStartMargin);
         }
         if (targetEndComponent != null) {
-          dx2 = getRightTargetOrigin(attributes, targetEndComponent) - getMarginValue(attributes, targetEndMargin);
+          dx2 = getRightTargetOrigin(componentAttributes, targetEndComponent) - getMarginValue(componentAttributes, targetEndMargin);
         }
       }
       else {
         if (targetStartComponent != null) {
-          dx1 = getStartTargetOrigin(attributes, targetStartComponent, isInRTL);
-          int margin = getMarginValue(attributes, targetStartMargin);
+          dx1 = getStartTargetOrigin(componentAttributes, targetStartComponent, isInRTL);
+          int margin = getMarginValue(componentAttributes, targetStartMargin);
           if (isInRTL) {
             dx1 -= margin;
           }
@@ -150,8 +148,8 @@ public class MotionLayoutDragTarget extends DragBaseTarget implements MultiCompo
           }
         }
         if (targetEndComponent != null) {
-          dx2 = getEndTargetOrigin(attributes, targetEndComponent, isInRTL);
-          int margin = getMarginValue(attributes, targetEndMargin);
+          dx2 = getEndTargetOrigin(componentAttributes, targetEndComponent, isInRTL);
+          int margin = getMarginValue(componentAttributes, targetEndMargin);
           if (isInRTL) {
             dx2 += margin;
           }
@@ -189,25 +187,25 @@ public class MotionLayoutDragTarget extends DragBaseTarget implements MultiCompo
         }
       }
       else if (targetStartComponent != null) {
-        int dx = x - getLeftTargetOrigin(attributes, targetStartComponent);
+        int dx = x - getLeftTargetOrigin(componentAttributes, targetStartComponent);
         if (useStartEnd) {
           if (isInRTL) {
-            dx = getStartTargetOrigin(attributes, targetStartComponent, true) - (x + myComponent.getDrawWidth());
+            dx = getStartTargetOrigin(componentAttributes, targetStartComponent, true) - (x + myComponent.getDrawWidth());
           }
           else {
-            dx = x - getStartTargetOrigin(attributes, targetStartComponent, false);
+            dx = x - getStartTargetOrigin(componentAttributes, targetStartComponent, false);
           }
         }
         applyMargin(attributes, targetStartMargin, dx);
       }
       else if (targetEndComponent != null) {
-        int dx = getRightTargetOrigin(attributes, targetEndComponent) - (x + myComponent.getDrawWidth());
+        int dx = getRightTargetOrigin(componentAttributes, targetEndComponent) - (x + myComponent.getDrawWidth());
         if (useStartEnd) {
           if (isInRTL) {
-            dx = x - getEndTargetOrigin(attributes, targetEndComponent, true);
+            dx = x - getEndTargetOrigin(componentAttributes, targetEndComponent, true);
           }
           else {
-            dx = getEndTargetOrigin(attributes, targetEndComponent, false) - (x + myComponent.getDrawWidth());
+            dx = getEndTargetOrigin(componentAttributes, targetEndComponent, false) - (x + myComponent.getDrawWidth());
           }
         }
         applyMargin(attributes, targetEndMargin, dx);
@@ -217,12 +215,12 @@ public class MotionLayoutDragTarget extends DragBaseTarget implements MultiCompo
         attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X, positionX);
       }
 
-      SceneComponent targetTopComponent = getTargetComponent(attributes, parent, ConstraintComponentUtilities.ourTopAttributes);
-      SceneComponent targetBottomComponent = getTargetComponent(attributes, parent, ConstraintComponentUtilities.ourBottomAttributes);
+      SceneComponent targetTopComponent = getTargetComponent(componentAttributes, parent, ConstraintComponentUtilities.ourTopAttributes);
+      SceneComponent targetBottomComponent = getTargetComponent(componentAttributes, parent, ConstraintComponentUtilities.ourBottomAttributes);
       if (targetTopComponent != null && targetBottomComponent != null) {
         if (!myChainChecker.isInVerticalChain()) {
-          int dy1 = getTopTargetOrigin(attributes, targetTopComponent) + getMarginValue(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
-          int dy2 = getBottomTargetOrigin(attributes, targetBottomComponent) - getMarginValue(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
+          int dy1 = getTopTargetOrigin(componentAttributes, targetTopComponent) + getMarginValue(componentAttributes, SdkConstants.ATTR_LAYOUT_MARGIN_TOP);
+          int dy2 = getBottomTargetOrigin(componentAttributes, targetBottomComponent) - getMarginValue(componentAttributes, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM);
           float dh = dy2 - dy1 - myComponent.getDrawHeight();
           float bias = (y - dy1) / dh;
           if (bias < 0) {
@@ -244,18 +242,18 @@ public class MotionLayoutDragTarget extends DragBaseTarget implements MultiCompo
         }
       }
       else if (targetTopComponent != null) {
-        int dy = y - getTopTargetOrigin(attributes, targetTopComponent);
+        int dy = y - getTopTargetOrigin(componentAttributes, targetTopComponent);
         applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, dy);
       }
       else if (targetBottomComponent != null) {
-        int dy = getBottomTargetOrigin(attributes, targetBottomComponent) - (y + myComponent.getDrawHeight());
+        int dy = getBottomTargetOrigin(componentAttributes, targetBottomComponent) - (y + myComponent.getDrawHeight());
         applyMargin(attributes, SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM, dy);
       }
       else {
         String positionY = String.format(Locale.US, SdkConstants.VALUE_N_DP, y - parent.getDrawY());
         attributes.setAttribute(SdkConstants.TOOLS_URI, SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, positionY);
       }
-      ConstraintComponentUtilities.cleanup(attributes, myComponent.getNlComponent());
+      ConstraintComponentUtilities.cleanup(componentAttributes, myComponent.getNlComponent());
     }
 
     @Nullable

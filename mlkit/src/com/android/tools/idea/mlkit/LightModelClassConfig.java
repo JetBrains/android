@@ -17,13 +17,15 @@ package com.android.tools.idea.mlkit;
 
 import org.jetbrains.annotations.NotNull;
 
-/** Stores all values needed to generate a specific {@link LightModelClass}. */
+/**
+ * Stores all values needed to generate a specific {@link LightModelClass}.
+ */
 public class LightModelClassConfig {
-  public final String myClassName;
+  public final MlModelMetadata myModelMetadata;
   public final String myPackageName;
 
-  public LightModelClassConfig(@NotNull String className, @NotNull String packageName) {
-    myClassName = className;
+  public LightModelClassConfig(@NotNull MlModelMetadata modelMetadata, @NotNull String packageName) {
+    myModelMetadata = modelMetadata;
     myPackageName = packageName;
   }
 }

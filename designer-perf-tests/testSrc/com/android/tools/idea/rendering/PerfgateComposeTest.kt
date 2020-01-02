@@ -79,7 +79,9 @@ class PerfgateComposeTest {
       }
     }
 
-    composeTimeBenchmark.measureOperation(listOf(ElapsedTimeMeasurement(Metric("kotlin_compile_time")))) {
+    composeTimeBenchmark.measureOperation(
+      measures = listOf(ElapsedTimeMeasurement(Metric("kotlin_compile_time"))),
+      samplesCount = 10) {
       ApplicationManager.getApplication().invokeAndWait {
         WriteAction.run<Throwable> {
           projectRule.fixture.type("A")

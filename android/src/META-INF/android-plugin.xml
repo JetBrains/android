@@ -361,7 +361,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.flags.StudioFlagSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatService" />
     <applicationService serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.editor.ui.GradleEditorEntityUiRegistry"/>
     <applicationService serviceImplementation="com.android.tools.idea.instantapp.InstantAppSdks" />
     <applicationService serviceImplementation="com.android.tools.idea.sdk.IdeSdks"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.AndroidSdks"/>
@@ -868,17 +867,11 @@
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.ModuleSetupStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.postSyncProjectCleanupStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.ProjectCleanupStep"/>
-    <extensionPoint qualifiedName="com.android.gradle.sync.forcedPluginVersionUpgradeStep"
-                    interface="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ForcedPluginVersionUpgradeStep"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.recommendedPluginVersionUpgradeStep"
                     interface="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep"/>
     <extensionPoint qualifiedName="com.android.captureType" interface="com.android.tools.idea.profiling.capture.CaptureType"/>
     <extensionPoint qualifiedName="com.android.gradle.sync.syncErrorHandler"
                     interface="com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler"/>
-    <extensionPoint qualifiedName="com.android.gradle.gradleEditorModelCustomizer"
-                    interface="com.android.tools.idea.gradle.editor.parser.GradleEditorModelCustomizer"/>
-    <extensionPoint qualifiedName="com.android.gradle.gradleEditorEntityUi"
-                    interface="com.android.tools.idea.gradle.editor.ui.GradleEditorEntityUi"/>
     <extensionPoint qualifiedName="com.android.tools.idea.structure.services.developerServiceCreators"
                     interface="com.android.tools.idea.structure.services.DeveloperServiceCreators"/>
     <extensionPoint qualifiedName="com.android.ide.sdkEventListener"
@@ -952,7 +945,6 @@
     <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.ProjectStructureCleanupStep"/>
     <postSyncProjectCleanupStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.cleanup.SdksCleanupStep"/>
 
-    <forcedPluginVersionUpgradeStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ForcedPluginVersionUpgradeStep"/>
     <recommendedPluginVersionUpgradeStep implementation="com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep"/>
 
     <syncErrorHandler implementation="com.android.tools.idea.gradle.project.sync.errors.OldAndroidPluginErrorHandler"/>

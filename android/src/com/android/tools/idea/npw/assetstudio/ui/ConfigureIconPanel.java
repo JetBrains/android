@@ -195,7 +195,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   @NotNull private final BindingsManager myActiveAssetBindings = new BindingsManager();
   @NotNull private final ListenerManager myListeners = new ListenerManager();
 
-  @NotNull private final ImmutableMap<AssetType, AssetComponent> myAssetPanelMap;
+  @NotNull private final ImmutableMap<AssetType, AssetComponent<?>> myAssetPanelMap;
 
   @NotNull private final ObjectProperty<BaseAsset> myActiveAsset;
   @NotNull private final StringProperty myOutputName;
@@ -269,7 +269,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
     initializeListenersAndBindings();
 
     Disposer.register(disposableParent, this);
-    for (AssetComponent assetComponent : myAssetPanelMap.values()) {
+    for (AssetComponent<?> assetComponent : myAssetPanelMap.values()) {
       Disposer.register(this, assetComponent);
     }
     Disposer.register(this, myIconGenerator);
@@ -280,7 +280,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
   @NotNull
   public PersistentState getState() {
     PersistentState state = new PersistentState();
-    for (Map.Entry<AssetType, AssetComponent> entry : myAssetPanelMap.entrySet()) {
+    for (Map.Entry<AssetType, AssetComponent<?>> entry : myAssetPanelMap.entrySet()) {
       state.setChild(toLowerCamelCase(entry.getKey()), entry.getValue().getAsset().getState());
     }
     state.set(OUTPUT_NAME_PROPERTY, myOutputName.get(), myDefaultOutputName);
@@ -311,7 +311,7 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
 
   @Override
   public void loadState(@NotNull PersistentState state) {
-    for (Map.Entry<AssetType, AssetComponent> entry : myAssetPanelMap.entrySet()) {
+    for (Map.Entry<AssetType, AssetComponent<?>> entry : myAssetPanelMap.entrySet()) {
       PersistentStateUtil.load(entry.getValue().getAsset(), state.getChild(toLowerCamelCase(entry.getKey())));
     }
     myOutputName.set(state.get(OUTPUT_NAME_PROPERTY, myDefaultOutputName));
@@ -376,14 +376,14 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
 
     // Update foreground layer asset type depending on asset type radio buttons.
     myAssetType.addListener(() -> {
-      AssetComponent assetComponent = myAssetPanelMap.get(myAssetType.get());
+      AssetComponent<?> assetComponent = myAssetPanelMap.get(myAssetType.get());
       myActiveAsset.set(assetComponent.getAsset());
     });
 
     // If any of our underlying asset panels change, we should pass that on to anyone listening to
     // us as well.
     ActionListener assetPanelListener = e -> fireAssetListeners();
-    for (AssetComponent assetComponent : myAssetPanelMap.values()) {
+    for (AssetComponent<?> assetComponent : myAssetPanelMap.values()) {
       assetComponent.addAssetListener(assetPanelListener);
     }
 
@@ -410,8 +410,8 @@ public final class ConfigureIconPanel extends JPanel implements Disposable, Conf
       onAssetModified.run();
     });
 
-    ObservableBool isLauncherIcon = new BoolValueProperty(myIconType.equals(AndroidIconType.LAUNCHER_LEGACY));
-    ObservableBool isActionBarIcon = new BoolValueProperty(myIconType.equals(AndroidIconType.ACTIONBAR));
+    ObservableBool isLauncherIcon = new BoolValueProperty(myIconType == AndroidIconType.LAUNCHER_LEGACY);
+    ObservableBool isActionBarIcon = new BoolValueProperty(myIconType == AndroidIconType.ACTIONBAR);
     ObservableBool isCustomTheme = myTheme.isEqualTo(ActionBarIconGenerator.Theme.CUSTOM);
     ObservableValue<Boolean> isClipartOrText =
         myActiveAsset.transform(asset -> myClipartAssetButton.getAsset() == asset || myTextAssetEditor.getAsset() == asset);

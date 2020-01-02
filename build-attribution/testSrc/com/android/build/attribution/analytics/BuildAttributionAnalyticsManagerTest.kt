@@ -92,8 +92,6 @@ class BuildAttributionAnalyticsManagerTest {
 
       override fun getTotalBuildTimeMs() = 123456L
 
-      override fun getCriticalPathDurationMs() = 567L
-
       override fun getCriticalPathTasks() = listOf(pluginATask, pluginATask)
 
       override fun getPluginsDeterminingBuildDuration() = listOf(PluginBuildData(applicationPlugin, 891), PluginBuildData(pluginA, 234))
@@ -158,7 +156,7 @@ class BuildAttributionAnalyticsManagerTest {
   }
 
   private fun checkCriticalPathAnalyzerData(analyzerData: CriticalPathAnalyzerData) {
-    assertThat(analyzerData.criticalPathDurationMs).isEqualTo(567)
+    assertThat(analyzerData.criticalPathDurationMs).isEqualTo(200)
     assertThat(analyzerData.tasksDeterminingBuildDurationMs).isEqualTo(500)
     assertThat(analyzerData.numberOfTasksOnCriticalPath).isEqualTo(2)
     assertThat(analyzerData.pluginsCriticalPathList).hasSize(2)

@@ -31,7 +31,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.AppExecutorUtil
 import java.util.concurrent.TimeUnit
 
-val NOTIFICATION_GROUP = NotificationGroup("Android Gradle Upgrade Notification", NotificationDisplayType.STICKY_BALLOON, true)
+val AGP_UPGRADE_NOTIFICATION_GROUP = NotificationGroup("Android Gradle Upgrade Notification", NotificationDisplayType.STICKY_BALLOON, true)
 
 /**
  * Show or schedule the balloon notification when project is upgradable.
@@ -84,7 +84,7 @@ private fun checkAndShowNotification(project: Project, reminder: TimeBasedUpgrad
 
 @VisibleForTesting
 class ProjectUpgradeNotification(listener: NotificationListener)
-  : Notification(NOTIFICATION_GROUP.displayId,
+  : Notification(AGP_UPGRADE_NOTIFICATION_GROUP.displayId,
                  "Plugin Update Recommended",
                  IdeBundle.message("updates.ready.message", "Android Gradle Plugin"),
                  NotificationType.INFORMATION,

@@ -16,6 +16,7 @@
 package com.android.tools.idea.customview.preview
 
 import com.android.tools.adtui.actions.DropDownAction
+import com.android.tools.idea.common.actions.IssueNotificationAction
 import com.android.tools.idea.common.editor.SeamlessTextEditorWithPreview
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
@@ -87,5 +88,9 @@ internal class CustomViewPreviewToolbar(private val surface: DesignSurface) :
     customViewPreviewActions.add(wrapHeight)
 
     return customViewPreviewActions
+  }
+
+  override fun getNorthEastGroup(): ActionGroup = DefaultActionGroup().apply {
+    add(IssueNotificationAction(surface))
   }
 }

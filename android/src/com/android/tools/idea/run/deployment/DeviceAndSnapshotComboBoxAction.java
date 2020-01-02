@@ -46,7 +46,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.util.UserDataHolder;
 import com.intellij.util.ui.JBUI;
-import icons.StudioIcons;
 import java.awt.Component;
 import java.time.Clock;
 import java.time.Instant;
@@ -111,12 +110,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     myGetProperties = getProperties;
 
     myRunOnMultipleDevicesAction = new RunOnMultipleDevicesAction();
-    myOpenAvdManagerAction = new RunAndroidAvdManagerAction();
-
-    Presentation presentation = myOpenAvdManagerAction.getTemplatePresentation();
-
-    presentation.setIcon(StudioIcons.Shell.Toolbar.DEVICE_MANAGER);
-    presentation.setText("Open AVD Manager");
+    myOpenAvdManagerAction = ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID);
 
     myClock = clock;
   }

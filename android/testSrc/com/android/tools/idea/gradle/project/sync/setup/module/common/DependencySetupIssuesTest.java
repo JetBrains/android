@@ -46,36 +46,17 @@ public class DependencySetupIssuesTest extends PlatformTestCase {
   }
 
   public void testAddMissingModule() {
-    myIssues.addMissingModule(":lib2", "app2", "library2.jar");
-    myIssues.addMissingModule(":lib2", "app1", "library2.jar");
-    myIssues.addMissingModule(":lib3", "app1", "library3.jar");
-    myIssues.addMissingModule(":lib1", "app1", null);
+    myIssues.addMissingModule(":lib2", "app2");
+    myIssues.addMissingModule(":lib2", "app1");
+    myIssues.addMissingModule(":lib3", "app1");
+    myIssues.addMissingModule(":lib1", "app1");
 
     List<DependencySetupIssues.MissingModule> missingModules = myIssues.getMissingModules();
-    assertThat(missingModules).hasSize(1);
+    assertThat(missingModules).hasSize(3);
 
     DependencySetupIssues.MissingModule missingModule = missingModules.get(0);
     assertThat(missingModule.dependencyPath).isEqualTo(":lib1");
     assertThat(missingModule.dependentNames).containsExactly("app1");
-
-    missingModules = myIssues.getMissingModulesWithBackupLibraries();
-    assertThat(missingModules).hasSize(2);
-
-    missingModule = missingModules.get(0);
-    assertThat(missingModule.dependencyPath).isEqualTo(":lib2");
-    assertThat(missingModule.dependentNames).containsExactly("app1", "app2").inOrder();
-
-    missingModule = missingModules.get(1);
-    assertThat(missingModule.dependencyPath).isEqualTo(":lib3");
-    assertThat(missingModule.dependentNames).containsExactly("app1");
-  }
-
-  public void testAddMissingModuleWithBackupLibrary() {
-    myIssues.addMissingModule(":lib2", "app2", "library2.jar");
-  }
-
-  public void testAddMissingModuleWithoutBackupLibrary() {
-    myIssues.addMissingModule(":lib2", "app2", null);
   }
 
   public void testAddDependentOnLibraryWithoutBinaryPath() {
@@ -86,10 +67,10 @@ public class DependencySetupIssuesTest extends PlatformTestCase {
   }
 
   public void testReportIssues() {
-    myIssues.addMissingModule(":lib1", "app1", null);
-    myIssues.addMissingModule(":lib2", "app2", "library2.jar");
-    myIssues.addMissingModule(":lib2", "app1", "library2.jar");
-    myIssues.addMissingModule(":lib3", "app1", "library3.jar");
+    myIssues.addMissingModule(":lib1", "app1");
+    myIssues.addMissingModule(":lib2", "app2");
+    myIssues.addMissingModule(":lib2", "app1");
+    myIssues.addMissingModule(":lib3", "app1");
     myIssues.addMissingBinaryPath("app2");
     myIssues.addMissingBinaryPath("app1");
 
@@ -108,30 +89,28 @@ public class DependencySetupIssuesTest extends PlatformTestCase {
     message = messages.get(1);
     assertAbout(syncMessage()).that(message).hasGroup("Missing Dependencies")
                                             .hasType(ERROR)
-                                            .hasMessageLine("Module 'app1' depends on libraries that do not have a 'binary' path.", 0);
+                                            .hasMessageLine("Unable to find module with Gradle path ':lib2' (needed by modules: 'app1', 'app2'.)", 0);
     // @formatter:on
 
     message = messages.get(2);
     // @formatter:off
     assertAbout(syncMessage()).that(message).hasGroup("Missing Dependencies")
                                             .hasType(ERROR)
-                                            .hasMessageLine("Module 'app2' depends on libraries that do not have a 'binary' path.", 0);
+                                            .hasMessageLine("Unable to find module with Gradle path ':lib3' (needed by module 'app1'.)", 0);
     // @formatter:on
 
     message = messages.get(3);
     // @formatter:off
     assertAbout(syncMessage()).that(message).hasGroup("Missing Dependencies")
-                                            .hasType(WARNING)
-                                            .hasMessageLine("Unable to find module with Gradle path ':lib2' (needed by modules: 'app1', 'app2'.)", 0)
-                                            .hasMessageLine("Linking to library 'library2.jar' instead.", 1) ;
+                                            .hasType(ERROR)
+                                            .hasMessageLine("Module 'app1' depends on libraries that do not have a 'binary' path.", 0);
     // @formatter:on
 
     message = messages.get(4);
     // @formatter:off
     assertAbout(syncMessage()).that(message).hasGroup("Missing Dependencies")
-                                            .hasType(WARNING)
-                                            .hasMessageLine("Unable to find module with Gradle path ':lib3' (needed by module 'app1'.)", 0)
-                                            .hasMessageLine("Linking to library 'library3.jar' instead.", 1) ;
+                                            .hasType(ERROR)
+                                            .hasMessageLine("Module 'app2' depends on libraries that do not have a 'binary' path.", 0);
     // @formatter:on
   }
 }
