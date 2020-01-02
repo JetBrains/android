@@ -34,6 +34,7 @@ import com.android.tools.idea.templates.Template.CATEGORY_APPLICATION
 import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.templates.TemplateManager.CATEGORY_ACTIVITY
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -115,7 +116,13 @@ class NewProjectModuleModel(private val projectModel: NewProjectModel) : WizardM
 
   private fun createMainRenderModel(): RenderTemplateModel = when {
     projectModel.enableCppSupport.get() -> createCompanionRenderModel(newModuleModel)
-    !extraRenderTemplateModel.hasActivity -> RenderTemplateModel.fromModuleModel(newModuleModel, renderTemplateHandle.valueOrNull)
+    !extraRenderTemplateModel.hasActivity ->  {
+      RenderTemplateModel.fromModuleModel(newModuleModel, renderTemplateHandle.valueOrNull).apply {
+        if (newRenderTemplate.isPresent.get()) {
+          newTemplate = newRenderTemplate.value
+        }
+      }
+    }
     else -> extraRenderTemplateModel // Extra Render is visible. Use it.
   }
 }
@@ -150,6 +157,14 @@ private fun getModuleName(formFactor: FormFactor): String =
   (formFactor.baseFormFactor ?: formFactor).id.replace("\\s".toRegex(), "_").toLowerCase(Locale.US)
 
 private fun addRenderDefaultTemplateValues(renderTemplateModel: RenderTemplateModel) {
+  if (renderTemplateModel.templateHandle == null) {
+    for (parameter in renderTemplateModel.newTemplate.parameters) {
+      if (parameter is StringParameter) {
+        parameter.value = parameter.suggest() ?: parameter.value
+      }
+    }
+    return
+  }
   val templateValues = renderTemplateModel.templateValues
   val templateMetadata = renderTemplateModel.templateHandle!!.metadata
   val userValues = hashMapOf<Parameter, Any>()

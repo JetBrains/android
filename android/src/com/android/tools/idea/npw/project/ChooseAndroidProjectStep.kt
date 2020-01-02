@@ -27,6 +27,7 @@ import com.android.tools.idea.npw.model.NewProjectModuleModel
 import com.android.tools.idea.npw.template.ChooseGalleryItemStep
 import com.android.tools.idea.npw.template.ConfigureTemplateParametersStep
 import com.android.tools.idea.npw.template.TemplateHandle
+import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.npw.template.getDefaultSelectedTemplateIndex
 import com.android.tools.idea.npw.ui.getTemplateDescription
 import com.android.tools.idea.npw.ui.getTemplateIcon
@@ -40,6 +41,7 @@ import com.android.tools.idea.templates.TemplateManager
 import com.android.tools.idea.wizard.model.ModelWizard.Facade
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.wizard.template.WizardUiContext
 import com.google.common.base.Suppliers
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
@@ -273,7 +275,19 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
           yield(OldTemplateRendererWithDescription(null))
         }
 
-        yieldAll(templateHandles.map { OldTemplateRendererWithDescription(it) })
+        val oldTemplateRenderers = templateHandles.map { OldTemplateRendererWithDescription(it) }
+
+        val newTemplateRenderers =
+          if (useNewTemplates)
+            TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }
+              .filter { WizardUiContext.NewProject in it.uiContexts && it.formFactor == formFactor.toTemplateFormFactor()}
+              .map(::NewTemplateRendererWithDescription)
+          else
+            listOf()
+
+        val newTemplateNames = newTemplateRenderers.map { it.template.name }
+        yieldAll(oldTemplateRenderers.filter { it.template?.metadata?.title !in newTemplateNames } + newTemplateRenderers)
+
         if (formFactor === FormFactor.MOBILE) {
           yield(CppTemplateRendererWithDescription())
         }
