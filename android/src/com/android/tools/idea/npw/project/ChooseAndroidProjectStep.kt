@@ -202,11 +202,9 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   ): FormFactorInfo
 
   private class NewFormFactorInfo(
-    var template: Template,
+    override val formFactor: FormFactor,
     override val tabPanel: ChooseAndroidProjectPanel<TemplateRendererWithDescription>
-  ): FormFactorInfo {
-    override val formFactor get() = FormFactor[template.formFactor.name]
-  }
+  ): FormFactorInfo
 
   interface TemplateRendererWithDescription : ChooseGalleryItemStep.TemplateRenderer {
     val description: String
@@ -246,6 +244,9 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
     )
 
     private fun createFormFactors(wizardTitle: String): List<FormFactorInfo> = with(TemplateManager.getInstance()!!) {
+      if (useNewTemplates) {
+        return FormFactor.values().map { NewFormFactorInfo(it, ChooseAndroidProjectPanel(createGallery(wizardTitle, it))) }
+      }
       getTemplatesInCategory(CATEGORY_APPLICATION).mapNotNull { templateFile ->
         val ffString = getTemplateMetadata(templateFile)?.formFactor
         if (ffString != null) {
