@@ -207,6 +207,12 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
    */
   @JvmDefault
   val isRClassTransitive: Boolean get() = true
+
+  /**
+   * Returns a list of dynamic feature modules for this module
+   */
+  @JvmDefault
+  fun getDynamicFeatureModules(): List<Module> = emptyList()
 }
 
 /**
