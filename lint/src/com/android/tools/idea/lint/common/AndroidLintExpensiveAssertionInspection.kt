@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.lint;
+package com.android.tools.idea.lint.common
 
-import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
-import com.android.tools.lint.checks.AssertDetector;
-import org.jetbrains.android.util.AndroidBundle;
+import com.android.tools.idea.lint.common.LintBundle.Companion.message
+import com.android.tools.lint.checks.AssertDetector
 
-public class AndroidLintAssertInspection extends AndroidLintInspectionBase {
-  public AndroidLintAssertInspection() {
-    super(AndroidBundle.message("android.lint.inspections.assert"), AssertDetector.DISABLED);
-  }
-}
+class AndroidLintExpensiveAssertionInspection : AndroidLintInspectionBase(
+  message("android.lint.inspections.expensive.assertion"), AssertDetector.EXPENSIVE
+)
