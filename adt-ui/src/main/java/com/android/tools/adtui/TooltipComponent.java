@@ -198,7 +198,7 @@ public final class TooltipComponent extends AnimatedComponent {
 
   @Override
   protected void draw(Graphics2D g, Dimension dim) {
-    if (!isVisible()) {
+    if (!isVisible() || !myTooltipContent.isVisible()) {
       return; // We shouldn't draw the tooltip if its content is not supposed to be visible
     }
     Container parent = getParent();
