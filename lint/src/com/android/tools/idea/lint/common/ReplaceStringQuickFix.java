@@ -23,7 +23,6 @@ import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Segment;
 import com.intellij.openapi.util.TextRange;
@@ -147,8 +146,11 @@ public class ReplaceStringQuickFix implements LintIdeQuickFix {
   @Override
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
     PsiFile file = startElement.getContainingFile();
-    Document document = FileDocumentManager.getInstance().getDocument(file.getVirtualFile());
+    Project project = startElement.getProject();
+    PsiDocumentManager documentManager = PsiDocumentManager.getInstance(project);
+    Document document = documentManager.getDocument(file);
     if (document != null) {
+      documentManager.doPostponedOperationsAndUnblockDocument(document);
       editBefore(document);
       TextRange range = getRange(startElement, endElement, true);
       if (range != null) {
@@ -168,10 +170,7 @@ public class ReplaceStringQuickFix implements LintIdeQuickFix {
         endOffset = startOffset + newValue.length();
         editAfter(document);
         if (myShortenNames || myFormat) {
-          Project project = startElement.getProject();
-          PsiDocumentManager documentManager = PsiDocumentManager.getInstance(project);
           documentManager.commitDocument(document);
-
           PsiElement element = file.findElementAt(startOffset);
           if (element == null) {
             return;
