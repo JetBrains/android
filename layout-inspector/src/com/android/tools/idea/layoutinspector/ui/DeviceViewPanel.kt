@@ -254,9 +254,7 @@ class DeviceViewPanel(
     leftGroup.add(PauseLayoutInspectorAction(layoutInspector::currentClient))
     leftGroup.add(ToggleOverlayAction)
     leftGroup.add(AlphaSliderAction)
-    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get()) {
-      leftGroup.add(CaptureAction(layoutInspector::currentClient, layoutInspector.layoutInspectorModel))
-    }
+    leftGroup.add(CaptureAction(layoutInspector::currentClient, layoutInspector.layoutInspectorModel))
     val actionToolbar = ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true)
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
     actionToolbar.setTargetComponent(this)

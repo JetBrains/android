@@ -234,8 +234,7 @@ class DefaultInspectorClient(
                            continue
       val stream = connectedEvent.stream.streamConnected.stream
       // We only want streams of type device to get process information.
-      if (stream.type == Common.Stream.Type.DEVICE &&
-          (!StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get() || stream.device.apiLevel >= 29)) {
+      if (stream.type == Common.Stream.Type.DEVICE && stream.device.featureLevel >= 29) {
         streams.add(stream)
       }
     }
