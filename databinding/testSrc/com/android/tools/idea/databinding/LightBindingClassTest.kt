@@ -205,21 +205,24 @@ class LightBindingClassTest {
     """.trimIndent())
     val context = fixture.addClass("public class MainActivity {}")
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
-    assertThat(binding.fields).hasLength(1)
+    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
+      assertThat(binding.fields).hasLength(1)
 
-    val tag = findChild(file, XmlTag::class.java) { it.localName == "LinearLayout" }[0]
-    insertXml(file, tag.textRange.endOffset, """
-      <LinearLayout
-            android:id="@+id/test_id2"
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent">
-        </LinearLayout>
-    """.trimIndent())
+      val tag = findChild(file, XmlTag::class.java) { it.localName == "LinearLayout" }[0]
+      insertXml(file, tag.textRange.endOffset, """
+        <LinearLayout
+              android:id="@+id/test_id2"
+              android:orientation="vertical"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent">
+          </LinearLayout>
+      """.trimIndent())
+    }
 
-    val tags = findChild(file, XmlTag::class.java) { it.name == "LinearLayout" }
-    verifyLightFieldsMatchXml(binding.fields.toList(), *tags)
+    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
+      val tags = findChild(file, XmlTag::class.java) { it.name == "LinearLayout" }
+      verifyLightFieldsMatchXml(binding.fields.toList(), *tags)
+    }
   }
 
   @Test
@@ -237,13 +240,16 @@ class LightBindingClassTest {
     """.trimIndent())
     val context = fixture.addClass("public class MainActivity {}")
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
-    assertThat(binding.fields).hasLength(1)
+    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
+      assertThat(binding.fields).hasLength(1)
 
-    val tag = findChild(file, XmlTag::class.java) { it.localName == "LinearLayout" }[0]
-    deleteXml(file, tag.textRange)
+      val tag = findChild(file, XmlTag::class.java) { it.localName == "LinearLayout" }[0]
+      deleteXml(file, tag.textRange)
+    }
 
-    assertThat(binding.fields).isEmpty()
+    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
+      assertThat(binding.fields).isEmpty()
+    }
   }
 
   @Test
@@ -261,15 +267,18 @@ class LightBindingClassTest {
     """.trimIndent())
     val context = fixture.addClass("public class MainActivity {}")
 
-    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
-    assertThat(binding.fields).hasLength(1)
+    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
+      assertThat(binding.fields).hasLength(1)
 
-    val attribute = PsiTreeUtil.findChildrenOfType(file, XmlAttribute::class.java)
-      .filter { it is XmlAttribute && it.localName == "id" }[0] as XmlAttribute
-    updateXml(file, attribute.valueElement!!.valueTextRange, "@+id/updated_id")
+      val attribute = PsiTreeUtil.findChildrenOfType(file, XmlAttribute::class.java)
+        .filter { it is XmlAttribute && it.localName == "id" }[0] as XmlAttribute
+      updateXml(file, attribute.valueElement!!.valueTextRange, "@+id/updated_id")
+    }
 
-    val tags = findChild(file, XmlTag::class.java) { it.localName == "LinearLayout" }
-    verifyLightFieldsMatchXml(binding.fields.toList(), *tags)
+    (fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass).let { binding ->
+      val tags = findChild(file, XmlTag::class.java) { it.localName == "LinearLayout" }
+      verifyLightFieldsMatchXml(binding.fields.toList(), *tags)
+    }
   }
 
   @Test

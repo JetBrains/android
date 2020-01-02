@@ -20,10 +20,8 @@ import static com.android.SdkConstants.ATTR_ID;
 import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.databinding.BindingLayout;
 import com.android.tools.idea.databinding.BindingLayoutFile;
-import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider;
 import com.android.tools.idea.databinding.index.BindingLayoutType;
 import com.android.tools.idea.databinding.index.BindingXmlData;
 import com.android.tools.idea.databinding.index.ImportData;
@@ -38,7 +36,6 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.lang.Language;
 import com.intellij.lang.java.JavaLanguage;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
@@ -101,62 +98,45 @@ import org.jetbrains.annotations.Nullable;
  * be generated.
  */
 public class LightBindingClass extends AndroidLightClassBase {
-  private final Object myCacheLock = new Object();
-
   @NotNull private final LightBindingClassConfig myConfig;
   @NotNull private final PsiJavaFile myBackingFile;
 
-  @NotNull private CachedValue<PsiMethod[]> myPsiMethodsCache;
-  @NotNull private CachedValue<PsiField[]> myPsiFieldsCache;
-
-  @Nullable private PsiReferenceList myExtendsList;
-  @Nullable private PsiClassType[] myExtendsListTypes;
+  @Nullable private PsiMethod[] myPsiMethods; // Created lazily
+  @Nullable private PsiField[] myPsiFields; // Created lazily
+  @Nullable private PsiReferenceList myExtendsList; // Created lazily
+  @Nullable private PsiClassType[] myExtendsListTypes; // Created lazily
 
   public LightBindingClass(@NotNull PsiManager psiManager, @NotNull LightBindingClassConfig config) {
     super(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
     myConfig = config;
 
     // Create a dummy, backing file to represent this binding class
-    PsiFileFactory factory = PsiFileFactory.getInstance(getProject());
-    myBackingFile = (PsiJavaFile)factory.createFileFromText(myConfig.getClassName() + ".java", JavaFileType.INSTANCE,
+    PsiFileFactory fileFactory = PsiFileFactory.getInstance(getProject());
+    myBackingFile = (PsiJavaFile)fileFactory.createFileFromText(myConfig.getClassName() + ".java", JavaFileType.INSTANCE,
                                                             "// This class is generated on-the-fly by the IDE.");
     myBackingFile.setPackageName(StringUtil.getPackageName(myConfig.getQualifiedName()));
 
     setModuleInfo(myConfig.getFacet().getModule(), false);
+  }
 
-    CachedValuesManager cachedValuesManager = CachedValuesManager.getManager(getProject());
-    myPsiMethodsCache = cachedValuesManager.createCachedValue(
-      new ResourceCacheValueProvider<PsiMethod[]>(myConfig.getFacet(), myCacheLock,
-                                                  AndroidPsiUtils.getXmlPsiModificationTracker(getProject())) {
-        @Override
-        protected PsiMethod[] doCompute() {
-          List<PsiMethod> methods = new ArrayList<>();
+  private PsiMethod[] computeMethods() {
+    List<PsiMethod> methods = new ArrayList<>();
 
-          PsiMethod constructor = createConstructor();
-          methods.add(constructor);
+    PsiMethod constructor = createConstructor();
+    methods.add(constructor);
 
-          createRootOverride(methods);
+    createRootOverride(methods);
 
-          for (Pair<VariableData, XmlTag> variableTag : myConfig.getVariableTags()) {
-            createVariableMethods(variableTag, methods);
-          }
+    for (Pair<VariableData, XmlTag> variableTag : myConfig.getVariableTags()) {
+      createVariableMethods(variableTag, methods);
+    }
 
-          if (myConfig.shouldGenerateGettersAndStaticMethods()) {
-            PsiElementFactory factory = PsiElementFactory.getInstance(getProject());
-            createStaticMethods(factory.createType(LightBindingClass.this), methods);
-          }
+    if (myConfig.shouldGenerateGettersAndStaticMethods()) {
+      PsiElementFactory elementFactory = PsiElementFactory.getInstance(getProject());
+      createStaticMethods(elementFactory.createType(this), methods);
+    }
 
-          return methods.toArray(PsiMethod.EMPTY_ARRAY);
-        }
-
-        @Override
-        protected PsiMethod[] defaultValue() {
-          return PsiMethod.EMPTY_ARRAY;
-        }
-      }, false);
-
-    myPsiFieldsCache = cachedValuesManager
-      .createCachedValue(() -> CachedValueProvider.Result.create(computeFields(), PsiModificationTracker.MODIFICATION_COUNT));
+    return methods.toArray(PsiMethod.EMPTY_ARRAY);
   }
 
   private PsiField[] computeFields() {
@@ -229,7 +209,10 @@ public class LightBindingClass extends AndroidLightClassBase {
   @NotNull
   @Override
   public PsiField[] getFields() {
-    return myPsiFieldsCache.getValue();
+    if (myPsiFields == null) {
+      myPsiFields = computeFields();
+    }
+    return myPsiFields;
   }
 
   @NotNull
@@ -241,7 +224,10 @@ public class LightBindingClass extends AndroidLightClassBase {
   @NotNull
   @Override
   public PsiMethod[] getMethods() {
-    return myPsiMethodsCache.getValue();
+    if (myPsiMethods == null) {
+      myPsiMethods = computeMethods();
+    }
+    return myPsiMethods;
   }
 
   @Override
@@ -411,7 +397,6 @@ public class LightBindingClass extends AndroidLightClassBase {
     }
 
     Project project = getProject();
-    Module module = myConfig.getFacet().getModule();
     GlobalSearchScope moduleScope = getModuleScope();
     PsiClassType viewGroupType = PsiType.getTypeByName(SdkConstants.CLASS_VIEWGROUP, project, moduleScope);
     PsiClassType layoutInflaterType = PsiType.getTypeByName(SdkConstants.CLASS_LAYOUT_INFLATER, project, moduleScope);
