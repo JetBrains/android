@@ -1,0 +1,3 @@
+// this gets overwritten by the test
+include ':kotlinapp'
+include ':javaapp'
