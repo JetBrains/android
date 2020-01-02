@@ -60,7 +60,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Generator of Android TV banner icons.
  */
-@SuppressWarnings("UseJBColor") // We are using colors for Android icons, no need for JBColor here.
+@SuppressWarnings("UseJBColor") // Android icons don't need JBColor.
 public class TvBannerGenerator extends IconGenerator {
   public static final Color DEFAULT_BACKGROUND_COLOR = new Color(0xFFFFFF);
   private static final Rectangle IMAGE_SIZE_ADAPTIVE_DP = new Rectangle(0, 0, 320, 180);
@@ -798,7 +798,7 @@ public class TvBannerGenerator extends IconGenerator {
     /** Display name, when shape is displayed to the end-user */
     public final String displayName;
 
-    PreviewShape(String id, String displayName) {
+    PreviewShape(@NotNull String id, @NotNull String displayName) {
       this.id = id;
       this.displayName = displayName;
     }
