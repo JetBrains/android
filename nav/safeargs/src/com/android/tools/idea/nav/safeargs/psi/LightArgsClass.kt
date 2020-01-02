@@ -17,6 +17,7 @@ package com.android.tools.idea.nav.safeargs.psi
 
 import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.nav.safeargs.index.NavFragmentData
+import com.intellij.psi.PsiClass
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -41,4 +42,12 @@ import org.jetbrains.android.facet.AndroidFacet
  * ```
  */
 class LightArgsClass(facet: AndroidFacet, modulePackage: String, navigationResource: ResourceItem, fragment: NavFragmentData)
-  : SafeArgsLightBaseClass(facet, modulePackage, "Args", navigationResource, fragment.toDestination())
+  : SafeArgsLightBaseClass(facet, modulePackage, "Args", navigationResource, fragment.toDestination()) {
+
+  val builderClass = LightArgsBuilderClass(facet, this)
+
+  override fun getInnerClasses(): Array<PsiClass> = arrayOf(builderClass)
+  override fun findInnerClassByName(name: String, checkBases: Boolean): PsiClass? {
+    return builderClass.takeIf { it.name == name }
+  }
+}

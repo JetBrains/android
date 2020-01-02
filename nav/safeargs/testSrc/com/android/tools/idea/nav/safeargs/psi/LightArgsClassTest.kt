@@ -62,7 +62,7 @@ class LightArgsClassTest {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
     // Classes can be found with context
-    safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args", context) as LightArgsClass
+    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args", context)).isInstanceOf(LightArgsClass::class.java)
 
     // ... but not generated if no arguments
     assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment2Args", context)).isNull()
