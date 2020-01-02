@@ -205,20 +205,13 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         .setProjectDefaults(project, isNewProject)
         .setLanguage(language.value)
 
-      // It is slightly slower but safer to initialize it after setting template values because they may be reused in later stages
-      if (StudioFlags.NPW_NEW_PROJECT_TEMPLATE.get()) {
-        projectTemplateDataBuilder.apply {
-          // TODO(qumeric)
-          //cppFlags = this@NewProjectModel.cppFlags.get()
-          topOut = File(project.basePath ?: "")
-          androidXSupport = !useAppCompat.get()
+      projectTemplateDataBuilder.apply {
+        topOut = File(project.basePath ?: "")
+        androidXSupport = !useAppCompat.get()
 
-          setProjectDefaults(project)
-          language = this@NewProjectModel.language.value
-        }
-        return
+        setProjectDefaults(project)
+        language = this@NewProjectModel.language.value
       }
-
     }
 
     @WorkerThread
@@ -247,33 +240,21 @@ class NewProjectModel : WizardModel(), ProjectModelData {
     }
 
     private fun performCreateProject(dryRun: Boolean) {
-      if (StudioFlags.NPW_NEW_PROJECT_TEMPLATE.get()) {
-        val context = RenderingContext2(
-          project,
-          null,
-          "New Project",
-          projectTemplateDataBuilder.build(),
-          showErrors = true,
-          dryRun = dryRun,
-          moduleRoot = null
-        )
-        val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
-        val recipe: Recipe = { appTitle: String, language: Language, useAndroidX: Boolean ->
-          { data: TemplateData -> androidProjectRecipe(data as ProjectTemplateData, appTitle, language, useAndroidX) }
-        }(applicationName.get(), language.value, !useAppCompat.get())
+      val context = RenderingContext2(
+        project,
+        null,
+        "New Project",
+        projectTemplateDataBuilder.build(),
+        showErrors = true,
+        dryRun = dryRun,
+        moduleRoot = null
+      )
+      val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
+      val recipe: Recipe = { appTitle: String, language: Language, useAndroidX: Boolean ->
+        { data: TemplateData -> androidProjectRecipe(data as ProjectTemplateData, appTitle, language, useAndroidX) }
+      }(applicationName.get(), language.value, !useAppCompat.get())
 
-        recipe.render(context, executor, AndroidStudioEvent.TemplateRenderer.ANDROID_PROJECT)
-        return
-      }
-
-      val context = RenderingContext.Builder.newContext(projectTemplate, project)
-        .withCommandName("New Project")
-        .withDryRun(dryRun)
-        .withShowErrors(true)
-        .withParams(projectTemplateValues)
-        .build()
-
-      projectTemplate.render(context, dryRun)
+      recipe.render(context, executor, AndroidStudioEvent.TemplateRenderer.ANDROID_PROJECT)
     }
 
     @UiThread
