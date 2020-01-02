@@ -27,9 +27,9 @@ import com.android.tools.idea.npw.assetstudio.GeneratedImageIcon;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
 import com.android.tools.idea.npw.assetstudio.icon.IconGeneratorResult;
+import com.android.tools.idea.npw.assetstudio.ui.ConfigureAdaptiveIconPanel;
 import com.android.tools.idea.npw.assetstudio.ui.ConfigureIconPanel;
 import com.android.tools.idea.npw.assetstudio.ui.ConfigureIconView;
-import com.android.tools.idea.npw.assetstudio.ui.ConfigureLauncherIconPanel;
 import com.android.tools.idea.npw.assetstudio.ui.ConfigureTvBannerPanel;
 import com.android.tools.idea.npw.assetstudio.ui.PreviewIconsPanel;
 import com.android.tools.idea.observable.AbstractProperty;
@@ -211,7 +211,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
       switch (iconType) {
         case LAUNCHER:
         case TV_CHANNEL:
-          view = new ConfigureLauncherIconPanel(this, facet, iconType, myShowGridProperty, myShowSafeZoneProperty,
+          view = new ConfigureAdaptiveIconPanel(this, facet, iconType, myShowGridProperty, myShowSafeZoneProperty,
                                                 myPreviewDensityProperty, myValidatorPanel, renderer);
           break;
         case LAUNCHER_LEGACY:
