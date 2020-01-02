@@ -113,7 +113,7 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
 
   fun testSetListReferencesKotlin() {
     loadProject(PSD_SAMPLE_KOTLIN)
-    val expectedKtsRawValues = listOf("localList[0]", "(rootProject.extra[\"listProp\"] as List<*>)[0] as Integer")
+    val expectedKtsRawValues = listOf("localList[0]", "(rootProject.extra[\"listProp\"] as List<*>)[0] as Int")
     doTestSetListReferences(expectedKtsRawValues)
   }
 
