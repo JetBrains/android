@@ -60,7 +60,7 @@ class LiveDatabaseConnection(
 
   override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet?> {
     // TODO(b/144336989) pass SqliteStatement object instead of String.
-    val queryBuilder = SqliteInspection.QueryCommand.newBuilder().setQuery(sqliteStatement.toString()).setDatabaseId(id)
+    val queryBuilder = SqliteInspection.QueryCommand.newBuilder().setQuery(sqliteStatement.assignValuesToParameters()).setDatabaseId(id)
     // TODO: next CL. Figure out how to do this
     //hints.forEach { queryBuilder.addAffectedTables(it) }
     val command = SqliteInspection.Commands.newBuilder().setQuery(queryBuilder).build()
