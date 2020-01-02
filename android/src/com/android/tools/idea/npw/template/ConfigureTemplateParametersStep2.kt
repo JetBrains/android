@@ -273,7 +273,7 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     is TextFieldWidget -> RowEntry(widget.p.name, TextFieldProvider2(widget.parameter))
     is LanguageWidget -> RowEntry(message("android.wizard.language.combo.header"), LanguageComboProvider()).also {
       val language = (it.property as SelectedItemProperty<Language>)
-      bindings.bindTwoWay(ObjectProperty.wrap(language), model.renderLanguage)
+      bindings.bindTwoWay(language, model.language)
     }
     is PackageNameWidget -> {
       val rowEntry = if (module != null)
