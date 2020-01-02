@@ -17,13 +17,12 @@ package org.jetbrains.android.dom.navigation
 
 import com.android.SdkConstants.FQCN_NAV_HOST_FRAGMENT
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.util.DynamicAppUtils
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
+import com.android.tools.idea.projectsystem.getModuleSystem
 
 /**
  * Returns true if NavHostFragment is a superclass of the specified class
@@ -70,9 +69,8 @@ fun getClassesForTag(module: Module, tag: String): Map<PsiClass, String?> {
 
 fun dynamicModules(module: Module): List<Module> {
   if (!StudioFlags.NAV_DYNAMIC_SUPPORT.get()) {
-    return listOf()
+    return emptyList()
   }
-  val project = GradleUtil.getAndroidProject(module) ?: return listOf()
-  return DynamicAppUtils.getDependentFeatureModulesForBase(module.project, project)
+  return module.getModuleSystem().getDynamicFeatureModules()
 }
 
