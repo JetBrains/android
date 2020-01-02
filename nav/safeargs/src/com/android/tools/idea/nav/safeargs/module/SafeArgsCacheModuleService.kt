@@ -19,9 +19,11 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.tools.idea.nav.safeargs.isSafeArgsEnabled
+import com.android.tools.idea.nav.safeargs.psi.LightArgsClass
 import com.android.tools.idea.nav.safeargs.psi.LightDirectionsClass
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
+import com.android.tools.idea.nav.safeargs.index.NavXmlData
 import com.android.tools.idea.nav.safeargs.index.NavXmlIndex
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
@@ -39,6 +41,8 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 @ThreadSafe
 class SafeArgsCacheModuleService private constructor(private val module: Module) {
+  private class NavEntry(val resource: ResourceItem, val data: NavXmlData)
+
   companion object {
     @JvmStatic
     fun getInstance(facet: AndroidFacet): SafeArgsCacheModuleService {
@@ -63,29 +67,58 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
   private var _directions = emptyList<LightDirectionsClass>()
   val directions: List<LightDirectionsClass>
     get() {
-      val facet = AndroidFacet.getInstance(module)?.takeIf { it.isSafeArgsEnabled() } ?: return emptyList()
-
-      synchronized(lock) {
-        val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
-        val modificationCount = moduleResources.modificationCount
-        if (modificationCount != lastResourcesModificationCount) {
-          lastResourcesModificationCount = modificationCount
-
-          val navResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.NAVIGATION)
-          _directions = navResources.values()
-            .flatMap { resource -> createLightDirectionsClasses(facet, resource) }
-            .toList()
-        }
-        return _directions
-      }
+      refreshSafeArgsLightClassesIfNecessary()
+      return _directions
     }
 
-  private fun createLightDirectionsClasses(facet: AndroidFacet, resource: ResourceItem): Collection<LightDirectionsClass> {
-    val modulePackage = getPackageName(facet) ?: return emptySet()
-    val file = resource.getSourceAsVirtualFile() ?: return emptySet()
-    val data = NavXmlIndex.getDataForFile(facet.module.project, file) ?: return emptySet()
-    return data.root.allDestinations
-      .map { destination -> LightDirectionsClass(facet, modulePackage, resource, destination) }
+  @GuardedBy("lock")
+  private var _args = emptyList<LightArgsClass>()
+  val args: List<LightArgsClass>
+    get() {
+      refreshSafeArgsLightClassesIfNecessary()
+      return _args
+    }
+
+  private fun refreshSafeArgsLightClassesIfNecessary() {
+    val facet = AndroidFacet.getInstance(module)?.takeIf { it.isSafeArgsEnabled() } ?: return
+    val modulePackage = getPackageName(facet) ?: return
+
+    synchronized(lock) {
+      val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
+      val modificationCount = moduleResources.modificationCount
+      if (modificationCount != lastResourcesModificationCount) {
+        lastResourcesModificationCount = modificationCount
+
+        val navResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.NAVIGATION)
+
+        val entries = navResources.values()
+          .mapNotNull { resource ->
+            val file = resource.getSourceAsVirtualFile() ?: return@mapNotNull null
+            val data = NavXmlIndex.getDataForFile(facet.module.project, file) ?: return@mapNotNull null
+            NavEntry(resource, data)
+          }
+
+        _directions = entries
+          .flatMap { entry -> createLightDirectionsClasses(facet, modulePackage, entry) }
+          .toList()
+
+        _args = entries
+          .flatMap { entry -> createLightArgsClasses(facet, modulePackage, entry) }
+          .toList()
+      }
+    }
+  }
+
+  private fun createLightDirectionsClasses(facet: AndroidFacet, modulePackage: String, entry: NavEntry): Collection<LightDirectionsClass> {
+    return entry.data.root.allDestinations
+      .map { destination -> LightDirectionsClass(facet, modulePackage, entry.resource, destination) }
+      .toSet()
+  }
+
+  private fun createLightArgsClasses(facet: AndroidFacet, modulePackage: String, entry: NavEntry): Collection<LightArgsClass> {
+    return entry.data.root.allFragments
+      .filter { fragment -> fragment.arguments.isNotEmpty() }
+      .map { fragment -> LightArgsClass(facet, modulePackage, entry.resource, fragment) }
       .toSet()
   }
 }
