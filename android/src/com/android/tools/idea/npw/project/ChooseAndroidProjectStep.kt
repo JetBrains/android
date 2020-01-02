@@ -302,4 +302,4 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
   }
 }
 
-private val useNewTemplates: Boolean get() = StudioFlags.NPW_NEW_PROJECT_TEMPLATE.get() && StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get()
+private val useNewTemplates: Boolean get() = StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get()
