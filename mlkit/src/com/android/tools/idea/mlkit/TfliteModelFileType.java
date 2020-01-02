@@ -21,7 +21,9 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/** Represents the file type of TFLite model file. */
+/**
+ * Represents the file type of TFLite model file.
+ */
 public class TfliteModelFileType implements FileType {
   public static final TfliteModelFileType INSTANCE = new TfliteModelFileType();
   private static final String TFLITE_EXTENSION = "tflite";

@@ -108,11 +108,17 @@ public class StudioCrashReporterTest {
       new StudioCrashReport.Builder()
         .setDescriptions(Lists.newArrayList("1.2.3.4\n1.8.0_152-release-1136-b01"))
         .setIsJvmCrash(true)
+        .setErrorSignal("signal field")
+        .setErrorFrame("frame field")
+        .setErrorThread("thread field")
         .build();
 
     String request = getSerializedContent(report);
     assertRequestContainsField(request, "exception_info",
                                "com.android.tools.idea.diagnostics.crash.exception.JvmCrashException");
+    assertRequestContainsField(request, "errorSignal", "signal field");
+    assertRequestContainsField(request, "errorFrame", "frame field");
+    assertRequestContainsField(request, "errorThread", "thread field");
   }
 
   @Test

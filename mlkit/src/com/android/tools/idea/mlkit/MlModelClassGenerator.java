@@ -16,31 +16,15 @@
 package com.android.tools.idea.mlkit;
 
 import com.intellij.openapi.module.Module;
-import java.util.Locale;
 import org.jetbrains.annotations.NotNull;
 
-/** Generates config required for light model class construction. */
+/**
+ * Generates config required for light model class construction.
+ */
 public class MlModelClassGenerator {
 
   public static LightModelClassConfig generateLightModelClass(@NotNull Module module, @NotNull MlModelMetadata modelMetadata) {
     // TODO(b/144867508): placeholder for now, implement it with parsing the given model file.
-    return new LightModelClassConfig(computeModelClassName(modelMetadata), "com.google.mlkit.auto");
-  }
-
-  // TODO(b/144867508): revisit later.
-  private static String computeModelClassName(@NotNull MlModelMetadata modelMetadata) {
-    String modelFileName = modelMetadata.modelFileUrl.substring(modelMetadata.modelFileUrl.lastIndexOf('/') + 1);
-    String modelFileNameWithoutExtension =
-      modelFileName.replace("." + TfliteModelFileType.INSTANCE.getDefaultExtension(), "");
-    StringBuilder modelClassName = new StringBuilder();
-    for (String word : modelFileNameWithoutExtension.split("_")) {
-      if (!word.isEmpty()) {
-        modelClassName.append(word.toUpperCase(Locale.US).charAt(0));
-        if (word.length() > 1) {
-          modelClassName.append(word.toLowerCase(Locale.US).substring(1));
-        }
-      }
-    }
-    return modelClassName.toString();
+    return new LightModelClassConfig(modelMetadata, "com.google.mlkit.auto");
   }
 }

@@ -350,6 +350,18 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareBottomNavigationActivity() {
+    checkCreateTemplate("activities", "BottomNavigationActivity",
+                        ActivityCreationMode.WITHOUT_PROJECT, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareBottomNavigationActivityWithKotlin() {
+    checkCreateTemplate("activities", "BottomNavigationActivity",
+                        ActivityCreationMode.WITHOUT_PROJECT, true, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewTvActivity() {
     checkCreateTemplate("activities", "AndroidTVActivity", ActivityCreationMode.WITHOUT_PROJECT, true)
   }

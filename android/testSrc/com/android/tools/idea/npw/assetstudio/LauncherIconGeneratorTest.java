@@ -28,6 +28,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.testFramework.ThreadTracker;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -183,9 +184,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
       Set<String> unexpected = new TreeSet<>();
       for (File file : unexpectedFiles) {
         String path = file.getAbsolutePath();
-        if (path.startsWith(commonPrefix)) {
-          path = path.substring(commonPrefix.length());
-        }
+        path = StringUtil.trimStart(path, commonPrefix);
         unexpected.add(path);
       }
       fail("Generated unexpected files: " + Joiner.on(", ").join(unexpected));
@@ -314,6 +313,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
         "manifests/ic_launcher-playstore.png"};
     ImageAsset asset = createClipartAsset("ic_android_black_24dp.xml");
     asset.color().setValue(new Color(0x00FF00));
+    asset.trimmed().set(true);
     myIconGenerator.sourceAsset().setValue(asset);
     myIconGenerator.backgroundImageAsset().setNullableValue(null);
     //noinspection UseJBColor

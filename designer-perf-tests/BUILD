@@ -4,7 +4,10 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.designer-perf-tests",
     iml_files = ["intellij.android.designer-perf-tests.iml"],
-    tags = ["no_test_windows"],
+    tags = [
+        "no_mac",
+        "no_test_windows",
+    ],
     test_class = "com.android.tools.idea.rendering.PerfgateRenderTestSuite",
     test_data = [
         "//prebuilts/studio/jdk",
@@ -26,8 +29,14 @@ iml_module(
         "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",
     ],
+    test_resources = ["testData"],
     # do not sort: must match IML order
     test_runtime_deps = [
+        "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
+        "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
+        "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
+        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
+        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
         "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
         "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
         "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
@@ -36,24 +45,14 @@ iml_module(
         "//tools/idea:intellij.java.ui.tests",
         "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
         "//tools/idea/java/plugin:intellij.java.plugin",
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
     ],
     test_srcs = ["testSrc"],
     test_timeout = "eternal",
     visibility = ["//visibility:public"],
-    # do not sort: must match IML order
-    runtime_deps = [
-        "//tools/adt/idea/databinding:intellij.android.databinding",
-        "//tools/idea/platform/lvcs-impl:intellij.platform.lvcs.impl",
-        "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
-        "//tools/idea/platform/diagnostic:intellij.platform.diagnostic",
-        "//tools/idea/java/ide-resources:intellij.java.ide.resources",
-        "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
-        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
-        "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
-        "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
-    ],
     # do not sort: must match IML order
     deps = [
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
@@ -68,6 +67,5 @@ iml_module(
         "//tools/adt/idea/compose-designer:intellij.android.compose-designer[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/idea/.idea/libraries:kotlin-plugin",
-        "//tools/adt/idea/android:intellij.android.core.tests[module]",
     ],
 )

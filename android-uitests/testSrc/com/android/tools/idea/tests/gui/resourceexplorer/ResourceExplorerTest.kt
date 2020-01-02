@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.resourceexplorer
 
 import com.android.tools.adtui.ui.ClickableLabel
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
@@ -28,6 +29,8 @@ import com.android.tools.idea.uibuilder.property.assistant.AssistantPopupPanel
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.KeyPressInfo
 import org.fest.swing.fixture.JButtonFixture
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -44,6 +47,16 @@ class ResourceExplorerTest {
   @Rule
   @JvmField
   val guiTest: GuiTestRule = GuiTestRule()
+
+  @Before
+  fun setUp() {
+    StudioFlags.NELE_SOURCE_CODE_EDITOR.override(false)
+  }
+
+  @After
+  fun tearDown() {
+    StudioFlags.NELE_SOURCE_CODE_EDITOR.clearOverride()
+  }
 
   /**
    * This test covers several interactions with the IDE and the Resource Explorer:

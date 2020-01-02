@@ -31,7 +31,9 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.annotated
 import com.android.tools.idea.gradle.structure.model.meta.maybeValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_GROOVY
+import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_KOTLIN
+import com.android.tools.idea.testing.TestProjectPaths.UNIT_TESTING
 import com.intellij.pom.java.LanguageLevel
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.notNullValue
@@ -40,8 +42,7 @@ import org.hamcrest.MatcherAssert.assertThat
 
 class ExtractVariableWorkerTest : AndroidGradleTestCase() {
 
-  fun testExtractVariable() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+  private fun doTestExtractVariable() {
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -83,8 +84,18 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
     }
   }
 
+  fun testExtractVariableGroovy() {
+    loadProject(PSD_SAMPLE_GROOVY)
+    doTestExtractVariable()
+  }
+
+  fun testExtractVariableKotlin() {
+    loadProject(PSD_SAMPLE_KOTLIN)
+    doTestExtractVariable()
+  }
+
   fun testExtractVariable_projectLevel() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -115,7 +126,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
   }
 
   fun testExtractEmptyValue() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -133,7 +144,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
   }
 
   fun testExtractVariableWithBlankName() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -151,7 +162,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
   }
 
   fun testExtractAndroidModuleDependencyVersion() {
-    loadProject(TestProjectPaths.UNIT_TESTING)
+    loadProject(UNIT_TESTING)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -190,7 +201,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
   }
 
   fun testExtractJavaModuleDependencyVersion() {
-    loadProject(TestProjectPaths.UNIT_TESTING)
+    loadProject(UNIT_TESTING)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)
@@ -229,7 +240,7 @@ class ExtractVariableWorkerTest : AndroidGradleTestCase() {
   }
 
   fun testPreferredVariableNames() {
-    loadProject(TestProjectPaths.PSD_SAMPLE_GROOVY)
+    loadProject(PSD_SAMPLE_GROOVY)
 
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject)

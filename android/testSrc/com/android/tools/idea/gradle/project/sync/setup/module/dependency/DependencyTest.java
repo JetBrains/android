@@ -32,16 +32,4 @@ public class DependencyTest extends TestCase {
       assertEquals("'Runtime' is not a supported scope. Supported scopes are [Compile, Test].", e.getMessage());
     }
   }
-
-  public void testSetScope() {
-    Dependency dependency = new Dependency() {
-    };
-    try {
-      dependency.setScope(DependencyScope.PROVIDED);
-      fail("Expecting an " + IllegalArgumentException.class.getSimpleName());
-    }
-    catch (IllegalArgumentException e) {
-      assertEquals("'Provided' is not a supported scope. Supported scopes are [Compile, Test].", e.getMessage());
-    }
-  }
 }

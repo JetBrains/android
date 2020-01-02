@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.navigator.nodes.apk;
 
+import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
+import static com.android.SdkConstants.REGEX_APK_CLASSES_DEX;
+import static com.android.tools.idea.navigator.nodes.apk.SourceFolders.isInSourceFolder;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.apk.debugging.LibraryFolder;
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
@@ -25,28 +33,26 @@ import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
-
-import static com.android.SdkConstants.FN_ANDROID_MANIFEST_XML;
-import static com.android.SdkConstants.REGEX_APK_CLASSES_DEX;
-import static com.android.tools.idea.navigator.nodes.apk.SourceFolders.isInSourceFolder;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
 public class ApkModuleNode extends ProjectViewModuleNode {
   @NotNull private final String myModuleName;
@@ -82,12 +88,20 @@ public class ApkModuleNode extends ProjectViewModuleNode {
     if (apkRootFile != null) {
       // Refresh the root so that it can find the most recent contents of the directory. This
       // identifies any added/removed .dex files to the directory via APK reload.
-      apkRootFile.refresh(false, true);
+      ApplicationManager.getApplication().invokeLater(() ->
+        WriteAction.run(() ->
+          apkRootFile.refresh(false, true)
+        )
+      );
       Pattern dexFilePattern = Pattern.compile(REGEX_APK_CLASSES_DEX);
       for (VirtualFile child : apkRootFile.getChildren()) {
         if (dexFilePattern.matcher(child.getName()).matches()) {
           // We refresh dex files in case any changes to it were not picked up.
-          child.refresh(false, false);
+          ApplicationManager.getApplication().invokeLater(() ->
+            WriteAction.run(() ->
+              child.refresh(false, false)
+            )
+          );
           myDexFiles.add(child);
         }
       }

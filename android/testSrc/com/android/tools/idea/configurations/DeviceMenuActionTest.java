@@ -17,8 +17,14 @@ package com.android.tools.idea.configurations;
 
 import com.android.tools.adtui.actions.ActionTestUtils;
 import com.google.common.truth.Truth;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.impl.PresentationFactory;
+import com.intellij.openapi.actionSystem.impl.Utils;
+import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 
 import static org.mockito.Mockito.mock;
@@ -35,7 +41,9 @@ public class DeviceMenuActionTest extends AndroidTestCase {
 
     DeviceMenuAction menuAction = new DeviceMenuAction(holder);
     menuAction.updateActions(DataContext.EMPTY_CONTEXT);
-    String actual = ActionTestUtils.prettyPrintActions(menuAction, action -> !isAvdAction(action));
+    PresentationFactory presentationFactory = new PresentationFactory();
+    Utils.expandActionGroup(false, menuAction, presentationFactory, DataContext.EMPTY_CONTEXT, ActionPlaces.TOOLBAR);
+    String actual = ActionTestUtils.prettyPrintActions(menuAction, action -> !isAvdAction(action), presentationFactory);
     String expected =
       "\n" + // The selected device is empty because we use the mock configuration for testing.
       "    Phone\n" +

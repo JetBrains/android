@@ -68,11 +68,12 @@ class BuildAttributionAnalyticsManager(
     analyzersDataBuilder.alwaysRunTasksAnalyzerData = transformAlwaysRunTasksAnalyzerData(analysisResult.getAlwaysRunTasks())
     analyzersDataBuilder.annotationProcessorsAnalyzerData =
       transformAnnotationProcessorsAnalyzerData(analysisResult.getNonIncrementalAnnotationProcessorsData())
-    analyzersDataBuilder.criticalPathAnalyzerData = transformCriticalPathAnalyzerData(analysisResult.getCriticalPathDurationMs(),
-                                                                                      analysisResult.getTasksDeterminingBuildDuration()
-                                                                                        .sumByLong(TaskData::executionTime),
-                                                                                      analysisResult.getCriticalPathTasks().size,
-                                                                                      analysisResult.getPluginsDeterminingBuildDuration())
+    analyzersDataBuilder.criticalPathAnalyzerData = transformCriticalPathAnalyzerData(
+      analysisResult.getCriticalPathTasks().sumByLong { it.executionTime },
+      analysisResult.getTasksDeterminingBuildDuration().sumByLong(TaskData::executionTime),
+      analysisResult.getCriticalPathTasks().size,
+      analysisResult.getPluginsDeterminingBuildDuration()
+    )
     analyzersDataBuilder.projectConfigurationAnalyzerData =
       transformProjectConfigurationAnalyzerData(analysisResult.getProjectsConfigurationData(), analysisResult.getTotalConfigurationData())
     analyzersDataBuilder.tasksConfigurationIssuesAnalyzerData =

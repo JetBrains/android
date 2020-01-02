@@ -42,12 +42,7 @@ public interface GradleTaskRunner {
     throws InvocationTargetException, InterruptedException;
 
   @NotNull
-  static DefaultGradleTaskRunner newRunner(@NotNull Project project) {
-    return new DefaultGradleTaskRunner(project);
-  }
-
-  @NotNull
-  static DefaultGradleTaskRunner newBuildActionRunner(@NotNull Project project, @Nullable BuildAction<?> buildAction) {
+  static DefaultGradleTaskRunner newRunner(@NotNull Project project, @Nullable BuildAction<?> buildAction) {
     return new DefaultGradleTaskRunner(project, buildAction);
   }
 
@@ -56,10 +51,6 @@ public interface GradleTaskRunner {
     @NotNull private final AtomicReference<Object> model = new AtomicReference<>();
 
     @Nullable final BuildAction<?> myBuildAction;
-
-    DefaultGradleTaskRunner(@NotNull Project project) {
-      this(project, null);
-    }
 
     DefaultGradleTaskRunner(@NotNull Project project, @Nullable BuildAction<?> buildAction) {
       myProject = project;

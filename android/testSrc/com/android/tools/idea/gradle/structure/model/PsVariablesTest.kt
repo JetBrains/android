@@ -63,7 +63,10 @@ class PsVariablesTest : AndroidGradleTestCase() {
         "rootBool" to ("scriptBool" to true).asParsed(),
         "rootBool3" to ("rootBool" to true).asParsed(),
         "rootBool2" to ("rootBool3" to true).asParsed(),
-        "rootFloat" to BigDecimal("3.14").asParsed()
+        "rootFloat" to BigDecimal("3.14").asParsed(),
+        "listProp" to listOf(15.asParsed(),16.asParsed(),45.asParsed()).asParsed(),
+        "mapProp" to mapOf("key1" to "val1".asParsed(), "key2" to "val2".asParsed()).asParsed(),
+        "boolRoot" to true.asParsed()
       ))
     )
   }
@@ -83,6 +86,9 @@ class PsVariablesTest : AndroidGradleTestCase() {
         "varBool",
         "varRefString",
         "varProGuardFiles",
+        "localList",
+        "localMap",
+        "valVersion",
         "moreVariable",
         "mapVariable"))
     )
@@ -226,7 +232,9 @@ class PsVariablesTest : AndroidGradleTestCase() {
             ("variable1" to "1.3").asParsed().annotated(),
             ("anotherVariable" to "3.0.1").asParsed().annotated(),
             ("rootFloat" to "3.14").asParsed().annotated(),
-            ("varRefString" to "1.3").asParsed().annotated()
+            ("varRefString" to "1.3").asParsed().annotated(),
+            ("localMap.KTSApp" to "com.example.text.KTSApp").asParsed().annotated(),
+            ("localMap.LocalApp" to "com.android.localApp").asParsed().annotated()
           )
         )
       )
@@ -278,7 +286,8 @@ class PsVariablesTest : AndroidGradleTestCase() {
     val variables = psProject.variables
     val otherVariables = PsVariables(psProject, "other", "other", null)
 
-    assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat")))
+    assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat", "listProp",
+                                                          "mapProp", "boolRoot")))
 
     val someVar = variables.getVariable("someVar")
     someVar?.setName("tmp321")
@@ -286,10 +295,13 @@ class PsVariablesTest : AndroidGradleTestCase() {
     rootBool2?.delete()
     val tmp999 = variables.getOrCreateVariable("tmp999")
     tmp999.value = 999.asParsed()
-    assertThat(variables.map { it.name }.toSet(), equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999", "rootFloat")))
+    assertThat(variables.map { it.name }.toSet(), equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999", "rootFloat", "listProp",
+                                                                "mapProp", "boolRoot")))
 
-    assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat")))
+    assumeThat(otherVariables.entries.keys, equalTo(setOf("someVar", "rootBool", "rootBool2", "rootBool3", "rootFloat", "listProp",
+                                                          "mapProp", "boolRoot")))
     otherVariables.refresh()
-    assertThat(otherVariables.entries.keys, equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999", "rootFloat")))
+    assertThat(otherVariables.entries.keys, equalTo(setOf("tmp321", "rootBool", "rootBool3", "tmp999", "rootFloat", "listProp",
+                                                          "mapProp", "boolRoot")))
   }
 }

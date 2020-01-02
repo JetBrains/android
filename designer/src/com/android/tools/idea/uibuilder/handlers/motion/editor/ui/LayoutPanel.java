@@ -15,16 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
+import static com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel.EMPTY_STRING_ARRAY;
+
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEJTable;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag.Attribute;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,6 +63,7 @@ class LayoutPanel extends JPanel {
   private MeModel mMeModel;
   private JLabel mTitle;
   private MotionEditorSelector mMotionEditorSelector;
+  private boolean mBuildingTable;
 
   LayoutPanel() {
     super(new BorderLayout());
@@ -78,7 +80,7 @@ class LayoutPanel extends JPanel {
     add(transitionProperties, BorderLayout.CENTER);
     add(top, BorderLayout.NORTH);
     mConstraintSetTable.getSelectionModel().addListSelectionListener(e -> {
-      if (!e.getValueIsAdjusting()) {
+      if (!e.getValueIsAdjusting()  && !mBuildingTable) {
         tableSelection();
       }
     });
@@ -90,6 +92,9 @@ class LayoutPanel extends JPanel {
     MTag[] tag = (index == -1 || mDisplayedRows.size() == 0) ? new MTag[0] : new MTag[]{mDisplayedRows.get(index)};
     if (tag.length != 0) {
       mMeModel.setSelectedViewIDs(Arrays.asList(Utils.stripID(tag[0].getAttributeValue("id"))));
+    }
+    else {
+      mMeModel.setSelectedViewIDs(EMPTY_STRING_ARRAY);
     }
     mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.LAYOUT_VIEW, tag, 0);
   }
@@ -115,6 +120,7 @@ class LayoutPanel extends JPanel {
   }
 
   public void buildTable() {
+    mBuildingTable = true;
     HashSet<String> found = new HashSet<>();
     mConstraintSetModel.setNumRows(0);
     mDisplayedRows.clear();
@@ -147,6 +153,7 @@ class LayoutPanel extends JPanel {
         mConstraintSetModel.addRow(row);
       }
     }
+    mBuildingTable = false;
 
     mConstraintSetModel.fireTableDataChanged();
   }
@@ -199,22 +206,21 @@ class LayoutPanel extends JPanel {
     }
   }
 
-  public void setMTag(MTag layout, MeModel meModel) {
+  public void setMTag(@Nullable MTag layout, MeModel meModel) {
     mMeModel = meModel;
     mMotionLayout = layout;
     mDerived = null;
-    if (mMotionLayout != null) {
-      MTag[] constraintSets = meModel.motionScene.getChildTags();
-    }
     String label = "Layout " + (meModel.layoutFileName);
     if (layout != null) {
       label += " (" + Utils.stripID(layout.getAttributeValue("id")) + ")";
     }
     mTitle.setText(label);
 
+    String[] selected = mMeModel != null ? mMeModel.getSelectedViewIDs() : EMPTY_STRING_ARRAY;
     buildTable();
-    String[] selectedViewIDs = meModel.getSelectedViewIDs();
-    selectByIds(selectedViewIDs);
+    if (layout != null) {
+      selectByIds(selected);
+    }
   }
 
   public void setListeners(MotionEditorSelector listeners) {

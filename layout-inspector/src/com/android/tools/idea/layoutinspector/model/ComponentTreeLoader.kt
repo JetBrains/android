@@ -42,6 +42,11 @@ object ComponentTreeLoader : TreeLoader {
     val event = maybeEvent as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
     return ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client)
   }
+
+  override fun getAllWindowIds(maybeEvent: Any?, client: InspectorClient): List<Long>? {
+    val event = maybeEvent as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
+    return event.tree.allWindowIdsList
+  }
 }
 
 private class ComponentTreeLoaderImpl(
@@ -51,8 +56,8 @@ private class ComponentTreeLoaderImpl(
   private val stringTable = StringTable(tree.stringList)
 
   fun loadComponentTree(client: InspectorClient): ViewNode? {
-    val defaultClient = client as? DefaultInspectorClient ?:
-                        throw UnsupportedOperationException("ComponentTreeLoaderImpl requires a DefaultClient")
+    val defaultClient = client as? DefaultInspectorClient ?: throw UnsupportedOperationException(
+      "ComponentTreeLoaderImpl requires a DefaultClient")
     val time = System.currentTimeMillis()
     if (time - loadStartTime.get() < LOAD_TIMEOUT) {
       return null
@@ -97,8 +102,8 @@ private class ComponentTreeLoaderImpl(
     val layout = stringTable[view.layout]
     val x = view.x + (parent?.let { it.x - it.scrollX } ?: 0)
     val y = view.y + (parent?.let { it.y - it.scrollY } ?: 0)
-    val node = ViewNode(view.drawId, qualifiedName, layout, x, y, view.scrollX, view.scrollY,
-                                                                     view.width, view.height, viewId, textValue)
+    val node = ViewNode(view.drawId, qualifiedName, layout, x, y, view.scrollX, view.scrollY, view.width, view.height, viewId, textValue,
+                        view.layoutFlags)
     view.subViewList.map { loadView(it, node) }.forEach {
       node.children.add(it)
       it.parent = node
@@ -109,6 +114,12 @@ private class ComponentTreeLoaderImpl(
   private class ComponentImageLoader(root: ViewNode, viewRoot: InspectorView) {
     private val nodeMap = root.flatten().associateBy { it.drawId }
     private val viewMap = viewRoot.flatten().associateBy { it.id.toLong() }
+    private val offset = root.bounds.location
+
+    init {
+      val rootView = viewMap[root.drawId]
+      offset.translate(-1 * (rootView?.x ?: 0), -1 * (rootView?.y ?: 0))
+    }
 
     fun loadImages() {
       for ((drawId, node) in nodeMap) {
@@ -144,7 +155,7 @@ private class ComponentTreeLoaderImpl(
       val result = image ?: BufferedImage(bounds.width, bounds.height, (view.image as BufferedImage).type)
       // Combine the images...
       val g = result.graphics
-      UIUtil.drawImage(g, view.image!!, view.x - bounds.x, view.y - bounds.y, null)
+      UIUtil.drawImage(g, view.image!!, offset.x + view.x - bounds.x, offset.y + view.y - bounds.y, null)
       g.dispose()
       return result
     }

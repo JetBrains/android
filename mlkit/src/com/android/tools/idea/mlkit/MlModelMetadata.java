@@ -17,21 +17,25 @@ package com.android.tools.idea.mlkit;
 
 import org.jetbrains.annotations.NotNull;
 
-/** Stores metadata of model file used by the light model class generator. */
+/**
+ * Stores metadata of model file used by the light model class generator.
+ */
 public class MlModelMetadata {
-  public final String modelFileUrl;
+  public final String myModelFileUrl;
+  public final String myClassName;
 
-  public MlModelMetadata(@NotNull String modelFileUrl) {
-    this.modelFileUrl = modelFileUrl;
+  public MlModelMetadata(@NotNull String modelFileUrl, @NotNull String className) {
+    myModelFileUrl = modelFileUrl;
+    myClassName = className;
   }
 
   @Override
   public boolean equals(Object obj) {
-    return obj instanceof MlModelMetadata && modelFileUrl.equals(((MlModelMetadata) obj).modelFileUrl);
+    return obj instanceof MlModelMetadata && myModelFileUrl.equals(((MlModelMetadata)obj).myModelFileUrl);
   }
 
   @Override
   public int hashCode() {
-    return modelFileUrl.hashCode();
+    return myModelFileUrl.hashCode();
   }
 }

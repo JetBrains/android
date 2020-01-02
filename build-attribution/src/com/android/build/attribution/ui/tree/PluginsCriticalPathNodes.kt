@@ -26,6 +26,7 @@ import com.android.build.attribution.ui.data.builder.TaskIssueUiDataContainer
 import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.issuesCountString
 import com.android.build.attribution.ui.panels.AbstractBuildAttributionInfoPanel
+import com.android.build.attribution.ui.panels.CRITICAL_PATH_LINK
 import com.android.build.attribution.ui.panels.ChartBuildAttributionInfoPanel
 import com.android.build.attribution.ui.panels.TimeDistributionChart
 import com.android.build.attribution.ui.panels.TimeDistributionChart.AggregatedChartDataItem
@@ -39,17 +40,20 @@ import com.android.build.attribution.ui.panels.pluginInfoPanel
 import com.android.build.attribution.ui.panels.pluginTasksListPanel
 import com.android.build.attribution.ui.panels.taskInfoPanel
 import com.android.build.attribution.ui.taskIcon
+import com.android.utils.HtmlBuilder
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
+import com.intellij.ui.components.JBLabel
 import com.intellij.ui.treeStructure.SimpleNode
 import java.util.ArrayList
 import java.util.HashMap
 import javax.swing.Icon
 import javax.swing.JComponent
+import javax.swing.event.HyperlinkListener
 
 class CriticalPathPluginsRoot(
   private val criticalPathUiData: CriticalPathPluginsUiData,
   parent: ControllersAwareBuildAttributionNode
-) : AbstractBuildAttributionNode(parent, "Plugins With Critical Path Tasks") {
+) : AbstractBuildAttributionNode(parent, "Plugins with tasks determining this build's duration") {
 
   private val chartItems: List<ChartDataItem<CriticalPathPluginUiData>> = createPluginChartItems(criticalPathUiData)
 
@@ -64,9 +68,32 @@ class CriticalPathPluginsRoot(
   override fun createComponent(): AbstractBuildAttributionInfoPanel = object : ChartBuildAttributionInfoPanel() {
     override fun createChart(): JComponent = TimeDistributionChart(chartItems, null, true)
     override fun createLegend(): JComponent? = null
+    override fun createDescription(): JComponent {
+      val text = HtmlBuilder()
+        .openHtmlBody()
+        .add(
+          "These tasks, grouped by plugin, belong to a group of sequentially executed tasks that has the largest impact on this build's duration.")
+        .newline()
+        .add("Addressing this group provides the greatest likelihood of reducing the overall build duration.")
+        .newline()
+        .addLink("Learn more", CRITICAL_PATH_LINK)
+        .closeHtmlBody()
+      return object : JBLabel(text.html) {
+        override fun createHyperlinkListener(): HyperlinkListener {
+          val hyperlinkListener = super.createHyperlinkListener()
+          return HyperlinkListener { e ->
+            analytics.helpLinkClicked()
+            hyperlinkListener.hyperlinkUpdate(e)
+          }
+        }
+      }
+        .setAllowAutoWrapping(true)
+        .setCopyable(true)
+    }
+
     override fun createRightInfoPanel(): JComponent? = null
     override fun createHeader(): JComponent =
-      criticalPathHeader("Plugins", criticalPathUiData.criticalPathDuration.durationString(), analytics)
+      criticalPathHeader("Plugins with tasks", criticalPathUiData.criticalPathDuration.durationString())
   }
 
   override fun buildChildren(): Array<SimpleNode> {
@@ -93,6 +120,8 @@ private abstract class ChartElementSelectedPanel(
   override fun createChart(): JComponent = TimeDistributionChart(chartItems, selectedChartItem, false)
 
   override fun createLegend(): JComponent? = null
+
+  override fun createDescription(): JComponent? = null
 
   override fun createHeader(): JComponent = headerLabel(pluginData.name)
 }
@@ -150,7 +179,7 @@ private class PluginTasksRootNode(
   private val selectedChartItem: ChartDataItem<CriticalPathPluginUiData>,
   parent: PluginNode,
   private val issueClickListener: TreeLinkListener<TaskIssueUiData>
-) : AbstractBuildAttributionNode(parent, "Critical Path Tasks") {
+) : AbstractBuildAttributionNode(parent, "Tasks determining this build's duration") {
 
   override val presentationIcon: Icon? = null
 
@@ -166,7 +195,10 @@ private class PluginTasksRootNode(
       override fun createRightInfoPanel(): JComponent {
         return pluginTasksListPanel(pluginData, analytics)
       }
-    }.withPreferredWidth(300)
+
+      override fun createDescription(): JComponent? = null
+    }
+      .withPreferredWidth(300)
 
   override fun buildChildren(): Array<SimpleNode> = pluginData.criticalPathTasks.tasks
     .map { task -> PluginTaskNode(task, this, issueClickListener) }
@@ -192,6 +224,8 @@ private class PluginTaskNode(
 
     override fun createBody(): JComponent = taskInfoPanel(taskData, issueClickListener)
   }
+    .withPreferredWidth(350)
+
 
   override fun buildChildren(): Array<SimpleNode> = emptyArray()
 }

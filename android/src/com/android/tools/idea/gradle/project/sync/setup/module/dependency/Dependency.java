@@ -34,19 +34,8 @@ public abstract class Dependency {
    */
   static final List<DependencyScope> SUPPORTED_SCOPES = Lists.newArrayList(COMPILE, TEST);
 
-  // Without this '@SuppressWarnings' IDEA shows a warning because the field 'myScope' is not set directly in the constructor, and therefore
-  // IDEA thinks it can be null, contradicting '@NotNull'. In reality, the field is set in the constructor by calling 'setScope'. To avoid
-  // this warning we can either use '@SuppressWarnings' or duplicate, in the constructor, what 'setScope' is doing.
-  @SuppressWarnings("NullableProblems")
   @NotNull
-  private DependencyScope myScope;
-
-  /**
-   * Creates a new {@link Dependency} with {@link DependencyScope#COMPILE} scope.
-   */
-  Dependency() {
-    this(COMPILE);
-  }
+  private final DependencyScope myScope;
 
   /**
    * Creates a new {@link Dependency}.
@@ -55,25 +44,15 @@ public abstract class Dependency {
    * @throws IllegalArgumentException if the given scope is not supported.
    */
   Dependency(@NotNull DependencyScope scope) throws IllegalArgumentException {
-    setScope(scope);
-  }
-
-  @NotNull
-  public final DependencyScope getScope() {
-    return myScope;
-  }
-
-  /**
-   * Sets the scope of this dependency.
-   *
-   * @param scope the scope of the dependency. Supported values are {@link DependencyScope#COMPILE} and {@link DependencyScope#TEST}.
-   * @throws IllegalArgumentException if the given scope is not supported.
-   */
-  void setScope(@NotNull DependencyScope scope) throws IllegalArgumentException {
     if (!SUPPORTED_SCOPES.contains(scope)) {
       String msg = String.format("'%1$s' is not a supported scope. Supported scopes are %2$s.", scope, SUPPORTED_SCOPES);
       throw new IllegalArgumentException(msg);
     }
     myScope = scope;
+  }
+
+  @NotNull
+  public final DependencyScope getScope() {
+    return myScope;
   }
 }

@@ -34,8 +34,7 @@ package com.android.tools.idea.npw.module.recipes.benchmarkModule
 import com.android.ide.common.repository.GradleVersion
 import com.android.repository.Revision
 import com.android.tools.idea.gradle.npw.project.GradleBuildSettings.needsExplicitBuildToolsVersion
-import com.android.tools.idea.npw.module.recipes.addAllKotlinDependencies
-import com.android.tools.idea.npw.module.recipes.addKotlinToBaseProject
+import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkJava
 import com.android.tools.idea.npw.module.recipes.benchmarkModule.src.androidTest.exampleBenchmarkKt
 import com.android.tools.idea.templates.RepositoryUrlManager
@@ -56,9 +55,6 @@ fun RecipeExecutor.generateBenchmarkModule(
   val buildToolsVersion = projectData.buildToolsVersion
   val (minApi, _, buildApi, targetApi, targetApiString, buildApiString) = moduleData.apis
   val language = projectData.language
-  addAllKotlinDependencies(moduleData)
-
-  addKotlinToBaseProject(language, projectData.kotlinVersion)
 
   val repoUrlManager = RepositoryUrlManager.get()
 
@@ -97,4 +93,6 @@ fun RecipeExecutor.generateBenchmarkModule(
   else {
     save(exampleBenchmarkJava(packageName), testOut.resolve("ExampleBenchmark.java"))
   }
+
+  addKotlinIfNeeded(projectData, noKtx = true)
 }

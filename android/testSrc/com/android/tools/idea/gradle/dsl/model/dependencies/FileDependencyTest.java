@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_ADD_FILE_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_ADD_FILE_DEPENDENCY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_INSERTION_ORDER;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_INSERTION_ORDER_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_PARSE_FILE_DEPENDENCIES_WITH_CLOSURE;
@@ -23,11 +24,15 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_PAR
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_PARSE_SINGLE_FILE_DEPENDENCY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_REMOVE_FILE_DEPENDENCY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_REMOVE_ONE_OF_FILE_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_REMOVE_ONE_OF_FILE_DEPENDENCY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_REMOVE_WHEN_MULTIPLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_SET_FILE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_SET_FILE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_UPDATE_SOME_OF_FILE_DEPENDENCIES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.FILE_DEPENDENCY_UPDATE_SOME_OF_FILE_DEPENDENCIES_EXPECTED;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -113,6 +118,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     assertThat(files.get(3).configurationName()).isEqualTo("testImplementation");
 
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, FILE_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE_EXPECTED);
 
     files = buildModel.dependencies().files();
 
@@ -277,6 +283,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, FILE_DEPENDENCY_SET_FILE_EXPECTED);
 
     fileDependencies = buildModel.dependencies().files();
     assertThat(fileDependencies).hasSize(1);
@@ -303,6 +310,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, FILE_DEPENDENCY_UPDATE_SOME_OF_FILE_DEPENDENCIES_EXPECTED);
 
     fileDependencies = buildModel.dependencies().files();
     assertThat(fileDependencies).hasSize(6);
@@ -327,6 +335,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, FILE_DEPENDENCY_ADD_FILE_DEPENDENCY_EXPECTED);
 
     List<FileDependencyModel> fileDependencies = buildModel.dependencies().files();
     assertThat(fileDependencies).hasSize(1);
@@ -348,6 +357,8 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     dependencies.remove(file);
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, "");
+
     assertThat(buildModel.dependencies().files()).isEmpty();
   }
 
@@ -367,6 +378,7 @@ public class FileDependencyTest extends GradleFileModelTestCase {
     dependencies.remove(file);
     assertTrue(buildModel.isModified());
     applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, FILE_DEPENDENCY_REMOVE_ONE_OF_FILE_DEPENDENCY_EXPECTED);
 
     fileDependencies = buildModel.dependencies().files();
     assertThat(fileDependencies).hasSize(1);

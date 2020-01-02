@@ -23,6 +23,7 @@ import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -83,6 +84,7 @@ public class MotionUtils {
     }
 
     if (isInBaseState(motionLayout)) {
+      component.startAttributeTransaction();
       return;
     }
 
@@ -129,6 +131,13 @@ public class MotionUtils {
     }
 
     if (isInBaseState(motionLayout)) {
+      // in this case, the need to apply the memorized attributes by hand -- the internal
+      // AttributesTransaction of the component wouldn't have been used yet.
+      AttributesTransaction transaction = component.startAttributeTransaction();
+      for (Pair<String, String> key : modification.getAttributes().keySet()) {
+        String value = modification.getAttributes().get(key);
+        transaction.setAttribute(key.getFirst(), key.getSecond(), value);
+      }
       modification.directCommit();
       return;
     }
@@ -207,7 +216,14 @@ public class MotionUtils {
     }
 
     if (isInBaseState(motionLayout)) {
-      modification.directApply();
+      // in this case, the need to apply the memorized attributes by hand -- the internal
+      // AttributesTransaction of the component wouldn't have been used yet.
+      AttributesTransaction transaction = component.startAttributeTransaction();
+      for (Pair<String, String> key : modification.getAttributes().keySet()) {
+        String value = modification.getAttributes().get(key);
+        transaction.setAttribute(key.getFirst(), key.getSecond(), value);
+      }
+      transaction.apply();
       return;
     }
 

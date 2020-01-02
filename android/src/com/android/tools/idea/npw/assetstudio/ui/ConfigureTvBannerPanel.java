@@ -23,7 +23,6 @@ import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
-import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator;
 import com.android.tools.idea.npw.assetstudio.TvBannerGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
@@ -97,9 +96,11 @@ import org.jetbrains.annotations.Nullable;
  * options used by each {@link AndroidIconType}, but the relevant options are shown / hidden based
  * on the exact type passed into the constructor.
  */
+@SuppressWarnings("UseJBColor") // Android icons don't need JBColor.
 public class ConfigureTvBannerPanel extends JPanel implements Disposable, ConfigureIconView, PersistentStateComponent<PersistentState> {
   private static final boolean HIDE_INAPPLICABLE_CONTROLS = false; // TODO Decide on hiding or disabling.
 
+  private static final Color DEFAULT_FOREGROUND_COLOR = Color.BLACK;
   private static final File DEFAULT_FOREGROUND_IMAGE = getTemplateImage("drawable-v24", "ic_banner_image.xml");
   private static final BackgroundAssetType DEFAULT_BACKGROUND_ASSET_TYPE = BackgroundAssetType.COLOR;
   private static final String DEFAULT_OUTPUT_NAME = AndroidIconType.TV_BANNER.toOutputName("");
@@ -304,7 +305,7 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
 
     myForegroundActiveAsset = new ObjectValueProperty<>(myForegroundImageAssetBrowser.getAsset());
     myForegroundImageAssetBrowser.getAsset().setRole("foreground image");
-    myForegroundColorPanel.setSelectedColor(LauncherIconGenerator.DEFAULT_FOREGROUND_COLOR);
+    myForegroundColorPanel.setSelectedColor(DEFAULT_FOREGROUND_COLOR);
 
     myBackgroundAssetType = new SelectedRadioButtonProperty<>(DEFAULT_BACKGROUND_ASSET_TYPE, BackgroundAssetType.values(),
                                                               myBackgroundImageRadioButton, myBackgroundColorRadioButton);

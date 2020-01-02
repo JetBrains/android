@@ -57,12 +57,10 @@ fun getClassesForTag(module: Module, tag: String): Map<PsiClass, String?> {
   val result = mutableMapOf<PsiClass, String?>()
   val schema = NavigationSchema.get(module)
 
-  if (StudioFlags.NAV_DYNAMIC_SUPPORT.get()) {
-    for (dynamicModule in dynamicModules(module)) {
-      val scope = GlobalSearchScope.moduleWithDependenciesScope(dynamicModule)
-      schema.getProjectClassesForTag(tag, scope)
-        .associateWithTo(result) { dynamicModule.name }
-    }
+  for (dynamicModule in dynamicModules(module)) {
+    val scope = GlobalSearchScope.moduleWithDependenciesScope(dynamicModule)
+    schema.getProjectClassesForTag(tag, scope)
+      .associateWithTo(result) { dynamicModule.name }
   }
 
   schema.getProjectClassesForTag(tag).associateWithTo(result) { null }
@@ -71,8 +69,10 @@ fun getClassesForTag(module: Module, tag: String): Map<PsiClass, String?> {
 }
 
 fun dynamicModules(module: Module): List<Module> {
+  if (!StudioFlags.NAV_DYNAMIC_SUPPORT.get()) {
+    return listOf()
+  }
   val project = GradleUtil.getAndroidProject(module) ?: return listOf()
   return DynamicAppUtils.getDependentFeatureModulesForBase(module.project, project)
 }
-
 

@@ -61,8 +61,8 @@ public final class TransportFileManager implements TransportFileCopier {
     @NotNull static final DeployableFile PERFA_OKHTTP = new DeployableFile.Builder("perfa_okhttp.dex").build();
 
     @NotNull static final DeployableFile JVMTI_AGENT = new DeployableFile.Builder("libjvmtiagent.so")
-      .setReleaseDir("plugins/android/resources/transport/agent")
-      .setDevDir("../../bazel-bin/tools/base/transport/agent/android")
+      .setReleaseDir("plugins/android/resources/transport/native/agent")
+      .setDevDir("../../bazel-bin/tools/base/transport/native/agent/android")
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("libjvmtiagent_%s.so") // e.g. libjvmtiagent_arm64.so
       .build();

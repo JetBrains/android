@@ -31,7 +31,9 @@ import javax.swing.JTextArea;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/** Editor for the TFLite mode file. */
+/**
+ * Editor for the TFLite mode file.
+ */
 // TODO(b/144867508): complete this based on the UX spec.
 public class TfliteModelFileEditor implements FileEditor {
   private static final String NAME = "TFLite Model File";

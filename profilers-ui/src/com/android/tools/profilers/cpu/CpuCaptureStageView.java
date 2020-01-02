@@ -132,8 +132,8 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
                                 getTooltipPanel(),
                                 getProfilersView().getComponent(),
                                 () -> false);
-    minimapTooltipComponent.registerListenersOn(minimap.getComponent());
-    minimap.getComponent().addMouseListener(
+    minimap.registerRangeTooltipComponent(minimapTooltipComponent);
+    minimap.addMouseListener(
       new ProfilerTooltipMouseAdapter(
         getStage(),
         () -> new CpuCaptureStageCpuUsageTooltip(minimapModel.getCpuUsage(), getStage().getCaptureTimeline().getTooltipRange())));

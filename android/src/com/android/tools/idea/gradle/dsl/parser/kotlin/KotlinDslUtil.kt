@@ -16,16 +16,20 @@
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainContainer
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
+import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.getNextValidParent
 import com.android.tools.idea.gradle.dsl.parser.removePsiIfInvalid
@@ -44,9 +48,11 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtBinaryExpression
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtArrayAccessExpression
+import org.jetbrains.kotlin.psi.KtBinaryExpressionWithTypeRHS
 import org.jetbrains.kotlin.psi.KtBlockStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtConstantExpression
+import org.jetbrains.kotlin.psi.KtConstructorCalleeExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
@@ -55,6 +61,7 @@ import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
+import org.jetbrains.kotlin.psi.KtParenthesizedExpression
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPropertyDelegate
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -67,7 +74,6 @@ import org.jetbrains.kotlin.psi.KtSimpleNameStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 import org.jetbrains.kotlin.psi.KtValueArgumentList
-import org.jetbrains.kotlin.psi.psiUtil.getCallNameExpression
 import java.lang.UnsupportedOperationException
 import java.math.BigDecimal
 import kotlin.reflect.KClass
@@ -77,6 +83,106 @@ internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$
 internal fun KtCallExpression.isBlockElement() : Boolean {
   return lambdaArguments.size < 2 && (valueArgumentList == null || (valueArgumentList as KtValueArgumentList).arguments.size < 2 &&
                                       isValidBlockName(this.name()))
+}
+
+internal fun convertToExternalTextValue(context: GradleDslSimpleExpression, applyContext: GradleDslFile, referenceText : String) : String {
+  val resolvedReference = context.resolveReference(referenceText, false) ?: return referenceText
+  // Get the resolvedReference value type that might be used for the final cast.
+  // TODO(karimai): what if the type need to be imported ?
+  val className = if (resolvedReference is GradleDslLiteral) resolvedReference.value?.javaClass?.simpleName else null
+  var externalName = StringBuilder()
+  var lastArray = false
+  var currentParent = resolvedReference.parent
+
+  // Trace parents to be used for reference resolution.
+  val resolutionElements = ArrayList<GradleDslElement>()
+  resolutionElements.add(resolvedReference)
+  while (currentParent?.parent != null) {
+    resolutionElements.add(0, currentParent)
+    currentParent = currentParent.parent
+  }
+
+  // Now we Reached the dslFile level.
+  // We only need to add a prefix if we are applying the reference from a parent dslFile context.
+  if (currentParent is GradleDslFile && currentParent != context.dslFile) {
+    // If we are applying a property from rootProject => we only need rootProjectPrefix.
+    // For rootProject buildFile, we use the project name, so we can check if the file has the same name as the project.
+    if (currentParent.name == currentParent.project.name) {
+      externalName.append("rootProject.")
+    }
+    else {
+      // We can only apply references from parent modules, so walk the context parent modules until we hit the reference dslFile.
+      var currentContextParent = context.dslFile
+      do {
+        externalName.append("parent.")
+        currentContextParent = currentContextParent.parentModuleDslFile ?: break
+      } while (currentContextParent != currentParent)
+    }
+  }
+
+  // Now we can start appending names from the resolved reference file context.
+  for (currentElement in resolutionElements) {
+    // Get the external name for the resolve reference.
+    val elementExternalName = applyContext.parser.externalNameForParent(currentElement.name, currentElement.parent!!).first
+    when (currentElement) {
+      is ExtDslElement -> if (currentParent != context.dslFile) {
+        externalName.append("extra[\"")
+        lastArray = true
+      }
+      is GradleDslExpressionMap -> {
+        if (!lastArray) {
+          externalName.append("${elementExternalName}[\"")
+          lastArray = true
+        }
+        else  {
+          val updatedName = "(${externalName}${elementExternalName}\"] as Map<*, *>)[\""
+          externalName.clear().append(updatedName)
+        }
+      }
+      is GradleDslExpressionList -> {
+        if(!lastArray) {
+          externalName.append("${elementExternalName}[")
+          lastArray = true
+        }
+        else {
+          val updatedName = "($externalName${elementExternalName}\"] as List<*>)["
+          externalName.clear().append(updatedName)
+        }
+      }
+      is GradleDslLiteral -> {
+        if (lastArray) {
+          if (currentElement.parent is GradleDslExpressionList) {
+            var i = 0
+            for (property in (currentElement.parent as GradleDslExpressionList).simpleExpressions) {
+              if (property == currentElement) break
+              i++
+            }
+            // Type cast is needed only if we are applying from a parent module context.
+            externalName.append("$i]" + if (currentParent != context.dslFile && className != null) " as $className" else "")
+            lastArray = false
+          }
+          else {
+            // Type cast is needed only if we are applying from a parent module context.
+            externalName.append(
+              "${elementExternalName}\"]" + if (currentParent != context.dslFile && className != null) " as $className" else "")
+            lastArray = false
+          }
+        }
+        else {
+          // If we are referencing to a variable using its name from the local space, we don't need to use an explicit cast in Kotlin.
+          if (currentElement.name == currentElement.fullName) externalName.append(elementExternalName)
+          else if (currentElement.parent is ExtDslElement) {
+            // This is for extra properties declared using array access expressions
+            externalName.append("extra[\"${elementExternalName}\"] as $className")
+          }
+        }
+      }
+      is GradleDslNamedDomainContainer -> externalName.append("$elementExternalName.")
+      is GradleDslNamedDomainElement -> externalName.append("getByName(\"$elementExternalName\").")
+    }
+  }
+
+  return if (externalName.isNotEmpty()) externalName.toString().trimEnd('.') else referenceText
 }
 
 internal fun isValidBlockName(blockName : String?) =
@@ -93,7 +199,18 @@ internal fun PsiElement?.isParentOf(psiElement: PsiElement) : Boolean {
 }
 
 internal fun KtCallExpression.name() : String? {
-  return getCallNameExpression()?.getReferencedName()
+  return when (val callee = calleeExpression) {
+    null -> null
+    is KtSimpleNameExpression -> callee.getReferencedName()
+    // This clause arises from inlining KtCallElement.getCallNameExpression(), but we need not handle these (which are
+    // superconstructor calls) in the Dsl.  We leave this clause here explicitly in case we later have a need.
+    is KtConstructorCalleeExpression -> null
+    is KtStringTemplateExpression -> when {
+      callee.hasInterpolation() -> null // TODO(xof): even more ambition: handle "test$foo" as a configuration name
+      else -> callee.text
+    }
+    else -> null
+  }
 }
 
 internal fun getParentPsi(dslElement : GradleDslElement) : PsiElement? {
@@ -166,7 +283,7 @@ internal fun getOriginalName(methodName : String?, blockName : String): String {
 }
 
 @Throws(IncorrectOperationException::class)
-internal fun createLiteral(context : GradleDslElement, value : Any) : PsiElement? {
+internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : GradleDslFile, value : Any) : PsiElement? {
    when (value) {
     is String ->  {
       var valueText : String?
@@ -177,10 +294,15 @@ internal fun createLiteral(context : GradleDslElement, value : Any) : PsiElement
       else {
         valueText = StringUtil.escapeStringCharacters(value).addQuotes(true)
       }
-      return KtPsiFactory(context.dslFile.project).createExpression(valueText)
+      return KtPsiFactory(applyContext.dslFile.project).createExpression(valueText)
     }
-    is Int, is Boolean, is BigDecimal -> return KtPsiFactory(context.dslFile.project).createExpressionIfPossible(value.toString())
-    is RawText -> return KtPsiFactory(context.dslFile.project).createExpressionIfPossible(value.getText())
+    is Int, is Boolean, is BigDecimal -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.toString())
+    // References are canonicals and need to be resolved first before converted to KTS psiElement.
+    is ReferenceTo -> {
+      val externalTextValue = convertToExternalTextValue(context, applyContext, value.text)
+      return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(externalTextValue)
+    }
+    is RawText -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.ktsText)
     else -> error("Expression '${value}' not supported.")
   }
 }
@@ -234,6 +356,10 @@ fun gradleNameFor(expression: KtExpression): String? {
       }
     }
 
+    override fun visitBinaryWithTypeRHSExpression(expression: KtBinaryExpressionWithTypeRHS) {
+      expression.left.accept(this, null)
+    }
+
     override fun visitCallExpression(expression: KtCallExpression) {
       if (expression.name() == "project" && expression.valueArguments.size == 1) {
         when (expression.valueArguments[0].getArgumentExpression()) {
@@ -259,6 +385,10 @@ fun gradleNameFor(expression: KtExpression): String? {
       expression.receiverExpression.accept(this, null)
       sb.append('.')
       expression.selectorExpression?.accept(this, null)
+    }
+
+    override fun visitParenthesizedExpression(expression: KtParenthesizedExpression) {
+      expression.expression?.accept(this, null)
     }
 
     override fun visitReferenceExpression(expression: KtReferenceExpression) {
@@ -317,6 +447,10 @@ internal fun findInjections(
           else -> noInjections
         }}
         .toMutableList()
+    }
+    is KtBinaryExpressionWithTypeRHS -> return when (val contentExpression = psiElement.left) {
+      is KtArrayAccessExpression -> findInjections(context, contentExpression, includeResolved, injectionElement)
+      else -> noInjections
     }
     else -> return noInjections
   }
@@ -476,7 +610,7 @@ internal fun createListElement(expression : GradleDslSettableExpression) : PsiEl
  * the expression value.
  */
 internal fun createMapElement(expression : GradleDslSettableExpression) : PsiElement? {
-  val parent = requireNotNull(expression.parent)
+  val parent = requireNotNull(expression.parent as? GradleDslExpressionMap)
   val parentPsiElement = parent.create() as? KtCallExpression ?: return null
 
   expression.psiElement = parentPsiElement
@@ -486,8 +620,11 @@ internal fun createMapElement(expression : GradleDslSettableExpression) : PsiEle
   val expressionRightValue =
     if (expressionValue is KtConstantExpression || expressionValue is KtNameReferenceExpression) expressionValue.text
     else StringUtil.unquoteString(expressionValue.text).addQuotes(true)
-  val argumentStringExpression =
-    "${expression.name.addQuotes(true)} to $expressionRightValue"
+  val argumentStringExpression = when {
+    parent.asNamedArgs -> "${expression.name}=$expressionRightValue"
+    else -> "${expression.name.addQuotes(true)} to $expressionRightValue"
+  }
+
   val mapArgument = psiFactory.createExpression(argumentStringExpression)
 
   val argumentValue = psiFactory.createArgument(mapArgument)

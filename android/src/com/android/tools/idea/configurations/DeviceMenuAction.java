@@ -194,7 +194,7 @@ public class DeviceMenuAction extends DropDownAction {
     addCustomDeviceSection(current);
     addAvdDeviceSection(DeviceUtils.getAvdDevices(configuration), current);
     addGenericDeviceSection(groupedDevices.getOrDefault(DeviceGroup.GENERIC, Collections.emptyList()), current);
-    add(new RunAndroidAvdManagerAction("Add Device Definition..."));
+    add(ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     return true;
   }

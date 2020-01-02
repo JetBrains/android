@@ -64,7 +64,7 @@ class ComponentTreeModelImpl(
 
   override fun getChild(parent: Any?, index: Int) = children(parent)[index]
 
-  override fun valueForPathChanged(path: TreePath?, newValue: Any?) {}
+  override fun valueForPathChanged(path: TreePath?, newValue: Any?) { }
 
   override fun addTreeModelListener(listener: TreeModelListener) {
     modelListeners.add(listener)
@@ -127,12 +127,12 @@ class ComponentTreeModelImpl(
     return entry.value
   }
 
-  private fun hierarchyChanged(newRoot: Any?) {
-    invokeLater.invoke(Runnable { fireTreeChange(newRoot) })
+  override fun hierarchyChanged(changedNode: Any?) {
+    invokeLater.invoke(Runnable { fireTreeChange(changedNode) })
   }
 
-  private fun fireTreeChange(newRoot: Any?) {
-    val path = newRoot?.let { TreePath(newRoot) }
+  private fun fireTreeChange(changedNode: Any?) {
+    val path = changedNode?.let { TreePath(changedNode) }
     val event = TreeModelEvent(this, path)
     modelListeners.forEach { (it as? ComponentTreeModelListener)?.treeChanged(event) }
   }

@@ -42,6 +42,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -270,7 +271,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   private void extractMainDependencies(@NotNull AndroidModuleModel androidModel) {
     synchronized (ourLock) {
       if (myMainDependencies == null) {
-        myMainDependencies = extractDependencies(COMPILE, androidModel.getMainArtifact());
+        myMainDependencies = extractDependencies(getProjectBasePath(), COMPILE, androidModel.getMainArtifact());
       }
     }
   }
@@ -295,14 +296,14 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
 
   @NotNull
   private DependencySet extractTestDependencies(@Nullable IdeBaseArtifact artifact) {
-    return extractDependencies(TEST, artifact);
+    return extractDependencies(getProjectBasePath(), TEST, artifact);
   }
 
   @NotNull
-  private DependencySet extractDependencies(@NotNull DependencyScope scope, @Nullable IdeBaseArtifact artifact) {
+  private DependencySet extractDependencies(@NotNull File basePath, @NotNull DependencyScope scope, @Nullable IdeBaseArtifact artifact) {
     if (artifact != null) {
       ModuleFinder moduleFinder = ProjectStructure.getInstance(myModule.getProject()).getModuleFinder();
-      return DependenciesExtractor.getInstance().extractFrom(artifact, scope, moduleFinder);
+      return DependenciesExtractor.getInstance().extractFrom(basePath, artifact, scope, moduleFinder);
     }
     return DependencySet.EMPTY;
   }
@@ -310,6 +311,11 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
   @Nullable
   private AndroidModuleModel getAndroidModel() {
     return myModule.isDisposed() ? null : AndroidModuleModel.get(myModule);
+  }
+
+  @NotNull
+  private File getProjectBasePath() {
+    return new File(Objects.requireNonNull(getModule().getProject().getBasePath()));
   }
 
   /**

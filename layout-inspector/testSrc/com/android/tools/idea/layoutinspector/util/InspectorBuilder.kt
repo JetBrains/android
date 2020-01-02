@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import org.mockito.Mockito
@@ -59,32 +60,20 @@ object InspectorBuilder {
 
   fun createLayoutInspectorForDemo(projectRule: AndroidProjectRule): LayoutInspector {
     val root = createDemoViewNodes()
-    val inspectorModel = InspectorModel(projectRule.project, root)
+    val inspectorModel = InspectorModel(projectRule.project)
+    inspectorModel.update(root, root.drawId, listOf(root.drawId))
     val configBuilder = ConfigurationBuilder(projectRule.module.androidFacet!!)
     val (config, stringTable) = configBuilder.makeConfiguration()
     inspectorModel.resourceLookup.updateConfiguration(config, stringTable)
     return LayoutInspector(inspectorModel)
   }
 
-  fun findViewNode(inspector: LayoutInspector, id: String): ViewNode? {
-    return findViewNode(inspector.layoutInspectorModel.root!!, id)
-  }
-
-  private fun findViewNode(node: ViewNode, id: String): ViewNode? {
-    if (node.viewId?.name == id) {
-      return node
-    }
-    return node.children.mapNotNull { findViewNode(it, id) }.firstOrNull()
-  }
-
   private fun createDemoViewNodes(): ViewNode {
     val layout = ResourceReference(ResourceNamespace.TODO(), ResourceType.LAYOUT, "demo")
     val relativeLayoutId = ResourceReference(ResourceNamespace.TODO(), ResourceType.ID, "relativeLayout")
     val textViewId = ResourceReference(ResourceNamespace.TODO(), ResourceType.ID, "title")
-    val relativeLayout = ViewNode(1, "RelativeLayout", layout, 0, 0, 0, 0, 1200, 1600, relativeLayoutId, "")
-    val textView = ViewNode(1, "TextView", layout, 200, 400, 0, 0, 400, 100, textViewId, "@drawable/battery")
-    relativeLayout.children.add(textView)
-    textView.parent = relativeLayout
-    return relativeLayout
+    return view(1, 0, 0, 1200, 1600, "RelativeLayout", relativeLayoutId, layout = layout) {
+      view(1, 200, 400, 400, 100, "TextView", textViewId, "@drawable/battery", layout = layout)
+    }
   }
 }

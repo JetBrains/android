@@ -551,6 +551,7 @@ java_test(
 # sanity test
 java_test(
     name = "FlavorsExecutionTest",
+    size = "enormous",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
@@ -756,8 +757,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.AbiSplitApksTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "qa_unreliable",  # b/119685470
-        "qa_sanity_unreliable",  # b/119685470
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -772,8 +771,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.debugger.X86AbiSplitApksTest"],
     tags = COMMON_TAGS + [
         "qa_sanity",
-        "qa_unreliable",  # b/119685470
-        "qa_sanity_unreliable",  # b/119685470
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -981,6 +978,8 @@ java_test(
         "no_windows",
         "qa_sanity",
         "qa_sanity_emu",
+        "qa_sanity_unreliable",  # b/145991485
+        "qa_unreliable",  # b/145991485
         "requires-fakeroot",
         "requires_emulator",
     ],
@@ -1350,7 +1349,7 @@ java_test(
 
 # fast test
 java_test(
-    name = "LayoutEditorTest",
+    name = "AdaptiveIconsTest",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
@@ -1361,7 +1360,7 @@ java_test(
     ] + glob([
         "testData/SimpleApplication/**",
     ]),
-    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.LayoutEditorTest"],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.assetstudio.AdaptiveIconsTest"],
     tags = COMMON_TAGS + [
         "qa_fast",
     ],

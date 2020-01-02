@@ -101,11 +101,6 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
   @Override
   public boolean handlesWriteForComponent(String id) {
-    SmartPsiElementPointer<XmlTag> constraint = getSelectedConstraint();
-    if (constraint != null) {
-      String constraintId = constraint.getElement().getAttribute("android:id").getValue();
-      return id.equals(stripID(constraintId));
-    }
     return false;
   }
 
@@ -152,11 +147,6 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
   public MotionSceneModel.ConstraintView getSelectedConstraintView() {
     return mySelection != null ? myPanel.getSelectedConstraintView(mySelection.getId()) : null;
-  }
-
-  @Override
-  public SmartPsiElementPointer<XmlTag> getSelectedConstraint() {
-    return myPanel.getChart().getSelectedConstraint();
   }
 
   @Override
@@ -460,7 +450,6 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     }
   }
 
-  @Override
   @Nullable
   public Object getSelectedAccessory() {
     if (DEBUG) {
@@ -478,10 +467,13 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
     return null;
   }
 
-  @Override
   @Nullable
   public Object getSelectedAccessoryType() {
     return null;
+  }
+
+  @Override
+  public void requestSelection() {
   }
 
   @Override
@@ -496,7 +488,7 @@ class MotionLayoutTimelinePanel implements AccessoryPanelInterface, GanttEventLi
 
   private void fireSelectionChanged(@NotNull List<NlComponent> components) {
     List<AccessorySelectionListener> copy = new ArrayList<>(myListeners);
-    copy.forEach(listener -> listener.selectionChanged(this, components));
+    copy.forEach(listener -> listener.selectionChanged(this, null, myLastSelectedAccessory, components));
   }
 
   private void fireSelectionChanged() {

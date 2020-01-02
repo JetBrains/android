@@ -38,49 +38,6 @@ public class NewImageAssetTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(2, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
-  @Test
-  public void testAdaptiveIconsPreviewAndGeneration() throws Exception {
-    AssetStudioWizardFixture wizard = guiTest.importSimpleApplication()
-      .getProjectView()
-      .selectAndroidPane()
-      .clickPath("app")
-      .openFromMenu(AssetStudioWizardFixture::find, "File", "New", "Image Asset");
-
-    Path projectDir = guiTest.getProjectPath().toPath();
-    FileSystemEntry original = TreeBuilder.buildFromFileSystem(projectDir);
-
-    NewImageAssetStepFixture<AssetStudioWizardFixture> step = wizard.getImageAssetStep();
-    step.selectIconType("Launcher Icons (Adaptive and Legacy)");
-    assertThat(step.getPreviewPanelCount()).isEqualTo(1);
-    assertThat(step.getPreviewPanelIconNames(0)).containsExactly(
-      "Circle", "Squircle", "Rounded Square", "Square", "Full Bleed Layers", "Legacy Icon", "Round Icon", "Google Play Store")
-      .inOrder();
-    wizard.clickNext();
-    wizard.clickFinish();
-
-    FileSystemEntry changed = TreeBuilder.buildFromFileSystem(projectDir);
-
-    Path filterPath = projectDir.resolve("app/src");
-    List<String> newFiles =
-      getNewFiles(projectDir, TreeDifferenceEngine.computeEditScript(original, changed), path -> path.startsWith(filterPath));
-    assertThat(newFiles).containsExactly(
-      "app/src/main/res/mipmap-hdpi/ic_launcher.png",
-      "app/src/main/res/mipmap-mdpi/ic_launcher.png",
-      "app/src/main/res/mipmap-xhdpi/ic_launcher.png",
-      "app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
-      "app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
-      "app/src/main/res/drawable/ic_launcher_background.xml",
-      "app/src/main/res/drawable-v24/ic_launcher_foreground.xml",
-      "app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
-      "app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml",
-      "app/src/main/res/mipmap-hdpi/ic_launcher_round.png",
-      "app/src/main/res/mipmap-mdpi/ic_launcher_round.png",
-      "app/src/main/res/mipmap-xhdpi/ic_launcher_round.png",
-      "app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png",
-      "app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png",
-      "app/src/main/ic_launcher-playstore.png"
-    );
-  }
 
   @Test
   public void testNotificationImageCount() throws Exception {
@@ -112,5 +69,4 @@ public class NewImageAssetTest {
                                          "app/src/main/res/drawable-xxhdpi/ic_stat_name.png",
                                          "app/src/main/res/drawable-anydpi-v24/ic_stat_name.xml");
   }
-
 }

@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import java.awt.event.InputEvent
 
 const val SEPARATOR_TEXT = "------------------------------------------------------"
@@ -30,22 +31,24 @@ const val SEPARATOR_TEXT = "----------------------------------------------------
  * Helper function to convert action to string for testing purpose. Use [filter] to ignore the actions if needed.
  */
 @JvmOverloads
-fun prettyPrintActions(action: AnAction, filter: (action: AnAction) -> Boolean = { true }): String {
+fun prettyPrintActions(
+  action: AnAction, filter: (action: AnAction) -> Boolean = { true }, presentationFactory: PresentationFactory? = null
+): String {
   val stringBuilder = StringBuilder()
-  prettyPrintActions(action, stringBuilder, 0, filter)
+  prettyPrintActions(action, stringBuilder, 0, filter, presentationFactory)
   return stringBuilder.toString()
 }
 
 /**
  * Run [prettyPrintActions] recursively.
  */
-private fun prettyPrintActions(action: AnAction, sb: StringBuilder, depth: Int, filter: (action: AnAction) -> Boolean) {
-  val text: String?
-  if (action is Separator) {
-    text = SEPARATOR_TEXT
-  }
-  else {
-    text = action.templatePresentation.text
+private fun prettyPrintActions(
+  action: AnAction, sb: StringBuilder, depth: Int, filter: (action: AnAction) -> Boolean, presentationFactory: PresentationFactory?
+) {
+  val text: String? = when {
+    action is Separator -> SEPARATOR_TEXT
+    presentationFactory != null -> presentationFactory.getPresentation(action).text
+    else -> action.templatePresentation.text
   }
   if (text != null) {
     for (i in 0 until depth) {
@@ -69,7 +72,7 @@ private fun prettyPrintActions(action: AnAction, sb: StringBuilder, depth: Int, 
         continue
       }
       assert(!skipNext)
-      prettyPrintActions(child, sb, depth + 1, filter)
+      prettyPrintActions(child, sb, depth + 1, filter, presentationFactory)
     }
   }
 }

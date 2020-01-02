@@ -252,7 +252,6 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndApplyPlugin() throws Exception {
-    // TODO(b/142539025): creating an apply plugin form in Kotlin generates invalid Dsl
     writeToBuildFile(APPLY_PLUGIN_ADD_AND_APPLY_PLUGIN);
     GradleBuildModel buildModel = getGradleBuildModel();
     verifyPlugins(ImmutableList.of("com.android.application"), buildModel.plugins());
@@ -291,9 +290,6 @@ public class ApplyPluginTest extends GradleFileModelTestCase {
 
   @Test
   public void testSetPluginName() throws Exception {
-    // TODO(b/142539025): Kotlin parsing of apply(plugin=...) is different from assumptions made elsewhere (it parses as a DslMethodCall, but
-    //  code assumes that this form is a literal DslMap (with name "apply").
-    assumeTrue(isGroovy());
     writeToBuildFile(APPLY_PLUGIN_SET_PLUGIN_NAME);
     GradleBuildModel buildModel = getGradleBuildModel();
 

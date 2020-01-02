@@ -400,7 +400,7 @@ filegroup(
         ],
         "//conditions:default": [
             "//tools/base/transport:android",
-            "//tools/base/transport/agent:android",
+            "//tools/base/transport/native/agent:android",
             "//tools/base/transport/proto:transport_java_proto",
         ],
     }),

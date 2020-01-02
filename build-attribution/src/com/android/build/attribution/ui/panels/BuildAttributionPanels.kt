@@ -30,7 +30,6 @@ import com.intellij.openapi.util.text.StringUtil.pluralize
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
-import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.JBUI
 import java.awt.GridBagConstraints
@@ -41,7 +40,7 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.event.HyperlinkListener
 
-private const val CRITICAL_PATH_LINK = "https://developer.android.com/r/tools/build-attribution/critical-path"
+const val CRITICAL_PATH_LINK = "https://developer.android.com/r/tools/build-attribution/critical-path"
 
 interface TreeLinkListener<T> {
   fun clickedOn(target: T)
@@ -71,7 +70,7 @@ fun pluginInfoPanel(
 private fun commonPluginInfo(data: CriticalPathPluginUiData, analytics: BuildAttributionUiAnalytics): JBLabel {
   val pluginText = HtmlBuilder()
     .openHtmlBody()
-    .add("This plugin has ${data.criticalPathTasks.size} ${pluralize("task", data.criticalPathTasks.size)} on the critical path. ")
+    .add("This plugin has ${data.criticalPathTasks.size} ${pluralize("task", data.criticalPathTasks.size)} determining build duration. ")
     .addLink("Learn more", CRITICAL_PATH_LINK)
     .newline()
     .add("Total duration ${data.criticalPathDuration.durationString()} / ${data.criticalPathDuration.percentageString()}")
@@ -96,6 +95,15 @@ fun pluginTasksListPanel(pluginData: CriticalPathPluginUiData, analytics: BuildA
 private fun commonTaskInfo(taskData: TaskUiData): JComponent {
   val text = HtmlBuilder()
     .openHtmlBody()
+    .beginParagraph()
+    .add(
+      if (taskData.onCriticalPath)
+        "This task frequently determines build duration because of dependencies between its inputs/outputs and other tasks."
+      else
+        "This task occasionally determines build duration because of parallelism constraints introduced by number of cores or other tasks in the same module."
+    )
+    .endParagraph()
+    .newline()
     .add("Module: ${taskData.module}")
     .newline()
     .add("Plugin: ${taskData.pluginName}")
@@ -186,15 +194,10 @@ fun createIssueTypeListPanel(issuesGroup: TaskIssuesGroup, listener: TreeLinkLis
     }
   }
 
-fun criticalPathHeader(prefix: String, duration: String, analytics: BuildAttributionUiAnalytics): JComponent = JPanel().apply {
-  layout = HorizontalLayout(10, SwingConstants.BOTTOM)
-  add(headerLabel("${prefix} Determining Build Duration (${duration}) / Critical Path"))
-  add(HyperlinkLabel("Learn More").apply {
-    addHyperlinkListener { analytics.helpLinkClicked() }
-    setHyperlinkTarget(CRITICAL_PATH_LINK)
-  }
-  )
-}
+fun criticalPathHeader(prefix: String, duration: String): JComponent =
+  headerLabel("${prefix} determining this build's duration (${duration})")
 
-fun headerLabel(text: String): JLabel = JBLabel(text).withFont(JBUI.Fonts.label(13f).asBold())
+fun headerLabel(text: String): JLabel = JBLabel(text).withFont(JBUI.Fonts.label(13f).asBold()).apply {
+  name = "pageHeader"
+}
 

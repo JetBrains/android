@@ -19,7 +19,7 @@ import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ForcedPluginVersionUpgradeStep;
+import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GradlePluginUpgrade;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
@@ -30,7 +30,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class PluginVersionUpgrade {
   @NotNull private final Project myProject;
-  @NotNull private final ForcedPluginVersionUpgradeStep[] myForcedUpgradeSteps;
   @NotNull private final RecommendedPluginVersionUpgradeStep[] myRecommendedUpgradeSteps;
 
   @NotNull
@@ -39,25 +38,19 @@ public class PluginVersionUpgrade {
   }
 
   public PluginVersionUpgrade(@NotNull Project project) {
-    this(project, ForcedPluginVersionUpgradeStep.getExtensions(), RecommendedPluginVersionUpgradeStep.getExtensions());
+    this(project, RecommendedPluginVersionUpgradeStep.getExtensions());
   }
 
   @VisibleForTesting
   public PluginVersionUpgrade(@NotNull Project project,
-                              @NotNull ForcedPluginVersionUpgradeStep[] forcedUpgradeSteps,
                               @NotNull RecommendedPluginVersionUpgradeStep[] recommendedUpgradeSteps) {
     myProject = project;
-    myForcedUpgradeSteps = forcedUpgradeSteps;
     myRecommendedUpgradeSteps = recommendedUpgradeSteps;
   }
 
   @Slow
   public boolean isForcedUpgradable() {
-    AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(myProject);
-    if (pluginInfo == null) {
-      return false;
-    }
-    return Arrays.stream(myForcedUpgradeSteps).anyMatch(it -> it.checkUpgradable(myProject, pluginInfo));
+    return GradlePluginUpgrade.shouldForcePluginUpgrade(myProject);
   }
 
   public boolean isRecommendedUpgradable() {
@@ -69,7 +62,7 @@ public class PluginVersionUpgrade {
   }
 
   public boolean performForcedUpgrade() {
-    return performUpgrade(myForcedUpgradeSteps);
+    return GradlePluginUpgrade.performForcedPluginUpgrade(myProject);
   }
 
   public boolean performRecommendedUpgrade() {
@@ -100,9 +93,11 @@ public class PluginVersionUpgrade {
   @Slow
   public boolean checkAndPerformUpgrade() {
     // We try force upgrade first then try recommended upgrade.
-    if (performForcedUpgrade()) {
-      return true;
+    if (isForcedUpgradable()) {
+      return performForcedUpgrade();
     }
+
+    // performRecommendedUpgrade already checks to see if it should.
     return performRecommendedUpgrade();
   }
 

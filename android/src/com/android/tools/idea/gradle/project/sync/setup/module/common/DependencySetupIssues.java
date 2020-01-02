@@ -50,7 +50,6 @@ public class DependencySetupIssues {
   @NotNull private final GradleSyncMessages mySyncMessages;
 
   @NotNull private final Map<String, MissingModule> myMissingModules = new ConcurrentHashMap<>();
-  @NotNull private final Map<String, MissingModule> myMissingModulesWithBackupLibraries = new ConcurrentHashMap<>();
 
   @NotNull private final Set<String> myDependentsOnLibrariesWithoutBinaryPath = new CopyOnWriteArraySet<>();
   @NotNull private final Set<InvalidModuleDependency> myInvalidModuleDependencies = new CopyOnWriteArraySet<>();
@@ -81,7 +80,6 @@ public class DependencySetupIssues {
       mySyncMessages.report(new SyncMessage(MISSING_DEPENDENCIES, WARNING, navigatable, msg));
     }
 
-    reportModulesNotFoundIssues(getMissingModulesWithBackupLibraries());
     clear();
   }
 
@@ -89,12 +87,6 @@ public class DependencySetupIssues {
   @NotNull
   List<MissingModule> getMissingModules() {
     return getMissingModules(myMissingModules);
-  }
-
-  @VisibleForTesting
-  @NotNull
-  List<MissingModule> getMissingModulesWithBackupLibraries() {
-    return getMissingModules(myMissingModulesWithBackupLibraries);
   }
 
   @NotNull
@@ -145,11 +137,6 @@ public class DependencySetupIssues {
         text.append(".)");
         messageLines.add(text.toString());
 
-        String backupLibraryName = missingModule.backupLibraryName;
-        if (isNotEmpty(backupLibraryName)) {
-          String msg = String.format("Linking to library '%1$s' instead.", backupLibraryName);
-          messageLines.add(msg);
-        }
         mySyncMessages.report(new SyncMessage(MISSING_DEPENDENCIES, missingModule.issueType, toStringArray(messageLines)));
       }
     }
@@ -175,14 +162,13 @@ public class DependencySetupIssues {
 
   private void clear() {
     myMissingModules.clear();
-    myMissingModulesWithBackupLibraries.clear();
     myDependentsOnLibrariesWithoutBinaryPath.clear();
     myInvalidModuleDependencies.clear();
   }
 
-  public void addMissingModule(@NotNull String dependencyName, @NotNull String dependentName, @Nullable String backupLibraryName) {
-    Map<String, MissingModule> mapping = isNotEmpty(backupLibraryName) ? myMissingModulesWithBackupLibraries : myMissingModules;
-    MissingModule missingModule = mapping.computeIfAbsent(dependencyName, name -> new MissingModule(name, backupLibraryName));
+  public void addMissingModule(@NotNull String dependencyName, @NotNull String dependentName) {
+    Map<String, MissingModule> mapping = myMissingModules;
+    MissingModule missingModule = mapping.computeIfAbsent(dependencyName, name -> new MissingModule(name));
     missingModule.addDependent(dependentName);
   }
 
@@ -204,15 +190,12 @@ public class DependencySetupIssues {
   @VisibleForTesting
   static class MissingModule {
     @NotNull final String dependencyPath;
-    @NotNull final MessageType issueType;
-    @Nullable final String backupLibraryName;
+    @NotNull final MessageType issueType = ERROR;
 
     @NotNull final List<String> dependentNames = new CopyOnWriteArrayList<>();
 
-    MissingModule(@NotNull String dependencyPath, @Nullable String backupLibraryName) {
+    MissingModule(@NotNull String dependencyPath) {
       this.dependencyPath = dependencyPath;
-      this.backupLibraryName = backupLibraryName;
-      issueType = isEmpty(backupLibraryName) ? ERROR : WARNING;
     }
 
     void addDependent(@NotNull String dependentName) {
@@ -223,10 +206,6 @@ public class DependencySetupIssues {
       if (!dependentNames.isEmpty()) {
         dependentNames.sort(String::compareTo);
       }
-    }
-
-    boolean isError() {
-      return issueType == ERROR;
     }
   }
 

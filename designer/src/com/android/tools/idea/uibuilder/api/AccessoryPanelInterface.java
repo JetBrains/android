@@ -52,19 +52,12 @@ public interface AccessoryPanelInterface {
    */
   void deactivate();
 
+  /**
+   * The accessory panel should send the current selection to its listeners.
+   */
+  void requestSelection();
+
   void updateAfterModelDerivedDataChanged();
-
-  /**
-   * Returns the currently selected object to be displayed.
-   */
-  @Nullable
-  Object getSelectedAccessory();
-
-  /**
-   * Returns the currently selected object type.
-   */
-  @Nullable
-  Object getSelectedAccessoryType();
 
   void addListener(@NotNull AccessorySelectionListener listener);
 

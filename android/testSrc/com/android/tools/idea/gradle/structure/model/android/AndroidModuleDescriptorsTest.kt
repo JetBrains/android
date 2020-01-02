@@ -18,11 +18,15 @@ package com.android.tools.idea.gradle.structure.model.android
 import com.android.SdkConstants
 import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.OBJECT_TYPE
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
 import com.android.tools.idea.gradle.structure.model.helpers.matchHashStrings
+import com.android.tools.idea.gradle.structure.model.meta.DslText
+import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_GROOVY
+import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_KOTLIN
 import com.intellij.pom.java.LanguageLevel
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.MatcherAssert.assertThat
@@ -71,10 +75,8 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
     assertThat(viewBindingEnabled.parsedValue.asTestValue(), nullValue())
   }
 
-  fun testSetProperties() {
+  private fun doTestSetProperties() {
     // Note: this test does not attempt to sync because it won't succeed without installing older SDKs.
-    loadProject(PSD_SAMPLE_GROOVY)
-
     val resolvedProject = myFixture.project
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
@@ -83,6 +85,7 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
 
     appModule.compileSdkVersion = "25".asParsed()
     appModule.viewBindingEnabled = true.asParsed()
+    appModule.buildToolsVersion = ParsedValue.Set.Parsed(dslText = DslText.Reference("varProGuardFiles[0]"), value = null)
 
     fun verifyValues(appModule: PsAndroidModule) {
       val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule).getValue()
@@ -96,5 +99,54 @@ class AndroidModuleDescriptorsTest : AndroidGradleTestCase() {
     verifyValues(appModule)
     appModule.applyChanges()
     verifyValues(appModule)
+  }
+
+  fun testSetPropertiesKotlin() {
+    loadProject(PSD_SAMPLE_KOTLIN)
+    doTestSetProperties()
+  }
+
+  fun testSetPropertiesGroovy() {
+    loadProject(PSD_SAMPLE_GROOVY)
+    doTestSetProperties()
+  }
+
+  fun testSetListReferencesKotlin() {
+    loadProject(PSD_SAMPLE_KOTLIN)
+    val expectedKtsRawValues = listOf("localList[0]", "(rootProject.extra[\"listProp\"] as List<*>)[0] as Integer")
+    doTestSetListReferences(expectedKtsRawValues)
+  }
+
+  fun testSetListReferencesGroovy() {
+    loadProject(PSD_SAMPLE_GROOVY)
+    val expectedGrRawValues = listOf("localList[0]", "listProp[0]")
+    doTestSetListReferences(expectedGrRawValues)
+  }
+
+  private fun doTestSetListReferences(expectedValues: List<String>) {
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = project.findModuleByName("app") as PsAndroidModule
+    assertThat(appModule, notNullValue())
+
+
+    // Set reference to a list extra property from same module.
+    appModule.buildToolsVersion = ParsedValue.Set.Parsed(dslText = DslText.Reference("localList[0]"), value = null)
+    // Set reference to a list extra property defined in rootProject build script.
+    appModule.compileSdkVersion = ParsedValue.Set.Parsed(dslText = DslText.Reference("listProp[0]"), value = null)
+
+    appModule.applyChanges()
+
+    // Verify changes applied correctly.
+    val buildToolsVersion = AndroidModuleDescriptors.buildToolsVersion.bind(appModule).getValue()
+    val compileSdkVersion = AndroidModuleDescriptors.compileSdkVersion.bind(appModule).getValue()
+    assertThat(buildToolsVersion.parsedValue.asTestValue(), equalTo("26.1.1"))
+    assertThat(compileSdkVersion.parsedValue.asTestValue(), equalTo("15"))
+    assertThat(appModule.parsedModel?.android()?.buildToolsVersion()?.getValue(OBJECT_TYPE), equalTo<Any>("26.1.1"))
+    assertThat(appModule.parsedModel?.android()?.buildToolsVersion()?.getRawValue(STRING_TYPE), equalTo<Any>(expectedValues[0]))
+
+    assertThat(appModule.parsedModel?.android()?.compileSdkVersion()?.getValue(OBJECT_TYPE), equalTo<Any>(15))
+    assertThat(appModule.parsedModel?.android()?.compileSdkVersion()?.getRawValue(STRING_TYPE), equalTo<Any>(expectedValues[1]))
   }
 }

@@ -17,21 +17,19 @@ package com.android.tools.idea.gradle.run
 
 import com.android.AndroidProjectTypes
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider.GradleTaskRunnerFactory
-import com.android.tools.idea.gradle.util.GradleVersions
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.JavaModuleModelBuilder
+import com.android.tools.idea.testing.Modules
 import com.android.tools.idea.testing.createAndroidProjectBuilder
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
-import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth
 import com.intellij.execution.configurations.JavaRunConfigurationModule
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.openapi.module.ModuleManager
-import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.HeavyPlatformTestCase
 import com.intellij.testFramework.UsefulTestCase
 import junit.framework.TestCase
 import org.mockito.Mockito
@@ -41,14 +39,20 @@ import java.io.File
 /**
  * Tests for [GradleTaskRunnerFactory].
  */
-class GradleTaskRunnerFactoryTest : PlatformTestCase() {
+class GradleTaskRunnerFactoryTest : HeavyPlatformTestCase() {
   private val projectDir get() = File(project.basePath!!)
+  private lateinit var myModules: Modules
 
-  fun testCreateTaskRunnerWithAndroidRunConfigurationBaseAndGradle3Dot5() {
-    setupTestProjectFromAndroidModel(project, projectDir, androidModule(":", "3.5.0"))
-    val taskRunnerFactory = GradleTaskRunnerFactory(project, GradleVersions.getInstance())
+  override fun setUp() {
+    super.setUp()
+    myModules = Modules(project)
+  }
+
+  fun testCreateTaskRunnerWithAndroidRunConfigurationBaseAndAGP3Dot5() {
+    setupTestProjectFromAndroidModel(project, projectDir, androidModule(":app", "3.5.0"))
+    val taskRunnerFactory = GradleTaskRunnerFactory(project)
     val configurationModule = Mockito.mock(JavaRunConfigurationModule::class.java)
-    `when`(configurationModule.module).thenReturn(null)
+    `when`(configurationModule.module).thenReturn(myModules.appModule)
     val configuration = Mockito.mock(AndroidRunConfigurationBase::class.java)
     `when`(configuration.configurationModule).thenReturn(configurationModule)
     val taskRunner = taskRunnerFactory.createTaskRunner(configuration)
@@ -56,22 +60,45 @@ class GradleTaskRunnerFactoryTest : PlatformTestCase() {
     TestCase.assertNotNull(buildAction)
   }
 
-  fun testCreateTaskRunnerWithAndroidRunConfigurationBaseAndGradleOlderThan3Dot5() {
-    setupTestProjectFromAndroidModel(project, projectDir, androidModule(":", "3.4.1"))
-    val taskRunnerFactory = GradleTaskRunnerFactory(project, GradleVersions.getInstance())
+  fun testCreateTaskRunnerWithAndroidRunConfigurationBaseAndAGPOlderThan3Dot0() {
+    setupTestProjectFromAndroidModel(project, projectDir, androidModule(":app", "2.3.0"))
+    val taskRunnerFactory = GradleTaskRunnerFactory(project)
+    val configurationModule = Mockito.mock(JavaRunConfigurationModule::class.java)
+    `when`(configurationModule.module).thenReturn(myModules.appModule)
     val configuration = Mockito.mock(AndroidRunConfigurationBase::class.java)
+    `when`(configuration.configurationModule).thenReturn(configurationModule)
     val taskRunner = taskRunnerFactory.createTaskRunner(configuration)
     val buildAction = taskRunner.buildAction
     TestCase.assertNull(buildAction)
   }
 
   fun testCreateTaskRunnerWithConfigurationNotAndroidRunConfigurationBase() {
-    setupTestProjectFromAndroidModel(project, projectDir, androidModule(":", "3.5.0"))
-    val taskRunnerFactory = GradleTaskRunnerFactory(project, GradleVersions.getInstance())
+    setupTestProjectFromAndroidModel(project, projectDir, androidModule(":app", "3.5.0"))
+    val taskRunnerFactory = GradleTaskRunnerFactory(project)
     val configuration = Mockito.mock(RunConfiguration::class.java)
     val taskRunner = taskRunnerFactory.createTaskRunner(configuration)
     val buildAction = taskRunner.buildAction
     TestCase.assertNull(buildAction)
+  }
+
+  fun testCreateTaskRunnerForInstrumentedTest() {
+    setupTestProjectFromAndroidModel(
+      project,
+      projectDir,
+      androidModule(":app", "3.5.0")
+    )
+    val taskRunnerFactory = GradleTaskRunnerFactory(project)
+    val configuration = Mockito.mock(AndroidTestRunConfiguration::class.java)
+    val configurationModule = Mockito.mock(JavaRunConfigurationModule::class.java)
+    `when`(configurationModule.module).thenReturn(myModules.getModule("app"))
+    `when`(configuration.configurationModule).thenReturn(configurationModule)
+
+    val taskRunner = taskRunnerFactory.createTaskRunner(configuration)
+    val buildAction = taskRunner.buildAction
+
+    Truth.assertThat(buildAction).isInstanceOf(OutputBuildAction::class.java)
+    val outputBuildAction = buildAction as OutputBuildAction
+    Truth.assertThat(outputBuildAction.myGradlePaths).containsExactly(":app")
   }
 
   fun testCreateTaskRunnerForDynamicFeatureInstrumentedTest() {
@@ -86,10 +113,10 @@ class GradleTaskRunnerFactoryTest : PlatformTestCase() {
         moduleDependencies = listOf(":app")
       )
     )
-    val taskRunnerFactory = GradleTaskRunnerFactory(project, GradleVersions.getInstance())
+    val taskRunnerFactory = GradleTaskRunnerFactory(project)
 
     val configurationModule = Mockito.mock(JavaRunConfigurationModule::class.java)
-    `when`(configurationModule.module).thenReturn(ModuleManager.getInstance(project).modules.find { it.name == "feature1" })
+    `when`(configurationModule.module).thenReturn(myModules.getModule("feature1"))
     val configuration = Mockito.mock(AndroidTestRunConfiguration::class.java)
     `when`(configuration.configurationModule).thenReturn(configurationModule)
     val taskRunner = taskRunnerFactory.createTaskRunner(configuration)
@@ -111,10 +138,10 @@ class GradleTaskRunnerFactoryTest : PlatformTestCase() {
         moduleDependencies = listOf(":app")
       )
     )
-    val taskRunnerFactory = GradleTaskRunnerFactory(project, GradleVersions.getInstance())
+    val taskRunnerFactory = GradleTaskRunnerFactory(project)
 
     val configurationModule = Mockito.mock(JavaRunConfigurationModule::class.java)
-    `when`(configurationModule.module).thenReturn(ModuleManager.getInstance(project).modules.find { it.name == "app" })
+    `when`(configurationModule.module).thenReturn(myModules.appModule)
     val configuration = Mockito.mock(AndroidRunConfiguration::class.java)
     `when`(configuration.configurationModule).thenReturn(configurationModule)
     val taskRunner = taskRunnerFactory.createTaskRunner(configuration)
@@ -129,13 +156,13 @@ private fun rootModule(gradleVersion: String) = JavaModuleModelBuilder(":", grad
 
 private fun androidModule(
   gradlePath: String,
-  gradleVersion: String,
+  agpVersion: String,
   projectType: Int = AndroidProjectTypes.PROJECT_TYPE_APP,
   moduleDependencies: List<String> = emptyList(),
   dynamicFeatures: List<String> = emptyList()
 ) = AndroidModuleModelBuilder(
   gradlePath,
-  gradleVersion = gradleVersion,
+  agpVersion = agpVersion,
   selectedBuildVariant = "debug",
   projectBuilder = createAndroidProjectBuilder(
     projectType = { projectType },

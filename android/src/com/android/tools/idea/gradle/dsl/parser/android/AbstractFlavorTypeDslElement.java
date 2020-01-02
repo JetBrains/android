@@ -54,7 +54,8 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     {"signingConfig", property, SIGNING_CONFIG, VAR},
     {"useJack", property, USE_JACK, VAR}, // actually deprecated / nonexistent
     {"useJack", exactly(1), USE_JACK, SET}, // see above
-    {"versionNameSuffix", property, VERSION_NAME_SUFFIX, VAR}
+    {"versionNameSuffix", property, VERSION_NAME_SUFFIX, VAR},
+    {"setVersionNameSuffix", exactly(1), VERSION_NAME_SUFFIX, SET}
   })
     .collect(toModelMap());
 

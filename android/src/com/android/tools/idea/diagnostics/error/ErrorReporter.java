@@ -47,6 +47,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
 import com.intellij.util.Consumer;
+import java.util.Optional;
 import org.jetbrains.android.diagnostics.error.IdeaITNProxy;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -175,8 +176,20 @@ public class ErrorReporter extends ErrorReportSubmitter {
       // a single crash anyway).
       long uptimeInMs = crashDetails.stream().mapToLong(details -> details.getUptimeInMs()).min().orElse(-1);
 
-      StudioCrashReport report =
-        new StudioCrashReport.Builder().setDescriptions(descriptions).setIsJvmCrash(isJvmCrash).setUptimeInMs(uptimeInMs).build();
+      StudioCrashReport.Builder reportBuilder =
+        new StudioCrashReport.Builder().setDescriptions(descriptions).setIsJvmCrash(isJvmCrash).setUptimeInMs(uptimeInMs);
+
+      if (isJvmCrash) {
+        Optional<StudioCrashDetails> jvmCrashOptional = crashDetails.stream().filter(details -> details.isJvmCrash()).findAny();
+        if (jvmCrashOptional.isPresent()) {
+          StudioCrashDetails jvmCrash = jvmCrashOptional.get();
+          reportBuilder.setErrorSignal(jvmCrash.getErrorSignal());
+          reportBuilder.setErrorFrame(jvmCrash.getErrorFrame());
+          reportBuilder.setErrorThread(jvmCrash.getErrorThread());
+        }
+      }
+
+      StudioCrashReport report = reportBuilder.build();
       // Crash reports are not limited by a rate limiter.
       StudioCrashReporter.getInstance().submit(report, true);
     }

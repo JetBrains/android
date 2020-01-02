@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.module.recipes
 
 import com.android.tools.idea.wizard.template.Language
-import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
@@ -43,24 +42,10 @@ fun RecipeExecutor.addKotlinToBaseProject(language: Language, kotlinVersion: Str
   }
 }
 
-// TODO(qumeric): The two functions above, addKotlinPlugins and addKotlinDependencies, are duplicating the work of addAllKotlinDependencies,
-//                when creating a new module (isNewModule == true).
-fun RecipeExecutor.addAllKotlinDependencies(data: ModuleTemplateData) {
-  val projectData = data.projectTemplateData
-  if (!data.isNew && projectData.language == Language.Kotlin) {
-    applyPlugin("kotlin-android")
-    applyPlugin("kotlin-android-extensions")
-    if (!hasDependency("org.jetbrains.kotlin:kotlin-stdlib")) {
-      addDependency("org.jetbrains.kotlin:kotlin-stdlib-jdk7:\$kotlin_version")
-      setKotlinVersion(projectData.kotlinVersion)
-    }
-  }
-}
-
-fun RecipeExecutor.addKotlinIfNeeded(data: ProjectTemplateData) {
+fun RecipeExecutor.addKotlinIfNeeded(data: ProjectTemplateData, noKtx: Boolean = false) {
   if (data.language == Language.Kotlin) {
     addKotlinToBaseProject(data.language, data.kotlinVersion)
     addKotlinPlugins()
-    addKotlinDependencies(data.androidXSupport)
+    addKotlinDependencies(data.androidXSupport && !noKtx)
   }
 }

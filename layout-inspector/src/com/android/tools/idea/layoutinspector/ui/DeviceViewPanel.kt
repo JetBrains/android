@@ -210,12 +210,12 @@ class DeviceViewPanel(
   }
 
   override fun zoom(type: ZoomType): Boolean {
-    val root = layoutInspector.layoutInspectorModel.root
-    if (root == null) {
+    if (layoutInspector.layoutInspectorModel.isEmpty) {
       viewSettings.scalePercent = 100
       scrollPane.viewport.revalidate()
       return false
     }
+    val root = layoutInspector.layoutInspectorModel.root
     val position = scrollPane.viewport.viewPosition.apply { translate(scrollPane.viewport.width / 2, scrollPane.viewport.height / 2) }
     position.x = (position.x / scale).toInt()
     position.y = (position.y / scale).toInt()
@@ -252,11 +252,11 @@ class DeviceViewPanel(
     return true
   }
 
-  override fun canZoomIn() = viewSettings.scalePercent < MAX_ZOOM && layoutInspector.layoutInspectorModel.root != null
+  override fun canZoomIn() = viewSettings.scalePercent < MAX_ZOOM && !layoutInspector.layoutInspectorModel.isEmpty
 
-  override fun canZoomOut() = viewSettings.scalePercent > MIN_ZOOM && layoutInspector.layoutInspectorModel.root != null
+  override fun canZoomOut() = viewSettings.scalePercent > MIN_ZOOM && !layoutInspector.layoutInspectorModel.isEmpty
 
-  override fun canZoomToFit() = layoutInspector.layoutInspectorModel.root != null
+  override fun canZoomToFit() = !layoutInspector.layoutInspectorModel.isEmpty
 
   override fun canZoomToActual() = viewSettings.scalePercent < 100 && canZoomIn() || viewSettings.scalePercent > 100 && canZoomOut()
 

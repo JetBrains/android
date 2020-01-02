@@ -150,14 +150,23 @@ public class VectorDrawableTransformer {
         }
       }
 
+      // Components of the translation vector in viewport coordinates.
+      double x = 0;
+      double y = 0;
+      if (clipRectangle != null) {
+        // Adjust scale.
+        scaleFactor /= Math.max(clipRectangle.getWidth(), clipRectangle.getHeight());
+        // Re-center the image relative to the clip rectangle.
+        x += (0.5 - clipRectangle.getCenterX()) * targetWidth * scaleFactor;
+        y += (0.5 - clipRectangle.getCenterY()) * targetHeight * scaleFactor;
+      }
+
       if (Double.isNaN(originalViewportWidth) || originalViewportWidth == 0 ||
           Double.isNaN(originalViewportHeight) || originalViewportHeight == 0) {
         originalViewportWidth = width;
         originalViewportHeight = height;
       }
-      // Components of the translation vector in viewport coordinates.
-      double x = 0;
-      double y = 0;
+
       double ratio = width * originalViewportHeight / (height * originalViewportWidth);
       if (ratio > 1) {
         y += 0.5 * targetWidth * ratio;
@@ -179,14 +188,6 @@ public class VectorDrawableTransformer {
       }
 
       scaleFactor *= min(targetWidth / originalViewportWidth, targetHeight / originalViewportHeight);
-
-      if (clipRectangle != null) {
-        // Adjust viewport.
-        scaleFactor *= Math.max(clipRectangle.getWidth(), clipRectangle.getHeight());
-        // Re-center the image relative to the clip rectangle.
-        x += (0.5 - clipRectangle.getCenterX()) * targetWidth;
-        y += (0.5 - clipRectangle.getCenterY()) * targetHeight;
-      }
 
       if (shift != null) {
         x += targetWidth * shift.getX();

@@ -153,8 +153,6 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testBuildTypeApplicationStatements() throws Exception {
-    // TOD(karimai) : enable this test once binaryexpression assignment is supported.
-    assumeTrue(isGroovy());
     writeToBuildFile(BUILD_TYPE_MODEL_BUILD_TYPE_APPLICATION_STATEMENTS);
 
     BuildTypeModel buildType = getXyzBuildType(getGradleBuildModel());
@@ -1325,7 +1323,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     assertThat(signingConfigs.size(), equalTo(2));
     assertThat(signingConfigs.get(0).name(), equalTo("myConfig"));
     assertThat(signingConfigs.get(1).name(), equalTo("myBetterConfig"));
-    signingConfigModel.setValue(new ReferenceTo(signingConfigs.get(1), isGroovy()));
+    signingConfigModel.setValue(new ReferenceTo(signingConfigs.get(1)));
 
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myBetterConfig", CUSTOM, REGULAR, 1);
     assertThat(buildType.signingConfig().getRawValue(STRING_TYPE),
@@ -1343,7 +1341,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     signingConfigModel = buildType.signingConfig();
     assertThat(signingConfigModel.toSigningConfig().name(), equalTo("myBetterConfig"));
 
-    signingConfigModel.setValue(ReferenceTo.createForSigningConfig("myConfig", isGroovy()));
+    signingConfigModel.setValue(ReferenceTo.createForSigningConfig("myConfig"));
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
     assertThat(buildType.signingConfig().getRawValue(STRING_TYPE),
                isGroovy()?equalTo("signingConfigs.myConfig"):equalTo("signingConfigs.getByName(\"myConfig\")"));
@@ -1353,7 +1351,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, BUILD_TYPE_MODEL_SET_SIGNING_CONFIG);
 
-    signingConfigModel.setValue(ReferenceTo.createForSigningConfig("myConfig", isGroovy()));
+    signingConfigModel.setValue(ReferenceTo.createForSigningConfig("myConfig"));
 
     buildType = getXyzBuildType(buildModel);
     verifyPropertyModel(buildType.signingConfig(), STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);
@@ -1373,7 +1371,7 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
     SigningConfigModel signingConfig = android.signingConfigs().get(0);
     assertMissingProperty(buildTypeModel.signingConfig());
-    buildTypeModel.signingConfig().setValue(new ReferenceTo(signingConfig, isGroovy()));
+    buildTypeModel.signingConfig().setValue(new ReferenceTo(signingConfig));
 
     SigningConfigPropertyModel signingConfigPropertyModel = buildTypeModel.signingConfig();
     verifyPropertyModel(signingConfigPropertyModel, STRING_TYPE, "myConfig", CUSTOM, REGULAR, 1);

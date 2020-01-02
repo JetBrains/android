@@ -16,21 +16,20 @@
 package com.android.tools.idea.appinspection.api
 
 import com.android.tools.adtui.model.FakeTimer
+import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.appinspection.test.AppInspectionTestUtils.createSuccessfulServiceResponse
 import com.android.tools.idea.appinspection.test.INSPECTOR_ID
 import com.android.tools.idea.appinspection.test.TEST_JAR
-import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
-import com.android.tools.profiler.proto.Common.Event
+import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.AsyncFunction
 import com.google.common.util.concurrent.Futures
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -66,43 +65,54 @@ class AppInspectionTargetTest {
     assertThat(clientFuture.get()).isNotNull()
   }
 
-  @Ignore("b/144511139")
   @Test
   fun launchInspectorReturnsCorrectConnection() {
     val target = appInspectionRule.launchTarget().get()
 
-    val latch = CountDownLatch(1)
     // Don't let command handler reply to any commands. We'll manually add events.
+    val latch = CountDownLatch(1)
     transportService.setCommandHandler(
       Commands.Command.CommandType.APP_INSPECTION,
       object : CommandHandler(timer) {
-        override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
-          latch.countDown()
+        override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
+          if (command.hasAppInspectionCommand() && command.appInspectionCommand.inspectorId == "connects_successfully") {
+            latch.countDown()
+          }
         }
       })
 
-    val inspectorConnection =
-      target.launchInspector(INSPECTOR_ID, TEST_JAR) { commandMessenger ->
+    // Launch an inspector connection that will never be established (if the test passes).
+    val unsuccessfulConnection =
+      target.launchInspector("never_connects", TEST_JAR) { commandMessenger ->
         TestInspectorClient(commandMessenger)
       }
 
-    latch.await()
+    try {
+      // Generate a false "successful" service response with a non-existent commandId, to test connection filtering. That is, we don't want
+      // this response to be accepted by any pending connections.
+      appInspectionRule.addAppInspectionResponse(createSuccessfulServiceResponse(12345))
 
-    val incorrectResponse = createSuccessfulServiceResponse(12345)
-    appInspectionRule.addAppInspectionResponse(incorrectResponse)
+      // Launch an inspector connection that will be successfully established.
+      val successfulConnection = target.launchInspector("connects_successfully", TEST_JAR) { commandMessenger ->
+        TestInspectorClient(commandMessenger)
+      }
 
-    appInspectionRule.poller.poll()
+      // Wait for command to be sent.
+      latch.await()
 
-    assertThat(appInspectionRule.executorService.activeCount).isEqualTo(0)
-    assertThat(inspectorConnection.isDone).isFalse()
-
-    appInspectionRule.addAppInspectionResponse(
-      createSuccessfulServiceResponse(
-        AppInspectionTransport.lastGeneratedCommandId()
+      // Manually generate correct response to the command.
+      appInspectionRule.addAppInspectionResponse(
+        createSuccessfulServiceResponse(
+          AppInspectionTransport.lastGeneratedCommandId()
+        )
       )
-    )
 
-    assertThat(inspectorConnection.get()).isNotNull()
+      // Verify the first connection is still pending and the second connection is successful.
+      assertThat(successfulConnection.get()).isNotNull()
+      assertThat(unsuccessfulConnection.isDone).isFalse()
+    } finally {
+      unsuccessfulConnection.cancel(false)
+    }
   }
 }
 
