@@ -26,12 +26,12 @@ import org.junit.Rule
 import org.junit.Test
 
 @RunsInEdt
-class LightDirectionsClassTest {
+class LightArgsBuilderClassTest {
   @get:Rule
   val safeArgsRule = SafeArgsRule()
-
   @Test
-  fun canFindDirectionsClasses() {
+  fun canFindArgsBuilderClasses() {
+    safeArgsRule.fixture.addClass("package test.safeargs; public class CustomClass {}")
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
       //language=XML
@@ -44,11 +44,19 @@ class LightDirectionsClassTest {
           <fragment
               android:id="@+id/fragment1"
               android:name="test.safeargs.Fragment1"
-              android:label="Fragment1" />
+              android:label="Fragment1">
+            <argument
+                android:name="arg"
+                app:argType="string" />
+          </fragment>
           <fragment
               android:id="@+id/fragment2"
               android:name="test.safeargs.Fragment2"
-              android:label="Fragment2" />
+              android:label="Fragment2">
+            <argument
+                android:name="arg"
+                app:argType="string" />
+          </fragment>
         </navigation>
       """.trimIndent())
 
@@ -58,12 +66,11 @@ class LightDirectionsClassTest {
     val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
 
     // Classes can be found with context
-    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment1Directions", context)).isInstanceOf(LightDirectionsClass::class.java)
-    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment2Directions", context)).isInstanceOf(LightDirectionsClass::class.java)
-    assertThat(safeArgsRule.fixture.findClass("test.safeargs.MainDirections", context)).isInstanceOf(LightDirectionsClass::class.java)
+    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args.Builder", context)).isInstanceOf(LightArgsBuilderClass::class.java)
+    assertThat(safeArgsRule.fixture.findClass("test.safeargs.Fragment2Args.Builder", context)).isInstanceOf(LightArgsBuilderClass::class.java)
 
     // ... but cannot be found without context
     val psiFacade = JavaPsiFacade.getInstance(safeArgsRule.project)
-    assertThat(psiFacade.findClass("test.safeargs.Fragment1Directions", GlobalSearchScope.allScope(safeArgsRule.project))).isNull()
+    assertThat(psiFacade.findClass("test.safeargs.Fragment1Args.Builder", GlobalSearchScope.allScope(safeArgsRule.project))).isNull()
   }
 }

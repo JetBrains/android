@@ -54,6 +54,7 @@ class SafeArgsScopeEnlarger : ResolveScopeEnlarger() {
       val moduleCache = SafeArgsCacheModuleService.getInstance(facet)
       lightClasses.addAll(moduleCache.directions)
       lightClasses.addAll(moduleCache.args)
+      lightClasses.addAll(moduleCache.args.map { it.builderClass })
 
       // Light classes don't exist on disk, so you have to use their view provider to get a
       // corresponding virtual file. This same virtual file should be used by finders to verify
