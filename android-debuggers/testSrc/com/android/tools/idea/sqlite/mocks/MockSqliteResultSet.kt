@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.mocks
 
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
@@ -24,14 +25,14 @@ import com.google.common.util.concurrent.ListenableFuture
 import java.sql.JDBCType
 
 class MockSqliteResultSet(size: Int = 100) : SqliteResultSet {
-  val _columns = listOf(SqliteColumn("id", JDBCType.INTEGER, false))
+  val _columns = listOf(SqliteColumn("id", JDBCType.INTEGER, false), SqliteColumn(RowIdName.ROWID.stringName, JDBCType.INTEGER, false))
   private val rows = mutableListOf<SqliteRow>()
 
   val invocations = mutableListOf<List<SqliteRow>>()
 
   init {
     for (i in 0 until size) {
-      rows.add(SqliteRow(listOf(SqliteColumnValue(_columns[0], i))))
+      rows.add(SqliteRow(listOf(SqliteColumnValue(_columns[0], i), SqliteColumnValue(_columns[1], i))))
     }
   }
 

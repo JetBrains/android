@@ -111,7 +111,7 @@ class TableController(
   private fun fetchAndDisplayTableData() {
     val fetchTableDataFuture = edtExecutor.transformAsync(resultSet.columns) { columns ->
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
-      view.showTableColumns(columns!!)
+      view.showTableColumns(columns!!.filter { it.name != table?.rowIdName?.stringName })
       view.setEditable(table != null)
 
       updateDataAndButtons()
