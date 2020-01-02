@@ -178,7 +178,10 @@ class RepositoryUrlManager @VisibleForTesting constructor(
     return null
   }
 
-  fun resolveDynamicCoordinateVersion(coordinate: GradleCoordinate, project: Project?, sdkHandler: AndroidSdkHandler): String? {
+  fun resolveDynamicCoordinateVersion(coordinate: GradleCoordinate, project: Project?, sdkHandler: AndroidSdkHandler?): String? {
+    @Suppress("NAME_SHADOWING")
+    val sdkHandler = sdkHandler ?: AndroidSdks.getInstance().tryToChooseSdkHandler()
+
     val revision = coordinate.revision
     if (!revision.endsWith(REVISION_ANY)) {
       // Already resolved.
