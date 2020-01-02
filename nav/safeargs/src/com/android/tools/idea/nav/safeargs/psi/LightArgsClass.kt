@@ -16,35 +16,29 @@
 package com.android.tools.idea.nav.safeargs.psi
 
 import com.android.ide.common.resources.ResourceItem
-import com.android.tools.idea.nav.safeargs.index.NavDestinationData
+import com.android.tools.idea.nav.safeargs.index.NavFragmentData
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
- * Light class for Directions classes generated from navigation xml files.
+ * Light class for Args classes generated from navigation xml files.
  *
- * A "Direction" represents functionality that takes you away from one destination to another.
+ * An "Arg" represents an argument which can get passed from one destination to another.
  *
  * For example, if you had the following "nav.xml":
  *
  * ```
- *  <navigation>
- *    <fragment id="@+id/mainMenu">
- *      <action id="@+id/actionToOptions" />
- *      <destination="@id/options" />
- *    </fragment>
- *    <fragment id="@+id/options">
- *  </navigation>
+ *  <action id="@+id/sendMessage" destination="@+id/editorFragment">
+ *    <argument name="message" argType="string" />
+ *  </action>
  * ```
  *
  * This would generate a class like the following:
  *
  * ```
- *  class MainMenuDirections {
- *    class ActionToOptions {}
- *    ActionToOptions actionToOptions();
+ *  class EditorFragmentArgs {
+ *    String getMessage();
  *  }
  * ```
  */
-class LightDirectionsClass(facet: AndroidFacet, modulePackage: String, navigationResource: ResourceItem, destination: NavDestinationData)
-  : SafeArgsLightBaseClass(facet, modulePackage, "Directions", navigationResource, destination)
-
+class LightArgsClass(facet: AndroidFacet, modulePackage: String, navigationResource: ResourceItem, fragment: NavFragmentData)
+  : SafeArgsLightBaseClass(facet, modulePackage, "Args", navigationResource, fragment.toDestination())

@@ -20,6 +20,8 @@
     <resolveScopeEnlarger implementation="com.android.tools.idea.nav.safeargs.finder.SafeArgsScopeEnlarger" />
     <java.shortNamesCache implementation="com.android.tools.idea.nav.safeargs.cache.DirectionsShortNamesCache"/>
     <java.elementFinder implementation="com.android.tools.idea.nav.safeargs.finder.DirectionsClassFinder"/>
+    <java.shortNamesCache implementation="com.android.tools.idea.nav.safeargs.cache.ArgsShortNamesCache"/>
+    <java.elementFinder implementation="com.android.tools.idea.nav.safeargs.finder.ArgsClassFinder"/>
   </extensions>
 
   <extensions defaultExtensionNs="org.jetbrains.kotlin">
