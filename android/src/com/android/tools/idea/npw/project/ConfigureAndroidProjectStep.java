@@ -62,6 +62,8 @@ import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.android.tools.idea.wizard.template.Template;
+import com.android.tools.idea.wizard.template.TemplateConstraint;
 import com.google.common.collect.Lists;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.HelpTooltip;
@@ -69,12 +71,14 @@ import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -200,12 +204,23 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   protected void onEntering() {
     FormFactor formFactor = getModel().formFactor.get();
     TemplateHandle templateHandle = getModel().renderTemplateHandle.getValueOrNull();
-    int minSdk = templateHandle == null ? formFactor.getMinOfflineApiLevel() : templateHandle.getMetadata().getMinSdk();
+    Template newTemplate = getModel().newRenderTemplate.getValueOrNull();
+    assert(templateHandle == null || newTemplate == null);
+
+    int minSdk = templateHandle == null
+      ? newTemplate == null ? formFactor.getMinOfflineApiLevel() : newTemplate.getMinSdk()
+      : templateHandle.getMetadata().getMinSdk();
 
     myFormFactorSdkControls.startDataLoading(formFactor, minSdk);
-    setTemplateThumbnail(templateHandle);
+    boolean isKotlinOnly;
+    if (newTemplate != null) {
+      setTemplateThumbnail(newTemplate);
+      isKotlinOnly = newTemplate.getConstraints().contains(TemplateConstraint.Kotlin);
+    } else {
+      setTemplateThumbnail(templateHandle);
+      isKotlinOnly = templateHandle != null && templateHandle.getMetadata().getConstraints().contains(KOTLIN);
+    }
 
-    boolean isKotlinOnly = templateHandle != null && templateHandle.getMetadata().getConstraints().contains(KOTLIN);
     myProjectLanguage.setEnabled(!isKotlinOnly);
     if (isKotlinOnly) {
       myProjectModel.getLanguage().setValue(Language.KOTLIN);
@@ -225,7 +240,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myInstallLicenseRequests.clear();
 
     myInstallRequests.addAll(myFormFactorSdkControls.getSdkInstallPackageList());
-    myInstallLicenseRequests.addAll(myInstallRequests.stream().map(UpdatablePackage::getRemote).collect(Collectors.toList()));
+    myInstallLicenseRequests.addAll(ContainerUtil.map(myInstallRequests, UpdatablePackage::getRemote));
   }
 
   @Override
@@ -268,20 +283,29 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   }
 
   private void setTemplateThumbnail(@Nullable TemplateHandle templateHandle) {
+    setTemplateThumbnail(
+      ActivityGallery.getTemplateIcon(templateHandle),
+      ActivityGallery.getTemplateImageLabel(templateHandle),
+      ActivityGallery.getTemplateDescription(templateHandle)
+    );
+  }
+
+  private void setTemplateThumbnail(@NotNull Template template) {
+    setTemplateThumbnail(ActivityGallery.getTemplateIcon(template), template.getName(), template.getDescription());
+  }
+
+  private void setTemplateThumbnail(@Nullable TemplateIcon defaultIcon, @NotNull String name, @NotNull String description) {
     boolean isCppTemplate = myProjectModel.getEnableCppSupport().get();
-    TemplateIcon icon = isCppTemplate ? getCppIcon() : ActivityGallery.getTemplateIcon(templateHandle);
+    TemplateIcon icon = isCppTemplate ? getCppIcon() : defaultIcon;
     if (icon != null) {
       icon.cropBlankWidth();
       icon.setHeight(256);
       myTemplateIconTitle.setIcon(icon);
-      myTemplateIconTitle.setText(isCppTemplate
-                                  ? message("android.wizard.gallery.item.add.cpp")
-                                  : ActivityGallery.getTemplateImageLabel(templateHandle));
+      myTemplateIconTitle.setText(isCppTemplate ? message("android.wizard.gallery.item.add.cpp") : name);
 
-      String description = isCppTemplate
-                           ? message("android.wizard.gallery.item.add.cpp.Desc")
-                           : ActivityGallery.getTemplateDescription(templateHandle);
-      myTemplateIconDetail.setText("<html>" + description + "</html>");
+      myTemplateIconDetail.setText(
+        "<html>" + (isCppTemplate ? message("android.wizard.gallery.item.add.cpp.Desc") : description) + "</html>"
+      );
     }
     myTemplateIconTitle.setVisible(icon != null);
     myTemplateIconDetail.setVisible(icon != null);
@@ -292,7 +316,15 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     boolean isAndroidxApi = androidVersion != null && androidVersion.getMinApiLevel() >= Q; // No more app-compat after Q
 
     TemplateHandle templateHandle = getModel().renderTemplateHandle.getValueOrNull();
-    boolean hasAndroidxConstraint = templateHandle != null && templateHandle.getMetadata().getConstraints().contains(ANDROIDX);
+    Template newTemplate = getModel().newRenderTemplate.getValueOrNull();
+    assert(templateHandle == null || newTemplate == null);
+
+    boolean hasAndroidxConstraint;
+    if (newTemplate != null) {
+      hasAndroidxConstraint = newTemplate.getConstraints().contains(TemplateConstraint.AndroidX);
+    } else {
+      hasAndroidxConstraint = templateHandle != null && templateHandle.getMetadata().getConstraints().contains(ANDROIDX);
+    }
 
     if (isAndroidxApi || hasAndroidxConstraint) {
       myAppCompatCheck.setSelected(false);
