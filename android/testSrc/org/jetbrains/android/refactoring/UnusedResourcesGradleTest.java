@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.refactoring;
 
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -53,7 +54,7 @@ public class UnusedResourcesGradleTest extends AndroidGradleTestCase {
                  "  buildToolsVersion '" + CURRENT_BUILD_TOOLS_VERSION + "'\n" +
                  "\n" +
                  "  defaultConfig {\n" +
-                 "    minSdkVersion 15\n" +
+                 "    minSdkVersion " + SdkVersionInfo.LOWEST_ACTIVE_API + "\n" +
                  "    targetSdkVersion " + GradleImport.CURRENT_COMPILE_VERSION + "\n" +
                  "    applicationId 'com.example.android.app'\n" +
                  "  }\n" +

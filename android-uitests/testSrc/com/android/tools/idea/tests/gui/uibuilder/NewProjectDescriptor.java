@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import static com.android.tools.idea.npw.platform.Language.JAVA;
 
+import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 class NewProjectDescriptor {
   private String myActivity = "MainActivity";
   private String myPkg = "com.android.test.app";
-  private int myMinSdkApi = 15;
+  private int myMinSdkApi = SdkVersionInfo.LOWEST_ACTIVE_API;
   private String myName = "TestProject";
   private String myDomain = "com.android";
 
