@@ -124,5 +124,8 @@ iml_module(
         "//tools/idea/.idea/libraries:protobuf[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/idea/platform/core-api:intellij.platform.core[module, test]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
+        "//tools/idea/platform/core-impl:intellij.platform.core.impl[module]",
     ],
 )
