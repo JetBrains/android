@@ -21,6 +21,7 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.BuildListener
 import com.android.tools.idea.common.util.setupBuildListener
@@ -33,6 +34,7 @@ import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
@@ -151,6 +153,7 @@ class CustomViewPreviewRepresentation(
       }
     }.build().apply {
       setScreenMode(SceneMode.RESIZABLE_PREVIEW, false)
+      activate()
     }
 
   private val actionsToolbar = ActionsToolbar(this@CustomViewPreviewRepresentation, surface)
@@ -266,41 +269,53 @@ class CustomViewPreviewRepresentation(
     updateModel()
   }
 
+  private var configurationListener = ConfigurationListener { true }
+
+  private fun createConfigurationListener(configuration: Configuration, className: String) = ConfigurationListener { flags ->
+    if ((flags and ConfigurationListener.CFG_DEVICE_STATE) == ConfigurationListener.CFG_DEVICE_STATE) {
+      val screen = configuration.device!!.defaultHardware.screen
+      persistenceManager.setValues(
+        dimensionsPropertyNameForClass(className), arrayOf("${screen.xDimension}", "${screen.yDimension}"))
+    }
+    true
+  }
+
   private fun updateModel() {
-    surface.deactivate()
-    surface.models.forEach { surface.removeModel(it) }
-    surface.zoomToFit()
     val selectedClass = classes.firstOrNull { fqcn2name(it) == currentView }
     selectedClass?.let {
-      val customPreviewXml = CustomViewLightVirtualFile("custom_preview.xml", getXmlLayout(selectedClass, shrinkWidth, shrinkHeight))
+      val fileContent = getXmlLayout(selectedClass, shrinkWidth, shrinkHeight)
       val facet = AndroidFacet.getInstance(psiFile)!!
       val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
-      val configuration = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
       val className = fqcn2name(selectedClass)
+
+      val model = if (surface.models.isEmpty()) {
+        val customPreviewXml = CustomViewLightVirtualFile("custom_preview.xml", fileContent)
+        val config = Configuration.create(configurationManager, null, FolderConfiguration.createDefault())
+        NlModel.create(this@CustomViewPreviewRepresentation,
+                       className,
+                       facet,
+                       customPreviewXml,
+                       config,
+                       surface.componentRegistrar,
+                       BiFunction { project, _ -> AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile })
+      } else {
+        surface.models.first().let { model ->
+          (surface.getSceneManager(model) as LayoutlibSceneManager).forceReinflate()
+          model.configuration.removeListener(configurationListener)
+          model.updateFileContentBlocking(fileContent)
+        }
+      }
+      val configuration = model.configuration
 
       // Load and set preview size if exists for this custom view
       persistenceManager.getValues(dimensionsPropertyNameForClass(className))?.let { previewDimensions ->
         updateConfigurationScreenSize(configuration, previewDimensions[0].toInt(), previewDimensions[1].toInt(), configuration.device)
       }
 
-      val model = NlModel.create(this@CustomViewPreviewRepresentation,
-                                 className,
-                                 facet,
-                                 customPreviewXml,
-                                 configuration,
-                                 surface.componentRegistrar,
-                                 BiFunction { project, _ -> AndroidPsiUtils.getPsiFileSafely(project, customPreviewXml) as XmlFile })
       surface.addModel(model).whenComplete { _, ex ->
         surface.zoomToFit()
-        surface.activate()
-        configuration.addListener { flags ->
-          if ((flags and ConfigurationListener.CFG_DEVICE_STATE) == ConfigurationListener.CFG_DEVICE_STATE) {
-            val screen = configuration.device!!.defaultHardware.screen
-            persistenceManager.setValues(
-              dimensionsPropertyNameForClass(className), arrayOf("${screen.xDimension}", "${screen.yDimension}"))
-          }
-          true
-        }
+        configurationListener = createConfigurationListener(configuration, className)
+        configuration.addListener(configurationListener)
 
         if (ex != null) {
           Logger.getInstance(CustomViewPreviewRepresentation::class.java).warn(ex)
