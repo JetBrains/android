@@ -26,6 +26,7 @@ import com.intellij.openapi.ui.Queryable;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,12 +69,7 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
 
   @Nullable
   static IdeaSourceProvider getSourceProvider(@NotNull AndroidFacet facet, @NotNull PsiFile file) {
-    for (IdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(facet)) {
-      if (file.getVirtualFile().equals(provider.getManifestFile())) {
-        return provider;
-      }
-    }
-    return null;
+    return IdeaSourceProviderUtil.findByFile(AndroidProjectViewPane.getSourceProviders(facet), file.getVirtualFile());
   }
 
   @Override

@@ -53,7 +53,7 @@ fun getSourceProvidersForFile(
       // Add source providers that contain the file (if any) and any that have files under the given folder
       SourceProviderManager.getInstance(facet).allSourceProviders
         .filter { provider ->
-          containsFile(provider, targetFolder) || provider.isContainedBy(targetFolder)
+          provider.containsFile(targetFolder) || provider.isContainedBy(targetFolder)
         }
         .takeUnless { it.isEmpty() }
     }
