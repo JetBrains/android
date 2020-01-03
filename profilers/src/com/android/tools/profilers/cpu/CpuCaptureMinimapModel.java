@@ -15,9 +15,17 @@
  */
 package com.android.tools.profilers.cpu;
 
+import com.android.tools.adtui.model.DataSeries;
+import com.android.tools.adtui.model.DurationDataModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionModel;
+import com.android.tools.adtui.model.RangedSeries;
+import com.android.tools.adtui.model.SeriesData;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.StudioProfilers;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -43,6 +51,23 @@ public class CpuCaptureMinimapModel {
 
     // Set initial selection to the entire capture range.
     myRangeSelectionModel = new RangeSelectionModel(selectionRange);
+    // Confine selection to the capture range.
+    myRangeSelectionModel.addConstraint(new DurationDataModel<>(new RangedSeries<>(myCaptureRange, new DataSeries<CpuTraceInfo>() {
+      @Override
+      public List<SeriesData<CpuTraceInfo>> getDataForRange(Range range) {
+        // An ad-hoc data series with just the current capture.
+        List<SeriesData<CpuTraceInfo>> seriesData = new ArrayList<>();
+        if (!myCaptureRange.getIntersection(range).isEmpty()) {
+          CpuTraceInfo traceInfo = new CpuTraceInfo(
+            Cpu.CpuTraceInfo.newBuilder()
+              .setFromTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myCaptureRange.getMin()))
+              .setToTimestamp(TimeUnit.MICROSECONDS.toNanos((long)myCaptureRange.getMax()))
+              .build());
+          seriesData.add(new SeriesData<>((long)traceInfo.getRange().getMin(), traceInfo));
+        }
+        return seriesData;
+      }
+    })));
     myRangeSelectionModel.set(myCaptureRange.getMin(), myCaptureRange.getMax());
   }
 
