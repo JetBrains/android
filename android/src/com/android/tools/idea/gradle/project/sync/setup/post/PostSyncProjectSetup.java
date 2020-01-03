@@ -93,6 +93,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -210,7 +211,8 @@ public class PostSyncProjectSetup {
       }
 
       if (StudioFlags.RECOMMENDATION_ENABLED.get()) {
-        MemorySettingsPostSyncChecker.checkSettings(myProject, new TimeBasedMemorySettingsCheckerReminder());
+        MemorySettingsPostSyncChecker
+          .checkSettings(myProject, new TimeBasedReminder(myProject, "memory.settings.postsync", TimeUnit.DAYS.toMillis(1)));
       }
 
       new ProjectStructureUsageTracker(myProject).trackProjectStructure();
