@@ -24,4 +24,8 @@ class SourceProvidersImpl(
 
   @Suppress("OverridingDeprecatedMember")
   override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
-) : SourceProviders
+) : SourceProviders {
+  override val sources: IdeaSourceProvider = createMergedSourceProvider(currentSourceProviders)
+  override val unitTestSources: IdeaSourceProvider = createMergedSourceProvider(currentUnitTestSourceProviders)
+  override val androidTestSources: IdeaSourceProvider = createMergedSourceProvider(currentAndroidTestSourceProviders)
+}

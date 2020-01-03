@@ -39,8 +39,35 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 interface SourceProviders {
 
+  /**
+   * Returns the source provider for all production sources in the currently selected variant in the overlay order.
+   */
+  val sources: IdeaSourceProvider
+
+  /**
+   * Returns the source provider for all unit test sources in the currently selected variant in the overlay order.
+   */
+  val unitTestSources: IdeaSourceProvider
+
+  /**
+   * Returns the source provider for all android test sources in the currently selected variant in the overlay order.
+   */
+  val androidTestSources: IdeaSourceProvider
+
+  /**
+   * The first in the overlay order [NamedIdeaSourceProvider].
+   *
+   * Note: This source provider does not necessarily include all the source code required to build the module. Consider using [sources]
+   *       source provider which includes all the production source files.
+   */
   val mainIdeaSourceProvider: NamedIdeaSourceProvider
 
+  /**
+   * The main manifest file of the module.
+   *
+   * Note: A module may have multiple manifest files which are merged by the build process. Consider using [MergedManifestManager] APIs to
+   *       look up data in the merged manifest.
+   */
   val mainManifestFile: VirtualFile? get() = mainIdeaSourceProvider.manifestFile
 
   /**
@@ -48,6 +75,8 @@ interface SourceProviders {
    * override earlier providers when they redefine resources) for the currently selected variant.
    *
    * The overlay source order is defined by the underlying build system.
+   *
+   * Note: [sources] source provider represents the same set of source files in a merged form.
    */
   val currentSourceProviders: List<NamedIdeaSourceProvider>
 
@@ -56,6 +85,8 @@ interface SourceProviders {
    * precedence order.
    *
    * @see currentSourceProviders
+   *
+   * Note: [testSources] source provider represents the same set of source files in a merged form.
    */
   val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
 
@@ -104,6 +135,12 @@ interface SourceProviders {
     @JvmStatic
     fun replaceForTest(facet: AndroidFacet, disposable: Disposable, sourceSet: NamedIdeaSourceProvider) {
       facet.putUserData(KEY, object: SourceProviders {
+        override val sources: IdeaSourceProvider
+          get() = sourceSet
+        override val unitTestSources: IdeaSourceProvider
+          get() = throw UnsupportedOperationException()
+        override val androidTestSources: IdeaSourceProvider
+          get() = throw UnsupportedOperationException()
         override val currentSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
@@ -131,6 +168,12 @@ interface SourceProviders {
     @JvmStatic
     fun replaceForTest(facet: AndroidFacet, disposable: Disposable, manifestFile: VirtualFile?) {
       facet.putUserData(KEY, object: SourceProviders {
+        override val sources: IdeaSourceProvider
+          get() = throw UnsupportedOperationException()
+        override val unitTestSources: IdeaSourceProvider
+          get() = throw UnsupportedOperationException()
+        override val androidTestSources: IdeaSourceProvider
+          get() = throw UnsupportedOperationException()
         override val currentSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
@@ -212,3 +255,18 @@ private class SourceProviderManagerComponent(val project: Project) : ProjectComp
     connection.disconnect()
   }
 }
+
+fun createMergedSourceProvider(providers: List<NamedIdeaSourceProvider>): IdeaSourceProvider =
+  IdeaSourceProviderImpl(
+    manifestFileUrls = providers.map { it.manifestFileUrl },
+    manifestDirectoryUrls = providers.map { it.manifestDirectoryUrl },
+    javaDirectoryUrls = providers.flatMap { it.javaDirectoryUrls },
+    resourcesDirectoryUrls = providers.flatMap { it.resourcesDirectoryUrls },
+    aidlDirectoryUrls = providers.flatMap { it.aidlDirectoryUrls },
+    renderscriptDirectoryUrls = providers.flatMap { it.renderscriptDirectoryUrls },
+    jniDirectoryUrls = providers.flatMap { it.jniDirectoryUrls },
+    jniLibsDirectoryUrls = providers.flatMap { it.jniLibsDirectoryUrls },
+    resDirectoryUrls = providers.flatMap { it.resDirectoryUrls },
+    assetsDirectoryUrls = providers.flatMap { it.assetsDirectoryUrls },
+    shadersDirectoryUrls = providers.flatMap { it.shadersDirectoryUrls }
+  )

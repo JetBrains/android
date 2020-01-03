@@ -46,18 +46,18 @@ fun IdeaSourceProvider.containsFile(file: VirtualFile): Boolean {
 fun <T: IdeaSourceProvider> Iterable<T>.findByFile(file: VirtualFile): T? = firstOrNull { it.containsFile(file) }
 
 fun isTestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
-  return SourceProviderManager.getInstance(facet).currentUnitTestSourceProviders.any { it.containsFile(candidate) } ||
-         SourceProviderManager.getInstance(facet).currentAndroidTestSourceProviders.any { it.containsFile(candidate) }
+  return SourceProviderManager.getInstance(facet).unitTestSources.containsFile(candidate) ||
+         SourceProviderManager.getInstance(facet).androidTestSources.containsFile(candidate)
 }
 
 /** Returns true if the given candidate file is a manifest file in the given module  */
 fun isManifestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
-  return SourceProviderManager.getInstance(facet).currentSourceProviders.any { candidate == it.manifestFile }
+  return SourceProviderManager.getInstance(facet).sources.manifestFiles.contains(candidate)
 }
 
 /** Returns the manifest files in the given module  */
 fun getManifestFiles(facet: AndroidFacet): List<VirtualFile> {
-  return SourceProviderManager.getInstance(facet).currentSourceProviders.mapNotNull { it.manifestFile }
+  return SourceProviderManager.getInstance(facet).sources.manifestFiles.toList()
 }
 
 val IdeaSourceProvider.allSourceFolders: Sequence<VirtualFile>
