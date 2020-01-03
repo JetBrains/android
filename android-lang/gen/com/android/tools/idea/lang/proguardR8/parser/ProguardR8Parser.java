@@ -635,26 +635,26 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
 
   /* ********************************************************** */
   // "!"?(FILE_NAME|SINGLE_QUOTED_STRING|DOUBLE_QUOTED_STRING|UNTERMINATED_SINGLE_QUOTED_STRING|UNTERMINATED_DOUBLE_QUOTED_STRING|ASTERISK)
-  static boolean file_(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "file_")) return false;
+  public static boolean file(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "file")) return false;
     boolean result;
-    Marker marker = enter_section_(builder);
-    result = file__0(builder, level + 1);
-    result = result && file__1(builder, level + 1);
-    exit_section_(builder, marker, null, result);
+    Marker marker = enter_section_(builder, level, _NONE_, FILE, "<file>");
+    result = file_0(builder, level + 1);
+    result = result && file_1(builder, level + 1);
+    exit_section_(builder, level, marker, result, false, null);
     return result;
   }
 
   // "!"?
-  private static boolean file__0(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "file__0")) return false;
+  private static boolean file_0(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "file_0")) return false;
     consumeToken(builder, EM);
     return true;
   }
 
   // FILE_NAME|SINGLE_QUOTED_STRING|DOUBLE_QUOTED_STRING|UNTERMINATED_SINGLE_QUOTED_STRING|UNTERMINATED_DOUBLE_QUOTED_STRING|ASTERISK
-  private static boolean file__1(PsiBuilder builder, int level) {
-    if (!recursion_guard_(builder, level, "file__1")) return false;
+  private static boolean file_1(PsiBuilder builder, int level) {
+    if (!recursion_guard_(builder, level, "file_1")) return false;
     boolean result;
     result = consumeToken(builder, FILE_NAME);
     if (!result) result = consumeToken(builder, SINGLE_QUOTED_STRING);
@@ -700,18 +700,18 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // file_ ((':'|';') file_)*
+  // file ((':'|';') file)*
   static boolean file_list(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "file_list")) return false;
     boolean result;
     Marker marker = enter_section_(builder);
-    result = file_(builder, level + 1);
+    result = file(builder, level + 1);
     result = result && file_list_1(builder, level + 1);
     exit_section_(builder, marker, null, result);
     return result;
   }
 
-  // ((':'|';') file_)*
+  // ((':'|';') file)*
   private static boolean file_list_1(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "file_list_1")) return false;
     while (true) {
@@ -722,13 +722,13 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
     return true;
   }
 
-  // (':'|';') file_
+  // (':'|';') file
   private static boolean file_list_1_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "file_list_1_0")) return false;
     boolean result;
     Marker marker = enter_section_(builder);
     result = file_list_1_0_0(builder, level + 1);
-    result = result && file_(builder, level + 1);
+    result = result && file(builder, level + 1);
     exit_section_(builder, marker, null, result);
     return result;
   }
@@ -813,14 +813,14 @@ public class ProguardR8Parser implements PsiParser, LightPsiParser {
   }
 
   /* ********************************************************** */
-  // '@' file_
+  // '@' file
   public static boolean include_file(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "include_file")) return false;
     boolean result, pinned;
     Marker marker = enter_section_(builder, level, _NONE_, INCLUDE_FILE, "<include file>");
     result = consumeToken(builder, AT);
     pinned = result; // pin = 1
-    result = result && file_(builder, level + 1);
+    result = result && file(builder, level + 1);
     exit_section_(builder, level, marker, result, pinned, ProguardR8Parser::not_flag);
     return result || pinned;
   }

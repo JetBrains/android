@@ -30,6 +30,8 @@ import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiReference
 import com.intellij.psi.PsiType
 import com.intellij.psi.impl.source.PsiClassReferenceType
+import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReference
+import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReferenceSet
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.JavaClassReferenceProvider
 import com.intellij.psi.impl.source.resolve.reference.impl.providers.JavaClassReferenceSet
 import com.intellij.psi.impl.source.tree.CompositeElement
@@ -87,14 +89,14 @@ fun resolveToPsiClass(className: ProguardR8QualifiedName): PsiClass? {
  * Example: for "-keep myClass1, myClass2 extends myClass3" returns "myClass1", "myClass2"
  */
 fun resolvePsiClasses(classSpecificationHeader: ProguardR8ClassSpecificationHeader): List<PsiClass> {
-  return classSpecificationHeader.classNameList.mapNotNull { it.qualifiedName?.resolveToPsiClass() }
+  return classSpecificationHeader.classNameList.mapNotNull { it.qualifiedName.resolveToPsiClass() }
 }
 
 /**
  * Returns classes in header that specified after "extends"/"implements" key words.
  */
 fun resolveSuperPsiClasses(classSpecificationHeader: ProguardR8ClassSpecificationHeader): List<PsiClass> {
-  return classSpecificationHeader.superClassNameList.mapNotNull { it.qualifiedName?.resolveToPsiClass() }
+  return classSpecificationHeader.superClassNameList.mapNotNull { it.qualifiedName.resolveToPsiClass() }
 }
 
 fun getPsiPrimitive(proguardR8JavaPrimitive: ProguardR8JavaPrimitive): PsiPrimitiveType? {
@@ -219,3 +221,20 @@ fun toPsiModifier(modifier: ProguardR8Modifier) = when {
 }
 
 fun getType(fullyQualifiedNameConstructor: ProguardR8FullyQualifiedNameConstructor): ProguardR8Type? = null
+
+fun isQuoted(file: ProguardR8File): Boolean {
+  return file.singleQuotedString != null ||
+         file.unterminatedSingleQuotedString != null ||
+         file.doubleQuotedString != null ||
+         file.unterminatedDoubleQuotedString != null
+}
+
+fun getReferences(file: ProguardR8File): Array<FileReference> {
+  return if (file.isQuoted) {
+    val lastIndex = if (file.singleQuotedString != null || file.doubleQuotedString != null) file.text.length - 1 else file.text.length
+    FileReferenceSet(file.text.substring(1, lastIndex), file, 1, null, true).allReferences
+  }
+  else {
+    FileReferenceSet(file).allReferences
+  }
+}

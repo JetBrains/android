@@ -66,7 +66,7 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
     var keys = myFixture.completeBasic()
 
     // don't appear outside class specification header
-    assertThat(keys).isEmpty()
+    assertThat(keys.map { it.lookupString }.toList()).containsNoneOf("class", "interface", "enum")
 
     myFixture.configureByText(ProguardR8FileType.INSTANCE, """
         -keep $caret
@@ -76,7 +76,7 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
 
     // after keep flags
     assertThat(keys).isNotEmpty()
-    assertThat(keys.map { it.lookupString }.toList()).containsExactly("class", "interface", "enum")
+    assertThat(keys.map { it.lookupString }.toList()).containsAllOf("class", "interface", "enum")
 
 
     myFixture.configureByText(ProguardR8FileType.INSTANCE, """
@@ -87,7 +87,7 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
 
     // after if flag
     assertThat(keys).isNotEmpty()
-    assertThat(keys.map { it.lookupString }.toList()).containsExactly("class", "interface", "enum")
+    assertThat(keys.map { it.lookupString }.toList()).containsAllOf("class", "interface", "enum")
   }
 
 

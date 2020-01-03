@@ -40,6 +40,7 @@ public interface ProguardR8PsiTypes {
   IElementType CONSTRUCTOR_NAME = new ProguardR8AstNodeType("CONSTRUCTOR_NAME");
   IElementType FIELD = new ProguardR8AstNodeType("FIELD");
   IElementType FIELDS_SPECIFICATION = new ProguardR8AstNodeType("FIELDS_SPECIFICATION");
+  IElementType FILE = new ProguardR8AstNodeType("FILE");
   IElementType FILE_FILTER = new ProguardR8AstNodeType("FILE_FILTER");
   IElementType FLAG = new ProguardR8AstNodeType("FLAG");
   IElementType FLAG_ARGUMENT = new ProguardR8AstNodeType("FLAG_ARGUMENT");
@@ -174,6 +175,9 @@ public interface ProguardR8PsiTypes {
       }
       else if (type == FIELDS_SPECIFICATION) {
         return new ProguardR8FieldsSpecificationImpl(node);
+      }
+      else if (type == FILE) {
+        return new ProguardR8FileImpl(node);
       }
       else if (type == FILE_FILTER) {
         return new ProguardR8FileFilterImpl(node);

@@ -21,10 +21,28 @@ package com.android.tools.idea.lang.proguardR8.psi;
 import java.util.List;
 import org.jetbrains.annotations.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.impl.source.resolve.reference.impl.providers.FileReference;
 
-public interface ProguardR8FileFilter extends PsiElement {
+public interface ProguardR8File extends PsiElement {
+
+  @Nullable
+  PsiElement getDoubleQuotedString();
+
+  @Nullable
+  PsiElement getFileName();
+
+  @Nullable
+  PsiElement getSingleQuotedString();
+
+  @Nullable
+  PsiElement getUnterminatedDoubleQuotedString();
+
+  @Nullable
+  PsiElement getUnterminatedSingleQuotedString();
 
   @NotNull
-  List<ProguardR8File> getFileList();
+  FileReference[] getReferences();
+
+  boolean isQuoted();
 
 }
