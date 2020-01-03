@@ -42,6 +42,7 @@ import org.jetbrains.annotations.NotNull;
 public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
   private final StudioProfilersView myProfilersView;
   private final JPanel myCaptureDetailsPanel = new JPanel(new BorderLayout());
+  private CaptureDetailsView myActiveDetailsView;
 
   @NotNull
   private final ViewBinder<StudioProfilersView, CaptureDetails, CaptureDetailsView> myBinder;
@@ -70,8 +71,10 @@ public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
     FilterComponent filterComponent = buildFilterComponent();
     FilterComponent.configureKeyBindingAndFocusBehaviors(this, filterComponent, filterButton);
 
+    // Need to hold a hard reference to the capture details view otherwise soft dependencies get cleaned up.
+    myActiveDetailsView = myBinder.build(myProfilersView, getModel().createDetails());
     // Capture details view
-    myCaptureDetailsPanel.add(myBinder.build(myProfilersView, getModel().createDetails()).getComponent(), BorderLayout.CENTER);
+    myCaptureDetailsPanel.add(myActiveDetailsView.getComponent(), BorderLayout.CENTER);
 
     add(toolbar, new TabularLayout.Constraint(0, 0));
     add(filterComponent, new TabularLayout.Constraint(1, 0));
@@ -101,9 +104,9 @@ public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
       protected FilterResult applyFilter(@NotNull Filter filter) {
         CpuAnalysisChartModel.CaptureDetailsWithFilterResult results = getModel().applyFilterAndCreateDetails(filter);
         // Update capture details view.
-        CaptureDetailsView view = myBinder.build(myProfilersView, results.getCaptureDetails());
+        myActiveDetailsView = myBinder.build(myProfilersView, results.getCaptureDetails());
         myCaptureDetailsPanel.removeAll();
-        myCaptureDetailsPanel.add(view.getComponent(), BorderLayout.CENTER);
+        myCaptureDetailsPanel.add(myActiveDetailsView.getComponent(), BorderLayout.CENTER);
         // Return filter result.
         return results.getFilterResult();
       }
