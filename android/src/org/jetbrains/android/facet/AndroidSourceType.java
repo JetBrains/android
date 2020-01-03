@@ -17,7 +17,7 @@ package org.jetbrains.android.facet;
 
 import static java.util.Collections.emptyList;
 
-import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.google.common.collect.ImmutableList;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -58,18 +58,18 @@ public enum AndroidSourceType {
   ;
 
   private final String myName;
-  private final Function<IdeaSourceProvider, List<VirtualFile>> mySourceExtractor;
+  private final Function<NamedIdeaSourceProvider, List<VirtualFile>> mySourceExtractor;
   private final Icon myIcon;
   private final boolean myGenerated;
 
   AndroidSourceType(@NotNull String name,
-                    @Nullable Function<IdeaSourceProvider, List<VirtualFile>> sourceExtractor,
+                    @Nullable Function<NamedIdeaSourceProvider, List<VirtualFile>> sourceExtractor,
                     @NotNull Icon icon) {
     this(name, sourceExtractor, icon, false);
   }
 
   AndroidSourceType(@NotNull String name,
-                    @Nullable Function<IdeaSourceProvider, List<VirtualFile>> sourceExtractor,
+                    @Nullable Function<NamedIdeaSourceProvider, List<VirtualFile>> sourceExtractor,
                     @NotNull Icon icon,
                     boolean generated) {
     myName = name;
@@ -83,7 +83,7 @@ public enum AndroidSourceType {
   }
 
   @NotNull
-  public List<VirtualFile> getSources(IdeaSourceProvider provider) {
+  public List<VirtualFile> getSources(NamedIdeaSourceProvider provider) {
     if (mySourceExtractor == null) {
       return emptyList();
     }

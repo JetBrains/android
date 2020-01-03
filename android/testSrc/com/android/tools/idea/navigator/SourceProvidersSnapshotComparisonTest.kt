@@ -19,6 +19,7 @@ import com.android.builder.model.SourceProvider
 import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.SnapshotComparisonTest
@@ -179,27 +180,44 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
         }
       }
 
-      fun IdeaSourceProvider.dump() {
+      fun IdeaSourceProvider.commonDump() {
+        dumpUrls("AidlDirectoryUrls") { it.aidlDirectoryUrls }
+        dumpPaths("AidlDirectories") { it.aidlDirectories }
+        dumpUrls("AssetsDirectoryUrls") { it.assetsDirectoryUrls }
+        dumpPaths("AssetsDirectories") { it.assetsDirectories }
+        dumpUrls("JavaDirectoryUrls") { it.javaDirectoryUrls }
+        dumpPaths("JavaDirectories") { it.javaDirectories }
+        dumpUrls("JniLibsDirectoryUrls") { it.jniLibsDirectoryUrls }
+        dumpPaths("JniLibsDirectories") { it.jniLibsDirectories }
+        dumpUrls("RenderscriptDirectoryUrls") { it.renderscriptDirectoryUrls }
+        dumpPaths("RenderscriptDirectories") { it.renderscriptDirectories }
+        dumpUrls("ResDirectoryUrls") { it.resDirectoryUrls }
+        dumpPaths("ResDirectories") { it.resDirectories }
+        dumpUrls("ResourcesDirectoryUrls") { it.resourcesDirectoryUrls }
+        dumpPaths("ResourcesDirectories") { it.resourcesDirectories }
+        dumpUrls("ShadersDirectoryUrls") { it.shadersDirectoryUrls }
+        dumpPaths("ShadersDirectories") { it.shadersDirectories }
+      }
+
+      fun NamedIdeaSourceProvider.dump() {
         out("$name (IDEA)")
         nest {
           dumpUrls("ManifestUrl") { listOf(manifestFileUrl) }
           dumpPaths("Manifest") { listOfNotNull(manifestFile) }
-          dumpUrls("AidlDirectoryUrls") { it.aidlDirectoryUrls }
-          dumpPaths("AidlDirectories") { it.aidlDirectories }
-          dumpUrls("AssetsDirectoryUrls") { it.assetsDirectoryUrls }
-          dumpPaths("AssetsDirectories") { it.assetsDirectories }
-          dumpUrls("JavaDirectoryUrls") { it.javaDirectoryUrls }
-          dumpPaths("JavaDirectories") { it.javaDirectories }
-          dumpUrls("JniLibsDirectoryUrls") { it.jniLibsDirectoryUrls }
-          dumpPaths("JniLibsDirectories") { it.jniLibsDirectories }
-          dumpUrls("RenderscriptDirectoryUrls") { it.renderscriptDirectoryUrls }
-          dumpPaths("RenderscriptDirectories") { it.renderscriptDirectories }
-          dumpUrls("ResDirectoryUrls") { it.resDirectoryUrls }
-          dumpPaths("ResDirectories") { it.resDirectories }
-          dumpUrls("ResourcesDirectoryUrls") { it.resourcesDirectoryUrls }
-          dumpPaths("ResourcesDirectories") { it.resourcesDirectories }
-          dumpUrls("ShadersDirectoryUrls") { it.shadersDirectoryUrls }
-          dumpPaths("ShadersDirectories") { it.shadersDirectories }
+          dumpUrls("ManifestDirectoryUrl") { listOf(manifestDirectoryUrl) }
+          dumpPaths("ManifestDirectory") { listOfNotNull(manifestDirectory) }
+          commonDump()
+        }
+      }
+
+      fun IdeaSourceProvider.dump() {
+        out("$name (IDEA)")
+        nest {
+          dumpUrls("ManifestFileUrls") { it.manifestFileUrls }
+          dumpPaths("ManifestFiles") { it.manifestFiles }
+          dumpUrls("ManifestDirectoryUrls") { it.manifestDirectoryUrls }
+          dumpPaths("ManifestDirectories") { it.manifestDirectories }
+          commonDump()
         }
       }
 

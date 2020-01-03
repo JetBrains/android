@@ -30,7 +30,7 @@ class IdeaSourceProviderImplTest : AndroidTestCase() {
     val manifestFileUrl = manifestFile.url
     assume().that(VirtualFileManager.getInstance().findFileByUrl(manifestFileUrl)).isNotNull()
 
-    val ideaSourceProvider = IdeaSourceProviderBuilder.create("name", manifestFileUrl).build()
+    val ideaSourceProvider = NamedIdeaSourceProviderBuilder.create("name", manifestFileUrl).build()
     assertThat(ideaSourceProvider.manifestDirectory).isEqualTo(manifestDirectory)
   }
 
@@ -43,7 +43,7 @@ class IdeaSourceProviderImplTest : AndroidTestCase() {
     runWriteAction { manifestFile.delete(this) }
     assume().that(VirtualFileManager.getInstance().findFileByUrl(manifestFileUrl)).isNull()
 
-    val ideaSourceProvider = IdeaSourceProviderBuilder.create("name", manifestFileUrl).build()
+    val ideaSourceProvider = NamedIdeaSourceProviderBuilder.create("name", manifestFileUrl).build()
     assertThat(ideaSourceProvider.manifestDirectory).isEqualTo(manifestDirectory)
   }
 
@@ -56,7 +56,7 @@ class IdeaSourceProviderImplTest : AndroidTestCase() {
     runWriteAction { manifestFile.delete(this) }
     assume().that(VirtualFileManager.getInstance().findFileByUrl(manifestFileUrl)).isNull()
 
-    val ideaSourceProvider = IdeaSourceProviderBuilder.create("name", manifestFileUrl).build()
+    val ideaSourceProvider = NamedIdeaSourceProviderBuilder.create("name", manifestFileUrl).build()
     assertThat(ideaSourceProvider.containsFile(manifestDirectory)).isTrue()
   }
 }

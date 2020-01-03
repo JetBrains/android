@@ -28,6 +28,7 @@ import com.android.builder.model.SourceProvider;
 import com.android.tools.idea.npw.module.ModuleModelKt;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -157,9 +158,9 @@ public class GradleAndroidModuleTemplate implements AndroidModulePaths {
    * to instantiate an instance of this class.
    */
   @NotNull
-  private static Collection<IdeaSourceProvider> getSourceProviders(@NotNull AndroidFacet androidFacet,
+  private static Collection<NamedIdeaSourceProvider> getSourceProviders(@NotNull AndroidFacet androidFacet,
                                                                    @Nullable VirtualFile targetDirectory) {
-    List<IdeaSourceProvider> providersForFile = null;
+    List<NamedIdeaSourceProvider> providersForFile = null;
     if (targetDirectory != null) {
       providersForFile = getSourceProvidersForFile(androidFacet, targetDirectory);
     }
@@ -182,7 +183,7 @@ public class GradleAndroidModuleTemplate implements AndroidModulePaths {
       return Collections.emptyList();
     }
     List<NamedModuleTemplate> templates = Lists.newArrayList();
-    for (IdeaSourceProvider sourceProvider : getSourceProviders(facet, targetDirectory)) {
+    for (NamedIdeaSourceProvider sourceProvider : getSourceProviders(facet, targetDirectory)) {
       GradleAndroidModuleTemplate paths = new GradleAndroidModuleTemplate();
       VirtualFile[] roots = ModuleRootManager.getInstance(module).getContentRoots();
       if (roots.length > 0) {

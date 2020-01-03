@@ -21,6 +21,7 @@ import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.collect.MoreCollectors;
@@ -84,21 +85,21 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     assertNotNull(moduleFile);
 
     // Try finding main flavor
-    IdeaSourceProvider mainFlavorSourceProvider = SourceProviderManager.getInstance(myAppFacet).getMainIdeaSourceProvider();
+    NamedIdeaSourceProvider mainFlavorSourceProvider = SourceProviderManager.getInstance(myAppFacet).getMainIdeaSourceProvider();
     assertNotNull(mainFlavorSourceProvider);
 
     VirtualFile javaMainSrcFile = moduleFile.findFileByRelativePath("src/main/java/com/example/projectwithappandlib/");
     assertNotNull(javaMainSrcFile);
 
-    Collection<IdeaSourceProvider> providers = getSourceProvidersForFile(myAppFacet, javaMainSrcFile);
+    Collection<NamedIdeaSourceProvider> providers = getSourceProvidersForFile(myAppFacet, javaMainSrcFile);
     assertNotNull(providers);
     assertEquals(1, providers.size());
-    IdeaSourceProvider actualProvider = providers.iterator().next();
+    NamedIdeaSourceProvider actualProvider = providers.iterator().next();
     assertEquals(mainFlavorSourceProvider.getManifestFile(),
                  actualProvider.getManifestFile());
 
     // Try finding paid flavor
-    IdeaSourceProvider paidFlavorSourceProvider =
+    NamedIdeaSourceProvider paidFlavorSourceProvider =
       SourceProviderManager.getInstance(myAppFacet).getAllSourceProviders().stream()
         .filter(it -> it.getName().equalsIgnoreCase("paid")).collect(MoreCollectors.onlyElement());
 
@@ -113,7 +114,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
                  actualProvider.getManifestFile());
   }
 
-  public String getStringRepresentation(@NotNull IdeaSourceProvider sourceProvider, @Nullable VirtualFile baseFile) {
+  public String getStringRepresentation(@NotNull NamedIdeaSourceProvider sourceProvider, @Nullable VirtualFile baseFile) {
     StringBuilder sb = new StringBuilder();
     VirtualFile manifestFile = sourceProvider.getManifestFile();
     String manifestPath = null;

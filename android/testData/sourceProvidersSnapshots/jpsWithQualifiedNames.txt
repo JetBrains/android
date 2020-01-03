@@ -5,6 +5,10 @@ MODULE: MyApplication
                 file://./AndroidManifest.xml
             Manifest:
                 file://./AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://.
+            ManifestDirectory:
+                file://.
             AidlDirectoryUrls:
                 file://./gen
             AssetsDirectoryUrls:
@@ -30,6 +34,10 @@ MODULE: MyApplication
                     file://./AndroidManifest.xml
                 Manifest:
                     file://./AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://.
+                ManifestDirectory:
+                    file://.
                 AidlDirectoryUrls:
                     file://./gen
                 AssetsDirectoryUrls:
@@ -52,6 +60,10 @@ MODULE: MyApplication
                     file://./AndroidManifest.xml
                 Manifest:
                     file://./AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://.
+                ManifestDirectory:
+                    file://.
                 AidlDirectoryUrls:
                     file://./gen
                 AssetsDirectoryUrls:

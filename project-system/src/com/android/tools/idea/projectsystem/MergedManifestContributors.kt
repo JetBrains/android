@@ -65,7 +65,7 @@ fun AndroidFacet.getFlavorAndBuildTypeManifests(): List<VirtualFile> {
     // but the manifest merger expects *reverse* overlay order (earlier files take priority).
     .asReversed()
     .filter { it != defaultSourceProvider }
-    .mapNotNull(IdeaSourceProvider::manifestFile)
+    .mapNotNull(NamedIdeaSourceProvider::manifestFile)
 }
 
 fun AndroidFacet.getFlavorAndBuildTypeManifestsOfLibs(dependencies: List<AndroidFacet>): List<VirtualFile> {

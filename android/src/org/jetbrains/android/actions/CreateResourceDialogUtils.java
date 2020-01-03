@@ -19,6 +19,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.ui.ApiComboBoxItem;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
@@ -111,9 +112,9 @@ public class CreateResourceDialogUtils {
     // we're in here, so we default to always including the source set combo (if it's a Gradle project that is.)
     // TODO: Give an option for each 'res' directory within each source set. Eg: main/res1, main/res2.
     if (facet != null && AndroidModel.isRequired(facet) && AndroidModel.get(facet) != null) {
-      Collection<IdeaSourceProvider> providers = SourceProviderManager.getInstance(facet).getAllSourceProviders();
+      Collection<NamedIdeaSourceProvider> providers = SourceProviderManager.getInstance(facet).getAllSourceProviders();
       DefaultComboBoxModel model = new DefaultComboBoxModel();
-      for (IdeaSourceProvider sourceProvider : providers) {
+      for (NamedIdeaSourceProvider sourceProvider : providers) {
         //noinspection unchecked
         model.addElement(new ApiComboBoxItem(sourceProvider, sourceProvider.getName(), 0, 0));
       }

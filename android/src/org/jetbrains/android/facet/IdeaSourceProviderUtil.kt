@@ -26,7 +26,7 @@ import com.intellij.openapi.vfs.VirtualFile
  * the given folder.
  */
 fun IdeaSourceProvider.containsFile(file: VirtualFile): Boolean {
-  if (manifestFile == file || manifestDirectory == file) {
+  if (manifestFiles.contains(file) || manifestDirectories.contains(file)) {
     return true
   }
 
@@ -43,7 +43,7 @@ fun IdeaSourceProvider.containsFile(file: VirtualFile): Boolean {
   return false
 }
 
-fun Iterable<IdeaSourceProvider>.findByFile(file: VirtualFile): IdeaSourceProvider? = firstOrNull { it.containsFile(file) }
+fun <T: IdeaSourceProvider> Iterable<T>.findByFile(file: VirtualFile): T? = firstOrNull { it.containsFile(file) }
 
 fun isTestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
   return SourceProviderManager.getInstance(facet).currentUnitTestSourceProviders.any { it.containsFile(candidate) } ||

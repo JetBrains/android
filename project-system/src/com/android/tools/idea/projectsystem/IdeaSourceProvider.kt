@@ -18,23 +18,28 @@ package com.android.tools.idea.projectsystem
 import com.intellij.openapi.vfs.VirtualFile
 
 /**
- * Like [SourceProvider], but for IntelliJ, which means it provides
- * [VirtualFile] and IDEA's url references rather than [File] references.
+ * A provider representing all or a subset of the source code of a module grouped by source type (Java, resources, Android resources etc.)
  *
- * Note: VirtualFile versions may return fewer items or a null manifest where the url versions return a non-empty url(s) if the file
- * referred to does not exist in the VFS.
+ * Each category is represented by a pair of collections: a collection of IDEA file urls (see [VirtualFile.getUrl]) and a collection of
+ * [VirtualFile]'s. The first one represents all the configured files/directories including those that do not exist in the file system and
+ * the second one is a subset that exists in the virtual file system.
  *
- * @see VirtualFile.getUrl
+ * Items in the collections are ordered in the overlay order. (The exact overlaying/merging rules are source type specific).
  */
 interface IdeaSourceProvider {
+  val manifestFileUrls: Collection<String>
+  val manifestFiles: Collection<VirtualFile>
 
-  val name: String
+  /**
+   * Parent directory urls of the manifest files listed in [manifestFileUrls].
+   */
+  val manifestDirectoryUrls: Collection<String>
 
-  val manifestFileUrl: String
-  val manifestFile: VirtualFile?
-
-  val manifestDirectoryUrl: String
-  val manifestDirectory: VirtualFile?
+  /**
+   * Existing in the file system parent directories of the manifest files listed in [manifestFileUrls] including files which themselves
+   * do not exist in the file system.
+   */
+  val manifestDirectories: Collection<VirtualFile>
 
   val javaDirectoryUrls: Collection<String>
   val javaDirectories: Collection<VirtualFile>
@@ -62,4 +67,45 @@ interface IdeaSourceProvider {
 
   val shadersDirectoryUrls: Collection<String>
   val shadersDirectories: Collection<VirtualFile>
+}
+
+/**
+ * A named source provider that represents a subset of the source code of a module with a single manifest file (which may exist or not in
+ * the file system).
+ *
+ * Note: [NamedIdeaSourceProvider] is currently used to represent Gradle source sets and will likely be made private to Gradle related
+ * Android Studio modules.
+ */
+interface NamedIdeaSourceProvider : IdeaSourceProvider {
+  val name: String
+
+  val manifestFileUrl: String
+  val manifestFile: VirtualFile?
+
+  val manifestDirectoryUrl: String
+  val manifestDirectory: VirtualFile?
+
+  /**
+   * A singleton list of [manifestFileUrl].
+   */
+  override val manifestFileUrls: Collection<String>
+    get() = listOf(manifestFileUrl)
+
+  /**
+   * A singleton list of [manifestFile] or the empty list if [manifestFile] is null.
+   */
+  override val manifestFiles: Collection<VirtualFile>
+    get() = listOfNotNull(manifestFile)
+
+  /**
+   * A singleton list of [manifestDirectoryUrl].
+   */
+  override val manifestDirectoryUrls: Collection<String>
+    get() = listOf(manifestDirectoryUrl)
+
+  /**
+   * A singleton list of [manifestDirectory] or the empty list if [manifestDirectory] is null.
+   */
+  override val manifestDirectories: Collection<VirtualFile>
+    get() = listOfNotNull(manifestDirectory)
 }

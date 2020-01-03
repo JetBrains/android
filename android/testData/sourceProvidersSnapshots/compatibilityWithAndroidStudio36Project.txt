@@ -6,6 +6,10 @@ MODULE: android_library
                 file://./libs/android_library/src/main/AndroidManifest.xml
             Manifest:
                 file://./libs/android_library/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./libs/android_library/src/main
+            ManifestDirectory:
+                file://./libs/android_library/src/main
             AidlDirectoryUrls:
                 file://./libs/android_library/src/main/aidl
             AssetsDirectoryUrls:
@@ -270,6 +274,10 @@ MODULE: android_library
                     file://./libs/android_library/src/main/AndroidManifest.xml
                 Manifest:
                     file://./libs/android_library/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./libs/android_library/src/main
+                ManifestDirectory:
+                    file://./libs/android_library/src/main
                 AidlDirectoryUrls:
                     file://./libs/android_library/src/main/aidl
                 AssetsDirectoryUrls:
@@ -293,6 +301,8 @@ MODULE: android_library
             debug (IDEA)
                 ManifestUrl:
                     file://./libs/android_library/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./libs/android_library/src/debug
                 AidlDirectoryUrls:
                     file://./libs/android_library/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -312,6 +322,8 @@ MODULE: android_library
             release (IDEA)
                 ManifestUrl:
                     file://./libs/android_library/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./libs/android_library/src/release
                 AidlDirectoryUrls:
                     file://./libs/android_library/src/release/aidl
                 AssetsDirectoryUrls:
@@ -334,6 +346,10 @@ MODULE: android_library
                     file://./libs/android_library/src/main/AndroidManifest.xml
                 Manifest:
                     file://./libs/android_library/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./libs/android_library/src/main
+                ManifestDirectory:
+                    file://./libs/android_library/src/main
                 AidlDirectoryUrls:
                     file://./libs/android_library/src/main/aidl
                 AssetsDirectoryUrls:
@@ -357,6 +373,8 @@ MODULE: android_library
             debug (IDEA)
                 ManifestUrl:
                     file://./libs/android_library/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./libs/android_library/src/debug
                 AidlDirectoryUrls:
                     file://./libs/android_library/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -377,6 +395,10 @@ MODULE: android_library
             test (IDEA)
                 ManifestUrl:
                     file://./libs/android_library/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./libs/android_library/src/test
+                ManifestDirectory:
+                    file://./libs/android_library/src/test
                 AidlDirectoryUrls:
                     file://./libs/android_library/src/test/aidl
                 AssetsDirectoryUrls:
@@ -398,6 +420,8 @@ MODULE: android_library
             testDebug (IDEA)
                 ManifestUrl:
                     file://./libs/android_library/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./libs/android_library/src/testDebug
                 AidlDirectoryUrls:
                     file://./libs/android_library/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -418,6 +442,10 @@ MODULE: android_library
             androidTest (IDEA)
                 ManifestUrl:
                     file://./libs/android_library/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./libs/android_library/src/androidTest
+                ManifestDirectory:
+                    file://./libs/android_library/src/androidTest
                 AidlDirectoryUrls:
                     file://./libs/android_library/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -439,6 +467,8 @@ MODULE: android_library
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./libs/android_library/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./libs/android_library/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./libs/android_library/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
@@ -462,6 +492,10 @@ MODULE: app
                 file://./app/src/main/AndroidManifest.xml
             Manifest:
                 file://./app/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./app/src/main
+            ManifestDirectory:
+                file://./app/src/main
             AidlDirectoryUrls:
                 file://./app/src/main/aidl
             AssetsDirectoryUrls:
@@ -726,6 +760,10 @@ MODULE: app
                     file://./app/src/main/AndroidManifest.xml
                 Manifest:
                     file://./app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/main
+                ManifestDirectory:
+                    file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
                 AssetsDirectoryUrls:
@@ -749,6 +787,8 @@ MODULE: app
             debug (IDEA)
                 ManifestUrl:
                     file://./app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -768,6 +808,8 @@ MODULE: app
             release (IDEA)
                 ManifestUrl:
                     file://./app/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/release
                 AidlDirectoryUrls:
                     file://./app/src/release/aidl
                 AssetsDirectoryUrls:
@@ -790,6 +832,10 @@ MODULE: app
                     file://./app/src/main/AndroidManifest.xml
                 Manifest:
                     file://./app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/main
+                ManifestDirectory:
+                    file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
                 AssetsDirectoryUrls:
@@ -813,6 +859,8 @@ MODULE: app
             debug (IDEA)
                 ManifestUrl:
                     file://./app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -833,6 +881,10 @@ MODULE: app
             test (IDEA)
                 ManifestUrl:
                     file://./app/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/test
+                ManifestDirectory:
+                    file://./app/src/test
                 AidlDirectoryUrls:
                     file://./app/src/test/aidl
                 AssetsDirectoryUrls:
@@ -854,6 +906,8 @@ MODULE: app
             testDebug (IDEA)
                 ManifestUrl:
                     file://./app/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/testDebug
                 AidlDirectoryUrls:
                     file://./app/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -874,6 +928,10 @@ MODULE: app
             androidTest (IDEA)
                 ManifestUrl:
                     file://./app/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/androidTest
+                ManifestDirectory:
+                    file://./app/src/androidTest
                 AidlDirectoryUrls:
                     file://./app/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -895,6 +953,8 @@ MODULE: app
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./app/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./app/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
@@ -918,6 +978,10 @@ MODULE: dynamicfeature
                 file://./features/dynamicfeature/src/main/AndroidManifest.xml
             Manifest:
                 file://./features/dynamicfeature/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./features/dynamicfeature/src/main
+            ManifestDirectory:
+                file://./features/dynamicfeature/src/main
             AidlDirectoryUrls:
                 file://./features/dynamicfeature/src/main/aidl
             AssetsDirectoryUrls:
@@ -1178,6 +1242,10 @@ MODULE: dynamicfeature
                     file://./features/dynamicfeature/src/main/AndroidManifest.xml
                 Manifest:
                     file://./features/dynamicfeature/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./features/dynamicfeature/src/main
+                ManifestDirectory:
+                    file://./features/dynamicfeature/src/main
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1197,6 +1265,8 @@ MODULE: dynamicfeature
             debug (IDEA)
                 ManifestUrl:
                     file://./features/dynamicfeature/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./features/dynamicfeature/src/debug
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1216,6 +1286,8 @@ MODULE: dynamicfeature
             release (IDEA)
                 ManifestUrl:
                     file://./features/dynamicfeature/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./features/dynamicfeature/src/release
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature/src/release/aidl
                 AssetsDirectoryUrls:
@@ -1238,6 +1310,10 @@ MODULE: dynamicfeature
                     file://./features/dynamicfeature/src/main/AndroidManifest.xml
                 Manifest:
                     file://./features/dynamicfeature/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./features/dynamicfeature/src/main
+                ManifestDirectory:
+                    file://./features/dynamicfeature/src/main
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1257,6 +1333,8 @@ MODULE: dynamicfeature
             debug (IDEA)
                 ManifestUrl:
                     file://./features/dynamicfeature/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./features/dynamicfeature/src/debug
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1277,6 +1355,8 @@ MODULE: dynamicfeature
             test (IDEA)
                 ManifestUrl:
                     file://./features/dynamicfeature/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./features/dynamicfeature/src/test
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature/src/test/aidl
                 AssetsDirectoryUrls:
@@ -1296,6 +1376,8 @@ MODULE: dynamicfeature
             testDebug (IDEA)
                 ManifestUrl:
                     file://./features/dynamicfeature/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./features/dynamicfeature/src/testDebug
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -1316,6 +1398,8 @@ MODULE: dynamicfeature
             androidTest (IDEA)
                 ManifestUrl:
                     file://./features/dynamicfeature/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./features/dynamicfeature/src/androidTest
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -1335,6 +1419,8 @@ MODULE: dynamicfeature
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./features/dynamicfeature/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./features/dynamicfeature/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
@@ -1358,6 +1444,10 @@ MODULE: dynamicfeature2
                 file://./features/dynamicfeature2/src/main/AndroidManifest.xml
             Manifest:
                 file://./features/dynamicfeature2/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./features/dynamicfeature2/src/main
+            ManifestDirectory:
+                file://./features/dynamicfeature2/src/main
             AidlDirectoryUrls:
                 file://./features/dynamicfeature2/src/main/aidl
             AssetsDirectoryUrls:
@@ -1618,6 +1708,10 @@ MODULE: dynamicfeature2
                     file://./features/dynamicfeature2/src/main/AndroidManifest.xml
                 Manifest:
                     file://./features/dynamicfeature2/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./features/dynamicfeature2/src/main
+                ManifestDirectory:
+                    file://./features/dynamicfeature2/src/main
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1637,6 +1731,8 @@ MODULE: dynamicfeature2
             debug (IDEA)
                 ManifestUrl:
                     file://./features/dynamicfeature2/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./features/dynamicfeature2/src/debug
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature2/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1656,6 +1752,8 @@ MODULE: dynamicfeature2
             release (IDEA)
                 ManifestUrl:
                     file://./features/dynamicfeature2/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./features/dynamicfeature2/src/release
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature2/src/release/aidl
                 AssetsDirectoryUrls:
@@ -1678,6 +1776,10 @@ MODULE: dynamicfeature2
                     file://./features/dynamicfeature2/src/main/AndroidManifest.xml
                 Manifest:
                     file://./features/dynamicfeature2/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./features/dynamicfeature2/src/main
+                ManifestDirectory:
+                    file://./features/dynamicfeature2/src/main
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1697,6 +1799,8 @@ MODULE: dynamicfeature2
             debug (IDEA)
                 ManifestUrl:
                     file://./features/dynamicfeature2/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./features/dynamicfeature2/src/debug
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature2/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1717,6 +1821,8 @@ MODULE: dynamicfeature2
             test (IDEA)
                 ManifestUrl:
                     file://./features/dynamicfeature2/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./features/dynamicfeature2/src/test
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature2/src/test/aidl
                 AssetsDirectoryUrls:
@@ -1736,6 +1842,8 @@ MODULE: dynamicfeature2
             testDebug (IDEA)
                 ManifestUrl:
                     file://./features/dynamicfeature2/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./features/dynamicfeature2/src/testDebug
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature2/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -1756,6 +1864,8 @@ MODULE: dynamicfeature2
             androidTest (IDEA)
                 ManifestUrl:
                     file://./features/dynamicfeature2/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./features/dynamicfeature2/src/androidTest
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -1775,6 +1885,8 @@ MODULE: dynamicfeature2
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./features/dynamicfeature2/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./features/dynamicfeature2/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:

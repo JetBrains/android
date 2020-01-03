@@ -44,6 +44,7 @@ import com.android.tools.idea.lint.common.LintIdeProject;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.lint.client.api.LintClient;
 import com.android.tools.lint.detector.api.Project;
@@ -632,7 +633,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
     public List<File> getManifestFiles() {
       if (manifestFiles == null) {
         manifestFiles = Lists.newArrayList();
-        for (IdeaSourceProvider sourceProvider : SourceProviderManager.getInstance(myFacet).getCurrentSourceProviders()) {
+        for (NamedIdeaSourceProvider sourceProvider : SourceProviderManager.getInstance(myFacet).getCurrentSourceProviders()) {
           VirtualFile manifestFile = sourceProvider.getManifestFile();
           if (manifestFile != null) {
             manifestFiles.add(VfsUtilCore.virtualToIoFile(manifestFile));
