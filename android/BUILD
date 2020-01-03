@@ -209,16 +209,11 @@ iml_module(
     #       we use a syntax that is very similar to what a "select()" would look like.
     test_excluded_packages = {
         "//tools/base/bazel:windows": [
-            "com.android.emulator",
-            "com.android.tools.idea.configurations",
-            "com.android.tools.idea.ddms",
-            "com.android.tools.idea.debug",
-            "com.android.tools.idea.diagnostics",
-            "com.android.tools.idea.gradle",
+            "com.android.tools.idea.diagnostics",  # heap analysis line endings (ag/10016457)
+            "com.android.tools.idea.gradle",  # WIP: many sync errors with dependencies, but some others related to paths, etc.
             "com.android.tools.idea.navigator",  # testDependentNativeModules (ag/9872410)
-            "com.android.tools.idea.npw",  # leaks, json exceptions, etc.
+            "com.android.tools.idea.npw.assetstudio",  # leaks, json exceptions (b/147453294), drawable generator tests
             "com.android.tools.idea.run",  # some test directory paths are too long
-            "com.android.tools.idea.ui.resourcemanager",  # leaks (b/145024498)
             "org.jetbrains.android",
         ],
         "//conditions:default": [],
