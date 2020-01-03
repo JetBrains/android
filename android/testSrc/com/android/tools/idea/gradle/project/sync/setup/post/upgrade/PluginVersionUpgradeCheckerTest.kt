@@ -58,7 +58,7 @@ class PluginVersionUpgradeCheckerTest : PlatformTestCase() {
 
     replaceUpgradeService(upgradable = false)
 
-    checkUpgrade(myProject, upgradeReminder)
+    checkAndShowNotification(myProject, upgradeReminder)
 
     val notifications = NotificationsManager
       .getNotificationsManager()
@@ -72,7 +72,7 @@ class PluginVersionUpgradeCheckerTest : PlatformTestCase() {
 
     replaceUpgradeService(upgradable = true)
 
-    checkUpgrade(myProject, upgradeReminder)
+    checkAndShowNotification(myProject, upgradeReminder)
 
     val notifications = NotificationsManager
       .getNotificationsManager()

@@ -206,7 +206,7 @@ public class PostSyncProjectSetup {
           }
         }
         else {
-          RecommendedPluginVersionUpgrade.checkUpgrade(myProject);
+          RecommendedPluginVersionUpgrade.checkAndShowNotification(myProject);
         }
       }
 
