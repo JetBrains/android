@@ -57,6 +57,6 @@ class IdeaSourceProviderImplTest : AndroidTestCase() {
     assume().that(VirtualFileManager.getInstance().findFileByUrl(manifestFileUrl)).isNull()
 
     val ideaSourceProvider = IdeaSourceProviderBuilder.create("name", manifestFileUrl).build()
-    assertThat(containsFile(ideaSourceProvider, manifestDirectory)).isTrue()
+    assertThat(ideaSourceProvider.containsFile(manifestDirectory)).isTrue()
   }
 }
