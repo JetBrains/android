@@ -18,8 +18,7 @@ package com.android.tools.idea.welcome.wizard
 import com.android.tools.idea.observable.BindingsManager
 import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
-import com.android.tools.idea.welcome.wizard.ConfigureInstallationModel.InstallationType
-import com.android.tools.idea.welcome.wizard.ConfigureInstallationModel.InstallationType.STANDARD
+import com.android.tools.idea.welcome.wizard.FirstRunModel.InstallationType
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.ui.layout.panel
 import com.intellij.uiDesigner.core.Spacer
@@ -30,7 +29,7 @@ import javax.swing.JRadioButton
 /**
  * Wizard step for selecting installation types
  */
-class InstallationTypeWizardStep(model: ConfigureInstallationModel) : ModelWizardStep<ConfigureInstallationModel>(model, "Install Type") {
+class InstallationTypeWizardStep(model: FirstRunModel) : ModelWizardStep<FirstRunModel>(model, "Install Type") {
   private val standardRadioBtn = JRadioButton("Standard")
   private val customRadioBtn = JRadioButton("Custom")
   private val rootPanel = panel {
@@ -74,7 +73,7 @@ class InstallationTypeWizardStep(model: ConfigureInstallationModel) : ModelWizar
 
   override fun onEntering() {
     bindings.bindTwoWay(
-      SelectedRadioButtonProperty(STANDARD, InstallationType.values(), standardRadioBtn, customRadioBtn),
+      SelectedRadioButtonProperty(InstallationType.STANDARD, InstallationType.values(), standardRadioBtn, customRadioBtn),
       model.installationType
     )
   }

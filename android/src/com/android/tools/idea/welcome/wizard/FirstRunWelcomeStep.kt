@@ -27,7 +27,7 @@ import javax.swing.JComponent
 /**
  * Welcome page for the first run wizard
  */
-class FirstRunWelcomeStep(sdkExists: Boolean) : ModelWizardStep.WithoutModel("Welcome") {
+class FirstRunWelcomeStep(model: FirstRunModel) : ModelWizardStep<FirstRunModel>(model, "Welcome") {
   private val newSdkMessage: DialogPanel = panel {
     row {
       label("""Welcome! This wizard will set up your development environment for Android Studio.
@@ -56,7 +56,7 @@ import an existing Android app into Android Studio or start a new Android projec
       Spacer()()
     }
     row {
-      if (sdkExists) {
+      if (model.sdkExists) {
         existingSdkMessage()
       } else {
         newSdkMessage()

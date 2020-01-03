@@ -43,7 +43,7 @@ import java.io.File
 /**
  * Wizard step for JDK setup.
  */
-class JdkSetupStep : ModelWizardStep.WithoutModel("Select default JDK location") {
+class JdkSetupStep(model: FirstRunModel) : ModelWizardStep<FirstRunModel>(model, "Select default JDK location") {
   private val jdkLocationComboBox = ComboboxWithBrowseButton()
 
   private val jdkPanel = panel {
