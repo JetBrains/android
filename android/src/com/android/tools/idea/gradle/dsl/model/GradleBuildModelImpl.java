@@ -239,8 +239,24 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
 
     buildDslFile.setParsedElement(subProjectsDslElement);
     for (Map.Entry<String, GradleDslElement> entry : subProjectsDslElement.getPropertyElements().entrySet()) {
-      // TODO: This should be applied.
-      buildDslFile.setParsedElement(entry.getValue());
+      GradleDslElement element = entry.getValue();
+      // TODO(b/147139838): we need to implement a sufficiently-deep copy to handle subprojects correctly: as it stands, this special-case
+      //  shallow copy works around a particular bug, but e.g. configuring some android properties in a subprojects block, then
+      //  modifying the configuration in one subproject will cause the parser to propagate that modification to all other subprojects
+      //  because of the shared structure.  (The copy must not be too deep: we probably want to preserve the association of properties
+      //  to the actual file they're defined in).
+      if (element instanceof ApplyDslElement) {
+        ApplyDslElement subProjectsApply = (ApplyDslElement)element;
+        ApplyDslElement myApply = new ApplyDslElement(buildDslFile);
+        buildDslFile.setParsedElement(myApply);
+        for (GradleDslElement appliedElement : subProjectsApply.getAllElements()) {
+          myApply.addParsedElement(appliedElement);
+        }
+      }
+      else {
+        // TODO(b/147139838): I believe this is wrong in general (see comment above, and the referenced bug, for details)
+        buildDslFile.setParsedElement(element);
+      }
     }
   }
 
