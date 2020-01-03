@@ -21,6 +21,7 @@ import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.DefinesXml;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.converters.FragmentClassConverter;
+import org.jetbrains.android.dom.converters.PackageClassConverter;
 
 /**
  * An element representing a destination corresponding to a class (fragment, activity) in a navigation graph.
@@ -29,5 +30,6 @@ import org.jetbrains.android.dom.converters.FragmentClassConverter;
 public interface ConcreteDestinationElement extends NavDestinationElement {
   @Attribute("name")
   @Convert(FragmentClassConverter.class)
+  @PackageClassConverter.Options(includeDynamicFeatures = true)
   AndroidAttributeValue<PsiClass> getFragmentName();
 }
