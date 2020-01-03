@@ -17,6 +17,7 @@ package com.android.tools.idea.model;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
+import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryApplicationDebuggableFromManifestIndex;
 import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryMinSdkAndTargetSdkFromManifestIndex;
 
 import com.android.sdklib.AndroidVersion;
@@ -249,6 +250,19 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
       Boolean debuggable = androidModel.isDebuggable();
       if (debuggable != null) {
         return debuggable;
+      }
+    }
+
+    if (AndroidManifestIndex.indexEnabled()) {
+      try {
+        return DumbService.getInstance(facet.getModule().getProject())
+          .runReadActionInSmartMode(() -> queryApplicationDebuggableFromManifestIndex(facet));
+      }
+      catch (IndexNotReadyException e) {
+        // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+        //  We need to refactor the callers of this to require a *smart*
+        //  read action, at which point we can remove this try-catch.
+        LOG.info(e);
       }
     }
 

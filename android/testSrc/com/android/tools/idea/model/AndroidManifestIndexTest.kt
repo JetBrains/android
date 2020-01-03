@@ -40,8 +40,8 @@ class AndroidManifestIndexTest {
     val manifestContent = """
 <?xml version='1.0' encoding='utf-8'?>
 <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
-  package='com.example' android:debuggable="false" android:enabled='true'>
-  <application android:theme='@style/Theme.AppCompat'>
+  package='com.example' android:enabled='true'>
+  <application android:theme='@style/Theme.AppCompat' android:debuggable='true'>
     <activity android:name='.EnabledActivity' android:enabled='true'>
       <intent-filter>
         <action android:name='android.intent.action.MAIN'/>
@@ -83,7 +83,7 @@ class AndroidManifestIndexTest {
         ),
         customPermissionGroupNames = setOf("custom.permissions.CUSTOM_GROUP"),
         customPermissionNames = setOf("custom.permissions.IN_CUSTOM_GROUP", "custom.permissions.NO_GROUP"),
-        debuggable = "false",
+        debuggable = "true",
         enabled = "true",
         minSdkLevel = "22",
         packageName = "com.example",

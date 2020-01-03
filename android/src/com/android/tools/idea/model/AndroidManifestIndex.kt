@@ -178,7 +178,7 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
 
   override fun getValueExternalizer() = AndroidManifestRawText.Externalizer
   override fun getName() = NAME
-  override fun getVersion() = 3
+  override fun getVersion() = 4
   override fun getIndexer() = Indexer
   override fun getInputFilter() = InputFilter
 
@@ -244,17 +244,18 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
       val activityAliases = hashSetOf<ActivityAliasRawText>()
       val customPermissionGroupNames = hashSetOf<String>()
       val customPermissionNames = hashSetOf<String>()
-      val debuggable = getAttributeValue(ANDROID_URI, ATTR_DEBUGGABLE)
       val enabled = getAttributeValue(ANDROID_URI, ATTR_ENABLED)
       var minSdkLevel: String? = null
       val packageName = getAttributeValue(null, ATTR_PACKAGE)
       val usedPermissionNames = hashSetOf<String>()
+      var debuggable: String? = null
       var targetSdkLevel: String? = null
       var theme: String? = null
       processChildTags {
         when (name) {
           TAG_APPLICATION -> {
             theme = getAttributeValue(ANDROID_URI, ATTR_THEME)
+            debuggable = getAttributeValue(ANDROID_URI, ATTR_DEBUGGABLE)
             processChildTags {
               when (name) {
                 TAG_ACTIVITY -> activities.add(parseActivityTag())
