@@ -25,6 +25,7 @@ import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.model.getRowIdName
 import com.android.tools.sql.protocol.SqliteInspection
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -86,9 +87,9 @@ class LiveDatabaseConnection(
 
   private fun SqliteInspection.Schema.toSqliteSchema(): SqliteSchema {
     val tables = tablesList.map { table ->
-      val sqliteColumns = table.columnsList.map { it.toSqliteColumn() }
-      // TODO(blocked): add support for rowIdName
-      SqliteTable(table.name, sqliteColumns, null, false)
+      val columns = table.columnsList.map { it.toSqliteColumn() }
+      val rowIdName = getRowIdName(columns)
+      SqliteTable(table.name, columns, rowIdName, false)
     }
     return SqliteSchema(tables)
   }
