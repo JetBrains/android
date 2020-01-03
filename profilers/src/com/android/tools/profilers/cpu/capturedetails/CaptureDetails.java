@@ -210,8 +210,8 @@ public abstract class CaptureDetails {
       VisualNodeCaptureNode visual = new VisualNodeCaptureNode(new SingleNameModel(""));
       captureNodes.sort(Comparator.comparingLong(CaptureNode::getStartGlobal));
       captureNodes.forEach(visual::addChild);
-      // This needs to be the start of the capture since this does not get called on selection change.
-      visual.setStartGlobal((long)cpuCapture.getRange().getMin());
+      // This needs to be the start of the earliest node to have an accurate range for multi-selected items.
+      visual.setStartGlobal(captureNodes.get(0).getStartGlobal());
 
       // Update the node to compute the total children time.
       myTopDownNode = new TopDownNode(visual);
