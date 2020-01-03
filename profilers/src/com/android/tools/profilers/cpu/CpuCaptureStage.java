@@ -273,6 +273,11 @@ public class CpuCaptureStage extends Stage<Timeline> {
     myAspect.changed(Aspect.ANALYSIS_MODEL_UPDATED);
   }
 
+  public void removeCpuAnalysisModel(int index) {
+    myAnalysisModels.remove(index);
+    myAspect.changed(Aspect.ANALYSIS_MODEL_UPDATED);
+  }
+
   private void onCaptureParsed(@NotNull CpuCapture capture) {
     myTrackGroupTimeline.getDataRange().set(capture.getRange());
     myMinimapModel = new CpuCaptureMinimapModel(getStudioProfilers(), capture, myTrackGroupTimeline.getViewRange());
