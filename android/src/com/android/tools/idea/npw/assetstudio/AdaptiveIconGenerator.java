@@ -441,7 +441,7 @@ public abstract class AdaptiveIconGenerator extends IconGenerator {
   }
 
   /** Options specific to generating launcher icons. */
-  public static class AdaptiveIconOptions extends Options implements Cloneable {
+  public static class AdaptiveIconOptions extends IconOptions implements Cloneable {
     /** The foreground layer name, used to generate resource paths. */
     public String foregroundLayerName;
 

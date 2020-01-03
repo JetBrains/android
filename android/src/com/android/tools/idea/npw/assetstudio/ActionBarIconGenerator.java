@@ -66,8 +66,8 @@ public class ActionBarIconGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  public Options createOptions(boolean forPreview) {
-    Options options = new Options(forPreview);
+  public IconOptions createOptions(boolean forPreview) {
+    IconOptions options = new IconOptions(forPreview);
     BaseAsset asset = sourceAsset().getValueOrNull();
     if (asset != null) {
       double paddingFactor = asset.paddingPercent().get() / 100.;
@@ -102,7 +102,7 @@ public class ActionBarIconGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
+  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options) {
     return generateRasterImage(ICON_SIZE, options);
   }
 
