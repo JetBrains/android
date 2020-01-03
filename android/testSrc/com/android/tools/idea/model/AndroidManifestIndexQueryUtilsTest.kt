@@ -165,6 +165,43 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
     Truth.assertThat(myFacet.queryCustomPermissionGroupsFromManifestIndex()).isEqualTo(
       setOf("custom.permissions.CUSTOM_GROUP", "custom.permissions.CUSTOM_GROUP1"))
   }
+  fun testQueryApplicationDebuggable() {
+    val manifestContentDebuggable = """
+    <?xml version='1.0' encoding='utf-8'?>
+    <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
+      package='com.example' android:enabled='true'>
+        <application android:theme='@style/Theme.AppCompat' android:debuggable="true">
+        </application>
+    </manifest>
+    """.trimIndent()
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContentDebuggable)
+
+    Truth.assertThat(myFacet.queryApplicationDebuggableFromManifestIndex()).isTrue()
+
+    val manifestContentNotDebuggable = """
+    <?xml version='1.0' encoding='utf-8'?>
+    <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
+      package='com.example' android:enabled='true'>
+        <application android:theme='@style/Theme.AppCompat' android:debuggable="false">
+        </application>
+    </manifest>
+    """.trimIndent()
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContentNotDebuggable)
+
+    Truth.assertThat(myFacet.queryApplicationDebuggableFromManifestIndex()).isFalse()
+
+    val manifestContentDebuggableIsNull = """
+    <?xml version='1.0' encoding='utf-8'?>
+    <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
+      package='com.example' android:enabled='true'>
+        <application android:theme='@style/Theme.AppCompat'>
+        </application>
+    </manifest>
+    """.trimIndent()
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContentDebuggableIsNull)
+
+    Truth.assertThat(myFacet.queryApplicationDebuggableFromManifestIndex()).isNull()
+  }
 
   private fun updateManifest(module: Module, relativePath: String, manifestContents: String) {
     deleteManifest(module)
