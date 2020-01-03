@@ -15,8 +15,10 @@
  */
 package org.jetbrains.android.facet
 
+import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.SourceProviders
+import com.android.tools.idea.projectsystem.createMergedSourceProvider
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
@@ -56,4 +58,9 @@ class SourceProvidersImpl(
 
   @Suppress("OverridingDeprecatedMember")
   override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
-) : SourceProviders
+) : SourceProviders {
+  override val sources: IdeaSourceProvider = createMergedSourceProvider(currentSourceProviders)
+  override val unitTestSources: IdeaSourceProvider = createMergedSourceProvider(currentUnitTestSourceProviders)
+  override val androidTestSources: IdeaSourceProvider = createMergedSourceProvider(currentAndroidTestSourceProviders)
+}
+

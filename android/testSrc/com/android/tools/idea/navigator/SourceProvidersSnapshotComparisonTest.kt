@@ -247,6 +247,9 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
               nest("by IdeaSourceProviders:") {
                 val sourceProviderManager = SourceProviderManager.getInstance(androidFacet)
                 dumpPathsCore("Manifests", { getManifestFiles(androidFacet) }, { it.url })
+                nest("Sources:") { sourceProviderManager.sources.dump() }
+                nest("UnitTestSources:") { sourceProviderManager.unitTestSources.dump() }
+                nest("AndroidTestSources:") { sourceProviderManager.androidTestSources.dump() }
                 nest("AllIdeaSourceProviders:") { sourceProviderManager.allSourceProviders.forEach { it.dump() } }
                 nest("CurrentSourceProviders:") { sourceProviderManager.currentSourceProviders.forEach { it.dump() } }
                 nest("CurrentUnitTestSourceProviders:") { sourceProviderManager.currentUnitTestSourceProviders.forEach { it.dump() } }
