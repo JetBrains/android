@@ -17,8 +17,6 @@ package com.android.tools.idea.refactoring.modularize;
 
 import static com.intellij.openapi.actionSystem.LangDataKeys.TARGET_MODULE;
 
-import com.android.tools.idea.projectsystem.IdeaSourceProvider;
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceItem;
@@ -29,6 +27,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -397,16 +396,13 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
         if (target instanceof PsiClass) {
           if (!(target instanceof PsiTypeParameter) && !(target instanceof SyntheticElement)) {
             VirtualFile source = target.getContainingFile().getVirtualFile();
-            for (IdeaSourceProvider sourceProvider : SourceProviderManager.getInstance(myFacet).getCurrentSourceProviders()) {
-              if (IdeaSourceProviderUtil.containsFile(sourceProvider, source)) {
-                // This is a local source file, therefore a candidate to be moved
-                if (myClassRefSet.add((PsiClass)target)) {
-                  myVisitQueue.add(target);
-                }
-                if (target != mySource) { // Don't add self-references
-                  myGraphBuilder.markReference(mySource, target);
-                }
-                return; // We had a reference match, nothing further to do
+            if (IdeaSourceProviderUtil.containsFile(SourceProviderManager.getInstance(myFacet).getSources(), source)) {
+              // This is a local source file, therefore a candidate to be moved
+              if (myClassRefSet.add((PsiClass)target)) {
+                myVisitQueue.add(target);
+              }
+              if (target != mySource) { // Don't add self-references
+                myGraphBuilder.markReference(mySource, target);
               }
             }
           }

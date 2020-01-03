@@ -272,9 +272,10 @@ class MigrateToResourceNamespacesProcessor(
     val result = mutableListOf<ResourceUsageInfo>()
 
     for (facet in allFacets) {
-      result += SourceProviderManager.getInstance(facet).currentSourceProviders
+      result += SourceProviderManager.getInstance(facet)
+        .sources
+        .manifestFiles
         .asSequence()
-        .mapNotNull { it.manifestFile }
         .mapNotNull { psiManager.findFile(it) as? XmlFile }
         .flatMap { findXmlUsages(it, facet).asSequence() }
     }

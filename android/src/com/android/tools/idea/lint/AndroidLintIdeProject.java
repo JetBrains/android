@@ -59,6 +59,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.graph.Graph;
 import java.io.File;
 import java.util.ArrayList;
@@ -70,6 +71,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.android.facet.AndroidRootUtil;
@@ -632,13 +634,8 @@ public class AndroidLintIdeProject extends LintIdeProject {
     @Override
     public List<File> getManifestFiles() {
       if (manifestFiles == null) {
-        manifestFiles = Lists.newArrayList();
-        for (NamedIdeaSourceProvider sourceProvider : SourceProviderManager.getInstance(myFacet).getCurrentSourceProviders()) {
-          VirtualFile manifestFile = sourceProvider.getManifestFile();
-          if (manifestFile != null) {
-            manifestFiles.add(VfsUtilCore.virtualToIoFile(manifestFile));
-          }
-        }
+        manifestFiles = ContainerUtil.map(
+          SourceProviderManager.getInstance(myFacet).getSources().getManifestFiles(), it -> VfsUtilCore.virtualToIoFile(it));
       }
       return manifestFiles;
     }

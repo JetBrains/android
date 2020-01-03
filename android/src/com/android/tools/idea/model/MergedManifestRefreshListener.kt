@@ -74,9 +74,7 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
     if (!file.isDirectory && !couldBeNavigationFile) return false
 
     val couldBeRelevantNavigationFolder = file.couldBeNavigationFolder() && file.children.isNotEmpty()
-    return SourceProviderManager.getInstance(facet).currentSourceProviders
-      .asSequence()
-      .flatMap { it.resDirectories.asSequence() }
+    return SourceProviderManager.getInstance(facet).sources.resDirectories
       .any { resDir ->
         resDir == file && resDir.children.any { it.couldBeNavigationFolder() && it.children.isNotEmpty() }
         || couldBeRelevantNavigationFolder && resDir == file.parent

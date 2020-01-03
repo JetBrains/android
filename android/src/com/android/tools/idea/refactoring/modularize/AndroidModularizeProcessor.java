@@ -28,6 +28,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
 import com.android.tools.idea.res.ResourceHelper;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.TransactionGuard;
@@ -67,6 +68,7 @@ import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.usageView.UsageViewUtil;
 import com.intellij.util.PathUtil;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -248,11 +250,8 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
     AndroidFacet facet = AndroidFacet.getInstance(myTargetModule);
     assert facet != null; // We know this has to be an Android module
 
-    List<VirtualFile> javaSourceFolders = Lists.newArrayList();
-    for (IdeaSourceProvider provider : SourceProviderManager.getInstance(facet).getCurrentSourceProviders()) {
-      javaSourceFolders.addAll(provider.getJavaDirectories());
-    }
-    VirtualFile javaTargetDir = javaSourceFolders.get(0);
+    Collection<VirtualFile> javaSourceFolders = SourceProviderManager.getInstance(facet).getSources().getJavaDirectories();
+    VirtualFile javaTargetDir = Iterables.getFirst(javaSourceFolders, null);
 
     VirtualFile resDir = ResourceFolderManager.getInstance(facet).getFolders().get(0);
     ResourceFolderRepository repo = ResourceFolderRegistry.getInstance(myProject).get(facet, resDir);
@@ -324,10 +323,10 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
         String packageName = ((PsiJavaFile)(element).getContainingFile()).getPackageName();
 
         MoveClassesOrPackagesUtil.doMoveClass(
-            (PsiClass)element,
-            RefactoringUtil
-                .createPackageDirectoryInSourceRoot(new PackageWrapper(PsiManager.getInstance(myProject), packageName), javaTargetDir),
-            true);
+          (PsiClass)element,
+          RefactoringUtil
+            .createPackageDirectoryInSourceRoot(new PackageWrapper(PsiManager.getInstance(myProject), packageName), javaTargetDir),
+          true);
       }
     }
 
@@ -346,7 +345,7 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
       if (folderType != null) {
         try {
           return manager.findDirectory(
-              VfsUtil.createDirectoryIfMissing(base.getResourceDir(), resourceItem.getConfiguration().getFolderName(folderType)));
+            VfsUtil.createDirectoryIfMissing(base.getResourceDir(), resourceItem.getConfiguration().getFolderName(folderType)));
         }
         catch (Exception ex) {
           LOGGER.debug(ex);
@@ -387,23 +386,28 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
   private PsiFile getOrCreateTargetManifestFile(AndroidFacet facet) {
     if (facet.isDisposed()) return null;
     PsiManager manager = PsiManager.getInstance(myProject);
+    String manifestFileUrl = Iterables.getFirst(SourceProviderManager.getInstance(facet).getSources().getManifestFileUrls(), null);
+    if (manifestFileUrl != null) {
+      VirtualFile manifestFile = VirtualFileManager.getInstance().findFileByUrl(manifestFileUrl);
 
-    VirtualFile manifestFile = SourceProviderManager.getInstance(facet).getMainManifestFile();
-
-    if (manifestFile != null) {
-      return manager.findFile(manifestFile);
-    }
-    else {
-      VirtualFile directory = SourceProviderManager.getInstance(facet).getMainIdeaSourceProvider().getManifestDirectory();
-      if (directory != null) {
-        PsiDirectory targetDirectory = manager.findDirectory(directory);
-        if (targetDirectory != null) {
-          try {
-            return (PsiFile)AndroidFileTemplateProvider
-              .createFromTemplate(AndroidFileTemplateProvider.ANDROID_MANIFEST_TEMPLATE, FN_ANDROID_MANIFEST_XML, targetDirectory);
-          }
-          catch (Exception ex) {
-            LOGGER.debug(ex);
+      if (manifestFile != null) {
+        return manager.findFile(manifestFile);
+      }
+      else {
+        String parentDir = VfsUtil.getParentDir(manifestFileUrl);
+        if (parentDir != null) {
+          VirtualFile directory = VirtualFileManager.getInstance().findFileByUrl(parentDir);
+          if (directory != null) {
+            PsiDirectory targetDirectory = manager.findDirectory(directory);
+            if (targetDirectory != null) {
+              try {
+                return (PsiFile)AndroidFileTemplateProvider
+                  .createFromTemplate(AndroidFileTemplateProvider.ANDROID_MANIFEST_TEMPLATE, FN_ANDROID_MANIFEST_XML, targetDirectory);
+              }
+              catch (Exception ex) {
+                LOGGER.debug(ex);
+              }
+            }
           }
         }
       }

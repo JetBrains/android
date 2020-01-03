@@ -54,6 +54,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
@@ -146,11 +147,7 @@ public final class CreateClassAction extends AnAction {
 
     SourceProviders sourceProviderManager = SourceProviderManager.getInstance(facet);
     Collection<VirtualFile> files =
-      Streams.concat(
-        sourceProviderManager.getCurrentSourceProviders().stream(),
-        sourceProviderManager.getCurrentUnitTestSourceProviders().stream(),
-        sourceProviderManager.getCurrentAndroidTestSourceProviders().stream()
-      )
+      Stream.of(sourceProviderManager.getSources(), sourceProviderManager.getUnitTestSources(), sourceProviderManager.getAndroidTestSources())
         .flatMap(it -> it.getJavaDirectories().stream())
         .collect(Collectors.toList());
 
