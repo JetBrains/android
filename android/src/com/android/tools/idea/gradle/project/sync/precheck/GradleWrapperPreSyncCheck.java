@@ -60,7 +60,7 @@ public class GradleWrapperPreSyncCheck extends AndroidStudioSyncCheck {
                                   "Using an incorrect value may freeze or crash Android Studio.\n" +
                                   "Please manually verify or remove this property from all of included projects if applicable.\n" +
                                   "For more details, see " + MORE_INFO_URL + ".\n";
-            SyncMessage syncMessage = new SyncMessage(SyncMessage.DEFAULT_GROUP, MessageType.WARNING, errorMessage);
+            SyncMessage syncMessage = new SyncMessage(SyncMessage.DEFAULT_GROUP, MessageType.ERROR, errorMessage);
             ConfirmSHA256FromGradleWrapperHyperlink confirmHyperlink = ConfirmSHA256FromGradleWrapperHyperlink.create(gradleWrapper);
             if ((confirmHyperlink != null)) {
               syncMessage.add(confirmHyperlink);
