@@ -20,6 +20,7 @@ import static com.intellij.testFramework.UsefulTestCase.assertThrows;
 import static java.lang.Thread.sleep;
 
 import com.android.ide.common.util.PathString;
+import com.android.tools.idea.npw.assetstudio.IconGenerator.IconOptions;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ThrowableRunnable;
@@ -47,20 +48,20 @@ public final class IconGeneratorTest {
         IconGenerator iconGenerator= new IconGenerator(myProjectRule.getProject(), 1, new GraphicGeneratorContext(1)) {
             @NotNull
             @Override
-            public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
+            public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options) {
                 throw new RuntimeException("Should not be called");
             }
 
             @NotNull
             @Override
-            public Options createOptions(boolean forPreview) {
+            public IconOptions createOptions(boolean forPreview) {
                 throw new RuntimeException("Should not be called");
             }
 
             @NotNull
             @Override
             protected List<Callable<GeneratedIcon>> createIconGenerationTasks(@NotNull GraphicGeneratorContext context,
-                                                                              @NotNull Options options,
+                                                                              @NotNull IconOptions options,
                                                                               @NotNull String name) {
                 List<Callable<GeneratedIcon>> tasks = new ArrayList<>();
                 tasks.add(() -> {
@@ -87,7 +88,7 @@ public final class IconGeneratorTest {
 
         assertThrows(
           CancellationException.class,
-          (ThrowableRunnable<Throwable>)() -> iconGenerator.generateIcons(new IconGenerator.Options(true))
+          (ThrowableRunnable<Throwable>)() -> iconGenerator.generateIcons(new IconOptions(true))
         );
     }
 }

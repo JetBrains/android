@@ -110,9 +110,8 @@ public class TvChannelIconGenerator extends AdaptiveIconGenerator {
 
   @Override
   @NotNull
-  protected List<Callable<GeneratedIcon>> createIconGenerationTasks(@NotNull GraphicGeneratorContext context,
-                                                                    @NotNull Options options,
-                                                                    @NotNull String name) {
+  protected List<Callable<GeneratedIcon>> createIconGenerationTasks(
+      @NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) {
     TvChannelIconOptions launcherIconOptions = (TvChannelIconOptions)options;
 
     List<Callable<GeneratedIcon>> tasks = new ArrayList<>();
@@ -316,7 +315,7 @@ public class TvChannelIconGenerator extends AdaptiveIconGenerator {
 
   @Override
   public void generateRasterImage(@Nullable String category, @NotNull Map<String, Map<String, AnnotatedImage>> categoryMap,
-                                  @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
+                                  @NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) {
     TvChannelIconOptions launcherIconOptions = (TvChannelIconOptions) options;
     TvChannelIconOptions localOptions = launcherIconOptions.clone();
 
@@ -341,7 +340,7 @@ public class TvChannelIconGenerator extends AdaptiveIconGenerator {
 
   @Override
   @NotNull
-  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
+  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
@@ -418,7 +417,7 @@ public class TvChannelIconGenerator extends AdaptiveIconGenerator {
     return scaleRectangle(IMAGE_SIZE_LEGACY_DP, computeScaleFactor(options));
   }
 
-  private static double computeScaleFactor(@NotNull Options options) {
+  private static double computeScaleFactor(@NotNull IconOptions options) {
     double scaleFactor = getMdpiScaleFactor(getDensity(options));
     if (((TvChannelIconOptions)options).generatePreviewIcons) {
       scaleFactor *= PREVIEW_SCALE;
@@ -427,7 +426,7 @@ public class TvChannelIconGenerator extends AdaptiveIconGenerator {
   }
 
   @NotNull
-  private static Density getDensity(@NotNull Options options) {
+  private static Density getDensity(@NotNull IconOptions options) {
     return ((TvChannelIconOptions)options).previewShape == PreviewShape.LEGACY ? options.density : Density.XXXHIGH;
   }
 

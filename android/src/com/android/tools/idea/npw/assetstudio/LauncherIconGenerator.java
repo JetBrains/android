@@ -162,9 +162,8 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
 
   @Override
   @NotNull
-  protected List<Callable<GeneratedIcon>> createIconGenerationTasks(@NotNull GraphicGeneratorContext context,
-                                                                    @NotNull Options options,
-                                                                    @NotNull String name) {
+  protected List<Callable<GeneratedIcon>> createIconGenerationTasks(
+      @NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) {
     LauncherIconOptions launcherIconOptions = (LauncherIconOptions)options;
 
     List<Callable<GeneratedIcon>> tasks = new ArrayList<>();
@@ -437,7 +436,7 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
 
   @Override
   public void generateRasterImage(@Nullable String category, @NotNull Map<String, Map<String, AnnotatedImage>> categoryMap,
-                                  @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
+                                  @NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) {
     LauncherIconOptions launcherIconOptions = (LauncherIconOptions) options;
     LauncherIconOptions localOptions = launcherIconOptions.clone();
     localOptions.generatePlayStoreIcon = false;
@@ -464,7 +463,7 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
 
   @Override
   @NotNull
-  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
+  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
@@ -829,7 +828,7 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
 
   @Override
   @NotNull
-  protected String getIconPath(@NotNull Options options, @NotNull String iconName) {
+  protected String getIconPath(@NotNull IconOptions options, @NotNull String iconName) {
     if (((LauncherIconOptions) options).generatePlayStoreIcon) {
       return iconName + "-playstore.png"; // Store at the root of the project.
     }
@@ -849,9 +848,9 @@ public class LauncherIconGenerator extends AdaptiveIconGenerator {
 
     /**
      * Whether a Play Store graphic should be generated (will ignore normal density setting).
-     * The {@link #generateRasterImage(GraphicGeneratorContext, Options)} method uses this to decide
+     * The {@link #generateRasterImage(GraphicGeneratorContext, IconOptions)} method uses this to decide
      * whether to generate a normal density icon or a high res Play Store image.
-     * The {@link IconGenerator#generateRasterImage(String, Map, GraphicGeneratorContext, Options, String)}
+     * The {@link IconGenerator#generateRasterImage(String, Map, GraphicGeneratorContext, IconOptions, String)}
      * method uses this flag to determine whether it should include a Play Store graphic in its iteration.
      */
     public boolean generatePlayStoreIcon;

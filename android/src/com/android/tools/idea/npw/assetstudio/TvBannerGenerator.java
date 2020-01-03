@@ -167,9 +167,8 @@ public class TvBannerGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  protected List<Callable<GeneratedIcon>> createIconGenerationTasks(@NotNull GraphicGeneratorContext context,
-                                                                    @NotNull Options options,
-                                                                    @NotNull String name) {
+  protected List<Callable<GeneratedIcon>> createIconGenerationTasks(
+      @NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) {
     TvBannerOptions tvBannerOptions = (TvBannerOptions)options;
 
     List<Callable<GeneratedIcon>> tasks = new ArrayList<>();
@@ -446,7 +445,7 @@ public class TvBannerGenerator extends IconGenerator {
 
   @Override
   public void generateRasterImage(@Nullable String category, @NotNull Map<String, Map<String, AnnotatedImage>> categoryMap,
-                                  @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
+                                  @NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) {
     TvBannerOptions tvBannerOptions = (TvBannerOptions) options;
     TvBannerOptions localOptions = tvBannerOptions.clone();
 
@@ -471,7 +470,7 @@ public class TvBannerGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
+  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
@@ -744,8 +743,8 @@ public class TvBannerGenerator extends IconGenerator {
     return Logger.getInstance(TvBannerGenerator.class);
   }
 
-  /** Options specific to generating launcher icons. */
-  public static class TvBannerOptions extends Options implements Cloneable {
+  /** Options specific to generating TV banner icons. */
+  public static class TvBannerOptions extends IconOptions implements Cloneable {
     /** The foreground layer name, used to generate resource paths. */
     public String foregroundLayerName;
 
