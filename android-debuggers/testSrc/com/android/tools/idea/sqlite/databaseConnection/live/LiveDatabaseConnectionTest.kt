@@ -20,6 +20,7 @@ import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.sql.protocol.SqliteInspection
 import com.google.common.util.concurrent.Futures
@@ -86,6 +87,7 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     // Assert
     assertSize(1, sqliteSchema.tables)
     assertSize(5, sqliteSchema.tables.first().columns)
+    assertEquals(RowIdName._ROWID_, sqliteSchema.tables.first().rowIdName)
     assertEquals("column1", sqliteSchema.tables.first ().columns[0].name)
     assertEquals("column2", sqliteSchema.tables.first ().columns[1].name)
     assertEquals("column3", sqliteSchema.tables.first ().columns[2].name)

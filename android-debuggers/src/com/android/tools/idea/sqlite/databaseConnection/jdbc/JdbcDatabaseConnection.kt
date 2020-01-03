@@ -18,11 +18,11 @@ package com.android.tools.idea.sqlite.databaseConnection.jdbc
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
-import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.model.getRowIdName
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
@@ -60,17 +60,7 @@ class JdbcDatabaseConnection(
     val sqliteTables = mutableListOf<SqliteTable>()
     while (tables.next()) {
       val columns = readColumnDefinitions(connection, tables.getString("TABLE_NAME"))
-      // if the db has an integer primary key there's no need to use rowid.
-      // otherwise we need to find the correct alias to use for the rowid column.
-      val hasIntegerPrimaryKey = columns.any { it.inPrimaryKey && it.type == JDBCType.INTEGER }
-      val rowIdName = when {
-        hasIntegerPrimaryKey -> null
-        columns.none { it.name == RowIdName._ROWID_.stringName } -> RowIdName._ROWID_
-        columns.none { it.name == RowIdName.ROWID.stringName } -> RowIdName.ROWID
-        columns.none { it.name == RowIdName.OID.stringName } -> RowIdName.OID
-        else -> null
-      }
-
+      val rowIdName = getRowIdName(columns)
       sqliteTables.add(
         SqliteTable(
           tables.getString("TABLE_NAME"),
