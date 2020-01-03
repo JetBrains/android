@@ -5,6 +5,10 @@ MODULE: app
                 file://./app/src/main/AndroidManifest.xml
             Manifest:
                 file://./app/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./app/src/main
+            ManifestDirectory:
+                file://./app/src/main
             AidlDirectoryUrls:
                 file://./app/src/main/aidl
             AssetsDirectoryUrls:
@@ -269,6 +273,10 @@ MODULE: app
                     file://./app/src/main/AndroidManifest.xml
                 Manifest:
                     file://./app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/main
+                ManifestDirectory:
+                    file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
                 AssetsDirectoryUrls:
@@ -292,6 +300,8 @@ MODULE: app
             debug (IDEA)
                 ManifestUrl:
                     file://./app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -311,6 +321,8 @@ MODULE: app
             release (IDEA)
                 ManifestUrl:
                     file://./app/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/release
                 AidlDirectoryUrls:
                     file://./app/src/release/aidl
                 AssetsDirectoryUrls:
@@ -333,6 +345,10 @@ MODULE: app
                     file://./app/src/main/AndroidManifest.xml
                 Manifest:
                     file://./app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/main
+                ManifestDirectory:
+                    file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
                 AssetsDirectoryUrls:
@@ -356,6 +372,8 @@ MODULE: app
             debug (IDEA)
                 ManifestUrl:
                     file://./app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -376,6 +394,8 @@ MODULE: app
             test (IDEA)
                 ManifestUrl:
                     file://./app/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/test
                 AidlDirectoryUrls:
                     file://./app/src/test/aidl
                 AssetsDirectoryUrls:
@@ -395,6 +415,8 @@ MODULE: app
             testDebug (IDEA)
                 ManifestUrl:
                     file://./app/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/testDebug
                 AidlDirectoryUrls:
                     file://./app/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -415,6 +437,8 @@ MODULE: app
             androidTest (IDEA)
                 ManifestUrl:
                     file://./app/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/androidTest
                 AidlDirectoryUrls:
                     file://./app/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -434,6 +458,8 @@ MODULE: app
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./app/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./app/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
@@ -457,6 +483,10 @@ MODULE: lib1
                 file://./lib1/src/main/AndroidManifest.xml
             Manifest:
                 file://./lib1/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./lib1/src/main
+            ManifestDirectory:
+                file://./lib1/src/main
             AidlDirectoryUrls:
                 file://./lib1/src/main/aidl
             AssetsDirectoryUrls:
@@ -719,6 +749,10 @@ MODULE: lib1
                     file://./lib1/src/main/AndroidManifest.xml
                 Manifest:
                     file://./lib1/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib1/src/main
+                ManifestDirectory:
+                    file://./lib1/src/main
                 AidlDirectoryUrls:
                     file://./lib1/src/main/aidl
                 AssetsDirectoryUrls:
@@ -740,6 +774,8 @@ MODULE: lib1
             debug (IDEA)
                 ManifestUrl:
                     file://./lib1/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib1/src/debug
                 AidlDirectoryUrls:
                     file://./lib1/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -759,6 +795,8 @@ MODULE: lib1
             release (IDEA)
                 ManifestUrl:
                     file://./lib1/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib1/src/release
                 AidlDirectoryUrls:
                     file://./lib1/src/release/aidl
                 AssetsDirectoryUrls:
@@ -781,6 +819,10 @@ MODULE: lib1
                     file://./lib1/src/main/AndroidManifest.xml
                 Manifest:
                     file://./lib1/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib1/src/main
+                ManifestDirectory:
+                    file://./lib1/src/main
                 AidlDirectoryUrls:
                     file://./lib1/src/main/aidl
                 AssetsDirectoryUrls:
@@ -802,6 +844,8 @@ MODULE: lib1
             debug (IDEA)
                 ManifestUrl:
                     file://./lib1/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib1/src/debug
                 AidlDirectoryUrls:
                     file://./lib1/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -822,6 +866,8 @@ MODULE: lib1
             test (IDEA)
                 ManifestUrl:
                     file://./lib1/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib1/src/test
                 AidlDirectoryUrls:
                     file://./lib1/src/test/aidl
                 AssetsDirectoryUrls:
@@ -841,6 +887,8 @@ MODULE: lib1
             testDebug (IDEA)
                 ManifestUrl:
                     file://./lib1/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib1/src/testDebug
                 AidlDirectoryUrls:
                     file://./lib1/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -861,6 +909,8 @@ MODULE: lib1
             androidTest (IDEA)
                 ManifestUrl:
                     file://./lib1/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib1/src/androidTest
                 AidlDirectoryUrls:
                     file://./lib1/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -880,6 +930,8 @@ MODULE: lib1
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./lib1/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib1/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./lib1/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
@@ -903,6 +955,10 @@ MODULE: lib2
                 file://./lib2/src/main/AndroidManifest.xml
             Manifest:
                 file://./lib2/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./lib2/src/main
+            ManifestDirectory:
+                file://./lib2/src/main
             AidlDirectoryUrls:
                 file://./lib2/src/main/aidl
             AssetsDirectoryUrls:
@@ -1165,6 +1221,10 @@ MODULE: lib2
                     file://./lib2/src/main/AndroidManifest.xml
                 Manifest:
                     file://./lib2/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib2/src/main
+                ManifestDirectory:
+                    file://./lib2/src/main
                 AidlDirectoryUrls:
                     file://./lib2/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1186,6 +1246,8 @@ MODULE: lib2
             debug (IDEA)
                 ManifestUrl:
                     file://./lib2/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib2/src/debug
                 AidlDirectoryUrls:
                     file://./lib2/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1205,6 +1267,8 @@ MODULE: lib2
             release (IDEA)
                 ManifestUrl:
                     file://./lib2/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib2/src/release
                 AidlDirectoryUrls:
                     file://./lib2/src/release/aidl
                 AssetsDirectoryUrls:
@@ -1227,6 +1291,10 @@ MODULE: lib2
                     file://./lib2/src/main/AndroidManifest.xml
                 Manifest:
                     file://./lib2/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib2/src/main
+                ManifestDirectory:
+                    file://./lib2/src/main
                 AidlDirectoryUrls:
                     file://./lib2/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1248,6 +1316,8 @@ MODULE: lib2
             debug (IDEA)
                 ManifestUrl:
                     file://./lib2/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib2/src/debug
                 AidlDirectoryUrls:
                     file://./lib2/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1268,6 +1338,8 @@ MODULE: lib2
             test (IDEA)
                 ManifestUrl:
                     file://./lib2/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib2/src/test
                 AidlDirectoryUrls:
                     file://./lib2/src/test/aidl
                 AssetsDirectoryUrls:
@@ -1287,6 +1359,8 @@ MODULE: lib2
             testDebug (IDEA)
                 ManifestUrl:
                     file://./lib2/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib2/src/testDebug
                 AidlDirectoryUrls:
                     file://./lib2/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -1307,6 +1381,8 @@ MODULE: lib2
             androidTest (IDEA)
                 ManifestUrl:
                     file://./lib2/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib2/src/androidTest
                 AidlDirectoryUrls:
                     file://./lib2/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -1326,6 +1402,8 @@ MODULE: lib2
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./lib2/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib2/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./lib2/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
@@ -1349,6 +1427,10 @@ MODULE: lib3
                 file://./lib3/src/main/AndroidManifest.xml
             Manifest:
                 file://./lib3/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./lib3/src/main
+            ManifestDirectory:
+                file://./lib3/src/main
             AidlDirectoryUrls:
                 file://./lib3/src/main/aidl
             AssetsDirectoryUrls:
@@ -1611,6 +1693,10 @@ MODULE: lib3
                     file://./lib3/src/main/AndroidManifest.xml
                 Manifest:
                     file://./lib3/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib3/src/main
+                ManifestDirectory:
+                    file://./lib3/src/main
                 AidlDirectoryUrls:
                     file://./lib3/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1632,6 +1718,8 @@ MODULE: lib3
             debug (IDEA)
                 ManifestUrl:
                     file://./lib3/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib3/src/debug
                 AidlDirectoryUrls:
                     file://./lib3/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1651,6 +1739,8 @@ MODULE: lib3
             release (IDEA)
                 ManifestUrl:
                     file://./lib3/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib3/src/release
                 AidlDirectoryUrls:
                     file://./lib3/src/release/aidl
                 AssetsDirectoryUrls:
@@ -1673,6 +1763,10 @@ MODULE: lib3
                     file://./lib3/src/main/AndroidManifest.xml
                 Manifest:
                     file://./lib3/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib3/src/main
+                ManifestDirectory:
+                    file://./lib3/src/main
                 AidlDirectoryUrls:
                     file://./lib3/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1694,6 +1788,8 @@ MODULE: lib3
             debug (IDEA)
                 ManifestUrl:
                     file://./lib3/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib3/src/debug
                 AidlDirectoryUrls:
                     file://./lib3/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1714,6 +1810,8 @@ MODULE: lib3
             test (IDEA)
                 ManifestUrl:
                     file://./lib3/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib3/src/test
                 AidlDirectoryUrls:
                     file://./lib3/src/test/aidl
                 AssetsDirectoryUrls:
@@ -1733,6 +1831,8 @@ MODULE: lib3
             testDebug (IDEA)
                 ManifestUrl:
                     file://./lib3/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib3/src/testDebug
                 AidlDirectoryUrls:
                     file://./lib3/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -1753,6 +1853,8 @@ MODULE: lib3
             androidTest (IDEA)
                 ManifestUrl:
                     file://./lib3/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib3/src/androidTest
                 AidlDirectoryUrls:
                     file://./lib3/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -1772,6 +1874,8 @@ MODULE: lib3
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./lib3/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib3/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./lib3/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:

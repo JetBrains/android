@@ -34,6 +34,7 @@ import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
 import com.android.tools.idea.navigator.nodes.ndk.NdkModuleNode;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.HashMultimap;
 import com.intellij.codeInsight.dataflow.SetUtil;
@@ -96,7 +97,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   static Collection<AbstractTreeNode> getChildren(@NotNull AndroidFacet facet,
                                                   @NotNull ViewSettings settings,
                                                   @NotNull AndroidProjectViewPane projectViewPane,
-                                                  @NotNull Iterable<IdeaSourceProvider> providers) {
+                                                  @NotNull Iterable<NamedIdeaSourceProvider> providers) {
     List<AbstractTreeNode> result = new ArrayList<>();
     Project project = facet.getModule().getProject();
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
@@ -145,7 +146,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   }
 
   @NotNull
-  private static HashMultimap<AndroidSourceType, VirtualFile> getSourcesBySourceType(@NotNull Iterable<IdeaSourceProvider> providers,
+  private static HashMultimap<AndroidSourceType, VirtualFile> getSourcesBySourceType(@NotNull Iterable<NamedIdeaSourceProvider> providers,
                                                                                      @Nullable AndroidModuleModel androidModel) {
     HashMultimap<AndroidSourceType, VirtualFile> sourcesByType = HashMultimap.create();
 
@@ -192,10 +193,10 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   }
 
   @NotNull
-  private static Set<VirtualFile> getSources(@NotNull AndroidSourceType sourceType, @NotNull Iterable<IdeaSourceProvider> providers) {
+  private static Set<VirtualFile> getSources(@NotNull AndroidSourceType sourceType, @NotNull Iterable<NamedIdeaSourceProvider> providers) {
     Set<VirtualFile> sources = new HashSet<>();
 
-    for (IdeaSourceProvider provider : providers) {
+    for (NamedIdeaSourceProvider provider : providers) {
       sources.addAll(sourceType.getSources(provider));
     }
 

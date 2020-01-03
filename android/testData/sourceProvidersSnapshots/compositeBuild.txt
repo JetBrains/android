@@ -6,6 +6,10 @@ MODULE: TestCompositeLib1-app
                 file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
             Manifest:
                 file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./TestCompositeLib1/app/src/main
+            ManifestDirectory:
+                file://./TestCompositeLib1/app/src/main
             AidlDirectoryUrls:
                 file://./TestCompositeLib1/app/src/main/aidl
             AssetsDirectoryUrls:
@@ -270,6 +274,10 @@ MODULE: TestCompositeLib1-app
                     file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
                 Manifest:
                     file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib1/app/src/main
+                ManifestDirectory:
+                    file://./TestCompositeLib1/app/src/main
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/app/src/main/aidl
                 AssetsDirectoryUrls:
@@ -293,6 +301,8 @@ MODULE: TestCompositeLib1-app
             debug (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib1/app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib1/app/src/debug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/app/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -312,6 +322,8 @@ MODULE: TestCompositeLib1-app
             release (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib1/app/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib1/app/src/release
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/app/src/release/aidl
                 AssetsDirectoryUrls:
@@ -334,6 +346,10 @@ MODULE: TestCompositeLib1-app
                     file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
                 Manifest:
                     file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib1/app/src/main
+                ManifestDirectory:
+                    file://./TestCompositeLib1/app/src/main
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/app/src/main/aidl
                 AssetsDirectoryUrls:
@@ -357,6 +373,8 @@ MODULE: TestCompositeLib1-app
             debug (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib1/app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib1/app/src/debug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/app/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -377,6 +395,10 @@ MODULE: TestCompositeLib1-app
             test (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib1/app/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib1/app/src/test
+                ManifestDirectory:
+                    file://./TestCompositeLib1/app/src/test
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/app/src/test/aidl
                 AssetsDirectoryUrls:
@@ -398,6 +420,8 @@ MODULE: TestCompositeLib1-app
             testDebug (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib1/app/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib1/app/src/testDebug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/app/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -418,6 +442,10 @@ MODULE: TestCompositeLib1-app
             androidTest (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib1/app/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib1/app/src/androidTest
+                ManifestDirectory:
+                    file://./TestCompositeLib1/app/src/androidTest
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -439,6 +467,8 @@ MODULE: TestCompositeLib1-app
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib1/app/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib1/app/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
@@ -462,6 +492,10 @@ MODULE: TestCompositeLib1-lib
                 file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
             Manifest:
                 file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./TestCompositeLib1/lib/src/main
+            ManifestDirectory:
+                file://./TestCompositeLib1/lib/src/main
             AidlDirectoryUrls:
                 file://./TestCompositeLib1/lib/src/main/aidl
             AssetsDirectoryUrls:
@@ -726,6 +760,10 @@ MODULE: TestCompositeLib1-lib
                     file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
                 Manifest:
                     file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib1/lib/src/main
+                ManifestDirectory:
+                    file://./TestCompositeLib1/lib/src/main
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/main/aidl
                 AssetsDirectoryUrls:
@@ -749,6 +787,8 @@ MODULE: TestCompositeLib1-lib
             debug (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib1/lib/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib1/lib/src/debug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -768,6 +808,8 @@ MODULE: TestCompositeLib1-lib
             release (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib1/lib/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib1/lib/src/release
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/release/aidl
                 AssetsDirectoryUrls:
@@ -790,6 +832,10 @@ MODULE: TestCompositeLib1-lib
                     file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
                 Manifest:
                     file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib1/lib/src/main
+                ManifestDirectory:
+                    file://./TestCompositeLib1/lib/src/main
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/main/aidl
                 AssetsDirectoryUrls:
@@ -813,6 +859,8 @@ MODULE: TestCompositeLib1-lib
             debug (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib1/lib/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib1/lib/src/debug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -833,6 +881,10 @@ MODULE: TestCompositeLib1-lib
             test (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib1/lib/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib1/lib/src/test
+                ManifestDirectory:
+                    file://./TestCompositeLib1/lib/src/test
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/test/aidl
                 AssetsDirectoryUrls:
@@ -854,6 +906,8 @@ MODULE: TestCompositeLib1-lib
             testDebug (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib1/lib/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib1/lib/src/testDebug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -874,6 +928,10 @@ MODULE: TestCompositeLib1-lib
             androidTest (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib1/lib/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib1/lib/src/androidTest
+                ManifestDirectory:
+                    file://./TestCompositeLib1/lib/src/androidTest
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -895,6 +953,8 @@ MODULE: TestCompositeLib1-lib
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib1/lib/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib1/lib/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
@@ -919,6 +979,10 @@ MODULE: TestCompositeLib3-app
                 file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
             Manifest:
                 file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./TestCompositeLib3/app/src/main
+            ManifestDirectory:
+                file://./TestCompositeLib3/app/src/main
             AidlDirectoryUrls:
                 file://./TestCompositeLib3/app/src/main/aidl
             AssetsDirectoryUrls:
@@ -1183,6 +1247,10 @@ MODULE: TestCompositeLib3-app
                     file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
                 Manifest:
                     file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib3/app/src/main
+                ManifestDirectory:
+                    file://./TestCompositeLib3/app/src/main
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/app/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1206,6 +1274,8 @@ MODULE: TestCompositeLib3-app
             debug (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib3/app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib3/app/src/debug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/app/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1225,6 +1295,8 @@ MODULE: TestCompositeLib3-app
             release (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib3/app/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib3/app/src/release
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/app/src/release/aidl
                 AssetsDirectoryUrls:
@@ -1247,6 +1319,10 @@ MODULE: TestCompositeLib3-app
                     file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
                 Manifest:
                     file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib3/app/src/main
+                ManifestDirectory:
+                    file://./TestCompositeLib3/app/src/main
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/app/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1270,6 +1346,8 @@ MODULE: TestCompositeLib3-app
             debug (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib3/app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib3/app/src/debug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/app/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1290,6 +1368,10 @@ MODULE: TestCompositeLib3-app
             test (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib3/app/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib3/app/src/test
+                ManifestDirectory:
+                    file://./TestCompositeLib3/app/src/test
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/app/src/test/aidl
                 AssetsDirectoryUrls:
@@ -1311,6 +1393,8 @@ MODULE: TestCompositeLib3-app
             testDebug (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib3/app/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib3/app/src/testDebug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/app/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -1331,6 +1415,10 @@ MODULE: TestCompositeLib3-app
             androidTest (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib3/app/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib3/app/src/androidTest
+                ManifestDirectory:
+                    file://./TestCompositeLib3/app/src/androidTest
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -1352,6 +1440,8 @@ MODULE: TestCompositeLib3-app
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib3/app/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib3/app/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
@@ -1375,6 +1465,10 @@ MODULE: TestCompositeLib3-lib
                 file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
             Manifest:
                 file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./TestCompositeLib3/lib/src/main
+            ManifestDirectory:
+                file://./TestCompositeLib3/lib/src/main
             AidlDirectoryUrls:
                 file://./TestCompositeLib3/lib/src/main/aidl
             AssetsDirectoryUrls:
@@ -1639,6 +1733,10 @@ MODULE: TestCompositeLib3-lib
                     file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
                 Manifest:
                     file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib3/lib/src/main
+                ManifestDirectory:
+                    file://./TestCompositeLib3/lib/src/main
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1662,6 +1760,8 @@ MODULE: TestCompositeLib3-lib
             debug (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib3/lib/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib3/lib/src/debug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1681,6 +1781,8 @@ MODULE: TestCompositeLib3-lib
             release (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib3/lib/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib3/lib/src/release
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/release/aidl
                 AssetsDirectoryUrls:
@@ -1703,6 +1805,10 @@ MODULE: TestCompositeLib3-lib
                     file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
                 Manifest:
                     file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib3/lib/src/main
+                ManifestDirectory:
+                    file://./TestCompositeLib3/lib/src/main
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1726,6 +1832,8 @@ MODULE: TestCompositeLib3-lib
             debug (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib3/lib/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib3/lib/src/debug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1746,6 +1854,10 @@ MODULE: TestCompositeLib3-lib
             test (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib3/lib/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib3/lib/src/test
+                ManifestDirectory:
+                    file://./TestCompositeLib3/lib/src/test
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/test/aidl
                 AssetsDirectoryUrls:
@@ -1767,6 +1879,8 @@ MODULE: TestCompositeLib3-lib
             testDebug (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib3/lib/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib3/lib/src/testDebug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -1787,6 +1901,10 @@ MODULE: TestCompositeLib3-lib
             androidTest (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib3/lib/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib3/lib/src/androidTest
+                ManifestDirectory:
+                    file://./TestCompositeLib3/lib/src/androidTest
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -1808,6 +1926,8 @@ MODULE: TestCompositeLib3-lib
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./TestCompositeLib3/lib/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./TestCompositeLib3/lib/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
@@ -1834,6 +1954,10 @@ MODULE: testCompositeBuild-app
                 file://./app/src/main/AndroidManifest.xml
             Manifest:
                 file://./app/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./app/src/main
+            ManifestDirectory:
+                file://./app/src/main
             AidlDirectoryUrls:
                 file://./app/src/main/aidl
             AssetsDirectoryUrls:
@@ -2098,6 +2222,10 @@ MODULE: testCompositeBuild-app
                     file://./app/src/main/AndroidManifest.xml
                 Manifest:
                     file://./app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/main
+                ManifestDirectory:
+                    file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
                 AssetsDirectoryUrls:
@@ -2121,6 +2249,8 @@ MODULE: testCompositeBuild-app
             debug (IDEA)
                 ManifestUrl:
                     file://./app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -2140,6 +2270,8 @@ MODULE: testCompositeBuild-app
             release (IDEA)
                 ManifestUrl:
                     file://./app/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/release
                 AidlDirectoryUrls:
                     file://./app/src/release/aidl
                 AssetsDirectoryUrls:
@@ -2162,6 +2294,10 @@ MODULE: testCompositeBuild-app
                     file://./app/src/main/AndroidManifest.xml
                 Manifest:
                     file://./app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/main
+                ManifestDirectory:
+                    file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
                 AssetsDirectoryUrls:
@@ -2185,6 +2321,8 @@ MODULE: testCompositeBuild-app
             debug (IDEA)
                 ManifestUrl:
                     file://./app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -2205,6 +2343,10 @@ MODULE: testCompositeBuild-app
             test (IDEA)
                 ManifestUrl:
                     file://./app/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/test
+                ManifestDirectory:
+                    file://./app/src/test
                 AidlDirectoryUrls:
                     file://./app/src/test/aidl
                 AssetsDirectoryUrls:
@@ -2226,6 +2368,8 @@ MODULE: testCompositeBuild-app
             testDebug (IDEA)
                 ManifestUrl:
                     file://./app/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/testDebug
                 AidlDirectoryUrls:
                     file://./app/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -2246,6 +2390,10 @@ MODULE: testCompositeBuild-app
             androidTest (IDEA)
                 ManifestUrl:
                     file://./app/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/androidTest
+                ManifestDirectory:
+                    file://./app/src/androidTest
                 AidlDirectoryUrls:
                     file://./app/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -2267,6 +2415,8 @@ MODULE: testCompositeBuild-app
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./app/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./app/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
@@ -2290,6 +2440,10 @@ MODULE: testCompositeBuild-lib
                 file://./lib/src/main/AndroidManifest.xml
             Manifest:
                 file://./lib/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./lib/src/main
+            ManifestDirectory:
+                file://./lib/src/main
             AidlDirectoryUrls:
                 file://./lib/src/main/aidl
             AssetsDirectoryUrls:
@@ -2554,6 +2708,10 @@ MODULE: testCompositeBuild-lib
                     file://./lib/src/main/AndroidManifest.xml
                 Manifest:
                     file://./lib/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib/src/main
+                ManifestDirectory:
+                    file://./lib/src/main
                 AidlDirectoryUrls:
                     file://./lib/src/main/aidl
                 AssetsDirectoryUrls:
@@ -2577,6 +2735,8 @@ MODULE: testCompositeBuild-lib
             debug (IDEA)
                 ManifestUrl:
                     file://./lib/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib/src/debug
                 AidlDirectoryUrls:
                     file://./lib/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -2596,6 +2756,8 @@ MODULE: testCompositeBuild-lib
             release (IDEA)
                 ManifestUrl:
                     file://./lib/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib/src/release
                 AidlDirectoryUrls:
                     file://./lib/src/release/aidl
                 AssetsDirectoryUrls:
@@ -2618,6 +2780,10 @@ MODULE: testCompositeBuild-lib
                     file://./lib/src/main/AndroidManifest.xml
                 Manifest:
                     file://./lib/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib/src/main
+                ManifestDirectory:
+                    file://./lib/src/main
                 AidlDirectoryUrls:
                     file://./lib/src/main/aidl
                 AssetsDirectoryUrls:
@@ -2641,6 +2807,8 @@ MODULE: testCompositeBuild-lib
             debug (IDEA)
                 ManifestUrl:
                     file://./lib/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib/src/debug
                 AidlDirectoryUrls:
                     file://./lib/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -2661,6 +2829,10 @@ MODULE: testCompositeBuild-lib
             test (IDEA)
                 ManifestUrl:
                     file://./lib/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib/src/test
+                ManifestDirectory:
+                    file://./lib/src/test
                 AidlDirectoryUrls:
                     file://./lib/src/test/aidl
                 AssetsDirectoryUrls:
@@ -2682,6 +2854,8 @@ MODULE: testCompositeBuild-lib
             testDebug (IDEA)
                 ManifestUrl:
                     file://./lib/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib/src/testDebug
                 AidlDirectoryUrls:
                     file://./lib/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -2702,6 +2876,10 @@ MODULE: testCompositeBuild-lib
             androidTest (IDEA)
                 ManifestUrl:
                     file://./lib/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib/src/androidTest
+                ManifestDirectory:
+                    file://./lib/src/androidTest
                 AidlDirectoryUrls:
                     file://./lib/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -2723,6 +2901,8 @@ MODULE: testCompositeBuild-lib
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./lib/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./lib/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:

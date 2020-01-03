@@ -39,7 +39,7 @@ import org.jetbrains.android.facet.AndroidFacet
  */
 interface SourceProviders {
 
-  val mainIdeaSourceProvider: IdeaSourceProvider
+  val mainIdeaSourceProvider: NamedIdeaSourceProvider
 
   val mainManifestFile: VirtualFile? get() = mainIdeaSourceProvider.manifestFile
 
@@ -49,7 +49,7 @@ interface SourceProviders {
    *
    * The overlay source order is defined by the underlying build system.
    */
-  val currentSourceProviders: List<IdeaSourceProvider>
+  val currentSourceProviders: List<NamedIdeaSourceProvider>
 
   /**
    * Returns a list of source providers for unit test artifacts (e.g. `test/`source sets), in increasing
@@ -57,7 +57,7 @@ interface SourceProviders {
    *
    * @see currentSourceProviders
    */
-  val currentUnitTestSourceProviders: List<IdeaSourceProvider>
+  val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
 
   /**
    * Returns a list of source providers for Android test artifacts (e.g. `androidTest/` source sets), in increasing
@@ -65,7 +65,7 @@ interface SourceProviders {
    *
    * @see currentSourceProviders
    */
-  val currentAndroidTestSourceProviders: List<IdeaSourceProvider>
+  val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>
 
   /**
    * Returns a list of all IDEA source providers, for the given facet, in the overlay order
@@ -80,7 +80,7 @@ interface SourceProviders {
    * This method should be used when only on-disk source sets are required. It will return
    * empty source sets for all other source providers (since VirtualFiles MUST exist on disk).
    */
-  val allSourceProviders: List<IdeaSourceProvider>
+  val allSourceProviders: List<NamedIdeaSourceProvider>
 
   /**
    * Returns a list of source providers which includes the main source provider and
@@ -90,7 +90,7 @@ interface SourceProviders {
    * for compatibility reasons require this particular subset of source providers.
    */
   @Deprecated("Do not use. This is unlikely to be what anybody needs.")
-  val mainAndFlavorSourceProviders: List<IdeaSourceProvider>
+  val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
 
   companion object {
     @JvmStatic
@@ -102,20 +102,20 @@ interface SourceProviders {
      * NOTE: The test instance is automatically discarded on any relevant change to the [facet].
      */
     @JvmStatic
-    fun replaceForTest(facet: AndroidFacet, disposable: Disposable, sourceSet: IdeaSourceProvider) {
+    fun replaceForTest(facet: AndroidFacet, disposable: Disposable, sourceSet: NamedIdeaSourceProvider) {
       facet.putUserData(KEY, object: SourceProviders {
-        override val currentSourceProviders: List<IdeaSourceProvider>
+        override val currentSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val currentUnitTestSourceProviders: List<IdeaSourceProvider>
+        override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val currentAndroidTestSourceProviders: List<IdeaSourceProvider>
+        override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val allSourceProviders: List<IdeaSourceProvider>
+        override val allSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         @Suppress("OverridingDeprecatedMember")
-        override val mainAndFlavorSourceProviders: List<IdeaSourceProvider>
+        override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val mainIdeaSourceProvider: IdeaSourceProvider
+        override val mainIdeaSourceProvider: NamedIdeaSourceProvider
           get() = sourceSet
         override val mainManifestFile: VirtualFile?
           get() = sourceSet.manifestFile
@@ -131,18 +131,18 @@ interface SourceProviders {
     @JvmStatic
     fun replaceForTest(facet: AndroidFacet, disposable: Disposable, manifestFile: VirtualFile?) {
       facet.putUserData(KEY, object: SourceProviders {
-        override val currentSourceProviders: List<IdeaSourceProvider>
+        override val currentSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val currentUnitTestSourceProviders: List<IdeaSourceProvider>
+        override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val currentAndroidTestSourceProviders: List<IdeaSourceProvider>
+        override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val allSourceProviders: List<IdeaSourceProvider>
+        override val allSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         @Suppress("OverridingDeprecatedMember")
-        override val mainAndFlavorSourceProviders: List<IdeaSourceProvider>
+        override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val mainIdeaSourceProvider: IdeaSourceProvider
+        override val mainIdeaSourceProvider: NamedIdeaSourceProvider
           get() = throw UnsupportedOperationException()
         override val mainManifestFile: VirtualFile?
           get() = manifestFile

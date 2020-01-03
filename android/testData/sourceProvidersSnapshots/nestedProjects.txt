@@ -5,6 +5,10 @@ MODULE: app
                 file://./app/src/main/AndroidManifest.xml
             Manifest:
                 file://./app/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./app/src/main
+            ManifestDirectory:
+                file://./app/src/main
             AidlDirectoryUrls:
                 file://./app/src/main/aidl
             AssetsDirectoryUrls:
@@ -614,6 +618,10 @@ MODULE: app
                     file://./app/src/main/AndroidManifest.xml
                 Manifest:
                     file://./app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/main
+                ManifestDirectory:
+                    file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
                 AssetsDirectoryUrls:
@@ -637,6 +645,8 @@ MODULE: app
             bar (IDEA)
                 ManifestUrl:
                     file://./app/src/bar/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/bar
                 AidlDirectoryUrls:
                     file://./app/src/bar/aidl
                 AssetsDirectoryUrls:
@@ -656,6 +666,8 @@ MODULE: app
             otherBar (IDEA)
                 ManifestUrl:
                     file://./app/src/otherBar/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/otherBar
                 AidlDirectoryUrls:
                     file://./app/src/otherBar/aidl
                 AssetsDirectoryUrls:
@@ -677,6 +689,10 @@ MODULE: app
                     file://./app/src/paid/AndroidManifest.xml
                 Manifest:
                     file://./app/src/paid/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/paid
+                ManifestDirectory:
+                    file://./app/src/paid
                 AidlDirectoryUrls:
                     file://./app/src/paid/aidl
                 AssetsDirectoryUrls:
@@ -700,6 +716,8 @@ MODULE: app
             basic (IDEA)
                 ManifestUrl:
                     file://./app/src/basic/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/basic
                 AidlDirectoryUrls:
                     file://./app/src/basic/aidl
                 AssetsDirectoryUrls:
@@ -719,6 +737,8 @@ MODULE: app
             basicBar (IDEA)
                 ManifestUrl:
                     file://./app/src/basicBar/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/basicBar
                 AidlDirectoryUrls:
                     file://./app/src/basicBar/aidl
                 AssetsDirectoryUrls:
@@ -738,6 +758,8 @@ MODULE: app
             debug (IDEA)
                 ManifestUrl:
                     file://./app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -757,6 +779,8 @@ MODULE: app
             release (IDEA)
                 ManifestUrl:
                     file://./app/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/release
                 AidlDirectoryUrls:
                     file://./app/src/release/aidl
                 AssetsDirectoryUrls:
@@ -776,6 +800,8 @@ MODULE: app
             specialRelease (IDEA)
                 ManifestUrl:
                     file://./app/src/specialRelease/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/specialRelease
                 AidlDirectoryUrls:
                     file://./app/src/specialRelease/aidl
                 AssetsDirectoryUrls:
@@ -795,6 +821,8 @@ MODULE: app
             basicBarDebug (IDEA)
                 ManifestUrl:
                     file://./app/src/basicBarDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/basicBarDebug
                 AidlDirectoryUrls:
                     file://./app/src/basicBarDebug/aidl
                 AssetsDirectoryUrls:
@@ -817,6 +845,10 @@ MODULE: app
                     file://./app/src/main/AndroidManifest.xml
                 Manifest:
                     file://./app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/main
+                ManifestDirectory:
+                    file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
                 AssetsDirectoryUrls:
@@ -840,6 +872,8 @@ MODULE: app
             basic (IDEA)
                 ManifestUrl:
                     file://./app/src/basic/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/basic
                 AidlDirectoryUrls:
                     file://./app/src/basic/aidl
                 AssetsDirectoryUrls:
@@ -859,6 +893,8 @@ MODULE: app
             bar (IDEA)
                 ManifestUrl:
                     file://./app/src/bar/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/bar
                 AidlDirectoryUrls:
                     file://./app/src/bar/aidl
                 AssetsDirectoryUrls:
@@ -878,6 +914,8 @@ MODULE: app
             basicBar (IDEA)
                 ManifestUrl:
                     file://./app/src/basicBar/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/basicBar
                 AidlDirectoryUrls:
                     file://./app/src/basicBar/aidl
                 AssetsDirectoryUrls:
@@ -897,6 +935,8 @@ MODULE: app
             debug (IDEA)
                 ManifestUrl:
                     file://./app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -916,6 +956,8 @@ MODULE: app
             basicBarDebug (IDEA)
                 ManifestUrl:
                     file://./app/src/basicBarDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/basicBarDebug
                 AidlDirectoryUrls:
                     file://./app/src/basicBarDebug/aidl
                 AssetsDirectoryUrls:
@@ -936,6 +978,8 @@ MODULE: app
             test (IDEA)
                 ManifestUrl:
                     file://./app/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/test
                 AidlDirectoryUrls:
                     file://./app/src/test/aidl
                 AssetsDirectoryUrls:
@@ -955,6 +999,8 @@ MODULE: app
             testBasic (IDEA)
                 ManifestUrl:
                     file://./app/src/testBasic/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/testBasic
                 AidlDirectoryUrls:
                     file://./app/src/testBasic/aidl
                 AssetsDirectoryUrls:
@@ -974,6 +1020,8 @@ MODULE: app
             testBar (IDEA)
                 ManifestUrl:
                     file://./app/src/testBar/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/testBar
                 AidlDirectoryUrls:
                     file://./app/src/testBar/aidl
                 AssetsDirectoryUrls:
@@ -993,6 +1041,8 @@ MODULE: app
             testDebug (IDEA)
                 ManifestUrl:
                     file://./app/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/testDebug
                 AidlDirectoryUrls:
                     file://./app/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -1013,6 +1063,8 @@ MODULE: app
             androidTest (IDEA)
                 ManifestUrl:
                     file://./app/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/androidTest
                 AidlDirectoryUrls:
                     file://./app/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -1032,6 +1084,8 @@ MODULE: app
             androidTestBasic (IDEA)
                 ManifestUrl:
                     file://./app/src/androidTestBasic/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/androidTestBasic
                 AidlDirectoryUrls:
                     file://./app/src/androidTestBasic/aidl
                 AssetsDirectoryUrls:
@@ -1051,6 +1105,8 @@ MODULE: app
             androidTestBar (IDEA)
                 ManifestUrl:
                     file://./app/src/androidTestBar/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/androidTestBar
                 AidlDirectoryUrls:
                     file://./app/src/androidTestBar/aidl
                 AssetsDirectoryUrls:
@@ -1070,6 +1126,8 @@ MODULE: app
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./app/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./app/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
@@ -1093,6 +1151,10 @@ MODULE: deep2
                 file://./nested2/trans/deep2/src/main/AndroidManifest.xml
             Manifest:
                 file://./nested2/trans/deep2/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./nested2/trans/deep2/src/main
+            ManifestDirectory:
+                file://./nested2/trans/deep2/src/main
             AidlDirectoryUrls:
                 file://./nested2/trans/deep2/src/main/aidl
             AssetsDirectoryUrls:
@@ -1353,6 +1415,10 @@ MODULE: deep2
                     file://./nested2/trans/deep2/src/main/AndroidManifest.xml
                 Manifest:
                     file://./nested2/trans/deep2/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/trans/deep2/src/main
+                ManifestDirectory:
+                    file://./nested2/trans/deep2/src/main
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1372,6 +1438,8 @@ MODULE: deep2
             debug (IDEA)
                 ManifestUrl:
                     file://./nested2/trans/deep2/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/trans/deep2/src/debug
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1391,6 +1459,8 @@ MODULE: deep2
             release (IDEA)
                 ManifestUrl:
                     file://./nested2/trans/deep2/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/trans/deep2/src/release
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/release/aidl
                 AssetsDirectoryUrls:
@@ -1413,6 +1483,10 @@ MODULE: deep2
                     file://./nested2/trans/deep2/src/main/AndroidManifest.xml
                 Manifest:
                     file://./nested2/trans/deep2/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/trans/deep2/src/main
+                ManifestDirectory:
+                    file://./nested2/trans/deep2/src/main
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1432,6 +1506,8 @@ MODULE: deep2
             debug (IDEA)
                 ManifestUrl:
                     file://./nested2/trans/deep2/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/trans/deep2/src/debug
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1452,6 +1528,8 @@ MODULE: deep2
             test (IDEA)
                 ManifestUrl:
                     file://./nested2/trans/deep2/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/trans/deep2/src/test
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/aidl
                 AssetsDirectoryUrls:
@@ -1471,6 +1549,8 @@ MODULE: deep2
             testDebug (IDEA)
                 ManifestUrl:
                     file://./nested2/trans/deep2/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/trans/deep2/src/testDebug
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -1491,6 +1571,8 @@ MODULE: deep2
             androidTest (IDEA)
                 ManifestUrl:
                     file://./nested2/trans/deep2/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/trans/deep2/src/androidTest
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -1510,6 +1592,8 @@ MODULE: deep2
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./nested2/trans/deep2/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/trans/deep2/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
@@ -1533,6 +1617,10 @@ MODULE: dyn_feature
                 file://./dyn_feature/src/main/AndroidManifest.xml
             Manifest:
                 file://./dyn_feature/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./dyn_feature/src/main
+            ManifestDirectory:
+                file://./dyn_feature/src/main
             AidlDirectoryUrls:
                 file://./dyn_feature/src/main/aidl
             AssetsDirectoryUrls:
@@ -1793,6 +1881,10 @@ MODULE: dyn_feature
                     file://./dyn_feature/src/main/AndroidManifest.xml
                 Manifest:
                     file://./dyn_feature/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./dyn_feature/src/main
+                ManifestDirectory:
+                    file://./dyn_feature/src/main
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1812,6 +1904,8 @@ MODULE: dyn_feature
             debug (IDEA)
                 ManifestUrl:
                     file://./dyn_feature/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./dyn_feature/src/debug
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1831,6 +1925,8 @@ MODULE: dyn_feature
             release (IDEA)
                 ManifestUrl:
                     file://./dyn_feature/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./dyn_feature/src/release
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/release/aidl
                 AssetsDirectoryUrls:
@@ -1853,6 +1949,10 @@ MODULE: dyn_feature
                     file://./dyn_feature/src/main/AndroidManifest.xml
                 Manifest:
                     file://./dyn_feature/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./dyn_feature/src/main
+                ManifestDirectory:
+                    file://./dyn_feature/src/main
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1872,6 +1972,8 @@ MODULE: dyn_feature
             debug (IDEA)
                 ManifestUrl:
                     file://./dyn_feature/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./dyn_feature/src/debug
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1892,6 +1994,8 @@ MODULE: dyn_feature
             test (IDEA)
                 ManifestUrl:
                     file://./dyn_feature/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./dyn_feature/src/test
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/test/aidl
                 AssetsDirectoryUrls:
@@ -1911,6 +2015,8 @@ MODULE: dyn_feature
             testDebug (IDEA)
                 ManifestUrl:
                     file://./dyn_feature/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./dyn_feature/src/testDebug
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -1931,6 +2037,8 @@ MODULE: dyn_feature
             androidTest (IDEA)
                 ManifestUrl:
                     file://./dyn_feature/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./dyn_feature/src/androidTest
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -1950,6 +2058,8 @@ MODULE: dyn_feature
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./dyn_feature/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./dyn_feature/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
@@ -1974,6 +2084,10 @@ MODULE: lib
                 file://./lib/src/main/AndroidManifest.xml
             Manifest:
                 file://./lib/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./lib/src/main
+            ManifestDirectory:
+                file://./lib/src/main
             AidlDirectoryUrls:
                 file://./lib/src/main/aidl
             AssetsDirectoryUrls:
@@ -2238,6 +2352,10 @@ MODULE: lib
                     file://./lib/src/main/AndroidManifest.xml
                 Manifest:
                     file://./lib/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib/src/main
+                ManifestDirectory:
+                    file://./lib/src/main
                 AidlDirectoryUrls:
                     file://./lib/src/main/aidl
                 AssetsDirectoryUrls:
@@ -2261,6 +2379,8 @@ MODULE: lib
             debug (IDEA)
                 ManifestUrl:
                     file://./lib/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib/src/debug
                 AidlDirectoryUrls:
                     file://./lib/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -2280,6 +2400,8 @@ MODULE: lib
             release (IDEA)
                 ManifestUrl:
                     file://./lib/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib/src/release
                 AidlDirectoryUrls:
                     file://./lib/src/release/aidl
                 AssetsDirectoryUrls:
@@ -2302,6 +2424,10 @@ MODULE: lib
                     file://./lib/src/main/AndroidManifest.xml
                 Manifest:
                     file://./lib/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib/src/main
+                ManifestDirectory:
+                    file://./lib/src/main
                 AidlDirectoryUrls:
                     file://./lib/src/main/aidl
                 AssetsDirectoryUrls:
@@ -2325,6 +2451,8 @@ MODULE: lib
             debug (IDEA)
                 ManifestUrl:
                     file://./lib/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib/src/debug
                 AidlDirectoryUrls:
                     file://./lib/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -2345,6 +2473,8 @@ MODULE: lib
             test (IDEA)
                 ManifestUrl:
                     file://./lib/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib/src/test
                 AidlDirectoryUrls:
                     file://./lib/src/test/aidl
                 AssetsDirectoryUrls:
@@ -2364,6 +2494,8 @@ MODULE: lib
             testDebug (IDEA)
                 ManifestUrl:
                     file://./lib/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib/src/testDebug
                 AidlDirectoryUrls:
                     file://./lib/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -2384,6 +2516,8 @@ MODULE: lib
             androidTest (IDEA)
                 ManifestUrl:
                     file://./lib/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib/src/androidTest
                 AidlDirectoryUrls:
                     file://./lib/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -2403,6 +2537,8 @@ MODULE: lib
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./lib/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./lib/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./lib/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
@@ -2426,6 +2562,10 @@ MODULE: nested1
                 file://./nested1/src/main/AndroidManifest.xml
             Manifest:
                 file://./nested1/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./nested1/src/main
+            ManifestDirectory:
+                file://./nested1/src/main
             AidlDirectoryUrls:
                 file://./nested1/src/main/aidl
             AssetsDirectoryUrls:
@@ -2686,6 +2826,10 @@ MODULE: nested1
                     file://./nested1/src/main/AndroidManifest.xml
                 Manifest:
                     file://./nested1/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested1/src/main
+                ManifestDirectory:
+                    file://./nested1/src/main
                 AidlDirectoryUrls:
                     file://./nested1/src/main/aidl
                 AssetsDirectoryUrls:
@@ -2705,6 +2849,8 @@ MODULE: nested1
             debug (IDEA)
                 ManifestUrl:
                     file://./nested1/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested1/src/debug
                 AidlDirectoryUrls:
                     file://./nested1/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -2724,6 +2870,8 @@ MODULE: nested1
             release (IDEA)
                 ManifestUrl:
                     file://./nested1/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested1/src/release
                 AidlDirectoryUrls:
                     file://./nested1/src/release/aidl
                 AssetsDirectoryUrls:
@@ -2746,6 +2894,10 @@ MODULE: nested1
                     file://./nested1/src/main/AndroidManifest.xml
                 Manifest:
                     file://./nested1/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested1/src/main
+                ManifestDirectory:
+                    file://./nested1/src/main
                 AidlDirectoryUrls:
                     file://./nested1/src/main/aidl
                 AssetsDirectoryUrls:
@@ -2765,6 +2917,8 @@ MODULE: nested1
             debug (IDEA)
                 ManifestUrl:
                     file://./nested1/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested1/src/debug
                 AidlDirectoryUrls:
                     file://./nested1/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -2785,6 +2939,8 @@ MODULE: nested1
             test (IDEA)
                 ManifestUrl:
                     file://./nested1/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested1/src/test
                 AidlDirectoryUrls:
                     file://./nested1/src/test/aidl
                 AssetsDirectoryUrls:
@@ -2804,6 +2960,8 @@ MODULE: nested1
             testDebug (IDEA)
                 ManifestUrl:
                     file://./nested1/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested1/src/testDebug
                 AidlDirectoryUrls:
                     file://./nested1/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -2824,6 +2982,8 @@ MODULE: nested1
             androidTest (IDEA)
                 ManifestUrl:
                     file://./nested1/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested1/src/androidTest
                 AidlDirectoryUrls:
                     file://./nested1/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -2843,6 +3003,8 @@ MODULE: nested1
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./nested1/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested1/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./nested1/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
@@ -2866,6 +3028,10 @@ MODULE: nested1-deep
                 file://./nested1/deep/src/main/AndroidManifest.xml
             Manifest:
                 file://./nested1/deep/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./nested1/deep/src/main
+            ManifestDirectory:
+                file://./nested1/deep/src/main
             AidlDirectoryUrls:
                 file://./nested1/deep/src/main/aidl
             AssetsDirectoryUrls:
@@ -3126,6 +3292,10 @@ MODULE: nested1-deep
                     file://./nested1/deep/src/main/AndroidManifest.xml
                 Manifest:
                     file://./nested1/deep/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested1/deep/src/main
+                ManifestDirectory:
+                    file://./nested1/deep/src/main
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/main/aidl
                 AssetsDirectoryUrls:
@@ -3145,6 +3315,8 @@ MODULE: nested1-deep
             debug (IDEA)
                 ManifestUrl:
                     file://./nested1/deep/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested1/deep/src/debug
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -3164,6 +3336,8 @@ MODULE: nested1-deep
             release (IDEA)
                 ManifestUrl:
                     file://./nested1/deep/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested1/deep/src/release
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/release/aidl
                 AssetsDirectoryUrls:
@@ -3186,6 +3360,10 @@ MODULE: nested1-deep
                     file://./nested1/deep/src/main/AndroidManifest.xml
                 Manifest:
                     file://./nested1/deep/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested1/deep/src/main
+                ManifestDirectory:
+                    file://./nested1/deep/src/main
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/main/aidl
                 AssetsDirectoryUrls:
@@ -3205,6 +3383,8 @@ MODULE: nested1-deep
             debug (IDEA)
                 ManifestUrl:
                     file://./nested1/deep/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested1/deep/src/debug
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -3225,6 +3405,8 @@ MODULE: nested1-deep
             test (IDEA)
                 ManifestUrl:
                     file://./nested1/deep/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested1/deep/src/test
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/test/aidl
                 AssetsDirectoryUrls:
@@ -3244,6 +3426,8 @@ MODULE: nested1-deep
             testDebug (IDEA)
                 ManifestUrl:
                     file://./nested1/deep/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested1/deep/src/testDebug
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -3264,6 +3448,8 @@ MODULE: nested1-deep
             androidTest (IDEA)
                 ManifestUrl:
                     file://./nested1/deep/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested1/deep/src/androidTest
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -3283,6 +3469,8 @@ MODULE: nested1-deep
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./nested1/deep/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested1/deep/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
@@ -3306,6 +3494,10 @@ MODULE: nested2
                 file://./nested2/src/main/AndroidManifest.xml
             Manifest:
                 file://./nested2/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./nested2/src/main
+            ManifestDirectory:
+                file://./nested2/src/main
             AidlDirectoryUrls:
                 file://./nested2/src/main/aidl
             AssetsDirectoryUrls:
@@ -3727,6 +3919,10 @@ MODULE: nested2
                     file://./nested2/src/main/AndroidManifest.xml
                 Manifest:
                     file://./nested2/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/src/main
+                ManifestDirectory:
+                    file://./nested2/src/main
                 AidlDirectoryUrls:
                     file://./nested2/src/main/aidl
                 AssetsDirectoryUrls:
@@ -3746,6 +3942,8 @@ MODULE: nested2
             paid (IDEA)
                 ManifestUrl:
                     file://./nested2/src/paid/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/src/paid
                 AidlDirectoryUrls:
                     file://./nested2/src/paid/aidl
                 AssetsDirectoryUrls:
@@ -3765,6 +3963,8 @@ MODULE: nested2
             basic (IDEA)
                 ManifestUrl:
                     file://./nested2/src/basic/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/src/basic
                 AidlDirectoryUrls:
                     file://./nested2/src/basic/aidl
                 AssetsDirectoryUrls:
@@ -3784,6 +3984,8 @@ MODULE: nested2
             debug (IDEA)
                 ManifestUrl:
                     file://./nested2/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/src/debug
                 AidlDirectoryUrls:
                     file://./nested2/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -3803,6 +4005,8 @@ MODULE: nested2
             release (IDEA)
                 ManifestUrl:
                     file://./nested2/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/src/release
                 AidlDirectoryUrls:
                     file://./nested2/src/release/aidl
                 AssetsDirectoryUrls:
@@ -3822,6 +4026,8 @@ MODULE: nested2
             basicDebug (IDEA)
                 ManifestUrl:
                     file://./nested2/src/basicDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/src/basicDebug
                 AidlDirectoryUrls:
                     file://./nested2/src/basicDebug/aidl
                 AssetsDirectoryUrls:
@@ -3844,6 +4050,10 @@ MODULE: nested2
                     file://./nested2/src/main/AndroidManifest.xml
                 Manifest:
                     file://./nested2/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/src/main
+                ManifestDirectory:
+                    file://./nested2/src/main
                 AidlDirectoryUrls:
                     file://./nested2/src/main/aidl
                 AssetsDirectoryUrls:
@@ -3863,6 +4073,8 @@ MODULE: nested2
             basic (IDEA)
                 ManifestUrl:
                     file://./nested2/src/basic/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/src/basic
                 AidlDirectoryUrls:
                     file://./nested2/src/basic/aidl
                 AssetsDirectoryUrls:
@@ -3882,6 +4094,8 @@ MODULE: nested2
             debug (IDEA)
                 ManifestUrl:
                     file://./nested2/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/src/debug
                 AidlDirectoryUrls:
                     file://./nested2/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -3901,6 +4115,8 @@ MODULE: nested2
             basicDebug (IDEA)
                 ManifestUrl:
                     file://./nested2/src/basicDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/src/basicDebug
                 AidlDirectoryUrls:
                     file://./nested2/src/basicDebug/aidl
                 AssetsDirectoryUrls:
@@ -3921,6 +4137,8 @@ MODULE: nested2
             test (IDEA)
                 ManifestUrl:
                     file://./nested2/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/src/test
                 AidlDirectoryUrls:
                     file://./nested2/src/test/aidl
                 AssetsDirectoryUrls:
@@ -3940,6 +4158,8 @@ MODULE: nested2
             testBasic (IDEA)
                 ManifestUrl:
                     file://./nested2/src/testBasic/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/src/testBasic
                 AidlDirectoryUrls:
                     file://./nested2/src/testBasic/aidl
                 AssetsDirectoryUrls:
@@ -3959,6 +4179,8 @@ MODULE: nested2
             testDebug (IDEA)
                 ManifestUrl:
                     file://./nested2/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/src/testDebug
                 AidlDirectoryUrls:
                     file://./nested2/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -3979,6 +4201,8 @@ MODULE: nested2
             androidTest (IDEA)
                 ManifestUrl:
                     file://./nested2/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/src/androidTest
                 AidlDirectoryUrls:
                     file://./nested2/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -3998,6 +4222,8 @@ MODULE: nested2
             androidTestBasic (IDEA)
                 ManifestUrl:
                     file://./nested2/src/androidTestBasic/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/src/androidTestBasic
                 AidlDirectoryUrls:
                     file://./nested2/src/androidTestBasic/aidl
                 AssetsDirectoryUrls:
@@ -4017,6 +4243,8 @@ MODULE: nested2
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./nested2/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./nested2/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:
@@ -4040,6 +4268,10 @@ MODULE: nested2-deep
                 file://./nested2/deep/src/main/AndroidManifest.xml
             Manifest:
                 file://./nested2/deep/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./nested2/deep/src/main
+            ManifestDirectory:
+                file://./nested2/deep/src/main
             AidlDirectoryUrls:
                 file://./nested2/deep/src/main/aidl
             AssetsDirectoryUrls:
@@ -4300,6 +4532,10 @@ MODULE: nested2-deep
                     file://./nested2/deep/src/main/AndroidManifest.xml
                 Manifest:
                     file://./nested2/deep/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/deep/src/main
+                ManifestDirectory:
+                    file://./nested2/deep/src/main
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/main/aidl
                 AssetsDirectoryUrls:
@@ -4319,6 +4555,8 @@ MODULE: nested2-deep
             debug (IDEA)
                 ManifestUrl:
                     file://./nested2/deep/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/deep/src/debug
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -4338,6 +4576,8 @@ MODULE: nested2-deep
             release (IDEA)
                 ManifestUrl:
                     file://./nested2/deep/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/deep/src/release
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/release/aidl
                 AssetsDirectoryUrls:
@@ -4360,6 +4600,10 @@ MODULE: nested2-deep
                     file://./nested2/deep/src/main/AndroidManifest.xml
                 Manifest:
                     file://./nested2/deep/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/deep/src/main
+                ManifestDirectory:
+                    file://./nested2/deep/src/main
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/main/aidl
                 AssetsDirectoryUrls:
@@ -4379,6 +4623,8 @@ MODULE: nested2-deep
             debug (IDEA)
                 ManifestUrl:
                     file://./nested2/deep/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/deep/src/debug
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -4399,6 +4645,8 @@ MODULE: nested2-deep
             test (IDEA)
                 ManifestUrl:
                     file://./nested2/deep/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/deep/src/test
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/test/aidl
                 AssetsDirectoryUrls:
@@ -4418,6 +4666,8 @@ MODULE: nested2-deep
             testDebug (IDEA)
                 ManifestUrl:
                     file://./nested2/deep/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/deep/src/testDebug
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -4438,6 +4688,8 @@ MODULE: nested2-deep
             androidTest (IDEA)
                 ManifestUrl:
                     file://./nested2/deep/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/deep/src/androidTest
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -4457,6 +4709,8 @@ MODULE: nested2-deep
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./nested2/deep/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./nested2/deep/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:

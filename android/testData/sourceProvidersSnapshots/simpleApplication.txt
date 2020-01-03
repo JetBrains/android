@@ -5,6 +5,10 @@ MODULE: app
                 file://./app/src/main/AndroidManifest.xml
             Manifest:
                 file://./app/src/main/AndroidManifest.xml
+            ManifestDirectoryUrl:
+                file://./app/src/main
+            ManifestDirectory:
+                file://./app/src/main
             AidlDirectoryUrls:
                 file://./app/src/main/aidl
             AssetsDirectoryUrls:
@@ -269,6 +273,10 @@ MODULE: app
                     file://./app/src/main/AndroidManifest.xml
                 Manifest:
                     file://./app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/main
+                ManifestDirectory:
+                    file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
                 AssetsDirectoryUrls:
@@ -292,6 +300,8 @@ MODULE: app
             debug (IDEA)
                 ManifestUrl:
                     file://./app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -311,6 +321,8 @@ MODULE: app
             release (IDEA)
                 ManifestUrl:
                     file://./app/src/release/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/release
                 AidlDirectoryUrls:
                     file://./app/src/release/aidl
                 AssetsDirectoryUrls:
@@ -333,6 +345,10 @@ MODULE: app
                     file://./app/src/main/AndroidManifest.xml
                 Manifest:
                     file://./app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/main
+                ManifestDirectory:
+                    file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
                 AssetsDirectoryUrls:
@@ -356,6 +372,8 @@ MODULE: app
             debug (IDEA)
                 ManifestUrl:
                     file://./app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -376,6 +394,10 @@ MODULE: app
             test (IDEA)
                 ManifestUrl:
                     file://./app/src/test/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/test
+                ManifestDirectory:
+                    file://./app/src/test
                 AidlDirectoryUrls:
                     file://./app/src/test/aidl
                 AssetsDirectoryUrls:
@@ -397,6 +419,8 @@ MODULE: app
             testDebug (IDEA)
                 ManifestUrl:
                     file://./app/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/testDebug
                 AidlDirectoryUrls:
                     file://./app/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -417,6 +441,10 @@ MODULE: app
             androidTest (IDEA)
                 ManifestUrl:
                     file://./app/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/androidTest
+                ManifestDirectory:
+                    file://./app/src/androidTest
                 AidlDirectoryUrls:
                     file://./app/src/androidTest/aidl
                 AssetsDirectoryUrls:
@@ -438,6 +466,8 @@ MODULE: app
             androidTestDebug (IDEA)
                 ManifestUrl:
                     file://./app/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrl:
+                    file://./app/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./app/src/androidTestDebug/aidl
                 AssetsDirectoryUrls:

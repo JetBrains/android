@@ -18,6 +18,7 @@ package com.android.tools.idea.navigator.nodes.android;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode;
@@ -55,7 +56,7 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
     // could be null if the file was deleted.
     if (file != null) {
       // if it is not part of the main source set, then append the provider name
-      IdeaSourceProvider sourceProvider = getSourceProvider(myAndroidFacet, file);
+      NamedIdeaSourceProvider sourceProvider = getSourceProvider(myAndroidFacet, file);
       if (sourceProvider != null && !FD_MAIN.equals(sourceProvider.getName())) {
         data.addText(file.getName(), REGULAR_ATTRIBUTES);
         String name = sourceProvider.getName();
@@ -68,7 +69,7 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
   }
 
   @Nullable
-  static IdeaSourceProvider getSourceProvider(@NotNull AndroidFacet facet, @NotNull PsiFile file) {
+  static NamedIdeaSourceProvider getSourceProvider(@NotNull AndroidFacet facet, @NotNull PsiFile file) {
     return IdeaSourceProviderUtil.findByFile(AndroidProjectViewPane.getSourceProviders(facet), file.getVirtualFile());
   }
 
@@ -80,7 +81,7 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
       return "";
     }
 
-    IdeaSourceProvider sourceProvider = getSourceProvider(myAndroidFacet, file);
+    NamedIdeaSourceProvider sourceProvider = getSourceProvider(myAndroidFacet, file);
     if (sourceProvider == null || FD_MAIN.equals(sourceProvider.getName())) {
       return "";
     }
@@ -110,7 +111,7 @@ public class AndroidManifestFileNode extends PsiFileNode implements FolderGroupN
     }
     StringBuilder buffer = new StringBuilder();
     buffer.append(file.getName());
-    IdeaSourceProvider sourceProvider = getSourceProvider(myAndroidFacet, file);
+    NamedIdeaSourceProvider sourceProvider = getSourceProvider(myAndroidFacet, file);
     assert sourceProvider != null;
     String name = sourceProvider.getName();
     if (isNotEmpty(name)) {

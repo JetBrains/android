@@ -16,7 +16,7 @@
 package com.android.tools.idea.navigator.nodes.android;
 
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
-import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.google.common.collect.Iterables;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
@@ -124,7 +124,7 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
       }
 
       AndroidFacet facet = getAndroidFacet();
-      IdeaSourceProvider sourceProvider = AndroidManifestFileNode.getSourceProvider(facet, psiFile);
+      NamedIdeaSourceProvider sourceProvider = AndroidManifestFileNode.getSourceProvider(facet, psiFile);
       if (sourceProvider != null && FD_MAIN.equals(sourceProvider.getName())) {
         bestFile = file;
       }

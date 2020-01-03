@@ -17,13 +17,14 @@
 package org.jetbrains.android.facet
 
 import com.android.builder.model.SourceProvider
-import com.android.tools.idea.projectsystem.IdeaSourceProviderImpl
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProviderImpl
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.intellij.openapi.vfs.VfsUtil
 import java.io.File
 
-fun createIdeaSourceProviderFromModelSourceProvider(it: SourceProvider): IdeaSourceProviderImpl {
-  return IdeaSourceProviderImpl(
+fun createIdeaSourceProviderFromModelSourceProvider(it: SourceProvider): NamedIdeaSourceProvider {
+  return NamedIdeaSourceProviderImpl(
     it.name,
     VfsUtil.fileToUrl(it.manifestFile),
     javaDirectoryUrls = convertToUrlSet(it.javaDirectories),
