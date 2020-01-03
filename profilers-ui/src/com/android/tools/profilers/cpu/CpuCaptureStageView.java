@@ -215,7 +215,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
   private void onTrackGroupSelectionChange() {
     // Remove the last selection if any.
     if (getStage().getAnalysisModels().size() > 1) {
-      getStage().getAnalysisModels().remove(getStage().getAnalysisModels().size() - 1);
+      getStage().removeCpuAnalysisModel(getStage().getAnalysisModels().size() - 1);
     }
 
     // Merge all selected items' analysis models and provide one combined model to the analysis panel.
