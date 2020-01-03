@@ -78,10 +78,7 @@ class MergedManifestModificationListener(
       return false
     }
 
-    return SourceProviderManager.getInstance(facet).currentSourceProviders
-      .asSequence()
-      .mapNotNull { it.manifestFile }
-      .any { VfsUtilCore.isAncestor(file, it, false) }
+    return SourceProviderManager.getInstance(facet).sources.manifestFiles.any { VfsUtilCore.isAncestor(file, it, false) }
   }
 
   override fun contentsChanged(event: VirtualFileEvent) {
