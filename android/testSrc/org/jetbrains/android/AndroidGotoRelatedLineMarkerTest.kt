@@ -158,6 +158,13 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     doCheckLineMarkers(expectedTargetFiles, KtClass::class.java)
   }
 
+  fun testLayoutDoNothing() {
+    createManifest()
+    val layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml")
+    assertThat(doGotoRelatedFile(layout)).isEmpty()
+    doCheckNoLineMarkers()
+  }
+
   fun testNestedActivity() {
     createManifest()
     val layout = myFixture.copyFileToProject(BASE_PATH + "layout1.xml", "res/layout/layout.xml")
@@ -197,6 +204,11 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     val marker = relatedMarkers[0] as RelatedItemLineMarkerInfo
     doCheckItems(expectedTargetFiles, marker.createGotoRelatedItems().toList(),
                  targetElementClass)
+  }
+
+  private fun doCheckNoLineMarkers() {
+    val relatedMarkers = doGetRelatedLineMarkers()
+    assertThat(relatedMarkers).hasSize(0)
   }
 
   private fun doGetRelatedLineMarkers(): List<LineMarkerInfo<*>> {
