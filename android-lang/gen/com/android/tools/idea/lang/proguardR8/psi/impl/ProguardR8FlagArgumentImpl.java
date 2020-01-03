@@ -44,6 +44,12 @@ public class ProguardR8FlagArgumentImpl extends ASTWrapperPsiElement implements 
   }
 
   @Override
+  @NotNull
+  public List<ProguardR8File> getFileList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8File.class);
+  }
+
+  @Override
   @Nullable
   public ProguardR8FileFilter getFileFilter() {
     return findChildByClass(ProguardR8FileFilter.class);

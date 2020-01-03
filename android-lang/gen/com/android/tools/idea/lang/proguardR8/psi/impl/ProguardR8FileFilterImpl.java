@@ -43,4 +43,10 @@ public class ProguardR8FileFilterImpl extends ASTWrapperPsiElement implements Pr
     else super.accept(visitor);
   }
 
+  @Override
+  @NotNull
+  public List<ProguardR8File> getFileList() {
+    return PsiTreeUtil.getChildrenOfTypeAsList(this, ProguardR8File.class);
+  }
+
 }
