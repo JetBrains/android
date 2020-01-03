@@ -30,26 +30,43 @@ import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
+import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.project.messages.MessageType.ERROR
 import com.android.tools.idea.project.messages.SyncMessage
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.notification.Notification
-import com.intellij.notification.NotificationGroup
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager.getApplication
 import com.intellij.openapi.application.ModalityState.NON_MODAL
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.externalSystem.service.notification.ExternalSystemNotificationManager
-import com.intellij.openapi.externalSystem.service.notification.NotificationCategory
-import com.intellij.openapi.externalSystem.service.notification.NotificationData
-import com.intellij.openapi.externalSystem.service.notification.NotificationSource
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
-import com.intellij.openapi.util.text.StringUtil
-import org.jetbrains.plugins.gradle.util.GradleConstants
+import java.util.concurrent.TimeUnit
 
 private val LOG = Logger.getInstance("AndroidGradlePluginUpdates")
+
+// **************************************************************************
+// ** Recommended upgrades
+// **************************************************************************
+
+
+class RecommendedUpgradeReminder(
+  project: Project
+) : TimeBasedReminder(project, "recommended.upgrade", TimeUnit.DAYS.toMillis(1)) {
+  var doNotAskForVersion: String?
+    get() =  PropertiesComponent.getInstance(project).getValue("$settingsPropertyRoot.do.not.ask.for.version")
+    set(value) = PropertiesComponent.getInstance(project).setValue("$settingsPropertyRoot.do.not.ask.for.version", value)
+
+  override fun shouldAsk(currentTime: Long): Boolean {
+    val pluginInfo = project.findPluginInfo() ?: return false
+    val gradleVersion = pluginInfo.pluginVersion ?: return false
+    return doNotAskForVersion == gradleVersion.toString() && super.shouldAsk(currentTime)
+  }
+}
+
+// **************************************************************************
+// ** Forced upgrades
+// **************************************************************************
 
 fun shouldForcePluginUpgrade(project: Project) : Boolean {
   val pluginInfo = project.findPluginInfo() ?: return false

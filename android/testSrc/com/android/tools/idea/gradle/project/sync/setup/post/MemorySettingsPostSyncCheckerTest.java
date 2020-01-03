@@ -28,7 +28,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 public class MemorySettingsPostSyncCheckerTest extends PlatformTestCase {
   @Mock
-  private TimeBasedMemorySettingsCheckerReminder myReminder;
+  private TimeBasedReminder myReminder;
 
   @Override
   public void setUp() throws Exception {
@@ -51,14 +51,14 @@ public class MemorySettingsPostSyncCheckerTest extends PlatformTestCase {
   }
 
   public void testNoNotificationIfShouldNotCheck() {
-    when(myReminder.shouldCheck(myProject)).thenReturn(false);
+    when(myReminder.shouldAsk()).thenReturn(false);
     MemorySettingsPostSyncChecker.checkSettings(myProject, myReminder);
     Notification[] notifications = getNotifications();
     assertSize(0, notifications);
   }
 
   public void testNotificationIfRecommended() {
-    when(myReminder.shouldCheck(myProject)).thenReturn(true);
+    when(myReminder.shouldAsk()).thenReturn(true);
     stubHostData(16 * 1024);
     MemorySettingsPostSyncChecker.checkSettings(myProject, myReminder);
     MemorySettingsPostSyncChecker.checkSettings(myProject, myReminder);
