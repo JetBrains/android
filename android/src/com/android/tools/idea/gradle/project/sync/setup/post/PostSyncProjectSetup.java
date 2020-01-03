@@ -197,25 +197,15 @@ public class PostSyncProjectSetup {
       boolean skipAgpUpgrade = SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false);
 
       if (!skipAgpUpgrade && !request.skipAndroidPluginUpgrade) {
-        if (StudioFlags.BALLOON_UPGRADE_NOTIFICATION.get()) {
-          if (myPluginVersionUpgrade.isForcedUpgradable()) {
-            // Do force upgrade anyway.
-            if (myPluginVersionUpgrade.performForcedUpgrade()) {
-              finishSuccessfulSync(taskId);
-              return;
-            }
-          }
-          else {
-            RecommendedPluginVersionUpgrade.checkUpgrade(myProject);
-          }
-        }
-        else {
-          // TODO(b/127454467): remove after StudioFlags.BALLOON_UPGRADE_NOTIFICATION is removed.
-          if (myPluginVersionUpgrade.checkAndPerformUpgrade()) {
-            // Plugin version was upgraded and a sync was triggered.
+        if (myPluginVersionUpgrade.isForcedUpgradable()) {
+          // Do force upgrade anyway.
+          if (myPluginVersionUpgrade.performForcedUpgrade()) {
             finishSuccessfulSync(taskId);
             return;
           }
+        }
+        else {
+          RecommendedPluginVersionUpgrade.checkUpgrade(myProject);
         }
       }
 

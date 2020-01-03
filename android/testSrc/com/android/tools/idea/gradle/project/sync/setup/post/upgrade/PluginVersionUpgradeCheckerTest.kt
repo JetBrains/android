@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade
 import com.android.tools.idea.testing.IdeComponents
@@ -31,8 +30,6 @@ class PluginVersionUpgradeCheckerTest : PlatformTestCase() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.BALLOON_UPGRADE_NOTIFICATION.override(true)
-
     initMocks(this)
 
     Mockito.`when`<Boolean>(projectInfo.isBuildWithGradle).thenReturn(true)
@@ -46,7 +43,6 @@ class PluginVersionUpgradeCheckerTest : PlatformTestCase() {
   override fun tearDown() {
     cleanNotification()
 
-    StudioFlags.BALLOON_UPGRADE_NOTIFICATION.clearOverride()
     super.tearDown()
   }
 
