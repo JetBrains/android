@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.transport;
 
+
 import com.android.annotations.NonNull;
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.IDevice;
@@ -39,7 +40,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -49,10 +49,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class TransportFileManager implements TransportFileCopier {
+
   private static class HostFiles {
     @NotNull static final DeployableFile TRANSPORT = new DeployableFile.Builder("transport")
-      .setReleaseDir("plugins/android/resources/transport")
-      .setDevDir("../../bazel-bin/tools/base/transport/android")
+      .setReleaseDir(Constants.TRANSPORT_RELEASE_DIR)
+      .setDevDir(DeployableFile.getDevDir(Constants.TRANSPORT_DEV_DIR))
       .setExecutable(true)
       .build();
 
@@ -61,43 +62,43 @@ public final class TransportFileManager implements TransportFileCopier {
     @NotNull static final DeployableFile PERFA_OKHTTP = new DeployableFile.Builder("perfa_okhttp.dex").build();
 
     @NotNull static final DeployableFile JVMTI_AGENT = new DeployableFile.Builder("libjvmtiagent.so")
-      .setReleaseDir("plugins/android/resources/transport/native/agent")
-      .setDevDir("../../bazel-bin/tools/base/transport/native/agent/android")
+      .setReleaseDir(Constants.JVMTI_AGENT_RELEASE_DIR)
+      .setDevDir(DeployableFile.getDevDir(Constants.JVMTI_AGENT_DEV_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("libjvmtiagent_%s.so") // e.g. libjvmtiagent_arm64.so
       .build();
 
     @NotNull static final DeployableFile SIMPLEPERF = new DeployableFile.Builder("simpleperf")
-      .setReleaseDir("plugins/android/resources/simpleperf")
-      .setDevDir("../../prebuilts/tools/common/simpleperf")
+      .setReleaseDir(Constants.SIMPLEPERF_RELEASE_DIR)
+      .setDevDir(DeployableFile.getDevDir(Constants.SIMPLEPERF_DEV_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("simpleperf_%s") // e.g simpleperf_arm64
       .build();
 
     @NotNull static final DeployableFile PERFETTO = new DeployableFile.Builder("perfetto")
-      .setReleaseDir("plugins/android/resources/perfetto")
-      .setDevDir("../../prebuilts/tools/common/perfetto")
+      .setReleaseDir(Constants.PERFETTO_RELEASE_DIR)
+      .setDevDir(DeployableFile.getDevDir(Constants.PERFETTO_DEV_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("perfetto_%s") // e.g perfetto_arm64
       .build();
 
     @NotNull static final DeployableFile PERFETTO_SO = new DeployableFile.Builder("libperfetto.so")
-      .setReleaseDir("plugins/android/resources/perfetto")
-      .setDevDir("../../prebuilts/tools/common/perfetto")
+      .setReleaseDir(Constants.PERFETTO_RELEASE_DIR)
+      .setDevDir(DeployableFile.getDevDir(Constants.PERFETTO_DEV_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("%s/libperfetto.so") // e.g arm64/libperfetto.so
       .build();
 
     @NotNull static final DeployableFile TRACED = new DeployableFile.Builder("traced")
-      .setReleaseDir("plugins/android/resources/perfetto")
-      .setDevDir("../../prebuilts/tools/common/perfetto")
+      .setReleaseDir(Constants.PERFETTO_RELEASE_DIR)
+      .setDevDir(DeployableFile.getDevDir(Constants.PERFETTO_DEV_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("traced_%s") // e.g traced_arm64
       .build();
 
     @NotNull static final DeployableFile TRACED_PROBE = new DeployableFile.Builder("traced_probes")
-      .setReleaseDir("plugins/android/resources/perfetto")
-      .setDevDir("../../prebuilts/tools/common/perfetto")
+      .setReleaseDir(Constants.PERFETTO_RELEASE_DIR)
+      .setDevDir(DeployableFile.getDevDir(Constants.PERFETTO_DEV_DIR))
       .setExecutable(true)
       .setOnDeviceAbiFileNameFormat("traced_probes_%s") // e.g traced_probe_arm64
       .build();
@@ -223,7 +224,7 @@ public final class TransportFileManager implements TransportFileCopier {
   /**
    * Copies a file from host (where Studio is running) to the device.
    * If executable, then the abi is taken into account, which may result in multiple files copied.
-   *
+   * <p>
    * Returns a list of the on-device paths of copied files.
    */
   @Override
@@ -242,7 +243,8 @@ public final class TransportFileManager implements TransportFileCopier {
       Abi abi = getBestAbi(hostFile);
       Path path = dirPath.resolve(abi + "/" + hostFile.getFileName());
       paths.add(pushFileToDevice(path, hostFile.getFileName(), true));
-    } else {
+    }
+    else {
       String format = hostFile.getOnDeviceAbiFileNameFormat();
       assert format != null;
       for (Abi abi : getBestAbis(hostFile)) {
