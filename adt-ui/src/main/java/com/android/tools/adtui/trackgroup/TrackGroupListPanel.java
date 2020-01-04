@@ -226,6 +226,7 @@ public class TrackGroupListPanel implements TrackGroupMover {
   private static class TrackGroupSelectionListener<T extends SelectableTrackModel> implements ListSelectionListener {
     private final TrackGroup myTrackGroup;
     private final MultiSelectionModel<T> myMultiSelectionModel;
+    private boolean handleListSelectionEvent = true;
 
     TrackGroupSelectionListener(@NotNull TrackGroup trackGroup, @NotNull MultiSelectionModel<T> multiSelectionModel) {
       myTrackGroup = trackGroup;
@@ -235,6 +236,10 @@ public class TrackGroupListPanel implements TrackGroupMover {
       // For example, multiple track groups share the same MultiSelectionModel in CPU capture stage. Selecting a track in Track Group A
       // should clear the track selection in Track Group B and vice versa.
       multiSelectionModel.addDependency(trackGroup).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, () -> {
+        // The logic here is for matching the selection state of the track groups to the multi-selection model when the that model is
+        // modified by another source (e.g. trace event selection) and therefore we don't want to handle the ListSelectionEvent, which will
+        // modify the multi-selection model again.
+        handleListSelectionEvent = false;
         if (multiSelectionModel.isEmpty()) {
           trackGroup.getTrackList().clearSelection();
         }
@@ -248,16 +253,19 @@ public class TrackGroupListPanel implements TrackGroupMover {
             trackGroup.getTrackList().clearSelection();
           }
         }
+        handleListSelectionEvent = true;
       });
     }
 
     @Override
     public void valueChanged(ListSelectionEvent e) {
-      Set<T> selection = new HashSet<>();
-      for (int selectedIndex : myTrackGroup.getTrackList().getSelectedIndices()) {
-        selection.add((T)myTrackGroup.getTrackModelAt(selectedIndex).getDataModel());
+      if (handleListSelectionEvent) {
+        Set<T> selection = new HashSet<>();
+        for (int selectedIndex : myTrackGroup.getTrackList().getSelectedIndices()) {
+          selection.add((T)myTrackGroup.getTrackModelAt(selectedIndex).getDataModel());
+        }
+        myMultiSelectionModel.setSelection(selection);
       }
-      myMultiSelectionModel.setSelection(selection);
     }
   }
 
