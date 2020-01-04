@@ -23,7 +23,6 @@ import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogSta
 import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.OK;
 import static com.google.wireless.android.sdk.stats.GradlePluginUpgradeDialogStats.UserAction.REMIND_ME_TOMORROW;
 import static com.intellij.ide.BrowserUtil.browse;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.util.ui.JBUI.Borders.empty;
 import static com.intellij.util.ui.JBUI.Borders.emptyTop;
 import static javax.swing.Action.MNEMONIC_KEY;
@@ -43,7 +42,6 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -91,12 +89,6 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
       @NotNull
       public String getDoNotShowMessage() {
         return "Don't remind me again for this project";
-      }
-
-      @Override
-      public boolean isToBeShown() {
-        // Read the stored value. If none is found, return "true" to display the checkbox the first time.
-        return shouldDisplayDialog();
       }
 
       @Override
@@ -210,22 +202,6 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
       buttonsPanel.add(button);
     }
     return buttonsPanel;
-  }
-
-  @Override
-  public void show() {
-    if (shouldDisplayDialog()) {
-      super.show();
-    }
-    else {
-      doCancelAction();
-    }
-  }
-
-  private boolean shouldDisplayDialog() {
-    String value = myUpgradeReminder.getDoNotAskAgainVersion(myProject);
-    boolean storedVersionMatching = isNotEmpty(value) && myCurrentPluginVersion.compareTo(value) == 0;
-    return !storedVersionMatching;
   }
 
   @Override
