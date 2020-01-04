@@ -33,13 +33,17 @@ import com.android.tools.idea.ui.wizard.StudioWizardStepPanel
 import com.android.tools.idea.ui.wizard.WizardUtils
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.ContextHelpLabel
+import com.intellij.ui.components.Label
 import com.intellij.ui.layout.Cell
 import com.intellij.ui.layout.CellBuilder
 import com.intellij.ui.layout.PropertyBinding
 import com.intellij.ui.layout.panel
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.util.AndroidBundle
+import javax.swing.JComponent
+import javax.swing.JLabel
 import javax.swing.JTextField
 
 class ConfigureLibraryModuleStep(
@@ -52,6 +56,7 @@ class ConfigureLibraryModuleStep(
   private lateinit var libraryName: JTextField
   private lateinit var packageName: LabelWithEditButton
   private lateinit var className: JTextField
+  private lateinit var language: ComboBox<Language>
 
   private val panel = panel {
     val initialLibraryNameValue = WizardUtils.getUniqueName(model.moduleName.get(), moduleValidator)
@@ -59,25 +64,35 @@ class ConfigureLibraryModuleStep(
       label(AndroidBundle.message("android.wizard.module.config.title"), style = UIUtil.ComponentStyle.LARGE, bold = true)
     }
     row {
+      val label = Label("Library name:")
       cell {
-        label("Library name:")
+        label()
         ContextHelpLabel.create(AndroidBundle.message("android.wizard.module.help.name"))()
       }
       libraryName = textField({ initialLibraryNameValue }, { model.moduleName.set(it) }).component
+      label.labelFor = libraryName
     }
-    row("Package name:") {
+    row {
+      val label = Label("Package name:")
+      label()
       packageName = labelWithEditButton(
         { DomainToPackageExpression(StringValueProperty(getInitialDomain()), StringValueProperty(initialLibraryNameValue)).get() },
         { model.packageName.set(it) }
       ).component
+      label.labelFor = packageName.textField
     }
-    row("Class name:") {
-        className = textField({ model.className.get() }, { model.className.set(it) }).component
+    row {
+      val label = Label("Class name:")
+      label()
+      className = textField({ model.className.get() }, { model.className.set(it) }).component
+      label.labelFor = className
     }
-    row("Language:") {
+    row {
+      val label = Label("Language:")
       right {
-        comboBox(LanguageComboProvider().createComponent().model, { Language.KOTLIN }, { model.language.value = it!! })
+        language = comboBox(LanguageComboProvider().createComponent().model, { Language.KOTLIN }, { model.language.value = it!! }).component
       }
+      label.labelFor = language
     }
   }
 
@@ -94,8 +109,12 @@ class ConfigureLibraryModuleStep(
     val computedPackageName = DomainToPackageExpression(StringValueProperty(getInitialDomain()), TextProperty(libraryName))
     val isPackageNameSynced = BoolValueProperty(true)
     val packageNameText = TextProperty(packageName)
-    bindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
+    bindings.bind(packageNameText, computedPackageName, isPackageNameSynced)
     listeners.listen(packageNameText) { value -> isPackageNameSynced.set(value == computedPackageName.get()) }
+  }
+
+  override fun onProceeding() {
+    panel.apply()
   }
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> = listOf()
@@ -117,3 +136,4 @@ fun Cell.labelWithEditButton(getter: () -> String, setter: (String) -> Unit): Ce
   val builder = component(growX, pushX)
   return builder.withBinding(LabelWithEditButton::getText, LabelWithEditButton::setText, PropertyBinding(getter, setter))
 }
+
