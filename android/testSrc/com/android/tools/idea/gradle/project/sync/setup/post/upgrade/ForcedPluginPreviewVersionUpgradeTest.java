@@ -30,7 +30,7 @@ import static org.junit.Assert.assertEquals;
  * Tests for {@link GradlePluginUpgrade#shouldPreviewBeForcedToUpgrade(GradleVersion, GradleVersion)}.
  */
 @RunWith(Parameterized.class)
-public class ForcedPluginPreviewVersionUpgradeStepTest {
+public class ForcedPluginPreviewVersionUpgradeTest {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
@@ -73,7 +73,7 @@ public class ForcedPluginPreviewVersionUpgradeStepTest {
 
   private final boolean myForceUpgrade;
 
-  public ForcedPluginPreviewVersionUpgradeStepTest(@NotNull String current, @NotNull String recommended, boolean forceUpgrade) {
+  public ForcedPluginPreviewVersionUpgradeTest(@NotNull String current, @NotNull String recommended, boolean forceUpgrade) {
     myCurrent = GradleVersion.parse(current);
     myRecommended = GradleVersion.parse(recommended);
     myForceUpgrade = forceUpgrade;

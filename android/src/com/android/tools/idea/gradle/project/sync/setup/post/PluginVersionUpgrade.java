@@ -16,36 +16,23 @@
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import com.android.annotations.concurrency.Slow;
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GradlePluginUpgrade;
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 
 public class PluginVersionUpgrade {
   @NotNull private final Project myProject;
-  @NotNull private final RecommendedPluginVersionUpgradeStep[] myRecommendedUpgradeSteps;
 
   @NotNull
   public static PluginVersionUpgrade getInstance(@NotNull Project project) {
     return ServiceManager.getService(project, PluginVersionUpgrade.class);
   }
 
-  public PluginVersionUpgrade(@NotNull Project project) {
-    this(project, RecommendedPluginVersionUpgradeStep.getExtensions());
-  }
-
   @VisibleForTesting
-  public PluginVersionUpgrade(@NotNull Project project,
-                              @NotNull RecommendedPluginVersionUpgradeStep[] recommendedUpgradeSteps) {
+  public PluginVersionUpgrade(@NotNull Project project) {
     myProject = project;
-    myRecommendedUpgradeSteps = recommendedUpgradeSteps;
   }
 
   @Slow
@@ -54,11 +41,7 @@ public class PluginVersionUpgrade {
   }
 
   public boolean isRecommendedUpgradable() {
-    AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(myProject);
-    if (pluginInfo == null) {
-      return false;
-    }
-    return Arrays.stream(myRecommendedUpgradeSteps).anyMatch(it -> it.checkUpgradable(myProject, pluginInfo));
+    return GradlePluginUpgrade.shouldRecommendPluginUpgrade(myProject);
   }
 
   public boolean performForcedUpgrade() {
@@ -66,22 +49,7 @@ public class PluginVersionUpgrade {
   }
 
   public boolean performRecommendedUpgrade() {
-    return performUpgrade(myRecommendedUpgradeSteps);
-  }
-
-  private boolean performUpgrade(@NotNull PluginVersionUpgradeStep[] steps) {
-    AndroidPluginInfo pluginInfo = AndroidPluginInfo.find(myProject);
-    if (pluginInfo == null) {
-      getLog().warn("Unable to obtain application's Android Project");
-      return false;
-    }
-    log(pluginInfo);
-    return Arrays.stream(steps).anyMatch(it -> {
-      if (it.checkUpgradable(myProject, pluginInfo)) {
-        return it.performUpgradeAndSync(myProject, pluginInfo);
-      }
-      return false;
-    });
+    return GradlePluginUpgrade.performRecommendedPluginUpgrade(myProject);
   }
 
   /**
@@ -97,19 +65,10 @@ public class PluginVersionUpgrade {
       return performForcedUpgrade();
     }
 
-    // performRecommendedUpgrade already checks to see if it should.
-    return performRecommendedUpgrade();
-  }
+    if (isRecommendedUpgradable()) {
+      return performRecommendedUpgrade();
+    }
 
-  private static void log(@NotNull AndroidPluginInfo pluginInfo) {
-    GradleVersion current = pluginInfo.getPluginVersion();
-    String recommended = LatestKnownPluginVersionProvider.INSTANCE.get();
-    String message = String.format("Gradle model version: %1$s, recommended version for IDE: %2$s", current, recommended);
-    getLog().info(message);
-  }
-
-  @NotNull
-  private static Logger getLog() {
-    return Logger.getInstance(PluginVersionUpgrade.class);
+    return false;
   }
 }

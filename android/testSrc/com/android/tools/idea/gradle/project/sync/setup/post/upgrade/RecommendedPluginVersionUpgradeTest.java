@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
 import com.android.ide.common.repository.GradleVersion;
+import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,10 +28,10 @@ import java.util.Collection;
 import static org.junit.Assert.*;
 
 /**
- * Tests for {@link RecommendedPluginVersionUpgradeStep}.
+ * Tests for {@link GradlePluginUpgrade#shouldRecommendPluginUpgrade(Project)}.
  */
 @RunWith(Parameterized.class)
-public class RecommendedPluginVersionUpgradeStepTest {
+public class RecommendedPluginVersionUpgradeTest {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
@@ -95,7 +96,7 @@ public class RecommendedPluginVersionUpgradeStepTest {
 
   private final boolean myRecommendUpgrade;
 
-  public RecommendedPluginVersionUpgradeStepTest(@NotNull String current, @NotNull String recommended, boolean recommendUpgrade) {
+  public RecommendedPluginVersionUpgradeTest(@NotNull String current, @NotNull String recommended, boolean recommendUpgrade) {
     myCurrent = GradleVersion.parse(current);
     myRecommended = GradleVersion.parse(recommended);
     myRecommendUpgrade = recommendUpgrade;
@@ -103,7 +104,7 @@ public class RecommendedPluginVersionUpgradeStepTest {
 
   @Test
   public void shouldRecommendUpgrade() {
-    boolean recommended = RecommendedPluginVersionUpgradeStep.shouldRecommendUpgrade(myRecommended, myCurrent);
+    boolean recommended = GradlePluginUpgrade.shouldRecommendUpgrade(myRecommended, myCurrent);
     assertEquals(myRecommendUpgrade, recommended);
   }
 }

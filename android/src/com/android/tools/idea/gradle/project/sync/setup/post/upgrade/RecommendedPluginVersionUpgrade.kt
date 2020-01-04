@@ -29,10 +29,9 @@ import com.intellij.openapi.project.Project
 
 val AGP_UPGRADE_NOTIFICATION_GROUP = NotificationGroup("Android Gradle Upgrade Notification", NotificationDisplayType.STICKY_BALLOON, true)
 
-@JvmOverloads
-fun checkAndShowNotification(project: Project, reminder: TimeBasedUpgradeReminder = TimeBasedUpgradeReminder()) {
+fun checkAndShowNotification(project: Project) {
   val upgrade = PluginVersionUpgrade.getInstance(project)
-  if (upgrade.isRecommendedUpgradable && reminder.shouldAskForUpgrade(project)) {
+  if (upgrade.isRecommendedUpgradable) {
     val existing = NotificationsManager
       .getNotificationsManager()
       .getNotificationsOfType<ProjectUpgradeNotification>(ProjectUpgradeNotification::class.java, project)
