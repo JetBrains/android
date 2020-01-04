@@ -25,7 +25,10 @@ import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.ModificationTracker;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiJavaFile;
@@ -196,11 +199,24 @@ public class LightModelClass extends AndroidLightClassBase {
     return myCachedMembers.getValue().myInnerClasses;
   }
 
+  @NotNull
+  @Override
+  public PsiElement getNavigationElement() {
+    VirtualFile modelVirtualFile = VirtualFileManager.getInstance().findFileByUrl(myClassConfig.myModelMetadata.myModelFileUrl);
+    if (modelVirtualFile != null) {
+      PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(modelVirtualFile);
+      if (psiFile != null) {
+        return psiFile;
+      }
+    }
+    return super.getNavigationElement();
+  }
+
   private static class MyClassMembers {
     public final PsiMethod[] myMethods;
     public final PsiClass[] myInnerClasses;
 
-    public MyClassMembers(PsiMethod[] methods, PsiClass[] innerClass) {
+    private MyClassMembers(PsiMethod[] methods, PsiClass[] innerClass) {
       this.myMethods = methods;
       this.myInnerClasses = innerClass;
     }

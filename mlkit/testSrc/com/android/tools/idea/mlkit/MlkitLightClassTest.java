@@ -18,11 +18,15 @@ package com.android.tools.idea.mlkit;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
+import com.android.tools.idea.testing.AndroidTestUtils;
 import com.google.common.collect.Iterables;
 import com.intellij.codeInsight.completion.CompletionType;
 import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
+import com.intellij.openapi.fileTypes.BinaryFileDecompiler;
+import com.intellij.openapi.fileTypes.BinaryFileTypeDecompilers;
+import com.intellij.openapi.fileTypes.FileTypeExtensionPoint;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
@@ -31,8 +35,10 @@ import com.intellij.testFramework.PsiTestUtil;
 import java.io.File;
 import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
 
 public class MlkitLightClassTest extends AndroidTestCase {
+  private VirtualFile myModelVirtualFile;
 
   @Override
   public void setUp() throws Exception {
@@ -42,8 +48,8 @@ public class MlkitLightClassTest extends AndroidTestCase {
 
     // Pull in tflite model, which has image(i.e. name: image1) as input tensor and labels as output tensor
     myFixture.setTestDataPath(new File(getModulePath("mlkit"), "testData").getPath());
-    VirtualFile tfliteFile = myFixture.copyFileToProject("my_model.tflite", "/assets/my_model.tflite");
-    PsiTestUtil.addSourceContentToRoots(myModule, tfliteFile);
+    myModelVirtualFile = myFixture.copyFileToProject("my_model.tflite", "/assets/my_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, myModelVirtualFile.getParent());
 
     PsiFile imageFile = myFixture.addFileToProject(
       "src/com/google/firebase/ml/vision/common/FirebaseVisionImage.java",
@@ -130,6 +136,41 @@ public class MlkitLightClassTest extends AndroidTestCase {
     myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
     myFixture.checkHighlighting();
   }
+
+  public void testLightModelClassNavigation() {
+    // Below is the workaround to make MockFileDocumentManagerImpl#getDocument return a non-null value for a model file, so the non-null
+    // document assertion in TestEditorManagerImpl#doOpenTextEditor could pass.
+    BinaryFileTypeDecompilers.getInstance().getPoint().registerExtension(
+      new FileTypeExtensionPoint<>(TfliteModelFileType.INSTANCE.getName(), new BinaryFileDecompiler() {
+        @NotNull
+        @Override
+        public CharSequence decompile(@NotNull VirtualFile file) {
+          return "Model summary info.";
+        }
+      }),
+      getProject());
+
+    AndroidTestUtils.loadNewFile(myFixture,
+                                 "/src/p1/p2/MainActivity.java",
+                                 "package p1.p2;\n" +
+                                 "\n" +
+                                 "import android.app.Activity;\n" +
+                                 "import android.os.Bundle;\n" +
+                                 "import p1.p2.mlkit.auto.MyModel;\n" +
+                                 "\n" +
+                                 "public class MainActivity extends Activity {\n" +
+                                 "    @Override\n" +
+                                 "    protected void onCreate(Bundle savedInstanceState) {\n" +
+                                 "        super.onCreate(savedInstanceState);\n" +
+                                 "        My<caret>Model myModel = new MyModel(this);\n" +
+                                 "    }\n" +
+                                 "}"
+    );
+
+    AndroidTestUtils.goToElementAtCaret(myFixture);
+    assertThat(FileEditorManagerEx.getInstanceEx(myFixture.getProject()).getCurrentFile()).isEqualTo(myModelVirtualFile);
+  }
+
 
   public void testCompleteRunMethod() {
     PsiFile activityFile = myFixture.addFileToProject(
