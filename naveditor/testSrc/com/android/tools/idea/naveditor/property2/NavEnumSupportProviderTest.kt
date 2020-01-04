@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.property2
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_MODULE_NAME
 import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_START_DESTINATION
 import com.android.SdkConstants.AUTO_URI
@@ -123,6 +124,31 @@ class NavEnumSupportProviderTest : NavTestCase() {
     assertThat(values.map { (it as? ClassEnumValue)?.moduleName }).containsExactlyElementsIn(expectedNames).inOrder()
   }
 
+  fun testSelectName() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1")
+      }
+    }
+
+    val fragment1 = model.find("fragment1")!!
+    val property = getProperty(ANDROID_URI, ATTR_NAME, NelePropertyType.CLASS_NAME, fragment1)
+    val enumValue = ClassEnumValue("mytest.navtest.BlankFragment", "BlankFragment (mytest.navtest)", null, true)
+    enumValue.select(property)
+
+    testSelectName(fragment1, "mytest.navtest.BlankFragment",  null)
+    testSelectName(fragment1, "mytest.navtest.DynamicFragment",  "dynamicfeaturemodule")
+  }
+
+  private fun testSelectName(component: NlComponent, value: String, moduleName: String?) {
+    val property = getProperty(ANDROID_URI, ATTR_NAME, NelePropertyType.CLASS_NAME, component)
+    val enumValue = ClassEnumValue(value, "display", moduleName, true)
+    enumValue.select(property)
+
+    assertEquals(value, component.getAttribute(ANDROID_URI, ATTR_NAME))
+    assertEquals(moduleName, component.getAttribute(AUTO_URI, ATTR_MODULE_NAME))
+  }
+
   private fun testDisplays(expectedDisplays: List<String>, values: List<EnumValue>) {
     assertThat(values.map { it.display }).containsExactlyElementsIn(expectedDisplays).inOrder()
   }
@@ -132,11 +158,15 @@ class NavEnumSupportProviderTest : NavTestCase() {
   }
 
   private fun getValues(namespace: String, name: String, type: NelePropertyType, component: NlComponent): List<EnumValue> {
-    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
-    val property = NelePropertyItem(namespace, name, type,
-                                    null, "", "",
-                                    propertiesModel, listOf(component))
+    return getValues(getProperty(namespace, name, type, component))
+  }
 
+  private fun getProperty(namespace: String, name: String, type: NelePropertyType, component: NlComponent) : NelePropertyItem {
+    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
+    return NelePropertyItem(namespace, name, type, null, "", "", propertiesModel, listOf(component))
+  }
+
+  private fun getValues(property: NelePropertyItem) : List<EnumValue> {
     val enumSupportProvider = NavEnumSupportProvider()
     val enumSupport = enumSupportProvider(property)
     assertNotNull(enumSupport)
