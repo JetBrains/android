@@ -16,7 +16,9 @@
 package com.android.tools.idea.nav.safeargs.psi
 
 import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
+import com.intellij.psi.util.PsiTypesUtil
 import org.jetbrains.android.augment.AndroidLightClassBase
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -28,6 +30,7 @@ import org.jetbrains.android.facet.AndroidFacet
  * ```
  *  <action id="@+id/sendMessage" destination="@+id/editorFragment">
  *    <argument name="message" argType="string" />
+ *    <argument name="timeout" argType="integer" />
  *  </action>
  * ```
  *
@@ -35,9 +38,14 @@ import org.jetbrains.android.facet.AndroidFacet
  *
  * ```
  *  class EditorFragmentArgs {
- *    class Builder {
- *      Builder(String message);
- *      void setMessage(String message);
+ *    static class Builder {
+ *      Builder(EditorFragmentArgs other);
+ *      Builder(String message, int timeout);
+ *      Builder setMessage(String message);
+ *      String getMessage();
+ *      Builder setTimeout(int timeout);
+ *      int getTimeout();
+ *      EditorFragmentArgs build();
  *    }
  *    ...
  *  }
@@ -45,7 +53,7 @@ import org.jetbrains.android.facet.AndroidFacet
  *
  * See also: [LightArgsClass], which own this builder.
  */
-class LightArgsBuilderClass(facet: AndroidFacet, private val argsClass: LightArgsClass)
+class LightArgsBuilderClass(facet: AndroidFacet, private val modulePackage: String, private val argsClass: LightArgsClass)
   : AndroidLightClassBase(PsiManager.getInstance(facet.module.project), setOf(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL)) {
   companion object {
     const val BUILDER_NAME = "Builder"
@@ -53,6 +61,8 @@ class LightArgsBuilderClass(facet: AndroidFacet, private val argsClass: LightArg
 
   private val name: String = BUILDER_NAME
   private val qualifiedName: String = "${argsClass.qualifiedName}.$BUILDER_NAME"
+  private val _constructors by lazy { computeConstructors() }
+  private val _methods by lazy { computeMethods() }
 
   override fun getName() = name
   override fun getQualifiedName() = qualifiedName
@@ -61,4 +71,40 @@ class LightArgsBuilderClass(facet: AndroidFacet, private val argsClass: LightArg
   override fun getParent() = argsClass
   override fun isValid() = true
   override fun getNavigationElement() = argsClass.navigationElement
+
+  override fun getConstructors() = _constructors
+
+  override fun getMethods() = _methods
+  override fun getAllMethods() = methods
+  override fun findMethodsByName(name: String, checkBases: Boolean): Array<PsiMethod> {
+    return allMethods.filter { method -> method.name == name }.toTypedArray()
+  }
+
+  private fun computeConstructors(): Array<PsiMethod> {
+    val copyConstructor = createConstructor()
+    copyConstructor.addParameter("original", PsiTypesUtil.getClassType(argsClass))
+
+    val argsConstructor = createConstructor()
+    argsClass.fragment.arguments.forEach { arg ->
+      argsConstructor.addParameter(arg.name, parsePsiType(modulePackage, arg.type, this))
+    }
+
+    return arrayOf(copyConstructor, argsConstructor)
+  }
+
+  private fun computeMethods(): Array<PsiMethod> {
+    val thisType = PsiTypesUtil.getClassType(this)
+
+    // Create a getter and setter per argument
+    val argMethods: Array<PsiMethod> = argsClass.fragment.arguments.flatMap { arg ->
+      val argType = parsePsiType(modulePackage, arg.type, this)
+      val setter = createMethod("set${arg.name.capitalize()}", returnType = thisType)
+      setter.addParameter(arg.name, argType)
+      val getter = createMethod("get${arg.name.capitalize()}", returnType = argType)
+      listOf(setter, getter)
+    }.toTypedArray()
+
+    val build = createMethod("build", returnType = PsiTypesUtil.getClassType(argsClass))
+    return argMethods + build
+  }
 }
