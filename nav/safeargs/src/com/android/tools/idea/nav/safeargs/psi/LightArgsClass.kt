@@ -41,10 +41,10 @@ import org.jetbrains.android.facet.AndroidFacet
  *  }
  * ```
  */
-class LightArgsClass(facet: AndroidFacet, modulePackage: String, navigationResource: ResourceItem, fragment: NavFragmentData)
+class LightArgsClass(facet: AndroidFacet, modulePackage: String, navigationResource: ResourceItem, val fragment: NavFragmentData)
   : SafeArgsLightBaseClass(facet, modulePackage, "Args", navigationResource, fragment.toDestination()) {
 
-  val builderClass = LightArgsBuilderClass(facet, this)
+  val builderClass = LightArgsBuilderClass(facet, modulePackage, this)
 
   override fun getInnerClasses(): Array<PsiClass> = arrayOf(builderClass)
   override fun findInnerClassByName(name: String, checkBases: Boolean): PsiClass? {
