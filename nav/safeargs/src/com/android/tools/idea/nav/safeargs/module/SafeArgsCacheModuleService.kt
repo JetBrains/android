@@ -111,7 +111,7 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
 
   private fun createLightDirectionsClasses(facet: AndroidFacet, modulePackage: String, entry: NavEntry): Collection<LightDirectionsClass> {
     return entry.data.root.allDestinations
-      .map { destination -> LightDirectionsClass(facet, modulePackage, entry.resource, destination) }
+      .map { destination -> LightDirectionsClass(facet, modulePackage, entry.resource, entry.data, destination) }
       .toSet()
   }
 
