@@ -18,6 +18,8 @@ package com.android.tools.idea.nav.safeargs.psi
 import com.android.ide.common.resources.ResourceItem
 import com.android.tools.idea.nav.safeargs.index.NavFragmentData
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.util.PsiTypesUtil
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -28,26 +30,47 @@ import org.jetbrains.android.facet.AndroidFacet
  * For example, if you had the following "nav.xml":
  *
  * ```
- *  <action id="@+id/sendMessage" destination="@+id/editorFragment">
- *    <argument name="message" argType="string" />
- *  </action>
+ * <argument
+ *    android:name="message"
+ *    app:argType="string" />
  * ```
  *
  * This would generate a class like the following:
  *
  * ```
  *  class EditorFragmentArgs {
+ *    static EditorFragmentArgs fromBundle(Bundle bundle);
  *    String getMessage();
  *  }
  * ```
  */
-class LightArgsClass(facet: AndroidFacet, modulePackage: String, navigationResource: ResourceItem, val fragment: NavFragmentData)
+class LightArgsClass(facet: AndroidFacet, private val modulePackage: String, navigationResource: ResourceItem, val fragment: NavFragmentData)
   : SafeArgsLightBaseClass(facet, modulePackage, "Args", navigationResource, fragment.toDestination()) {
 
   val builderClass = LightArgsBuilderClass(facet, modulePackage, this)
+  private val _methods by lazy { computeMethods() }
 
   override fun getInnerClasses(): Array<PsiClass> = arrayOf(builderClass)
   override fun findInnerClassByName(name: String, checkBases: Boolean): PsiClass? {
     return builderClass.takeIf { it.name == name }
+  }
+
+  override fun getMethods() = _methods
+  override fun getAllMethods() = methods
+  override fun findMethodsByName(name: String, checkBases: Boolean): Array<PsiMethod> {
+    return allMethods.filter { method -> method.name == name }.toTypedArray()
+  }
+
+  private fun computeMethods(): Array<PsiMethod> {
+    val thisType = PsiTypesUtil.getClassType(this)
+    val fromBundle = createMethod("fromBundle", modifiers = MODIFIERS_STATIC_PUBLIC_METHOD, returnType = thisType)
+    fromBundle.addParameter("bundle", parsePsiType(modulePackage, "android.os.Bundle", this))
+
+    val getters: Array<PsiMethod> = fragment.arguments.map { arg ->
+      val psiType = parsePsiType(modulePackage, arg.type, this)
+      createMethod("get${arg.name.capitalize()}", returnType = psiType)
+    }.toTypedArray()
+
+    return getters + fromBundle
   }
 }
