@@ -19,7 +19,9 @@ import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.findClass
 import com.google.common.truth.Truth.assertThat
+import com.intellij.lang.jvm.types.JvmPrimitiveType
 import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.impl.source.PsiClassReferenceType
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
@@ -31,7 +33,6 @@ class LightArgsClassTest {
   val safeArgsRule = SafeArgsRule()
   @Test
   fun canFindArgsClasses() {
-    safeArgsRule.fixture.addClass("package test.safeargs; public class CustomClass {}")
     safeArgsRule.fixture.addFileToProject(
       "res/navigation/main.xml",
       //language=XML
@@ -70,5 +71,62 @@ class LightArgsClassTest {
     // ... but cannot be found without context
     val psiFacade = JavaPsiFacade.getInstance(safeArgsRule.project)
     assertThat(psiFacade.findClass("test.safeargs.Fragment1Args", GlobalSearchScope.allScope(safeArgsRule.project))).isNull()
+  }
+
+  @Test
+  fun expectedGettersAndFromBundleMethodsAreCreated() {
+    safeArgsRule.fixture.addFileToProject(
+      "res/navigation/main.xml",
+      //language=XML
+      """
+        <?xml version="1.0" encoding="utf-8"?>
+        <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/main"
+            app:startDestination="@id/fragment1">
+
+          <fragment
+              android:id="@+id/fragment1"
+              android:name="test.safeargs.Fragment1"
+              android:label="Fragment1">
+              
+            <argument
+                android:name="arg1"
+                app:argType="string" />
+                
+            <argument
+                android:name="arg2"
+                app:argType="integer" />
+                
+          </fragment>
+        </navigation>
+      """.trimIndent())
+
+    // Initialize repository after creating resources, needed for codegen to work
+    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+
+    val context = safeArgsRule.fixture.addClass("package test.safeargs; public class Fragment1 {}")
+    // Classes can be found with context
+    val fragment1ArgsClass = safeArgsRule.fixture.findClass("test.safeargs.Fragment1Args", context)
+    fragment1ArgsClass!!.methods.let { methods ->
+      assertThat(methods.size).isEqualTo(3)
+      methods[0].let { arg1getter ->
+        assertThat(arg1getter.name).isEqualTo("getArg1")
+        assertThat(arg1getter.parameters).isEmpty()
+        assertThat((arg1getter.returnType as PsiClassReferenceType).className).isEqualTo("String")
+      }
+
+      methods[1].let { arg2getter ->
+        assertThat(arg2getter.name).isEqualTo("getArg2")
+        assertThat(arg2getter.parameters).isEmpty()
+        assertThat((arg2getter.returnType as JvmPrimitiveType).kind.name).isEqualTo("int")
+      }
+
+      methods[2].let { fromBundle ->
+        assertThat(fromBundle.name).isEqualTo("fromBundle")
+        assertThat(fromBundle.parameters.size).isEqualTo(1)
+        assertThat((fromBundle.parameters[0].type as PsiClassReferenceType).className).isEqualTo("Bundle")
+        assertThat(fromBundle.parameters[0].name).isEqualTo("bundle")
+      }
+    }
   }
 }
