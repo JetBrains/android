@@ -68,7 +68,8 @@ class CustomViewPreviewTest {
     fixture.invokeMenuPath("Build", "Make Project").waitForBuildToFinish(BuildMode.ASSEMBLE)
     guiTest.robot().waitForIdle()
 
-    assertFalse(multiRepresentationFixture.hasRenderErrors())
+    assertFalse(multiRepresentationFixture.designSurface.issuePanelFixture.fullIssueText,
+                multiRepresentationFixture.hasRenderErrors())
 
     editor.closeFile(file)
   }

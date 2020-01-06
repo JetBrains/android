@@ -501,6 +501,22 @@
         id="VisibleForTests"
         message="This method should only be accessed from tests or within private scope">
         <location
+            file="src/com/android/tools/idea/common/error/IssuePanel.java"
+            line="488"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/idea/common/error/IssuePanel.java"
+            line="488"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
             file="src/com/android/tools/idea/common/model/NlComponent.java"
             line="100"/>
     </issue>
