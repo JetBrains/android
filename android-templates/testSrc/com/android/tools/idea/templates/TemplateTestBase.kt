@@ -107,7 +107,7 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
    *
    * @param category          the template category
    * @param name              the template name
-   * @param createWithProject whether the template should be created as part of creating the project (only for activities), or whether it
+   * @param activityCreationMode whether the template should be created as part of creating the project (only for activities), or whether it
    * should be added as as a separate template into an existing project (which is created first, followed by the template).
    * @param apiSensitive       If true, check this template with all the interesting ([isInterestingApiLevel]) API versions.
    * @param customizers        An instance of [ProjectStateCustomizer]s used for providing template and project overrides.

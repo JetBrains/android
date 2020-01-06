@@ -314,9 +314,15 @@ data class ProjectChecker(
       (newTemplate.parameters.find { it.name == "Generate a Layout File" } as BooleanParameter?)?.value = generateLayout!!
       (newTemplate.parameters.find { it.name == "Launcher Activity" } as BooleanParameter?)?.value = isLauncher!!
       // TODO: More generalized way of overriding the parameters
-      activityState["multipleScreens"]?.let {multipleScreens ->
-        (newTemplate.parameters.find { it.name == "Split settings hierarchy into separate sub-screens" } as BooleanParameter?)?.value =
-          multipleScreens as Boolean
+      val overrideBooleanParameters = listOf(
+        "multipleScreens" to "Split settings hierarchy into separate sub-screens",
+        "isThingsLauncher" to "Launch activity automatically on boot"
+      )
+      overrideBooleanParameters.forEach {(id, name) ->
+        activityState[id]?.let { value ->
+          (newTemplate.parameters.find { it.name == name } as BooleanParameter?)?.value =
+            value as Boolean
+        }
       }
       runWriteAction {
         newTemplate.render(context, executor)
