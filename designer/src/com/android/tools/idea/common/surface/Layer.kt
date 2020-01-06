@@ -48,6 +48,11 @@ abstract class Layer : Disposable {
   abstract fun paint(gc: Graphics2D)
 
   /**
+   * Release the cached painting resources..
+   */
+  open fun releaseCachedResources() = Unit
+
+  /**
    * Called when this [Layer] is hovered.
    *
    * @param x x coordinate of the mouse on the [DesignSurface]
