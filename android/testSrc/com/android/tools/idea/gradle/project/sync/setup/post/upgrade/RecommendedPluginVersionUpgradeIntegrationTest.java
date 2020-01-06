@@ -79,7 +79,7 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
     when(myLatestKnownPluginVersionProvider.get()).thenReturn(pluginVersion);
 
-    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(myPluginInfo));
+    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), myPluginInfo));
   }
 
   public void testCheckUpgradeWhenCurrentVersionIsGreaterRecommended() {
@@ -90,7 +90,7 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
     when(myLatestKnownPluginVersionProvider.get()).thenReturn("2.2.0");
 
-    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(myPluginInfo));
+    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), myPluginInfo));
   }
 
   public void testPerformUpgradeWhenCurrentIsPreviewRecommendedIsSnapshot() {
@@ -103,7 +103,7 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     when(myLatestKnownPluginVersionProvider.get()).thenReturn("2.3.0-dev");
 
     // For this combination of plugin versions, the IDE should not ask for upgrade.
-    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(myPluginInfo));
+    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), myPluginInfo));
   }
 
   public void testPerformUpgradeWhenUserDeclinesUpgrade() {

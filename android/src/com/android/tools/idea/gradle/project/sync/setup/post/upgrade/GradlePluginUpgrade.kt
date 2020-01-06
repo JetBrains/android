@@ -26,7 +26,6 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.ARTIFACT_ID
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.GROUP_ID
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
@@ -64,25 +63,22 @@ class RecommendedUpgradeReminder(
 }
 
 /**
- * Checks to see if we need to recommend an upgrade for the given project.
- * See [shouldRecommendPluginUpgrade] for more information.
+ * Checks to see if we should be recommending an upgrade of the Android Gradle Plugin.
  *
- * Returns true if an upgrade should be recommended, false otherwise.
- */
-fun shouldRecommendPluginUpgrade(project: Project) : Boolean {
-  val pluginInfo = project.findPluginInfo() ?: return false
-  return shouldRecommendPluginUpgrade(pluginInfo)
-}
-
-/**
- * Asks the user to perform a recommend upgrade for the given project.
- * See [performRecommendedPluginUpgrade] for more information.
+ * Returns true if we should recommend an upgrade, false otherwise. We recommend an upgrade if any of the following conditions are met:
+ * 1 - If the user has never been shown the upgrade (for that version) and the conditions in [shouldRecommendUpgrade] return true.
+ * 2 - If the user picked "Remind me tomorrow" and a day has passed.
  *
- * Returns true if the upgrade is successful, false otherwise.
+ * [pluginInfo] should only be overwritten to inject information for tests.
  */
-fun performRecommendedPluginUpgrade(project: Project) : Boolean {
-  val pluginInfo = project.findPluginInfo() ?: return false
-  return performRecommendedPluginUpgrade(project, pluginInfo)
+@Slow
+@JvmOverloads
+fun shouldRecommendPluginUpgrade(project: Project, pluginInfo: AndroidPluginInfo? = project.findPluginInfo()) : Boolean {
+  if (!TimeBasedUpgradeReminder().shouldAskForUpgrade(project)) return false
+  if (!TimeBasedUpgradeReminder().shouldRecommendUpgrade(project)) return false
+  val current = pluginInfo?.pluginVersion ?: return false
+  val recommended = GradleVersion.parse(pluginInfo.latestKnownPluginVersionProvider.get())
+  return shouldRecommendUpgrade(recommended, current)
 }
 
 /**
@@ -95,17 +91,18 @@ fun performRecommendedPluginUpgrade(project: Project) : Boolean {
  *
  * Returns true if the upgrade was performed and the project was synced, false otherwise.
  *
- * Note: The [dialogFactory] argument should not be used outside of tests. It should only be used to mock the
- * result of the dialog.
+ * Note: The [dialogFactory] and [pluginInfo] arguments should not be used outside of tests. It should only be used to mock the
+ * result of the dialog or inject version information.
+ *
  */
-@VisibleForTesting
 @Slow
+@JvmOverloads
 fun performRecommendedPluginUpgrade(
   project: Project,
-  pluginInfo: AndroidPluginInfo,
+  pluginInfo: AndroidPluginInfo? = project.findPluginInfo(),
   dialogFactory: RecommendedPluginVersionUpgradeDialog.Factory = RecommendedPluginVersionUpgradeDialog.Factory()
 ) : Boolean {
-  val currentVersion = pluginInfo.pluginVersion ?: return false
+  val currentVersion = pluginInfo?.pluginVersion ?: return false
   val recommendedVersion = GradleVersion.parse(pluginInfo.latestKnownPluginVersionProvider.get())
 
   LOG.info("Gradle model version: $currentVersion, recommended version for IDE: $recommendedVersion, current, recommended")
@@ -130,22 +127,6 @@ fun performRecommendedPluginUpgrade(
   return false
 }
 
-/**
- * Checks to see if we should be recommending an upgrade of the Android Gradle Plugin.
- *
- * Returns true if we should recommend an upgrade, false otherwise. We recommend an upgrade if any of the following conditions are met:
- * 1 - If the user has never been shown the upgrade (for that version) and the conditions in [shouldRecommendUpgrade] return true.
- * 2 - If the user picked "Remind me tomorrow" and a day has passed.
- */
-@VisibleForTesting
-fun shouldRecommendPluginUpgrade(pluginInfo: AndroidPluginInfo) : Boolean {
-  if (!TimeBasedUpgradeReminder().shouldAskForUpgrade(pluginInfo.module.project)) return false
-  if (!TimeBasedUpgradeReminder().shouldRecommendUpgrade(pluginInfo.module.project)) return false
-  val current = pluginInfo.pluginVersion ?: return false
-  val recommended = GradleVersion.parse(pluginInfo.latestKnownPluginVersionProvider.get())
-  return shouldRecommendUpgrade(recommended, current)
-}
-
 @VisibleForTesting
 fun shouldRecommendUpgrade(recommended: GradleVersion, current: GradleVersion) : Boolean {
   // Do not upgrade to snapshot version when major versions are same.
@@ -162,32 +143,6 @@ fun shouldRecommendUpgrade(recommended: GradleVersion, current: GradleVersion) :
 // **************************************************************************
 
 /**
- * Checks to see if we need to force an upgrade for the given project.
- * See [shouldForcePluginUpgrade] for more information.
- *
- * Returns true if an upgrade is needed, false otherwise.
- */
-fun shouldForcePluginUpgrade(project: Project) : Boolean {
-  val pluginInfo = project.findPluginInfo() ?: return false
-  return shouldForcePluginUpgrade(pluginInfo)
-}
-
-/**
- * Asks the user to perform a required upgrade for the given project.
- * See [performForcedPluginUpgrade] for more information.
- *
- * Returns true if an upgrade should be recommended, false otherwise.
- */
-@Slow
-fun performForcedPluginUpgrade(project: Project) : Boolean {
-  val pluginInfo = project.findPluginInfo() ?: return false
-  val recommended = LatestKnownPluginVersionProvider.INSTANCE.get()
-  LOG.info("Gradle model version: ${pluginInfo.pluginVersion}, recommended version for IDE: $recommended")
-
-  return performForcedPluginUpgrade(project, pluginInfo)
-}
-
-/**
  * Returns whether or not the information in [pluginInfo] requires that the user be force to
  * upgrade their Android Gradle Plugin.
  *
@@ -196,10 +151,13 @@ fun performForcedPluginUpgrade(project: Project) : Boolean {
  * Note: This method does does not consider the state of the [StudioFlags.DISABLE_FORCED_UPGRADES]
  * flag and will return true even if this is set. This is checked when calling
  * [performForcedPluginUpgrade].
+ *
+ * [pluginInfo] should only be overwritten to inject information for tests.
  */
 @Slow
-@VisibleForTesting
-fun shouldForcePluginUpgrade(pluginInfo: AndroidPluginInfo) : Boolean {
+@JvmOverloads
+fun shouldForcePluginUpgrade(project: Project, pluginInfo: AndroidPluginInfo? = project.findPluginInfo()) : Boolean {
+  if (pluginInfo == null) return false
   val recommended = GradleVersion.parse(pluginInfo.latestKnownPluginVersionProvider.get())
   return shouldPreviewBeForcedToUpgrade(recommended, pluginInfo.pluginVersion)
 }
@@ -212,10 +170,12 @@ fun shouldForcePluginUpgrade(pluginInfo: AndroidPluginInfo) : Boolean {
  * to manually fix the problem.
  *
  * Returns true if the upgrade was performed automatically, false otherwise.
+ *
+ * [pluginInfo] should only be overwritten to inject information for tests.
  */
 @Slow
-@VisibleForTesting
-fun performForcedPluginUpgrade(project: Project, pluginInfo: AndroidPluginInfo) : Boolean {
+@JvmOverloads
+fun performForcedPluginUpgrade(project: Project, pluginInfo: AndroidPluginInfo? = project.findPluginInfo()) : Boolean {
   // Check if forced upgrades have been disabled by internal only Android Studio flags.
   // We don't check the flag if not running internally as it should never be disabled externally.
   if (DISABLE_FORCED_UPGRADES.get() && getApplication().isInternal) {
@@ -225,10 +185,11 @@ fun performForcedPluginUpgrade(project: Project, pluginInfo: AndroidPluginInfo) 
               "please go to 'Tools > Internal Actions > Edit Studio Flags' and set " +
               "'${DISABLE_FORCED_UPGRADES.displayName}' to 'Off'."
     val notification = AGP_UPGRADE_NOTIFICATION_GROUP.createNotification(msg, MessageType.WARNING)
-    notification.notify(pluginInfo.module.project)
+    notification.notify(project)
     return false
   }
 
+  if (pluginInfo == null) return false
   val recommended = GradleVersion.parse(pluginInfo.latestKnownPluginVersionProvider.get())
 
   val syncState = GradleSyncState.getInstance(project)
