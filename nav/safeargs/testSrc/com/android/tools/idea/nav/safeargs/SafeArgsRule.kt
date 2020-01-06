@@ -34,7 +34,7 @@ import org.junit.runners.model.Statement
  * This rule also enables running tests in the EDT. Apply the [RunsInEdt] annotation either on the
  * test class or individual test method to enable it.
  */
-class SafeArgsRule : ExternalResource() {
+class SafeArgsRule(val mode: SafeArgsMode = SafeArgsMode.JAVA) : ExternalResource() {
   private val projectRule = AndroidProjectRule.onDisk()
 
   val fixture: JavaCodeInsightTestFixture
@@ -59,6 +59,8 @@ class SafeArgsRule : ExternalResource() {
         <application />
       </manifest>
     """.trimIndent())
+
+    androidFacet.safeArgsMode = mode
   }
 
   override fun after() {
