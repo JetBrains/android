@@ -47,7 +47,7 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
   @Mock private LatestKnownPluginVersionProvider myLatestKnownPluginVersionProvider;
   @Mock private RecommendedPluginVersionUpgradeDialog.Factory myUpgradeDialogFactory;
   @Mock private RecommendedPluginVersionUpgradeDialog myUpgradeDialog;
-  @Mock private TimeBasedUpgradeReminder myUpgradeReminder;
+  @Mock private RecommendedUpgradeReminder myUpgradeReminder;
   private AndroidPluginVersionUpdater myVersionUpdater;
 
   @Override
@@ -66,7 +66,7 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
   public void testCheckUpgradeWhenUpgradeReminderIsNotDue() {
     Project project = getProject();
     // Simulate that a day has not passed since the user clicked "Remind me tomorrow".
-    when(myUpgradeReminder.shouldRecommendUpgrade(project)).thenReturn(false);
+    when(myUpgradeReminder.shouldAsk()).thenReturn(false);
 
     assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(project));
   }
@@ -161,7 +161,7 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
   }
 
   private void simulateUpgradeReminderIsDue() {
-    when(myUpgradeReminder.shouldRecommendUpgrade(getProject())).thenReturn(true);
+    when(myUpgradeReminder.shouldAsk()).thenReturn(true);
   }
 
   private void simulatePluginVersionUpdate(@NotNull GradleVersion pluginVersion, boolean success) {

@@ -57,7 +57,7 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
   @NotNull private final Project myProject;
   @NotNull private final GradleVersion myCurrentPluginVersion;
   @NotNull private final GradleVersion myRecommendedPluginVersion;
-  @NotNull private final TimeBasedUpgradeReminder myUpgradeReminder;
+  @NotNull private final RecommendedUpgradeReminder myUpgradeReminder;
   @NotNull private final PropertyBasedDoNotAskOption myDoNotAskOption;
 
   private JPanel myCenterPanel;
@@ -69,7 +69,7 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
     public RecommendedPluginVersionUpgradeDialog create(@NotNull Project project,
                                                         @NotNull GradleVersion current,
                                                         @NotNull GradleVersion recommended) {
-      return new RecommendedPluginVersionUpgradeDialog(project, current, recommended, new TimeBasedUpgradeReminder());
+      return new RecommendedPluginVersionUpgradeDialog(project, current, recommended, new RecommendedUpgradeReminder(project));
     }
   }
 
@@ -77,14 +77,14 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
   RecommendedPluginVersionUpgradeDialog(@NotNull Project project,
                                         @NotNull GradleVersion current,
                                         @NotNull GradleVersion recommended,
-                                        @NotNull TimeBasedUpgradeReminder upgradeReminder) {
+                                        @NotNull RecommendedUpgradeReminder upgradeReminder) {
     super(project);
     myProject = project;
     myCurrentPluginVersion = current;
     myRecommendedPluginVersion = recommended;
     myUpgradeReminder = upgradeReminder;
     setTitle("Android Gradle Plugin Update Recommended");
-    myDoNotAskOption = new PropertyBasedDoNotAskOption(project, TimeBasedUpgradeReminder.SHOW_DO_NOT_ASK_TO_UPGRADE_PLUGIN_PROPERTY_NAME) {
+     myDoNotAskOption = new PropertyBasedDoNotAskOption(project, upgradeReminder.getDoNotAskForProjectPropertyString()) {
       @Override
       @NotNull
       public String getDoNotShowMessage() {
@@ -98,7 +98,7 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
         if (!toBeShown) {
           valueToSave = myCurrentPluginVersion.toString();
         }
-        myUpgradeReminder.setDoNotAskAgainVersion(myProject, valueToSave);
+        myUpgradeReminder.setDoNotAskForVersion(valueToSave);
       }
     };
     init();
@@ -245,7 +245,7 @@ public class RecommendedPluginVersionUpgradeDialog extends DialogWrapper {
     @Override
     protected void doAction(ActionEvent e) {
       // This is the "Remind me tomorrow" button.
-      myUpgradeReminder.storeLastUpgradeRecommendation(myProject);
+      myUpgradeReminder.updateLastTimestamp();
       recordUpgradeDialogEvent(myProject, myCurrentPluginVersion, myRecommendedPluginVersion, REMIND_ME_TOMORROW);
 
       close(CANCEL_EXIT_CODE);

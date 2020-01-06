@@ -74,8 +74,7 @@ class RecommendedUpgradeReminder(
 @Slow
 @JvmOverloads
 fun shouldRecommendPluginUpgrade(project: Project, pluginInfo: AndroidPluginInfo? = project.findPluginInfo()) : Boolean {
-  if (!TimeBasedUpgradeReminder().shouldAskForUpgrade(project)) return false
-  if (!TimeBasedUpgradeReminder().shouldRecommendUpgrade(project)) return false
+  if (!RecommendedUpgradeReminder(project).shouldAsk()) return false
   val current = pluginInfo?.pluginVersion ?: return false
   val recommended = GradleVersion.parse(pluginInfo.latestKnownPluginVersionProvider.get())
   return shouldRecommendUpgrade(recommended, current)
