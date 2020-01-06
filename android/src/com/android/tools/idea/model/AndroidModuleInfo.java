@@ -255,36 +255,6 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
     return MergedManifestManager.getSnapshot(facet).getApplicationDebuggable();
   }
 
-  @NotNull
-  public static AndroidVersion getTargetSdkVersion(@Nullable Module module) {
-    if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        AndroidModuleInfo moduleInfo = getInstance(facet.getModule());
-        if (moduleInfo != null) {
-          return moduleInfo.getTargetSdkVersion();
-        }
-      }
-    }
-
-    return AndroidVersion.DEFAULT;
-  }
-
-  @NotNull
-  public static AndroidVersion getMinSdkVersion(@Nullable Module module) {
-    if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        AndroidModuleInfo moduleInfo = getInstance(facet.getModule());
-        if (moduleInfo != null) {
-          return moduleInfo.getMinSdkVersion();
-        }
-      }
-    }
-
-    return AndroidVersion.DEFAULT;
-  }
-
   @Override
   protected void onServiceDisposal(@NotNull AndroidFacet facet) {
     facet.putUserData(KEY, null);
