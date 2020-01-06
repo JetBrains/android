@@ -70,6 +70,18 @@ public interface AndroidResourceToPsiResolver {
   ResolveResult[] resolveReference(@NotNull ResourceValue resourceValue, @NotNull XmlElement element, @NotNull AndroidFacet facet);
 
   /**
+   * The same as {@link AndroidResourceToPsiResolver#resolveReference} above, it includes resources from dynamic feature modules that depend
+   * on the module of `element`.
+   *
+   * <p>This is used for the navigation graph where dynamic feature resources can be used in the app module graph.</p>
+   *
+   */
+  @NotNull
+  ResolveResult[] resolveReferenceWithDynamicFeatureModules(@NotNull ResourceValue resourceValue,
+                                                            @NotNull XmlElement element,
+                                                            @NotNull AndroidFacet facet);
+
+  /**
    * Returns the {@link PsiElement}s for "go to declaration" action on XML attributes names.
    */
   @NotNull

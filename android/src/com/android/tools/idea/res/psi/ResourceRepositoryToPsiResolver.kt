@@ -23,6 +23,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.ide.common.resources.sampledata.SampleDataManager
 import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.res.resolve
@@ -37,6 +38,7 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.xml.XmlElement
+import com.intellij.util.containers.toArray
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidResourceUtil
@@ -71,6 +73,23 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
     context: XmlElement,
     facet: AndroidFacet
   ): Array<out ResolveResult> {
+    return resolveReference(resourceValue, context, facet, false)
+  }
+
+  override fun resolveReferenceWithDynamicFeatureModules(
+    resourceValue: ResourceValue,
+    element: XmlElement,
+    facet: AndroidFacet
+  ): Array<out ResolveResult> {
+    return resolveReference(resourceValue, element, facet, true)
+  }
+
+  fun resolveReference(
+    resourceValue: ResourceValue,
+    context: XmlElement,
+    facet: AndroidFacet,
+    includeDynamicFeatures: Boolean
+  ): Array<out ResolveResult> {
     var resourceName = resourceValue.resourceName ?: return ResolveResult.EMPTY_ARRAY
     val resourceType = resourceValue.type ?: return ResolveResult.EMPTY_ARRAY
     if (resourceType == ResourceType.SAMPLE_DATA) {
@@ -78,21 +97,32 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
     }
     val resourceReference =
       ResourceUrl.create(resourceValue.`package`, resourceType, resourceName).resolve(context) ?: return ResolveResult.EMPTY_ARRAY
-    return resolveReference(resourceReference, context, facet)
+    return resolveReference(resourceReference, context, facet, includeDynamicFeatures)
   }
 
+  @JvmOverloads
   fun resolveReference(
     resourceReference: ResourceReference,
     context: PsiElement,
-    facet: AndroidFacet
+    facet: AndroidFacet,
+    includeDynamicFeatures: Boolean = false
   ): Array<out ResolveResult> {
     val allResources = ResourceRepositoryManager.getInstance(facet).allResources ?: return ResolveResult.EMPTY_ARRAY
-
-    return if (allResources.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)) {
-      arrayOf(PsiElementResolveResult(ResourceReferencePsiElement(resourceReference, context.manager)))
-    } else {
-      ResolveResult.EMPTY_ARRAY
+    val allItems = mutableListOf<ResolveResult>()
+    if (allResources.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)) {
+      allItems.add(PsiElementResolveResult(ResourceReferencePsiElement(resourceReference, context.manager)))
     }
+    if (includeDynamicFeatures) {
+      val moduleSystem = context.getModuleSystem() ?: return ResolveResult.EMPTY_ARRAY
+      val dynamicFeatureModules = moduleSystem.getDynamicFeatureModules()
+      for (module in dynamicFeatureModules) {
+        val moduleResources = ResourceRepositoryManager.getModuleResources(module) ?: continue
+        if (moduleResources.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)) {
+          allItems.add(PsiElementResolveResult(ResourceReferencePsiElement(resourceReference, context.manager)))
+        }
+      }
+    }
+    return allItems.toArray(ResolveResult.EMPTY_ARRAY)
   }
 
   override fun getXmlAttributeNameGotoDeclarationTargets(
