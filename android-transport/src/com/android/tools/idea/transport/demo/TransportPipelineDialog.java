@@ -100,7 +100,7 @@ public class TransportPipelineDialog extends DialogWrapper {
     setTitle(TITLE);
     setModal(false);
 
-    myClient = new TransportClient(TransportService.getInstance().getChannelName());
+    myClient = new TransportClient(TransportService.CHANNEL_NAME);
 
     myProcessSelectionAction = new CommonAction("Select Process", AllIcons.General.Add);
     myProcessSelectionDropDown = new CommonDropDownButton(myProcessSelectionAction);

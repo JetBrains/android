@@ -23,7 +23,6 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.ui.AdtUiCursors
 import com.android.tools.editor.ActionToolbarUtil
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.legacydevice.CaptureAction
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
@@ -37,6 +36,7 @@ import com.intellij.openapi.actionSystem.ex.CheckboxAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
+import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Cursor
 import java.awt.Point
@@ -55,6 +55,9 @@ private const val MAX_ZOOM = 300
 private const val MIN_ZOOM = 10
 
 private const val TOOLBAR_INSET = 14
+
+@TestOnly
+const val DEVICE_VIEW_ACTION_TOOLBAR_NAME = "DeviceViewPanel.ActionToolbar"
 
 /**
  * Panel that shows the device screen in the layout inspector.
@@ -257,6 +260,7 @@ class DeviceViewPanel(
     leftGroup.add(CaptureAction(layoutInspector::currentClient, layoutInspector.layoutInspectorModel))
     val actionToolbar = ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true)
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
+    actionToolbar.component.name = DEVICE_VIEW_ACTION_TOOLBAR_NAME
     actionToolbar.setTargetComponent(this)
     leftPanel.add(actionToolbar.component, BorderLayout.CENTER)
     panel.add(leftPanel, BorderLayout.CENTER)
@@ -266,8 +270,9 @@ class DeviceViewPanel(
   private class PauseLayoutInspectorAction(val client: () -> InspectorClient) : CheckboxAction("Live updates") {
 
     override fun update(event: AnActionEvent) {
+      event.presentation.isEnabled = client().isConnected && client().selectedStream.device.featureLevel >= 29
       super.update(event)
-      event.presentation.isVisible = client().isConnected && client().selectedStream.device.apiLevel >= 29
+      event.presentation.description = if (event.presentation.isEnabled) null else "Live updates not available for devices below API 29"
     }
 
     // Display as "Live updates ON" when disconnected to indicate the default value after the inspector is connected to the device.

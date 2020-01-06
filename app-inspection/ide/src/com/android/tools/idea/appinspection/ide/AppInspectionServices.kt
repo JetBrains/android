@@ -24,7 +24,7 @@ import com.intellij.util.concurrency.AppExecutorUtil
 // service that holds a reference to [AppInspectionDiscoveryHost] and has full access to it: it has power to establish new connections
 internal class AppInspectionHostService {
   private val channel = object : AppInspectionDiscoveryHost.Channel {
-    override val name = TransportService.getInstance().channelName
+    override val name = TransportService.CHANNEL_NAME
   }
 
   val discoveryHost = AppInspectionDiscoveryHost(
