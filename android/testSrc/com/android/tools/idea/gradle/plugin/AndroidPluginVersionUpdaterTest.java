@@ -61,7 +61,7 @@ public class AndroidPluginVersionUpdaterTest extends PlatformTestCase {
     when(mySyncState.lastSyncFailed()).thenReturn(true);
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.pluginVersionUpdated();
-    myVersionUpdater.handleUpdateResult(result);
+    myVersionUpdater.handleUpdateResult(result, false);
     verify(mySyncState, never()).syncSucceeded();
   }
 
@@ -69,7 +69,7 @@ public class AndroidPluginVersionUpdaterTest extends PlatformTestCase {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.setPluginVersionUpdateError(new Throwable());
 
-    myVersionUpdater.handleUpdateResult(result);
+    myVersionUpdater.handleUpdateResult(result, false);
 
     verifyLastSyncFailed(times(1));
     verifyProjectSyncRequested(never(), TRIGGER_TEST_REQUESTED);
@@ -80,7 +80,7 @@ public class AndroidPluginVersionUpdaterTest extends PlatformTestCase {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.setGradleVersionUpdateError(new Throwable());
 
-    myVersionUpdater.handleUpdateResult(result);
+    myVersionUpdater.handleUpdateResult(result, false);
 
     verifyLastSyncFailed(times(1));
     verifyProjectSyncRequested(never(), TRIGGER_TEST_REQUESTED);
@@ -91,7 +91,7 @@ public class AndroidPluginVersionUpdaterTest extends PlatformTestCase {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.pluginVersionUpdated();
 
-    myVersionUpdater.handleUpdateResult(result);
+    myVersionUpdater.handleUpdateResult(result, false);
 
     verifyLastSyncFailed(never());
     verifyProjectSyncRequested(times(1), TRIGGER_AGP_VERSION_UPDATED);
@@ -102,7 +102,7 @@ public class AndroidPluginVersionUpdaterTest extends PlatformTestCase {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
     result.gradleVersionUpdated();
 
-    myVersionUpdater.handleUpdateResult(result);
+    myVersionUpdater.handleUpdateResult(result, false);
 
     verifyLastSyncFailed(never());
     verifyProjectSyncRequested(times(1), TRIGGER_AGP_VERSION_UPDATED);
@@ -111,7 +111,7 @@ public class AndroidPluginVersionUpdaterTest extends PlatformTestCase {
 
   public void testHandleUpdateResultWithNoVersionsUpdatedAndNoErrors() {
     AndroidPluginVersionUpdater.UpdateResult result = new AndroidPluginVersionUpdater.UpdateResult();
-    myVersionUpdater.handleUpdateResult(result);
+    myVersionUpdater.handleUpdateResult(result, false);
 
     verifyLastSyncFailed(never());
     verifyProjectSyncRequested(never(), TRIGGER_TEST_REQUESTED);

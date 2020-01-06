@@ -55,14 +55,10 @@ public class ForcedPluginPreviewVersionUpgradeDialogTest extends PlatformTestCas
   }
 
   public void testDialogMessage() {
-    String randomVersion = UUID.randomUUID().toString();
-    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
-    when(myLatestKnownPluginVersionProvider.get()).thenReturn(randomVersion);
-
-    myDialog = new ForcedPluginPreviewVersionUpgradeDialog(getProject(), myPluginInfo);
+    myDialog = new ForcedPluginPreviewVersionUpgradeDialog(getProject(), null);
     String message = myDialog.getDisplayedMessage();
 
-    assertThat(message).contains("the IDE will update the plugin to version " + randomVersion + ".");
+    assertThat(message).contains("the IDE will update the plugin to version " + LatestKnownPluginVersionProvider.INSTANCE.get() + ".");
     LatestKnownPluginVersionProvider.INSTANCE.get();
   }
 }

@@ -15,29 +15,30 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.ui.Messages.OK;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestMessagesDialog;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.testFramework.PlatformTestCase;
-import org.mockito.Mock;
-
 import java.util.List;
-
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.ui.Messages.OK;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.mockito.Mock;
 
 /**
  * Test for {@link GradlePluginUpgrade#performForcedPluginUpgrade(Project, AndroidPluginInfo)}.
@@ -78,11 +79,8 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
 
   public void testPerformUpgradeWhenUpgradeNotNeeded() {
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
-    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
-    when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
-    when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("3.0.0"));
 
-    boolean upgraded = GradlePluginUpgrade.shouldForcePluginUpgrade(getProject(), myPluginInfo);
+    boolean upgraded = GradlePluginUpgrade.shouldForcePluginUpgrade(GradleVersion.parse("3.0.0"), latestPluginVersion);
     assertFalse(upgraded);
 
     verify(mySyncState, never()).syncSucceeded();
@@ -93,54 +91,33 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
   public void testPerformUpgradeWhenUserAcceptsUpgrade() {
     GradleVersion alphaPluginVersion = GradleVersion.parse("2.0.0-alpha9");
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
-    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
-    when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
-    when(myPluginInfo.getPluginVersion()).thenReturn(alphaPluginVersion);
 
     // Simulate user accepting the upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(OK));
 
-    boolean upgraded = GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), myPluginInfo);
+    boolean upgraded = GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);
     assertTrue(upgraded);
 
-    verify(mySyncState).syncSucceeded();
-    verify(myVersionUpdater).updatePluginVersionAndSync(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), alphaPluginVersion);
+    verify(myVersionUpdater).updatePluginVersionAndSync(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), alphaPluginVersion, true);
     assertThat(mySyncMessages.getReportedMessages()).isEmpty();
   }
 
   // See https://code.google.com/p/android/issues/detail?id=227927
   public void testPerformUpgradeWhenUserDeclinesUpgrade() {
     GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
-    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
-    when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
-    when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.0.0-alpha9"));
+    GradleVersion currentPluginVersion = GradleVersion.parse("2.0.0-alpha9");
 
     // Simulate user canceling upgrade.
     myOriginalTestDialog = ForcedPluginPreviewVersionUpgradeDialog.setTestDialog(new TestMessagesDialog(Messages.CANCEL));
 
-    boolean upgraded = GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), myPluginInfo);
-    assertTrue(upgraded);
+    boolean upgraded = GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), currentPluginVersion, latestPluginVersion);
+    assertFalse(upgraded);
 
     List<SyncMessage> messages = mySyncMessages.getReportedMessages();
     assertThat(messages).hasSize(1);
     String message = messages.get(0).getText()[1];
     assertThat(message).contains("Please update your project to use version 2.0.0.");
 
-    verify(mySyncState).syncSucceeded();
     verify(myVersionUpdater, never()).updatePluginVersionAndSync(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION));
-  }
-
-  public void testDontForceUpgradeWithExternalFlagDisabled() {
-    StudioFlags.DISABLE_FORCED_UPGRADES.override(true);
-
-    GradleVersion latestPluginVersion = GradleVersion.parse("2.0.0");
-    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
-    when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
-    when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.0.0-alpha9"));
-
-    boolean upgraded = GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), myPluginInfo);
-    assertFalse(upgraded);
-
-    StudioFlags.DISABLE_FORCED_UPGRADES.clearOverride();
   }
 }

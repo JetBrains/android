@@ -198,16 +198,7 @@ public class PostSyncProjectSetup {
       boolean skipAgpUpgrade = SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false);
 
       if (!skipAgpUpgrade && !request.skipAndroidPluginUpgrade) {
-        if (myPluginVersionUpgrade.isForcedUpgradable()) {
-          // Do force upgrade anyway.
-          if (myPluginVersionUpgrade.performForcedUpgrade()) {
-            finishSuccessfulSync(taskId);
-            return;
-          }
-        }
-        else {
-          RecommendedPluginVersionUpgrade.checkAndShowNotification(myProject);
-        }
+        RecommendedPluginVersionUpgrade.checkAndShowNotification(myProject);
       }
 
       MemorySettingsPostSyncChecker

@@ -35,40 +35,11 @@ public class PluginVersionUpgrade {
     myProject = project;
   }
 
-  @Slow
-  public boolean isForcedUpgradable() {
-    return GradlePluginUpgrade.shouldForcePluginUpgrade(myProject);
-  }
-
   public boolean isRecommendedUpgradable() {
     return GradlePluginUpgrade.shouldRecommendPluginUpgrade(myProject);
   }
 
-  public boolean performForcedUpgrade() {
-    return GradlePluginUpgrade.performForcedPluginUpgrade(myProject);
-  }
-
   public boolean performRecommendedUpgrade() {
     return GradlePluginUpgrade.performRecommendedPluginUpgrade(myProject);
-  }
-
-  /**
-   * Checks if the Android plugin used in the project needs to be upgraded, and if so, performs the upgrade.
-   * TODO(b/127454467): remove this function after StudioFlags.BALLOON_UPGRADE_NOTIFICATION is removed.
-   *
-   * @return {@code true} if an upgrade was needed and was successfully performed; {@code false} otherwise.
-   */
-  @Slow
-  public boolean checkAndPerformUpgrade() {
-    // We try force upgrade first then try recommended upgrade.
-    if (isForcedUpgradable()) {
-      return performForcedUpgrade();
-    }
-
-    if (isRecommendedUpgradable()) {
-      return performRecommendedUpgrade();
-    }
-
-    return false;
   }
 }
