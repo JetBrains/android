@@ -339,7 +339,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NAV_DYNAMIC_SUPPORT = Flag.create(
     NAV_EDITOR, "dynamic.support", "Support for Dynamic Feature Modules",
     "Support for Dynamic Feature Modules",
-    false);
+    true);
   //endregion
 
   //region Resource Manager
