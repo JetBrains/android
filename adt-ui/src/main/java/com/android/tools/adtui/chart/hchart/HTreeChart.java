@@ -417,7 +417,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
         if (node != myFocusedNode) {
           myDataUpdated = true;
           myFocusedNode = node;
-          opaqueRepaint();
+          eventSourceRepaint(e);
         }
       }
 
