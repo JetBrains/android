@@ -95,6 +95,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
@@ -161,6 +162,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       repaint();
     }
   };
+
+  @NotNull
+  private final List<CompletableFuture<Void>> myRenderFutures = new ArrayList<>();
 
   protected final IssueModel myIssueModel = new IssueModel();
   private final IssuePanel myIssuePanel;
@@ -618,6 +622,16 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @Override
   public void dispose() {
     myInteractionManager.stopListening();
+    synchronized (myRenderFutures) {
+      for (CompletableFuture<Void> future : myRenderFutures) {
+        try {
+          future.cancel(true);
+        }
+        catch (CancellationException ignored) {
+        }
+      }
+      myRenderFutures.clear();
+    }
     if (myRepaintTimer.isRunning()) {
       myRepaintTimer.stop();
     }
@@ -1510,8 +1524,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * Invalidates all models and request a render of the layout. This will re-inflate the layout and render it.
-   * The result {@link ListenableFuture} will notify when the render has completed.
+   * Invalidates all models and request a render of the layout. This will re-inflate the {@link NlModel}s and render them sequentially.
+   * The result {@link CompletableFuture} will notify when all the renderings have completed.
    */
   @NotNull
   public CompletableFuture<Void> requestRender() {
@@ -1519,10 +1533,47 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     if (managers.isEmpty()) {
       return CompletableFuture.completedFuture(null);
     }
+    return requestSequentialRender(manager -> manager.requestLayoutAndRender(false));
+  }
 
-    return CompletableFuture.allOf(managers.stream()
-                                     .map(manager -> manager.requestRender())
-                                     .toArray(CompletableFuture[]::new));
+  /**
+   * Schedule the render requests sequentially for all {@link SceneManager}s in this {@link DesignSurface}.
+   *
+   * @param renderRequest The requested rendering to be scheduled. This gives the caller a chance to choose the preferred rendering request.
+   * @return A callback which is triggered when the scheduled rendering are completed.
+   */
+  @NotNull
+  protected CompletableFuture<Void> requestSequentialRender(@NotNull Function<SceneManager, CompletableFuture<Void>> renderRequest) {
+    CompletableFuture<Void> callback = new CompletableFuture<>();
+    synchronized (myRenderFutures) {
+      if (!myRenderFutures.isEmpty()) {
+        // TODO: This may make the rendered previews not match the last status of NlModel if the modifications happen during rendering.
+        //       Similar case happens in LayoutlibSceneManager#requestRender function, both need to be fixed.
+        myRenderFutures.add(callback);
+        return callback;
+      }
+      else {
+        myRenderFutures.add(callback);
+      }
+    }
+
+    // Cascading the CompletableFuture to make them executing sequentially.
+    CompletableFuture<Void> renderFuture = CompletableFuture.completedFuture(null);
+    for (SceneManager manager : getSceneManagers()) {
+      renderFuture = renderFuture.thenCompose(it -> {
+        CompletableFuture<Void> future = renderRequest.apply(manager);
+        invalidate();
+        return future;
+      });
+    }
+    renderFuture.thenRun(() -> {
+      synchronized (myRenderFutures) {
+        myRenderFutures.forEach(future -> future.complete(null));
+        myRenderFutures.clear();
+      }
+    });
+
+    return callback;
   }
 
   /**

@@ -778,13 +778,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   @Override
   public CompletableFuture<Void> forceUserRequestedRefresh() {
-    ArrayList<CompletableFuture<Void>> refreshFutures = new ArrayList<>();
-    for (SceneManager sceneManager : getSceneManagers()) {
-      LayoutlibSceneManager layoutlibSceneManager = (LayoutlibSceneManager)sceneManager;
-      refreshFutures.add(layoutlibSceneManager.requestUserInitiatedRender());
-    }
-
-    return CompletableFuture.allOf(refreshFutures.toArray(new CompletableFuture[refreshFutures.size()]));
+    return requestSequentialRender(manager -> ((LayoutlibSceneManager)manager).requestUserInitiatedRender());
   }
 
   @Override
