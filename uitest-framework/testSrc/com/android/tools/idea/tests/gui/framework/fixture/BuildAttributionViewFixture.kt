@@ -60,8 +60,8 @@ class BuildAttributionViewFixture(robot: Robot, target: JPanel) : JPanelFixture(
 
   fun selectAndCheckBuildSummaryNode() {
     tree.selectRow(0)
-    tree.requireSelectedNodeNameContain("Build: finished at \\d\\d/\\d\\d/\\d\\d \\d?\\d:\\d\\d (AM|PM)")
-    visiblePage.label("pageHeader").requireText(Pattern.compile("Build finished at \\d\\d/\\d\\d/\\d\\d \\d?\\d:\\d\\d (AM|PM)"))
+    tree.requireSelectedNodeNameContain("Build: finished at \\d\\d?/\\d\\d?/\\d\\d \\d?\\d:\\d\\d (AM|PM)")
+    visiblePage.label("pageHeader").requireText(Pattern.compile("Build finished at \\d\\d?/\\d\\d?/\\d\\d \\d?\\d:\\d\\d (AM|PM)"))
   }
 
   fun selectPageByPath(treePath: String, expectedPageHeaderPattern: String) {
