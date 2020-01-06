@@ -20,6 +20,7 @@ import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.module.StdModuleTypes.JAVA;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.util.PathUtil.toSystemIndependentName;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
@@ -40,6 +41,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemIndependent;
 
 class TopLevelModuleFactory {
   private static final Logger LOG = Logger.getInstance(TopLevelModuleFactory.class);
@@ -79,11 +81,13 @@ class TopLevelModuleFactory {
         LOG.warn(String.format("Failed to rename module '%s' to '%s'", module.getName(), project.getName()), ex);
       }
       projectModifieableModel.commit();
+      @SystemIndependent String projectRootDirPath = toSystemIndependentName(projectRootDir.getPath());
       ExternalSystemModulePropertyManager
         .getInstance(module)
         .setExternalOptions(
           GRADLE_SYSTEM_ID,
-          new ModuleData(":", GRADLE_SYSTEM_ID, JAVA.getId(), projectRootDir.getName(), projectRootDir.getPath(), projectRootDir.getPath()),
+          new ModuleData(":", GRADLE_SYSTEM_ID, JAVA.getId(), projectRootDir.getName(), projectRootDirPath,
+                         projectRootDirPath),
           new ProjectData(GRADLE_SYSTEM_ID, project.getName(), project.getBasePath(), project.getBasePath()));
 
       ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
