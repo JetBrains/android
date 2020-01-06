@@ -1,7 +1,7 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.inspections;
 
-import com.intellij.codeInsight.daemon.JavaErrorMessages;
+import com.intellij.codeInsight.daemon.JavaErrorBundle;
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightMessageUtil;
 import com.intellij.codeInsight.daemon.impl.analysis.JavaHighlightUtil;
 import com.intellij.codeInspection.*;
@@ -232,8 +232,8 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
       // do not show deprecated warning for class implementing deprecated methods
       if (ignoreAbstractDeprecatedOverrides && !aClass.isDeprecated() && superMethod.hasModifierProperty(PsiModifier.ABSTRACT)) continue;
       if (superMethod.isDeprecated()) {
-        String description = JavaErrorMessages.message("overrides.deprecated.method",
-                                                       HighlightMessageUtil.getSymbolName(aClass, PsiSubstitutor.EMPTY));
+        String description = JavaErrorBundle.message("overrides.deprecated.method",
+                                                     HighlightMessageUtil.getSymbolName(aClass, PsiSubstitutor.EMPTY));
 
         List<LocalQuickFix> fixes = new ArrayList<>(4);
         String symbolName = HighlightMessageUtil.getSymbolName(methodName, PsiSubstitutor.EMPTY);
@@ -287,7 +287,7 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
     }
 
     String symbolName = HighlightMessageUtil.getSymbolName(refElement, PsiSubstitutor.EMPTY);
-    String description = JavaErrorMessages.message("deprecated.symbol", symbolName);
+    String description = JavaErrorBundle.message("deprecated.symbol", symbolName);
 
     List<LocalQuickFix> fixes = new ArrayList<>(4);
     for (DeprecationFilter filter : getExtensions()) {
