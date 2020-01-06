@@ -168,15 +168,16 @@ private fun getTypeFiltersMap(): Map<ResourceType, LinkedHashMap<TypeFilter, Boo
       xmlFilterType(SdkConstants.TAG_SELECTOR),
       xmlFilterType(SdkConstants.TAG_ANIMATED_SELECTOR),
       xmlFilterType(SdkConstants.TAG_SHAPE),
-      // FIXME(b/144786008) = Can't read 9 patch files when using LayoutLib native.
       fileFilterType(".compiled${SdkConstants.DOT_9PNG}", NINE_PATCH_FILTER_NAME),
       fileFilterType(SdkConstants.DOT_9PNG, NINE_PATCH_FILTER_NAME),
       fileFilterType(SdkConstants.DOT_WEBP, BITMAP_FILTER_NAME),
       fileFilterType(SdkConstants.DOT_PNG, BITMAP_FILTER_NAME),
       fileFilterType(SdkConstants.DOT_JPG, BITMAP_FILTER_NAME),
       fileFilterType(SdkConstants.DOT_GIF, BITMAP_FILTER_NAME),
+      xmlFilterType(SdkConstants.TAG_RIPPLE),
       xmlFilterType(SdkConstants.TAG_INSET),
-      xmlFilterType(SdkConstants.TAG_LAYER_LIST))),
+      xmlFilterType(SdkConstants.TAG_LAYER_LIST),
+      xmlFilterType(SdkConstants.TAG_LEVEL_LIST))),
     Pair(ResourceType.COLOR, linkedMapOf(xmlFilterType(SdkConstants.TAG_SELECTOR))),
     Pair(ResourceType.LAYOUT, linkedMapOf(
       xmlFilterType(SdkConstants.TAG_LAYOUT, "Data Binding"),
@@ -184,7 +185,12 @@ private fun getTypeFiltersMap(): Map<ResourceType, LinkedHashMap<TypeFilter, Boo
       xmlFilterType(SdkConstants.CONSTRAINT_LAYOUT.newName(), CONSTRAINT_FILTER_NAME),
       xmlFilterType(SdkConstants.MOTION_LAYOUT.oldName(), MOTION_FILTER_NAME),
       xmlFilterType(SdkConstants.MOTION_LAYOUT.newName(), MOTION_FILTER_NAME))),
-    Pair(ResourceType.MIPMAP, linkedMapOf(xmlFilterType(SdkConstants.TAG_ADAPTIVE_ICON))),
+    Pair(ResourceType.MIPMAP, linkedMapOf(
+      xmlFilterType(SdkConstants.TAG_ADAPTIVE_ICON),
+      fileFilterType(SdkConstants.DOT_WEBP, BITMAP_FILTER_NAME),
+      fileFilterType(SdkConstants.DOT_PNG, BITMAP_FILTER_NAME),
+      fileFilterType(SdkConstants.DOT_JPG, BITMAP_FILTER_NAME),
+      fileFilterType(SdkConstants.DOT_GIF, BITMAP_FILTER_NAME))),
     Pair(ResourceType.FONT, linkedMapOf(
       xmlFilterType(SdkConstants.TAG_FONT_FAMILY),
       fileFilterType(SdkConstants.DOT_TTF, FONTFILE_FILTER_NAME),
