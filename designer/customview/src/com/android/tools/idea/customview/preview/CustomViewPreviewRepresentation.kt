@@ -83,6 +83,7 @@ class CustomViewPreviewRepresentation(
   private val virtualFile = psiFile.virtualFile!!
   private val persistenceManager = persistenceProvider(project)
   private var stateTracker: CustomViewVisualStateTracker
+  private var configurationListener = ConfigurationListener { true }
 
   private val previewId = "$CUSTOM_VIEW_PREVIEW_ID${virtualFile.path}"
   private val currentStatePropertyName = "${previewId}_SELECTED"
@@ -268,8 +269,6 @@ class CustomViewPreviewRepresentation(
     }
     updateModel()
   }
-
-  private var configurationListener = ConfigurationListener { true }
 
   private fun createConfigurationListener(configuration: Configuration, className: String) = ConfigurationListener { flags ->
     if ((flags and ConfigurationListener.CFG_DEVICE_STATE) == ConfigurationListener.CFG_DEVICE_STATE) {
