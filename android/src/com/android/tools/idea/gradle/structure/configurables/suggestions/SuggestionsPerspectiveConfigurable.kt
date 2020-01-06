@@ -67,10 +67,10 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
   override fun createComponent(): JComponent = super.createComponent().apply { name = "SuggestionsView" }
 
   private fun createConfigurable(module: PsModule) =
-      AndroidModuleSuggestionsConfigurable(context, this, module).apply { setHistory(myHistory) }
+      ModuleSuggestionsConfigurable(context, this, module).apply { setHistory(myHistory) }
 
-  private fun createAllModulesConfigurable(module: PsModule) : AndroidModuleSuggestionsConfigurable {
-    return object : AndroidModuleSuggestionsConfigurable(context, this@SuggestionsPerspectiveConfigurable, module) {
+  private fun createAllModulesConfigurable(module: PsModule) : ModuleSuggestionsConfigurable {
+    return object : ModuleSuggestionsConfigurable(context, this@SuggestionsPerspectiveConfigurable, module) {
       override fun getIcon(expanded: Boolean): Icon? = AllIcons.Nodes.ModuleGroup
     }.apply { setHistory(myHistory) }
   }
