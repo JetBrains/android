@@ -52,12 +52,20 @@ interface SourceProviders {
   val currentSourceProviders: List<IdeaSourceProvider>
 
   /**
-   * Returns a list of source providers for all test artifacts (e.g. both `test/` and `androidTest/` source sets), in increasing
+   * Returns a list of source providers for unit test artifacts (e.g. `test/`source sets), in increasing
    * precedence order.
    *
    * @see currentSourceProviders
    */
-  val currentTestSourceProviders: List<IdeaSourceProvider>
+  val currentUnitTestSourceProviders: List<IdeaSourceProvider>
+
+  /**
+   * Returns a list of source providers for Android test artifacts (e.g. `androidTest/` source sets), in increasing
+   * precedence order.
+   *
+   * @see currentSourceProviders
+   */
+  val currentAndroidTestSourceProviders: List<IdeaSourceProvider>
 
   /**
    * Returns a list of all IDEA source providers, for the given facet, in the overlay order
@@ -98,7 +106,9 @@ interface SourceProviders {
       facet.putUserData(KEY, object: SourceProviders {
         override val currentSourceProviders: List<IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val currentTestSourceProviders: List<IdeaSourceProvider>
+        override val currentUnitTestSourceProviders: List<IdeaSourceProvider>
+          get() = throw UnsupportedOperationException()
+        override val currentAndroidTestSourceProviders: List<IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val allSourceProviders: List<IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
@@ -123,7 +133,9 @@ interface SourceProviders {
       facet.putUserData(KEY, object: SourceProviders {
         override val currentSourceProviders: List<IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
-        override val currentTestSourceProviders: List<IdeaSourceProvider>
+        override val currentUnitTestSourceProviders: List<IdeaSourceProvider>
+          get() = throw UnsupportedOperationException()
+        override val currentAndroidTestSourceProviders: List<IdeaSourceProvider>
           get() = throw UnsupportedOperationException()
         override val allSourceProviders: List<IdeaSourceProvider>
           get() = throw UnsupportedOperationException()

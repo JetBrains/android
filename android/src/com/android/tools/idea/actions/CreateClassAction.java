@@ -148,7 +148,8 @@ public final class CreateClassAction extends AnAction {
     Collection<VirtualFile> files =
       Streams.concat(
         sourceProviderManager.getCurrentSourceProviders().stream(),
-        sourceProviderManager.getCurrentTestSourceProviders().stream()
+        sourceProviderManager.getCurrentUnitTestSourceProviders().stream(),
+        sourceProviderManager.getCurrentAndroidTestSourceProviders().stream()
       )
         .flatMap(it -> it.getJavaDirectories().stream())
         .collect(Collectors.toList());

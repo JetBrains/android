@@ -68,7 +68,8 @@ MODULE: MyApplication
                     file://./res
                 ResDirectories:
                     file://./res
-        CurrentTestSourceProviders:
+        CurrentUnitTestSourceProviders:
+        CurrentAndroidTestSourceProviders:
 MODULE: justLib
 MODULE: justLib.sub1
 MODULE: justLib.sub2

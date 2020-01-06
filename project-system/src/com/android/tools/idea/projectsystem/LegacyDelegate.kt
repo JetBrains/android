@@ -127,7 +127,8 @@ fun createSourceProvidersForLegacyModule(facet: AndroidFacet): SourceProviders {
   return SourceProvidersImpl(
     mainIdeaSourceProvider = mainSourceProvider,
     currentSourceProviders = listOf(mainSourceProvider),
-    currentTestSourceProviders = emptyList(),
+    currentUnitTestSourceProviders = emptyList(),
+    currentAndroidTestSourceProviders = emptyList(),
     allSourceProviders = listOf(mainSourceProvider),
     mainAndFlavorSourceProviders = listOf(mainSourceProvider)
   )
