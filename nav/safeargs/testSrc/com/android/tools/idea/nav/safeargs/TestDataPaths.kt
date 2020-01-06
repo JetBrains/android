@@ -22,4 +22,7 @@ import com.android.testutils.TestUtils
  */
 object TestDataPaths {
   val TEST_DATA_ROOT: String = TestUtils.getWorkspaceFile("tools/adt/idea/nav/safeargs/testData").path
+
+  const val PROJECT_USING_JAVA_PLUGIN = "projects/safeArgsWithJavaPlugin"
+  const val PROJECT_USING_KOTLIN_PLUGIN = "projects/safeArgsWithKotlinPlugin"
 }
