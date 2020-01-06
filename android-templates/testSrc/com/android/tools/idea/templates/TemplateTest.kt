@@ -42,6 +42,10 @@ open class TemplateTest : TemplateTestBase() {
     templateMap[COMPARE_NEW_RENDERING_CONTEXT] = true
   }
 
+  private val withThingsLauncher = { templateMap: MutableMap<String, Any>, _: MutableMap<String, Any> ->
+    templateMap["isThingsLauncher"] = true
+  }
+
   private fun withNewLocation(location: String) = { templateMap: MutableMap<String, Any>, _: MutableMap<String, Any> ->
     templateMap["newLocation"] = location
   }
@@ -90,6 +94,18 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewProjectWithThingsActivityWithKotlin() {
     checkCreateTemplate("activities", "AndroidThingsActivity", ActivityCreationMode.WITH_PROJECT, true, withKotlin)
+  }
+
+  @TemplateCheck
+  fun testCompareThingsActivity() {
+    checkCreateTemplate("activities", "AndroidThingsActivity",
+                        ActivityCreationMode.WITHOUT_PROJECT, true, withNewRenderingContext, withThingsLauncher)
+  }
+
+  @TemplateCheck
+  fun testCompareThingsActivityWithKotlin() {
+    checkCreateTemplate("activities", "AndroidThingsActivity",
+                        ActivityCreationMode.WITHOUT_PROJECT, true, withKotlin, withNewRenderingContext, withThingsLauncher)
   }
 
   @TemplateCheck
