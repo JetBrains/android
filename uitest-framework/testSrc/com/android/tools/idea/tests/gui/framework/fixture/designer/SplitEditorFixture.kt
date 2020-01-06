@@ -45,7 +45,7 @@ class SplitEditorFixture(val robot: Robot, val editor: SplitEditor<out FileEdito
   fun setDesignMode() = setMode("Design")
 
 
-  private val designSurface: NlDesignSurfaceFixture by lazy {
+  val designSurface: NlDesignSurfaceFixture by lazy {
     val surface = waitUntilShowing(robot, Matchers.byType(NlDesignSurface::class.java))
     NlDesignSurfaceFixture(robot, surface)
   }
