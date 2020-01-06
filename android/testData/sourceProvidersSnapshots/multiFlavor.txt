@@ -397,30 +397,7 @@ MODULE: app
                     ./app/src/firstAbcSecondAbcDebug/resources
                 ShadersDirectories:
                     ./app/src/firstAbcSecondAbcDebug/shaders
-        Test:
-            androidTest
-                Manifest:
-                    ./app/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTest/aidl
-                AssetsDirectories:
-                    ./app/src/androidTest/assets
-                CDirectories:
-                    ./app/src/androidTest/jni
-                CppDirectories:
-                    ./app/src/androidTest/jni
-                JavaDirectories:
-                    ./app/src/androidTest/java
-                JniLibsDirectories:
-                    ./app/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTest/rs
-                ResDirectories:
-                    ./app/src/androidTest/res
-                ResourcesDirectories:
-                    ./app/src/androidTest/resources
-                ShadersDirectories:
-                    ./app/src/androidTest/shaders
+        UnitTest:
             test
                 Manifest:
                     ./app/src/test/AndroidManifest.xml
@@ -444,29 +421,6 @@ MODULE: app
                     ./app/src/test/resources
                 ShadersDirectories:
                     ./app/src/test/shaders
-            androidTestFirstAbc
-                Manifest:
-                    ./app/src/androidTestFirstAbc/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestFirstAbc/aidl
-                AssetsDirectories:
-                    ./app/src/androidTestFirstAbc/assets
-                CDirectories:
-                    ./app/src/androidTestFirstAbc/jni
-                CppDirectories:
-                    ./app/src/androidTestFirstAbc/jni
-                JavaDirectories:
-                    ./app/src/androidTestFirstAbc/java
-                JniLibsDirectories:
-                    ./app/src/androidTestFirstAbc/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTestFirstAbc/rs
-                ResDirectories:
-                    ./app/src/androidTestFirstAbc/res
-                ResourcesDirectories:
-                    ./app/src/androidTestFirstAbc/resources
-                ShadersDirectories:
-                    ./app/src/androidTestFirstAbc/shaders
             testFirstAbc
                 Manifest:
                     ./app/src/testFirstAbc/AndroidManifest.xml
@@ -490,29 +444,6 @@ MODULE: app
                     ./app/src/testFirstAbc/resources
                 ShadersDirectories:
                     ./app/src/testFirstAbc/shaders
-            androidTestSecondAbc
-                Manifest:
-                    ./app/src/androidTestSecondAbc/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestSecondAbc/aidl
-                AssetsDirectories:
-                    ./app/src/androidTestSecondAbc/assets
-                CDirectories:
-                    ./app/src/androidTestSecondAbc/jni
-                CppDirectories:
-                    ./app/src/androidTestSecondAbc/jni
-                JavaDirectories:
-                    ./app/src/androidTestSecondAbc/java
-                JniLibsDirectories:
-                    ./app/src/androidTestSecondAbc/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTestSecondAbc/rs
-                ResDirectories:
-                    ./app/src/androidTestSecondAbc/res
-                ResourcesDirectories:
-                    ./app/src/androidTestSecondAbc/resources
-                ShadersDirectories:
-                    ./app/src/androidTestSecondAbc/shaders
             testSecondAbc
                 Manifest:
                     ./app/src/testSecondAbc/AndroidManifest.xml
@@ -536,29 +467,6 @@ MODULE: app
                     ./app/src/testSecondAbc/resources
                 ShadersDirectories:
                     ./app/src/testSecondAbc/shaders
-            androidTestDebug
-                Manifest:
-                    ./app/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestDebug/aidl
-                AssetsDirectories:
-                    ./app/src/androidTestDebug/assets
-                CDirectories:
-                    ./app/src/androidTestDebug/jni
-                CppDirectories:
-                    ./app/src/androidTestDebug/jni
-                JavaDirectories:
-                    ./app/src/androidTestDebug/java
-                JniLibsDirectories:
-                    ./app/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTestDebug/rs
-                ResDirectories:
-                    ./app/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./app/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./app/src/androidTestDebug/shaders
             testDebug
                 Manifest:
                     ./app/src/testDebug/AndroidManifest.xml
@@ -582,6 +490,99 @@ MODULE: app
                     ./app/src/testDebug/resources
                 ShadersDirectories:
                     ./app/src/testDebug/shaders
+        AndroidTest:
+            androidTest
+                Manifest:
+                    ./app/src/androidTest/AndroidManifest.xml
+                AidlDirectories:
+                    ./app/src/androidTest/aidl
+                AssetsDirectories:
+                    ./app/src/androidTest/assets
+                CDirectories:
+                    ./app/src/androidTest/jni
+                CppDirectories:
+                    ./app/src/androidTest/jni
+                JavaDirectories:
+                    ./app/src/androidTest/java
+                JniLibsDirectories:
+                    ./app/src/androidTest/jniLibs
+                RenderscriptDirectories:
+                    ./app/src/androidTest/rs
+                ResDirectories:
+                    ./app/src/androidTest/res
+                ResourcesDirectories:
+                    ./app/src/androidTest/resources
+                ShadersDirectories:
+                    ./app/src/androidTest/shaders
+            androidTestFirstAbc
+                Manifest:
+                    ./app/src/androidTestFirstAbc/AndroidManifest.xml
+                AidlDirectories:
+                    ./app/src/androidTestFirstAbc/aidl
+                AssetsDirectories:
+                    ./app/src/androidTestFirstAbc/assets
+                CDirectories:
+                    ./app/src/androidTestFirstAbc/jni
+                CppDirectories:
+                    ./app/src/androidTestFirstAbc/jni
+                JavaDirectories:
+                    ./app/src/androidTestFirstAbc/java
+                JniLibsDirectories:
+                    ./app/src/androidTestFirstAbc/jniLibs
+                RenderscriptDirectories:
+                    ./app/src/androidTestFirstAbc/rs
+                ResDirectories:
+                    ./app/src/androidTestFirstAbc/res
+                ResourcesDirectories:
+                    ./app/src/androidTestFirstAbc/resources
+                ShadersDirectories:
+                    ./app/src/androidTestFirstAbc/shaders
+            androidTestSecondAbc
+                Manifest:
+                    ./app/src/androidTestSecondAbc/AndroidManifest.xml
+                AidlDirectories:
+                    ./app/src/androidTestSecondAbc/aidl
+                AssetsDirectories:
+                    ./app/src/androidTestSecondAbc/assets
+                CDirectories:
+                    ./app/src/androidTestSecondAbc/jni
+                CppDirectories:
+                    ./app/src/androidTestSecondAbc/jni
+                JavaDirectories:
+                    ./app/src/androidTestSecondAbc/java
+                JniLibsDirectories:
+                    ./app/src/androidTestSecondAbc/jniLibs
+                RenderscriptDirectories:
+                    ./app/src/androidTestSecondAbc/rs
+                ResDirectories:
+                    ./app/src/androidTestSecondAbc/res
+                ResourcesDirectories:
+                    ./app/src/androidTestSecondAbc/resources
+                ShadersDirectories:
+                    ./app/src/androidTestSecondAbc/shaders
+            androidTestDebug
+                Manifest:
+                    ./app/src/androidTestDebug/AndroidManifest.xml
+                AidlDirectories:
+                    ./app/src/androidTestDebug/aidl
+                AssetsDirectories:
+                    ./app/src/androidTestDebug/assets
+                CDirectories:
+                    ./app/src/androidTestDebug/jni
+                CppDirectories:
+                    ./app/src/androidTestDebug/jni
+                JavaDirectories:
+                    ./app/src/androidTestDebug/java
+                JniLibsDirectories:
+                    ./app/src/androidTestDebug/jniLibs
+                RenderscriptDirectories:
+                    ./app/src/androidTestDebug/rs
+                ResDirectories:
+                    ./app/src/androidTestDebug/res
+                ResourcesDirectories:
+                    ./app/src/androidTestDebug/resources
+                ShadersDirectories:
+                    ./app/src/androidTestDebug/shaders
     by IdeaSourceProviders:
         Manifests:
             file://./app/src/main/AndroidManifest.xml
@@ -892,28 +893,7 @@ MODULE: app
                     file://./app/src/firstAbcSecondAbcDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/firstAbcSecondAbcDebug/shaders
-        CurrentTestSourceProviders:
-            androidTest (IDEA)
-                ManifestUrl:
-                    file://./app/src/androidTest/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./app/src/androidTest/aidl
-                AssetsDirectoryUrls:
-                    file://./app/src/androidTest/assets
-                JavaDirectoryUrls:
-                    file://./app/src/androidTest/java
-                JavaDirectories:
-                    file://./app/src/androidTest/java
-                JniLibsDirectoryUrls:
-                    file://./app/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTest/rs
-                ResDirectoryUrls:
-                    file://./app/src/androidTest/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTest/shaders
+        CurrentUnitTestSourceProviders:
             test (IDEA)
                 ManifestUrl:
                     file://./app/src/test/AndroidManifest.xml
@@ -935,25 +915,6 @@ MODULE: app
                     file://./app/src/test/resources
                 ShadersDirectoryUrls:
                     file://./app/src/test/shaders
-            androidTestFirstAbc (IDEA)
-                ManifestUrl:
-                    file://./app/src/androidTestFirstAbc/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestFirstAbc/aidl
-                AssetsDirectoryUrls:
-                    file://./app/src/androidTestFirstAbc/assets
-                JavaDirectoryUrls:
-                    file://./app/src/androidTestFirstAbc/java
-                JniLibsDirectoryUrls:
-                    file://./app/src/androidTestFirstAbc/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTestFirstAbc/rs
-                ResDirectoryUrls:
-                    file://./app/src/androidTestFirstAbc/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/androidTestFirstAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestFirstAbc/shaders
             testFirstAbc (IDEA)
                 ManifestUrl:
                     file://./app/src/testFirstAbc/AndroidManifest.xml
@@ -973,25 +934,6 @@ MODULE: app
                     file://./app/src/testFirstAbc/resources
                 ShadersDirectoryUrls:
                     file://./app/src/testFirstAbc/shaders
-            androidTestSecondAbc (IDEA)
-                ManifestUrl:
-                    file://./app/src/androidTestSecondAbc/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestSecondAbc/aidl
-                AssetsDirectoryUrls:
-                    file://./app/src/androidTestSecondAbc/assets
-                JavaDirectoryUrls:
-                    file://./app/src/androidTestSecondAbc/java
-                JniLibsDirectoryUrls:
-                    file://./app/src/androidTestSecondAbc/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTestSecondAbc/rs
-                ResDirectoryUrls:
-                    file://./app/src/androidTestSecondAbc/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/androidTestSecondAbc/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestSecondAbc/shaders
             testSecondAbc (IDEA)
                 ManifestUrl:
                     file://./app/src/testSecondAbc/AndroidManifest.xml
@@ -1013,25 +955,6 @@ MODULE: app
                     file://./app/src/testSecondAbc/resources
                 ShadersDirectoryUrls:
                     file://./app/src/testSecondAbc/shaders
-            androidTestDebug (IDEA)
-                ManifestUrl:
-                    file://./app/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestDebug/aidl
-                AssetsDirectoryUrls:
-                    file://./app/src/androidTestDebug/assets
-                JavaDirectoryUrls:
-                    file://./app/src/androidTestDebug/java
-                JniLibsDirectoryUrls:
-                    file://./app/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTestDebug/rs
-                ResDirectoryUrls:
-                    file://./app/src/androidTestDebug/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestDebug/shaders
             testDebug (IDEA)
                 ManifestUrl:
                     file://./app/src/testDebug/AndroidManifest.xml
@@ -1051,3 +974,82 @@ MODULE: app
                     file://./app/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/testDebug/shaders
+        CurrentAndroidTestSourceProviders:
+            androidTest (IDEA)
+                ManifestUrl:
+                    file://./app/src/androidTest/AndroidManifest.xml
+                AidlDirectoryUrls:
+                    file://./app/src/androidTest/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTest/java
+                JavaDirectories:
+                    file://./app/src/androidTest/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTest/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/androidTest/rs
+                ResDirectoryUrls:
+                    file://./app/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTest/shaders
+            androidTestFirstAbc (IDEA)
+                ManifestUrl:
+                    file://./app/src/androidTestFirstAbc/AndroidManifest.xml
+                AidlDirectoryUrls:
+                    file://./app/src/androidTestFirstAbc/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTestFirstAbc/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTestFirstAbc/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTestFirstAbc/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/androidTestFirstAbc/rs
+                ResDirectoryUrls:
+                    file://./app/src/androidTestFirstAbc/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTestFirstAbc/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTestFirstAbc/shaders
+            androidTestSecondAbc (IDEA)
+                ManifestUrl:
+                    file://./app/src/androidTestSecondAbc/AndroidManifest.xml
+                AidlDirectoryUrls:
+                    file://./app/src/androidTestSecondAbc/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTestSecondAbc/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTestSecondAbc/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTestSecondAbc/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/androidTestSecondAbc/rs
+                ResDirectoryUrls:
+                    file://./app/src/androidTestSecondAbc/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTestSecondAbc/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTestSecondAbc/shaders
+            androidTestDebug (IDEA)
+                ManifestUrl:
+                    file://./app/src/androidTestDebug/AndroidManifest.xml
+                AidlDirectoryUrls:
+                    file://./app/src/androidTestDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTestDebug/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTestDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/androidTestDebug/rs
+                ResDirectoryUrls:
+                    file://./app/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTestDebug/shaders

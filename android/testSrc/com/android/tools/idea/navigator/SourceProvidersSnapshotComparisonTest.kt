@@ -18,7 +18,6 @@ package com.android.tools.idea.navigator
 import com.android.builder.model.SourceProvider
 import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
@@ -223,7 +222,8 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
                   model.defaultSourceProvider.dump()
                   nest("Active:") { model.activeSourceProviders.forEach { it.dump() } }
                   nest("All:") { model.allSourceProviders.forEach { it.dump() } }
-                  nest("Test:") { model.testSourceProviders.forEach { it.dump() } }
+                  nest("UnitTest:") { model.unitTestSourceProviders.forEach { it.dump() } }
+                  nest("AndroidTest:") { model.androidTestSourceProviders.forEach { it.dump() } }
                 }
               }
               nest("by IdeaSourceProviders:") {
@@ -231,7 +231,8 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
                 dumpPathsCore("Manifests", { getManifestFiles(androidFacet) }, { it.url })
                 nest("AllIdeaSourceProviders:") { sourceProviderManager.allSourceProviders.forEach { it.dump() } }
                 nest("CurrentSourceProviders:") { sourceProviderManager.currentSourceProviders.forEach { it.dump() } }
-                nest("CurrentTestSourceProviders:") { sourceProviderManager.currentTestSourceProviders.forEach { it.dump() } }
+                nest("CurrentUnitTestSourceProviders:") { sourceProviderManager.currentUnitTestSourceProviders.forEach { it.dump() } }
+                nest("CurrentAndroidTestSourceProviders:") { sourceProviderManager.currentAndroidTestSourceProviders.forEach { it.dump() } }
               }
             }
           }

@@ -46,7 +46,8 @@ fun IdeaSourceProvider.containsFile(file: VirtualFile): Boolean {
 fun Iterable<IdeaSourceProvider>.findByFile(file: VirtualFile): IdeaSourceProvider? = firstOrNull { it.containsFile(file) }
 
 fun isTestFile(facet: AndroidFacet, candidate: VirtualFile): Boolean {
-  return SourceProviderManager.getInstance(facet).currentTestSourceProviders.any { it.containsFile(candidate) }
+  return SourceProviderManager.getInstance(facet).currentUnitTestSourceProviders.any { it.containsFile(candidate) } ||
+         SourceProviderManager.getInstance(facet).currentAndroidTestSourceProviders.any { it.containsFile(candidate) }
 }
 
 /** Returns true if the given candidate file is a manifest file in the given module  */
