@@ -90,7 +90,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     VirtualFile javaMainSrcFile = moduleFile.findFileByRelativePath("src/main/java/com/example/projectwithappandlib/");
     assertNotNull(javaMainSrcFile);
 
-    Collection<IdeaSourceProvider> providers = getSourceProvidersForFile(myAppFacet, javaMainSrcFile, null);
+    Collection<IdeaSourceProvider> providers = getSourceProvidersForFile(myAppFacet, javaMainSrcFile);
+    assertNotNull(providers);
     assertEquals(1, providers.size());
     IdeaSourceProvider actualProvider = providers.iterator().next();
     assertEquals(mainFlavorSourceProvider.getManifestFile(),
@@ -104,7 +105,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid");
     assertNotNull(javaSrcFile);
 
-    providers = getSourceProvidersForFile(myAppFacet, javaSrcFile, null);
+    providers = getSourceProvidersForFile(myAppFacet, javaSrcFile);
+    assertNotNull(providers);
     assertEquals(1, providers.size());
     actualProvider = providers.iterator().next();
     assertEquals(paidFlavorSourceProvider.getManifestFile(),

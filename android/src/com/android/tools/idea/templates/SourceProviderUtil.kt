@@ -42,24 +42,22 @@ import org.jetbrains.android.facet.containsFile
  * With target file == "myoverlay.aidl" the returned list would be ['free'], but if target file == "src",
  * the returned list would be ['main', 'free'] since both of those source providers have source folders which
  * are descendants of "src."
+ *
+ * Returns `null` if none found.
  */
 fun getSourceProvidersForFile(
   facet: AndroidFacet,
-  targetFolder: VirtualFile?,
-  defaultSourceProvider: IdeaSourceProvider?
-): List<IdeaSourceProvider> {
-  val sourceProviderList =
-    if (targetFolder != null) {
-      // Add source providers that contain the file (if any) and any that have files under the given folder
-      SourceProviderManager.getInstance(facet).allSourceProviders
-        .filter { provider ->
-          provider.containsFile(targetFolder) || provider.isContainedBy(targetFolder)
-        }
-        .takeUnless { it.isEmpty() }
-    }
-    else null
-
-  return sourceProviderList ?: listOfNotNull(defaultSourceProvider)
+  targetFolder: VirtualFile?
+): List<IdeaSourceProvider>? {
+  return if (targetFolder != null) {
+    // Add source providers that contain the file (if any) and any that have files under the given folder
+    SourceProviderManager.getInstance(facet).allSourceProviders
+      .filter { provider ->
+        provider.containsFile(targetFolder) || provider.isContainedBy(targetFolder)
+      }
+      .takeUnless { it.isEmpty() }
+  }
+  else null
 }
 
 @VisibleForTesting

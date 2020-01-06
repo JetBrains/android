@@ -159,13 +159,14 @@ public class GradleAndroidModuleTemplate implements AndroidModulePaths {
   @NotNull
   private static Collection<IdeaSourceProvider> getSourceProviders(@NotNull AndroidFacet androidFacet,
                                                                    @Nullable VirtualFile targetDirectory) {
+    List<IdeaSourceProvider> providersForFile = null;
     if (targetDirectory != null) {
-      return getSourceProvidersForFile(androidFacet, targetDirectory,
-                                       SourceProviderManager.getInstance(androidFacet).getMainIdeaSourceProvider());
+      providersForFile = getSourceProvidersForFile(androidFacet, targetDirectory);
     }
-    else {
-      return SourceProviderManager.getInstance(androidFacet).getAllSourceProviders();
+    if (providersForFile == null) {
+      providersForFile = SourceProviderManager.getInstance(androidFacet).getAllSourceProviders();
     }
+    return providersForFile;
   }
 
   /**
