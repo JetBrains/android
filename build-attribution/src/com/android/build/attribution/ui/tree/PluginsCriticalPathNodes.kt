@@ -42,7 +42,11 @@ import com.android.build.attribution.ui.panels.taskInfoPanel
 import com.android.build.attribution.ui.taskIcon
 import com.android.utils.HtmlBuilder
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
+import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
+import com.intellij.ui.components.JBPanel
+import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.treeStructure.SimpleNode
 import java.util.ArrayList
 import java.util.HashMap
@@ -163,13 +167,12 @@ private class PluginNode(
   override fun buildChildren(): Array<SimpleNode> {
     val nodes = ArrayList<SimpleNode>()
     nodes.add(PluginTasksRootNode(pluginData, chartItems, selectedChartItem, this, issueClickListener))
-    pluginData.issues.forEach { issuesGroup ->
-      nodes.add(
-        PluginIssueRootNode(issuesGroup, pluginData, this)
-          .also { issueRoots[issuesGroup.type] = it }
-      )
-    }
+    nodes.add(PluginIssuesRootNode(pluginData, this))
     return nodes.toTypedArray()
+  }
+
+  fun registerIssueRoot(pluginIssueRoot: PluginIssueRootNode) {
+    issueRoots[pluginIssueRoot.issuesGroup.type] = pluginIssueRoot
   }
 }
 
@@ -230,10 +233,57 @@ private class PluginTaskNode(
   override fun buildChildren(): Array<SimpleNode> = emptyArray()
 }
 
-private class PluginIssueRootNode(
-  private val issuesGroup: TaskIssuesGroup,
+private class PluginIssuesRootNode(
   private val pluginUiData: CriticalPathPluginUiData,
-  parent: PluginNode
+  private val parentNode: PluginNode
+) : AbstractBuildAttributionNode(parentNode, "Warnings") {
+  //TODO mlazeba change to new type when added and merged b/144767316
+  override val pageType = BuildAttributionUiEvent.Page.PageType.UNKNOWN_PAGE
+  override val presentationIcon: Icon? = null
+  override val issuesCountsSuffix: String? = null
+  override val timeSuffix: String? = null
+
+  override fun createComponent(): AbstractBuildAttributionInfoPanel = object : AbstractBuildAttributionInfoPanel() {
+    override fun createHeader(): JComponent = headerLabel("${pluginUiData.name} warnings")
+
+    override fun createBody(): JComponent {
+      val listPanel = JBPanel<JBPanel<*>>(VerticalLayout(6))
+      val totalWarningsCount = pluginUiData.warningCount
+      listPanel.add(JBLabel().apply {
+        text = if (children.isEmpty())
+          "No warnings detected for this build."
+        else
+          "$totalWarningsCount ${StringUtil.pluralize("warning", totalWarningsCount)} " +
+          "of the following ${StringUtil.pluralize("type", children.size)} were detected for this build."
+        setAllowAutoWrapping(true)
+        setCopyable(true)
+      })
+      children.forEach {
+        if (it is AbstractBuildAttributionNode) {
+          val name = it.nodeName
+          val link = HyperlinkLabel("${name} (${it.issuesCountsSuffix})")
+          link.addHyperlinkListener { _ -> nodeSelector.selectNode(it) }
+          listPanel.add(link)
+        }
+      }
+      return listPanel
+    }
+  }
+
+  override fun buildChildren(): Array<SimpleNode> {
+    return pluginUiData.issues
+      .map { issuesGroup ->
+        PluginIssueRootNode(issuesGroup, pluginUiData, this)
+          .also { parentNode.registerIssueRoot(it) }
+      }
+      .toTypedArray()
+  }
+}
+
+private class PluginIssueRootNode(
+  val issuesGroup: TaskIssuesGroup,
+  private val pluginUiData: CriticalPathPluginUiData,
+  parent: PluginIssuesRootNode
 ) : AbstractBuildAttributionNode(parent, issuesGroup.type.uiName), TreeLinkListener<TaskIssueUiData> {
 
   override val presentationIcon: Icon? = null
