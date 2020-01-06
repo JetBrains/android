@@ -23,6 +23,7 @@ import com.android.tools.idea.compose.preview.PreviewConfiguration
 import com.android.tools.idea.compose.preview.PreviewElement
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.kotlin.getClassName
 import com.android.utils.reflection.qualifiedName
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.documentation.DocumentationManager
@@ -47,8 +48,6 @@ import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.uast.UClass
-import org.jetbrains.uast.toUElement
 import java.awt.Image
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
@@ -56,7 +55,7 @@ import java.util.concurrent.CompletableFuture
 /**
  * Adds rendered image of sample@ to Compose element's documentation.
  */
-class ComposeDocumentationProvider() : DocumentationProviderEx() {
+class ComposeDocumentationProvider : DocumentationProviderEx() {
   companion object {
     private val previewImageKey: Key<CachedValue<CompletableFuture<BufferedImage?>>> = Key.create(
       Companion::previewImageKey.qualifiedName)
@@ -149,8 +148,6 @@ class ComposeDocumentationProvider() : DocumentationProviderEx() {
   private fun getFullNameForPreview(function: KtNamedFunction): String = ReadAction.compute<String, Throwable> {
     "${function.getClassName()}.${function.name}"
   }
-
-  private fun KtNamedFunction.getClassName(): String? = (toUElement()?.uastParent as? UClass)?.qualifiedName
 
   /**
    * Returns image tag that we add into documentation's html.

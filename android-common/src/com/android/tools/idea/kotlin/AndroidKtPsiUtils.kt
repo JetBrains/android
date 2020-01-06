@@ -16,14 +16,17 @@
 package com.android.tools.idea.kotlin
 
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtQualifiedExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
@@ -62,6 +65,17 @@ fun KtClass.getQualifiedName(): String? {
 }
 
 /**
+ * Computes the qualified name of the class containing this [KtNamedFunction].
+ *
+ * For functions defined within a Kotlin class, returns the qualified name of that class. For top-level functions, returns the JVM name of
+ * the Java facade class generated instead.
+ *
+ */
+fun KtNamedFunction.getClassName(): String? {
+  return if (isTopLevel) ((parent as? KtFile)?.findFacadeClass())?.qualifiedName else parentOfType<KtClass>()?.getQualifiedName()
+}
+
+/**
  * Finds the [KtExpression] assigned to [annotationAttributeName] in this [KtAnnotationEntry].
  *
  * @see org.jetbrains.kotlin.psi.ValueArgument.getArgumentExpression
@@ -82,7 +96,7 @@ fun KtExpression.tryEvaluateConstant(): String? {
   return ConstantExpressionEvaluator.getConstant(this, analyze())
     ?.takeUnless { it.isError }
     ?.getValue(TypeUtils.NO_EXPECTED_TYPE)
-    ?.safeAs<String>()
+    ?.safeAs()
 }
 
 /**
