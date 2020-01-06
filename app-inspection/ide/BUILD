@@ -53,7 +53,6 @@ iml_module(
         "//tools/idea/.idea/libraries:mockito[test]",
         "//tools/idea/.idea/libraries:studio-grpc[test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
-        "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/idea/.idea/libraries:truth[test]",
     ],
 )

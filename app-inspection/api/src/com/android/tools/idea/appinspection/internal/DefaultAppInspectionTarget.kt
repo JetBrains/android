@@ -167,8 +167,7 @@ private class DefaultAppInspectionTarget(
 
   override val processDescriptor: ProcessDescriptor
     get() {
-      val stream = transport.stream
-      return ProcessDescriptor(stream.device.manufacturer, stream.device.model, stream.device.serial, transport.process.name)
+      return ProcessDescriptor(transport.stream, transport.process)
     }
 }
 

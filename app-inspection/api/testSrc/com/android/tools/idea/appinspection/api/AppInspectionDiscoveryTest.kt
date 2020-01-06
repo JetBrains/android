@@ -18,6 +18,7 @@ package com.android.tools.idea.appinspection.api
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
+import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
@@ -37,10 +38,8 @@ class AppInspectionDiscoveryTest {
   private val transportService = FakeTransportService(timer)
 
   private val FAKE_PROCESS = ProcessDescriptor(
-    FakeTransportService.FAKE_DEVICE.manufacturer,
-    FakeTransportService.FAKE_DEVICE.model,
-    FakeTransportService.FAKE_DEVICE.serial,
-    FakeTransportService.FAKE_PROCESS_NAME
+    Common.Stream.newBuilder().setType(Common.Stream.Type.DEVICE).setStreamId(0).setDevice(FakeTransportService.FAKE_DEVICE).build(),
+    FakeTransportService.FAKE_PROCESS
   )
 
   private val ATTACH_HANDLER = object : CommandHandler(timer) {
@@ -68,12 +67,7 @@ class AppInspectionDiscoveryTest {
   @Test
   fun makeNewConnectionFiresListener() {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionDiscoveryHost(
-      executor,
-      object : AppInspectionDiscoveryHost.Channel {
-        override val name = grpcServerRule.name
-      }
-    )
+    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
     val latch = CountDownLatch(1)
     discoveryHost.discovery.addTargetListener(executor) { latch.countDown() }
@@ -86,12 +80,7 @@ class AppInspectionDiscoveryTest {
   @Test
   fun connectionIsCached() {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionDiscoveryHost(
-      executor,
-      object : AppInspectionDiscoveryHost.Channel {
-        override val name = grpcServerRule.name
-      }
-    )
+    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
 
@@ -107,12 +96,7 @@ class AppInspectionDiscoveryTest {
   @Test
   fun addListenerReceivesExistingConnections() {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionDiscoveryHost(
-      executor,
-      object : AppInspectionDiscoveryHost.Channel {
-        override val name = grpcServerRule.name
-      }
-    )
+    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
 
@@ -137,12 +121,7 @@ class AppInspectionDiscoveryTest {
   @Test
   fun removeConnectionFromCacheWhenProcessEnds() {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionDiscoveryHost(
-      executor,
-      object : AppInspectionDiscoveryHost.Channel {
-        override val name = grpcServerRule.name
-      }
-    )
+    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
 

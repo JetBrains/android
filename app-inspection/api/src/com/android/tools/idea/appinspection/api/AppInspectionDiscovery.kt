@@ -16,14 +16,11 @@
 package com.android.tools.idea.appinspection.api
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.idea.appinspection.internal.AppInspectionAttacher
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.poller.TransportEventPoller
-import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.SettableFuture
 import java.util.concurrent.Executor
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
@@ -40,11 +37,8 @@ typealias TargetListener = (AppInspectionTarget) -> Unit
 // TODO(b/143628758): This Discovery mechanism must be called only behind the flag SQLITE_APP_INSPECTOR_ENABLED
 class AppInspectionDiscoveryHost(
   executor: ScheduledExecutorService,
-  transportChannel: Channel,
-  @VisibleForTesting client: TransportClient = TransportClient(transportChannel.name),
-  @VisibleForTesting poller: TransportEventPoller = TransportEventPoller.createPoller(
-    client.transportStub, TimeUnit.MILLISECONDS.toNanos(100)
-  )
+  client: TransportClient,
+  poller: TransportEventPoller = TransportEventPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
 ) {
   /**
    * This class represents a channel between some host (which should implement this class) and a target Android device.
@@ -53,7 +47,7 @@ class AppInspectionDiscoveryHost(
     val name: String
   }
 
-  val discovery = AppInspectionDiscovery(executor, client, poller, AppInspectionAttacher(executor, client))
+  val discovery = AppInspectionDiscovery(executor, client, poller)
 
   /**
    * Connects to a process on device defined by [processDescriptor]. This method returns a future of [AppInspectionTarget]. If the
@@ -76,8 +70,7 @@ class AppInspectionDiscoveryHost(
 class AppInspectionDiscovery internal constructor(
   private val executor: ScheduledExecutorService,
   private val transportClient: TransportClient,
-  private val transportPoller: TransportEventPoller,
-  private val attacher: AppInspectionAttacher
+  private val transportPoller: TransportEventPoller
 ) {
   @GuardedBy("this")
   private val listeners = mutableMapOf<TargetListener, Executor>()
@@ -92,20 +85,13 @@ class AppInspectionDiscovery internal constructor(
     return connections.computeIfAbsent(
       processDescriptor,
       Function { descriptor ->
-        val connectionFuture = SettableFuture.create<AppInspectionTarget>()
-        attacher.attach(descriptor) { stream, process ->
-          val transport = AppInspectionTransport(transportClient, stream, process, executor, transportPoller)
-          AppInspectionTarget.attach(transport, jarCopier)
-            .transform(executor) { connection ->
-              connection.addTargetTerminatedListener(executor) {
-                connections.remove(ProcessDescriptor(stream.device.manufacturer, stream.device.model, stream.device.serial, process.name))
-                  ?.cancel(false)
-              }
-              listeners.forEach { it.value.execute { it.key(connection) } }
-              connectionFuture.set(connection)
-            }
-        }
-        connectionFuture
+        val transport = AppInspectionTransport(transportClient, descriptor.stream, descriptor.process, executor, transportPoller)
+        AppInspectionTarget.attach(transport, jarCopier)
+          .transform(executor) { connection ->
+            connection.addTargetTerminatedListener(executor) { connections.remove(descriptor)?.cancel(false) }
+            listeners.forEach { (listener, executor) -> executor.execute { listener(connection) } }
+            connection
+          }
       })
   }
 

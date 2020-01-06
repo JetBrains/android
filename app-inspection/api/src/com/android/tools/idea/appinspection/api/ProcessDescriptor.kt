@@ -15,37 +15,12 @@
  */
 package com.android.tools.idea.appinspection.api
 
-import com.android.ddmlib.IDevice
-import com.android.tools.idea.transport.TransportServiceProxy
 import com.android.tools.profiler.proto.Common
 
 /**
- * Describes a device and the id of a process on the device.
+ * Simple struct containing [Common.Stream] and [Common.Process], which are used to identify an android process to connect to.
  */
 data class ProcessDescriptor(
-  /** Device Information. **/
-  val manufacturer: String,
-  val model: String,
-  val serialNumber: String,
-
-  /** Application Id. **/
-  val applicationId: String?
-) {
-  /**
-   * Returns true if a device from the transport layer matches the device profile stored.
-   */
-  fun matchesDevice(device: Common.Device): Boolean {
-    return device.manufacturer == manufacturer &&
-      device.model == model &&
-      device.serial == serialNumber
-  }
-}
-
-/**
- * Creates a [ProcessDescriptor] using an [IDevice].
- */
-fun ProcessDescriptor(device: IDevice, applicationId: String?) = ProcessDescriptor(
-  TransportServiceProxy.getDeviceManufacturer(device),
-  TransportServiceProxy.getDeviceModel(device),
-  device.serialNumber, applicationId
+  val stream: Common.Stream,
+  val process: Common.Process
 )

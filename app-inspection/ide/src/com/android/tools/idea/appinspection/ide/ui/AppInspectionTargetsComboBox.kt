@@ -37,9 +37,9 @@ class AppInspectionTargetsComboBox(model: AppInspectionTargetsComboBoxModel)
                                                 cellHasFocus: Boolean): Component {
         if (value is AppInspectionTarget) {
           val descriptor = value.processDescriptor
-          var text = descriptor.model.replace('_', ' ');
-          if (descriptor.applicationId != null) {
-            text += " -> " + descriptor.applicationId
+          var text = descriptor.stream.device.model.replace('_', ' ');
+          if (descriptor.process.name != null) {
+            text += " -> " + descriptor.process.name
           }
           return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus)
         }
