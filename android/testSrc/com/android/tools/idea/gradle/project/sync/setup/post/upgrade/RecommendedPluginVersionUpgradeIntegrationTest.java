@@ -168,6 +168,6 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     UpdateResult result = mock(UpdateResult.class);
     when(result.versionUpdateSuccess()).thenReturn(success);
     GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
-    doReturn(result).when(myVersionUpdater).updatePluginVersionAndSync(eq(pluginVersion), eq(gradleVersion), any());
+    doReturn(result).when(myVersionUpdater).updatePluginVersionAndSync(eq(pluginVersion), eq(gradleVersion), any(), eq(false));
   }
 }

@@ -104,13 +104,14 @@ public class AndroidPluginVersionUpdater {
   }
 
   public UpdateResult updatePluginVersionAndSync(@NotNull GradleVersion pluginVersion, @Nullable GradleVersion gradleVersion) {
-    return updatePluginVersionAndSync(pluginVersion, gradleVersion, null);
+    return updatePluginVersionAndSync(pluginVersion, gradleVersion, null, true);
   }
 
   public UpdateResult updatePluginVersionAndSync(
     @NotNull GradleVersion pluginVersion,
     @Nullable GradleVersion gradleVersion,
-    @Nullable GradleVersion oldPluginVersion
+    @Nullable GradleVersion oldPluginVersion,
+    boolean dontTouchSyncState
   ) {
     UpdateResult result = updatePluginVersion(pluginVersion, gradleVersion, oldPluginVersion);
 
@@ -126,12 +127,12 @@ public class AndroidPluginVersionUpdater {
       logUpdateError(msg, gradleVersionUpdateError);
     }
 
-    handleUpdateResult(result);
+    handleUpdateResult(result, dontTouchSyncState);
     return result;
   }
 
   @VisibleForTesting
-  void handleUpdateResult(@NotNull UpdateResult result) {
+  void handleUpdateResult(@NotNull UpdateResult result, boolean dontTouchSyncState) {
     Throwable versionUpdateError = result.getPluginVersionUpdateError();
     boolean gradleVersionFailed = false;
     if (versionUpdateError == null) {
@@ -140,13 +141,15 @@ public class AndroidPluginVersionUpdater {
     }
 
     if (versionUpdateError != null) {
-      String message = String.format("Failed to update %s version", gradleVersionFailed ? "Gradle" : "Android Gradle Plugin");
-      mySyncState.syncFailed(message, versionUpdateError, null);
+      if (!dontTouchSyncState) {
+        String message = String.format("Failed to update %s version", gradleVersionFailed ? "Gradle" : "Android Gradle Plugin");
+        mySyncState.syncFailed(message, versionUpdateError, null);
+      }
       if (!gradleVersionFailed) {
         myTextSearch.execute();
       }
     }
-    else if (result.isPluginVersionUpdated() || result.isGradleVersionUpdated()) {
+    else if ((result.isPluginVersionUpdated() || result.isGradleVersionUpdated()) && !dontTouchSyncState) {
       // Update successful. Sync project.
       if (!mySyncState.lastSyncFailed()) {
         mySyncState.syncSucceeded();
