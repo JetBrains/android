@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.java
 
 import com.android.tools.adtui.LabelWithEditButton
 import com.android.tools.adtui.validation.ValidatorPanel
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getInitialDomain
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.npw.project.DomainToPackageExpression
@@ -42,8 +43,6 @@ import com.intellij.ui.layout.PropertyBinding
 import com.intellij.ui.layout.panel
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.util.AndroidBundle
-import javax.swing.JComponent
-import javax.swing.JLabel
 import javax.swing.JTextField
 
 class ConfigureLibraryModuleStep(
@@ -115,6 +114,10 @@ class ConfigureLibraryModuleStep(
 
   override fun onProceeding() {
     panel.apply()
+    // Now that the module name was validated, update the model template
+    with(model) {
+      template.set(createDefaultTemplateAt(project.basePath!!, moduleName.get()))
+    }
   }
 
   override fun createDependentSteps(): Collection<ModelWizardStep<*>> = listOf()

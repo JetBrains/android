@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.module
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.ModuleModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
@@ -52,16 +52,15 @@ private val log: Logger get() = logger<ModuleModel>()
 
 abstract class ModuleModel(
   override var templateFile: File?,
-  moduleName: String,
+  name: String,
   private val commandName: String = "New Module",
   override val isLibrary: Boolean,
-  projectModelData: ProjectModelData
+  projectModelData: ProjectModelData,
+  _template: NamedModuleTemplate = with(projectModelData) { createDefaultTemplateAt(if (!isNewProject) project.basePath!! else "", name) }
 ) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
-  override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(
-    NamedModuleTemplate("", GradleAndroidModuleTemplate.createDefaultTemplateAt(if (!isNewProject) project.basePath!! else "", moduleName).paths)
-  )
+  final override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(_template)
   override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
-  override val moduleName = StringValueProperty(moduleName).apply { addConstraint(String::trim) }
+  final override val moduleName = StringValueProperty(name).apply { addConstraint(String::trim) }
   override val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
   override val moduleTemplateValues = mutableMapOf<String, Any>()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)

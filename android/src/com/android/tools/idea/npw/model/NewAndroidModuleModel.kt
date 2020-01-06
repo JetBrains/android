@@ -101,7 +101,7 @@ interface ModuleModelData : ProjectModelData {
 
 class NewAndroidModuleModel(
   projectModelData: ProjectModelData,
-  override val template: ObjectProperty<NamedModuleTemplate>,
+  template: NamedModuleTemplate,
   val moduleParent: String?,
   override val formFactor: ObjectProperty<FormFactor>,
   commandName: String = "New Module",
@@ -112,7 +112,8 @@ class NewAndroidModuleModel(
   "",
   commandName,
   isLibrary,
-  projectModelData
+  projectModelData,
+  template
 ) {
   override val moduleTemplateValues = mutableMapOf<String, Any>()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
@@ -136,7 +137,7 @@ class NewAndroidModuleModel(
     templateFile: File? = null
   ) : this(
     projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
-    template = ObjectValueProperty(template),
+    template = template,
     moduleParent = moduleParent,
     formFactor = ObjectValueProperty(FormFactor.MOBILE),
     isLibrary = isLibrary,
@@ -148,7 +149,7 @@ class NewAndroidModuleModel(
     formFactor: ObjectValueProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
   ) : this(
     projectModelData = projectModel,
-    template = ObjectValueProperty(template),
+    template = template,
     moduleParent = null,
     formFactor = formFactor,
     templateFile = templateFile
