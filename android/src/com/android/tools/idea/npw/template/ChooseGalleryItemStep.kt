@@ -39,6 +39,7 @@ import com.android.tools.idea.wizard.model.ModelWizard
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.components.JBList
@@ -243,7 +244,7 @@ fun Template.validate(moduleApiLevel: Int,
   this == Template.NoActivity -> if (isNewModule) "" else message(messageKeys.itemNotFound)
   moduleApiLevel < this.minSdk -> message(messageKeys.invalidMinSdk, this.minSdk)
   moduleBuildApiLevel < this.minCompileSdk -> message(messageKeys.invalidMinBuild, this.minCompileSdk)
-  this.requireAndroidX && !isAndroidxProject -> message(messageKeys.invalidAndroidX)
+  constraints.contains(TemplateConstraint.AndroidX) && !isAndroidxProject -> message(messageKeys.invalidAndroidX)
   else -> ""
 }
 
