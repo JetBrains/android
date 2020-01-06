@@ -27,7 +27,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.Place
 import java.awt.BorderLayout
 
-open class AndroidModuleSuggestionsConfigurable(
+open class ModuleSuggestionsConfigurable(
   context: PsContext,
   perspectiveConfigurable: BasePerspectiveConfigurable,
   module: PsModule
