@@ -53,7 +53,7 @@ fun pluginInfoPanel(
 ): JComponent = JBPanel<JBPanel<*>>(VerticalLayout(15)).apply {
   add(commonPluginInfo(pluginUiData, analytics))
   add(JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
-    add(JBLabel("Issues with this plugin").withFont(JBUI.Fonts.label().asBold()))
+    add(JBLabel("Warnings").withFont(JBUI.Fonts.label().asBold()))
     for (issueGroup in pluginUiData.issues) {
       add(HyperlinkLabel("${issueGroup.type.uiName} (${issueGroup.size})").apply {
         addHyperlinkListener { listener.clickedOn(issueGroup.type) }
@@ -62,7 +62,7 @@ fun pluginInfoPanel(
       })
     }
     if (pluginUiData.issues.isEmpty()) {
-      add(JLabel("No issues found"))
+      add(JLabel("No warnings found"))
     }
   })
 }
