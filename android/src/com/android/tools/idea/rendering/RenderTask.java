@@ -131,7 +131,7 @@ public class RenderTask {
    * Minimum downscaling factor used. The quality can go from [0, 1] but that setting is actually mapped into [MIN_DOWNSCALING_FACTOR, 1]
    * since below MIN_DOWNSCALING_FACTOR the quality is not good enough.
    */
-  private static final float MIN_DOWNSCALING_FACTOR = .7f;
+  private static final float MIN_DOWNSCALING_FACTOR = .5f;
   /**
    * When quality < 1.0, the max allowed size for the rendering is DOWNSCALED_IMAGE_MAX_BYTES * downscalingFactor
    */
