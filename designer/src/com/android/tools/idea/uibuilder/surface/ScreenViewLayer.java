@@ -308,9 +308,15 @@ public class ScreenViewLayer extends Layer {
   }
 
   @Override
+  public void releaseCachedResources() {
+    setLastRenderResult(null);
+    myCachedVisibleImage = null;
+  }
+
+  @Override
   public void dispose() {
     super.dispose();
-    setLastRenderResult(null);
+    releaseCachedResources();
     myScheduledExecutorService.shutdown();
   }
 
