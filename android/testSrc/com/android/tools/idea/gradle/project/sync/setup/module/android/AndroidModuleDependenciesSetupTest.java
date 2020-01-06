@@ -45,11 +45,11 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -112,11 +112,11 @@ public class AndroidModuleDependenciesSetupTest extends PlatformTestCase {
     List<LibraryOrderEntry> libraryOrderEntries = getLibraryOrderEntries(module);
     // Verify that there're two library order entries for newLibrary.
     assertThat(libraryOrderEntries).hasSize(2);
-    List<Library> libraries = libraryOrderEntries.stream().map(LibraryOrderEntry::getLibrary).collect(Collectors.toList());
+    List<Library> libraries = ContainerUtil.map(libraryOrderEntries, LibraryOrderEntry::getLibrary);
     assertThat(libraries).containsExactly(newLibrary, newLibrary);
 
     // Verify that the scopes are PROVIDED and RUNTIME.
-    List<DependencyScope> scopes = libraryOrderEntries.stream().map(LibraryOrderEntry::getScope).collect(Collectors.toList());
+    List<DependencyScope> scopes = ContainerUtil.map(libraryOrderEntries, LibraryOrderEntry::getScope);
     assertThat(scopes).containsExactly(PROVIDED, RUNTIME);
   }
 

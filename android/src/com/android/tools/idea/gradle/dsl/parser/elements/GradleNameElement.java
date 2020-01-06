@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
+import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -142,7 +143,7 @@ public class GradleNameElement {
   }
 
   @NotNull
-  public List<String> qualifyingParts() {
+  public ArrayList<String> qualifyingParts() {
     String name = findName();
     if (name == null) {
       return Lists.newArrayList();
@@ -150,7 +151,8 @@ public class GradleNameElement {
 
     List<String> nameSegments = Splitter.on('.').splitToList(name);
     // Remove the last element, which is not a qualifying part;
-    return nameSegments.subList(0, nameSegments.size() - 1).stream().map(GradleNameElement::convertNameToKey).collect(Collectors.toList());
+    return nameSegments.subList(0, nameSegments.size() - 1).stream()
+      .map(GradleNameElement::convertNameToKey).collect(Collectors.toCollection(ArrayList::new));
   }
 
   public boolean isQualified() {

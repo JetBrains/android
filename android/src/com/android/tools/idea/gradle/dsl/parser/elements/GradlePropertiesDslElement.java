@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -945,7 +946,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     private List<GradleDslElement> removeAll(@NotNull Predicate<ElementItem> filter) {
       List<ElementItem> toBeRemoved = myElements.stream().filter(filter).collect(Collectors.toList());
       toBeRemoved.forEach(e -> e.myElementState = TO_BE_REMOVED);
-      return toBeRemoved.stream().map(e -> e.myElement).collect(Collectors.toList());
+      return ContainerUtil.map(toBeRemoved, e -> e.myElement);
     }
 
     private void hideAll(@NotNull Predicate<ElementItem> filter) {

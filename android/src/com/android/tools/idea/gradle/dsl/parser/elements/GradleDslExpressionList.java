@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -208,7 +209,7 @@ public final class GradleDslExpressionList extends GradlePropertiesDslElement im
   @Override
   @NotNull
   public List<GradleReferenceInjection> getResolvedVariables() {
-    return getDependencies().stream().filter(e -> e.isResolved()).collect(Collectors.toList());
+    return ContainerUtil.filter(getDependencies(), e -> e.isResolved());
   }
 
   // The following methods ensure that only GradleDslExpressions can be added to this GradlePropertiesDslElement.

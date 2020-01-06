@@ -21,9 +21,9 @@ import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EnergyProfiler;
 import com.android.tools.profilers.ProfilerClient;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -46,7 +46,6 @@ public final class LegacyEnergyEventsDataSeries implements DataSeries<Common.Eve
     builder.setEndTimestamp(TimeUnit.MICROSECONDS.toNanos((long)range.getMax()));
     EnergyProfiler.EnergyEventsResponse response = myClient.getEnergyClient().getEvents(builder.build());
 
-    return response.getEventsList()
-      .stream().map(evt -> new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(evt.getTimestamp()), evt)).collect(Collectors.toList());
+    return ContainerUtil.map(response.getEventsList(), evt -> new SeriesData<>(TimeUnit.NANOSECONDS.toMicros(evt.getTimestamp()), evt));
   }
 }

@@ -17,6 +17,7 @@ package com.android.tools.idea.profilers.profilingconfig;
 
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.profiler.proto.Cpu;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +30,7 @@ public class CpuProfilerConfigConverter {
    * Converts from list of {@link CpuProfilerConfig} to list of {@link Cpu.CpuTraceConfiguration}
    */
   public static List<Cpu.CpuTraceConfiguration.UserOptions> toProto(List<CpuProfilerConfig> configs) {
-    return configs.stream().map(CpuProfilerConfigConverter::toProto).collect(Collectors.toList());
+    return ContainerUtil.map(configs, CpuProfilerConfigConverter::toProto);
   }
 
   /**

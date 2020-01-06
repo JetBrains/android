@@ -35,8 +35,8 @@ import com.intellij.openapi.externalSystem.service.internal.AbstractExternalSyst
 import com.intellij.openapi.externalSystem.service.internal.ExternalSystemExecuteTaskTask;
 import com.intellij.openapi.externalSystem.service.internal.ExternalSystemResolveProjectTask;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
 /**
@@ -61,7 +61,7 @@ public class AndroidGradleExecutionConsoleManagerTest extends AndroidGradleTestC
     Filter.Result result = filter.applyFilter(output, output.length());
 
     // Verify that 3 hyperlinks are created to re-run sync with options.
-    List<HyperlinkInfo> hyperLinks = result.getResultItems().stream().map(item -> item.getHyperlinkInfo()).collect(Collectors.toList());
+    List<HyperlinkInfo> hyperLinks = ContainerUtil.map(result.getResultItems(), item -> item.getHyperlinkInfo());
     assertThat(hyperLinks).hasSize(3);
 
     Project project = getProject();

@@ -82,6 +82,7 @@ import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.io.URLUtil;
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -106,7 +107,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.jetbrains.annotations.NotNull;
@@ -217,7 +217,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
 
       List<Path> sourceFilesAndFolders = myResourceFilesAndFolders == null ?
                                          ImmutableList.of(myResourceDirectoryOrFile) :
-                                         myResourceFilesAndFolders.stream().map(PathString::toPath).collect(Collectors.toList());
+                                         ContainerUtil.map(myResourceFilesAndFolders, PathString::toPath);
       List<PathString> resourceFiles = findResourceFiles(sourceFilesAndFolders);
       for (PathString file : resourceFiles) {
         loadResourceFile(file, repository, shouldParseResourceIds);

@@ -66,6 +66,7 @@ import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.TypeConversionUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.Query;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -921,7 +922,7 @@ public class NavigationSchema implements Disposable {
 
   @NotNull
   public Collection<PsiClass> getStyleablesForTag(@NotNull String tag) {
-    return myTagToStyleables.get(tag).stream().map(TypeRef::dereference).collect(Collectors.toList());
+    return ContainerUtil.map(myTagToStyleables.get(tag), TypeRef::dereference);
   }
 
   //endregion

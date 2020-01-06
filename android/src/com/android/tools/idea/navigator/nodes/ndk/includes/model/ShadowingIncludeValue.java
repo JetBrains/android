@@ -17,6 +17,7 @@ package com.android.tools.idea.navigator.nodes.ndk.includes.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,7 +58,7 @@ final public class ShadowingIncludeValue extends IncludeValue {
 
   @NotNull
   public Collection<File> getIncludePathsInOrder() {
-    return myIncludes.stream().map(value -> value.getIncludeFolder()).collect(Collectors.toList());
+    return ContainerUtil.map(myIncludes, value -> value.getIncludeFolder());
   }
 
   @Override

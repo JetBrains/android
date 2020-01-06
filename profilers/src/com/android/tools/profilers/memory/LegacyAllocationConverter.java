@@ -20,11 +20,11 @@ import com.android.ddmlib.AllocationsParser;
 import com.android.tools.profiler.proto.Memory.AllocationEvent;
 import com.android.tools.profiler.proto.Memory.AllocatedClass;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * A class to convert JDWP-based legacy allocation into the gRPC-based profiler allocation tracking format.
@@ -152,7 +152,7 @@ public class LegacyAllocationConverter {
   }
 
   public List<AllocationEvent.Allocation> getAllocationEvents() {
-    return myAllocations.stream().map(allocation -> allocation.bindAllocationEventInfos()).collect(Collectors.toList());
+    return ContainerUtil.map(myAllocations, allocation -> allocation.bindAllocationEventInfos());
   }
 
   /**
@@ -160,7 +160,7 @@ public class LegacyAllocationConverter {
    * across sessions, but it's probably not worth it given it is legacy.
    */
   public List<AllocationStack> getAllocationStacks() {
-    return myAllocationStacks.values().stream().map(CallStack::getAllocationStack).collect(Collectors.toList());
+    return ContainerUtil.map(myAllocationStacks.values(), CallStack::getAllocationStack);
   }
 
   /**
@@ -168,7 +168,7 @@ public class LegacyAllocationConverter {
    * across sessions, but it's probably not worth it given it is legacy.
    */
   public List<AllocatedClass> getClassNames() {
-    return myAllocatedClasses.values().stream().map(ClassName::getAllocatedClass).collect(Collectors.toList());
+    return ContainerUtil.map(myAllocatedClasses.values(), ClassName::getAllocatedClass);
   }
 
   public void parseDump(@NotNull byte[] dumpData) {

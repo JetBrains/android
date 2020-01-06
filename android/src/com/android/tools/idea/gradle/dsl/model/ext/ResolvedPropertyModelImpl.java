@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.util.TypeReference;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -205,7 +206,7 @@ public class ResolvedPropertyModelImpl implements ResolvedPropertyModel {
     if (list == null) {
       return null;
     }
-    return list.stream().map(GradlePropertyModel::resolve).collect(Collectors.toList());
+    return ContainerUtil.map(list, GradlePropertyModel::resolve);
   }
 
   @Nullable

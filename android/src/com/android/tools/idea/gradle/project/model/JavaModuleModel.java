@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.intellij.openapi.module.Module;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.serialization.PropertyMapping;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,7 +34,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.model.ExtIdeaCompilerOutput;
@@ -82,7 +82,7 @@ public class JavaModuleModel implements ModuleModel {
                                        @Nullable String languageLevel,
                                        boolean buildable,
                                        boolean androidModuleWithoutVariants) {
-    Collection<SyncIssue> syncIssuesCopy = syncIssues.stream().map(issue -> new IdeSyncIssue(issue)).collect(Collectors.toList());
+    Collection<SyncIssue> syncIssuesCopy = ContainerUtil.map(syncIssues, issue -> new IdeSyncIssue(issue));
     List<String> configurationsCopy = new ArrayList<>(artifactsByConfiguration.keySet());
     Collections.sort(configurationsCopy);
 

@@ -38,6 +38,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -199,8 +200,7 @@ public class GradleAndroidModuleTemplate implements AndroidModulePaths {
         paths.myUnitTestRoot = VfsUtilCore.virtualToIoFile(testsRoot.get(1));
       }
       paths.myResDirectories =
-        ImmutableList.copyOf(
-          sourceProvider.getResDirectoryUrls().stream().map(it -> new File(VfsUtilCore.urlToPath(it))).collect(Collectors.toList()));
+        ImmutableList.copyOf(ContainerUtil.map(sourceProvider.getResDirectoryUrls(), it -> new File(VfsUtilCore.urlToPath(it))));
       paths.myAidlRoot = new File(VfsUtilCore.urlToPath(Iterables.getFirst(sourceProvider.getAidlDirectoryUrls(), null)));
       paths.myManifestDirectory =
         sourceProvider.getManifestDirectoryUrls().stream().map(it -> new File(VfsUtilCore.urlToPath(it))).findFirst().get();

@@ -68,6 +68,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import icons.AndroidIcons;
 import java.io.File;
@@ -202,7 +203,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
         if (providers == null) {
           return null;
         }
-        return providers.stream().map(provider ->  new BuildScriptTreeStructureProvider(provider)).collect(Collectors.toList());
+        return ContainerUtil.map(providers, provider -> new BuildScriptTreeStructureProvider(provider));
       }
 
       @Override

@@ -49,6 +49,7 @@ import com.android.tools.profilers.memory.HprofSessionArtifact;
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -233,7 +234,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    */
   private void updateSessionItemsByGroup(List<EventGroup> groups) {
     List<SessionArtifact> sessionArtifacts = new ArrayList<>();
-    List previousArtifactProtos = mySessionArtifacts.stream().map(artifact -> artifact.getArtifactProto()).collect(Collectors.toList());
+    List previousArtifactProtos = ContainerUtil.map(mySessionArtifacts, artifact -> artifact.getArtifactProto());
 
     // Note: we only add to a growing list of sessions at the moment.
     groups.forEach(group -> {
@@ -278,7 +279,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     });
 
     // Trigger artifact updates.
-    List newArtifactProtos = sessionArtifacts.stream().map(artifact -> artifact.getArtifactProto()).collect(Collectors.toList());
+    List newArtifactProtos = ContainerUtil.map(sessionArtifacts, artifact -> artifact.getArtifactProto());
     if (!previousArtifactProtos.equals(newArtifactProtos)) {
       mySessionArtifacts.forEach(artifact -> myProfilers.getUpdater().unregister(artifact));
       mySessionArtifacts = sessionArtifacts;
@@ -647,7 +648,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
    * @param sessions the list of {@link Common.Session} objects that have been added/updated.
    */
   private void updateSessionItems(@NotNull List<Common.Session> sessions) {
-    List previousProtos = mySessionArtifacts.stream().map(artifact -> artifact.getArtifactProto()).collect(Collectors.toList());
+    List previousProtos = ContainerUtil.map(mySessionArtifacts, artifact -> artifact.getArtifactProto());
 
     // Note: we only add to a growing list of sessions at the moment.
     sessions.forEach(session -> {
@@ -683,7 +684,7 @@ public class SessionsManager extends AspectModel<SessionAspect> {
     }
     Collections.sort(sessionArtifacts, ARTIFACT_COMPARATOR);
 
-    List newProtos = sessionArtifacts.stream().map(artifact -> artifact.getArtifactProto()).collect(Collectors.toList());
+    List newProtos = ContainerUtil.map(sessionArtifacts, artifact -> artifact.getArtifactProto());
     if (!previousProtos.equals(newProtos)) {
       mySessionArtifacts.forEach(artifact -> myProfilers.getUpdater().unregister(artifact));
       mySessionArtifacts = sessionArtifacts;

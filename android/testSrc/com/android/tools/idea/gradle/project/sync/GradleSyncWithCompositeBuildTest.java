@@ -21,6 +21,7 @@ import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.util.containers.ContainerUtil;
 import java.nio.file.Path;
 
 import java.io.File;
@@ -75,7 +76,7 @@ public class GradleSyncWithCompositeBuildTest extends GradleSyncIntegrationTestC
     // Verify that modules are created for root project as well as included projects.
     assertThat(modules).hasSize(11);
     // Verify module names.
-    List<String> moduleNames = modules.stream().map(Module::getName).collect(toList());
+    List<String> moduleNames = ContainerUtil.map(modules, Module::getName);
     String projectName = getProject().getName();
     List<String> expectedModuleNames = asList(projectName, projectName + "-app", projectName + "-lib",
                                               "TestCompositeLib1", "TestCompositeLib1-app", "TestCompositeLib1-lib",

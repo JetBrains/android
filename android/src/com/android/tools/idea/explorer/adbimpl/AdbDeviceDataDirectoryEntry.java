@@ -18,6 +18,7 @@ package com.android.tools.idea.explorer.adbimpl;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
@@ -228,7 +229,7 @@ public class AdbDeviceDataDirectoryEntry extends AdbDeviceForwardingFileEntry {
 
       return myDevice.getTaskExecutor().transform(futureChildren, entries -> {
         assert entries != null;
-        return entries.stream().map(x -> new AdbDevicePackageDirectoryEntry(this, x, myPackageName)).collect(Collectors.toList());
+        return ContainerUtil.map(entries, x -> new AdbDevicePackageDirectoryEntry(this, x, myPackageName));
       });
     }
 

@@ -23,6 +23,7 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.WideSelectionTreeUI;
 import org.jetbrains.annotations.NotNull;
@@ -199,7 +200,7 @@ public class ColumnTreeBuilder {
     });
 
     ColumnTreeTableRowSorter rowSorter = new ColumnTreeTableRowSorter(
-      myTable.getModel(), myColumnBuilders.stream().map(cb -> cb.mySortOrderPreference).collect(Collectors.toList()));
+      myTable.getModel(), ContainerUtil.map(myColumnBuilders, cb -> cb.mySortOrderPreference));
 
     myTable.setRowSorter(rowSorter);
     rowSorter.addRowSorterListener(event -> {

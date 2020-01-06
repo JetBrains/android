@@ -22,6 +22,7 @@ import com.android.build.attribution.ui.data.TimeWithPercentage;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -51,7 +52,7 @@ public class TimeDistributionChart<T> extends JPanel {
     super(new GridBagLayout());
     myHighlightedItem = highlightedItem;
 
-    myChartItems = dataItems.stream().map(ChartItem::new).collect(Collectors.toList());
+    myChartItems = ContainerUtil.map(dataItems, ChartItem::new);
 
     JPanel table = fullTable ? createFullPluginsTable() : createShortPluginsTable();
 

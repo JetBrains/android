@@ -19,6 +19,7 @@ import com.android.tools.property.ptable.PTableGroupItem;
 import com.android.tools.property.ptable.PTableItem;
 import com.google.common.collect.Table;
 
+import com.intellij.util.containers.ContainerUtil;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,8 +51,8 @@ public class NlPropertyAccumulatorTest extends PropertyTestCase {
     assertThat(group.getName()).isEqualTo("Padding");
 
     List<PTableItem> items = group.getChildren();
-    List<String> names = items.stream().map(PTableItem::getName).collect(Collectors.toList());
-    List<String> namesWithPrefix = names.stream().filter(name -> name.startsWith("padding")).collect(Collectors.toList());
+    List<String> names = ContainerUtil.map(items, PTableItem::getName);
+    List<String> namesWithPrefix = ContainerUtil.filter(names, name -> name.startsWith("padding"));
 
     assertThat(names).containsAllOf(ATTR_PADDING_BOTTOM, ATTR_PADDING_TOP, ATTR_PADDING_LEFT, ATTR_PADDING_RIGHT);
     assertThat(names).containsExactlyElementsIn(namesWithPrefix);

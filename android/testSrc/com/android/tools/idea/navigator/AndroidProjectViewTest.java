@@ -51,6 +51,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -440,7 +441,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
       if (providers == null) {
         return null;
       }
-      return providers.stream().map(provider ->  new BuildScriptTreeStructureProvider(provider)).collect(Collectors.toList());
+      return ContainerUtil.map(providers, provider -> new BuildScriptTreeStructureProvider(provider));
     }
 
     @Override

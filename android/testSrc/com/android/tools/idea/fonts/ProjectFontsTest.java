@@ -29,6 +29,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.google.common.base.Joiner;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,7 +61,7 @@ public class ProjectFontsTest extends FontTestCase {
     VirtualFile fileC = myFixture.copyFileToProject("fonts/my_font_family.xml", "res/font/my_font_family.xml");
     ProjectFonts project = createProjectFonts(fileC);
 
-    List<String> fonts = project.getFonts().stream().map(FontFamily::getName).collect(Collectors.toList());
+    List<String> fonts = ContainerUtil.map(project.getFonts(), FontFamily::getName);
     assertThat(fonts).containsExactly("fonta", "fontb", "my_font_family");
 
     FontFamily family = assertFontFamily(project.getFont("@font/my_font_family"), "my_font_family", FontProvider.EMPTY_PROVIDER,
@@ -81,7 +82,7 @@ public class ProjectFontsTest extends FontTestCase {
     myFixture.copyFileToProject("fonts/my_circular_font_family_1.xml", "res/font/my_circular_font_family_1.xml");
     myFixture.copyFileToProject("fonts/my_circular_font_family_1.xml", "res/font/my_circular_font_family_2.xml");
     ProjectFonts project = createProjectFonts(file);
-    List<String> fonts = project.getFonts().stream().map(FontFamily::getName).collect(Collectors.toList());
+    List<String> fonts = ContainerUtil.map(project.getFonts(), FontFamily::getName);
 
     assertThat(fonts).containsExactly("fonta", "fontb", "my_circular_font_family_1", "my_circular_font_family_2");
     assertUnresolvedFont(project.getFont("@font/my_circular_font_family_1"), "my_circular_font_family_1");
@@ -92,7 +93,7 @@ public class ProjectFontsTest extends FontTestCase {
     VirtualFile file = myFixture.copyFileToProject("fonts/roboto.xml", "res/font/roboto.xml");
     ProjectFonts project = createProjectFonts(file);
 
-    List<String> fonts = project.getFonts().stream().map(FontFamily::getName).collect(Collectors.toList());
+    List<String> fonts = ContainerUtil.map(project.getFonts(), FontFamily::getName);
     assertThat(fonts).containsExactly("roboto");
 
     FontFamily family = assertFontFamily(project.getFont("@font/roboto"), "roboto", "roboto", "v16", "W5F8_SL0XFawnjxHGsZjJA.ttf");
@@ -105,7 +106,7 @@ public class ProjectFontsTest extends FontTestCase {
     VirtualFile file = myFixture.copyFileToProject("fonts/roboto_bold.xml", "res/font/roboto_bold.xml");
     ProjectFonts project = createProjectFonts(file);
 
-    List<String> fonts = project.getFonts().stream().map(FontFamily::getName).collect(Collectors.toList());
+    List<String> fonts = ContainerUtil.map(project.getFonts(), FontFamily::getName);
     assertThat(fonts).containsExactly("roboto_bold");
     FontFamily family = assertFontFamily(project.getFont("@font/roboto_bold"), "roboto_bold",
                                          "robotocondensed", "v14", "mg0cGfGRUERshzBlvqxeAE2zk2RGRC3SlyyLLQfjS_8.ttf");
@@ -119,7 +120,7 @@ public class ProjectFontsTest extends FontTestCase {
     VirtualFile file = myFixture.copyFileToProject("fonts/misc.xml", "res/font/misc.xml");
     ProjectFonts project = createProjectFonts(file);
 
-    List<String> fonts = project.getFonts().stream().map(FontFamily::getName).collect(Collectors.toList());
+    List<String> fonts = ContainerUtil.map(project.getFonts(), FontFamily::getName);
     assertThat(fonts).containsExactly("misc");
 
     FontFamily family = assertFontFamily(project.getFont("@font/misc"), "misc",

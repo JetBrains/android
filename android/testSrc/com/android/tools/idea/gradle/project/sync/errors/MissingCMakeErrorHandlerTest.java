@@ -31,6 +31,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.project.Project;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
@@ -109,8 +110,8 @@ public class MissingCMakeErrorHandlerTest extends AndroidGradleTestCase {
         return new FakeRepoManager(
           null,
           new RepositoryPackages(
-            localPackages.stream().map(p -> createLocalPackage(p)).collect(Collectors.toList()),
-            remotePackages.stream().map(p -> createRemotePackage(p)).collect(Collectors.toList()))
+            ContainerUtil.map(localPackages, p -> createLocalPackage(p)),
+            ContainerUtil.map(remotePackages, p -> createRemotePackage(p)))
         );
       }
 

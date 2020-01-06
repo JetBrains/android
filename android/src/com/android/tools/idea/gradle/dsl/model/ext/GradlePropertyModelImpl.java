@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -186,7 +187,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       }
     }
 
-    return list.getExpressions().stream().map(e -> new GradlePropertyModelImpl(e)).collect(Collectors.toList());
+    return ContainerUtil.map(list.getExpressions(), e -> new GradlePropertyModelImpl(e));
   }
 
   @Override

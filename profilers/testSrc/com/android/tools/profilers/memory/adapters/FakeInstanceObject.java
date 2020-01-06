@@ -22,6 +22,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profilers.stacktrace.ThreadId;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -270,7 +271,7 @@ public final class FakeInstanceObject implements InstanceObject {
     @NotNull
     public Builder setFields(@NotNull List<String> fields) {
       myFields.clear();
-      myFields.addAll(fields.stream().map(name -> new FakeFieldObject(name, ValueType.NULL, null)).collect(Collectors.toList()));
+      myFields.addAll(ContainerUtil.map(fields, name -> new FakeFieldObject(name, ValueType.NULL, null)));
       return this;
     }
 

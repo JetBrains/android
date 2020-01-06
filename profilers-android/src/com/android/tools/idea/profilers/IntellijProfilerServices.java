@@ -59,6 +59,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.AllClassesSearch;
 import com.intellij.util.Query;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -365,7 +366,7 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     if (!archToDirectories.containsKey(arch)) {
       return Collections.emptyList();
     }
-    return archToDirectories.get(arch).stream().map(file -> file.getAbsolutePath()).collect(Collectors.toList());
+    return ContainerUtil.map(archToDirectories.get(arch), file -> file.getAbsolutePath());
   }
 
   @Override
@@ -379,18 +380,15 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     // We don't need configurations from |oldService| anymore, so clear it.
     oldService.setConfigurations(Collections.emptyList());
 
-    return CpuProfilerConfigConverter.toProto(configsState.getUserConfigs())
-      .stream()
-      .map(ProfilingConfiguration::fromProto)
-      .collect(Collectors.toList());
+    return ContainerUtil.map(CpuProfilerConfigConverter.toProto(configsState.getUserConfigs()), ProfilingConfiguration::fromProto);
   }
 
   @Override
   public List<ProfilingConfiguration> getDefaultCpuProfilerConfigs() {
-    return CpuProfilerConfigConverter.toProto(CpuProfilerConfigsState.getDefaultConfigs())
-      .stream()
-      .map(ProfilingConfiguration::fromProto)
-      .collect(Collectors.toList());
+    return ContainerUtil.map(
+      CpuProfilerConfigConverter.toProto(CpuProfilerConfigsState.getDefaultConfigs()),
+      ProfilingConfiguration::fromProto
+      );
   }
 
   @Override

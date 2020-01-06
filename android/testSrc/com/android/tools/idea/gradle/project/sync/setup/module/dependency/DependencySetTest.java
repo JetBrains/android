@@ -169,7 +169,7 @@ public class DependencySetTest {
     addDependency("file2.jar", "library2");
     addDependency("file3.jar", "library3");
 
-    List<String> dependencyNames = myDependencies.onLibraries().stream().map(LibraryDependency::getName).collect(Collectors.toList());
+    List<String> dependencyNames = ContainerUtil.map(myDependencies.onLibraries(), LibraryDependency::getName);
     assertThat(dependencyNames).hasSize(4);
     assertThat(dependencyNames)
       .containsExactly("Gradle: library1", "Gradle: library4", "Gradle: library2", "Gradle: library3").inOrder();
@@ -182,7 +182,7 @@ public class DependencySetTest {
     addDependency("file_a.jar", "library_a");
     addDependency("file_b.jar", "library_b");
 
-    List<String> dependencyNames = myDependencies.onLibraries().stream().map(LibraryDependency::getName).collect(Collectors.toList());
+    List<String> dependencyNames = ContainerUtil.map(myDependencies.onLibraries(), LibraryDependency::getName);
     assertThat(dependencyNames).hasSize(4);
     assertThat(dependencyNames)
       .containsExactly("Gradle: library_c", "Gradle: library_d", "Gradle: library_a", "Gradle: library_b").inOrder();

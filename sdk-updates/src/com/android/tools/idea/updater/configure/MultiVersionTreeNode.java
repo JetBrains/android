@@ -20,6 +20,7 @@ import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.function.Function;
@@ -41,7 +42,7 @@ class MultiVersionTreeNode extends UpdaterTreeNode {
     DetailsTreeNode max = myVersionNodes.stream().filter(node -> node.getPackage().getPath().endsWith("latest")).findFirst().orElse(null);
     if (max == null) {
       RepoPackage greatestPackage = AndroidSdkHandler.getLatestPackageFromPrefixCollection(
-        myVersionNodes.stream().map(DetailsTreeNode::getPackage).collect(Collectors.toList()),
+        ContainerUtil.map(myVersionNodes, DetailsTreeNode::getPackage),
         null,
         true,
         GradleVersion::tryParse,

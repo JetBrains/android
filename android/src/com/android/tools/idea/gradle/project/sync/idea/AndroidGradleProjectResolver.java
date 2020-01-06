@@ -99,6 +99,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.util.PathsList;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -265,7 +266,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       IdeNativeAndroidProject copy = myNativeAndroidProjectFactory.create(nativeAndroidProject);
       List<IdeNativeVariantAbi> ideNativeVariantAbis = new ArrayList<>();
       if (variantGroup != null) {
-        ideNativeVariantAbis.addAll(variantGroup.getNativeVariants().stream().map(IdeNativeVariantAbi::new).collect(Collectors.toList()));
+        ideNativeVariantAbis.addAll(ContainerUtil.map(variantGroup.getNativeVariants(), IdeNativeVariantAbi::new));
       }
 
       NdkModuleModel ndkModuleModel = new NdkModuleModel(moduleName, moduleRootDirPath, copy, ideNativeVariantAbis);

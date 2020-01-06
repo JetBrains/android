@@ -60,6 +60,7 @@ import com.intellij.ui.UIBundle;
 import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ExceptionUtil;
+import com.intellij.util.containers.ContainerUtil;
 import java.awt.datatransfer.StringSelection;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -901,7 +902,7 @@ public class DeviceExplorerController {
         return;
       }
 
-      List<DeviceFileEntry> fileEntries = nodes.stream().map(DeviceFileEntryNode::getEntry).collect(Collectors.toList());
+      List<DeviceFileEntry> fileEntries = ContainerUtil.map(nodes, DeviceFileEntryNode::getEntry);
       String message = createDeleteConfirmationMessage(fileEntries);
       int returnValue = Messages.showOkCancelDialog(message,
                                                     UIBundle.message("delete.dialog.title"),
