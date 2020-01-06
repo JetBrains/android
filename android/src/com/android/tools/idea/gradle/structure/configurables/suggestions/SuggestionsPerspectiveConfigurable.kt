@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.structure.configurables.android.modules.Abs
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.icons.AllIcons
@@ -52,7 +53,7 @@ class SuggestionsPerspectiveConfigurable(context: PsContext)
 
   override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<PsModule, *> =
       when (module) {
-        is PsAndroidModule -> createConfigurable(module)
+        is PsAndroidModule, is PsJavaModule -> createConfigurable(module)
         is PsAllModulesFakeModule -> createAllModulesConfigurable(module)
         else -> ModuleUnsupportedConfigurable(context, this, module)
       }
