@@ -88,6 +88,7 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
         public void mouseMoved(MouseEvent e) {
           if (threadStateChart != null && threadStateChart.contains(e.getPoint())) {
             trackModel.setActiveTooltipModel(trackModel.getDataModel().getThreadStateTooltip());
+            threadStateChart.dispatchEvent(e);
           }
           else if (traceEventChart.contains(e.getPoint())) {
             // Translate mouse point to be relative of the tree chart component.
@@ -100,6 +101,7 @@ public class CpuThreadTrackRenderer implements TrackRenderer<CpuThreadTrackModel
             else {
               trackModel.setActiveTooltipModel(trackModel.getDataModel().getTraceEventTooltipBuilder().apply(node));
             }
+            traceEventChart.dispatchEvent(SwingUtil.convertMouseEventPoint(e, p));
           }
           else {
             trackModel.setActiveTooltipModel(null);
