@@ -20,13 +20,11 @@ import com.intellij.codeHighlighting.BackgroundEditorHighlighter
 import com.intellij.codeHighlighting.HighlightingPass
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.project.Project
-import com.intellij.util.ArrayUtil
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import javax.swing.JComponent
 
