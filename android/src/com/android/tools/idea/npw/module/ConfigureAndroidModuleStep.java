@@ -56,6 +56,7 @@ import com.android.tools.idea.wizard.model.SkippableWizardStep;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.ContextHelpLabel;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -219,7 +220,7 @@ public class ConfigureAndroidModuleStep extends SkippableWizardStep<NewAndroidMo
 
     List<AndroidVersionsInfo.VersionItem> installItems = Collections.singletonList(moduleModel.getAndroidSdkInfo().getValue());
     myInstallRequests.addAll(myAndroidVersionsInfo.loadInstallPackageList(installItems));
-    myInstallLicenseRequests.addAll(myInstallRequests.stream().map(UpdatablePackage::getRemote).collect(Collectors.toList()));
+    myInstallLicenseRequests.addAll(ContainerUtil.map(myInstallRequests, UpdatablePackage::getRemote));
   }
 
   @NotNull

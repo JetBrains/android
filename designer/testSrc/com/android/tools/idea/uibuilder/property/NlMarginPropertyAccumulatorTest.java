@@ -19,11 +19,11 @@ import com.android.tools.property.ptable.*;
 import com.android.tools.idea.common.property.NlProperty;
 import com.google.common.collect.Table;
 
+import com.intellij.util.containers.ContainerUtil;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
@@ -61,8 +61,8 @@ public class NlMarginPropertyAccumulatorTest extends PropertyTestCase {
     assertThat(group.getName()).isEqualTo("Layout_Margin");
 
     List<PTableItem> items = group.getChildren();
-    List<String> names = items.stream().map(PTableItem::getName).collect(Collectors.toList());
-    List<String> namesWithPrefix = names.stream().filter(name -> name.startsWith("layout_margin")).collect(Collectors.toList());
+    List<String> names = ContainerUtil.map(items, PTableItem::getName);
+    List<String> namesWithPrefix = ContainerUtil.filter(names, name -> name.startsWith("layout_margin"));
 
     assertThat(names).containsAllOf(ATTR_LAYOUT_MARGIN, ATTR_LAYOUT_MARGIN_LEFT, ATTR_LAYOUT_MARGIN_RIGHT, ATTR_LAYOUT_MARGIN_TOP);
     assertThat(names).containsExactlyElementsIn(namesWithPrefix);

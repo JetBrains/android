@@ -82,6 +82,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Alarm;
 import com.intellij.util.concurrency.EdtExecutorService;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -776,7 +777,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
   @VisibleForTesting
   public static void updateHierarchy(@NotNull XmlTag rootTag, @NotNull List<ViewInfo> rootViews, @NotNull NlModel model) {
-    model.syncWithPsi(rootTag, rootViews.stream().map(ViewInfoTagSnapshotNode::new).collect(Collectors.toList()));
+    model.syncWithPsi(rootTag, ContainerUtil.map(rootViews, ViewInfoTagSnapshotNode::new));
     updateBounds(rootViews, model);
   }
 
@@ -1167,7 +1168,7 @@ public class LayoutlibSceneManager extends SceneManager {
     @NotNull
     @Override
     public List<NlModel.TagSnapshotTreeNode> getChildren() {
-      return myViewInfo.getChildren().stream().map(ViewInfoTagSnapshotNode::new).collect(Collectors.toList());
+      return ContainerUtil.map(myViewInfo.getChildren(), ViewInfoTagSnapshotNode::new);
     }
   }
 

@@ -26,6 +26,7 @@ import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
+import com.intellij.util.containers.ContainerUtil;
 import java.awt.Cursor;
 import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
@@ -33,7 +34,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EventObject;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -94,7 +94,7 @@ public class MarqueeInteraction extends Interaction {
     myOverlay.updateValues(xp, yp, w, h, x, y, aw, ah);
 
     Collection<SceneComponent> within = mySceneView.getScene().findWithin(ax, ay, aw, ah);
-    List<NlComponent> result = within.stream().map(SceneComponent::getNlComponent).collect(Collectors.toList());
+    List<NlComponent> result = ContainerUtil.map(within, SceneComponent::getNlComponent);
     mySceneView.getSelectionModel().setSelection(result);
     mySceneView.getSurface().repaint();
   }

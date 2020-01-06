@@ -44,6 +44,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -244,7 +245,7 @@ public class WindowsPerformanceHintsChecker {
   private List<Pattern> getExcludedPatterns() {
     try {
       List<String> excludedPaths = myVirusCheckerStatusProvider.getExcludedPaths();
-      return excludedPaths.stream().map(path -> wildcardsToRegex(expandEnvVars(path))).collect(Collectors.toList());
+      return ContainerUtil.map(excludedPaths, path -> wildcardsToRegex(expandEnvVars(path)));
     }
     catch (IOException exception) {
       LOG.warn("Error retrieving list of excluded patterns", exception);

@@ -23,6 +23,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.sessions.SessionArtifact;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -154,6 +155,6 @@ public final class HprofSessionArtifact implements SessionArtifact<HeapDumpInfo>
                                    : TimeUnit.NANOSECONDS.toMicros(session.getEndTimestamp()));
     List<HeapDumpInfo> infos =
       MemoryProfiler.getHeapDumpsForSession(profilers.getClient(), session, queryRangeUs, profilers.getIdeServices());
-    return infos.stream().map(info -> new HprofSessionArtifact(profilers, session, sessionMetaData, info)).collect(Collectors.toList());
+    return ContainerUtil.map(infos, info -> new HprofSessionArtifact(profilers, session, sessionMetaData, info));
   }
 }

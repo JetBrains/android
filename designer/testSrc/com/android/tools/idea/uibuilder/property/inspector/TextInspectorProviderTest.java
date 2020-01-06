@@ -26,6 +26,7 @@ import com.android.tools.idea.common.property.editors.NlComponentEditor;
 import com.android.tools.idea.uibuilder.property.editors.NlEnumEditor;
 import com.android.tools.idea.uibuilder.property.inspector.TextInspectorProvider.TextInspectorComponent;
 import com.google.common.collect.ImmutableList;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentCaptor;
@@ -208,7 +209,7 @@ public class TextInspectorProviderTest extends PropertyTestCase {
                                                     @NotNull String propertyName,
                                                     @NotNull Map<String, NlProperty> properties,
                                                     @NotNull List<NlBooleanIconEditor> editors) {
-    List<Component> components = editors.stream().map(NlBooleanIconEditor::getComponent).collect(Collectors.toList());
+    List<Component> components = ContainerUtil.map(editors, NlBooleanIconEditor::getComponent);
     ArgumentCaptor<JPanel> panelCaptor = ArgumentCaptor.forClass(JPanel.class);
     NlProperty property = properties.get(propertyName);
     verify(panel).addComponent(eq(propertyName), eq(property.getTooltipText()), panelCaptor.capture());

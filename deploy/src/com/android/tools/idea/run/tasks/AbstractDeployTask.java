@@ -50,6 +50,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.playback.commands.ActionCommand;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowId;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -152,7 +153,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
   }
 
   protected static List<String> getPathsToInstall(@NotNull List<File> apkFiles) {
-    return apkFiles.stream().map(File::getPath).collect(Collectors.toList());
+    return ContainerUtil.map(apkFiles, File::getPath);
   }
 
   @NotNull

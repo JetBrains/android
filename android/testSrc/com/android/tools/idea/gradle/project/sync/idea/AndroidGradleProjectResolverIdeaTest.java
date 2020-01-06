@@ -25,7 +25,6 @@ import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskT
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static java.util.stream.Collectors.toList;
 import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
@@ -60,6 +59,7 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
@@ -271,11 +271,11 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
 
     // Verify that task data for non-included module.
     Collection<TaskData> taskData = myProjectResolver.populateModuleTasks(includedModule, moduleDataNode, projectNode);
-    assertThat(taskData.stream().map(TaskData::getName).collect(toList())).containsExactly("clean", "jar");
+    assertThat(ContainerUtil.map(taskData, TaskData::getName)).containsExactly("clean", "jar");
 
     // Verify that task data for non-included module.
     taskData = myProjectResolver.populateModuleTasks(myJavaModuleModel, moduleDataNode, projectNode);
-    Collection<String> taskDataNames = taskData.stream().map(TaskData::getName).collect(toList());
+    Collection<String> taskDataNames = ContainerUtil.map(taskData, TaskData::getName);
     assertThat(taskDataNames).containsExactly("compileJava", "jar", "classes");
   }
 

@@ -22,6 +22,7 @@ import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -122,7 +123,7 @@ public class NativeLibraryTest extends PlatformTestCase {
 
   @NotNull
   private static List<String> getPaths(@NotNull Collection<VirtualFile> files) {
-    return files.stream().map(VirtualFile::getPath).collect(Collectors.toList());
+    return ContainerUtil.map(files, VirtualFile::getPath);
   }
 
   public void testIsMissingPathMappingsWithLocalPaths() {

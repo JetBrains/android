@@ -42,6 +42,7 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -142,9 +143,9 @@ public class GradleApkProviderTest extends GradleApkProviderTestCase {
     assertSize(1, apks);
     ApkInfo apkInfo = apks.iterator().next();
     assertThat(apkInfo.getFiles().size()).isEqualTo(3);
-    assertThat(apkInfo.getFiles().stream().map(x -> x.getApkFile().getName()).collect(Collectors.toList()))
+    assertThat(ContainerUtil.map(apkInfo.getFiles(), x -> x.getApkFile().getName()))
       .containsExactly("base-master.apk", "feature1-master.apk", "feature2-master.apk");
-    assertThat(apkInfo.getFiles().stream().map(x -> x.getModuleName()).collect(Collectors.toList()))
+    assertThat(ContainerUtil.map(apkInfo.getFiles(), x -> x.getModuleName()))
       .containsExactly("base", "feature1", "feature2");
   }
 
@@ -173,21 +174,22 @@ public class GradleApkProviderTest extends GradleApkProviderTestCase {
     ApkInfo testApkInfo = apkList.get(1);
 
     assertThat(mainApkInfo.getFiles().size()).isEqualTo(3);
-    assertThat(mainApkInfo.getFiles().stream().map(x -> x.getApkFile().getName()).collect(Collectors.toList()))
+    assertThat(ContainerUtil.map(mainApkInfo.getFiles(), x -> x.getApkFile().getName()))
       .containsExactly("base-master.apk", "feature1-master.apk", "feature2-master.apk");
-    assertThat(mainApkInfo.getFiles().stream().map(x -> x.getModuleName()).collect(Collectors.toList()))
+    assertThat(ContainerUtil.map(mainApkInfo.getFiles(), x -> x.getModuleName()))
       .containsExactly("base", "feature1", "feature2");
 
     assertThat(testApkInfo.getFiles().size()).isEqualTo(1);
-    assertThat(testApkInfo.getFiles().stream().map(x -> x.getApkFile().getName()).collect(Collectors.toList()))
+    assertThat(ContainerUtil.map(testApkInfo.getFiles(), x -> x.getApkFile().getName()))
       .containsExactly("feature1-debug-androidTest.apk");
-    assertThat(testApkInfo.getFiles().stream().map(x -> x.getModuleName()).collect(Collectors.toList()))
+    assertThat(ContainerUtil.map(testApkInfo.getFiles(), x -> x.getModuleName()))
       .containsExactly("");
   }
 
   private static void createApkFiles(File folder, String... files) throws IOException {
     for (String fileName : files) {
       File file = folder.toPath().resolve(fileName).toFile();
+      //noinspection ResultOfMethodCallIgnored
       file.createNewFile();
     }
   }

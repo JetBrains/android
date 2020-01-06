@@ -37,6 +37,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -227,7 +228,7 @@ public final class SdkQuickfixUtils {
       }
       return null;
     }
-    List<RemotePackage> installRequests = resolvedPackages.stream().map(UpdatablePackage::getRemote).collect(Collectors.toList());
+    List<RemotePackage> installRequests = ContainerUtil.map(resolvedPackages, UpdatablePackage::getRemote);
     ModelWizard.Builder wizardBuilder = new ModelWizard.Builder();
     wizardBuilder.addStep(new LicenseAgreementStep(new LicenseAgreementModel(mgr.getLocalPath()), installRequests));
     InstallSelectedPackagesStep installStep =

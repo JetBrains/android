@@ -76,6 +76,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.ThreeState;
+import com.intellij.util.containers.ContainerUtil;
 import icons.AndroidIcons;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -464,7 +465,7 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
 
     // Find the minimum API version in case both a pre-O and post-O devices are selected.
     // TODO: if a post-O app happened to be transformed, the agent needs to account for that.
-    List<AndroidVersion> versionLists = devices.stream().map(AndroidDevice::getVersion).collect(Collectors.toList());
+    List<AndroidVersion> versionLists = ContainerUtil.map(devices, AndroidDevice::getVersion);
     AndroidVersion minVersion = Ordering.natural().min(versionLists);
     List<String> arguments = new LinkedList<>();
     ProfilerState state = ((AndroidRunConfigurationBase)configuration).getProfilerState();

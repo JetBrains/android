@@ -48,6 +48,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -131,7 +132,7 @@ public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssue
     }
     else {
       GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(dependency);
-      List<VirtualFile> buildFiles = affectedModules.stream().map(m -> buildFileMap.get(m)).collect(Collectors.toList());
+      List<VirtualFile> buildFiles = ContainerUtil.map(affectedModules, m -> buildFileMap.get(m));
       Module module = affectedModules.get(0);
 
       if (dependency.startsWith("com.android.support") || dependency.startsWith("androidx.")

@@ -25,8 +25,8 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.google.common.truth.Truth;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -54,8 +54,8 @@ public class UnifiedEventDataSeriesTest {
                                                                         UnifiedEventDataSeries.fromFieldToDataExtractor(
                                                                           event -> event.getNetworkSpeed().getThroughput()));
     List<SeriesData<Long>> data1 = series1.getDataForRange(new Range(Integer.MIN_VALUE, Integer.MAX_VALUE));
-    Truth.assertThat(data1.stream().map(data -> data.x).collect(Collectors.toList())).containsExactly(1L, 3L, 5L);
-    Truth.assertThat(data1.stream().map(data -> data.value).collect(Collectors.toList())).containsExactly(10L, 30L, 50L);
+    Truth.assertThat(ContainerUtil.map(data1, data -> data.x)).containsExactly(1L, 3L, 5L);
+    Truth.assertThat(ContainerUtil.map(data1, data -> data.value)).containsExactly(10L, 30L, 50L);
 
     UnifiedEventDataSeries<Long> series2 = new UnifiedEventDataSeries<>(new ProfilerClient(myGrpcChannel.getName()).getTransportClient(),
                                                                         STREAM_ID,
@@ -65,8 +65,8 @@ public class UnifiedEventDataSeriesTest {
                                                                         UnifiedEventDataSeries.fromFieldToDataExtractor(
                                                                           event -> event.getNetworkSpeed().getThroughput()));
     List<SeriesData<Long>> data2 = series2.getDataForRange(new Range(Integer.MIN_VALUE, Integer.MAX_VALUE));
-    Truth.assertThat(data2.stream().map(data -> data.x).collect(Collectors.toList())).containsExactly(2L, 4L, 6L);
-    Truth.assertThat(data2.stream().map(data -> data.value).collect(Collectors.toList())).containsExactly(20L, 40L, 60L);
+    Truth.assertThat(ContainerUtil.map(data2, data -> data.x)).containsExactly(2L, 4L, 6L);
+    Truth.assertThat(ContainerUtil.map(data2, data -> data.value)).containsExactly(20L, 40L, 60L);
   }
 
   @Test(expected = AssertionError.class)

@@ -47,6 +47,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.updateSettings.impl.UpdateSettings;
 import com.intellij.openapi.util.Pair;
 import com.intellij.util.Consumer;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.Optional;
 import org.jetbrains.android.diagnostics.error.IdeaITNProxy;
 import org.jetbrains.android.util.AndroidBundle;
@@ -169,7 +170,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
     else if ("Crashes".equals(type)) {
       //noinspection unchecked
       List<StudioCrashDetails> crashDetails = (List<StudioCrashDetails>)map.get("crashDetails");
-      List<String> descriptions = crashDetails.stream().map(details -> details.getDescription()).collect(Collectors.toList());
+      List<String> descriptions = ContainerUtil.map(crashDetails, details -> details.getDescription());
       // If at least one report was JVM crash, submit the batch as a JVM crash
       boolean isJvmCrash = crashDetails.stream().anyMatch(details -> details.isJvmCrash());
       // As there may be multiple crashes reported together, take the shortest uptime (most of the time there is only

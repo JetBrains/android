@@ -24,6 +24,7 @@ import com.android.tools.idea.diagnostics.report.HistogramReport;
 import com.android.tools.idea.diagnostics.report.MemoryReportReason;
 import com.android.tools.idea.diagnostics.report.PerformanceThreadDumpReport;
 import com.google.common.base.Charsets;
+import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -83,7 +84,7 @@ public class StudioReportDatabaseTest {
     db.appendReport(new PerformanceThreadDumpReport(t2, "test"));
 
     List<DiagnosticReport> reports = db.reapReports();
-    List<Path> paths = reports.stream().map(r -> ((PerformanceThreadDumpReport) r).getThreadDumpPath()).collect(Collectors.toList());
+    List<Path> paths = ContainerUtil.map(reports, r -> ((PerformanceThreadDumpReport)r).getThreadDumpPath());
     assertThat(paths, hasItems(t1, t2));
 
     reports = db.reapReports();
