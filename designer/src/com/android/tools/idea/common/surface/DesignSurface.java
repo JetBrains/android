@@ -163,6 +163,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   };
 
+  @NotNull
+  private final List<CompletableFuture<Void>> myRenderFutures = new ArrayList<>();
+
   protected final IssueModel myIssueModel = new IssueModel();
   private final IssuePanel myIssuePanel;
   private final Object myErrorQueueLock = new Object();
@@ -1567,8 +1570,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * Invalidates all models and request a render of the layout. This will re-inflate the layout and render it.
-   * The result {@link ListenableFuture} will notify when the render has completed.
+   * Invalidates all models and request a render of the layout. This will re-inflate the {@link NlModel}s and render them sequentially.
+   * The result {@link ListenableFuture} will notify when all the renderings have completed.
    */
   @NotNull
   public CompletableFuture<Void> requestRender() {
@@ -1576,10 +1579,42 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     if (managers.isEmpty()) {
       return CompletableFuture.completedFuture(null);
     }
+    return requestSequentialRender();
+  }
 
-    return CompletableFuture.allOf(managers.stream()
-                                     .map(manager -> manager.requestRender())
-                                     .toArray(CompletableFuture[]::new));
+  @NotNull
+  private CompletableFuture<Void> requestSequentialRender() {
+    CompletableFuture<Void> callback = new CompletableFuture<>();
+    synchronized (myRenderFutures) {
+      if (!myRenderFutures.isEmpty()) {
+        // TODO: This may make the rendered previews not match the last status of NlModel if the modifications happen during rendering.
+        //       Similar case happens in LayoutlibSceneManager#requestRender function, both need to be fixed.
+        myRenderFutures.add(callback);
+        return callback;
+      }
+      else {
+        myRenderFutures.add(callback);
+      }
+    }
+
+    // Cascading the CompletableFuture to make them executing sequentially.
+    CompletableFuture<Void> renderFuture = CompletableFuture.completedFuture(null);
+    for (SceneManager manager : getSceneManagers()) {
+      renderFuture = renderFuture.thenCompose(it -> {
+        CompletableFuture<Void> future = manager.requestLayoutAndRender(false);
+        invalidate();
+        return future;
+      });
+    }
+    renderFuture.thenRun(() -> {
+      synchronized (myRenderFutures) {
+        myRenderFutures.forEach(future -> future.complete(null));
+        myRenderFutures.clear();
+      }
+      callback.complete(null);
+    });
+
+    return callback;
   }
 
   @NotNull

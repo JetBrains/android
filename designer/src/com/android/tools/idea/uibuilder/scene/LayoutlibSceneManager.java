@@ -390,6 +390,17 @@ public class LayoutlibSceneManager extends SceneManager {
 
   @NotNull
   @Override
+  public ImmutableList<SceneView> getSceneViews() {
+    if (mySecondarySceneView == null) {
+      return ImmutableList.of(getSceneView());
+    }
+    else {
+      return ImmutableList.of(getSceneView(), mySecondarySceneView);
+    }
+  }
+
+  @NotNull
+  @Override
   public ImmutableList<Layer> getLayers() {
     ImmutableList.Builder<Layer> builder = new ImmutableList.Builder<>();
     builder.addAll(super.getLayers());
