@@ -82,7 +82,7 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
     when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("3.0.0"));
 
-    boolean upgraded = GradlePluginUpgrade.shouldForcePluginUpgrade(myPluginInfo);
+    boolean upgraded = GradlePluginUpgrade.shouldForcePluginUpgrade(getProject(), myPluginInfo);
     assertFalse(upgraded);
 
     verify(mySyncState, never()).syncSucceeded();
