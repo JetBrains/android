@@ -16,49 +16,78 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.LayoutInspectorTransportRule
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import java.awt.BorderLayout
-import javax.swing.JComponent
+import java.awt.Component
+import java.awt.Container
+import javax.swing.JCheckBox
 
 @RunsInEdt
 class DeviceViewPanelTest {
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule
+  val disposableRule = DisposableRule()
 
-  @JvmField
-  @Rule
+  @get:Rule
   val edtRule = EdtRule()
 
-  @Before
-  fun setUp() {
-    InspectorClient.clientFactory = { mock(InspectorClient::class.java) }
-  }
+  @get:Rule
+  val inspectorRule = LayoutInspectorTransportRule().withDefaultDevice(connected = true)
 
   @Test
   fun testFocusableActionButtons() {
+    InspectorClient.clientFactory = { mock(InspectorClient::class.java) }
     val model = model { view(1, 0, 0, 1200, 1600, "RelativeLayout") }
     val inspector = LayoutInspector(model)
     val settings = DeviceViewSettings()
-    val panel = DeviceViewPanel(inspector, settings, projectRule.fixture.projectDisposable)
-    val toolbarPanel = findComponentAt(panel, BorderLayout.NORTH)
-    val leftPanel = findComponentAt(toolbarPanel, BorderLayout.CENTER)
-    val actionToolBar = findComponentAt(leftPanel, BorderLayout.CENTER)
-    actionToolBar.components.forEach { assertThat(it.isFocusable).isTrue() }
+    val toolbar = getToolbar(DeviceViewPanel(inspector, settings, disposableRule.disposable))
+    toolbar.components.forEach { assertThat(it.isFocusable).isTrue() }
   }
 
-  private fun findComponentAt(component: JComponent, borderConstraint: String): JComponent {
-    val layout = component.layout as BorderLayout
-    return layout.getLayoutComponent(borderConstraint) as JComponent
+  @Test
+  fun testLiveControlEnabled() {
+    val settings = DeviceViewSettings()
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, disposableRule.disposable))
+    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
+    assertThat(checkbox.isEnabled).isTrue()
+    assertThat(checkbox.toolTipText).isNull()
   }
+}
+
+@RunsInEdt
+class DeviceViewPanelLegacyTest {
+  @get:Rule
+  val disposableRule = DisposableRule()
+
+  @get:Rule
+  val edtRule = EdtRule()
+
+  @get:Rule
+  val inspectorRule = LayoutInspectorTransportRule().withLegacyClient().withDefaultDevice(connected = true)
+
+  @Test
+  fun testLiveControlDisabled() {
+    val settings = DeviceViewSettings()
+    val toolbar = getToolbar(DeviceViewPanel(inspectorRule.inspector, settings, disposableRule.disposable))
+    val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
+    assertThat(checkbox.isEnabled).isFalse()
+    assertThat(checkbox.toolTipText).isEqualTo("Live updates not available for devices below API 29")
+  }
+}
+
+private fun getToolbar(panel: DeviceViewPanel) = flatten(panel).find { it.name == DEVICE_VIEW_ACTION_TOOLBAR_NAME } as Container
+
+private fun flatten(component: Component): List<Component> {
+  if (component !is Container) {
+    return listOf(component)
+  }
+  return component.components.flatMap { flatten(it) }.plus(component)
 }

@@ -19,7 +19,6 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adb.AdbService
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.isDeviceMatch
 import com.android.tools.idea.layoutinspector.model.ComponentTreeLoader
@@ -78,7 +77,7 @@ private const val MAX_RETRY_COUNT = 60
 
 class DefaultInspectorClient(
   model: InspectorModel,
-  channelNameForTest: String = TransportService.getInstance().channelName,
+  channelNameForTest: String = TransportService.CHANNEL_NAME,
   private val scheduler: ScheduledExecutorService = JobScheduler.getScheduler() // test only
 ) : InspectorClient {
   private val project = model.project

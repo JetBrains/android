@@ -86,7 +86,7 @@ class TransportServiceTest : PlatformTestCase() {
     waitForQueueDrained(testStreamServer.eventDeque)
 
     // Validates that we can query all events from the database.
-    val client = TransportClient(myService.channelName)
+    val client = TransportClient(TransportService.CHANNEL_NAME)
     val request = Transport.GetEventGroupsRequest.newBuilder().apply {
       streamId = stream.streamId
       kind = Common.Event.Kind.ECHO
