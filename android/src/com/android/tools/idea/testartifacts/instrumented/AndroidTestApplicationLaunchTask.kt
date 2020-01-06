@@ -184,7 +184,8 @@ class AndroidTestApplicationLaunchTask private constructor(
                                                                                                          myInstrumentationTestRunner,
                                                                                                          device,
                                                                                                          true)
-      else -> RemoteAndroidTestRunner(myTestApplicationId, myInstrumentationTestRunner, device)
+      else -> RemoteAndroidTestRunner(
+        myTestApplicationId, myInstrumentationTestRunner, device, RemoteAndroidTestRunner.StatusReporterMode.PROTO_STD)
     }.apply {
       setDebug(myWaitForDebugger)
       runOptions = myInstrumentationOptions
