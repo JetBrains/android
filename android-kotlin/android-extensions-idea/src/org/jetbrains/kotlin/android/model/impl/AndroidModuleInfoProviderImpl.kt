@@ -29,10 +29,6 @@ class AndroidModuleInfoProviderImpl(override val module: Module) : AndroidModule
 
     override fun getApplicationPackage() = androidFacet?.let { Manifest.getMainManifest(it) }?.`package`?.toString()
 
-    override fun getMainSourceProvider(): AndroidModuleInfoProvider.SourceProviderMirror? {
-        return androidFacet?.let { SourceProviderManager.getInstance(it).mainIdeaSourceProvider }?.let(::SourceProviderMirrorImpl)
-    }
-
     override fun getActiveSourceProviders(): List<AndroidModuleInfoProvider.SourceProviderMirror> {
         return SourceProviderManager.getInstance(androidFacet ?: return emptyList()).currentSourceProviders.map(::SourceProviderMirrorImpl)
     }

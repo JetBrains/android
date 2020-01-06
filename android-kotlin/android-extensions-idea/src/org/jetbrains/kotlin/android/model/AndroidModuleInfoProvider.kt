@@ -45,9 +45,6 @@ interface AndroidModuleInfoProvider {
 
     fun getApplicationPackage(): String?
 
-    // For old Android Extensions
-    fun getMainSourceProvider(): SourceProviderMirror?
-
     @Deprecated("Do not use. IDEAndroidLayoutXmlFileManager requires this method for compatibility reasons")
     fun getMainAndFlavorSourceProviders(): List<SourceProviderMirror>
     fun getAllResourceDirectories(): List<VirtualFile>
