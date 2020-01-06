@@ -22,6 +22,7 @@ import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.ide.model.AppInspectionTargetsComboBoxModel
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
+import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
@@ -42,10 +43,9 @@ class AppInspectionTargetsComboBoxModelTest {
 
   companion object {
     private val FAKE_PROCESS_DESCRIPTOR = ProcessDescriptor(
-      FakeTransportService.FAKE_DEVICE.manufacturer,
-      FakeTransportService.FAKE_DEVICE.model,
-      FakeTransportService.FAKE_DEVICE.serial,
-      FakeTransportService.FAKE_PROCESS_NAME
+      Common.Stream.newBuilder().setDevice(FakeTransportService.FAKE_DEVICE)
+        .setType(Common.Stream.Type.DEVICE).setStreamId(0).build(),
+      FakeTransportService.FAKE_PROCESS
     )
 
     private val DEAD_FAKE_PROCESS = FakeTransportService.FAKE_PROCESS.toBuilder().setState(Common.Process.State.DEAD).build()
@@ -79,12 +79,7 @@ class AppInspectionTargetsComboBoxModelTest {
   @Test
   fun contentUpdatedProperlyAfterAppInspectionTargetAddedAndRemoved() {
     val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionDiscoveryHost(
-      executor,
-      object : AppInspectionDiscoveryHost.Channel {
-        override val name = grpcServerRule.name
-      }
-    )
+    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
 
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
     val addedLatch = CountDownLatch(1)
