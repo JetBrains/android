@@ -106,9 +106,7 @@ b/148419893 */
     // https://code.google.com/p/android/issues/detail?id=233038
     open fun testLoadPlainJavaProject() {
       val text = importSyncAndDumpProject(PURE_JAVA_PROJECT)
-      /* b/137231583
-          assertIsEqualToSnapshot(text)
-      b/137231583 */
+      assertIsEqualToSnapshot(text)
     }
 
     // See https://code.google.com/p/android/issues/detail?id=226802
