@@ -41,6 +41,10 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
     myFacet = facet;
   }
 
+  public boolean includeDynamicFeatures() {
+    return false;
+  }
+
   @Nullable
   @Override
   public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
@@ -87,7 +91,11 @@ public class AndroidResourceReferenceBase extends PsiReferenceBase.Poly<XmlEleme
 
   @NotNull
   private ResolveResult[] resolveInner() {
-    return AndroidResourceToPsiResolver.getInstance().resolveReference(myResourceValue, myElement, myFacet);
+    if (includeDynamicFeatures()) {
+      return AndroidResourceToPsiResolver.getInstance().resolveReferenceWithDynamicFeatureModules(myResourceValue, myElement, myFacet);
+    } else {
+      return AndroidResourceToPsiResolver.getInstance().resolveReference(myResourceValue, myElement, myFacet);
+    }
   }
 
   @Override

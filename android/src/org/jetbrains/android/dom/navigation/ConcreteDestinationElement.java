@@ -20,7 +20,11 @@ import com.intellij.util.xml.Attribute;
 import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.DefinesXml;
 import org.jetbrains.android.dom.AndroidAttributeValue;
+import org.jetbrains.android.dom.AndroidResourceType;
+import org.jetbrains.android.dom.ToolsAttributeValue;
 import org.jetbrains.android.dom.converters.FragmentClassConverter;
+import org.jetbrains.android.dom.converters.DynamicFeatureResourceReferenceConverter;
+import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 
 /**
@@ -32,4 +36,9 @@ public interface ConcreteDestinationElement extends NavDestinationElement {
   @Convert(FragmentClassConverter.class)
   @PackageClassConverter.Options(includeDynamicFeatures = true)
   AndroidAttributeValue<PsiClass> getFragmentName();
+
+  @Attribute("layout")
+  @Convert(DynamicFeatureResourceReferenceConverter.class)
+  @AndroidResourceType("layout")
+  ToolsAttributeValue<ResourceValue> getLayout();
 }

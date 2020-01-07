@@ -30,11 +30,13 @@ import com.intellij.openapi.roots.OrderEnumerator
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.testFramework.PsiTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import org.jetbrains.android.AndroidTestCase
 
 fun addDynamicFeatureModule(moduleName: String, module: Module, fixture: JavaCodeInsightTestFixture) {
   val project = module.project
   val dynamicFeatureModule = PsiTestUtil.addModule(project, JavaModuleType.getModuleType(), moduleName,
                                                    fixture.tempDirFixture.findOrCreateDir(moduleName))
+  AndroidTestCase.addAndroidFacet(dynamicFeatureModule, false)
 
   val newModuleSystem = object : AndroidModuleSystem by DefaultModuleSystem(module) {
     override fun getDynamicFeatureModules(): List<Module> = listOf(dynamicFeatureModule)
