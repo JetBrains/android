@@ -31,7 +31,6 @@ import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
@@ -44,7 +43,6 @@ import org.mockito.Mock;
  */
 public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
-  @Mock private LatestKnownPluginVersionProvider myLatestKnownPluginVersionProvider;
   @Mock private RecommendedPluginVersionUpgradeDialog.Factory myUpgradeDialogFactory;
   @Mock private RecommendedPluginVersionUpgradeDialog myUpgradeDialog;
   @Mock private RecommendedUpgradeReminder myUpgradeReminder;
@@ -74,90 +72,75 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
   public void testCheckUpgradeWhenCurrentVersionIsEqualToRecommended() {
     simulateUpgradeReminderIsDue();
 
-    String pluginVersion = "2.2.0";
-    when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse(pluginVersion));
-    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
-    when(myLatestKnownPluginVersionProvider.get()).thenReturn(pluginVersion);
-
-    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), myPluginInfo));
+    GradleVersion pluginVersion = GradleVersion.parse("2.2.0");
+    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), pluginVersion, pluginVersion));
   }
 
   public void testCheckUpgradeWhenCurrentVersionIsGreaterRecommended() {
     simulateUpgradeReminderIsDue();
 
-    // Simulate project's plugin version is lower than latest.
-    when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.3.0"));
-    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
-    when(myLatestKnownPluginVersionProvider.get()).thenReturn("2.2.0");
-
-    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), myPluginInfo));
+    GradleVersion current = GradleVersion.parse("2.3.0");
+    GradleVersion recommended = GradleVersion.parse("2.2.0");
+    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), current, recommended));
   }
 
   public void testPerformUpgradeWhenCurrentIsPreviewRecommendedIsSnapshot() {
     simulateUpgradeReminderIsDue();
 
     // Current version is a preview
-    when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.3.0-alpha1"));
+    GradleVersion current = GradleVersion.parse("2.3.0-alpha1");
     // Recommended version is same major version, but "snapshot"
-    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
-    when(myLatestKnownPluginVersionProvider.get()).thenReturn("2.3.0-dev");
-
+    GradleVersion recommended = GradleVersion.parse("2.3.0-dev");
     // For this combination of plugin versions, the IDE should not ask for upgrade.
-    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), myPluginInfo));
+    assertFalse(GradlePluginUpgrade.shouldRecommendPluginUpgrade(getProject(), current, recommended));
   }
 
   public void testPerformUpgradeWhenUserDeclinesUpgrade() {
     simulateUpgradeReminderIsDue();
 
     // Simulate project's plugin version is lower than latest.
-    when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.2.0"));
-    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
-    when(myLatestKnownPluginVersionProvider.get()).thenReturn("2.3.0");
+    GradleVersion current = GradleVersion.parse("2.2.0");
+    GradleVersion recommended = GradleVersion.parse("2.3.0");
 
     // Simulate user declined upgrade.
     when(myUpgradeDialog.showAndGet()).thenReturn(false);
-
-    assertFalse(GradlePluginUpgrade.performRecommendedPluginUpgrade(getProject(), myPluginInfo, myUpgradeDialogFactory));
+    assertFalse(GradlePluginUpgrade.performRecommendedPluginUpgrade(getProject(), current, recommended, myUpgradeDialogFactory));
 
     verifyPluginVersionWasNotUpdated();
   }
 
   private void verifyPluginVersionWasNotUpdated() {
-    verify(myVersionUpdater, never()).updatePluginVersionAndSync(any(), any());
+    verify(myVersionUpdater, never()).updatePluginVersion(any(), any());
   }
 
   public void testCheckAndPerformUpgradeWhenVersionUpdateFails() {
     simulateUpgradeReminderIsDue();
 
-    when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.2.0"));
-    GradleVersion latestPluginVersion = GradleVersion.parse("2.3.0");
-    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
-    when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
+    GradleVersion current = GradleVersion.parse("2.2.0");
+    GradleVersion recommended = GradleVersion.parse("2.3.0");
 
     // Simulate user accepted upgrade.
     when(myUpgradeDialog.showAndGet()).thenReturn(true);
 
     // Simulate updating plugin version failed.
-    simulatePluginVersionUpdate(latestPluginVersion, false /* update failed */);
+    simulatePluginVersionUpdate(recommended, false /* update failed */);
 
-    assertFalse(GradlePluginUpgrade.performRecommendedPluginUpgrade(getProject(), myPluginInfo, myUpgradeDialogFactory));
+    assertFalse(GradlePluginUpgrade.performRecommendedPluginUpgrade(getProject(), current, recommended, myUpgradeDialogFactory));
   }
 
   public void testCheckAndPerformUpgradeWhenVersionSucceeds() {
     simulateUpgradeReminderIsDue();
 
-    when(myPluginInfo.getPluginVersion()).thenReturn(GradleVersion.parse("2.2.0"));
-    GradleVersion latestPluginVersion = GradleVersion.parse("2.3.0");
-    when(myPluginInfo.getLatestKnownPluginVersionProvider()).thenReturn(myLatestKnownPluginVersionProvider);
-    when(myLatestKnownPluginVersionProvider.get()).thenReturn(latestPluginVersion.toString());
+    GradleVersion current = GradleVersion.parse("2.2.0");
+    GradleVersion recommended = GradleVersion.parse("2.3.0");
 
     // Simulate user accepted upgrade.
     when(myUpgradeDialog.showAndGet()).thenReturn(true);
 
     // Simulate updating plugin version succeeded.
-    simulatePluginVersionUpdate(latestPluginVersion, true /* update successful */);
+    simulatePluginVersionUpdate(recommended, true /* update successful */);
 
-    assertTrue(GradlePluginUpgrade.performRecommendedPluginUpgrade(getProject(), myPluginInfo, myUpgradeDialogFactory));
+    assertTrue(GradlePluginUpgrade.performRecommendedPluginUpgrade(getProject(), current, recommended, myUpgradeDialogFactory));
   }
 
   private void simulateUpgradeReminderIsDue() {
@@ -168,6 +151,6 @@ public class RecommendedPluginVersionUpgradeIntegrationTest extends PlatformTest
     UpdateResult result = mock(UpdateResult.class);
     when(result.versionUpdateSuccess()).thenReturn(success);
     GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
-    doReturn(result).when(myVersionUpdater).updatePluginVersionAndSync(eq(pluginVersion), eq(gradleVersion), any(), eq(false));
+    doReturn(result).when(myVersionUpdater).updatePluginVersion(eq(pluginVersion), eq(gradleVersion), any());
   }
 }

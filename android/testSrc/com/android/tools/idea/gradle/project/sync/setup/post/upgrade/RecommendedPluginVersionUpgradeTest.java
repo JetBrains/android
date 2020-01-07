@@ -104,7 +104,7 @@ public class RecommendedPluginVersionUpgradeTest {
 
   @Test
   public void shouldRecommendUpgrade() {
-    boolean recommended = GradlePluginUpgrade.shouldRecommendUpgrade(myRecommended, myCurrent);
+    boolean recommended = GradlePluginUpgrade.shouldRecommendUpgrade(myCurrent, myRecommended);
     assertEquals(myRecommendUpgrade, recommended);
   }
 }
