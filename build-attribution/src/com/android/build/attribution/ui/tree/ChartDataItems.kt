@@ -24,6 +24,7 @@ import com.android.build.attribution.ui.panels.CriticalPathChartLegend
 import com.android.build.attribution.ui.panels.TimeDistributionChart
 import com.android.build.attribution.ui.pluginIcon
 import com.android.build.attribution.ui.taskIcon
+import com.android.build.attribution.ui.warningIcon
 import com.intellij.util.ui.UIUtil
 import java.util.ArrayList
 import javax.swing.Icon
@@ -53,7 +54,8 @@ fun createTaskChartItems(data: CriticalPathTasksUiData): List<TimeDistributionCh
       time = TimeWithPercentage(aggregatedTasks.map { it.executionTime.timeMs }.sum(), data.criticalPathDuration.totalMs),
       textPrefix = "Other tasks",
       aggregatedItems = aggregatedTasks,
-      assignedColor = CriticalPathChartLegend.OTHER_TASKS_COLOR
+      assignedColor = CriticalPathChartLegend.OTHER_TASKS_COLOR,
+      hasWarnings = aggregatedTasks.any { it.hasWarning }
     ))
     aggregatedTasks.size == 1 -> result.add(TaskChartItem(
       taskData = aggregatedTasks[0],
@@ -86,7 +88,8 @@ fun createPluginChartItems(data: CriticalPathPluginsUiData): List<TimeDistributi
       time = TimeWithPercentage(aggregatedPlugins.map { it.criticalPathDuration.timeMs }.sum(), data.criticalPathDuration.totalMs),
       textPrefix = "Other plugins",
       aggregatedItems = aggregatedPlugins,
-      assignedColor = palette.newColor
+      assignedColor = palette.newColor,
+      hasWarnings = aggregatedPlugins.any { it.warningCount > 0 }
     ))
     aggregatedPlugins.size == 1 -> result.add(PluginChartItem(
       pluginData = aggregatedPlugins[0],
@@ -158,7 +161,8 @@ private class OtherChartItem<T>(
   private val time: TimeWithPercentage,
   private val textPrefix: String,
   private val aggregatedItems: List<T>,
-  private val assignedColor: CriticalPathChartLegend.ChartColor
+  private val assignedColor: CriticalPathChartLegend.ChartColor,
+  private val hasWarnings: Boolean
 ) : TimeDistributionChart.AggregatedChartDataItem<T> {
 
   override fun time(): TimeWithPercentage {
@@ -169,9 +173,7 @@ private class OtherChartItem<T>(
     return textPrefix + String.format(" (%d)", aggregatedItems.size)
   }
 
-  override fun getTableIcon(): Icon? {
-    return null
-  }
+  override fun getTableIcon(): Icon? = if (hasWarnings) warningIcon() else null
 
   override fun getLegendColor(): CriticalPathChartLegend.ChartColor {
     return assignedColor
