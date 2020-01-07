@@ -430,6 +430,17 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareGoogleAdMobAdsActivity() {
+    checkCreateTemplate("activities", "GoogleAdMobAdsActivity", ActivityCreationMode.WITHOUT_PROJECT, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareGoogleAdMobAdsActivityWithKotlin() {
+    checkCreateTemplate("activities", "GoogleAdMobAdsActivity",
+                        ActivityCreationMode.WITHOUT_PROJECT, true, withNewRenderingContext, withKotlin)
+  }
+
+  @TemplateCheck
   fun testGoogleMapsActivity() {
     checkCreateTemplate("activities", "GoogleMapsActivity", ActivityCreationMode.WITHOUT_PROJECT, true)
   }
