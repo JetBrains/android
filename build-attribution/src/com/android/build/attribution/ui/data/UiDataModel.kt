@@ -76,7 +76,10 @@ interface TaskUiData {
   val executionTime: TimeWithPercentage
   val executedIncrementally: Boolean
   val executionMode: String
-  val onCriticalPath: Boolean
+  /** True for tasks that belong to a critical path based on task dependencies analysis.*/
+  val onLogicalCriticalPath: Boolean
+  /** True for tasks that belong effective critical path based on execution times analysis.*/
+  val onExtendedCriticalPath: Boolean
   val pluginName: String
   val sourceType: PluginSourceType
   val reasonsToRun: List<String>

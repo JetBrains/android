@@ -101,7 +101,7 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
     assertThat(taskPath).isEqualTo("${project}:${name}")
     assertThat(module).isEqualTo(project)
     assertThat(pluginName).isEqualTo(plugin.displayName)
-    assertThat(onCriticalPath).isTrue()
+    assertThat(onLogicalCriticalPath).isTrue()
     assertThat(executionTime).isEqualTo(time)
   }
 }

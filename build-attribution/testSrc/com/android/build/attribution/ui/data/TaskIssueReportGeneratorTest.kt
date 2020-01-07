@@ -92,7 +92,7 @@ Plugin: com.android.application
 Task: compileDebugJavaWithJavac
 Task type: org.gradle.api.tasks.compile.JavaCompile
 Issue detected in 1 module(s), total execution time was 0.400 s (5.0%), by module:
-  Execution mode: FULL, time: 0.400 s (5.0%), on critical path: true
+  Execution mode: FULL, time: 0.400 s (5.0%), determines build duration: true, on critical path: true
 
 ====Build information:====
 Execution date: 11/19/19 5:12 PM
@@ -125,7 +125,7 @@ Plugin: pluginA
 Task: taskA
 Task type: UNKNOWN
 Issue detected in 1 module(s), total execution time was 0.400 s (5.0%), by module:
-  Execution mode: FULL, time: 0.400 s (5.0%), on critical path: false
+  Execution mode: FULL, time: 0.400 s (5.0%), determines build duration: false, on critical path: false
 
 ====Build information:====
 Execution date: 11/19/19 5:12 PM
@@ -159,7 +159,7 @@ Plugin: pluginA
 Task: taskA
 Task type: UNKNOWN
 Issue detected in 1 module(s), total execution time was 0.400 s (5.0%), by module:
-  Execution mode: FULL, time: 0.400 s (5.0%), on critical path: false
+  Execution mode: FULL, time: 0.400 s (5.0%), determines build duration: false, on critical path: false
 
 ====Build information:====
 Execution date: 11/19/19 5:12 PM
@@ -206,8 +206,8 @@ Plugin: pluginB
 Task: taskB
 Task type: UNKNOWN
 Issue detected in 2 module(s), total execution time was 0.400 s (5.0%), by module:
-  Execution mode: FULL, time: 0.300 s (3.8%), on critical path: true
-  Execution mode: INCREMENTAL, time: 0.100 s (1.3%), on critical path: false
+  Execution mode: FULL, time: 0.300 s (3.8%), determines build duration: true, on critical path: true
+  Execution mode: INCREMENTAL, time: 0.100 s (1.3%), determines build duration: false, on critical path: false
 
 ====Build information:====
 Execution date: 11/19/19 5:12 PM
