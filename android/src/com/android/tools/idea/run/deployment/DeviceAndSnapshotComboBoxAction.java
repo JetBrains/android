@@ -425,7 +425,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     if (configuration instanceof UserDataHolder) {
       Boolean deploysToLocalDevice = ((UserDataHolder)configuration).getUserData(DEPLOYS_TO_LOCAL_DEVICE);
       if (deploysToLocalDevice != null && deploysToLocalDevice.booleanValue()) {
-        presentation.setDescription(null);
+        presentation.setDescription((Supplier<String>)null);
         presentation.setEnabled(true);
 
         return;
@@ -447,7 +447,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return;
     }
 
-    presentation.setDescription(null);
+    presentation.setDescription((Supplier<String>)null);
     presentation.setEnabled(true);
   }
 
