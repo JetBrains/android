@@ -17,18 +17,16 @@ package com.android.tools.idea.tests.gui.uibuilder;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.RunIn;
-import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.fixture.JTreeFixture;
+import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -58,8 +56,7 @@ public class OpenIncludedLayoutTest {
     assertEquals(INCLUDED_XML, editor.getCurrentFileName());
 
     layoutEditor.getBackNavigationPanel().click();
-    layoutEditor.waitForRenderToFinish();
-    assertEquals("outer.xml", editor.getCurrentFileName());
+    Wait.seconds(2).expecting("outer.xml to be selected").until(() -> "outer.xml".equals(editor.getCurrentFileName()));
   }
 
   @Test
