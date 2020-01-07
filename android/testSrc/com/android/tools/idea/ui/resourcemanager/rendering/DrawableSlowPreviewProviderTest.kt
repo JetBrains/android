@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,38 +22,27 @@ import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
-import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.ui.resourcemanager.ImageCacheRule
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.plugin.FrameworkDrawableRenderer
 import com.android.tools.idea.util.androidFacet
-import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth
 import com.intellij.mock.MockVirtualFile
-import com.intellij.util.ui.ImageUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import java.awt.Color
 import java.awt.Dimension
-import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
-class DrawableIconProviderTest {
-
-  @get:Rule
-  var imageCacheRule = ImageCacheRule()
-
+class DrawableSlowPreviewProviderTest {
   @get:Rule
   var androidProjectRule = AndroidProjectRule.inMemory()
 
@@ -66,33 +55,15 @@ class DrawableIconProviderTest {
   }
 
   @Test
-  fun get0SizedListCellRendererComponent() {
-    val latch = CountDownLatch(1)
-    val image = createTestImage()
-
-    val provider = DrawableIconProvider(facet, createResourceResolver(facet), imageCacheRule.imageCache) { _, _ ->
-      CompletableFuture.completedFuture(image)
-    }
-    val designAsset = DesignAsset(MockVirtualFile("file.png"), emptyList(), ResourceType.DRAWABLE)
-    provider.getIcon(designAsset, 0, 0, { latch.countDown() })
-    assertFalse("The size is 0, the refresh callback should not be called") { latch.await(1, TimeUnit.SECONDS) }
-    val imageIcon = provider.getIcon(designAsset, 0, 0, {})
-    val result = ImageUtil.toBufferedImage(imageIcon.image)
-    // Check that when the thumbnail width is 0, nothing break and we don't display the image
-    assertThat(result.getRGB(0, 0)).isNotEqualTo(0xff012345.toInt())
-  }
-
-  @Test
   fun useDrawableRendererForFrameworkResourceValue() {
     val resourceResolver = Mockito.spy(createResourceResolver(facet))
     val drawableRenderer = Mockito.mock(FrameworkDrawableRenderer::class.java)
     FrameworkDrawableRenderer.setInstance(facet, drawableRenderer)
-    val latch = CountDownLatch(1)
     val image = createTestImage()
     val name = "file"
     val resourceItem = ResourceMergerItem(name, ResourceNamespace.RES_AUTO, ResourceType.ATTR, null, null, "external")
 
-    // This would be a Drawable resource, represented by an Attribute resource.
+    // This would be a Drawable resource, represented by an Attribute resource (a Theme Attribute).
     val designAsset = DesignAsset(MockVirtualFile("${name}.png"), emptyList(), ResourceType.DRAWABLE, name, resourceItem)
 
     // The 'Framework ResourceValue' that should be rendered by DrawableRenderer instead of DesignAssetRenderer.
@@ -105,43 +76,18 @@ class DrawableIconProviderTest {
     Mockito.`when`(drawableRenderer.getDrawableRender(frameworkResourceValue, Dimension(100, 100))).thenReturn(
       CompletableFuture.completedFuture(image)
     )
+    val provider = DrawableSlowPreviewProvider(facet, resourceResolver)
 
-    val provider = DrawableIconProvider(facet, resourceResolver, imageCacheRule.imageCache)
-    provider.getIcon(designAsset, 100, 100, { latch.countDown() }) // First request that caches result.
-    assertTrue { latch.await(5, TimeUnit.SECONDS) }
-    val imageIcon = provider.getIcon(designAsset, 100, 100, {}) // Return the cached result.
-    val result = ImageUtil.toBufferedImage(imageIcon.image)
-    Mockito.verify(drawableRenderer).getDrawableRender(eq(frameworkResourceValue), eq(Dimension(100, 100)))
-    assertThat(result.getRGB(1, 1)).isEqualTo(0xff012345.toInt())
-  }
-
-  @Test
-  fun nullImage() {
-    val latch = CountDownLatch(1)
-    val provider = DrawableIconProvider(facet, createResourceResolver(facet), imageCacheRule.imageCache) { _, _ ->
-      CompletableFuture.completedFuture(null)
-    }
-    val designAsset = DesignAsset(MockVirtualFile("file.png"), emptyList(), ResourceType.DRAWABLE)
-    provider.getIcon(designAsset, 0, 0, { latch.countDown() })
-    assertFalse("The size is 0, the refresh callback should not be called") { latch.await(1, TimeUnit.SECONDS) }
-    val imageIcon = provider.getIcon(designAsset, 0, 0, {})
-    val result = ImageUtil.toBufferedImage(imageIcon.image)
+    val result = provider.getSlowPreview(100, 100, designAsset).get(5, TimeUnit.SECONDS)
     assertNotNull(result)
-  }
-}
-
-@Suppress("UndesirableClassUsage")
-private fun createTestImage(): BufferedImage =
-  BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB).apply {
-    with(createGraphics()) {
-      color = Color(0x012345)
-      fillRect(0, 0, 100, 100)
-    }
+    Mockito.verify(drawableRenderer).getDrawableRender(MockitoKt.eq(frameworkResourceValue), MockitoKt.eq(Dimension(100, 100)))
+    Truth.assertThat(result!!.getRGB(1, 1)).isEqualTo(0xff012345.toInt())
   }
 
-private fun createResourceResolver(androidFacet: AndroidFacet): ResourceResolver {
-  val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet)
-  val manifest = MergedManifestManager.getMergedManifestSupplier(androidFacet.module).get().get()
-  val theme = manifest.manifestTheme ?: manifest.getDefaultTheme(null, null, null)
-  return configurationManager.resolverCache.getResourceResolver(null, theme, FolderConfiguration.createDefault())
+  private fun createResourceResolver(androidFacet: AndroidFacet): ResourceResolver {
+    val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet)
+    val manifest = MergedManifestManager.getMergedManifestSupplier(androidFacet.module).get().get()
+    val theme = manifest.manifestTheme ?: manifest.getDefaultTheme(null, null, null)
+    return configurationManager.resolverCache.getResourceResolver(null, theme, FolderConfiguration.createDefault())
+  }
 }

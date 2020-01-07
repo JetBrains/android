@@ -36,7 +36,8 @@ import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.rendering.DrawableIconProvider
+import com.android.tools.idea.ui.resourcemanager.rendering.LayoutSlowPreviewProvider
+import com.android.tools.idea.ui.resourcemanager.rendering.SlowResourcePreviewManager
 import com.android.tools.idea.util.addDependencies
 import com.android.tools.idea.util.dependsOn
 import com.google.common.annotations.VisibleForTesting
@@ -115,9 +116,11 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
   private lateinit var button: JComponent
   private var creatingInProgress = false
   private val createdFiles: MutableList<File> = mutableListOf()
-  private val iconProvider: DrawableIconProvider by lazy {
+  private val iconProvider: SlowResourcePreviewManager by lazy {
     val model = surface.model!!
-    DrawableIconProvider(model.facet, model.configuration.resourceResolver, ImageCache.createSmallImageCache(model.project))
+    // TODO(147157941): Get the Icon provider with AssetPreviewManager
+    SlowResourcePreviewManager(ImageCache.createSmallImageCache(model.project),
+                               LayoutSlowPreviewProvider(model.facet, model.configuration.resourceResolver))
   }
 
   @VisibleForTesting

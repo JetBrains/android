@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.explorer.EMPTY_ICON
 import com.intellij.openapi.diagnostic.Logger
 import javax.swing.Icon
 import javax.swing.ImageIcon
@@ -105,7 +104,7 @@ class DefaultIconProvider private constructor() : AssetIconProvider {
     val INSTANCE = DefaultIconProvider()
   }
 
-  var icon: Icon = ImageIcon(EMPTY_ICON)
+  var icon: Icon = ImageIcon(EMPTY_IMAGE)
 
   override val supportsTransparency: Boolean = false
 

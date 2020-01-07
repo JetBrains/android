@@ -235,14 +235,6 @@
 
     <issue
         id="ImplicitExecutor"
-        message="Use `thenApplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
-        <location
-            file="src/com/android/tools/idea/ui/resourcemanager/rendering/DrawableIconProvider.kt"
-            line="181"/>
-    </issue>
-
-    <issue
-        id="ImplicitExecutor"
         message="Use `supplyAsync` overload with an explicit Executor instead. See `go/do-not-freeze`.">
         <location
             file="src/com/android/tools/idea/actions/license/LicenseTextCollector.java"
