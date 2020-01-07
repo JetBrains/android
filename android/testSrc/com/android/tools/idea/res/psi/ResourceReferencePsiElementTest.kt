@@ -22,11 +22,15 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
+import com.intellij.psi.ElementDescriptionUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.compiled.ClsFieldImpl
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttributeValue
+import com.intellij.usageView.UsageViewLongNameLocation
+import com.intellij.usageView.UsageViewShortNameLocation
+import com.intellij.usageView.UsageViewTypeLocation
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper
@@ -391,6 +395,36 @@ class ResourceReferencePsiElementTest : AndroidTestCase() {
         assertThat(referencePsiElement?.isEquivalentTo(compareElement)).isTrue()
       }
     }
+  }
+
+  fun testResourceReferencePsiElementDescription() {
+    myFixture.configureByFile("res/values/colors.xml")
+    myFixture.moveCaret("colorPri|mary")
+    val elementAtCaret = myFixture.elementAtCaret as ResourceReferencePsiElement
+    checkElementDescriptions(
+      elementAtCaret,
+      "colorPrimary",
+      "@color/colorPrimary",
+      "Color Resource")
+    val frameworkElement = ResourceReferencePsiElement(
+      ResourceReference(ResourceNamespace.ANDROID, ResourceType.STRING, "example"),
+      elementAtCaret.manager)
+    checkElementDescriptions(
+      frameworkElement,
+      "example",
+      "@android:string/example",
+      "String Resource")
+  }
+
+  private fun checkElementDescriptions(
+    element: ResourceReferencePsiElement,
+    expectedShortName: String,
+    expectedLongName: String,
+    expectedTypeDescription: String
+  ) {
+    assertThat(ElementDescriptionUtil.getElementDescription(element, UsageViewShortNameLocation.INSTANCE)).isEqualTo(expectedShortName)
+    assertThat(ElementDescriptionUtil.getElementDescription(element, UsageViewLongNameLocation.INSTANCE)).isEqualTo(expectedLongName)
+    assertThat(ElementDescriptionUtil.getElementDescription(element, UsageViewTypeLocation.INSTANCE)).isEqualTo(expectedTypeDescription)
   }
 
   private fun getRelevantFakeElement(elementAtCaret: PsiElement, oldElementType: Class<*>): ResourceReferencePsiElement? {

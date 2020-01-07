@@ -51,6 +51,7 @@ import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlTag
 import com.intellij.refactoring.rename.RenameHandler
+import com.intellij.usageView.UsageViewLongNameLocation
 import com.intellij.usageView.UsageViewTypeLocation
 import icons.StudioIcons
 import org.jetbrains.android.augment.AndroidLightField
@@ -173,6 +174,8 @@ class ResourceReferencePsiElement(
 
   override fun getIcon(open: Boolean): Icon = RESOURCE_ICON
 
+  override fun getPresentableText(): String? = resourceReference.resourceUrl.toString()
+
   override fun getManager(): PsiManager = psiManager
 
   override fun getProject() = psiManager.project
@@ -199,6 +202,7 @@ class ResourceReferencePsiElement(
       val resourceReference = (element as? ResourceReferencePsiElement)?.resourceReference ?: return null
       return when (location) {
         is UsageViewTypeLocation -> "${resourceReference.resourceType.displayName} Resource"
+        is UsageViewLongNameLocation -> element.presentableText
         else -> resourceReference.name
       }
     }
