@@ -120,6 +120,111 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     verify(mockDatabaseInspectorProjectService).runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo"))
   }
 
+  fun testSqlStatementWithNoPositionalParameters() {
+    // Prepare
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(setOf(sqliteDatabase1))
+
+    buildAction("select * from Foo where id = 42")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    // Assert
+    verify(mockDatabaseInspectorProjectService)
+      .runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo where id = 42", emptyList()))
+  }
+
+  fun testSqlStatementContainsPositionalParameters() {
+    // Prepare
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(setOf(sqliteDatabase1))
+
+    buildAction("select * from Foo where id = ?")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    val listener = viewFactory.parametersBindingDialogView.listeners.first()
+    listener.bindingCompletedInvoked(mapOf("id" to "1"))
+
+    // Assert
+    verify(mockDatabaseInspectorProjectService)
+      .runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo where id = ?", listOf("1")))
+  }
+
+  fun testSqlStatementContainsMultiplePositionalParameters() {
+    // Prepare
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(setOf(sqliteDatabase1))
+
+    buildAction("select * from Foo where id = ? and name = ?")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    val listener = viewFactory.parametersBindingDialogView.listeners.first()
+    listener.bindingCompletedInvoked(mapOf("id" to "1", "name" to "name"))
+
+    // Assert
+    verify(mockDatabaseInspectorProjectService)
+      .runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo where id = ? and name = ?", listOf("1", "name")))
+  }
+
+  fun testSqlStatementContainsMultiplePositionalNumberedParameters() {
+    // Prepare
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(setOf(sqliteDatabase1))
+
+    buildAction("select * from Foo where id = ?1 and name = ?2")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    val listener = viewFactory.parametersBindingDialogView.listeners.first()
+    listener.bindingCompletedInvoked(mapOf("id" to "1", "name" to "name"))
+
+    // Assert
+    verify(mockDatabaseInspectorProjectService)
+      .runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo where id = ? and name = ?", listOf("1", "name")))
+  }
+
+  fun testSqlStatementContainsPositionalParametersInComparison() {
+    // Prepare
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(setOf(sqliteDatabase1))
+
+    buildAction("select * from Foo where id > ?")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    val listener = viewFactory.parametersBindingDialogView.listeners.first()
+    listener.bindingCompletedInvoked(mapOf("id" to "1"))
+
+    // Assert
+    verify(mockDatabaseInspectorProjectService)
+      .runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo where id > ?", listOf("1")))
+  }
+
+  fun testSqlStatementContainsPositionalParametersInExpressionAndComparison() {
+    // Prepare
+    `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
+    `when`(mockDatabaseInspectorProjectService.getOpenDatabases()).thenReturn(setOf(sqliteDatabase1))
+
+    buildAction("select * from Foo where id = (? >> name)")
+
+    // Act
+    anAction.actionPerformed(anActionEvent)
+
+    val listener = viewFactory.parametersBindingDialogView.listeners.first()
+    listener.bindingCompletedInvoked(mapOf("id" to "1"))
+
+    // Assert
+    verify(mockDatabaseInspectorProjectService)
+      .runSqliteStatement(sqliteDatabase1, SqliteStatement("select * from Foo where id = (? >> name)", listOf("1")))
+  }
+
   fun testSqlStatementContainsNamedParameters1() {
     // Prepare
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
@@ -167,7 +272,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf("?1" to "1"))
+    listener.bindingCompletedInvoked(mapOf("id" to "1"))
 
     // Assert
     verify(mockDatabaseInspectorProjectService)
@@ -185,7 +290,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
     anAction.actionPerformed(anActionEvent)
 
     val listener = viewFactory.parametersBindingDialogView.listeners.first()
-    listener.bindingCompletedInvoked(mapOf("?" to "1"))
+    listener.bindingCompletedInvoked(mapOf("id" to "1"))
 
     // Assert
     verify(mockDatabaseInspectorProjectService)
