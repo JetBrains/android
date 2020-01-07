@@ -16,7 +16,6 @@
 package org.jetbrains.android.inspections;
 
 import com.android.resources.ResourceType;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.ExpectedTypeInfo;
@@ -38,6 +37,7 @@ import com.intellij.psi.util.TypeConversionUtil;
 import com.intellij.util.Consumer;
 import gnu.trove.THashSet;
 import gnu.trove.TObjectHashingStrategy;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -109,7 +109,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
         PsiElementFactory factory = JavaPsiFacade.getElementFactory(pos.getProject());
         String code = "R." + resourceType.getName();
         // Look up the fully qualified name of the application package
-        String fqcn = MergedManifestManager.getSnapshot(facet).getPackage();
+        String fqcn = AndroidManifestUtils.getPackageName(facet);
         String qualifiedCode = fqcn + "." + code;
         Project project = facet.getModule().getProject();
         PsiClass cls = JavaPsiFacade.getInstance(project).findClass(qualifiedCode, GlobalSearchScope.allScope(project));

@@ -17,8 +17,6 @@ package com.android.tools.idea.uibuilder.property.editors.support;
 
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
@@ -27,6 +25,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import org.jetbrains.android.dom.converters.OnClickConverter;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -49,8 +48,7 @@ public class OnClickEnumSupport extends EnumSupport {
     Collection<PsiClass> classes;
     if (activityClassName != null) {
       if (activityClassName.startsWith(".")) {
-        MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(module);
-        String pkg = StringUtil.notNullize(manifest.getPackage());
+        String pkg = StringUtil.notNullize(AndroidManifestUtils.getPackageName(module));
         activityClassName = pkg + activityClassName;
       }
       PsiClass activityClass = facade.findClass(activityClassName, module.getModuleScope());

@@ -117,6 +117,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextArea;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
@@ -848,7 +849,7 @@ public class AndroidUtils {
       boolean startsWithDot = context.charAt(0) == '.';
       if (startsWithDot || context.indexOf('.') == -1) {
         // Prepend application package
-        String pkg = MergedManifestManager.getSnapshot(module).getPackage();
+        String pkg = AndroidManifestUtils.getPackageName(module);
         return startsWithDot ? pkg + context : pkg + '.' + context;
       }
       return context;

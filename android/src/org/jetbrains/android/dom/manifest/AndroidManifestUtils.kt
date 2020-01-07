@@ -31,8 +31,11 @@ import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.queryCustomPermissionGroupsFromManifestIndex
 import com.android.tools.idea.model.queryCustomPermissionsFromManifestIndex
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.util.Computable
@@ -59,6 +62,9 @@ private val LOG: Logger get() = logger(::LOG)
  */
 @AnyThread
 fun getPackageName(facet: AndroidFacet) = facet.module.getModuleSystem().getPackageName()
+
+@AnyThread
+fun getPackageName(module: Module) = module.getModuleSystem().getPackageName()
 
 /**
  * Returns the package name for resources from the module under test corresponding to the given [facet].
@@ -154,12 +160,13 @@ fun getCustomPermissionGroups(facet: AndroidFacet): Collection<String>? {
  */
 fun <T> AndroidFacet.cachedValueFromPrimaryManifest(valueSelector: AndroidManifestXmlFile.() -> T): CachedValue<T?> {
   return CachedValuesManager.getManager(module.project).createCachedValue<T?> {
-    val primaryManifest = getPrimaryManifestXml()
+    val primaryManifest = runReadAction { getPrimaryManifestXml() }
     if (primaryManifest == null) {
       CachedValueProvider.Result.create(null, ModificationTracker.EVER_CHANGED)
     }
     else {
-      CachedValueProvider.Result.create(primaryManifest.valueSelector(), primaryManifest)
+      val result = runReadAction { primaryManifest.valueSelector() }
+      CachedValueProvider.Result.create(result, primaryManifest)
     }
   }
 }

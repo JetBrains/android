@@ -72,7 +72,6 @@ import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.classloading.InconvertibleClassError;
@@ -121,6 +120,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
@@ -224,7 +224,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myHasLegacyAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7);
     myHasAndroidXAppCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
 
-    String javaPackage = MergedManifestManager.getSnapshot(myModule).getPackage();
+    String javaPackage = AndroidManifestUtils.getPackageName(facet);
     if (javaPackage != null && !javaPackage.isEmpty()) {
       myNamespace = URI_PREFIX + javaPackage;
     } else {

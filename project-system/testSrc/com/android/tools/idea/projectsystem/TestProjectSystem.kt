@@ -17,10 +17,12 @@ package com.android.tools.idea.projectsystem
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.ide.common.util.PathString
 import com.android.projectmodel.Library
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
+import com.android.tools.idea.util.androidFacet
 import com.google.common.collect.HashMultimap
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -141,7 +143,11 @@ class TestProjectSystem @JvmOverloads constructor(
 
       override fun getSampleDataDirectory(): PathString? = null
 
-      override fun getPackageName(): String? = null
+      override fun getPackageName(): String? {
+        val facet = module.androidFacet ?: return null
+        val primaryManifest = facet.sourceProviders.mainManifestFile ?: return null
+        return AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(PathString(primaryManifest.path))
+      }
 
       override fun getManifestOverrides() = ManifestOverrides()
 

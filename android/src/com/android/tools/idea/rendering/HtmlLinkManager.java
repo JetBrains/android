@@ -102,6 +102,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.android.util.AndroidResourceUtil;
@@ -487,7 +488,7 @@ public class HtmlLinkManager {
     int index = s.lastIndexOf('.');
     if (index == -1) {
       className = s;
-      packageName = MergedManifestManager.getSnapshot(module).getPackage();
+      packageName = AndroidManifestUtils.getPackageName(module);
       if (packageName == null) {
         return;
       }

@@ -24,10 +24,10 @@ import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.util.dependsOnAppCompat
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.JavaPsiFacade
+import org.jetbrains.android.dom.manifest.getPackageName
 
 /*
  * Layout editor-specific helper methods and data for NlModel
@@ -101,8 +101,7 @@ fun NlModel.currentActivityIsDerivedFromAppCompatActivity(): Boolean {
       // Assume we are since this is how the default activities are created.
       return true
   if (activityClassName!!.startsWith(".")) {
-    val manifest = MergedManifestManager.getSnapshot(module)
-    val pkg = StringUtil.notNullize(manifest.`package`)
+    val pkg = StringUtil.notNullize(getPackageName(facet))
     activityClassName = pkg + activityClassName
   }
   val facade = JavaPsiFacade.getInstance(project)

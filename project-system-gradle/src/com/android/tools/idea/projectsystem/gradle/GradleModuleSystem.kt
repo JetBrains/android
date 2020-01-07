@@ -34,7 +34,9 @@ import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil
+import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityStatus
 import com.android.tools.idea.projectsystem.CapabilitySupported
@@ -60,8 +62,13 @@ import com.google.common.base.Predicate
 import com.google.common.base.Predicates
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
+import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -94,6 +101,7 @@ import com.android.builder.model.CodeShrinker as BuildModelCodeShrinker
 const val CHECK_DIRECT_GRADLE_DEPENDENCIES = false
 
 private val PACKAGE_NAME = Key.create<CachedValue<String?>>("merged.manifest.package.name")
+private val LOG: Logger get() = logger(::LOG)
 
 /** Creates a map for the given pairs, filtering out null values. */
 private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
@@ -442,6 +450,20 @@ class GradleModuleSystem(
 
   override fun getPackageName(): String? {
     val facet = AndroidFacet.getInstance(module)!!
+    if (AndroidManifestIndex.indexEnabled()) {
+      try {
+        return DumbService.getInstance(module.project).runReadActionInSmartMode<String> {
+          facet.queryPackageNameFromManifestIndex()
+        }
+      }
+      catch (e: IndexNotReadyException) {
+        // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+        //  We need to refactor the callers of this to require a *smart*
+        //  read action, at which point we can remove this try-catch.
+        LOG.info(e)
+      }
+    }
+
     val cachedValue = facet.cachedValueFromPrimaryManifest {
       packageName.nullize(true)
     }

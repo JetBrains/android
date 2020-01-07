@@ -26,7 +26,6 @@ import com.android.projectmodel.ExternalLibrary
 import com.android.projectmodel.Library
 import com.android.projectmodel.RecursiveResourceFolder
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityNotSupported
@@ -39,11 +38,13 @@ import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.MainContentRootSampleDataDirectoryProvider
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toPathString
 import com.android.utils.reflection.qualifiedName
 import com.google.common.collect.ImmutableList
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.roots.LibraryOrderEntry
@@ -114,8 +115,8 @@ class DefaultModuleSystem(override val module: Module) :
             continue
           }
           AndroidFacet.getInstance(moduleForEntry) ?: continue
-          val manifestInfo = MergedManifestManager.getSnapshot(moduleForEntry)
-          if ("android.support.v7.appcompat" == manifestInfo.`package`) {
+          val packageName = moduleForEntry.getModuleSystem().getPackageName()
+          if ("android.support.v7.appcompat" == packageName) {
             return GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+")
           }
         }
@@ -190,6 +191,7 @@ class DefaultModuleSystem(override val module: Module) :
 
   override fun getPackageName(): String? {
     val facet = AndroidFacet.getInstance(module)!!
+
     val cachedValue = facet.cachedValueFromPrimaryManifest {
       packageName.nullize(true)
     }

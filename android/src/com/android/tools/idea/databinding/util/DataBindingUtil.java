@@ -23,7 +23,6 @@ import com.android.tools.idea.databinding.index.BindingXmlIndex;
 import com.android.tools.idea.databinding.index.ImportData;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionSupport;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionUtil;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
@@ -49,6 +48,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.GenericAttributeValue;
 import java.util.List;
 import org.jetbrains.android.dom.layout.Import;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -112,7 +112,7 @@ public final class DataBindingUtil {
    */
   @Nullable
   public static String getQualifiedBindingName(@NotNull AndroidFacet facet, @NotNull BindingXmlIndex.Entry bindingIndexEntry) {
-    String modulePackage = MergedManifestManager.getSnapshot(facet).getPackage();
+    String modulePackage = AndroidManifestUtils.getPackageName(facet);
     if (modulePackage == null) {
       return null;
     }
@@ -313,9 +313,7 @@ public final class DataBindingUtil {
    */
   @Nullable
   public static String getGeneratedPackageName(@NotNull AndroidFacet facet) {
-    // TODO(132629996): Replace this with AndroidManifestUtils.getPackage(facet) once it has been updated to use
-    //                  the merged manifest. The deprecated API used here has the potential to block the EDT.
-    return MergedManifestManager.getSnapshot(facet).getPackage();
+    return AndroidManifestUtils.getPackageName(facet);
   }
 
   /**
