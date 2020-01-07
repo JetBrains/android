@@ -52,8 +52,8 @@ class BuildAttributionViewFixture(robot: Robot, target: JPanel) : JPanelFixture(
     ))
   }
 
-  fun checkWarningsNode(expectedChildren: List<String>) {
-    selectPageByPath(" Warnings", "Warnings")
+  fun checkWarningsNode(expectedChildren: List<String>, expectedWarningsCount: Int) {
+    selectPageByPath(" Warnings ($expectedWarningsCount)", "Warnings")
     expandSelectedNodeWithKeyStroke()
     tree.requireSelectedNodeContainInOrder(expectedChildren)
   }

@@ -32,7 +32,7 @@ import javax.swing.JComponent
 class WarningsRootNode(
   private val reportData: BuildAttributionReportUiData,
   parent: ControllersAwareBuildAttributionNode
-) : AbstractBuildAttributionNode(parent, "Warnings") {
+) : AbstractBuildAttributionNode(parent, "Warnings (${reportData.totalIssuesCount})") {
 
   // TODO(mlazeba): change to new type when added and merged b/144767316
   override val pageType = BuildAttributionUiEvent.Page.PageType.UNKNOWN_PAGE
