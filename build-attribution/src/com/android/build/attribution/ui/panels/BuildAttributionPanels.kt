@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.panels
 
+import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.data.TaskIssueType
@@ -38,7 +39,6 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
-import javax.swing.event.HyperlinkListener
 
 const val CRITICAL_PATH_LINK = "https://developer.android.com/r/tools/build-attribution/critical-path"
 
@@ -51,9 +51,20 @@ fun pluginInfoPanel(
   listener: TreeLinkListener<TaskIssueType>,
   analytics: BuildAttributionUiAnalytics
 ): JComponent = JBPanel<JBPanel<*>>(VerticalLayout(15)).apply {
-  add(commonPluginInfo(pluginUiData, analytics))
+  val pluginText = HtmlBuilder()
+    .openHtmlBody()
+    .add(
+      "This plugin has ${pluginUiData.criticalPathTasks.size} ${pluralize("task", pluginUiData.criticalPathTasks.size)} " +
+      "of total duration ${pluginUiData.criticalPathDuration.durationString()} (${pluginUiData.criticalPathDuration.percentageString()})"
+    )
+    .newline()
+    .add("determining this build's duration.")
+    .newline()
+    .addLink("Learn more", CRITICAL_PATH_LINK)
+    .closeHtmlBody()
+  add(DescriptionWithHelpLinkLabel(pluginText.html, analytics))
   add(JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
-    add(JBLabel("Warnings").withFont(JBUI.Fonts.label().asBold()))
+    add(JBLabel("Warnings detected").withFont(JBUI.Fonts.label().asBold()))
     for (issueGroup in pluginUiData.issues) {
       add(HyperlinkLabel("${issueGroup.type.uiName} (${issueGroup.size})").apply {
         addHyperlinkListener { listener.clickedOn(issueGroup.type) }
@@ -62,35 +73,11 @@ fun pluginInfoPanel(
       })
     }
     if (pluginUiData.issues.isEmpty()) {
-      add(JLabel("No warnings found"))
+      add(JLabel("No warnings detected"))
     }
   })
+  withPreferredWidth(400)
 }
-
-private fun commonPluginInfo(data: CriticalPathPluginUiData, analytics: BuildAttributionUiAnalytics): JBLabel {
-  val pluginText = HtmlBuilder()
-    .openHtmlBody()
-    .add("This plugin has ${data.criticalPathTasks.size} ${pluralize("task", data.criticalPathTasks.size)} determining build duration. ")
-    .addLink("Learn more", CRITICAL_PATH_LINK)
-    .newline()
-    .add("Total duration ${data.criticalPathDuration.durationString()} / ${data.criticalPathDuration.percentageString()}")
-    .closeHtmlBody()
-  return object : JBLabel(pluginText.html) {
-    override fun createHyperlinkListener(): HyperlinkListener {
-      val hyperlinkListener = super.createHyperlinkListener()
-      return HyperlinkListener { e ->
-        analytics.helpLinkClicked()
-        hyperlinkListener.hyperlinkUpdate(e)
-      }
-    }
-  }.setCopyable(true)
-}
-
-fun pluginTasksListPanel(pluginData: CriticalPathPluginUiData, analytics: BuildAttributionUiAnalytics): JComponent =
-  JBPanel<JBPanel<*>>().apply {
-    layout = VerticalLayout(5, SwingConstants.LEFT)
-    add(commonPluginInfo(pluginData, analytics))
-  }
 
 fun taskInfoPanel(taskData: TaskUiData, listener: TreeLinkListener<TaskIssueUiData>): JPanel {
   val infoPanel = JBPanel<JBPanel<*>>(GridBagLayout())
@@ -164,7 +151,7 @@ fun taskInfoPanel(taskData: TaskUiData, listener: TreeLinkListener<TaskIssueUiDa
   c.weighty = 1.0
   infoPanel.add(reasonsList, c)
 
-  infoPanel.withPreferredWidth(sequenceOf<JComponent>(taskInfo, issuesList).map { it.preferredSize.width}.max()!!)
+  infoPanel.withPreferredWidth(sequenceOf<JComponent>(taskInfo, issuesList).map { it.preferredSize.width }.max()!!)
   return infoPanel
 }
 

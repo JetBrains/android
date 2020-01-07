@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.tree
 
+import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
 import com.android.build.attribution.ui.colorIcon
 import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.data.CriticalPathPluginsUiData
@@ -37,8 +38,8 @@ import com.android.build.attribution.ui.panels.createIssueTypeListPanel
 import com.android.build.attribution.ui.panels.criticalPathHeader
 import com.android.build.attribution.ui.panels.headerLabel
 import com.android.build.attribution.ui.panels.pluginInfoPanel
-import com.android.build.attribution.ui.panels.pluginTasksListPanel
 import com.android.build.attribution.ui.panels.taskInfoPanel
+import com.android.build.attribution.ui.percentageString
 import com.android.build.attribution.ui.taskIcon
 import com.android.utils.HtmlBuilder
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
@@ -52,7 +53,7 @@ import java.util.ArrayList
 import java.util.HashMap
 import javax.swing.Icon
 import javax.swing.JComponent
-import javax.swing.event.HyperlinkListener
+import javax.swing.SwingConstants
 
 class CriticalPathPluginsRoot(
   private val criticalPathUiData: CriticalPathPluginsUiData,
@@ -75,24 +76,13 @@ class CriticalPathPluginsRoot(
     override fun createDescription(): JComponent {
       val text = HtmlBuilder()
         .openHtmlBody()
-        .add(
-          "These tasks, grouped by plugin, belong to a group of sequentially executed tasks that has the largest impact on this build's duration.")
+        .add("Each of these plugins added at least one task that had an impact on this build’s duration.")
         .newline()
         .add("Addressing this group provides the greatest likelihood of reducing the overall build duration.")
         .newline()
         .addLink("Learn more", CRITICAL_PATH_LINK)
         .closeHtmlBody()
-      return object : JBLabel(text.html) {
-        override fun createHyperlinkListener(): HyperlinkListener {
-          val hyperlinkListener = super.createHyperlinkListener()
-          return HyperlinkListener { e ->
-            analytics.helpLinkClicked()
-            hyperlinkListener.hyperlinkUpdate(e)
-          }
-        }
-      }
-        .setAllowAutoWrapping(true)
-        .setCopyable(true)
+      return DescriptionWithHelpLinkLabel(text.html, analytics)
     }
 
     override fun createRightInfoPanel(): JComponent? = null
@@ -195,13 +185,41 @@ private class PluginTasksRootNode(
 
   override fun createComponent(): AbstractBuildAttributionInfoPanel =
     object : ChartElementSelectedPanel(pluginData, chartItems, selectedChartItem) {
+      override fun createHeader(): JComponent = headerLabel("Tasks added by ${pluginData.name} determining this build's duration")
+
       override fun createRightInfoPanel(): JComponent {
-        return pluginTasksListPanel(pluginData, analytics)
+        return JBPanel<JBPanel<*>>().apply {
+          layout = VerticalLayout(5, SwingConstants.LEFT)
+          add(JBLabel(
+            "Total tasks duration: ${pluginData.criticalPathDuration.durationString()} / ${pluginData.criticalPathDuration.percentageString()} of all tasks execution time."
+          ))
+          children.filterIsInstance<PluginTaskNode>().forEach {
+            val time = it.taskData.executionTime
+            val name = it.taskData.taskPath
+            add(HyperlinkLabel().apply {
+              setHyperlinkText("", name, " (${time.durationString()} / ${time.percentageString()})")
+              addHyperlinkListener { _ -> nodeSelector.selectNode(it) }
+            })
+          }
+        }
       }
 
-      override fun createDescription(): JComponent? = null
+      override fun createDescription(): JComponent {
+        val pluginDescriptionPrefix = if (pluginData.criticalPathTasks.size == 1)
+          "This task added by ${pluginData.name} belongs"
+        else
+          "These ${pluginData.criticalPathTasks.size} tasks added by ${pluginData.name} belong"
+        val descriptionText = HtmlBuilder()
+          .openHtmlBody()
+          .add("${pluginDescriptionPrefix} to a group of sequentially executed tasks that has the largest impact on this build's duration.")
+          .newline()
+          .add("Addressing this group provides the greatest likelihood of reducing the overall build duration.")
+          .newline()
+          .addLink("Learn more", CRITICAL_PATH_LINK)
+          .closeHtmlBody()
+        return DescriptionWithHelpLinkLabel(descriptionText.html, analytics)
+      }
     }
-      .withPreferredWidth(300)
 
   override fun buildChildren(): Array<SimpleNode> = pluginData.criticalPathTasks.tasks
     .map { task -> PluginTaskNode(task, this, issueClickListener) }
@@ -209,7 +227,7 @@ private class PluginTasksRootNode(
 }
 
 private class PluginTaskNode(
-  private val taskData: TaskUiData,
+  val taskData: TaskUiData,
   parent: PluginTasksRootNode,
   private val issueClickListener: TreeLinkListener<TaskIssueUiData>
 ) : AbstractBuildAttributionNode(parent, taskData.taskPath) {

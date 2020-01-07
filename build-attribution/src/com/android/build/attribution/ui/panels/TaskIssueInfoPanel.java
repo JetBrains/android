@@ -19,6 +19,7 @@ import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.duration
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.issueIcon;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.percentageString;
 
+import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel;
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics;
 import com.android.build.attribution.ui.controllers.TaskIssueReporter;
 import com.android.build.attribution.ui.data.InterTaskIssueUiData;
@@ -38,9 +39,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import org.jetbrains.annotations.NotNull;
 
 public class TaskIssueInfoPanel extends JBPanel {
   private final TaskUiData myTaskData;
@@ -90,23 +88,8 @@ public class TaskIssueInfoPanel extends JBPanel {
       .getHtml();
 
     JLabel iconLabel = new JLabel(issueIcon(myIssue.getType()));
-    JBLabel issueDescription = new JBLabel() {
-      @NotNull
-      @Override
-      protected HyperlinkListener createHyperlinkListener() {
-        HyperlinkListener listener = super.createHyperlinkListener();
-        return new HyperlinkListener() {
-          @Override
-          public void hyperlinkUpdate(HyperlinkEvent e) {
-            myAnalytics.helpLinkClicked();
-            listener.hyperlinkUpdate(e);
-          }
-        };
-      }
-    };
-    issueDescription.setAllowAutoWrapping(true).setCopyable(true);
+    JBLabel issueDescription = new DescriptionWithHelpLinkLabel(text, myAnalytics);
     issueDescription.setVerticalTextPosition(SwingConstants.TOP);
-    issueDescription.setText(text);
 
     JBPanel<JBPanel> panel = new JBPanel<>(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
