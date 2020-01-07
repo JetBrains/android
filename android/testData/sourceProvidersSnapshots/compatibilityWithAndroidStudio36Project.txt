@@ -2,13 +2,13 @@ MODULE: AS36
 MODULE: android_library
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./libs/android_library/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./libs/android_library/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./libs/android_library/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./libs/android_library/src/main
             AidlDirectoryUrls:
                 file://./libs/android_library/src/main/aidl
@@ -269,7 +269,7 @@ MODULE: android_library
         Manifests:
             file://./libs/android_library/src/main/AndroidManifest.xml
         Sources:
-            AS36 (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./libs/android_library/src/main/AndroidManifest.xml
                     file://./libs/android_library/src/debug/AndroidManifest.xml
@@ -309,7 +309,7 @@ MODULE: android_library
                     file://./libs/android_library/src/main/shaders
                     file://./libs/android_library/src/debug/shaders
         UnitTestSources:
-            AS36 (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./libs/android_library/src/test/AndroidManifest.xml
                     file://./libs/android_library/src/testDebug/AndroidManifest.xml
@@ -345,7 +345,7 @@ MODULE: android_library
                     file://./libs/android_library/src/test/shaders
                     file://./libs/android_library/src/testDebug/shaders
         AndroidTestSources:
-            AS36 (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./libs/android_library/src/androidTest/AndroidManifest.xml
                     file://./libs/android_library/src/androidTestDebug/AndroidManifest.xml
@@ -382,13 +382,13 @@ MODULE: android_library
                     file://./libs/android_library/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./libs/android_library/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./libs/android_library/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./libs/android_library/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./libs/android_library/src/main
                 AidlDirectoryUrls:
                     file://./libs/android_library/src/main/aidl
@@ -411,9 +411,9 @@ MODULE: android_library
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./libs/android_library/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./libs/android_library/src/debug
                 AidlDirectoryUrls:
                     file://./libs/android_library/src/debug/aidl
@@ -432,9 +432,9 @@ MODULE: android_library
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./libs/android_library/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./libs/android_library/src/release
                 AidlDirectoryUrls:
                     file://./libs/android_library/src/release/aidl
@@ -454,13 +454,13 @@ MODULE: android_library
                     file://./libs/android_library/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./libs/android_library/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./libs/android_library/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./libs/android_library/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./libs/android_library/src/main
                 AidlDirectoryUrls:
                     file://./libs/android_library/src/main/aidl
@@ -483,9 +483,9 @@ MODULE: android_library
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./libs/android_library/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./libs/android_library/src/debug
                 AidlDirectoryUrls:
                     file://./libs/android_library/src/debug/aidl
@@ -505,11 +505,11 @@ MODULE: android_library
                     file://./libs/android_library/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./libs/android_library/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./libs/android_library/src/test
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./libs/android_library/src/test
                 AidlDirectoryUrls:
                     file://./libs/android_library/src/test/aidl
@@ -530,9 +530,9 @@ MODULE: android_library
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./libs/android_library/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./libs/android_library/src/testDebug
                 AidlDirectoryUrls:
                     file://./libs/android_library/src/testDebug/aidl
@@ -552,11 +552,11 @@ MODULE: android_library
                     file://./libs/android_library/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./libs/android_library/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./libs/android_library/src/androidTest
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./libs/android_library/src/androidTest
                 AidlDirectoryUrls:
                     file://./libs/android_library/src/androidTest/aidl
@@ -577,9 +577,9 @@ MODULE: android_library
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./libs/android_library/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./libs/android_library/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./libs/android_library/src/androidTestDebug/aidl
@@ -600,13 +600,13 @@ MODULE: android_library
 MODULE: app
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./app/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./app/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./app/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./app/src/main
             AidlDirectoryUrls:
                 file://./app/src/main/aidl
@@ -867,7 +867,7 @@ MODULE: app
         Manifests:
             file://./app/src/main/AndroidManifest.xml
         Sources:
-            AS36 (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
                     file://./app/src/debug/AndroidManifest.xml
@@ -907,7 +907,7 @@ MODULE: app
                     file://./app/src/main/shaders
                     file://./app/src/debug/shaders
         UnitTestSources:
-            AS36 (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./app/src/test/AndroidManifest.xml
                     file://./app/src/testDebug/AndroidManifest.xml
@@ -943,7 +943,7 @@ MODULE: app
                     file://./app/src/test/shaders
                     file://./app/src/testDebug/shaders
         AndroidTestSources:
-            AS36 (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./app/src/androidTest/AndroidManifest.xml
                     file://./app/src/androidTestDebug/AndroidManifest.xml
@@ -980,13 +980,13 @@ MODULE: app
                     file://./app/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./app/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
@@ -1009,9 +1009,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
@@ -1030,9 +1030,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/release
                 AidlDirectoryUrls:
                     file://./app/src/release/aidl
@@ -1052,13 +1052,13 @@ MODULE: app
                     file://./app/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./app/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
@@ -1081,9 +1081,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
@@ -1103,11 +1103,11 @@ MODULE: app
                     file://./app/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/test
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./app/src/test
                 AidlDirectoryUrls:
                     file://./app/src/test/aidl
@@ -1128,9 +1128,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/testDebug
                 AidlDirectoryUrls:
                     file://./app/src/testDebug/aidl
@@ -1150,11 +1150,11 @@ MODULE: app
                     file://./app/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/androidTest
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./app/src/androidTest
                 AidlDirectoryUrls:
                     file://./app/src/androidTest/aidl
@@ -1175,9 +1175,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./app/src/androidTestDebug/aidl
@@ -1198,13 +1198,13 @@ MODULE: app
 MODULE: dynamicfeature
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./features/dynamicfeature/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./features/dynamicfeature/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./features/dynamicfeature/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./features/dynamicfeature/src/main
             AidlDirectoryUrls:
                 file://./features/dynamicfeature/src/main/aidl
@@ -1461,7 +1461,7 @@ MODULE: dynamicfeature
         Manifests:
             file://./features/dynamicfeature/src/main/AndroidManifest.xml
         Sources:
-            AS36 (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./features/dynamicfeature/src/main/AndroidManifest.xml
                     file://./features/dynamicfeature/src/debug/AndroidManifest.xml
@@ -1497,7 +1497,7 @@ MODULE: dynamicfeature
                     file://./features/dynamicfeature/src/main/shaders
                     file://./features/dynamicfeature/src/debug/shaders
         UnitTestSources:
-            AS36 (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./features/dynamicfeature/src/test/AndroidManifest.xml
                     file://./features/dynamicfeature/src/testDebug/AndroidManifest.xml
@@ -1529,7 +1529,7 @@ MODULE: dynamicfeature
                     file://./features/dynamicfeature/src/test/shaders
                     file://./features/dynamicfeature/src/testDebug/shaders
         AndroidTestSources:
-            AS36 (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./features/dynamicfeature/src/androidTest/AndroidManifest.xml
                     file://./features/dynamicfeature/src/androidTestDebug/AndroidManifest.xml
@@ -1562,13 +1562,13 @@ MODULE: dynamicfeature
                     file://./features/dynamicfeature/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./features/dynamicfeature/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./features/dynamicfeature/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./features/dynamicfeature/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./features/dynamicfeature/src/main
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature/src/main/aidl
@@ -1587,9 +1587,9 @@ MODULE: dynamicfeature
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./features/dynamicfeature/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./features/dynamicfeature/src/debug
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature/src/debug/aidl
@@ -1608,9 +1608,9 @@ MODULE: dynamicfeature
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./features/dynamicfeature/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./features/dynamicfeature/src/release
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature/src/release/aidl
@@ -1630,13 +1630,13 @@ MODULE: dynamicfeature
                     file://./features/dynamicfeature/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./features/dynamicfeature/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./features/dynamicfeature/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./features/dynamicfeature/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./features/dynamicfeature/src/main
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature/src/main/aidl
@@ -1655,9 +1655,9 @@ MODULE: dynamicfeature
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./features/dynamicfeature/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./features/dynamicfeature/src/debug
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature/src/debug/aidl
@@ -1677,9 +1677,9 @@ MODULE: dynamicfeature
                     file://./features/dynamicfeature/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./features/dynamicfeature/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./features/dynamicfeature/src/test
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature/src/test/aidl
@@ -1698,9 +1698,9 @@ MODULE: dynamicfeature
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./features/dynamicfeature/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./features/dynamicfeature/src/testDebug
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature/src/testDebug/aidl
@@ -1720,9 +1720,9 @@ MODULE: dynamicfeature
                     file://./features/dynamicfeature/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./features/dynamicfeature/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTest
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTest/aidl
@@ -1741,9 +1741,9 @@ MODULE: dynamicfeature
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./features/dynamicfeature/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTestDebug/aidl
@@ -1764,13 +1764,13 @@ MODULE: dynamicfeature
 MODULE: dynamicfeature2
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./features/dynamicfeature2/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./features/dynamicfeature2/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./features/dynamicfeature2/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./features/dynamicfeature2/src/main
             AidlDirectoryUrls:
                 file://./features/dynamicfeature2/src/main/aidl
@@ -2027,7 +2027,7 @@ MODULE: dynamicfeature2
         Manifests:
             file://./features/dynamicfeature2/src/main/AndroidManifest.xml
         Sources:
-            AS36 (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./features/dynamicfeature2/src/main/AndroidManifest.xml
                     file://./features/dynamicfeature2/src/debug/AndroidManifest.xml
@@ -2063,7 +2063,7 @@ MODULE: dynamicfeature2
                     file://./features/dynamicfeature2/src/main/shaders
                     file://./features/dynamicfeature2/src/debug/shaders
         UnitTestSources:
-            AS36 (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./features/dynamicfeature2/src/test/AndroidManifest.xml
                     file://./features/dynamicfeature2/src/testDebug/AndroidManifest.xml
@@ -2095,7 +2095,7 @@ MODULE: dynamicfeature2
                     file://./features/dynamicfeature2/src/test/shaders
                     file://./features/dynamicfeature2/src/testDebug/shaders
         AndroidTestSources:
-            AS36 (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./features/dynamicfeature2/src/androidTest/AndroidManifest.xml
                     file://./features/dynamicfeature2/src/androidTestDebug/AndroidManifest.xml
@@ -2128,13 +2128,13 @@ MODULE: dynamicfeature2
                     file://./features/dynamicfeature2/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./features/dynamicfeature2/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./features/dynamicfeature2/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./features/dynamicfeature2/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./features/dynamicfeature2/src/main
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/aidl
@@ -2153,9 +2153,9 @@ MODULE: dynamicfeature2
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./features/dynamicfeature2/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./features/dynamicfeature2/src/debug
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature2/src/debug/aidl
@@ -2174,9 +2174,9 @@ MODULE: dynamicfeature2
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./features/dynamicfeature2/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./features/dynamicfeature2/src/release
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature2/src/release/aidl
@@ -2196,13 +2196,13 @@ MODULE: dynamicfeature2
                     file://./features/dynamicfeature2/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./features/dynamicfeature2/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./features/dynamicfeature2/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./features/dynamicfeature2/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./features/dynamicfeature2/src/main
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/aidl
@@ -2221,9 +2221,9 @@ MODULE: dynamicfeature2
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./features/dynamicfeature2/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./features/dynamicfeature2/src/debug
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature2/src/debug/aidl
@@ -2243,9 +2243,9 @@ MODULE: dynamicfeature2
                     file://./features/dynamicfeature2/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./features/dynamicfeature2/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./features/dynamicfeature2/src/test
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature2/src/test/aidl
@@ -2264,9 +2264,9 @@ MODULE: dynamicfeature2
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./features/dynamicfeature2/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./features/dynamicfeature2/src/testDebug
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature2/src/testDebug/aidl
@@ -2286,9 +2286,9 @@ MODULE: dynamicfeature2
                     file://./features/dynamicfeature2/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./features/dynamicfeature2/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTest
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTest/aidl
@@ -2307,9 +2307,9 @@ MODULE: dynamicfeature2
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./features/dynamicfeature2/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTestDebug/aidl

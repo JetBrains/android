@@ -31,7 +31,7 @@ class IdeaSourceProviderImplTest : AndroidTestCase() {
     assume().that(VirtualFileManager.getInstance().findFileByUrl(manifestFileUrl)).isNotNull()
 
     val ideaSourceProvider = NamedIdeaSourceProviderBuilder.create("name", manifestFileUrl).build()
-    assertThat(ideaSourceProvider.manifestDirectory).isEqualTo(manifestDirectory)
+    assertThat(ideaSourceProvider.manifestDirectories).isEqualTo(listOf(manifestDirectory))
   }
 
   fun testManifestDirectory_manifestDoesNotExist() {
@@ -44,7 +44,7 @@ class IdeaSourceProviderImplTest : AndroidTestCase() {
     assume().that(VirtualFileManager.getInstance().findFileByUrl(manifestFileUrl)).isNull()
 
     val ideaSourceProvider = NamedIdeaSourceProviderBuilder.create("name", manifestFileUrl).build()
-    assertThat(ideaSourceProvider.manifestDirectory).isEqualTo(manifestDirectory)
+    assertThat(ideaSourceProvider.manifestDirectories).isEqualTo(listOf(manifestDirectory))
   }
 
   fun testContainsFile_manifestDirectory() {

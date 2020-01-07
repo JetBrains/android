@@ -2,13 +2,13 @@ MODULE: TestCompositeLib1
 MODULE: TestCompositeLib1-app
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./TestCompositeLib1/app/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./TestCompositeLib1/app/src/main
             AidlDirectoryUrls:
                 file://./TestCompositeLib1/app/src/main/aidl
@@ -269,7 +269,7 @@ MODULE: TestCompositeLib1-app
         Manifests:
             file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
         Sources:
-            testCompositeBuild (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
                     file://./TestCompositeLib1/app/src/debug/AndroidManifest.xml
@@ -309,7 +309,7 @@ MODULE: TestCompositeLib1-app
                     file://./TestCompositeLib1/app/src/main/shaders
                     file://./TestCompositeLib1/app/src/debug/shaders
         UnitTestSources:
-            testCompositeBuild (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./TestCompositeLib1/app/src/test/AndroidManifest.xml
                     file://./TestCompositeLib1/app/src/testDebug/AndroidManifest.xml
@@ -345,7 +345,7 @@ MODULE: TestCompositeLib1-app
                     file://./TestCompositeLib1/app/src/test/shaders
                     file://./TestCompositeLib1/app/src/testDebug/shaders
         AndroidTestSources:
-            testCompositeBuild (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./TestCompositeLib1/app/src/androidTest/AndroidManifest.xml
                     file://./TestCompositeLib1/app/src/androidTestDebug/AndroidManifest.xml
@@ -382,13 +382,13 @@ MODULE: TestCompositeLib1-app
                     file://./TestCompositeLib1/app/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib1/app/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./TestCompositeLib1/app/src/main
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/app/src/main/aidl
@@ -411,9 +411,9 @@ MODULE: TestCompositeLib1-app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib1/app/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib1/app/src/debug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/app/src/debug/aidl
@@ -432,9 +432,9 @@ MODULE: TestCompositeLib1-app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib1/app/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib1/app/src/release
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/app/src/release/aidl
@@ -454,13 +454,13 @@ MODULE: TestCompositeLib1-app
                     file://./TestCompositeLib1/app/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./TestCompositeLib1/app/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib1/app/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./TestCompositeLib1/app/src/main
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/app/src/main/aidl
@@ -483,9 +483,9 @@ MODULE: TestCompositeLib1-app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib1/app/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib1/app/src/debug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/app/src/debug/aidl
@@ -505,11 +505,11 @@ MODULE: TestCompositeLib1-app
                     file://./TestCompositeLib1/app/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib1/app/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib1/app/src/test
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./TestCompositeLib1/app/src/test
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/app/src/test/aidl
@@ -530,9 +530,9 @@ MODULE: TestCompositeLib1-app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib1/app/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib1/app/src/testDebug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/app/src/testDebug/aidl
@@ -552,11 +552,11 @@ MODULE: TestCompositeLib1-app
                     file://./TestCompositeLib1/app/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib1/app/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTest
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./TestCompositeLib1/app/src/androidTest
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTest/aidl
@@ -577,9 +577,9 @@ MODULE: TestCompositeLib1-app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib1/app/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/app/src/androidTestDebug/aidl
@@ -600,13 +600,13 @@ MODULE: TestCompositeLib1-app
 MODULE: TestCompositeLib1-lib
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./TestCompositeLib1/lib/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./TestCompositeLib1/lib/src/main
             AidlDirectoryUrls:
                 file://./TestCompositeLib1/lib/src/main/aidl
@@ -867,7 +867,7 @@ MODULE: TestCompositeLib1-lib
         Manifests:
             file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
         Sources:
-            testCompositeBuild (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
                     file://./TestCompositeLib1/lib/src/debug/AndroidManifest.xml
@@ -907,7 +907,7 @@ MODULE: TestCompositeLib1-lib
                     file://./TestCompositeLib1/lib/src/main/shaders
                     file://./TestCompositeLib1/lib/src/debug/shaders
         UnitTestSources:
-            testCompositeBuild (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./TestCompositeLib1/lib/src/test/AndroidManifest.xml
                     file://./TestCompositeLib1/lib/src/testDebug/AndroidManifest.xml
@@ -943,7 +943,7 @@ MODULE: TestCompositeLib1-lib
                     file://./TestCompositeLib1/lib/src/test/shaders
                     file://./TestCompositeLib1/lib/src/testDebug/shaders
         AndroidTestSources:
-            testCompositeBuild (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./TestCompositeLib1/lib/src/androidTest/AndroidManifest.xml
                     file://./TestCompositeLib1/lib/src/androidTestDebug/AndroidManifest.xml
@@ -980,13 +980,13 @@ MODULE: TestCompositeLib1-lib
                     file://./TestCompositeLib1/lib/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./TestCompositeLib1/lib/src/main
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/main/aidl
@@ -1009,9 +1009,9 @@ MODULE: TestCompositeLib1-lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib1/lib/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/debug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/debug/aidl
@@ -1030,9 +1030,9 @@ MODULE: TestCompositeLib1-lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib1/lib/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/release
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/release/aidl
@@ -1052,13 +1052,13 @@ MODULE: TestCompositeLib1-lib
                     file://./TestCompositeLib1/lib/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./TestCompositeLib1/lib/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./TestCompositeLib1/lib/src/main
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/main/aidl
@@ -1081,9 +1081,9 @@ MODULE: TestCompositeLib1-lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib1/lib/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/debug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/debug/aidl
@@ -1103,11 +1103,11 @@ MODULE: TestCompositeLib1-lib
                     file://./TestCompositeLib1/lib/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib1/lib/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/test
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./TestCompositeLib1/lib/src/test
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/test/aidl
@@ -1128,9 +1128,9 @@ MODULE: TestCompositeLib1-lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib1/lib/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/testDebug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/testDebug/aidl
@@ -1150,11 +1150,11 @@ MODULE: TestCompositeLib1-lib
                     file://./TestCompositeLib1/lib/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib1/lib/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTest
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./TestCompositeLib1/lib/src/androidTest
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTest/aidl
@@ -1175,9 +1175,9 @@ MODULE: TestCompositeLib1-lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib1/lib/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib1/lib/src/androidTestDebug/aidl
@@ -1199,13 +1199,13 @@ MODULE: TestCompositeLib3
 MODULE: TestCompositeLib3-app
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./TestCompositeLib3/app/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./TestCompositeLib3/app/src/main
             AidlDirectoryUrls:
                 file://./TestCompositeLib3/app/src/main/aidl
@@ -1466,7 +1466,7 @@ MODULE: TestCompositeLib3-app
         Manifests:
             file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
         Sources:
-            testCompositeBuild (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
                     file://./TestCompositeLib3/app/src/debug/AndroidManifest.xml
@@ -1506,7 +1506,7 @@ MODULE: TestCompositeLib3-app
                     file://./TestCompositeLib3/app/src/main/shaders
                     file://./TestCompositeLib3/app/src/debug/shaders
         UnitTestSources:
-            testCompositeBuild (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./TestCompositeLib3/app/src/test/AndroidManifest.xml
                     file://./TestCompositeLib3/app/src/testDebug/AndroidManifest.xml
@@ -1542,7 +1542,7 @@ MODULE: TestCompositeLib3-app
                     file://./TestCompositeLib3/app/src/test/shaders
                     file://./TestCompositeLib3/app/src/testDebug/shaders
         AndroidTestSources:
-            testCompositeBuild (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./TestCompositeLib3/app/src/androidTest/AndroidManifest.xml
                     file://./TestCompositeLib3/app/src/androidTestDebug/AndroidManifest.xml
@@ -1579,13 +1579,13 @@ MODULE: TestCompositeLib3-app
                     file://./TestCompositeLib3/app/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib3/app/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./TestCompositeLib3/app/src/main
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/app/src/main/aidl
@@ -1608,9 +1608,9 @@ MODULE: TestCompositeLib3-app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib3/app/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib3/app/src/debug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/app/src/debug/aidl
@@ -1629,9 +1629,9 @@ MODULE: TestCompositeLib3-app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib3/app/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib3/app/src/release
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/app/src/release/aidl
@@ -1651,13 +1651,13 @@ MODULE: TestCompositeLib3-app
                     file://./TestCompositeLib3/app/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./TestCompositeLib3/app/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib3/app/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./TestCompositeLib3/app/src/main
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/app/src/main/aidl
@@ -1680,9 +1680,9 @@ MODULE: TestCompositeLib3-app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib3/app/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib3/app/src/debug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/app/src/debug/aidl
@@ -1702,11 +1702,11 @@ MODULE: TestCompositeLib3-app
                     file://./TestCompositeLib3/app/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib3/app/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib3/app/src/test
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./TestCompositeLib3/app/src/test
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/app/src/test/aidl
@@ -1727,9 +1727,9 @@ MODULE: TestCompositeLib3-app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib3/app/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib3/app/src/testDebug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/app/src/testDebug/aidl
@@ -1749,11 +1749,11 @@ MODULE: TestCompositeLib3-app
                     file://./TestCompositeLib3/app/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib3/app/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTest
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./TestCompositeLib3/app/src/androidTest
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTest/aidl
@@ -1774,9 +1774,9 @@ MODULE: TestCompositeLib3-app
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib3/app/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/app/src/androidTestDebug/aidl
@@ -1797,13 +1797,13 @@ MODULE: TestCompositeLib3-app
 MODULE: TestCompositeLib3-lib
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./TestCompositeLib3/lib/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./TestCompositeLib3/lib/src/main
             AidlDirectoryUrls:
                 file://./TestCompositeLib3/lib/src/main/aidl
@@ -2064,7 +2064,7 @@ MODULE: TestCompositeLib3-lib
         Manifests:
             file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
         Sources:
-            testCompositeBuild (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
                     file://./TestCompositeLib3/lib/src/debug/AndroidManifest.xml
@@ -2104,7 +2104,7 @@ MODULE: TestCompositeLib3-lib
                     file://./TestCompositeLib3/lib/src/main/shaders
                     file://./TestCompositeLib3/lib/src/debug/shaders
         UnitTestSources:
-            testCompositeBuild (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./TestCompositeLib3/lib/src/test/AndroidManifest.xml
                     file://./TestCompositeLib3/lib/src/testDebug/AndroidManifest.xml
@@ -2140,7 +2140,7 @@ MODULE: TestCompositeLib3-lib
                     file://./TestCompositeLib3/lib/src/test/shaders
                     file://./TestCompositeLib3/lib/src/testDebug/shaders
         AndroidTestSources:
-            testCompositeBuild (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./TestCompositeLib3/lib/src/androidTest/AndroidManifest.xml
                     file://./TestCompositeLib3/lib/src/androidTestDebug/AndroidManifest.xml
@@ -2177,13 +2177,13 @@ MODULE: TestCompositeLib3-lib
                     file://./TestCompositeLib3/lib/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./TestCompositeLib3/lib/src/main
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/main/aidl
@@ -2206,9 +2206,9 @@ MODULE: TestCompositeLib3-lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib3/lib/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/debug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/debug/aidl
@@ -2227,9 +2227,9 @@ MODULE: TestCompositeLib3-lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib3/lib/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/release
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/release/aidl
@@ -2249,13 +2249,13 @@ MODULE: TestCompositeLib3-lib
                     file://./TestCompositeLib3/lib/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./TestCompositeLib3/lib/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./TestCompositeLib3/lib/src/main
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/main/aidl
@@ -2278,9 +2278,9 @@ MODULE: TestCompositeLib3-lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib3/lib/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/debug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/debug/aidl
@@ -2300,11 +2300,11 @@ MODULE: TestCompositeLib3-lib
                     file://./TestCompositeLib3/lib/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib3/lib/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/test
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./TestCompositeLib3/lib/src/test
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/test/aidl
@@ -2325,9 +2325,9 @@ MODULE: TestCompositeLib3-lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib3/lib/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/testDebug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/testDebug/aidl
@@ -2347,11 +2347,11 @@ MODULE: TestCompositeLib3-lib
                     file://./TestCompositeLib3/lib/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib3/lib/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTest
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./TestCompositeLib3/lib/src/androidTest
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTest/aidl
@@ -2372,9 +2372,9 @@ MODULE: TestCompositeLib3-lib
                 ShadersDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./TestCompositeLib3/lib/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./TestCompositeLib3/lib/src/androidTestDebug/aidl
@@ -2398,13 +2398,13 @@ MODULE: testCompositeBuild
 MODULE: testCompositeBuild-app
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./app/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./app/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./app/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./app/src/main
             AidlDirectoryUrls:
                 file://./app/src/main/aidl
@@ -2665,7 +2665,7 @@ MODULE: testCompositeBuild-app
         Manifests:
             file://./app/src/main/AndroidManifest.xml
         Sources:
-            testCompositeBuild (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
                     file://./app/src/debug/AndroidManifest.xml
@@ -2705,7 +2705,7 @@ MODULE: testCompositeBuild-app
                     file://./app/src/main/shaders
                     file://./app/src/debug/shaders
         UnitTestSources:
-            testCompositeBuild (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./app/src/test/AndroidManifest.xml
                     file://./app/src/testDebug/AndroidManifest.xml
@@ -2741,7 +2741,7 @@ MODULE: testCompositeBuild-app
                     file://./app/src/test/shaders
                     file://./app/src/testDebug/shaders
         AndroidTestSources:
-            testCompositeBuild (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./app/src/androidTest/AndroidManifest.xml
                     file://./app/src/androidTestDebug/AndroidManifest.xml
@@ -2778,13 +2778,13 @@ MODULE: testCompositeBuild-app
                     file://./app/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./app/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
@@ -2807,9 +2807,9 @@ MODULE: testCompositeBuild-app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
@@ -2828,9 +2828,9 @@ MODULE: testCompositeBuild-app
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/release
                 AidlDirectoryUrls:
                     file://./app/src/release/aidl
@@ -2850,13 +2850,13 @@ MODULE: testCompositeBuild-app
                     file://./app/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./app/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
@@ -2879,9 +2879,9 @@ MODULE: testCompositeBuild-app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
@@ -2901,11 +2901,11 @@ MODULE: testCompositeBuild-app
                     file://./app/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/test
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./app/src/test
                 AidlDirectoryUrls:
                     file://./app/src/test/aidl
@@ -2926,9 +2926,9 @@ MODULE: testCompositeBuild-app
                 ShadersDirectoryUrls:
                     file://./app/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/testDebug
                 AidlDirectoryUrls:
                     file://./app/src/testDebug/aidl
@@ -2948,11 +2948,11 @@ MODULE: testCompositeBuild-app
                     file://./app/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/androidTest
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./app/src/androidTest
                 AidlDirectoryUrls:
                     file://./app/src/androidTest/aidl
@@ -2973,9 +2973,9 @@ MODULE: testCompositeBuild-app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./app/src/androidTestDebug/aidl
@@ -2996,13 +2996,13 @@ MODULE: testCompositeBuild-app
 MODULE: testCompositeBuild-lib
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./lib/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./lib/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./lib/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./lib/src/main
             AidlDirectoryUrls:
                 file://./lib/src/main/aidl
@@ -3263,7 +3263,7 @@ MODULE: testCompositeBuild-lib
         Manifests:
             file://./lib/src/main/AndroidManifest.xml
         Sources:
-            testCompositeBuild (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./lib/src/main/AndroidManifest.xml
                     file://./lib/src/debug/AndroidManifest.xml
@@ -3303,7 +3303,7 @@ MODULE: testCompositeBuild-lib
                     file://./lib/src/main/shaders
                     file://./lib/src/debug/shaders
         UnitTestSources:
-            testCompositeBuild (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./lib/src/test/AndroidManifest.xml
                     file://./lib/src/testDebug/AndroidManifest.xml
@@ -3339,7 +3339,7 @@ MODULE: testCompositeBuild-lib
                     file://./lib/src/test/shaders
                     file://./lib/src/testDebug/shaders
         AndroidTestSources:
-            testCompositeBuild (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./lib/src/androidTest/AndroidManifest.xml
                     file://./lib/src/androidTestDebug/AndroidManifest.xml
@@ -3376,13 +3376,13 @@ MODULE: testCompositeBuild-lib
                     file://./lib/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./lib/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./lib/src/main
                 AidlDirectoryUrls:
                     file://./lib/src/main/aidl
@@ -3405,9 +3405,9 @@ MODULE: testCompositeBuild-lib
                 ShadersDirectoryUrls:
                     file://./lib/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib/src/debug
                 AidlDirectoryUrls:
                     file://./lib/src/debug/aidl
@@ -3426,9 +3426,9 @@ MODULE: testCompositeBuild-lib
                 ShadersDirectoryUrls:
                     file://./lib/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib/src/release
                 AidlDirectoryUrls:
                     file://./lib/src/release/aidl
@@ -3448,13 +3448,13 @@ MODULE: testCompositeBuild-lib
                     file://./lib/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./lib/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./lib/src/main
                 AidlDirectoryUrls:
                     file://./lib/src/main/aidl
@@ -3477,9 +3477,9 @@ MODULE: testCompositeBuild-lib
                 ShadersDirectoryUrls:
                     file://./lib/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib/src/debug
                 AidlDirectoryUrls:
                     file://./lib/src/debug/aidl
@@ -3499,11 +3499,11 @@ MODULE: testCompositeBuild-lib
                     file://./lib/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib/src/test
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./lib/src/test
                 AidlDirectoryUrls:
                     file://./lib/src/test/aidl
@@ -3524,9 +3524,9 @@ MODULE: testCompositeBuild-lib
                 ShadersDirectoryUrls:
                     file://./lib/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib/src/testDebug
                 AidlDirectoryUrls:
                     file://./lib/src/testDebug/aidl
@@ -3546,11 +3546,11 @@ MODULE: testCompositeBuild-lib
                     file://./lib/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib/src/androidTest
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./lib/src/androidTest
                 AidlDirectoryUrls:
                     file://./lib/src/androidTest/aidl
@@ -3571,9 +3571,9 @@ MODULE: testCompositeBuild-lib
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./lib/src/androidTestDebug/aidl

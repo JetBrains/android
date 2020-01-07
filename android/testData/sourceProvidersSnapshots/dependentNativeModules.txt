@@ -1,13 +1,13 @@
 MODULE: app
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./app/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./app/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./app/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./app/src/main
             AidlDirectoryUrls:
                 file://./app/src/main/aidl
@@ -268,7 +268,7 @@ MODULE: app
         Manifests:
             file://./app/src/main/AndroidManifest.xml
         Sources:
-            testDependentNativeModules (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
                     file://./app/src/debug/AndroidManifest.xml
@@ -308,7 +308,7 @@ MODULE: app
                     file://./app/src/main/shaders
                     file://./app/src/debug/shaders
         UnitTestSources:
-            testDependentNativeModules (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./app/src/test/AndroidManifest.xml
                     file://./app/src/testDebug/AndroidManifest.xml
@@ -340,7 +340,7 @@ MODULE: app
                     file://./app/src/test/shaders
                     file://./app/src/testDebug/shaders
         AndroidTestSources:
-            testDependentNativeModules (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./app/src/androidTest/AndroidManifest.xml
                     file://./app/src/androidTestDebug/AndroidManifest.xml
@@ -373,13 +373,13 @@ MODULE: app
                     file://./app/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./app/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
@@ -402,9 +402,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
@@ -423,9 +423,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/release
                 AidlDirectoryUrls:
                     file://./app/src/release/aidl
@@ -445,13 +445,13 @@ MODULE: app
                     file://./app/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./app/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
@@ -474,9 +474,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
@@ -496,9 +496,9 @@ MODULE: app
                     file://./app/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/test
                 AidlDirectoryUrls:
                     file://./app/src/test/aidl
@@ -517,9 +517,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/testDebug
                 AidlDirectoryUrls:
                     file://./app/src/testDebug/aidl
@@ -539,9 +539,9 @@ MODULE: app
                     file://./app/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/androidTest
                 AidlDirectoryUrls:
                     file://./app/src/androidTest/aidl
@@ -560,9 +560,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./app/src/androidTestDebug/aidl
@@ -583,13 +583,13 @@ MODULE: app
 MODULE: lib1
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./lib1/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./lib1/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./lib1/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./lib1/src/main
             AidlDirectoryUrls:
                 file://./lib1/src/main/aidl
@@ -848,7 +848,7 @@ MODULE: lib1
         Manifests:
             file://./lib1/src/main/AndroidManifest.xml
         Sources:
-            testDependentNativeModules (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./lib1/src/main/AndroidManifest.xml
                     file://./lib1/src/debug/AndroidManifest.xml
@@ -886,7 +886,7 @@ MODULE: lib1
                     file://./lib1/src/main/shaders
                     file://./lib1/src/debug/shaders
         UnitTestSources:
-            testDependentNativeModules (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./lib1/src/test/AndroidManifest.xml
                     file://./lib1/src/testDebug/AndroidManifest.xml
@@ -918,7 +918,7 @@ MODULE: lib1
                     file://./lib1/src/test/shaders
                     file://./lib1/src/testDebug/shaders
         AndroidTestSources:
-            testDependentNativeModules (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./lib1/src/androidTest/AndroidManifest.xml
                     file://./lib1/src/androidTestDebug/AndroidManifest.xml
@@ -951,13 +951,13 @@ MODULE: lib1
                     file://./lib1/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib1/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./lib1/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib1/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./lib1/src/main
                 AidlDirectoryUrls:
                     file://./lib1/src/main/aidl
@@ -978,9 +978,9 @@ MODULE: lib1
                 ShadersDirectoryUrls:
                     file://./lib1/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib1/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib1/src/debug
                 AidlDirectoryUrls:
                     file://./lib1/src/debug/aidl
@@ -999,9 +999,9 @@ MODULE: lib1
                 ShadersDirectoryUrls:
                     file://./lib1/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib1/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib1/src/release
                 AidlDirectoryUrls:
                     file://./lib1/src/release/aidl
@@ -1021,13 +1021,13 @@ MODULE: lib1
                     file://./lib1/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib1/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./lib1/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib1/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./lib1/src/main
                 AidlDirectoryUrls:
                     file://./lib1/src/main/aidl
@@ -1048,9 +1048,9 @@ MODULE: lib1
                 ShadersDirectoryUrls:
                     file://./lib1/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib1/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib1/src/debug
                 AidlDirectoryUrls:
                     file://./lib1/src/debug/aidl
@@ -1070,9 +1070,9 @@ MODULE: lib1
                     file://./lib1/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib1/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib1/src/test
                 AidlDirectoryUrls:
                     file://./lib1/src/test/aidl
@@ -1091,9 +1091,9 @@ MODULE: lib1
                 ShadersDirectoryUrls:
                     file://./lib1/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib1/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib1/src/testDebug
                 AidlDirectoryUrls:
                     file://./lib1/src/testDebug/aidl
@@ -1113,9 +1113,9 @@ MODULE: lib1
                     file://./lib1/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib1/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib1/src/androidTest
                 AidlDirectoryUrls:
                     file://./lib1/src/androidTest/aidl
@@ -1134,9 +1134,9 @@ MODULE: lib1
                 ShadersDirectoryUrls:
                     file://./lib1/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib1/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib1/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./lib1/src/androidTestDebug/aidl
@@ -1157,13 +1157,13 @@ MODULE: lib1
 MODULE: lib2
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./lib2/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./lib2/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./lib2/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./lib2/src/main
             AidlDirectoryUrls:
                 file://./lib2/src/main/aidl
@@ -1422,7 +1422,7 @@ MODULE: lib2
         Manifests:
             file://./lib2/src/main/AndroidManifest.xml
         Sources:
-            testDependentNativeModules (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./lib2/src/main/AndroidManifest.xml
                     file://./lib2/src/debug/AndroidManifest.xml
@@ -1460,7 +1460,7 @@ MODULE: lib2
                     file://./lib2/src/main/shaders
                     file://./lib2/src/debug/shaders
         UnitTestSources:
-            testDependentNativeModules (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./lib2/src/test/AndroidManifest.xml
                     file://./lib2/src/testDebug/AndroidManifest.xml
@@ -1492,7 +1492,7 @@ MODULE: lib2
                     file://./lib2/src/test/shaders
                     file://./lib2/src/testDebug/shaders
         AndroidTestSources:
-            testDependentNativeModules (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./lib2/src/androidTest/AndroidManifest.xml
                     file://./lib2/src/androidTestDebug/AndroidManifest.xml
@@ -1525,13 +1525,13 @@ MODULE: lib2
                     file://./lib2/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib2/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./lib2/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib2/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./lib2/src/main
                 AidlDirectoryUrls:
                     file://./lib2/src/main/aidl
@@ -1552,9 +1552,9 @@ MODULE: lib2
                 ShadersDirectoryUrls:
                     file://./lib2/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib2/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib2/src/debug
                 AidlDirectoryUrls:
                     file://./lib2/src/debug/aidl
@@ -1573,9 +1573,9 @@ MODULE: lib2
                 ShadersDirectoryUrls:
                     file://./lib2/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib2/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib2/src/release
                 AidlDirectoryUrls:
                     file://./lib2/src/release/aidl
@@ -1595,13 +1595,13 @@ MODULE: lib2
                     file://./lib2/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib2/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./lib2/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib2/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./lib2/src/main
                 AidlDirectoryUrls:
                     file://./lib2/src/main/aidl
@@ -1622,9 +1622,9 @@ MODULE: lib2
                 ShadersDirectoryUrls:
                     file://./lib2/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib2/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib2/src/debug
                 AidlDirectoryUrls:
                     file://./lib2/src/debug/aidl
@@ -1644,9 +1644,9 @@ MODULE: lib2
                     file://./lib2/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib2/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib2/src/test
                 AidlDirectoryUrls:
                     file://./lib2/src/test/aidl
@@ -1665,9 +1665,9 @@ MODULE: lib2
                 ShadersDirectoryUrls:
                     file://./lib2/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib2/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib2/src/testDebug
                 AidlDirectoryUrls:
                     file://./lib2/src/testDebug/aidl
@@ -1687,9 +1687,9 @@ MODULE: lib2
                     file://./lib2/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib2/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib2/src/androidTest
                 AidlDirectoryUrls:
                     file://./lib2/src/androidTest/aidl
@@ -1708,9 +1708,9 @@ MODULE: lib2
                 ShadersDirectoryUrls:
                     file://./lib2/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib2/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib2/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./lib2/src/androidTestDebug/aidl
@@ -1731,13 +1731,13 @@ MODULE: lib2
 MODULE: lib3
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./lib3/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./lib3/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./lib3/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./lib3/src/main
             AidlDirectoryUrls:
                 file://./lib3/src/main/aidl
@@ -1996,7 +1996,7 @@ MODULE: lib3
         Manifests:
             file://./lib3/src/main/AndroidManifest.xml
         Sources:
-            testDependentNativeModules (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./lib3/src/main/AndroidManifest.xml
                     file://./lib3/src/debug/AndroidManifest.xml
@@ -2034,7 +2034,7 @@ MODULE: lib3
                     file://./lib3/src/main/shaders
                     file://./lib3/src/debug/shaders
         UnitTestSources:
-            testDependentNativeModules (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./lib3/src/test/AndroidManifest.xml
                     file://./lib3/src/testDebug/AndroidManifest.xml
@@ -2066,7 +2066,7 @@ MODULE: lib3
                     file://./lib3/src/test/shaders
                     file://./lib3/src/testDebug/shaders
         AndroidTestSources:
-            testDependentNativeModules (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./lib3/src/androidTest/AndroidManifest.xml
                     file://./lib3/src/androidTestDebug/AndroidManifest.xml
@@ -2099,13 +2099,13 @@ MODULE: lib3
                     file://./lib3/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib3/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./lib3/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib3/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./lib3/src/main
                 AidlDirectoryUrls:
                     file://./lib3/src/main/aidl
@@ -2126,9 +2126,9 @@ MODULE: lib3
                 ShadersDirectoryUrls:
                     file://./lib3/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib3/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib3/src/debug
                 AidlDirectoryUrls:
                     file://./lib3/src/debug/aidl
@@ -2147,9 +2147,9 @@ MODULE: lib3
                 ShadersDirectoryUrls:
                     file://./lib3/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib3/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib3/src/release
                 AidlDirectoryUrls:
                     file://./lib3/src/release/aidl
@@ -2169,13 +2169,13 @@ MODULE: lib3
                     file://./lib3/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib3/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./lib3/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib3/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./lib3/src/main
                 AidlDirectoryUrls:
                     file://./lib3/src/main/aidl
@@ -2196,9 +2196,9 @@ MODULE: lib3
                 ShadersDirectoryUrls:
                     file://./lib3/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib3/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib3/src/debug
                 AidlDirectoryUrls:
                     file://./lib3/src/debug/aidl
@@ -2218,9 +2218,9 @@ MODULE: lib3
                     file://./lib3/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib3/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib3/src/test
                 AidlDirectoryUrls:
                     file://./lib3/src/test/aidl
@@ -2239,9 +2239,9 @@ MODULE: lib3
                 ShadersDirectoryUrls:
                     file://./lib3/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib3/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib3/src/testDebug
                 AidlDirectoryUrls:
                     file://./lib3/src/testDebug/aidl
@@ -2261,9 +2261,9 @@ MODULE: lib3
                     file://./lib3/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib3/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib3/src/androidTest
                 AidlDirectoryUrls:
                     file://./lib3/src/androidTest/aidl
@@ -2282,9 +2282,9 @@ MODULE: lib3
                 ShadersDirectoryUrls:
                     file://./lib3/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib3/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib3/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./lib3/src/androidTestDebug/aidl

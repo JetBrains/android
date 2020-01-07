@@ -1,13 +1,13 @@
 MODULE: MyApplication
     by Facet:
          (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://.
-            ManifestDirectory:
+            ManifestDirectories:
                 file://.
             AidlDirectoryUrls:
                 file://./gen
@@ -29,7 +29,7 @@ MODULE: MyApplication
         Manifests:
             file://./AndroidManifest.xml
         Sources:
-            My Application (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./AndroidManifest.xml
                 ManifestFiles:
@@ -55,18 +55,18 @@ MODULE: MyApplication
                 ResDirectories:
                     file://./res
         UnitTestSources:
-            My Application (IDEA)
+            UnitTestSources (IDEA)
         AndroidTestSources:
-            My Application (IDEA)
+            AndroidTestSources (IDEA)
         AllIdeaSourceProviders:
              (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://.
-                ManifestDirectory:
+                ManifestDirectories:
                     file://.
                 AidlDirectoryUrls:
                     file://./gen
@@ -86,13 +86,13 @@ MODULE: MyApplication
                     file://./res
         CurrentSourceProviders:
              (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://.
-                ManifestDirectory:
+                ManifestDirectories:
                     file://.
                 AidlDirectoryUrls:
                     file://./gen

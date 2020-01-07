@@ -68,7 +68,7 @@ interface SourceProviders {
    * Note: A module may have multiple manifest files which are merged by the build process. Consider using [MergedManifestManager] APIs to
    *       look up data in the merged manifest.
    */
-  val mainManifestFile: VirtualFile? get() = mainIdeaSourceProvider.manifestFile
+  val mainManifestFile: VirtualFile? get() = mainIdeaSourceProvider.manifestFiles.singleOrNull()
 
   /**
    * Returns a list of source providers, in the overlay order (meaning that later providers
@@ -155,7 +155,7 @@ interface SourceProviders {
         override val mainIdeaSourceProvider: NamedIdeaSourceProvider
           get() = sourceSet
         override val mainManifestFile: VirtualFile?
-          get() = sourceSet.manifestFile
+          get() = sourceSet.manifestFiles.single()
       })
       Disposer.register(disposable, Disposable { facet.putUserData(KEY, null) })
     }
@@ -258,8 +258,8 @@ private class SourceProviderManagerComponent(val project: Project) : ProjectComp
 
 fun createMergedSourceProvider(providers: List<NamedIdeaSourceProvider>): IdeaSourceProvider =
   IdeaSourceProviderImpl(
-    manifestFileUrls = providers.map { it.manifestFileUrl },
-    manifestDirectoryUrls = providers.map { it.manifestDirectoryUrl },
+    manifestFileUrls = providers.flatMap { it.manifestFileUrls },
+    manifestDirectoryUrls = providers.flatMap { it.manifestDirectoryUrls },
     javaDirectoryUrls = providers.flatMap { it.javaDirectoryUrls },
     resourcesDirectoryUrls = providers.flatMap { it.resourcesDirectoryUrls },
     aidlDirectoryUrls = providers.flatMap { it.aidlDirectoryUrls },

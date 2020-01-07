@@ -26,7 +26,7 @@ import com.intellij.openapi.vfs.VirtualFileManager
 // TODO(solodkyy): Merge with (derive from) IdeaSourceProviderCoreImpl when virtual files are statically resolved from the urls.
 class NamedIdeaSourceProviderImpl(
   override val name: String,
-  override val manifestFileUrl: String,
+  private val manifestFileUrl: String,
   override val javaDirectoryUrls: Collection<String> = emptyList(),
   override val resourcesDirectoryUrls: Collection<String> = emptyList(),
   override val aidlDirectoryUrls: Collection<String> = emptyList(),
@@ -40,7 +40,7 @@ class NamedIdeaSourceProviderImpl(
   @Volatile
   private var myManifestFile: VirtualFile? = null
 
-  override val manifestFile: VirtualFile?
+  private val manifestFile: VirtualFile?
     get() {
       if (myManifestFile == null || !myManifestFile!!.isValid) {
         myManifestFile = VirtualFileManager.getInstance().findFileByUrl(manifestFileUrl)
@@ -48,11 +48,24 @@ class NamedIdeaSourceProviderImpl(
       return myManifestFile
     }
 
-  override val manifestDirectory: VirtualFile?
+  private val manifestDirectory: VirtualFile?
     get() = VirtualFileManager.getInstance().findFileByUrl(manifestDirectoryUrl)
 
-  override val manifestDirectoryUrl: String
+  private val manifestDirectoryUrl: String
     get() = VfsUtil.getParentDir(manifestFileUrl) ?: error("Invalid manifestFileUrl: $manifestFileUrl")
+
+  override val manifestFileUrls: Collection<String>
+    get() = listOf(manifestFileUrl)
+
+  override val manifestFiles: Collection<VirtualFile>
+    get() = listOfNotNull(manifestFile)
+
+  override val manifestDirectoryUrls: Collection<String>
+    get() = listOf(manifestDirectoryUrl)
+
+  override val manifestDirectories: Collection<VirtualFile>
+    get() = listOfNotNull(manifestDirectory)
+
 
   override val javaDirectories: Collection<VirtualFile> get() = convertUrlSet(javaDirectoryUrls)
 
