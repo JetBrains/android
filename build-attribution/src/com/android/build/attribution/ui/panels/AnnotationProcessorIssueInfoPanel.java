@@ -17,6 +17,7 @@ package com.android.build.attribution.ui.panels;
 
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.warningIcon;
 
+import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel;
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics;
 import com.android.build.attribution.ui.data.AnnotationProcessorUiData;
 import com.android.utils.HtmlBuilder;
@@ -28,9 +29,6 @@ import java.awt.GridBagLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import org.jetbrains.annotations.NotNull;
 
 public class AnnotationProcessorIssueInfoPanel extends JBPanel {
   private static final String DESCRIPTION = "This annotation processor is non-incremental and causes the JavaCompile task " +
@@ -78,23 +76,8 @@ public class AnnotationProcessorIssueInfoPanel extends JBPanel {
       .getHtml();
 
     JLabel iconLabel = new JLabel(warningIcon());
-    JBLabel issueDescription = new JBLabel() {
-      @NotNull
-      @Override
-      protected HyperlinkListener createHyperlinkListener() {
-        HyperlinkListener listener = super.createHyperlinkListener();
-        return new HyperlinkListener() {
-          @Override
-          public void hyperlinkUpdate(HyperlinkEvent e) {
-            myAnalytics.helpLinkClicked();
-            listener.hyperlinkUpdate(e);
-          }
-        };
-      }
-    };
-    issueDescription.setAllowAutoWrapping(true).setCopyable(true);
+    JBLabel issueDescription = new DescriptionWithHelpLinkLabel(text, myAnalytics);
     issueDescription.setVerticalTextPosition(SwingConstants.TOP);
-    issueDescription.setText(text);
 
     JBPanel<JBPanel> panel = new JBPanel<>(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
