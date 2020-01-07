@@ -19,6 +19,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
@@ -57,7 +58,7 @@ fun KtAnnotationEntry.getQualifiedName(): String? {
 /** Computes the qualified name for a Kotlin Class. Returns null if the class is a kotlin built-in. */
 fun KtClass.getQualifiedName(): String? {
   val classDescriptor = analyze(BodyResolveMode.PARTIAL).get(BindingContext.CLASS, this) ?: return null
- return if (KotlinBuiltIns.isUnderKotlinPackage(classDescriptor)) {
+  return if (KotlinBuiltIns.isUnderKotlinPackage(classDescriptor) || classDescriptor.kind != ClassKind.CLASS) {
     null
   } else {
     classDescriptor.fqNameSafe.asString()
