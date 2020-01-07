@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.flags;
 
+import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_NATIVE_PLUGIN;
+import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_STANDARD_PLUGIN;
+
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.ui.LayoutInspectorSettingsKt;
@@ -39,9 +42,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 public class ExperimentalSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
-  public static final String LAYOUTLIB_NATIVE_PLUGIN = "com.android.layoutlib.native";
-  public static final String LAYOUTLIB_STANDARD_PLUGIN = "com.android.layoutlib.standard";
-
   @NotNull private final GradleExperimentalSettings mySettings;
   @NotNull private final RenderSettings myRenderSettings;
 

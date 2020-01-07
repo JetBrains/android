@@ -989,6 +989,7 @@
   <extensions defaultExtensionNs="com.android.rendering">
     <renderErrorContributor implementation="com.android.tools.idea.rendering.RenderErrorContributor$Provider"/>
     <renderErrorContributor implementation="com.android.tools.idea.gradle.rendering.GradleRenderErrorContributor$GradleProvider"/>
+    <renderErrorContributor implementation="com.android.tools.idea.rendering.LayoutlibPluginRenderErrorContributor$LayoutlibPluginProvider"/>
   </extensions>
 
   <!-- Begin new deployment target selection -->
