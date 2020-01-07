@@ -31,6 +31,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.MouseEventHandler;
 import java.awt.FlowLayout;
 import java.awt.Point;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -146,6 +147,12 @@ public class TrackGroupListPanel implements TrackGroupMover {
     myRangeTooltipComponent = rangeTooltipComponent;
     if (rangeTooltipComponent != null) {
       rangeTooltipComponent.registerListenersOn(getComponent());
+    }
+  }
+
+  public void addKeyListenerToTrackGroups(@NotNull KeyListener keyListener) {
+    for (TrackGroup trackGroup : myTrackGroups) {
+      trackGroup.getTrackList().addKeyListener(keyListener);
     }
   }
 

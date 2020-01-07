@@ -20,6 +20,7 @@ import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -198,6 +199,59 @@ class CpuCaptureStageViewTest {
     assertThat(profilersView.deselectAllToolbar.isVisible).isTrue()
     ui.mouse.click(0, 0)
     assertThat(stage.multiSelectionModel.isEmpty).isTrue()
+  }
+
+  @Test
+  fun trackGroupKeyboardShortcuts() {
+    val stageView = CpuCaptureStageView(profilersView, stage)
+    stage.enter()
+    stageView.component.setBounds(0, 0, 500, 500)
+
+    assertThat(stageView.trackGroupList.trackGroups).isNotEmpty()
+    val trackGroup = stageView.trackGroupList.trackGroups[0]
+    val ui = FakeUi(trackGroup.trackList)
+    val selectionRange = stage.minimapModel.rangeSelectionModel.selectionRange
+    var rangeLength = selectionRange.length
+
+    // Press W to zoom in.
+    ui.keyboard.setFocus(trackGroup.trackList)
+    ui.keyboard.press(FakeKeyboard.Key.W)
+    ui.keyboard.release(FakeKeyboard.Key.W)
+    assertThat(selectionRange.length).isLessThan(rangeLength)
+
+    // Press S to zoom out.
+    rangeLength = selectionRange.length
+    ui.keyboard.press(FakeKeyboard.Key.S)
+    ui.keyboard.release(FakeKeyboard.Key.S)
+    assertThat(selectionRange.length).isGreaterThan(rangeLength)
+
+    // Press A or left arrow to pan left.
+    // First select a small range.
+    selectionRange.set(selectionRange.min + 100.0, selectionRange.min + 200.0)
+    var oldRange = Range(selectionRange)
+    ui.keyboard.press(FakeKeyboard.Key.A)
+    ui.keyboard.release(FakeKeyboard.Key.A)
+    assertThat(selectionRange.min).isLessThan(oldRange.min)
+    assertThat(selectionRange.max).isLessThan(oldRange.max)
+    oldRange = Range(selectionRange)
+    ui.keyboard.press(FakeKeyboard.Key.LEFT)
+    ui.keyboard.release(FakeKeyboard.Key.LEFT)
+    assertThat(selectionRange.min).isLessThan(oldRange.min)
+    assertThat(selectionRange.max).isLessThan(oldRange.max)
+
+    // Press D or right arrow to pan right.
+    // First select a small range.
+    selectionRange.set(selectionRange.min + 100.0, selectionRange.min + 200.0)
+    oldRange = Range(selectionRange)
+    ui.keyboard.press(FakeKeyboard.Key.D)
+    ui.keyboard.release(FakeKeyboard.Key.D)
+    assertThat(selectionRange.min).isGreaterThan(oldRange.min)
+    assertThat(selectionRange.max).isGreaterThan(oldRange.max)
+    oldRange = Range(selectionRange)
+    ui.keyboard.press(FakeKeyboard.Key.RIGHT)
+    ui.keyboard.release(FakeKeyboard.Key.RIGHT)
+    assertThat(selectionRange.min).isGreaterThan(oldRange.min)
+    assertThat(selectionRange.max).isGreaterThan(oldRange.max)
   }
 
   private class FakeCaptureNodeModel(val aName: String, val aFullName: String, val anId: String) : CaptureNodeModel {
