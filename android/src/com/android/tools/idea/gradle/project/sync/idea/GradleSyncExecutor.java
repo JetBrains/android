@@ -104,8 +104,6 @@ public class GradleSyncExecutor {
           setupRequest.usingCachedGradleModels = true;
           setupRequest.lastSyncTimestamp = buildFileChecksums.getLastGradleSyncTimestamp();
 
-          setSkipAndroidPluginUpgrade(request, setupRequest);
-
           // Create a new taskId when using cache
           ExternalSystemTaskId taskId = createProjectSetupFromCacheTaskWithStartMessage(myProject);
 
@@ -131,8 +129,6 @@ public class GradleSyncExecutor {
     boolean shouldUseSingleVariantSync = !request.forceFullVariantsSync && GradleSyncState.isSingleVariantSync();
     // We also need to pass the listener so that the callbacks can be used
     setProjectUserDataForAndroidGradleProjectResolver(shouldUseSingleVariantSync, listener);
-
-    setSkipAndroidPluginUpgrade(request, setupRequest);
 
     // the sync should be aware of multiple linked gradle project with a single IDE project
     // and a linked gradle project can be located not in the IDE Project.baseDir
@@ -199,13 +195,6 @@ public class GradleSyncExecutor {
     //noinspection unchecked
     ExternalSystemApiUtil.getSettings(project, SYSTEM_ID).linkProject(projectSettings);
     return externalProjectPath;
-  }
-
-  private static void setSkipAndroidPluginUpgrade(@NotNull GradleSyncInvoker.Request syncRequest,
-                                                  @NotNull PostSyncProjectSetup.Request setupRequest) {
-    if (ApplicationManager.getApplication().isUnitTestMode() && syncRequest.skipAndroidPluginUpgrade) {
-      setupRequest.skipAndroidPluginUpgrade = true;
-    }
   }
 
   /**

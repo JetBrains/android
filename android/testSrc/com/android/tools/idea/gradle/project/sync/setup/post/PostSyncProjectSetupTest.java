@@ -75,13 +75,11 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
   @Mock private DependencySetupIssues myDependencySetupIssues;
   @Mock private ProjectSetup myProjectSetup;
   @Mock private ModuleSetup myModuleSetup;
-  @Mock private PluginVersionUpgrade myVersionUpgrade;
   @Mock private GradleProjectBuilder myProjectBuilder;
   @Mock private RunManagerEx myRunManager;
   @Mock private ExternalSystemTaskId myTaskId;
   @Mock private SyncViewManager myViewManager;
 
-  private ProjectStructureStub myProjectStructure;
   private PostSyncProjectSetup mySetup;
 
   @Override
@@ -94,10 +92,9 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
 
     new IdeComponents(myProject).replaceProjectService(SyncViewManager.class, myViewManager);
 
-    myProjectStructure = new ProjectStructureStub(project);
-    mySetup = new PostSyncProjectSetup(project, myIdeInfo, myProjectStructure, myGradleProjectInfo, mySyncInvoker, mySyncState,
-                                       myDependencySetupIssues, myProjectSetup, myModuleSetup, myVersionUpgrade,
-                                       myProjectBuilder, myRunManager);
+    ProjectStructureStub projectStructure = new ProjectStructureStub(project);
+    mySetup = new PostSyncProjectSetup(project, myIdeInfo, projectStructure, myGradleProjectInfo, mySyncInvoker, mySyncState,
+                                       myDependencySetupIssues, myProjectSetup, myModuleSetup, myRunManager);
   }
 
   @Override
@@ -195,7 +192,6 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
 
     mySetup.setUpProject(request, myTaskId, null);
 
-    Project project = getProject();
     verify(myDependencySetupIssues, times(1)).reportIssues();
 
     verify(myProjectSetup, times(1)).setUpProject(true);

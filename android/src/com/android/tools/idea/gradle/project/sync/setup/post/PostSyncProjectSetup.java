@@ -36,7 +36,6 @@ import com.android.tools.idea.gradle.project.ProjectStructure.AndroidPluginVersi
 import com.android.tools.idea.gradle.project.RunConfigurationChecker;
 import com.android.tools.idea.gradle.project.SupportedModuleChecker;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncFailure;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -109,8 +108,6 @@ public class PostSyncProjectSetup {
   @NotNull private final DependencySetupIssues myDependencySetupIssues;
   @NotNull private final ProjectSetup myProjectSetup;
   @NotNull private final ModuleSetup myModuleSetup;
-  @NotNull private final PluginVersionUpgrade myPluginVersionUpgrade;
-  @NotNull private final GradleProjectBuilder myProjectBuilder;
   @NotNull private final RunManagerEx myRunManager;
 
   @NotNull
@@ -126,11 +123,9 @@ public class PostSyncProjectSetup {
                               @NotNull GradleSyncInvoker syncInvoker,
                               @NotNull GradleSyncState syncState,
                               @NotNull GradleSyncMessages syncMessages,
-                              @NotNull DependencySetupIssues dependencySetupIssues,
-                              @NotNull PluginVersionUpgrade pluginVersionUpgrade,
-                              @NotNull GradleProjectBuilder projectBuilder) {
+                              @NotNull DependencySetupIssues dependencySetupIssues) {
     this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
-         new ModuleSetup(project), pluginVersionUpgrade, projectBuilder, RunManagerEx.getInstanceEx(project));
+         new ModuleSetup(project), RunManagerEx.getInstanceEx(project));
   }
 
   @NonInjectable
@@ -144,8 +139,6 @@ public class PostSyncProjectSetup {
                        @NotNull DependencySetupIssues dependencySetupIssues,
                        @NotNull ProjectSetup projectSetup,
                        @NotNull ModuleSetup moduleSetup,
-                       @NotNull PluginVersionUpgrade pluginVersionUpgrade,
-                       @NotNull GradleProjectBuilder projectBuilder,
                        @NotNull RunManagerEx runManager) {
     myProject = project;
     myIdeInfo = ideInfo;
@@ -156,8 +149,6 @@ public class PostSyncProjectSetup {
     myDependencySetupIssues = dependencySetupIssues;
     myProjectSetup = projectSetup;
     myModuleSetup = moduleSetup;
-    myPluginVersionUpgrade = pluginVersionUpgrade;
-    myProjectBuilder = projectBuilder;
     myRunManager = runManager;
   }
 
@@ -197,7 +188,7 @@ public class PostSyncProjectSetup {
       // Needed internally for development of Android support lib.
       boolean skipAgpUpgrade = SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false);
 
-      if (!skipAgpUpgrade && !request.skipAndroidPluginUpgrade) {
+      if (!skipAgpUpgrade) {
         RecommendedPluginVersionUpgrade.checkAndShowNotification(myProject);
       }
 
@@ -461,7 +452,6 @@ public class PostSyncProjectSetup {
   public static class Request {
     public boolean usingCachedGradleModels;
     public boolean cleanProjectAfterSync;
-    public boolean skipAndroidPluginUpgrade;
     public long lastSyncTimestamp = -1L;
 
     @Override
