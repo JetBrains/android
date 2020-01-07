@@ -37,6 +37,7 @@ class TaskUiDataContainer(
 ) {
 
   private val tasksCache: MutableMap<TaskData, TaskUiData> = HashMap()
+  private val tasksDeterminingBuildDuration: Set<TaskData> = buildAnalysisResult.getTasksDeterminingBuildDuration().toHashSet()
   private val totalBuildTimeMs: Long = buildAnalysisResult.getTotalBuildTimeMs()
 
   fun getByTaskData(task: TaskData): TaskUiData = tasksCache.computeIfAbsent(task) {
@@ -56,7 +57,8 @@ class TaskUiDataContainer(
       override val executionTime: TimeWithPercentage = TimeWithPercentage(task.executionTime, criticalPathDuration)
       override val executedIncrementally: Boolean = task.executionMode == TaskData.TaskExecutionMode.INCREMENTAL
       override val executionMode: String = task.executionMode.name
-      override val onCriticalPath: Boolean = task.isOnTheCriticalPath
+      override val onLogicalCriticalPath: Boolean = task.isOnTheCriticalPath
+      override val onExtendedCriticalPath: Boolean = task in tasksDeterminingBuildDuration
       override val reasonsToRun: List<String> = task.executionReasons
       override val issues: List<TaskIssueUiData>
         get() = issuesContainer.issuesForTask(task)

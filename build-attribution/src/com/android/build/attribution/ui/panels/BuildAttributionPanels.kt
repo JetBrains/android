@@ -85,7 +85,7 @@ fun taskInfoPanel(taskData: TaskUiData, listener: TreeLinkListener<TaskIssueUiDa
     HtmlBuilder()
       .openHtmlBody()
       .add(
-        if (taskData.onCriticalPath)
+        if (taskData.onLogicalCriticalPath)
           "This task frequently determines build duration because of dependencies between its inputs/outputs and other tasks."
         else
           "This task occasionally determines build duration because of parallelism constraints introduced by number of cores or other tasks in the same module."
