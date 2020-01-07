@@ -103,7 +103,7 @@ abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDI
     // Now that the Android plugin is kept in a separate place, we need to look in a relative position instead
     private val navEditorPluginHome: String
       get() {
-        val adtPath = PathManager.getHomePath() + "/../adt/idea/naveditor"
+        val adtPath = PathManager.getHomePath() + "/../adt/idea/nav/editor"
         return if (File(adtPath).exists()) {
           adtPath
         }

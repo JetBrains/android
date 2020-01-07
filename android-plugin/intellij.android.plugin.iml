@@ -25,7 +25,7 @@
     <orderEntry type="module" module-name="intellij.android.lang-databinding" />
     <orderEntry type="module" module-name="intellij.android.databinding" />
     <orderEntry type="module" module-name="intellij.android.mlkit" />
-    <orderEntry type="module" module-name="intellij.android.naveditor" />
+    <orderEntry type="module" module-name="intellij.android.nav.editor" />
     <orderEntry type="module" module-name="intellij.android.layout-inspector" />
     <orderEntry type="module" module-name="intellij.android.compose-designer" />
     <orderEntry type="module" module-name="intellij.android.designer.customview" />

@@ -48,7 +48,7 @@
     <orderEntry type="module" module-name="intellij.android.profilersAndroid" scope="TEST" />
     <orderEntry type="module" module-name="intellij.tools.testsBootstrap" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.layoutinspector" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.naveditor" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.nav.editor" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.artwork" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
   </component>
