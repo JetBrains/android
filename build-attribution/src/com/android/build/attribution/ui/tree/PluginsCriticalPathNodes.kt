@@ -236,7 +236,7 @@ private class PluginTaskNode(
 private class PluginIssuesRootNode(
   private val pluginUiData: CriticalPathPluginUiData,
   private val parentNode: PluginNode
-) : AbstractBuildAttributionNode(parentNode, "Warnings") {
+) : AbstractBuildAttributionNode(parentNode, "Warnings (${pluginUiData.warningCount})") {
   //TODO mlazeba change to new type when added and merged b/144767316
   override val pageType = BuildAttributionUiEvent.Page.PageType.UNKNOWN_PAGE
   override val presentationIcon: Icon? = null
