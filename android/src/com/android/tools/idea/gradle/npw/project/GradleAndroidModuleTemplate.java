@@ -202,7 +202,8 @@ public class GradleAndroidModuleTemplate implements AndroidModulePaths {
         ImmutableList.copyOf(
           sourceProvider.getResDirectoryUrls().stream().map(it -> new File(VfsUtilCore.urlToPath(it))).collect(Collectors.toList()));
       paths.myAidlRoot = new File(VfsUtilCore.urlToPath(Iterables.getFirst(sourceProvider.getAidlDirectoryUrls(), null)));
-      paths.myManifestDirectory = new File(VfsUtilCore.urlToPath(sourceProvider.getManifestDirectoryUrl()));
+      paths.myManifestDirectory =
+        sourceProvider.getManifestDirectoryUrls().stream().map(it -> new File(VfsUtilCore.urlToPath(it))).findFirst().get();
       templates.add(new NamedModuleTemplate(sourceProvider.getName(), paths));
     }
     return templates;

@@ -27,14 +27,9 @@ import com.android.tools.idea.testing.Sdks;
 import com.google.common.collect.MoreCollectors;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
-import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.PathUtil;
-import java.io.File;
 import java.util.Collection;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Test for utility functions provided by IdeaSourceProvider
@@ -95,8 +90,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     assertNotNull(providers);
     assertEquals(1, providers.size());
     NamedIdeaSourceProvider actualProvider = providers.iterator().next();
-    assertEquals(mainFlavorSourceProvider.getManifestFile(),
-                 actualProvider.getManifestFile());
+    assertEquals(mainFlavorSourceProvider, actualProvider);
 
     // Try finding paid flavor
     NamedIdeaSourceProvider paidFlavorSourceProvider =
@@ -110,67 +104,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
     assertNotNull(providers);
     assertEquals(1, providers.size());
     actualProvider = providers.iterator().next();
-    assertEquals(paidFlavorSourceProvider.getManifestFile(),
-                 actualProvider.getManifestFile());
-  }
-
-  public String getStringRepresentation(@NotNull NamedIdeaSourceProvider sourceProvider, @Nullable VirtualFile baseFile) {
-    StringBuilder sb = new StringBuilder();
-    VirtualFile manifestFile = sourceProvider.getManifestFile();
-    String manifestPath = null;
-    if (manifestFile != null) {
-      if (baseFile != null) {
-        manifestPath = VfsUtilCore.getRelativePath(manifestFile, baseFile, File.separatorChar);
-      }
-      else {
-        manifestPath = manifestFile.getPath();
-      }
-    }
-    sb.append("Manifest File: ");
-    sb.append(PathUtil.toSystemIndependentName(manifestPath));
-    sb.append('\n');
-
-    sb.append("Java Directories: ");
-    sb.append(fileSetToString(sourceProvider.getJavaDirectories(), baseFile));
-    sb.append('\n');
-    sb.append("Res Directories: ");
-    sb.append(fileSetToString(sourceProvider.getResDirectories(), baseFile));
-    sb.append('\n');
-    sb.append("Assets Directories: ");
-    sb.append(fileSetToString(sourceProvider.getAssetsDirectories(), baseFile));
-    sb.append('\n');
-    sb.append("AIDL Directories: ");
-    sb.append(fileSetToString(sourceProvider.getAidlDirectories(), baseFile));
-    sb.append('\n');
-    sb.append("Renderscript Directories: ");
-    sb.append(fileSetToString(sourceProvider.getRenderscriptDirectories(), baseFile));
-    sb.append('\n');
-    sb.append("Jni Directories: ");
-    sb.append(fileSetToString(sourceProvider.getJniDirectories(), baseFile));
-    sb.append('\n');
-    sb.append("Resources Directories: ");
-    sb.append(fileSetToString(sourceProvider.getResourcesDirectories(), baseFile));
-    sb.append('\n');
-    return sb.toString();
-  }
-
-  @NotNull
-  private static String fileSetToString(@NotNull Collection<VirtualFile> files, @Nullable VirtualFile baseFile) {
-    StringBuilder sb = new StringBuilder();
-    sb.append("[");
-    boolean isFirst = true;
-    for (VirtualFile vf : files) {
-      String path = baseFile != null ? VfsUtilCore.getRelativePath(vf, baseFile, File.separatorChar) : vf.getPath();
-      if (!isFirst) {
-        sb.append(", ");
-      }
-      else {
-        isFirst = false;
-      }
-      sb.append(PathUtil.toSystemIndependentName(path));
-    }
-    sb.append("]");
-    return sb.toString();
+    assertEquals(paidFlavorSourceProvider, actualProvider);
   }
 
   public void testSourceProviderContainsFile() throws Exception {

@@ -1,13 +1,13 @@
 MODULE: app
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./app/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./app/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./app/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./app/src/main
             AidlDirectoryUrls:
                 file://./app/src/main/aidl
@@ -613,7 +613,7 @@ MODULE: app
         Manifests:
             file://./app/src/main/AndroidManifest.xml
         Sources:
-            testNestedProjects (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
                     file://./app/src/basic/AndroidManifest.xml
@@ -693,7 +693,7 @@ MODULE: app
                     file://./app/src/debug/shaders
                     file://./app/src/basicBarDebug/shaders
         UnitTestSources:
-            testNestedProjects (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./app/src/test/AndroidManifest.xml
                     file://./app/src/testBasic/AndroidManifest.xml
@@ -745,7 +745,7 @@ MODULE: app
                     file://./app/src/testBar/shaders
                     file://./app/src/testDebug/shaders
         AndroidTestSources:
-            testNestedProjects (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./app/src/androidTest/AndroidManifest.xml
                     file://./app/src/androidTestBasic/AndroidManifest.xml
@@ -798,13 +798,13 @@ MODULE: app
                     file://./app/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./app/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
@@ -827,9 +827,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
             bar (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/bar/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/bar
                 AidlDirectoryUrls:
                     file://./app/src/bar/aidl
@@ -848,9 +848,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/bar/shaders
             otherBar (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/otherBar/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/otherBar
                 AidlDirectoryUrls:
                     file://./app/src/otherBar/aidl
@@ -869,13 +869,13 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/otherBar/shaders
             paid (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/paid/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./app/src/paid/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/paid
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./app/src/paid
                 AidlDirectoryUrls:
                     file://./app/src/paid/aidl
@@ -898,9 +898,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/paid/shaders
             basic (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/basic/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/basic
                 AidlDirectoryUrls:
                     file://./app/src/basic/aidl
@@ -919,9 +919,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/basic/shaders
             basicBar (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/basicBar/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/basicBar
                 AidlDirectoryUrls:
                     file://./app/src/basicBar/aidl
@@ -940,9 +940,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/basicBar/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
@@ -961,9 +961,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/release
                 AidlDirectoryUrls:
                     file://./app/src/release/aidl
@@ -982,9 +982,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/release/shaders
             specialRelease (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/specialRelease/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/specialRelease
                 AidlDirectoryUrls:
                     file://./app/src/specialRelease/aidl
@@ -1003,9 +1003,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/specialRelease/shaders
             basicBarDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/basicBarDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/basicBarDebug
                 AidlDirectoryUrls:
                     file://./app/src/basicBarDebug/aidl
@@ -1025,13 +1025,13 @@ MODULE: app
                     file://./app/src/basicBarDebug/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./app/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
@@ -1054,9 +1054,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
             basic (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/basic/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/basic
                 AidlDirectoryUrls:
                     file://./app/src/basic/aidl
@@ -1075,9 +1075,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/basic/shaders
             bar (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/bar/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/bar
                 AidlDirectoryUrls:
                     file://./app/src/bar/aidl
@@ -1096,9 +1096,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/bar/shaders
             basicBar (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/basicBar/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/basicBar
                 AidlDirectoryUrls:
                     file://./app/src/basicBar/aidl
@@ -1117,9 +1117,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/basicBar/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
@@ -1138,9 +1138,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
             basicBarDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/basicBarDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/basicBarDebug
                 AidlDirectoryUrls:
                     file://./app/src/basicBarDebug/aidl
@@ -1160,9 +1160,9 @@ MODULE: app
                     file://./app/src/basicBarDebug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/test
                 AidlDirectoryUrls:
                     file://./app/src/test/aidl
@@ -1181,9 +1181,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/test/shaders
             testBasic (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/testBasic/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/testBasic
                 AidlDirectoryUrls:
                     file://./app/src/testBasic/aidl
@@ -1202,9 +1202,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/testBasic/shaders
             testBar (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/testBar/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/testBar
                 AidlDirectoryUrls:
                     file://./app/src/testBar/aidl
@@ -1223,9 +1223,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/testBar/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/testDebug
                 AidlDirectoryUrls:
                     file://./app/src/testDebug/aidl
@@ -1245,9 +1245,9 @@ MODULE: app
                     file://./app/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/androidTest
                 AidlDirectoryUrls:
                     file://./app/src/androidTest/aidl
@@ -1266,9 +1266,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
             androidTestBasic (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/androidTestBasic/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/androidTestBasic
                 AidlDirectoryUrls:
                     file://./app/src/androidTestBasic/aidl
@@ -1287,9 +1287,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestBasic/shaders
             androidTestBar (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/androidTestBar/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/androidTestBar
                 AidlDirectoryUrls:
                     file://./app/src/androidTestBar/aidl
@@ -1308,9 +1308,9 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTestBar/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./app/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./app/src/androidTestDebug/aidl
@@ -1331,13 +1331,13 @@ MODULE: app
 MODULE: deep2
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./nested2/trans/deep2/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./nested2/trans/deep2/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./nested2/trans/deep2/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./nested2/trans/deep2/src/main
             AidlDirectoryUrls:
                 file://./nested2/trans/deep2/src/main/aidl
@@ -1594,7 +1594,7 @@ MODULE: deep2
         Manifests:
             file://./nested2/trans/deep2/src/main/AndroidManifest.xml
         Sources:
-            testNestedProjects (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./nested2/trans/deep2/src/main/AndroidManifest.xml
                     file://./nested2/trans/deep2/src/debug/AndroidManifest.xml
@@ -1630,7 +1630,7 @@ MODULE: deep2
                     file://./nested2/trans/deep2/src/main/shaders
                     file://./nested2/trans/deep2/src/debug/shaders
         UnitTestSources:
-            testNestedProjects (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./nested2/trans/deep2/src/test/AndroidManifest.xml
                     file://./nested2/trans/deep2/src/testDebug/AndroidManifest.xml
@@ -1662,7 +1662,7 @@ MODULE: deep2
                     file://./nested2/trans/deep2/src/test/shaders
                     file://./nested2/trans/deep2/src/testDebug/shaders
         AndroidTestSources:
-            testNestedProjects (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./nested2/trans/deep2/src/androidTest/AndroidManifest.xml
                     file://./nested2/trans/deep2/src/androidTestDebug/AndroidManifest.xml
@@ -1695,13 +1695,13 @@ MODULE: deep2
                     file://./nested2/trans/deep2/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/trans/deep2/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested2/trans/deep2/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/trans/deep2/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./nested2/trans/deep2/src/main
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/aidl
@@ -1720,9 +1720,9 @@ MODULE: deep2
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/trans/deep2/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/aidl
@@ -1741,9 +1741,9 @@ MODULE: deep2
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/trans/deep2/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/trans/deep2/src/release
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/release/aidl
@@ -1763,13 +1763,13 @@ MODULE: deep2
                     file://./nested2/trans/deep2/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/trans/deep2/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested2/trans/deep2/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/trans/deep2/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./nested2/trans/deep2/src/main
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/aidl
@@ -1788,9 +1788,9 @@ MODULE: deep2
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/trans/deep2/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/aidl
@@ -1810,9 +1810,9 @@ MODULE: deep2
                     file://./nested2/trans/deep2/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/trans/deep2/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/trans/deep2/src/test
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/aidl
@@ -1831,9 +1831,9 @@ MODULE: deep2
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/trans/deep2/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/trans/deep2/src/testDebug
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/testDebug/aidl
@@ -1853,9 +1853,9 @@ MODULE: deep2
                     file://./nested2/trans/deep2/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/trans/deep2/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/aidl
@@ -1874,9 +1874,9 @@ MODULE: deep2
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/trans/deep2/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/androidTestDebug/aidl
@@ -1897,13 +1897,13 @@ MODULE: deep2
 MODULE: dyn_feature
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./dyn_feature/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./dyn_feature/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./dyn_feature/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./dyn_feature/src/main
             AidlDirectoryUrls:
                 file://./dyn_feature/src/main/aidl
@@ -2160,7 +2160,7 @@ MODULE: dyn_feature
         Manifests:
             file://./dyn_feature/src/main/AndroidManifest.xml
         Sources:
-            testNestedProjects (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./dyn_feature/src/main/AndroidManifest.xml
                     file://./dyn_feature/src/debug/AndroidManifest.xml
@@ -2196,7 +2196,7 @@ MODULE: dyn_feature
                     file://./dyn_feature/src/main/shaders
                     file://./dyn_feature/src/debug/shaders
         UnitTestSources:
-            testNestedProjects (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./dyn_feature/src/test/AndroidManifest.xml
                     file://./dyn_feature/src/testDebug/AndroidManifest.xml
@@ -2228,7 +2228,7 @@ MODULE: dyn_feature
                     file://./dyn_feature/src/test/shaders
                     file://./dyn_feature/src/testDebug/shaders
         AndroidTestSources:
-            testNestedProjects (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./dyn_feature/src/androidTest/AndroidManifest.xml
                     file://./dyn_feature/src/androidTestDebug/AndroidManifest.xml
@@ -2261,13 +2261,13 @@ MODULE: dyn_feature
                     file://./dyn_feature/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./dyn_feature/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./dyn_feature/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./dyn_feature/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./dyn_feature/src/main
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/main/aidl
@@ -2286,9 +2286,9 @@ MODULE: dyn_feature
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./dyn_feature/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./dyn_feature/src/debug
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/debug/aidl
@@ -2307,9 +2307,9 @@ MODULE: dyn_feature
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./dyn_feature/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./dyn_feature/src/release
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/release/aidl
@@ -2329,13 +2329,13 @@ MODULE: dyn_feature
                     file://./dyn_feature/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./dyn_feature/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./dyn_feature/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./dyn_feature/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./dyn_feature/src/main
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/main/aidl
@@ -2354,9 +2354,9 @@ MODULE: dyn_feature
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./dyn_feature/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./dyn_feature/src/debug
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/debug/aidl
@@ -2376,9 +2376,9 @@ MODULE: dyn_feature
                     file://./dyn_feature/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./dyn_feature/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./dyn_feature/src/test
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/test/aidl
@@ -2397,9 +2397,9 @@ MODULE: dyn_feature
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./dyn_feature/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./dyn_feature/src/testDebug
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/testDebug/aidl
@@ -2419,9 +2419,9 @@ MODULE: dyn_feature
                     file://./dyn_feature/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./dyn_feature/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./dyn_feature/src/androidTest
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/androidTest/aidl
@@ -2440,9 +2440,9 @@ MODULE: dyn_feature
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./dyn_feature/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/androidTestDebug/aidl
@@ -2464,13 +2464,13 @@ MODULE: jav
 MODULE: lib
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./lib/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./lib/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./lib/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./lib/src/main
             AidlDirectoryUrls:
                 file://./lib/src/main/aidl
@@ -2731,7 +2731,7 @@ MODULE: lib
         Manifests:
             file://./lib/src/main/AndroidManifest.xml
         Sources:
-            testNestedProjects (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./lib/src/main/AndroidManifest.xml
                     file://./lib/src/debug/AndroidManifest.xml
@@ -2771,7 +2771,7 @@ MODULE: lib
                     file://./lib/src/main/shaders
                     file://./lib/src/debug/shaders
         UnitTestSources:
-            testNestedProjects (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./lib/src/test/AndroidManifest.xml
                     file://./lib/src/testDebug/AndroidManifest.xml
@@ -2803,7 +2803,7 @@ MODULE: lib
                     file://./lib/src/test/shaders
                     file://./lib/src/testDebug/shaders
         AndroidTestSources:
-            testNestedProjects (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./lib/src/androidTest/AndroidManifest.xml
                     file://./lib/src/androidTestDebug/AndroidManifest.xml
@@ -2836,13 +2836,13 @@ MODULE: lib
                     file://./lib/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./lib/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./lib/src/main
                 AidlDirectoryUrls:
                     file://./lib/src/main/aidl
@@ -2865,9 +2865,9 @@ MODULE: lib
                 ShadersDirectoryUrls:
                     file://./lib/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib/src/debug
                 AidlDirectoryUrls:
                     file://./lib/src/debug/aidl
@@ -2886,9 +2886,9 @@ MODULE: lib
                 ShadersDirectoryUrls:
                     file://./lib/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib/src/release
                 AidlDirectoryUrls:
                     file://./lib/src/release/aidl
@@ -2908,13 +2908,13 @@ MODULE: lib
                     file://./lib/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./lib/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./lib/src/main
                 AidlDirectoryUrls:
                     file://./lib/src/main/aidl
@@ -2937,9 +2937,9 @@ MODULE: lib
                 ShadersDirectoryUrls:
                     file://./lib/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib/src/debug
                 AidlDirectoryUrls:
                     file://./lib/src/debug/aidl
@@ -2959,9 +2959,9 @@ MODULE: lib
                     file://./lib/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib/src/test
                 AidlDirectoryUrls:
                     file://./lib/src/test/aidl
@@ -2980,9 +2980,9 @@ MODULE: lib
                 ShadersDirectoryUrls:
                     file://./lib/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib/src/testDebug
                 AidlDirectoryUrls:
                     file://./lib/src/testDebug/aidl
@@ -3002,9 +3002,9 @@ MODULE: lib
                     file://./lib/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib/src/androidTest
                 AidlDirectoryUrls:
                     file://./lib/src/androidTest/aidl
@@ -3023,9 +3023,9 @@ MODULE: lib
                 ShadersDirectoryUrls:
                     file://./lib/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./lib/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./lib/src/androidTestDebug/aidl
@@ -3046,13 +3046,13 @@ MODULE: lib
 MODULE: nested1
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./nested1/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./nested1/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./nested1/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./nested1/src/main
             AidlDirectoryUrls:
                 file://./nested1/src/main/aidl
@@ -3309,7 +3309,7 @@ MODULE: nested1
         Manifests:
             file://./nested1/src/main/AndroidManifest.xml
         Sources:
-            testNestedProjects (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./nested1/src/main/AndroidManifest.xml
                     file://./nested1/src/debug/AndroidManifest.xml
@@ -3345,7 +3345,7 @@ MODULE: nested1
                     file://./nested1/src/main/shaders
                     file://./nested1/src/debug/shaders
         UnitTestSources:
-            testNestedProjects (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./nested1/src/test/AndroidManifest.xml
                     file://./nested1/src/testDebug/AndroidManifest.xml
@@ -3377,7 +3377,7 @@ MODULE: nested1
                     file://./nested1/src/test/shaders
                     file://./nested1/src/testDebug/shaders
         AndroidTestSources:
-            testNestedProjects (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./nested1/src/androidTest/AndroidManifest.xml
                     file://./nested1/src/androidTestDebug/AndroidManifest.xml
@@ -3410,13 +3410,13 @@ MODULE: nested1
                     file://./nested1/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested1/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested1/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./nested1/src/main
                 AidlDirectoryUrls:
                     file://./nested1/src/main/aidl
@@ -3435,9 +3435,9 @@ MODULE: nested1
                 ShadersDirectoryUrls:
                     file://./nested1/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested1/src/debug
                 AidlDirectoryUrls:
                     file://./nested1/src/debug/aidl
@@ -3456,9 +3456,9 @@ MODULE: nested1
                 ShadersDirectoryUrls:
                     file://./nested1/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested1/src/release
                 AidlDirectoryUrls:
                     file://./nested1/src/release/aidl
@@ -3478,13 +3478,13 @@ MODULE: nested1
                     file://./nested1/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested1/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested1/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./nested1/src/main
                 AidlDirectoryUrls:
                     file://./nested1/src/main/aidl
@@ -3503,9 +3503,9 @@ MODULE: nested1
                 ShadersDirectoryUrls:
                     file://./nested1/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested1/src/debug
                 AidlDirectoryUrls:
                     file://./nested1/src/debug/aidl
@@ -3525,9 +3525,9 @@ MODULE: nested1
                     file://./nested1/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested1/src/test
                 AidlDirectoryUrls:
                     file://./nested1/src/test/aidl
@@ -3546,9 +3546,9 @@ MODULE: nested1
                 ShadersDirectoryUrls:
                     file://./nested1/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested1/src/testDebug
                 AidlDirectoryUrls:
                     file://./nested1/src/testDebug/aidl
@@ -3568,9 +3568,9 @@ MODULE: nested1
                     file://./nested1/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested1/src/androidTest
                 AidlDirectoryUrls:
                     file://./nested1/src/androidTest/aidl
@@ -3589,9 +3589,9 @@ MODULE: nested1
                 ShadersDirectoryUrls:
                     file://./nested1/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested1/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./nested1/src/androidTestDebug/aidl
@@ -3612,13 +3612,13 @@ MODULE: nested1
 MODULE: nested1-deep
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./nested1/deep/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./nested1/deep/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./nested1/deep/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./nested1/deep/src/main
             AidlDirectoryUrls:
                 file://./nested1/deep/src/main/aidl
@@ -3875,7 +3875,7 @@ MODULE: nested1-deep
         Manifests:
             file://./nested1/deep/src/main/AndroidManifest.xml
         Sources:
-            testNestedProjects (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./nested1/deep/src/main/AndroidManifest.xml
                     file://./nested1/deep/src/debug/AndroidManifest.xml
@@ -3911,7 +3911,7 @@ MODULE: nested1-deep
                     file://./nested1/deep/src/main/shaders
                     file://./nested1/deep/src/debug/shaders
         UnitTestSources:
-            testNestedProjects (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./nested1/deep/src/test/AndroidManifest.xml
                     file://./nested1/deep/src/testDebug/AndroidManifest.xml
@@ -3943,7 +3943,7 @@ MODULE: nested1-deep
                     file://./nested1/deep/src/test/shaders
                     file://./nested1/deep/src/testDebug/shaders
         AndroidTestSources:
-            testNestedProjects (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./nested1/deep/src/androidTest/AndroidManifest.xml
                     file://./nested1/deep/src/androidTestDebug/AndroidManifest.xml
@@ -3976,13 +3976,13 @@ MODULE: nested1-deep
                     file://./nested1/deep/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/deep/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested1/deep/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested1/deep/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./nested1/deep/src/main
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/main/aidl
@@ -4001,9 +4001,9 @@ MODULE: nested1-deep
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/deep/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested1/deep/src/debug
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/debug/aidl
@@ -4022,9 +4022,9 @@ MODULE: nested1-deep
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/deep/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested1/deep/src/release
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/release/aidl
@@ -4044,13 +4044,13 @@ MODULE: nested1-deep
                     file://./nested1/deep/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/deep/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested1/deep/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested1/deep/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./nested1/deep/src/main
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/main/aidl
@@ -4069,9 +4069,9 @@ MODULE: nested1-deep
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/deep/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested1/deep/src/debug
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/debug/aidl
@@ -4091,9 +4091,9 @@ MODULE: nested1-deep
                     file://./nested1/deep/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/deep/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested1/deep/src/test
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/test/aidl
@@ -4112,9 +4112,9 @@ MODULE: nested1-deep
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/deep/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested1/deep/src/testDebug
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/testDebug/aidl
@@ -4134,9 +4134,9 @@ MODULE: nested1-deep
                     file://./nested1/deep/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/deep/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested1/deep/src/androidTest
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/androidTest/aidl
@@ -4155,9 +4155,9 @@ MODULE: nested1-deep
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/deep/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested1/deep/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/androidTestDebug/aidl
@@ -4178,13 +4178,13 @@ MODULE: nested1-deep
 MODULE: nested2
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./nested2/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./nested2/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./nested2/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./nested2/src/main
             AidlDirectoryUrls:
                 file://./nested2/src/main/aidl
@@ -4602,7 +4602,7 @@ MODULE: nested2
         Manifests:
             file://./nested2/src/main/AndroidManifest.xml
         Sources:
-            testNestedProjects (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./nested2/src/main/AndroidManifest.xml
                     file://./nested2/src/basic/AndroidManifest.xml
@@ -4658,7 +4658,7 @@ MODULE: nested2
                     file://./nested2/src/debug/shaders
                     file://./nested2/src/basicDebug/shaders
         UnitTestSources:
-            testNestedProjects (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./nested2/src/test/AndroidManifest.xml
                     file://./nested2/src/testBasic/AndroidManifest.xml
@@ -4700,7 +4700,7 @@ MODULE: nested2
                     file://./nested2/src/testBasic/shaders
                     file://./nested2/src/testDebug/shaders
         AndroidTestSources:
-            testNestedProjects (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./nested2/src/androidTest/AndroidManifest.xml
                     file://./nested2/src/androidTestBasic/AndroidManifest.xml
@@ -4743,13 +4743,13 @@ MODULE: nested2
                     file://./nested2/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested2/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./nested2/src/main
                 AidlDirectoryUrls:
                     file://./nested2/src/main/aidl
@@ -4768,9 +4768,9 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/main/shaders
             paid (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/paid/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/src/paid
                 AidlDirectoryUrls:
                     file://./nested2/src/paid/aidl
@@ -4789,9 +4789,9 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/paid/shaders
             basic (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/basic/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/src/basic
                 AidlDirectoryUrls:
                     file://./nested2/src/basic/aidl
@@ -4810,9 +4810,9 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/basic/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/src/debug
                 AidlDirectoryUrls:
                     file://./nested2/src/debug/aidl
@@ -4831,9 +4831,9 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/src/release
                 AidlDirectoryUrls:
                     file://./nested2/src/release/aidl
@@ -4852,9 +4852,9 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/release/shaders
             basicDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/basicDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/src/basicDebug
                 AidlDirectoryUrls:
                     file://./nested2/src/basicDebug/aidl
@@ -4874,13 +4874,13 @@ MODULE: nested2
                     file://./nested2/src/basicDebug/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested2/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./nested2/src/main
                 AidlDirectoryUrls:
                     file://./nested2/src/main/aidl
@@ -4899,9 +4899,9 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/main/shaders
             basic (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/basic/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/src/basic
                 AidlDirectoryUrls:
                     file://./nested2/src/basic/aidl
@@ -4920,9 +4920,9 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/basic/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/src/debug
                 AidlDirectoryUrls:
                     file://./nested2/src/debug/aidl
@@ -4941,9 +4941,9 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/debug/shaders
             basicDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/basicDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/src/basicDebug
                 AidlDirectoryUrls:
                     file://./nested2/src/basicDebug/aidl
@@ -4963,9 +4963,9 @@ MODULE: nested2
                     file://./nested2/src/basicDebug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/src/test
                 AidlDirectoryUrls:
                     file://./nested2/src/test/aidl
@@ -4984,9 +4984,9 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/test/shaders
             testBasic (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/testBasic/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/src/testBasic
                 AidlDirectoryUrls:
                     file://./nested2/src/testBasic/aidl
@@ -5005,9 +5005,9 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/testBasic/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/src/testDebug
                 AidlDirectoryUrls:
                     file://./nested2/src/testDebug/aidl
@@ -5027,9 +5027,9 @@ MODULE: nested2
                     file://./nested2/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/src/androidTest
                 AidlDirectoryUrls:
                     file://./nested2/src/androidTest/aidl
@@ -5048,9 +5048,9 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/androidTest/shaders
             androidTestBasic (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/androidTestBasic/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/src/androidTestBasic
                 AidlDirectoryUrls:
                     file://./nested2/src/androidTestBasic/aidl
@@ -5069,9 +5069,9 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/androidTestBasic/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./nested2/src/androidTestDebug/aidl
@@ -5092,13 +5092,13 @@ MODULE: nested2
 MODULE: nested2-deep
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./nested2/deep/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./nested2/deep/src/main/AndroidManifest.xml
-            ManifestDirectoryUrl:
+            ManifestDirectoryUrls:
                 file://./nested2/deep/src/main
-            ManifestDirectory:
+            ManifestDirectories:
                 file://./nested2/deep/src/main
             AidlDirectoryUrls:
                 file://./nested2/deep/src/main/aidl
@@ -5355,7 +5355,7 @@ MODULE: nested2-deep
         Manifests:
             file://./nested2/deep/src/main/AndroidManifest.xml
         Sources:
-            testNestedProjects (IDEA)
+            Sources (IDEA)
                 ManifestFileUrls:
                     file://./nested2/deep/src/main/AndroidManifest.xml
                     file://./nested2/deep/src/debug/AndroidManifest.xml
@@ -5391,7 +5391,7 @@ MODULE: nested2-deep
                     file://./nested2/deep/src/main/shaders
                     file://./nested2/deep/src/debug/shaders
         UnitTestSources:
-            testNestedProjects (IDEA)
+            UnitTestSources (IDEA)
                 ManifestFileUrls:
                     file://./nested2/deep/src/test/AndroidManifest.xml
                     file://./nested2/deep/src/testDebug/AndroidManifest.xml
@@ -5423,7 +5423,7 @@ MODULE: nested2-deep
                     file://./nested2/deep/src/test/shaders
                     file://./nested2/deep/src/testDebug/shaders
         AndroidTestSources:
-            testNestedProjects (IDEA)
+            AndroidTestSources (IDEA)
                 ManifestFileUrls:
                     file://./nested2/deep/src/androidTest/AndroidManifest.xml
                     file://./nested2/deep/src/androidTestDebug/AndroidManifest.xml
@@ -5456,13 +5456,13 @@ MODULE: nested2-deep
                     file://./nested2/deep/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/deep/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested2/deep/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/deep/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./nested2/deep/src/main
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/main/aidl
@@ -5481,9 +5481,9 @@ MODULE: nested2-deep
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/deep/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/deep/src/debug
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/debug/aidl
@@ -5502,9 +5502,9 @@ MODULE: nested2-deep
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/deep/src/release/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/deep/src/release
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/release/aidl
@@ -5524,13 +5524,13 @@ MODULE: nested2-deep
                     file://./nested2/deep/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/deep/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested2/deep/src/main/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/deep/src/main
-                ManifestDirectory:
+                ManifestDirectories:
                     file://./nested2/deep/src/main
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/main/aidl
@@ -5549,9 +5549,9 @@ MODULE: nested2-deep
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/deep/src/debug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/deep/src/debug
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/debug/aidl
@@ -5571,9 +5571,9 @@ MODULE: nested2-deep
                     file://./nested2/deep/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/deep/src/test/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/deep/src/test
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/test/aidl
@@ -5592,9 +5592,9 @@ MODULE: nested2-deep
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/test/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/deep/src/testDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/deep/src/testDebug
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/testDebug/aidl
@@ -5614,9 +5614,9 @@ MODULE: nested2-deep
                     file://./nested2/deep/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/deep/src/androidTest/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/deep/src/androidTest
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/androidTest/aidl
@@ -5635,9 +5635,9 @@ MODULE: nested2-deep
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/deep/src/androidTestDebug/AndroidManifest.xml
-                ManifestDirectoryUrl:
+                ManifestDirectoryUrls:
                     file://./nested2/deep/src/androidTestDebug
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/androidTestDebug/aidl

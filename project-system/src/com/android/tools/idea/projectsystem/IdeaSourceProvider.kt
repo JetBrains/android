@@ -78,34 +78,4 @@ interface IdeaSourceProvider {
  */
 interface NamedIdeaSourceProvider : IdeaSourceProvider {
   val name: String
-
-  val manifestFileUrl: String
-  val manifestFile: VirtualFile?
-
-  val manifestDirectoryUrl: String
-  val manifestDirectory: VirtualFile?
-
-  /**
-   * A singleton list of [manifestFileUrl].
-   */
-  override val manifestFileUrls: Collection<String>
-    get() = listOf(manifestFileUrl)
-
-  /**
-   * A singleton list of [manifestFile] or the empty list if [manifestFile] is null.
-   */
-  override val manifestFiles: Collection<VirtualFile>
-    get() = listOfNotNull(manifestFile)
-
-  /**
-   * A singleton list of [manifestDirectoryUrl].
-   */
-  override val manifestDirectoryUrls: Collection<String>
-    get() = listOf(manifestDirectoryUrl)
-
-  /**
-   * A singleton list of [manifestDirectory] or the empty list if [manifestDirectory] is null.
-   */
-  override val manifestDirectories: Collection<VirtualFile>
-    get() = listOfNotNull(manifestDirectory)
 }

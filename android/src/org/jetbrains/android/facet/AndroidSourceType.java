@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 public enum AndroidSourceType {
   /** Manifests from all variants. */
-  MANIFEST("manifest", it -> CollectionsKt.listOfNotNull(it.getManifestFile()), AllIcons.Modules.SourceRoot),
+  MANIFEST("manifest", it -> ImmutableList.copyOf(it.getManifestFiles()), AllIcons.Modules.SourceRoot),
 
   /** Java and Kotlin sources. */
   JAVA("java", it -> ImmutableList.copyOf(it.getJavaDirectories()), AllIcons.Modules.SourceRoot),

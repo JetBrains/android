@@ -180,45 +180,34 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
         }
       }
 
-      fun IdeaSourceProvider.commonDump() {
-        dumpUrls("AidlDirectoryUrls") { it.aidlDirectoryUrls }
-        dumpPaths("AidlDirectories") { it.aidlDirectories }
-        dumpUrls("AssetsDirectoryUrls") { it.assetsDirectoryUrls }
-        dumpPaths("AssetsDirectories") { it.assetsDirectories }
-        dumpUrls("JavaDirectoryUrls") { it.javaDirectoryUrls }
-        dumpPaths("JavaDirectories") { it.javaDirectories }
-        dumpUrls("JniLibsDirectoryUrls") { it.jniLibsDirectoryUrls }
-        dumpPaths("JniLibsDirectories") { it.jniLibsDirectories }
-        dumpUrls("RenderscriptDirectoryUrls") { it.renderscriptDirectoryUrls }
-        dumpPaths("RenderscriptDirectories") { it.renderscriptDirectories }
-        dumpUrls("ResDirectoryUrls") { it.resDirectoryUrls }
-        dumpPaths("ResDirectories") { it.resDirectories }
-        dumpUrls("ResourcesDirectoryUrls") { it.resourcesDirectoryUrls }
-        dumpPaths("ResourcesDirectories") { it.resourcesDirectories }
-        dumpUrls("ShadersDirectoryUrls") { it.shadersDirectoryUrls }
-        dumpPaths("ShadersDirectories") { it.shadersDirectories }
-      }
-
-      fun NamedIdeaSourceProvider.dump() {
-        out("$name (IDEA)")
-        nest {
-          dumpUrls("ManifestUrl") { listOf(manifestFileUrl) }
-          dumpPaths("Manifest") { listOfNotNull(manifestFile) }
-          dumpUrls("ManifestDirectoryUrl") { listOf(manifestDirectoryUrl) }
-          dumpPaths("ManifestDirectory") { listOfNotNull(manifestDirectory) }
-          commonDump()
-        }
-      }
-
-      fun IdeaSourceProvider.dump() {
-        out("$name (IDEA)")
+      fun IdeaSourceProvider.dump(name: String) {
+        out("${name} (IDEA)")
         nest {
           dumpUrls("ManifestFileUrls") { it.manifestFileUrls }
           dumpPaths("ManifestFiles") { it.manifestFiles }
           dumpUrls("ManifestDirectoryUrls") { it.manifestDirectoryUrls }
           dumpPaths("ManifestDirectories") { it.manifestDirectories }
-          commonDump()
+          dumpUrls("AidlDirectoryUrls") { it.aidlDirectoryUrls }
+          dumpPaths("AidlDirectories") { it.aidlDirectories }
+          dumpUrls("AssetsDirectoryUrls") { it.assetsDirectoryUrls }
+          dumpPaths("AssetsDirectories") { it.assetsDirectories }
+          dumpUrls("JavaDirectoryUrls") { it.javaDirectoryUrls }
+          dumpPaths("JavaDirectories") { it.javaDirectories }
+          dumpUrls("JniLibsDirectoryUrls") { it.jniLibsDirectoryUrls }
+          dumpPaths("JniLibsDirectories") { it.jniLibsDirectories }
+          dumpUrls("RenderscriptDirectoryUrls") { it.renderscriptDirectoryUrls }
+          dumpPaths("RenderscriptDirectories") { it.renderscriptDirectories }
+          dumpUrls("ResDirectoryUrls") { it.resDirectoryUrls }
+          dumpPaths("ResDirectories") { it.resDirectories }
+          dumpUrls("ResourcesDirectoryUrls") { it.resourcesDirectoryUrls }
+          dumpPaths("ResourcesDirectories") { it.resourcesDirectories }
+          dumpUrls("ShadersDirectoryUrls") { it.shadersDirectoryUrls }
+          dumpPaths("ShadersDirectories") { it.shadersDirectories }
         }
+      }
+
+      fun NamedIdeaSourceProvider.dump() {
+        dump(name)
       }
 
       ModuleManager
@@ -247,9 +236,9 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
               nest("by IdeaSourceProviders:") {
                 val sourceProviderManager = SourceProviderManager.getInstance(androidFacet)
                 dumpPathsCore("Manifests", { getManifestFiles(androidFacet) }, { it.url })
-                nest("Sources:") { sourceProviderManager.sources.dump() }
-                nest("UnitTestSources:") { sourceProviderManager.unitTestSources.dump() }
-                nest("AndroidTestSources:") { sourceProviderManager.androidTestSources.dump() }
+                nest("Sources:") { sourceProviderManager.sources.dump("Sources") }
+                nest("UnitTestSources:") { sourceProviderManager.unitTestSources.dump("UnitTestSources") }
+                nest("AndroidTestSources:") { sourceProviderManager.androidTestSources.dump("AndroidTestSources") }
                 nest("AllIdeaSourceProviders:") { sourceProviderManager.allSourceProviders.forEach { it.dump() } }
                 nest("CurrentSourceProviders:") { sourceProviderManager.currentSourceProviders.forEach { it.dump() } }
                 nest("CurrentUnitTestSourceProviders:") { sourceProviderManager.currentUnitTestSourceProviders.forEach { it.dump() } }

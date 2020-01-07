@@ -65,7 +65,7 @@ fun AndroidFacet.getFlavorAndBuildTypeManifests(): List<VirtualFile> {
     // but the manifest merger expects *reverse* overlay order (earlier files take priority).
     .asReversed()
     .filter { it != defaultSourceProvider }
-    .mapNotNull(NamedIdeaSourceProvider::manifestFile)
+    .flatMap { it.manifestFiles }
 }
 
 fun AndroidFacet.getFlavorAndBuildTypeManifestsOfLibs(dependencies: List<AndroidFacet>): List<VirtualFile> {
@@ -89,7 +89,7 @@ fun AndroidFacet.getTransitiveNavigationFiles(transitiveDependencies: List<Andro
     .toList()
 }
 
-private fun AndroidFacet.getNavigationFiles() : Sequence<VirtualFile> {
+private fun AndroidFacet.getNavigationFiles(): Sequence<VirtualFile> {
   return sourceProviders.currentSourceProviders
     .asReversed() // iterate over providers in reverse order so higher precedence navigation files are first
     .asSequence()
