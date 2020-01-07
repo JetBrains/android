@@ -49,8 +49,10 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -58,6 +60,7 @@ import javax.swing.JTree;
 import javax.swing.SortOrder;
 import javax.swing.SwingConstants;
 import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeModelEvent;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -79,6 +82,7 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
   @NotNull private final AspectObserver myObserver;
   @Nullable protected final JTree myTree;
   @Nullable private final CpuTraceTreeSorter mySorter;
+  private final Set<TreePath> myExpandedPaths = new HashSet<>();
 
   protected TreeDetailsView(@NotNull StudioProfilersView profilersView,
                             @NotNull CpuCapture cpuCapture,
@@ -116,7 +120,26 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
     switchCardLayout(myPanel, model.isEmpty());
 
     // The structure of the tree changed, so sort with the previous sorting order.
-    model.getAspect().addDependency(myObserver).onChange(CpuTreeModel.Aspect.TREE_MODEL, () -> mySorter.sort());
+    model.getAspect().addDependency(myObserver).onChange(CpuTreeModel.Aspect.TREE_MODEL, () -> {
+      mySorter.sort();
+      resetTreeExpansionState();
+    });
+
+    myTree.addTreeExpansionListener(new ExpansionListener());
+  }
+
+  /**
+   * Helper function to load the tree expansion state from a set of cached TreePaths.
+   * Tree paths are captured each time the tree is expanded / collapsed this includes programmatically.
+   */
+  private void resetTreeExpansionState() {
+    // Grab a copy of the expanded paths because as we expand each path we modify this list directly.
+    Set<TreePath> paths = new HashSet<>(myExpandedPaths);
+    // Clear the global state since we have a copy of it that we will be enumerating.
+    // This will be reset by the TreeExpansionListener.
+    myExpandedPaths.clear();
+    assert myTree != null; // Shouldn't be possible for the tree to be null at this point.
+    paths.forEach(myTree::expandPath);
   }
 
   @NotNull
@@ -479,6 +502,56 @@ public abstract class TreeDetailsView<T extends CpuTreeNode<T>> extends CaptureD
           switchCardLayout(myPanel, model.isEmpty());
         }
       });
+    }
+  }
+
+  private class ExpansionListener implements TreeExpansionListener {
+    /**
+     * Set to hold the paths of previously expanded children that are now hidden due to a collapsed parent.
+     * This set allows us to handle expanding/collapsing a parent (or grandparent) but maintain the hidden elements state.
+     * Eg.
+     * A
+     *  -> B
+     *     -> C
+     * When A is collapsed the path for B, and C are saved in this set and removed from the expanded paths set. This allows us to restore
+     * the state of B and C when A is expanded again.
+     */
+    private final Set<TreePath> myCollapsedParentChildExpandedPaths = new HashSet<>();
+
+    @Override
+    public void treeExpanded(TreeExpansionEvent event) {
+      TreePath toBeExpandedPath = event.getPath();
+      Set<TreePath> expandedChildren = new HashSet<>();
+      expandedChildren.add(toBeExpandedPath);
+      // Find cached children paths under this newly expanded node and reset their state.
+      myCollapsedParentChildExpandedPaths.forEach(path -> {
+        // We only want paths that are a child of our new path.
+        // Specifically we only want paths that are direct children, this function will be called recursively
+        // as we expand TreePaths in the expandedChildren set.
+        // Note: x.isDescendant(y) is backwards from how you may expect. It really means if y is a descendant of x.
+        if (toBeExpandedPath.isDescendant(path) && path.getParentPath().equals(toBeExpandedPath)) {
+          expandedChildren.add(path);
+        }
+      });
+      myCollapsedParentChildExpandedPaths.removeAll(expandedChildren);
+      myExpandedPaths.addAll(expandedChildren);
+      // Expand any children that were previously expanded under our newly expanded node. This forces a recursive call to treeExpanded.
+      expandedChildren.forEach(myTree::expandPath);
+    }
+
+    @Override
+    public void treeCollapsed(TreeExpansionEvent event) {
+      TreePath toBeCollapsedPath = event.getPath();
+      Set<TreePath> childExpandedPaths = new HashSet<>();
+      childExpandedPaths.add(toBeCollapsedPath);
+      // Cache off the state of all children under the newly collapsed node.
+      myExpandedPaths.forEach(path -> {
+        if (toBeCollapsedPath.isDescendant(path)) {
+          childExpandedPaths.add(path);
+        }
+      });
+      myExpandedPaths.removeAll(childExpandedPaths);
+      myCollapsedParentChildExpandedPaths.addAll(childExpandedPaths);
     }
   }
 }

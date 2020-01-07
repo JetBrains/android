@@ -42,6 +42,7 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 import javax.swing.JTree
 
 class TopDownDetailsViewTest {
@@ -134,5 +135,19 @@ class TopDownDetailsViewTest {
     val topDownView = TreeDetailsView.TopDownDetailsView(profilersView, topDown)
     val tree = TreeWalker(topDownView.component).descendants().filterIsInstance<JTree>().first()
     assertThat(tree.isRootVisible).isFalse()
+  }
+
+  @Test
+  fun maintainsExpandedStateWhenRangeChanges() {
+    val range = Range(capture.range)
+    val topDown = CaptureDetails.Type.TOP_DOWN.build(range, listOf(capture.getCaptureNode(capture.mainThreadId)),
+                                                     capture) as CaptureDetails.TopDown
+    val topDownView = TreeDetailsView.TopDownDetailsView(profilersView, topDown)
+    val tree = TreeWalker(topDownView.component).descendants().filterIsInstance<JTree>().first()
+    assertThat(tree.isVisible).isTrue()
+    val treePath = tree.getExpandedDescendants(tree.getPathForRow(0)).iterator().next()
+    assertThat(tree.isExpanded(treePath)).isTrue()
+    range.shift(TimeUnit.MILLISECONDS.toMicros(100).toDouble())
+    assertThat(tree.isExpanded(treePath)).isTrue()
   }
 }
