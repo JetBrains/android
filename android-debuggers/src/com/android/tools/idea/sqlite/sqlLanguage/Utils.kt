@@ -16,6 +16,9 @@
 package com.android.tools.idea.sqlite.sqlLanguage
 
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlBindParameter
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlColumnRefExpression
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlComparisonExpression
+import com.android.tools.idea.lang.androidSql.psi.AndroidSqlEquivalenceExpression
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes
 import com.android.tools.idea.lang.androidSql.psi.AndroidSqlVisitor
 import com.intellij.lang.ASTFactory
@@ -23,6 +26,7 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.parentOfType
 
 /**
  * Returns a SQLite statement where named parameters have been replaced with positional parameters (?)
@@ -37,9 +41,21 @@ fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): Pars
   invokeAndWaitIfNeeded {
     runUndoTransparentWriteAction {
       val visitor = object : AndroidSqlVisitor() {
-        override fun visitBindParameter(parameter: AndroidSqlBindParameter) {
-          parametersNames.add(parameter.text)
-          parameter.node.replaceChild(parameter.node.firstChildNode, ASTFactory.leaf(AndroidSqlPsiTypes.NUMBERED_PARAMETER, "?"))
+        override fun visitBindParameter(bindParameter: AndroidSqlBindParameter) {
+          val bindParameterText = bindParameter.text
+
+          val parameterName = if (!bindParameterText.startsWith("?")) {
+            bindParameterText
+          } else {
+            val parent = bindParameter.parentOfType(AndroidSqlEquivalenceExpression::class, AndroidSqlComparisonExpression::class)
+
+            // If there is no parent of type EquivalenceExpression or ComparisonExpression keep '?' as the variable name.
+            // Otherwise use the name of the column.
+            parent?.children?.filterIsInstance<AndroidSqlColumnRefExpression>()?.firstOrNull()?.text ?: bindParameterText
+          }
+
+          parametersNames.add(parameterName)
+          bindParameter.node.replaceChild(bindParameter.node.firstChildNode, ASTFactory.leaf(AndroidSqlPsiTypes.NUMBERED_PARAMETER, "?"))
         }
       }
 
