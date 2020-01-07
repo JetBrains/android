@@ -20,9 +20,11 @@ package com.android.tools.idea.model
 import com.android.SdkConstants
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.model.AndroidManifestIndex.Companion.getDataForManifestFile
 import com.android.tools.idea.model.AndroidManifestIndex.Companion.getDataForMergedManifestContributors
 import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.run.activity.DefaultActivityLocator
 import com.android.tools.idea.run.activity.IndexedActivityWrapper.Companion.getActivities
 import com.android.tools.idea.run.activity.IndexedActivityWrapper.Companion.getActivityAliases
@@ -67,7 +69,9 @@ private fun <T> AndroidFacet.queryManifestIndex(
  * Returns the union set of activities and aliases, instead of merged results with merging rules applied.
  * (i.e. the result may include more activities than are actually in the final APK's manifest)
  * This is because run config validation can tolerate false-positives. For an accurate launching activity,
- * it's fetched in AndroidManifest.xml in generated Apk
+ * it's fetched in AndroidManifest.xml in generated Apk.
+ *
+ * Must be called in a smart read action.
  */
 fun AndroidFacet.queryActivitiesFromManifestIndex() = queryManifestIndex { overrides, contributors ->
   check(!DumbService.isDumb(this.module.project) && ApplicationManager.getApplication().isReadAccessAllowed)
@@ -85,6 +89,8 @@ fun AndroidFacet.queryActivitiesFromManifestIndex() = queryManifestIndex { overr
 /**
  * Returns the first non-null minSdk and targetSdk, or AndroidVersion.DEFAULT if none of the contributors specifies them,
  * instead of merged results with merging rules applied.
+ *
+ * Must be called in a smart read action.
  */
 fun AndroidFacet.queryMinSdkAndTargetSdkFromManifestIndex() = queryManifestIndex { overrides, contributors ->
   var minSdkLevel: String? = null
@@ -127,6 +133,7 @@ private val CUSTOM_PERMISSION_GROUPS_KEY = Key.create<CachedValue<Collection<Str
  * merged manifest. This means that if a higher priority manifest has a <permission> node with tools:node="remove",
  * we will still include the permission in the output, even though it doesn't show up in the final APK.
  *
+ * Must be called in a smart read action.
  */
 fun AndroidFacet.queryCustomPermissionsFromManifestIndex(): Collection<String> {
   return queryUnionSetFromManifestIndex(CUSTOM_PERMISSIONS_KEY) { customPermissionNames }
@@ -134,6 +141,8 @@ fun AndroidFacet.queryCustomPermissionsFromManifestIndex(): Collection<String> {
 
 /**
  * Returns the union set of groups, instead of merged results with merging rules applied.
+ *
+ * Must be called in a smart read action
  */
 fun AndroidFacet.queryCustomPermissionGroupsFromManifestIndex(): Collection<String> {
   return queryUnionSetFromManifestIndex(CUSTOM_PERMISSION_GROUPS_KEY) { customPermissionGroupNames }
@@ -155,6 +164,8 @@ private fun AndroidFacet.queryUnionSetFromManifestIndex(
 /**
  * Returns the first non-null application debuggable value, or null if such attribute is not specified,
  * instead of merged results with merging rules applied.
+ *
+ * Must be called in a smart read action.
  */
 fun AndroidFacet.queryApplicationDebuggableFromManifestIndex() = queryManifestIndex { overrides, contributors ->
   val debuggable = contributors.asSequence()
@@ -166,4 +177,26 @@ fun AndroidFacet.queryApplicationDebuggableFromManifestIndex() = queryManifestIn
   else {
     debuggable == SdkConstants.VALUE_TRUE
   }
+}
+
+/**
+ * Returns the package name from primary manifest
+ *
+ * Must be called in a smart read action.
+ */
+fun AndroidFacet.queryPackageNameFromManifestIndex(): String? {
+  val project = this.module.project
+  // TODO(b/147600367): implement a PrimaryManifestModificationTracker which MergedManifestModificationListener
+  //  increments just for the primary manifest.
+  val modificationTracker = MergedManifestModificationTracker.getInstance(this.module)
+
+  val provider = {
+    val result = this.sourceProviders.mainManifestFile?.let {
+      getDataForManifestFile(project, it)?.packageName
+    }
+    CachedValueProvider.Result.create(result, modificationTracker)
+  }
+
+  val manager = CachedValuesManager.getManager(project)
+  return manager.getCachedValue(this, provider)
 }

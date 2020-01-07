@@ -106,7 +106,7 @@ public class DefaultActivityLocator extends ActivityLocator {
    * @see DefaultActivityLocatorStrategy
    */
   @VisibleForTesting
-  static List<ActivityWrapper> getActivitiesFromMergedManifest(@NotNull final AndroidFacet facet) {
+  public static List<ActivityWrapper> getActivitiesFromMergedManifest(@NotNull final AndroidFacet facet) {
     DefaultActivityLocatorStrategy strategy = StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.get();
     if (strategy == DefaultActivityLocatorStrategy.INDEX && AndroidManifestIndex.indexEnabled()) {
       return DumbService.getInstance(facet.getModule().getProject())

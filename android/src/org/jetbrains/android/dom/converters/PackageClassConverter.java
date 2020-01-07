@@ -16,7 +16,6 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.tools.idea.AndroidTextUtils;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
 import com.intellij.codeInsight.daemon.EmptyResolveMessageProvider;
@@ -64,6 +63,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProviderUtil;
@@ -167,7 +167,7 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
     if (manifestPackage == null && myUseManifestBasePackage) {
       Module module = context.getModule();
       if (module != null) {
-        manifestPackage = MergedManifestManager.getSnapshot(module).getPackage();
+        manifestPackage = AndroidManifestUtils.getPackageName(module);
       }
     }
     return manifestPackage;

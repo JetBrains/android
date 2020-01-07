@@ -203,6 +203,20 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
     Truth.assertThat(myFacet.queryApplicationDebuggableFromManifestIndex()).isNull()
   }
 
+  fun testQueryPackageName() {
+    val manifestContent = """
+    <?xml version='1.0' encoding='utf-8'?>
+    <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
+      package='com.example' android:enabled='true'>
+    </manifest>
+    """.trimIndent()
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent)
+    Truth.assertThat(myFacet.queryPackageNameFromManifestIndex()).isEqualTo("com.example")
+
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent.replace("example", "changed"))
+    Truth.assertThat(myFacet.queryPackageNameFromManifestIndex()).isEqualTo("com.changed")
+  }
+
   private fun updateManifest(module: Module, relativePath: String, manifestContents: String) {
     deleteManifest(module)
     myFixture.addFileToProject(relativePath, manifestContents)

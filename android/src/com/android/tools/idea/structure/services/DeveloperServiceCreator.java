@@ -16,7 +16,6 @@
 package com.android.tools.idea.structure.services;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.observable.core.IntValueProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.google.common.io.Files;
@@ -28,6 +27,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
@@ -100,7 +100,7 @@ public abstract class DeveloperServiceCreator {
     String buildSystemId = getBuildSystemOperations(module.getProject()).getBuildSystemId();
     ServiceContext context = new ServiceContext(buildSystemId);
 
-    String packageName = MergedManifestManager.getSnapshot(module).getPackage();
+    String packageName = AndroidManifestUtils.getPackageName(module);
 
     if (packageName != null) {
       context.putValue("packageName", new StringValueProperty(packageName));
