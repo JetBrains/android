@@ -49,8 +49,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JCheckBox myUseL2DependenciesCheckBox;
   private JCheckBox myUseSingleVariantSyncCheckbox;
   private JSlider myLayoutEditorQualitySlider;
-  private JCheckBox myNewPsdCheckbox;
-  private TitledSeparator myNewPsdSeparator;
   private JCheckBox myLayoutInspectorCheckbox;
   private TitledSeparator myLayoutInspectorSeparator;
   private JCheckBox mySkipGradleTasksList;
@@ -79,8 +77,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myLayoutEditorQualitySlider.setPaintLabels(true);
     myLayoutEditorQualitySlider.setPaintTicks(true);
     myLayoutEditorQualitySlider.setMajorTickSpacing(25);
-    myNewPsdSeparator.setVisible(StudioFlags.NEW_PSD_ENABLED.get());
-    myNewPsdCheckbox.setVisible(StudioFlags.NEW_PSD_ENABLED.get());
     boolean showLayoutInspectorSettings = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get();
     myLayoutInspectorSeparator.setVisible(showLayoutInspectorSettings);
     myLayoutInspectorCheckbox.setVisible(showLayoutInspectorSettings);
@@ -124,7 +120,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            mySettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
            mySettings.SKIP_GRADLE_TASKS_LIST != skipGradleTasksList() ||
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
-           mySettings.USE_NEW_PSD != isUseNewPsd() ||
            myLayoutInspectorCheckbox.isSelected() != LayoutInspectorSettingsKt.getEnableLiveLayoutInspector() ||
            (myUseLayoutlibNative.isSelected() == PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN));
   }
@@ -140,7 +135,6 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     mySettings.SKIP_GRADLE_TASKS_LIST = skipGradleTasksList();
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
-    mySettings.USE_NEW_PSD = isUseNewPsd();
 
     LayoutInspectorSettingsKt.setEnableLiveLayoutInspector(myLayoutInspectorCheckbox.isSelected());
     if (myUseLayoutlibNative.isSelected() == PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN)) {
@@ -191,22 +185,12 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     mySkipGradleTasksList.setSelected(value);
   }
 
-  boolean isUseNewPsd() {
-    return myNewPsdCheckbox.isSelected();
-  }
-
-  @TestOnly
-  void setUseNewPsd(boolean value) {
-    myNewPsdCheckbox.setSelected(value);
-  }
-
   @Override
   public void reset() {
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     myUseSingleVariantSyncCheckbox.setSelected(mySettings.USE_SINGLE_VARIANT_SYNC);
     mySkipGradleTasksList.setSelected(mySettings.SKIP_GRADLE_TASKS_LIST);
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
-    myNewPsdCheckbox.setSelected(mySettings.USE_NEW_PSD);
     myLayoutInspectorCheckbox.setSelected(LayoutInspectorSettingsKt.getEnableLiveLayoutInspector());
     myUseLayoutlibNative.setSelected(!PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN));
   }
