@@ -121,7 +121,6 @@ public class GradleSyncExecutor {
 
     // Setup the settings for setup.
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.cleanProjectAfterSync = request.cleanProject;
     setupRequest.usingCachedGradleModels = false;
 
     // Setup the settings for the resolver.

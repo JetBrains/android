@@ -96,7 +96,6 @@ private fun updateAndRequestSync(project: Project, currentAgpVersion: GradleVers
   val success = performForcedPluginUpgrade(project, currentAgpVersion)
   if (success) {
     val request = GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED)
-    request.cleanProject = true
     GradleSyncInvoker.getInstance().requestProjectSync(project, request)
   }
   return success

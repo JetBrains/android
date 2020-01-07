@@ -102,7 +102,7 @@ fun shouldRecommendPluginUpgrade(
  * Shows a notification balloon recommending that the user upgrade the version of the Android Gradle plugin.
  *
  * If they choose to accept this recommendation [performRecommendedPluginUpgrade] will show them a dialog and the option
- * to try and update the version automatically.
+ * to try and update the version automatically. If accepted this method will trigger a re-sync to pick up the new version.
  */
 fun recommendPluginUpgrade(project: Project) {
   val existing = NotificationsManager
@@ -115,7 +115,6 @@ fun recommendPluginUpgrade(project: Project) {
       if (performRecommendedPluginUpgrade(project)) {
         // Trigger a re-sync if the plugin upgrade was performed.
         val request = GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED)
-        request.cleanProject = true
         GradleSyncInvoker.getInstance().requestProjectSync(project, request)
       }
     }

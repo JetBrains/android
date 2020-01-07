@@ -274,7 +274,6 @@ public class GradleSyncInvoker {
     public final GradleSyncStats.Trigger trigger;
 
     public boolean runInBackground = true;
-    public boolean cleanProject;
     public boolean useCachedGradleModels;
     public boolean forceFullVariantsSync;
     public boolean skipPreSyncChecks;
@@ -307,7 +306,6 @@ public class GradleSyncInvoker {
       Request request = (Request)o;
       return trigger == request.trigger &&
              runInBackground == request.runInBackground &&
-             cleanProject == request.cleanProject &&
              useCachedGradleModels == request.useCachedGradleModels &&
              forceFullVariantsSync == request.forceFullVariantsSync &&
              skipPreSyncChecks == request.skipPreSyncChecks &&
@@ -317,7 +315,7 @@ public class GradleSyncInvoker {
     @Override
     public int hashCode() {
       return Objects
-        .hash(trigger, runInBackground, cleanProject, useCachedGradleModels,
+        .hash(trigger, runInBackground, useCachedGradleModels,
               forceFullVariantsSync, skipPreSyncChecks, variantOnlySyncOptions);
     }
 
@@ -326,7 +324,6 @@ public class GradleSyncInvoker {
       return "RequestSettings{" +
              "trigger=" + trigger +
              ", runInBackground=" + runInBackground +
-             ", cleanProject=" + cleanProject +
              ", useCachedGradleModels=" + useCachedGradleModels +
              ", forceFullVariantsSync=" + forceFullVariantsSync +
              ", skipPreSyncChecks=" + skipPreSyncChecks +

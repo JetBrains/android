@@ -188,8 +188,6 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
     when(mySyncState.lastSyncFailed()).thenReturn(true);
 
     PostSyncProjectSetup.Request request = new PostSyncProjectSetup.Request();
-    request.cleanProjectAfterSync = true;
-
     mySetup.setUpProject(request, myTaskId, null);
 
     verify(myDependencySetupIssues, times(1)).reportIssues();

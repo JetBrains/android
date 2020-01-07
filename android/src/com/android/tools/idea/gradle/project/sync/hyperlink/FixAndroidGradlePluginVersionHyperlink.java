@@ -71,7 +71,6 @@ public class FixAndroidGradlePluginVersionHyperlink extends NotificationHyperlin
     AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(project);
     if (updater.updatePluginVersion(myPluginVersion, myGradleVersion)) {
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED);
-      request.cleanProject = true;
       GradleSyncInvoker.getInstance().requestProjectSync(project, request);
     }
   }
