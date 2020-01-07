@@ -24,10 +24,8 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.SyncMessage;
@@ -41,11 +39,10 @@ import java.util.List;
 import org.mockito.Mock;
 
 /**
- * Test for {@link GradlePluginUpgrade#performForcedPluginUpgrade(Project, AndroidPluginInfo)}.
+ * Tests for {@link GradlePluginUpgrade#performForcedPluginUpgrade(Project, GradleVersion, GradleVersion)}}.
  */
 public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
-  @Mock private LatestKnownPluginVersionProvider myLatestKnownPluginVersionProvider;
   @Mock private AndroidPluginVersionUpdater myVersionUpdater;
   @Mock private GradleSyncState mySyncState;
 
@@ -84,7 +81,7 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     assertFalse(upgraded);
 
     verify(mySyncState, never()).syncSucceeded();
-    verify(myVersionUpdater, never()).updatePluginVersionAndSync(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION));
+    verify(myVersionUpdater, never()).updatePluginVersion(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION));
     assertThat(mySyncMessages.getReportedMessages()).isEmpty();
   }
 
@@ -98,7 +95,7 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     boolean upgraded = GradlePluginUpgrade.performForcedPluginUpgrade(getProject(), alphaPluginVersion, latestPluginVersion);
     assertTrue(upgraded);
 
-    verify(myVersionUpdater).updatePluginVersionAndSync(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), alphaPluginVersion, true);
+    verify(myVersionUpdater).updatePluginVersion(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), alphaPluginVersion);
     assertThat(mySyncMessages.getReportedMessages()).isEmpty();
   }
 
@@ -118,6 +115,6 @@ public class ForcedGradlePluginUpgradeTest extends PlatformTestCase {
     String message = messages.get(0).getText()[1];
     assertThat(message).contains("Please update your project to use version 2.0.0.");
 
-    verify(myVersionUpdater, never()).updatePluginVersionAndSync(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION));
+    verify(myVersionUpdater, never()).updatePluginVersion(latestPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION));
   }
 }

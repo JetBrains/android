@@ -27,13 +27,22 @@ import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.ARTIFACT_ID
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo.GROUP_ID
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.hyperlink.SearchInBuildFilesHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder
 import com.android.tools.idea.project.messages.MessageType.ERROR
 import com.android.tools.idea.project.messages.SyncMessage
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_AGP_VERSION_UPDATED
+import com.intellij.ide.IdeBundle
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.notification.Notification
+import com.intellij.notification.NotificationDisplayType
+import com.intellij.notification.NotificationGroup
+import com.intellij.notification.NotificationListener
+import com.intellij.notification.NotificationType
+import com.intellij.notification.NotificationsManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState.NON_MODAL
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -44,6 +53,7 @@ import com.intellij.util.SystemProperties
 import java.util.concurrent.TimeUnit
 
 private val LOG = Logger.getInstance("AndroidGradlePluginUpdates")
+val AGP_UPGRADE_NOTIFICATION_GROUP = NotificationGroup("Android Gradle Upgrade Notification", NotificationDisplayType.STICKY_BALLOON, true)
 
 // **************************************************************************
 // ** Recommended upgrades
@@ -70,40 +80,75 @@ class RecommendedUpgradeReminder(
  * 1 - If the user has never been shown the upgrade (for that version) and the conditions in [shouldRecommendUpgrade] return true.
  * 2 - If the user picked "Remind me tomorrow" and a day has passed.
  *
- * [pluginInfo] should only be overwritten to inject information for tests.
+ * [current] defaults to the value that is obtained from the [project], if it can't be found, false is returned.
  */
 @Slow
 @JvmOverloads
-fun shouldRecommendPluginUpgrade(project: Project, pluginInfo: AndroidPluginInfo? = project.findPluginInfo()) : Boolean {
+fun shouldRecommendPluginUpgrade(
+  project: Project,
+  current: GradleVersion? = project.findPluginInfo()?.pluginVersion,
+  recommended: GradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get())
+) : Boolean {
+  // Needed internally for development of Android support lib.
+  if (SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false)) return false
+
   if (!RecommendedUpgradeReminder(project).shouldAsk()) return false
-  val current = pluginInfo?.pluginVersion ?: return false
-  val recommended = GradleVersion.parse(pluginInfo.latestKnownPluginVersionProvider.get())
-  return shouldRecommendUpgrade(recommended, current)
+  // If we don't know the current plugin version then we don't upgrade.
+  if (current == null) return false
+  return shouldRecommendUpgrade(current, recommended)
+}
+
+/**
+ * Shows a notification balloon recommending that the user upgrade the version of the Android Gradle plugin.
+ *
+ * If they choose to accept this recommendation [performRecommendedPluginUpgrade] will show them a dialog and the option
+ * to try and update the version automatically.
+ */
+fun recommendPluginUpgrade(project: Project) {
+  val existing = NotificationsManager
+    .getNotificationsManager()
+    .getNotificationsOfType(ProjectUpgradeNotification::class.java, project)
+
+  if (existing.isEmpty()) {
+    val listener = NotificationListener { notification, _ ->
+      notification.expire()
+      if (performRecommendedPluginUpgrade(project)) {
+        // Trigger a re-sync if the plugin upgrade was performed.
+        val request = GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED)
+        request.cleanProject = true
+        GradleSyncInvoker.getInstance().requestProjectSync(project, request)
+      }
+    }
+
+    val notification = ProjectUpgradeNotification(listener)
+    notification.notify(project)
+  }
 }
 
 /**
  * Shows a [RecommendedPluginVersionUpgradeDialog] to the user prompting them to upgrade to a newer version of
- * the Android Gradle Plugin and Gradle. The information about which versions to upgrade to is contained within
- * the [pluginInfo].
+ * the Android Gradle Plugin and Gradle. If the [currentVersion] is null this method always returns false, with
+ * no action taken.
  *
  * If the user accepted the upgrade then the file are modified and the project is re-synced. This method uses
  * [AndroidPluginVersionUpdater] in order to perform these operations.
  *
  * Returns true if the upgrade was performed and the project was synced, false otherwise.
  *
- * Note: The [dialogFactory] and [pluginInfo] arguments should not be used outside of tests. It should only be used to mock the
- * result of the dialog or inject version information.
+ * Note: The [dialogFactory] argument should not be used outside of tests. It should only be used to mock the
+ * result of the dialog.
  *
  */
 @Slow
 @JvmOverloads
+@VisibleForTesting
 fun performRecommendedPluginUpgrade(
   project: Project,
-  pluginInfo: AndroidPluginInfo? = project.findPluginInfo(),
+  currentVersion: GradleVersion? = project.findPluginInfo()?.pluginVersion,
+  recommendedVersion: GradleVersion = GradleVersion.parse(LatestKnownPluginVersionProvider.INSTANCE.get()),
   dialogFactory: RecommendedPluginVersionUpgradeDialog.Factory = RecommendedPluginVersionUpgradeDialog.Factory()
 ) : Boolean {
-  val currentVersion = pluginInfo?.pluginVersion ?: return false
-  val recommendedVersion = GradleVersion.parse(pluginInfo.latestKnownPluginVersionProvider.get())
+  if (currentVersion == null) return false
 
   LOG.info("Gradle model version: $currentVersion, recommended version for IDE: $recommendedVersion, current, recommended")
 
@@ -117,7 +162,7 @@ fun performRecommendedPluginUpgrade(
     val updater = AndroidPluginVersionUpdater.getInstance(project)
 
     val latestGradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION)
-    val updateResult = updater.updatePluginVersionAndSync(recommendedVersion, latestGradleVersion, currentVersion, false)
+    val updateResult = updater.updatePluginVersion(recommendedVersion, latestGradleVersion, currentVersion)
     if (updateResult.versionUpdateSuccess()) {
       // plugin version updated and a project sync was requested. No need to continue.
       return true
@@ -128,7 +173,7 @@ fun performRecommendedPluginUpgrade(
 }
 
 @VisibleForTesting
-fun shouldRecommendUpgrade(recommended: GradleVersion, current: GradleVersion) : Boolean {
+fun shouldRecommendUpgrade(current: GradleVersion, recommended: GradleVersion) : Boolean {
   // Do not upgrade to snapshot version when major versions are same.
   if (recommended.isSnapshot && current.compareIgnoringQualifiers(recommended) == 0) return false
   // Upgrade from preview to non-snapshot preview version is handled by force upgrade.
@@ -137,6 +182,15 @@ fun shouldRecommendUpgrade(recommended: GradleVersion, current: GradleVersion) :
   if (!current.isPreview && recommended.isPreview && current.compareIgnoringQualifiers(recommended) < 0) return true
   return current < recommended
 }
+
+@VisibleForTesting
+class ProjectUpgradeNotification(listener: NotificationListener)
+  : Notification(AGP_UPGRADE_NOTIFICATION_GROUP.displayId,
+                 "Plugin Update Recommended",
+                 IdeBundle.message("updates.ready.message", "Android Gradle Plugin"),
+                 NotificationType.INFORMATION,
+                 listener)
+
 
 // **************************************************************************
 // ** Forced upgrades
@@ -232,12 +286,7 @@ fun performForcedPluginUpgrade(
   if (upgradeAccepted) {
     // The user accepted the upgrade
     val versionUpdater = AndroidPluginVersionUpdater.getInstance(project)
-    versionUpdater.updatePluginVersionAndSync(
-      newPluginVersion,
-      GradleVersion.parse(GRADLE_LATEST_VERSION),
-      currentPluginVersion,
-      true
-    )
+    versionUpdater.updatePluginVersion(newPluginVersion, GradleVersion.parse(GRADLE_LATEST_VERSION), currentPluginVersion)
   } else {
     // The user did not accept the upgrade
     val syncMessage = SyncMessage(

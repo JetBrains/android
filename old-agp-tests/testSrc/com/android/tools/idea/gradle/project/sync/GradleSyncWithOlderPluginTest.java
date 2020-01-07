@@ -26,10 +26,7 @@ import static com.intellij.openapi.roots.DependencyScope.COMPILE;
 import static com.intellij.openapi.roots.DependencyScope.PROVIDED;
 import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
-import static org.mockito.Mockito.mock;
 
-import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade;
-import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -53,9 +50,6 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
   public void setUp() throws Exception {
     super.setUp();
     Project project = getProject();
-
-    // We don't want the IDE to offer a plugin version upgrade.
-    new IdeComponents(project).replaceProjectService(PluginVersionUpgrade.class, mock(PluginVersionUpgrade.class));
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
