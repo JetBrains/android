@@ -343,7 +343,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
             break;
           default:
             presentation.setIcon(null);
-            presentation.setText(null);
+            presentation.setText((String)null);
             presentation.setEnabledAndVisible(false);
             break;
         }

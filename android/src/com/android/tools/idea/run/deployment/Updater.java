@@ -200,14 +200,14 @@ final class Updater {
 
     if (configuration instanceof AndroidRunConfiguration || configuration instanceof AndroidTestRunConfiguration) {
       myPresentation.setEnabled(true);
-      myPresentation.setDescription(null);
+      myPresentation.setDescription((String)null);
 
       return;
     }
 
     if (configurationDeploysToLocalDevice()) {
       myPresentation.setEnabled(true);
-      myPresentation.setDescription(null);
+      myPresentation.setDescription((String)null);
 
       return;
     }
