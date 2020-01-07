@@ -40,7 +40,7 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     val layoutFile = myFixture.addFileToProject("res/layout/layout.xml", BASIC_LAYOUT).virtualFile
     val activityFile = myFixture.addFileToProject("src/p1/p2/MyActivity.kt", KOTLIN_ACTIVITY).virtualFile
     doTestGotoRelatedFile(activityFile, setOf(layoutFile), PsiFile::class.java)
-    doCheckLineMarkers(setOf(layoutFile), PsiFile::class.java)
+    doCheckLineMarkers(setOf(layoutFile), PsiFile::class.java,"Related XML file")
   }
 
   fun testKotlinActivityToLayoutAndManifest() {
@@ -78,7 +78,7 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     val activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity1.java", "src/p1/p2/MyActivity.java")
     val expectedTargetFiles = setOf(layout, layout1, layout2[0]!!, layoutLand)
     doTestGotoRelatedFile(activityFile, expectedTargetFiles, PsiFile::class.java)
-    doCheckLineMarkers(expectedTargetFiles, PsiFile::class.java)
+    doCheckLineMarkers(expectedTargetFiles, PsiFile::class.java, "Related XML file")
   }
 
   fun testActivityToLayoutAndManifest() {
@@ -130,7 +130,7 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     val fragmentFile = myFixture.copyFileToProject(BASE_PATH + "Fragment1.java", "src/p1/p2/MyFragment.java")
     val expectedTargetFiles = ImmutableSet.of(layout, layoutLand)
     doTestGotoRelatedFile(fragmentFile, expectedTargetFiles, PsiFile::class.java)
-    doCheckLineMarkers(expectedTargetFiles, PsiFile::class.java)
+    doCheckLineMarkers(expectedTargetFiles, PsiFile::class.java, "Related XML file")
   }
 
   fun testLayoutToJavaContext() {
@@ -146,7 +146,7 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     myFixture.copyFileToProject(BASE_PATH + "Fragment2.java", "src/p1/p2/Fragment2.java")
     val expectedTargetFiles = ImmutableSet.of(activityFile, fragmentFile)
     doTestGotoRelatedFile(layout, expectedTargetFiles, PsiClass::class.java)
-    doCheckLineMarkers(expectedTargetFiles, PsiClass::class.java)
+    doCheckLineMarkers(expectedTargetFiles, PsiClass::class.java, "Related Java class")
   }
 
   fun testLayoutToKotlinContext() {
@@ -155,7 +155,7 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     val activityFile = myFixture.copyFileToProject(BASE_PATH + "Activity1.kt", "src/p1/p2/MyActivity.kt")
     val expectedTargetFiles = ImmutableSet.of(activityFile)
     doTestGotoRelatedFile(layout, expectedTargetFiles, KtClass::class.java)
-    doCheckLineMarkers(expectedTargetFiles, KtClass::class.java)
+    doCheckLineMarkers(expectedTargetFiles, KtClass::class.java, "Related Kotlin class")
   }
 
   fun testLayoutDoNothing() {
@@ -198,10 +198,13 @@ class AndroidGotoRelatedLineMarkerTest : AndroidTestCase() {
     return GotoRelatedSymbolAction.getItems(myFixture.file, myFixture.editor, null)
   }
 
-  private fun doCheckLineMarkers(expectedTargetFiles: Set<VirtualFile>, targetElementClass: Class<*>) {
+  private fun doCheckLineMarkers(expectedTargetFiles: Set<VirtualFile>,
+                                 targetElementClass: Class<*>,
+                                 expectedTooltip: String) {
     val relatedMarkers = doGetRelatedLineMarkers()
     assertThat(relatedMarkers).hasSize(1)
     val marker = relatedMarkers[0] as RelatedItemLineMarkerInfo
+    assertThat(marker.lineMarkerTooltip).isEqualTo(expectedTooltip)
     doCheckItems(expectedTargetFiles, marker.createGotoRelatedItems().toList(),
                  targetElementClass)
   }
