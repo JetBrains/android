@@ -47,6 +47,7 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
+import com.android.tools.idea.wizard.template.SKIP_LINE
 import com.android.tools.idea.wizard.template.SourceSetType
 import com.android.tools.idea.wizard.template.findResource
 import com.android.utils.XmlUtils.XML_PROLOG
@@ -121,15 +122,16 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
    * Merges the given XML file into the given destination file (or copies it over if  the destination file does not exist).
    */
   override fun mergeXml(source: String, to: File) {
+    val content = source.withoutSkipLines()
     val targetFile = getTargetFile(to)
     require(hasExtension(targetFile, DOT_XML)) { "Only XML files can be merged at this point: $targetFile" }
 
     val targetText = readTargetText(targetFile) ?: run {
-      save(source, to, true, true)
+      save(content, to, true, true)
       return
     }
 
-    val contents = mergeXmlUtil(RenderingContextAdapter(context), source, targetText, targetFile)
+    val contents = mergeXmlUtil(RenderingContextAdapter(context), content, targetText, targetFile)
 
     writeTargetFile(this, contents, targetFile)
   }
@@ -238,7 +240,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
    */
   override fun save(source: String, to: File, trimVertical: Boolean, squishEmptyLines: Boolean) {
     val targetFile = getTargetFile(to)
-    val untrimmedContent = extractFullyQualifiedNames(to, source).trim()
+    val untrimmedContent = extractFullyQualifiedNames(to, source.withoutSkipLines())
     val trimmedUnsquishedContent = if (trimVertical) untrimmedContent.trim() else untrimmedContent
     val content = if (squishEmptyLines) trimmedUnsquishedContent.squishEmptyLines() else trimmedUnsquishedContent
 
@@ -533,6 +535,11 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
  */
 // TODO(qumeric): make private
 const val CLASSPATH_CONFIGURATION_NAME = "classpath"
+
+private fun CharSequence.withoutSkipLines() = this.split("\n")
+  .filter { it.trim() != SKIP_LINE }
+  .joinToString("\n")
+  .replace(SKIP_LINE, "") // for some SKIP_LINEs which are not on their own line
 
 @VisibleForTesting
 fun CharSequence.squishEmptyLines(): String {
