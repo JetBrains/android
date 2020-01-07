@@ -33,8 +33,8 @@ COMMON_DATA = [
     "//tools/base/templates",
     "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
     "//tools/data-binding:data_binding_runtime.zip",
+    "//tools/idea/bin:log.xml",
     "//tools/idea/java/jdkAnnotations",
-    "//tools/idea:config",
     "//tools/idea:platform-build-info",
     "//tools/vendor/google/testing/display:xvfb",
 ]
