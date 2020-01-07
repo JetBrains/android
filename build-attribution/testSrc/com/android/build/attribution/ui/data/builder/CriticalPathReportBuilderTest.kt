@@ -62,9 +62,13 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
   @Test
   fun testPluginsCriticalPath() {
     val taskA = TaskData("taskA", ":app", pluginA, 0, 100, TaskData.TaskExecutionMode.FULL, emptyList())
+      .apply { isOnTheCriticalPath = true }
     val taskB = TaskData("taskB", ":app", pluginB, 0, 400, TaskData.TaskExecutionMode.FULL, emptyList())
+      .apply { isOnTheCriticalPath = true }
     val taskC = TaskData("taskC", ":lib", pluginA, 0, 300, TaskData.TaskExecutionMode.FULL, emptyList())
+      .apply { isOnTheCriticalPath = true }
     val taskD = TaskData("taskD", ":app", pluginB, 0, 200, TaskData.TaskExecutionMode.FULL, emptyList())
+      .apply { isOnTheCriticalPath = true }
 
 
     val analyzerResults = object : MockResultsProvider() {
@@ -83,9 +87,13 @@ class CriticalPathReportBuilderTest : AbstractBuildAttributionReportBuilderTest(
     assertThat(report.criticalPathPlugins.plugins.size).isEqualTo(2)
     assertThat(report.criticalPathPlugins.plugins[0].name).isEqualTo("pluginB")
     assertThat(report.criticalPathPlugins.plugins[0].criticalPathTasks.size).isEqualTo(2)
+    report.criticalPathPlugins.plugins[0].criticalPathTasks.tasks[0].verifyValues(":app", "taskB", pluginB, TimeWithPercentage(400, 1000))
+    report.criticalPathPlugins.plugins[0].criticalPathTasks.tasks[1].verifyValues(":app", "taskD", pluginB, TimeWithPercentage(200, 1000))
     assertThat(report.criticalPathPlugins.plugins[0].criticalPathDuration).isEqualTo(TimeWithPercentage(600, 1000))
     assertThat(report.criticalPathPlugins.plugins[1].name).isEqualTo("pluginA")
     assertThat(report.criticalPathPlugins.plugins[1].criticalPathTasks.size).isEqualTo(2)
+    report.criticalPathPlugins.plugins[1].criticalPathTasks.tasks[0].verifyValues(":lib", "taskC", pluginA, TimeWithPercentage(300, 1000))
+    report.criticalPathPlugins.plugins[1].criticalPathTasks.tasks[1].verifyValues(":app", "taskA", pluginA, TimeWithPercentage(100, 1000))
     assertThat(report.criticalPathPlugins.plugins[1].criticalPathDuration).isEqualTo(TimeWithPercentage(400, 1000))
   }
 
