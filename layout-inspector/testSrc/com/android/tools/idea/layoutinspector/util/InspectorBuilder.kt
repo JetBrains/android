@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.util
 
-import com.android.SdkConstants
+import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
@@ -23,11 +24,15 @@ import com.android.testutils.TestUtils
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.properties.InspectorPropertiesModel
+import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import org.mockito.Mockito
 
 object InspectorBuilder {
@@ -35,7 +40,7 @@ object InspectorBuilder {
   fun setUpDemo(projectRule: AndroidProjectRule) {
     InspectorClient.clientFactory = { Mockito.mock(InspectorClient::class.java) }
     projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/layout-inspector/testData/resource").path
-    projectRule.fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
+    projectRule.fixture.copyFileToProject(FN_ANDROID_MANIFEST_XML)
     projectRule.fixture.copyFileToProject("res/color/app_text_color.xml")
     projectRule.fixture.copyFileToProject("res/drawable/background_choice.xml")
     projectRule.fixture.copyFileToProject("res/drawable/battery.xml")
@@ -66,6 +71,23 @@ object InspectorBuilder {
     val (config, stringTable) = configBuilder.makeConfiguration()
     inspectorModel.resourceLookup.updateConfiguration(config, stringTable)
     return LayoutInspector(inspectorModel)
+  }
+
+  fun createModel(projectRule: AndroidProjectRule): InspectorPropertiesModel {
+    val model = InspectorPropertiesModel()
+    model.layoutInspector = createLayoutInspectorForDemo(projectRule)
+    return model
+  }
+
+  fun createProperty(viewId: String,
+                     attrName: String,
+                     type: LayoutInspectorProto.Property.Type,
+                     source: ResourceReference?,
+                     model: InspectorPropertiesModel): InspectorPropertyItem {
+    val inspectorModel = model.layoutInspector?.layoutInspectorModel!!
+    val node = inspectorModel[viewId]!!
+    return InspectorPropertyItem(
+      ANDROID_URI, attrName, attrName, type, null, PropertySection.DECLARED, source ?: node.layout, node, inspectorModel.resourceLookup)
   }
 
   private fun createDemoViewNodes(): ViewNode {

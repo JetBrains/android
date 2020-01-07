@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
@@ -33,7 +34,6 @@ import junit.framework.TestCase
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
 import java.awt.Image
@@ -144,10 +144,3 @@ class DeviceViewPanelLegacyTest {
 }
 
 private fun getToolbar(panel: DeviceViewPanel) = flatten(panel).find { it.name == DEVICE_VIEW_ACTION_TOOLBAR_NAME } as Container
-
-private fun flatten(component: Component): List<Component> {
-  if (component !is Container) {
-    return listOf(component)
-  }
-  return component.components.flatMap { flatten(it) }.plus(component)
-}

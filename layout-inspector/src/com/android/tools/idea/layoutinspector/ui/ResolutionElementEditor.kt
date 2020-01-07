@@ -26,6 +26,7 @@ import com.android.tools.idea.layoutinspector.resource.SourceLocation
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.ptable2.PTableGroupItem
 import com.android.tools.property.ptable2.PTableVariableHeightCellEditor
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
@@ -52,7 +53,8 @@ private const val LINK_BORDER = 2
  */
 class ResolutionElementEditor(
   private val model: ResolutionStackModel,
-  private val editorModel: PropertyEditorModel,
+  @VisibleForTesting
+  val editorModel: PropertyEditorModel,
   editor: JComponent
 ) : JPanel(BorderLayout()), PTableVariableHeightCellEditor {
 
