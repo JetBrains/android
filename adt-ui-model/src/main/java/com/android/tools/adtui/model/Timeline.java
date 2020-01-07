@@ -64,4 +64,19 @@ public interface Timeline {
    * Set view range to the given range.
    */
   void frameViewToRange(Range targetRange);
+
+  /**
+   * Pan view range based on the given value.
+   *
+   * @param delta negative to pan left, positive to pan right.
+   */
+  default void panView(double delta) {
+    if (getViewRange().getMin() + delta < getDataRange().getMin()) {
+      delta = getDataRange().getMin() - getViewRange().getMin();
+    }
+    else if (getViewRange().getMax() + delta > getDataRange().getMax()) {
+      delta = getDataRange().getMax() - getViewRange().getMax();
+    }
+    getViewRange().shift(delta);
+  }
 }

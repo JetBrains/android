@@ -439,17 +439,12 @@ public final class StreamingTimeline extends AspectModel<StreamingTimeline.Aspec
                    finalRange.getMax() - myViewRangeUs.getMax());
   }
 
-  public void pan(double deltaUs) {
+  @Override
+  public void panView(double deltaUs) {
     if (deltaUs < 0) {
       setStreaming(false);
     }
-    if (myViewRangeUs.getMin() + deltaUs < myDataRangeUs.getMin()) {
-      deltaUs = myDataRangeUs.getMin() - myViewRangeUs.getMin();
-    }
-    else if (myViewRangeUs.getMax() + deltaUs > myDataRangeUs.getMax()) {
-      deltaUs = myDataRangeUs.getMax() - myViewRangeUs.getMax();
-    }
-    myViewRangeUs.shift(deltaUs);
+    Timeline.super.panView(deltaUs);
   }
 
   /**

@@ -265,15 +265,15 @@ public class StreamingTimelineTest {
     myDataRange.set(0, 100);
     myViewRange.set(20, 30);
 
-    myTimeline.pan(10);
+    myTimeline.panView(10);
     assertThat(myViewRange.getMin()).isWithin(DELTA).of(30);
     assertThat(myViewRange.getMax()).isWithin(DELTA).of(40);
 
-    myTimeline.pan(-40);
+    myTimeline.panView(-40);
     assertThat(myViewRange.getMin()).isWithin(DELTA).of(0);
     assertThat(myViewRange.getMax()).isWithin(DELTA).of(10);
 
-    myTimeline.pan(140);
+    myTimeline.panView(140);
     assertThat(myViewRange.getMin()).isWithin(DELTA).of(90);
     assertThat(myViewRange.getMax()).isWithin(DELTA).of(100);
     assertThat(myTimeline.isStreaming()).isFalse();
@@ -281,16 +281,16 @@ public class StreamingTimelineTest {
     myTimeline.setStreaming(true);
     assertThat(myTimeline.isStreaming()).isTrue();
     // Test moving to the left stops streaming
-    myTimeline.pan(-10);
+    myTimeline.panView(-10);
     assertThat(myTimeline.isStreaming()).isFalse();
 
     myTimeline.setStreaming(true);
     assertThat(myTimeline.isStreaming()).isTrue();
     // Tests moving to the right doesn't stop streaming
-    myTimeline.pan(10);
+    myTimeline.panView(10);
     assertThat(myTimeline.isStreaming()).isTrue();
     // Test moving past the end doesn't stop streaming either
-    myTimeline.pan(10);
+    myTimeline.panView(10);
   }
 
   @Test

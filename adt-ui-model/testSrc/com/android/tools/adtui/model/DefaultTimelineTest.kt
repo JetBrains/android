@@ -18,6 +18,8 @@ package com.android.tools.adtui.model
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
+private const val DELTA = 0.001
+
 class DefaultTimelineTest {
   private val timeline = DefaultTimeline()
 
@@ -26,8 +28,8 @@ class DefaultTimelineTest {
     timeline.dataRange.set(0.0, 1.0)
     timeline.viewRange.set(0.0, 1.0)
     timeline.zoomIn()
-    assertThat(timeline.viewRange.min).isEqualTo(0.25)
-    assertThat(timeline.viewRange.max).isEqualTo(0.75)
+    assertThat(timeline.viewRange.min).isWithin(DELTA).of(0.25)
+    assertThat(timeline.viewRange.max).isWithin(DELTA).of(0.75)
   }
 
   @Test
@@ -35,8 +37,8 @@ class DefaultTimelineTest {
     timeline.dataRange.set(0.0, 5.0)
     timeline.viewRange.set(1.0, 2.0)
     timeline.zoomOut()
-    assertThat(timeline.viewRange.min).isEqualTo(0.5)
-    assertThat(timeline.viewRange.max).isEqualTo(2.5)
+    assertThat(timeline.viewRange.min).isWithin(DELTA).of(0.5)
+    assertThat(timeline.viewRange.max).isWithin(DELTA).of(2.5)
   }
 
   @Test
@@ -44,8 +46,8 @@ class DefaultTimelineTest {
     timeline.dataRange.set(0.0, 5.0)
     timeline.viewRange.set(0.5, 2.5)
     timeline.zoomOut()
-    assertThat(timeline.viewRange.min).isEqualTo(0.0)
-    assertThat(timeline.viewRange.max).isEqualTo(3.5)
+    assertThat(timeline.viewRange.min).isWithin(DELTA).of(0.0)
+    assertThat(timeline.viewRange.max).isWithin(DELTA).of(3.5)
   }
 
   @Test
@@ -53,8 +55,8 @@ class DefaultTimelineTest {
     timeline.dataRange.set(0.0, 5.0)
     timeline.viewRange.set(2.5, 4.5)
     timeline.zoomOut()
-    assertThat(timeline.viewRange.min).isEqualTo(1.5)
-    assertThat(timeline.viewRange.max).isEqualTo(5.0)
+    assertThat(timeline.viewRange.min).isWithin(DELTA).of(1.5)
+    assertThat(timeline.viewRange.max).isWithin(DELTA).of(5.0)
   }
 
   @Test
@@ -63,8 +65,8 @@ class DefaultTimelineTest {
     timeline.viewRange.set(0.0, 1.0)
     timeline.setZoomRatio(0.25)
     timeline.zoomIn()
-    assertThat(timeline.viewRange.min).isEqualTo(0.375)
-    assertThat(timeline.viewRange.max).isEqualTo(0.625)
+    assertThat(timeline.viewRange.min).isWithin(DELTA).of(0.375)
+    assertThat(timeline.viewRange.max).isWithin(DELTA).of(0.625)
   }
 
   @Test
@@ -72,8 +74,8 @@ class DefaultTimelineTest {
     timeline.dataRange.set(0.0, 5.0)
     timeline.viewRange.set(1.0, 2.0)
     timeline.resetZoom()
-    assertThat(timeline.viewRange.min).isEqualTo(0.0)
-    assertThat(timeline.viewRange.max).isEqualTo(5.0)
+    assertThat(timeline.viewRange.min).isWithin(DELTA).of(0.0)
+    assertThat(timeline.viewRange.max).isWithin(DELTA).of(5.0)
   }
 
   @Test
@@ -81,8 +83,8 @@ class DefaultTimelineTest {
     timeline.dataRange.set(0.0, 5.0)
     timeline.viewRange.set(1.0, 2.0)
     timeline.frameViewToRange(Range(1.5, 2.5))
-    assertThat(timeline.viewRange.min).isEqualTo(1.5)
-    assertThat(timeline.viewRange.max).isEqualTo(2.5)
+    assertThat(timeline.viewRange.min).isWithin(DELTA).of(1.5)
+    assertThat(timeline.viewRange.max).isWithin(DELTA).of(2.5)
   }
 
   @Test
@@ -90,7 +92,29 @@ class DefaultTimelineTest {
     timeline.dataRange.set(1.0, 5.0)
     timeline.viewRange.set(1.0, 2.0)
     timeline.frameViewToRange(Range(0.0, 6.0))
-    assertThat(timeline.viewRange.min).isEqualTo(1.0)
-    assertThat(timeline.viewRange.max).isEqualTo(5.0)
+    assertThat(timeline.viewRange.min).isWithin(DELTA).of(1.0)
+    assertThat(timeline.viewRange.max).isWithin(DELTA).of(5.0)
+  }
+
+  @Test
+  fun pan() {
+    timeline.dataRange.set(0.0, 100.0)
+    timeline.viewRange.set(20.0, 30.0)
+
+    timeline.panView(-10.0)
+    assertThat(timeline.viewRange.min).isWithin(DELTA).of(10.0)
+    assertThat(timeline.viewRange.max).isWithin(DELTA).of(20.0)
+
+    timeline.panView(10.0)
+    assertThat(timeline.viewRange.min).isWithin(DELTA).of(20.0)
+    assertThat(timeline.viewRange.max).isWithin(DELTA).of(30.0)
+
+    timeline.panView(-30.0)
+    assertThat(timeline.viewRange.min).isWithin(DELTA).of(0.0)
+    assertThat(timeline.viewRange.max).isWithin(DELTA).of(10.0)
+
+    timeline.panView(130.0)
+    assertThat(timeline.viewRange.min).isWithin(DELTA).of(90.0)
+    assertThat(timeline.viewRange.max).isWithin(DELTA).of(100.0)
   }
 }
