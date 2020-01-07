@@ -21,6 +21,7 @@ import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFut
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.sqlite.model.RowIdName
+import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.sql.protocol.SqliteInspection
 import com.google.common.util.concurrent.Futures
@@ -28,7 +29,6 @@ import com.intellij.testFramework.PlatformTestCase
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
-import java.sql.JDBCType
 
 class LiveDatabaseConnectionTest : PlatformTestCase() {
   private val taskExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)
@@ -55,17 +55,11 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
       .setType("BLOB")
       .build()
 
-    val column5 = SqliteInspection.Column.newBuilder()
-      .setName("column5")
-      .setType("invalid type")
-      .build()
-
     val table = SqliteInspection.Table.newBuilder()
       .addColumns(column1)
       .addColumns(column2)
       .addColumns(column3)
       .addColumns(column4)
-      .addColumns(column5)
       .build()
 
     val schema = SqliteInspection.Schema.newBuilder()
@@ -86,18 +80,16 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
 
     // Assert
     assertSize(1, sqliteSchema.tables)
-    assertSize(5, sqliteSchema.tables.first().columns)
+    assertSize(4, sqliteSchema.tables.first().columns)
     assertEquals(RowIdName._ROWID_, sqliteSchema.tables.first().rowIdName)
-    assertEquals("column1", sqliteSchema.tables.first ().columns[0].name)
-    assertEquals("column2", sqliteSchema.tables.first ().columns[1].name)
-    assertEquals("column3", sqliteSchema.tables.first ().columns[2].name)
-    assertEquals("column4", sqliteSchema.tables.first ().columns[3].name)
-    assertEquals("column5", sqliteSchema.tables.first ().columns[4].name)
-    assertEquals(JDBCType.VARCHAR, sqliteSchema.tables.first ().columns[0].type)
-    assertEquals(JDBCType.INTEGER, sqliteSchema.tables.first ().columns[1].type)
-    assertEquals(JDBCType.FLOAT, sqliteSchema.tables.first ().columns[2].type)
-    assertEquals(JDBCType.BLOB, sqliteSchema.tables.first ().columns[3].type)
-    assertEquals(JDBCType.OTHER, sqliteSchema.tables.first ().columns[4].type)
+    assertEquals("column1", sqliteSchema.tables.first().columns[0].name)
+    assertEquals("column2", sqliteSchema.tables.first().columns[1].name)
+    assertEquals("column3", sqliteSchema.tables.first().columns[2].name)
+    assertEquals("column4", sqliteSchema.tables.first().columns[3].name)
+    assertEquals(SqliteAffinity.TEXT, sqliteSchema.tables.first().columns[0].affinity)
+    assertEquals(SqliteAffinity.INTEGER, sqliteSchema.tables.first().columns[1].affinity)
+    assertEquals(SqliteAffinity.REAL, sqliteSchema.tables.first().columns[2].affinity)
+    assertEquals(SqliteAffinity.BLOB, sqliteSchema.tables.first().columns[3].affinity)
   }
 
   fun testExecuteQuery() {
@@ -159,11 +151,11 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     assertEquals("column4", sqliteColumns[3].name)
     assertEquals("column5", sqliteColumns[4].name)
 
-    assertEquals(JDBCType.VARCHAR, sqliteColumns[0].type)
-    assertEquals(JDBCType.FLOAT, sqliteColumns[1].type)
-    assertEquals(JDBCType.BLOB, sqliteColumns[2].type)
-    assertEquals(JDBCType.INTEGER, sqliteColumns[3].type)
-    assertEquals(JDBCType.NULL, sqliteColumns[4].type)
+    assertEquals(SqliteAffinity.TEXT, sqliteColumns[0].affinity)
+    assertEquals(SqliteAffinity.TEXT, sqliteColumns[1].affinity)
+    assertEquals(SqliteAffinity.TEXT, sqliteColumns[2].affinity)
+    assertEquals(SqliteAffinity.TEXT, sqliteColumns[3].affinity)
+    assertEquals(SqliteAffinity.TEXT, sqliteColumns[4].affinity)
 
     assertEquals(sqliteRows[0].values[0].value, "a string")
     assertEquals(sqliteRows[0].values[1].value, 1f)

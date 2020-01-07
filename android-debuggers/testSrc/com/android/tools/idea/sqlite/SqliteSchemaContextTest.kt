@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite
 import com.android.tools.idea.lang.androidSql.AndroidSqlFileType
 import com.android.tools.idea.lang.androidSql.resolution.AndroidSqlColumn
 import com.android.tools.idea.lang.androidSql.resolution.CollectUniqueNamesProcessor
+import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
@@ -30,7 +31,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.navigation.CtrlMouseHandler
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
-import java.sql.JDBCType
 
 class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
 
@@ -51,8 +51,8 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
 
   fun testConvertSqliteTableToAndroidSqlTable() {
     val columns: List<SqliteColumn> = listOf(
-      SqliteColumn("col1", JDBCType.VARCHAR, false),
-      SqliteColumn("col2", JDBCType.INTEGER, false)
+      SqliteColumn("col1", SqliteAffinity.TEXT, false),
+      SqliteColumn("col2", SqliteAffinity.INTEGER, false)
     )
     val table = SqliteTable("table", columns, null, false)
 
@@ -66,8 +66,8 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
     val androidSqlColumns = columnsProcessor.result.toList()
 
     assertThat(androidSqlColumns).containsExactly(
-      SqliteSchemaColumn(columns[0].name, sqlFile, SqliteSchemaSqlType(columns[0].type.name)),
-      SqliteSchemaColumn(columns[1].name, sqlFile, SqliteSchemaSqlType(columns[1].type.name))
+      SqliteSchemaColumn(columns[0].name, sqlFile, SqliteSchemaSqlType(columns[0].affinity.name)),
+      SqliteSchemaColumn(columns[1].name, sqlFile, SqliteSchemaSqlType(columns[1].affinity.name))
     )
   }
 
@@ -83,7 +83,7 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testGetContextFromFileDuringCompletion() {
-    val schema = SqliteSchema(listOf(SqliteTable("User", listOf(SqliteColumn("name", JDBCType.VARCHAR, false)), null,false)))
+    val schema = SqliteSchema(listOf(SqliteTable("User", listOf(SqliteColumn("name", SqliteAffinity.TEXT, false)), null, false)))
     val sqlFile = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT <caret> FROM User").virtualFile
     sqlFile.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
 
@@ -94,14 +94,14 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testProvideCorrectDescription() {
-    val schema = SqliteSchema(listOf(SqliteTable("User", listOf(SqliteColumn("name", JDBCType.VARCHAR, false)), null,false)))
+    val schema = SqliteSchema(listOf(SqliteTable("User", listOf(SqliteColumn("name", SqliteAffinity.TEXT, false)), null, false)))
     val sqlFile = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT n<caret>ame FROM User").virtualFile
     sqlFile.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
 
     val ref = myFixture.file.findReferenceAt(myFixture.editor.caretModel.offset)
 
     assertThat(ref).isNotNull()
-    assertThat(CtrlMouseHandler.getInfo(ref!!.resolve(), ref.element)).isEqualTo("${JDBCType.VARCHAR.name} \"name\"")
+    assertThat(CtrlMouseHandler.getInfo(ref!!.resolve(), ref.element)).isEqualTo("${SqliteAffinity.TEXT.name} \"name\"")
   }
 
 }

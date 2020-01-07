@@ -16,15 +16,14 @@
 package com.android.tools.idea.sqlite.model
 
 import junit.framework.TestCase
-import java.sql.JDBCType
 
 class UtilsTest : TestCase() {
   fun testGetRowIdIsNullIfIntPrimaryKeyExists() {
     // Prepare
     val columns = listOf(
-      SqliteColumn("col1", JDBCType.INTEGER, true),
-      SqliteColumn("col2", JDBCType.INTEGER, false),
-      SqliteColumn("rowid", JDBCType.INTEGER, false)
+      SqliteColumn("col1", SqliteAffinity.INTEGER, true),
+      SqliteColumn("col2", SqliteAffinity.INTEGER, false),
+      SqliteColumn("rowid", SqliteAffinity.INTEGER, false)
     )
 
     // Act
@@ -37,9 +36,9 @@ class UtilsTest : TestCase() {
   fun testGetRowIdIs_rowid_() {
     // Prepare
     val columns = listOf(
-      SqliteColumn("col1", JDBCType.INTEGER, false),
-      SqliteColumn("col2", JDBCType.INTEGER, false),
-      SqliteColumn("rowid", JDBCType.INTEGER, false)
+      SqliteColumn("col1", SqliteAffinity.INTEGER, false),
+      SqliteColumn("col2", SqliteAffinity.INTEGER, false),
+      SqliteColumn("rowid", SqliteAffinity.INTEGER, false)
     )
 
     // Act
@@ -52,9 +51,9 @@ class UtilsTest : TestCase() {
   fun testGetRowIdIsRowid() {
     // Prepare
     val columns = listOf(
-      SqliteColumn("col1", JDBCType.INTEGER, false),
-      SqliteColumn("col2", JDBCType.INTEGER, false),
-      SqliteColumn("_rowid_", JDBCType.INTEGER, false)
+      SqliteColumn("col1", SqliteAffinity.INTEGER, false),
+      SqliteColumn("col2", SqliteAffinity.INTEGER, false),
+      SqliteColumn("_rowid_", SqliteAffinity.INTEGER, false)
     )
 
     // Act
@@ -67,10 +66,10 @@ class UtilsTest : TestCase() {
   fun testGetRowIdIsOid() {
     // Prepare
     val columns = listOf(
-      SqliteColumn("col1", JDBCType.INTEGER, false),
-      SqliteColumn("col2", JDBCType.INTEGER, false),
-      SqliteColumn("_rowid_", JDBCType.INTEGER, false),
-      SqliteColumn("rowid", JDBCType.INTEGER, false)
+      SqliteColumn("col1", SqliteAffinity.INTEGER, false),
+      SqliteColumn("col2", SqliteAffinity.INTEGER, false),
+      SqliteColumn("_rowid_", SqliteAffinity.INTEGER, false),
+      SqliteColumn("rowid", SqliteAffinity.INTEGER, false)
     )
 
     // Act
@@ -83,11 +82,11 @@ class UtilsTest : TestCase() {
   fun testGetRowIdIsNull() {
     // Prepare
     val columns = listOf(
-      SqliteColumn("col1", JDBCType.INTEGER, false),
-      SqliteColumn("col2", JDBCType.INTEGER, false),
-      SqliteColumn("_rowid_", JDBCType.INTEGER, false),
-      SqliteColumn("rowid", JDBCType.INTEGER, false),
-      SqliteColumn("oid", JDBCType.INTEGER, false)
+      SqliteColumn("col1", SqliteAffinity.INTEGER, false),
+      SqliteColumn("col2", SqliteAffinity.INTEGER, false),
+      SqliteColumn("_rowid_", SqliteAffinity.INTEGER, false),
+      SqliteColumn("rowid", SqliteAffinity.INTEGER, false),
+      SqliteColumn("oid", SqliteAffinity.INTEGER, false)
     )
 
     // Act

@@ -30,6 +30,7 @@ import com.android.tools.idea.sqlite.mocks.DatabaseConnectionWrapper
 import com.android.tools.idea.sqlite.mocks.MockSqliteResultSet
 import com.android.tools.idea.sqlite.mocks.MockTableView
 import com.android.tools.idea.sqlite.model.RowIdName
+import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
@@ -91,9 +92,9 @@ class TableControllerTest : PlatformTestCase() {
       getSqliteJdbcService(sqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
 
-    authorIdColumn = SqliteColumn("author_id", JDBCType.INTEGER, true)
-    val authorNameColumn = SqliteColumn("first_name", JDBCType.VARCHAR, false)
-    val authorLastColumn = SqliteColumn("last_name", JDBCType.VARCHAR, false)
+    authorIdColumn = SqliteColumn("author_id", SqliteAffinity.INTEGER, true)
+    val authorNameColumn = SqliteColumn("first_name", SqliteAffinity.TEXT, false)
+    val authorLastColumn = SqliteColumn("last_name", SqliteAffinity.TEXT, false)
 
     authorsRow1 = SqliteRow(
       listOf(
@@ -945,8 +946,8 @@ class TableControllerTest : PlatformTestCase() {
     val customSqliteTable = SqliteTable(
       "tableName",
       listOf(
-        SqliteColumn("rowid", JDBCType.INTEGER, false),
-        SqliteColumn("c1", JDBCType.VARCHAR, false)
+        SqliteColumn("rowid", SqliteAffinity.INTEGER, false),
+        SqliteColumn("c1", SqliteAffinity.TEXT, false)
       ),
       RowIdName.ROWID,
       false

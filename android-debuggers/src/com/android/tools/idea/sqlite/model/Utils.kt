@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.sqlite.model
 
-import java.sql.JDBCType
-
 /**
  * Returns a valid [RowIdName] in the context of the list of columns passed as argument.
  *
@@ -30,7 +28,7 @@ import java.sql.JDBCType
 fun getRowIdName(columns: List<SqliteColumn>): RowIdName? {
   // if the db has an integer primary key, that column is also used for rowid.
   // otherwise we need to find the correct alias to use for the rowid column.
-  val hasIntegerPrimaryKey = columns.any { it.inPrimaryKey && it.type == JDBCType.INTEGER }
+  val hasIntegerPrimaryKey = columns.any { it.inPrimaryKey && it.affinity == SqliteAffinity.INTEGER }
   return when {
     hasIntegerPrimaryKey -> null
     columns.none { it.name == RowIdName._ROWID_.stringName } -> RowIdName._ROWID_

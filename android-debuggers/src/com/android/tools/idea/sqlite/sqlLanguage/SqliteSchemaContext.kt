@@ -69,7 +69,7 @@ class AndroidSqlFakePsiElement(
 }
 
 /**
- * Type that corresponds to [JDBCType].
+ * Type that corresponds to [com.android.tools.idea.sqlite.model.SqliteAffinity].
  */
 data class SqliteSchemaSqlType(override val typeName: String) : SqlType
 
@@ -82,7 +82,7 @@ data class SqliteSchemaColumn(override val name: String, val query: PsiFile, ove
  */
 fun SqliteTable.convertToSqlTable(query: PsiFile): AndroidSqlTable {
   val androidSqlColumns = columns.map {
-    SqliteSchemaColumn(it.name, query, SqliteSchemaSqlType(it.type.name))
+    SqliteSchemaColumn(it.name, query, SqliteSchemaSqlType(it.affinity.name))
   }
   val tableName = name
   val isView = isView
