@@ -32,7 +32,6 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.ProjectStructure;
-import com.android.tools.idea.gradle.project.ProjectStructure.AndroidPluginVersionsInProject;
 import com.android.tools.idea.gradle.project.RunConfigurationChecker;
 import com.android.tools.idea.gradle.project.SupportedModuleChecker;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
@@ -198,9 +197,7 @@ public class PostSyncProjectSetup {
       modifyJUnitRunConfigurations();
       RunConfigurationChecker.getInstance(myProject).ensureRunConfigsInvokeBuild();
 
-      AndroidPluginVersionsInProject agpVersions = myProjectStructure.getAndroidPluginVersions();
       myProjectStructure.analyzeProjectStructure();
-      boolean cleanProjectAfterSync = myProjectStructure.getAndroidPluginVersions().haveVersionsChanged(agpVersions);
 
       updateJavaLanguageLevel();
       notifySyncFinished(request);
@@ -443,7 +440,6 @@ public class PostSyncProjectSetup {
 
   public static class Request {
     public boolean usingCachedGradleModels;
-    public boolean cleanProjectAfterSync;
     public long lastSyncTimestamp = -1L;
 
     @Override
@@ -456,13 +452,12 @@ public class PostSyncProjectSetup {
       }
       Request request = (Request)o;
       return usingCachedGradleModels == request.usingCachedGradleModels &&
-             cleanProjectAfterSync == request.cleanProjectAfterSync &&
              lastSyncTimestamp == request.lastSyncTimestamp;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(usingCachedGradleModels, cleanProjectAfterSync, lastSyncTimestamp);
+      return Objects.hash(usingCachedGradleModels, lastSyncTimestamp);
     }
   }
 }
