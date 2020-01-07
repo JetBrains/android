@@ -101,6 +101,10 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   }
 
   fun refresh() {
+    if (!rotatable) {
+      xOff = 0.0
+      yOff = 0.0
+    }
     if (model.isEmpty) {
       rootBounds = Rectangle()
       maxDepth = 0
