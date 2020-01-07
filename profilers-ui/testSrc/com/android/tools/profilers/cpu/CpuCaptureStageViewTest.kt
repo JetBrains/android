@@ -91,8 +91,11 @@ class CpuCaptureStageViewTest {
     assertThat(stageView.trackGroupList.component.componentCount).isEqualTo(2) // threads track group + tooltip component
     val treeWalker = TreeWalker(stageView.trackGroupList.component)
 
-    val titleStrings = treeWalker.descendants().filterIsInstance<JLabel>().map(JLabel::getText).toList()
-    assertThat(titleStrings).containsExactly("Threads (3)")
+    val labels = treeWalker.descendants().filterIsInstance<JLabel>().toList()
+    // Title label
+    assertThat(labels[0].text).isEqualTo("Threads (3)")
+    // Title info icon
+    assertThat(labels[1].toolTipText).ignoringCase().contains("double-click on the thread name to expand/collapse it")
   }
 
   @Test
