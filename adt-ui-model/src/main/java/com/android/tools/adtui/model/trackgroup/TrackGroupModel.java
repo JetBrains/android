@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.DragAndDropListModel;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Data model for TrackGroup, a collapsible UI component that contains a list of Tracks.
@@ -30,10 +31,10 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
   private static final AtomicInteger TRACK_ID_GENERATOR = new AtomicInteger();
 
   private final String myTitle;
+  private final String myTitleInfo;
   private final boolean myCollapsedInitially;
   private final boolean myHideHeader;
   private final boolean myTrackSelectable;
-  private final int myTrackLimit;
 
   private final AspectObserver myObserver = new AspectObserver();
 
@@ -42,10 +43,10 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
    */
   private TrackGroupModel(Builder builder) {
     myTitle = builder.myTitle;
+    myTitleInfo = builder.myTitleInfo;
     myCollapsedInitially = builder.myCollapsedInitially;
     myHideHeader = builder.myHideHeader;
     myTrackSelectable = builder.myTrackSelectable;
-    myTrackLimit = builder.myTrackLimit;
   }
 
   /**
@@ -73,6 +74,11 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
     return myTitle;
   }
 
+  @Nullable
+  public String getTitleInfo() {
+    return myTitleInfo;
+  }
+
   /**
    * @return whether the track group is collapsed initially.
    */
@@ -94,30 +100,23 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
     return myTrackSelectable;
   }
 
-  /**
-   * @return the number limit of tracks to display.
-   */
-  public int getTrackLimit() {
-    return myTrackLimit;
-  }
-
   public static Builder newBuilder() {
     return new Builder();
   }
 
   public static class Builder {
     private String myTitle;
+    private String myTitleInfo;
     private boolean myCollapsedInitially;
     private boolean myHideHeader;
     private boolean myTrackSelectable;
-    private int myTrackLimit;
 
     private Builder() {
       myTitle = "";
+      myTitleInfo = null;
       myCollapsedInitially = false;
       myHideHeader = false;
       myTrackSelectable = false;
-      myTrackLimit = Integer.MAX_VALUE;
     }
 
     /**
@@ -125,6 +124,14 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
      */
     public Builder setTitle(String title) {
       myTitle = title;
+      return this;
+    }
+
+    /**
+     * @param titleInfo string to be displayed as tooltip next to the header.
+     */
+    public Builder setTitleInfo(@Nullable String titleInfo) {
+      myTitleInfo = titleInfo;
       return this;
     }
 
@@ -140,11 +147,6 @@ public class TrackGroupModel extends DragAndDropListModel<TrackModel> {
 
     public Builder setTrackSelectable(boolean trackSelectable) {
       myTrackSelectable = trackSelectable;
-      return this;
-    }
-
-    public Builder setTrackLimit(int trackLimit) {
-      myTrackLimit = trackLimit;
       return this;
     }
 
