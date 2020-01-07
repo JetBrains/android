@@ -83,8 +83,8 @@ object LayoutInspectorToolbarGroups : EditorActionsToolbarActionGroups {
                                                        DefaultActionGroup().apply { add(Toggle3dAction) })
 
   override val zoomControlsGroup = DefaultActionGroup().apply {
-    add(ZoomOutAction)
     add(ZoomInAction)
+    add(ZoomOutAction)
     add(ZoomToFitAction)
   }
 }
