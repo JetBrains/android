@@ -50,11 +50,14 @@ class AssetPreviewManagerImpl(
   private val colorPreviewProvider by lazy {
     ColorIconProvider(facet.module.project, resourceResolver)
   }
-  private val drawablePreviewProvider by lazy {
-    DrawableIconProvider(facet, resourceResolver, imageCache)
-  }
   private val fontPreviewProvider by lazy {
     FontIconProvider(facet)
+  }
+  private val drawablePreviewProvider by lazy {
+    SlowResourcePreviewManager(imageCache, DrawableSlowPreviewProvider(facet, resourceResolver))
+  }
+  private val layoutPreviewProvider by lazy {
+    SlowResourcePreviewManager(imageCache, LayoutSlowPreviewProvider(facet, resourceResolver))
   }
 
   private val colorDataProvider by lazy {
@@ -73,11 +76,11 @@ class AssetPreviewManagerImpl(
   override fun getPreviewProvider(resourceType: ResourceType): AssetIconProvider =
     when (resourceType) {
       ResourceType.COLOR -> colorPreviewProvider
-      ResourceType.DRAWABLE,
-      ResourceType.MIPMAP,
-      ResourceType.MENU,
-      ResourceType.LAYOUT -> drawablePreviewProvider
       ResourceType.FONT -> fontPreviewProvider
+      ResourceType.DRAWABLE,
+      ResourceType.MIPMAP -> drawablePreviewProvider
+      ResourceType.MENU,
+      ResourceType.LAYOUT -> layoutPreviewProvider
       else -> DefaultIconProvider.INSTANCE
     }
 
