@@ -43,7 +43,7 @@
     <orderEntry type="module" module-name="intellij.android.adb" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
     <orderEntry type="module" module-name="perf-logger" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.naveditor" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.nav.editor" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.deployer" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />

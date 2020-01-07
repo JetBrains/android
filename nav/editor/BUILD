@@ -2,9 +2,9 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 
 # managed by go/iml_to_build
 iml_module(
-    name = "intellij.android.naveditor",
+    name = "intellij.android.nav.editor",
     srcs = ["src"],
-    iml_files = ["intellij.android.naveditor.iml"],
+    iml_files = ["intellij.android.nav.editor.iml"],
     lint_baseline = "lint_baseline.xml",
     resources = ["resources"],
     # do not sort: must match IML order
@@ -60,8 +60,8 @@ iml_module(
 
 # managed by go/iml_to_build
 iml_module(
-    name = "intellij.android.naveditor.tests",
-    iml_files = ["intellij.android.naveditor.tests.iml"],
+    name = "intellij.android.nav.editor.tests",
+    iml_files = ["intellij.android.nav.editor.tests.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.naveditor.NavEditorTestSuite",
     test_coverage = True,
@@ -114,7 +114,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/idea/xml/dom-impl:intellij.xml.dom.impl[module, test]",
-        "//tools/adt/idea/naveditor:intellij.android.naveditor[module, test]",
+        "//tools/adt/idea/nav/editor:intellij.android.nav.editor[module, test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/idea/.idea/libraries:studio-analytics-proto[test]",
