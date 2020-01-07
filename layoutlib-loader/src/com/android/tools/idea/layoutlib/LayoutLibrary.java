@@ -45,6 +45,8 @@ import java.util.Map;
  * {@link #dispose()}, {@link #clearResourceCaches(Object)}.
  */
 public class LayoutLibrary implements Disposable {
+    public static final String LAYOUTLIB_NATIVE_PLUGIN = "com.android.layoutlib.native";
+    public static final String LAYOUTLIB_STANDARD_PLUGIN = "com.android.layoutlib.standard";
 
     /** Link to the layout bridge */
     private final Bridge mBridge;
@@ -76,7 +78,7 @@ public class LayoutLibrary implements Disposable {
         if (ApplicationManager.getApplication().isUnitTestMode()) {
             return true;
         }
-        IdeaPluginDescriptor nativePlugin = PluginManager.getPlugin(PluginId.findId("com.android.layoutlib.native"));
+        IdeaPluginDescriptor nativePlugin = PluginManager.getPlugin(PluginId.findId(LAYOUTLIB_NATIVE_PLUGIN));
         return nativePlugin != null && nativePlugin.isEnabled();
     }
 

@@ -29,6 +29,8 @@ import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
+import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_NATIVE_PLUGIN;
+import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_STANDARD_PLUGIN;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
@@ -47,6 +49,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeInsight.daemon.impl.quickfix.CreateClassKind;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
 import com.intellij.ide.browsers.BrowserLauncher;
+import com.intellij.ide.plugins.PluginManagerConfigurable;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
@@ -125,6 +129,8 @@ public class HtmlLinkManager {
   private static final String URL_REFRESH_RENDER = "refreshRender";
   private static final String URL_ADD_DEPENDENCY = "addDependency:";
   private static final String URL_CLEAR_CACHE_AND_NOTIFY = "clearCacheAndNotify";
+  private static final String URL_ENABLE_LAYOUTLIB_NATIVE = "enableLayoutlibNative";
+  private static final String URL_DISABLE_LAYOUTLIB_NATIVE = "disableLayoutlibNative";
 
   private SparseArray<Runnable> myLinkRunnables;
   private SparseArray<WriteCommandAction> myLinkCommands;
@@ -254,6 +260,12 @@ public class HtmlLinkManager {
       // of clicking that link that has something to do with the cache being cleared.
       handleRefreshRenderUrl(surface);
       showNotification("Cache cleared");
+    }
+    else if (url.startsWith(URL_ENABLE_LAYOUTLIB_NATIVE)) {
+      handleEnableLayoutlibNative(true);
+    }
+    else if (url.startsWith(URL_DISABLE_LAYOUTLIB_NATIVE)) {
+      handleEnableLayoutlibNative(false);
     }
     else {
       assert false : "Unexpected URL: " + url;
@@ -988,5 +1000,26 @@ public class HtmlLinkManager {
       return;
     }
     Logger.getInstance(HtmlLinkManager.class).warn("Could not add dependency " + coordinate);
+  }
+
+  @NotNull
+  public String createEnableLayoutlibNativeUrl() {
+    return URL_ENABLE_LAYOUTLIB_NATIVE;
+  }
+
+  @NotNull
+  public String createDisableLayoutlibNativeUrl() {
+    return URL_DISABLE_LAYOUTLIB_NATIVE;
+  }
+
+  private static void handleEnableLayoutlibNative(boolean enable) {
+    if (enable) {
+      PluginManagerCore.enablePlugin(LAYOUTLIB_NATIVE_PLUGIN);
+    }
+    else {
+      PluginManagerCore.enablePlugin(LAYOUTLIB_STANDARD_PLUGIN);
+      PluginManagerCore.disablePlugin(LAYOUTLIB_NATIVE_PLUGIN);
+    }
+    PluginManagerConfigurable.shutdownOrRestartApp();
   }
 }
