@@ -22,11 +22,15 @@ import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.model.VIEW2
 import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.VIEW4
+import com.android.tools.idea.layoutinspector.view
+import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
+import org.mockito.Mockito.mock
+import java.awt.Image
 import java.awt.Rectangle
 import java.awt.Shape
 import java.awt.geom.AffineTransform
@@ -80,7 +84,7 @@ class DeviceViewPanelModelTest {
     val model = model {
       view(ROOT, rects[0]) {
         view(VIEW1, rects[1]) {
-          view(VIEW2, rects[3])
+          view(VIEW2, rects[3], imageBottom = mock(Image::class.java))
         }
         view(VIEW3, rects[2])
         view(VIEW4, rects[4])
@@ -110,7 +114,7 @@ class DeviceViewPanelModelTest {
     val model = model {
       view(ROOT, rects[0]) {
         view(VIEW1, rects[1]) {
-          view(VIEW2, rects[2])
+          view(VIEW2, rects[2], imageBottom = mock(Image::class.java))
         }
         view(VIEW3, rects[3]) {
           view(VIEW4, rects[4])
@@ -130,20 +134,57 @@ class DeviceViewPanelModelTest {
 
   }
 
-    @Test
+  @Test
   fun testResetRotation() {
     val model = model {
-      view(ROOT, Rectangle(0, 0, 100, 200))
+      view(ROOT, Rectangle(0, 0, 100, 200)) {
+        view(VIEW1, Rectangle(10, 10, 50, 100), imageBottom = mock (Image::class.java))
+      }
     }
 
     val panelModel = DeviceViewPanelModel(model)
     panelModel.rotate(0.1, 0.2)
-    assertEquals(ComparingTransform(0.995, -0.010, -0.010, 0.980, -48.734, -97.468),
+    assertEquals(ComparingTransform(0.995, -0.010, -0.010, 0.980, -63.734, -127.468),
                  panelModel.hitRects[0].transform)
 
     panelModel.resetRotation()
     assertEquals(ComparingTransform(1.0, 0.0, 0.0, 1.0, -50.0, -100.0),
                  panelModel.hitRects[0].transform)
+  }
+
+  @Test
+  fun testSwitchDevices() {
+    val model = model {
+      view(ROOT, imageBottom = mock(Image::class.java)) {
+        view(VIEW1, imageBottom = mock(Image::class.java))
+      }
+    }
+
+    val panelModel = DeviceViewPanelModel(model)
+    panelModel.rotate(0.1, 0.2)
+    assertThat(panelModel.isRotated).isTrue()
+
+    // Switch to a new model
+    val model2 =
+      view(VIEW3, imageBottom = mock(Image::class.java)) {
+        view(VIEW1, imageBottom = mock(Image::class.java))
+      }
+
+    model.update(model2, VIEW3, listOf(VIEW3))
+    panelModel.refresh()
+
+    assertThat(panelModel.isRotated).isTrue()
+
+    // Now switch to a legacy model with only an image on the root
+    val legacyModel =
+      view(VIEW2, imageBottom = mock(Image::class.java)) {
+        view(VIEW1)
+      }
+
+    model.update(legacyModel, VIEW2, listOf(VIEW2))
+    panelModel.refresh()
+
+    assertThat(panelModel.isRotated).isFalse()
   }
 
   private fun checkRects(expectedTransforms: MutableList<ComparingTransform>, xOff: Double, yOff: Double) {
@@ -156,7 +197,7 @@ class DeviceViewPanelModelTest {
     val model = model {
       view(ROOT, rects[0]) {
         view(VIEW1, rects[1]) {
-          view(VIEW3, rects[3])
+          view(VIEW3, rects[3], imageBottom = mock(Image::class.java))
         }
         view(VIEW2, rects[2])
       }

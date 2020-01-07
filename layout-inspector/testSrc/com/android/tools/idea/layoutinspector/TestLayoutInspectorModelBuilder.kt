@@ -24,6 +24,7 @@ import org.mockito.Mockito.mock
 import java.awt.Image
 import java.awt.Rectangle
 
+// TODO: find a way to indicate that this is a api 29+ model without having to specify an image on a subnode
 fun model(project: Project = mock(Project::class.java), body: InspectorModelDescriptor.() -> Unit) =
   InspectorModelDescriptor(project).also(body).build()
 
@@ -78,9 +79,10 @@ class InspectorViewDescriptor(private val drawId: Long,
            qualifiedName: String = CLASS_VIEW,
            viewId: ResourceReference? = null,
            textValue: String = "",
+           imageBottom: Image? = null,
            layout: ResourceReference? = null,
            body: InspectorViewDescriptor.() -> Unit = {}) =
-    view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, null, null, 0, layout, body)
+    view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, imageBottom, null, 0, layout, body)
 
   fun build(): ViewNode {
     val result = ViewNode(drawId, qualifiedName, layout, x, y, 0, 0, width, height, viewId, textValue, layoutFlags)
@@ -117,8 +119,9 @@ class InspectorModelDescriptor(val project: Project) {
            qualifiedName: String = CLASS_VIEW,
            viewId: ResourceReference? = null,
            textValue: String = "",
+           imageBottom: Image? = null,
            body: InspectorViewDescriptor.() -> Unit = {}) =
-    view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, null, null, 0, null, body)
+    view(drawId, rect.x, rect.y, rect.width, rect.height, qualifiedName, viewId, textValue, imageBottom, null, 0, null, body)
 
   fun build(): InspectorModel {
     val windowRoot = root.build()

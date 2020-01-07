@@ -83,7 +83,7 @@ class DeviceViewContentPanelTest {
   fun testPaint() {
     val model = model {
       view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 25, 30, 50, 50)
+        view(VIEW1, 25, 30, 50, 50, imageBottom = mock(Image::class.java))
       }
     }
 
@@ -207,7 +207,7 @@ class DeviceViewContentPanelTest {
   fun testPaintMultiWindow() {
     val model = model {
       view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 0, 0, 50, 50)
+        view(VIEW1, 0, 0, 50, 50, imageBottom = mock(Image::class.java))
       }
     }
 
@@ -246,7 +246,7 @@ class DeviceViewContentPanelTest {
   fun testPaintMultiWindowDimBehind() {
     val model = model {
       view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 0, 0, 50, 50)
+        view(VIEW1, 0, 0, 50, 50, imageBottom = mock(Image::class.java))
       }
     }
 
