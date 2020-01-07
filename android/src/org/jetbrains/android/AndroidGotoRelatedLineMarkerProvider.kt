@@ -51,6 +51,7 @@ import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.toLightClass
+import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtClass
@@ -89,8 +90,13 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
         val gotoList = getItemsForXmlFile(element, facet) ?: return
         val rootTag = element.rootTag ?: return
         val anchor = XmlTagUtil.getStartTagNameElement(rootTag) ?: return
-        result.add(
-          createRelatedItemLineMarkerInfo(anchor as PsiElement, gotoList, AllIcons.Nodes.Class,"Related context Java file"))
+        if (gotoList.any { it.element?.language == KotlinLanguage.INSTANCE }) {
+          result.add(
+            createRelatedItemLineMarkerInfo(anchor as PsiElement, gotoList, KotlinIcons.CLASS, "Related Kotlin class"))
+        } else {
+          result.add(
+            createRelatedItemLineMarkerInfo(anchor as PsiElement, gotoList, AllIcons.Nodes.Class,"Related Java class"))
+        }
       }
     }
   }
