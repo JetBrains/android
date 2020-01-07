@@ -65,7 +65,7 @@ data class SqliteRow(val values: List<SqliteColumnValue>)
 data class SqliteColumnValue(val column: SqliteColumn, val value: Any?)
 
 /** Representation of a Sqlite table column */
-data class SqliteColumn(val name: String, val type: JDBCType, val inPrimaryKey: Boolean)
+data class SqliteColumn(val name: String, val affinity: SqliteAffinity, val inPrimaryKey: Boolean)
 
 /**
  *  Representation of a SQLite statement that may contain positional parameters.
@@ -93,4 +93,35 @@ data class SqliteStatement(val sqliteStatementText: String, val parametersValues
 
 enum class RowIdName(val stringName: String) {
   ROWID("rowid"), OID("oid"), _ROWID_("_rowid_")
+}
+
+/**
+ * See [SQLite documentation](https://www.sqlite.org/datatype3.html) for how affinity is determined.
+ */
+enum class SqliteAffinity {
+  TEXT, NUMERIC, INTEGER, REAL, BLOB;
+
+  companion object {
+    /**
+     * See [SQLite doc](https://www.sqlite.org/datatype3.html#affinity_name_examples) for examples.
+     */
+    fun fromTypename(typename: String): SqliteAffinity {
+      return when {
+        typename.contains("int", true) -> INTEGER
+        typename.contains("char", true) ||
+        typename.contains("clob", true) ||
+        typename.contains("text", true) -> TEXT
+        typename.contains("blob", true) ||
+        typename.isEmpty() -> BLOB
+        typename.contains("real", true) ||
+        typename.contains("floa", true) ||
+        typename.contains("doub", true) -> REAL
+        else -> NUMERIC
+      }
+    }
+
+    fun fromJDBCType(jdbcType: JDBCType): SqliteAffinity {
+      return fromTypename(jdbcType.name)
+    }
+  }
 }

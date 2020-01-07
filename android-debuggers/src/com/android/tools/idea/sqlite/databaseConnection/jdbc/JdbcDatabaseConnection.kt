@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite.databaseConnection.jdbc
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
@@ -82,7 +83,7 @@ class JdbcDatabaseConnection(
       val columnName = columnsSet.getString("COLUMN_NAME")
       SqliteColumn(
         columnName,
-        JDBCType.valueOf(columnsSet.getInt("DATA_TYPE")),
+        SqliteAffinity.fromJDBCType(JDBCType.valueOf(columnsSet.getInt("DATA_TYPE"))),
         keyColumnsNames.contains(columnName)
       )
     }.toList()

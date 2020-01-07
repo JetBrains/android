@@ -17,6 +17,7 @@ package com.android.tools.idea.sqlite.databaseConnection.jdbc
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
@@ -47,7 +48,11 @@ class JdbcSqliteResultSet(
       val columnName = metaData.getColumnName(i)
 
       val keyColumnsNames = connection.getColumnNamesInPrimaryKey(tableName)
-      SqliteColumn(metaData.getColumnName(i), JDBCType.valueOf(metaData.getColumnType(i)), keyColumnsNames.contains(columnName))
+      SqliteColumn(
+        metaData.getColumnName(i),
+        SqliteAffinity.fromJDBCType(JDBCType.valueOf(metaData.getColumnType(i))),
+        keyColumnsNames.contains(columnName)
+      )
     }
   }
 

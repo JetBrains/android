@@ -19,6 +19,7 @@ import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.android.tools.idea.sqlite.model.SqliteRow
@@ -29,7 +30,6 @@ import com.android.tools.idea.sqlite.model.getRowIdName
 import com.android.tools.sql.protocol.SqliteInspection
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import java.sql.JDBCType
 import java.util.concurrent.Executor
 
 /**
@@ -96,32 +96,22 @@ class LiveDatabaseConnection(
 
   // TODO(blocked): properly handle supported data types. See https://www.sqlite.org/datatype3.html
   private fun SqliteInspection.Column.toSqliteColumn(): SqliteColumn {
-    val type = if (type == "TEXT") {
-      JDBCType.VARCHAR
-    }
-    else {
-      try {
-        JDBCType.valueOf(type)
-      }
-      catch (e: Exception) {
-        JDBCType.OTHER
-      }
-    }
-    return SqliteColumn(name, type, false)
+    return SqliteColumn(name, SqliteAffinity.fromTypename(type), false)
   }
 
   private fun SqliteInspection.CellValue.toSqliteColumn(): SqliteColumnValue {
     // TODO(blocked): add support for primary keys
+    // TODO(blocked): we need to get affinity info from the on device inspector.
     return when (unionCase) {
       SqliteInspection.CellValue.UnionCase.STRING_VALUE ->
-        SqliteColumnValue(SqliteColumn(columnName, JDBCType.VARCHAR, false), stringValue)
+        SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false), stringValue)
       SqliteInspection.CellValue.UnionCase.FLOAT_VALUE ->
-        SqliteColumnValue(SqliteColumn(columnName, JDBCType.FLOAT, false), floatValue)
+        SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false), floatValue)
       SqliteInspection.CellValue.UnionCase.BLOB_VALUE ->
-        SqliteColumnValue(SqliteColumn(columnName, JDBCType.BLOB, false), blobValue)
+        SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false), blobValue)
       SqliteInspection.CellValue.UnionCase.INT_VALUE ->
-        SqliteColumnValue(SqliteColumn(columnName, JDBCType.INTEGER, false), intValue)
-      else -> SqliteColumnValue(SqliteColumn(columnName, JDBCType.NULL, false), "null")
+        SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false), intValue)
+      else -> SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false), "null")
     }
   }
 }

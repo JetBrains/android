@@ -59,7 +59,7 @@ class SchemaTreeCellRenderer : TreeCellRenderer {
           else component.icon = AllIcons.Nodes.DataColumn
           component.append(userObject.name)
           component.append(" : ")
-          component.append(userObject.type.name.toLowerCase(Locale.US))
+          component.append(userObject.affinity.name.toLowerCase(Locale.US))
         }
 
         // String (e.g. "Tables" node)

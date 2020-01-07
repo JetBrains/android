@@ -72,6 +72,22 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
     }
   }
 
+  fun createTestSqliteDatabaseWithConfigurableTypes(
+    dbName: String = "sqlite-database",
+    tableName: String = "tab",
+    types: List<String> = emptyList()
+  ): VirtualFile = runWriteAction {
+    createEmptyTempSqliteDatabase(dbName).also { file ->
+      // Note: We need to close the connection so the database file handle is released by the Sqlite engine.
+      openSqliteDatabase(file).use { connection ->
+        createTestDBWithConfigurableTypes(connection, tableName, types)
+      }
+
+      // File as changed on disk, refresh virtual file cached data
+      file.refresh(false, false)
+    }
+  }
+
   private fun createEmptyTempSqliteDatabase(name: String): VirtualFile = runReadAction {
     tempDirTestFixture.createFile(name).also { file ->
 
@@ -147,6 +163,16 @@ class SqliteTestUtil (private val tempDirTestFixture: TempDirTestFixture) {
       repeat(primaryKeys.size) { preparedStatement.setInt(index, index); index+=1 }
       repeat(columns.size) { preparedStatement.setString(index, "val $index"); index+=1 }
       preparedStatement.execute()
+    }
+  }
+
+  private fun createTestDBWithConfigurableTypes(connection: Connection, tableName: String, types: List<String>) {
+    connection.createStatement().use { stmt ->
+
+      val columns = types.mapIndexed { index, type -> "column$index $type" }.joinToString(",")
+
+      val sql = "CREATE TABLE $tableName ( $columns );"
+      stmt.executeUpdate(sql)
     }
   }
 

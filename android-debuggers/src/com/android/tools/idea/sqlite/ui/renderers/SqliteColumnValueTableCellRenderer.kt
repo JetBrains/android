@@ -15,15 +15,11 @@
  */
 package com.android.tools.idea.sqlite.ui.renderers
 
-import com.android.tools.idea.sqlite.model.SqliteColumn
 import com.android.tools.idea.sqlite.model.SqliteColumnValue
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.JBUI
-import org.intellij.lang.annotations.JdkConstants
-import java.sql.JDBCType
 import javax.swing.JTable
-import javax.swing.SwingConstants
 
 /**
  * Implementation of [ColoredTableCellRenderer] for cells of a [JTable] used to display [SqliteColumnValue]s.
@@ -35,49 +31,7 @@ class SqliteColumnValueTableCellRenderer : ColoredTableCellRenderer() {
     if (value !is SqliteColumnValue) {
       appendUnsupportedDataTypeToCell()
     } else {
-      when (value.column.type) {
-        JDBCType.NULL -> appendNullValueToCell()
-
-        JDBCType.BIT,
-        JDBCType.TINYINT,
-        JDBCType.SMALLINT,
-        JDBCType.INTEGER,
-        JDBCType.BIGINT,
-        JDBCType.FLOAT,
-        JDBCType.DOUBLE,
-        JDBCType.CHAR,
-        JDBCType.VARCHAR,
-        JDBCType.LONGVARCHAR,
-        JDBCType.BOOLEAN,
-        JDBCType.NCHAR,
-        JDBCType.NVARCHAR,
-        JDBCType.REAL,
-        JDBCType.NUMERIC,
-        JDBCType.DECIMAL,
-        JDBCType.DATE,
-        JDBCType.TIME,
-        JDBCType.TIMESTAMP,
-        JDBCType.TIME_WITH_TIMEZONE,
-        JDBCType.TIMESTAMP_WITH_TIMEZONE,
-        JDBCType.LONGNVARCHAR -> appendStringValueToCell(value)
-
-        JDBCType.BINARY,
-        JDBCType.VARBINARY,
-        JDBCType.LONGVARBINARY,
-        JDBCType.OTHER,
-        JDBCType.JAVA_OBJECT,
-        JDBCType.DISTINCT,
-        JDBCType.STRUCT,
-        JDBCType.ARRAY,
-        JDBCType.BLOB,
-        JDBCType.CLOB,
-        JDBCType.REF,
-        JDBCType.DATALINK,
-        JDBCType.ROWID,
-        JDBCType.NCLOB,
-        JDBCType.SQLXML,
-        JDBCType.REF_CURSOR -> appendUnsupportedDataTypeToCell()
-      }
+      appendStringValueToCell(value)
     }
 
     border = JBUI.Borders.empty(0, TEXT_RENDERER_HORIZ_PADDING / 2)
@@ -89,27 +43,7 @@ class SqliteColumnValueTableCellRenderer : ColoredTableCellRenderer() {
   private fun appendStringValueToCell(columnValue: SqliteColumnValue) {
     columnValue.value?.let {
       append(it.toString())
-      setTextAlign(headerAlignment(columnValue.column))
     } ?: appendNullValueToCell()
-  }
-
-  @JdkConstants.HorizontalAlignment
-  private fun headerAlignment(column: SqliteColumn): Int {
-    return when (column.type) {
-      JDBCType.BIT,
-      JDBCType.TINYINT,
-      JDBCType.SMALLINT,
-      JDBCType.INTEGER,
-      JDBCType.BIGINT,
-      JDBCType.FLOAT,
-      JDBCType.REAL,
-      JDBCType.DOUBLE,
-      JDBCType.NUMERIC,
-      JDBCType.BOOLEAN,
-      JDBCType.ROWID,
-      JDBCType.DECIMAL -> SwingConstants.TRAILING
-      else -> SwingConstants.LEADING
-    }
   }
 
   /**

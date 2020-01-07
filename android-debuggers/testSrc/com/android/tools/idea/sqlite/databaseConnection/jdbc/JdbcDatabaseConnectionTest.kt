@@ -22,6 +22,7 @@ import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
+import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.google.common.truth.Truth.assertThat
@@ -33,7 +34,6 @@ import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import org.jetbrains.ide.PooledThreadExecutor
 import java.sql.DriverManager
-import java.sql.JDBCType
 
 class JdbcDatabaseConnectionTest : PlatformTestCase() {
   private lateinit var sqliteUtil: SqliteTestUtil
@@ -92,16 +92,16 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     val authorTable = schema.tables.find { it.name == "Author" }
     assertThat(authorTable).isNotNull()
     assertThat(authorTable?.columns?.count()).isEqualTo(3)
-    assertThat(authorTable?.hasColumn("author_id", JDBCType.INTEGER)).isTrue()
-    assertThat(authorTable?.hasColumn("first_name", JDBCType.VARCHAR)).isTrue()
-    assertThat(authorTable?.hasColumn("last_name", JDBCType.VARCHAR)).isTrue()
+    assertThat(authorTable?.hasColumn("author_id", SqliteAffinity.INTEGER)).isTrue()
+    assertThat(authorTable?.hasColumn("first_name", SqliteAffinity.TEXT)).isTrue()
+    assertThat(authorTable?.hasColumn("last_name", SqliteAffinity.TEXT)).isTrue()
 
     val bookTable = schema.tables.find { it.name == "Book" }
     assertThat(bookTable).isNotNull()
-    assertThat(bookTable?.hasColumn("book_id", JDBCType.INTEGER)).isTrue()
-    assertThat(bookTable?.hasColumn("title", JDBCType.VARCHAR)).isTrue()
-    assertThat(bookTable?.hasColumn("isbn", JDBCType.VARCHAR)).isTrue()
-    assertThat(bookTable?.hasColumn("author_id", JDBCType.INTEGER)).isTrue()
+    assertThat(bookTable?.hasColumn("book_id", SqliteAffinity.INTEGER)).isTrue()
+    assertThat(bookTable?.hasColumn("title", SqliteAffinity.TEXT)).isTrue()
+    assertThat(bookTable?.hasColumn("isbn", SqliteAffinity.TEXT)).isTrue()
+    assertThat(bookTable?.hasColumn("author_id", SqliteAffinity.INTEGER)).isTrue()
   }
 
   fun testCloseUnlocksFile() {
@@ -124,10 +124,10 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     val resultSet = pumpEventsAndWaitForFuture(databaseConnection.execute(SqliteStatement("SELECT * FROM Book")))!!
 
     // Assert
-    assertThat(resultSet.hasColumn("book_id", JDBCType.INTEGER)).isTrue()
-    assertThat(resultSet.hasColumn("title", JDBCType.VARCHAR)).isTrue()
-    assertThat(resultSet.hasColumn("isbn", JDBCType.VARCHAR)).isTrue()
-    assertThat(resultSet.hasColumn("author_id", JDBCType.INTEGER)).isTrue()
+    assertThat(resultSet.hasColumn("book_id", SqliteAffinity.INTEGER)).isTrue()
+    assertThat(resultSet.hasColumn("title", SqliteAffinity.TEXT)).isTrue()
+    assertThat(resultSet.hasColumn("isbn", SqliteAffinity.TEXT)).isTrue()
+    assertThat(resultSet.hasColumn("author_id", SqliteAffinity.INTEGER)).isTrue()
 
     // Act
     var rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0, 3))
@@ -149,10 +149,10 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     val resultSet = pumpEventsAndWaitForFuture(databaseConnection.execute(SqliteStatement("SELECT book_id FROM Book")))!!
 
     // Assert
-    assertThat(resultSet.hasColumn("book_id", JDBCType.INTEGER)).isTrue()
-    assertThat(resultSet.hasColumn("title", JDBCType.VARCHAR)).isFalse()
-    assertThat(resultSet.hasColumn("isbn", JDBCType.VARCHAR)).isFalse()
-    assertThat(resultSet.hasColumn("author_id", JDBCType.INTEGER)).isFalse()
+    assertThat(resultSet.hasColumn("book_id", SqliteAffinity.INTEGER)).isTrue()
+    assertThat(resultSet.hasColumn("title", SqliteAffinity.TEXT)).isFalse()
+    assertThat(resultSet.hasColumn("isbn", SqliteAffinity.TEXT)).isFalse()
+    assertThat(resultSet.hasColumn("author_id", SqliteAffinity.INTEGER)).isFalse()
 
     // Act
     var rows = pumpEventsAndWaitForFuture(resultSet.getRowBatch(0,3))
@@ -268,12 +268,36 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     assertTrue(pk!!.inPrimaryKey)
   }
 
-  private fun SqliteResultSet.hasColumn(name: String, type: JDBCType) : Boolean {
-    return pumpEventsAndWaitForFuture(this.columns).find { it.name == name }?.type?.equals(type) ?: false
+  fun testAffinity() {
+    // Prepare
+    customSqliteFile = sqliteUtil.createTestSqliteDatabaseWithConfigurableTypes(
+      "affinityDb",
+      "testTable",
+      listOf("int", "text", "blob", "real", "numeric")
+    )
+
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    val columns = schema.tables.first().columns
+    assertEquals(SqliteAffinity.INTEGER, columns.first { it.name == "column0" }.affinity)
+    assertEquals(SqliteAffinity.TEXT, columns.first { it.name == "column1" }.affinity)
+    assertEquals(SqliteAffinity.TEXT, columns.first { it.name == "column2" }.affinity)
+    assertEquals(SqliteAffinity.REAL, columns.first { it.name == "column3" }.affinity)
+    assertEquals(SqliteAffinity.REAL, columns.first { it.name == "column4" }.affinity)
   }
 
-  private fun SqliteTable.hasColumn(name: String, type: JDBCType) : Boolean {
-    return this.columns.find { it.name == name }?.type?.equals(type) ?: false
+  private fun SqliteResultSet.hasColumn(name: String, affinity: SqliteAffinity) : Boolean {
+    return pumpEventsAndWaitForFuture(this.columns).find { it.name == name }?.affinity?.equals(affinity) ?: false
+  }
+
+  private fun SqliteTable.hasColumn(name: String, affinity: SqliteAffinity) : Boolean {
+    return this.columns.find { it.name == name }?.affinity?.equals(affinity) ?: false
   }
 
   private fun getSqliteJdbcService(sqliteFile: VirtualFile, executor: FutureCallbackExecutor): ListenableFuture<DatabaseConnection> {
