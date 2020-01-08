@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.res.parseColor
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
 import com.intellij.pom.Navigatable
@@ -44,7 +45,9 @@ import javax.swing.Icon
  */
 class ResourceLookup(private val project: Project) {
 
-  private var resolver: ResourceLookupResolver? = null
+  @VisibleForTesting
+  var resolver: ResourceLookupResolver? = null
+    private set
 
   /**
    * Update the configuration after a possible configuration change detected on the device.

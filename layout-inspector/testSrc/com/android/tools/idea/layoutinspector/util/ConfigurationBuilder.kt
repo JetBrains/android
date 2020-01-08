@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.util
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.common.StringTable
+import com.android.tools.idea.layoutinspector.common.StringTableImpl
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
@@ -33,7 +34,7 @@ class ConfigurationBuilder(facet: AndroidFacet) {
       .setAppPackageName(addString(defaultPackage))
       .setTheme(addResource(ResourceReference.style(ResourceNamespace.TODO(), "AppTheme")))
       .build()
-    val stringTable = StringTable(strings.map { LayoutInspectorProto.StringEntry.newBuilder().setId(it.value).setStr(it.key).build() })
+    val stringTable = StringTableImpl(strings.map { LayoutInspectorProto.StringEntry.newBuilder().setId(it.value).setStr(it.key).build() })
     return Pair(config, stringTable)
   }
 
