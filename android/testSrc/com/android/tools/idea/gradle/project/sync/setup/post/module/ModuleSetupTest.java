@@ -15,66 +15,75 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.module;
 
-import com.android.tools.idea.project.AndroidRunConfigurations;
-import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.PlatformTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
-
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-/**
- * Tests for {@link AndroidRunConfigurationSetupStep}.
- */
-public class AndroidRunConfigurationSetupStepTest extends PlatformTestCase {
-  @Mock private AndroidRunConfigurations myRunConfigurations;
+import com.android.ide.common.gradle.model.IdeVariant;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.setup.post.ModuleSetup;
+import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.project.AndroidRunConfigurations;
+import com.android.tools.idea.testartifacts.scopes.GradleTestArtifactSearchScopes;
+import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.openapi.module.Module;
+import com.intellij.testFramework.PlatformTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.mockito.Mock;
 
-  private AndroidRunConfigurationSetupStep mySetupStep;
+/**
+ * Tests for {@link ModuleSetup}.
+ */
+public class ModuleSetupTest extends PlatformTestCase {
+  @Mock private AndroidRunConfigurations myRunConfigurations;
+  @Mock private AndroidModuleModel myAndroidModuleModel;
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
 
-    mySetupStep = new AndroidRunConfigurationSetupStep() {
-      @NotNull
-      @Override
-      protected AndroidRunConfigurations getConfigurations() {
-        return myRunConfigurations;
-      }
-    };
+    IdeVariant variant = mock(IdeVariant.class);
+    when(variant.getName()).thenReturn("MockVariant");
+    when(myAndroidModuleModel.getSelectedVariant()).thenReturn(variant);
+
+    new IdeComponents(getProject()).replaceApplicationService(AndroidRunConfigurations.class, myRunConfigurations);
   }
 
   public void testSetUpModuleWithAndroidFacetAndAppProject() {
     Module module = getModule();
     AndroidFacet androidFacet = createAndAddAndroidFacet(module);
+    AndroidModel.set(androidFacet, myAndroidModuleModel);
     androidFacet.getProperties().PROJECT_TYPE = PROJECT_TYPE_APP;
 
-    mySetupStep.setUpModule(module, null);
+    ModuleSetup.setUpModules(getProject());
 
     verify(myRunConfigurations).createRunConfiguration(androidFacet);
+    assertNotNull(GradleTestArtifactSearchScopes.getInstance(getModule()));
   }
 
   public void testSetUpModuleWithAndroidFacetAndLibraryProject() {
     Module module = getModule();
     AndroidFacet androidFacet = createAndAddAndroidFacet(module);
+    AndroidModel.set(androidFacet, myAndroidModuleModel);
     androidFacet.getProperties().PROJECT_TYPE = PROJECT_TYPE_LIBRARY;
 
-    mySetupStep.setUpModule(module, null);
+    ModuleSetup.setUpModules(getProject());
 
     verify(myRunConfigurations, never()).createRunConfiguration(androidFacet);
+    assertNotNull(GradleTestArtifactSearchScopes.getInstance(getModule()));
   }
 
   public void testSetUpModuleWithoutAndroidFacet() {
-    mySetupStep.setUpModule(getModule(), null);
+    ModuleSetup.setUpModules(getProject());
 
     verify(myRunConfigurations, never()).createRunConfiguration(any());
+    assertNull(GradleTestArtifactSearchScopes.getInstance(getModule()));
   }
 }

@@ -74,7 +74,6 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
   @Mock private GradleSyncState mySyncState;
   @Mock private DependencySetupIssues myDependencySetupIssues;
   @Mock private ProjectSetup myProjectSetup;
-  @Mock private ModuleSetup myModuleSetup;
   @Mock private GradleProjectBuilder myProjectBuilder;
   @Mock private RunManagerEx myRunManager;
   @Mock private ExternalSystemTaskId myTaskId;
@@ -94,7 +93,7 @@ public class PostSyncProjectSetupTest extends PlatformTestCase {
 
     ProjectStructureStub projectStructure = new ProjectStructureStub(project);
     mySetup = new PostSyncProjectSetup(project, myIdeInfo, projectStructure, myGradleProjectInfo, mySyncInvoker, mySyncState,
-                                       myDependencySetupIssues, myProjectSetup, myModuleSetup, myRunManager);
+                                       myDependencySetupIssues, myProjectSetup, myRunManager);
   }
 
   @Override

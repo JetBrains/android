@@ -102,7 +102,6 @@ public class PostSyncProjectSetup {
   @NotNull private final GradleSyncState mySyncState;
   @NotNull private final DependencySetupIssues myDependencySetupIssues;
   @NotNull private final ProjectSetup myProjectSetup;
-  @NotNull private final ModuleSetup myModuleSetup;
   @NotNull private final RunManagerEx myRunManager;
 
   @NotNull
@@ -120,7 +119,7 @@ public class PostSyncProjectSetup {
                               @NotNull GradleSyncMessages syncMessages,
                               @NotNull DependencySetupIssues dependencySetupIssues) {
     this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
-         new ModuleSetup(project), RunManagerEx.getInstanceEx(project));
+         RunManagerEx.getInstanceEx(project));
   }
 
   @NonInjectable
@@ -133,7 +132,6 @@ public class PostSyncProjectSetup {
                        @NotNull GradleSyncState syncState,
                        @NotNull DependencySetupIssues dependencySetupIssues,
                        @NotNull ProjectSetup projectSetup,
-                       @NotNull ModuleSetup moduleSetup,
                        @NotNull RunManagerEx runManager) {
     myProject = project;
     myIdeInfo = ideInfo;
@@ -143,7 +141,6 @@ public class PostSyncProjectSetup {
     mySyncState = syncState;
     myDependencySetupIssues = dependencySetupIssues;
     myProjectSetup = projectSetup;
-    myModuleSetup = moduleSetup;
     myRunManager = runManager;
   }
 
@@ -193,7 +190,7 @@ public class PostSyncProjectSetup {
       updateJavaLanguageLevel();
       notifySyncFinished(request);
 
-      myModuleSetup.setUpModules(null);
+      ModuleSetup.setUpModules(myProject);
 
       finishSuccessfulSync(taskId);
     }
