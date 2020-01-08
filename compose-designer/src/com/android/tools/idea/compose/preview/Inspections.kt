@@ -148,12 +148,17 @@ class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
       return
     }
 
-    val containingClass = function.containingClass() ?: return
-    if (!containingClass.isTopLevel() || !containingClass.hasDefaultConstructor()) {
-      holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
-                             message("inspection.top.level.function"),
-                             ProblemHighlightType.ERROR)
+    val containingClass = function.containingClass()
+    if (containingClass != null) {
+      // We allow functions that are not top level defined in top level classes that have a default (no parameter) constructor.
+      if (containingClass.isTopLevel() && containingClass.hasDefaultConstructor()) {
+        return
+      }
     }
+
+    holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
+                           message("inspection.top.level.function"),
+                           ProblemHighlightType.ERROR)
   }
 }
 
