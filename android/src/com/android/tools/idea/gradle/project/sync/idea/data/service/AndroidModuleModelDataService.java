@@ -17,10 +17,13 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidModuleCleanupStep;
+import com.android.tools.idea.gradle.project.sync.setup.post.MemorySettingsPostSyncChecker;
+import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GradlePluginUpgrade;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.google.common.annotations.VisibleForTesting;
@@ -34,6 +37,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.SystemProperties;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -119,5 +123,8 @@ public class AndroidModuleModelDataService extends ModuleModelDataService<Androi
     if (GradlePluginUpgrade.shouldRecommendPluginUpgrade(project)) {
       GradlePluginUpgrade.recommendPluginUpgrade(project);
     }
+
+    MemorySettingsPostSyncChecker
+        .checkSettings(project, new TimeBasedReminder(project, "memory.settings.postsync", TimeUnit.DAYS.toMillis(1)));
   }
 }
