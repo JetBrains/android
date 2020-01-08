@@ -21,6 +21,7 @@ import com.android.testutils.MockitoKt.refEq
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.mocks.MockSqliteEvaluatorView
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
@@ -34,6 +35,7 @@ import com.intellij.util.concurrency.EdtExecutorService
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 
 class SqliteEvaluatorControllerTest : PlatformTestCase() {
@@ -43,13 +45,20 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
   private lateinit var edtExecutor: FutureCallbackExecutor
   private lateinit var sqliteEvaluatorController: SqliteEvaluatorController
   private lateinit var sqliteDatabase: SqliteDatabase
+  private lateinit var viewFactory: MockDatabaseInspectorViewsFactory
 
   override fun setUp() {
     super.setUp()
     sqliteEvaluatorView = spy(MockSqliteEvaluatorView::class.java)
     databaseConnection = mock(DatabaseConnection::class.java)
     edtExecutor = FutureCallbackExecutor.wrap(EdtExecutorService.getInstance())
-    sqliteEvaluatorController = SqliteEvaluatorController(sqliteEvaluatorView, edtExecutor)
+    viewFactory = MockDatabaseInspectorViewsFactory()
+    sqliteEvaluatorController = SqliteEvaluatorController(
+      myProject,
+      sqliteEvaluatorView,
+      viewFactory,
+      edtExecutor
+    )
     Disposer.register(testRootDisposable, sqliteEvaluatorController)
 
     sqliteDatabase = LiveSqliteDatabase("db", databaseConnection)
@@ -92,6 +101,48 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     // Assert
     verify(databaseConnection).execute(sqlStatement)
     verify(sqliteEvaluatorView.tableView).reportError(eq("Error executing SQLite statement"), refEq(throwable))
+  }
+
+  fun testEvaluateStatementWithoutParametersDoesntShowParamsBindingDialog() {
+    // Prepare
+    val parametersBindingDialogView = viewFactory.parametersBindingDialogView
+    `when`(databaseConnection.execute(any(SqliteStatement::class.java)))
+      .thenReturn(Futures.immediateFuture(any(SqliteResultSet::class.java)))
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    sqliteEvaluatorView.listeners.first().evaluateSqlActionInvoked(sqliteDatabase, "SELECT * FROM foo WHERE id = 42")
+
+    // Assert
+    verify(parametersBindingDialogView, times(0)).show()
+  }
+
+  fun testEvaluateStatementWithParametersShowsParamsBindingDialog() {
+    // Prepare
+    val parametersBindingDialogView = viewFactory.parametersBindingDialogView
+    `when`(databaseConnection.execute(any(SqliteStatement::class.java)))
+      .thenReturn(Futures.immediateFuture(any(SqliteResultSet::class.java)))
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    sqliteEvaluatorView.listeners.first().evaluateSqlActionInvoked(sqliteDatabase, "SELECT * FROM foo WHERE id = ?")
+
+    // Assert
+    verify(parametersBindingDialogView).show()
+  }
+
+  fun testEvaluateStatementWithParametersShowsParamsBindingDialog2() {
+    // Prepare
+    val parametersBindingDialogView = viewFactory.parametersBindingDialogView
+    `when`(databaseConnection.execute(any(SqliteStatement::class.java)))
+      .thenReturn(Futures.immediateFuture(any(SqliteResultSet::class.java)))
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    sqliteEvaluatorView.listeners.first().evaluateSqlActionInvoked(sqliteDatabase, "select * from Foo where id = :anId")
+
+    // Assert
+    verify(parametersBindingDialogView).show()
   }
 
   fun testEvaluateSqlActionCreateSuccess() {

@@ -203,7 +203,12 @@ class DatabaseInspectorControllerImpl(
     // TODO(b/136556640) What name should we use for these tabs?
     view.openTab(tabId, "New Query", sqliteEvaluatorView.component)
 
-    val sqliteEvaluatorController = SqliteEvaluatorController(sqliteEvaluatorView, edtExecutor)
+    val sqliteEvaluatorController = SqliteEvaluatorController(
+      project,
+      sqliteEvaluatorView,
+      viewFactory,
+      edtExecutor
+    )
     Disposer.register(project, sqliteEvaluatorController)
     sqliteEvaluatorController.setUp()
 
