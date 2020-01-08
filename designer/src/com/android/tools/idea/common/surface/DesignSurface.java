@@ -18,6 +18,7 @@ package com.android.tools.idea.common.surface;
 import static com.android.tools.adtui.PannableKt.PANNABLE_KEY;
 import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.Pannable;
 import com.android.tools.adtui.Zoomable;
 import com.android.tools.adtui.actions.ZoomType;
@@ -686,6 +687,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    * @param y    Coordinate where the zoom will be centered
    * @return True if the scaling was changed, false if this was a noop.
    */
+  @UiThread
   public boolean zoom(@NotNull ZoomType type, @SwingCoordinate int x, @SwingCoordinate int y) {
     SceneView view = getFocusedSceneView();
     if (type == ZoomType.IN && (x < 0 || y < 0)
@@ -775,6 +777,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   @NotNull
   protected abstract Dimension getPreferredContentSize(int availableWidth, int availableHeight);
 
+  @UiThread
   public boolean zoomToFit() {
     return zoom(ZoomType.FIT, -1, -1);
   }
