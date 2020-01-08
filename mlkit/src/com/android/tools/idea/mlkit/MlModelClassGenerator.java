@@ -15,16 +15,26 @@
  */
 package com.android.tools.idea.mlkit;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Generates config required for light model class construction.
  */
 public class MlModelClassGenerator {
 
+  private static final Logger LOG = Logger.getInstance(MlModelClassGenerator.class);
+
+  @Nullable
   public static LightModelClassConfig generateLightModelClass(@NotNull Module module, @NotNull MlModelMetadata modelMetadata) {
     // TODO(b/144867508): placeholder for now, implement it with parsing the given model file.
-    return new LightModelClassConfig(modelMetadata, "com.google.mlkit.auto");
+    String packageName = MlkitUtils.computeModelPackageName(module);
+    if (packageName == null) {
+      LOG.warn("No valid packageName for module:" + module.getName());
+      return null;
+    }
+    return new LightModelClassConfig(modelMetadata, packageName);
   }
 }

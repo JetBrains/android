@@ -36,6 +36,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Module level service for ML Kit plugin.
@@ -44,6 +45,8 @@ public class MlkitModuleService {
   private final Module myModule;
   private final ModelFileModificationTracker myModelFileModificationTracker;
   private final Map<MlModelMetadata, LightModelClass> myLightModelClassMap = new ConcurrentHashMap<>();
+  //TODO(jackqdyulei): consider remove it and use local value.
+  private MlModelMetadata myMetadata;
 
   public static MlkitModuleService getInstance(@NotNull Module module) {
     return Objects.requireNonNull(ModuleServiceManager.getService(module, MlkitModuleService.class));
@@ -54,11 +57,11 @@ public class MlkitModuleService {
     myModelFileModificationTracker = new ModelFileModificationTracker(module);
   }
 
-  @NotNull
+  @Nullable
   public LightModelClass getOrCreateLightModelClass(@NotNull MlModelMetadata modelMetadata) {
     return myLightModelClassMap.computeIfAbsent(modelMetadata, modelMetadata1 -> {
       LightModelClassConfig classConfig = MlModelClassGenerator.generateLightModelClass(myModule, modelMetadata1);
-      return new LightModelClass(myModule, classConfig);
+      return classConfig != null ? new LightModelClass(myModule, classConfig) : null;
     });
   }
 
@@ -76,12 +79,19 @@ public class MlkitModuleService {
       FileBasedIndex index = FileBasedIndex.getInstance();
       index.processAllKeys(MlModelFileIndex.INDEX_ID, key -> {
         index.processValues(MlModelFileIndex.INDEX_ID, key, null, (file, value) -> {
-          lightModelClassList.add(getOrCreateLightModelClass(value));
+          myMetadata = value;
           return true;
         }, myModule.getModuleScope(false));
 
         return true;
       }, myModule.getModuleScope(false), null);
+
+      if (myMetadata != null && myMetadata.isValidModel()) {
+        LightModelClass lightModelClass = getOrCreateLightModelClass(myMetadata);
+        if (lightModelClass != null) {
+          lightModelClassList.add(lightModelClass);
+        }
+      }
       return CachedValueProvider.Result.create(lightModelClassList, myModelFileModificationTracker);
     });
   }

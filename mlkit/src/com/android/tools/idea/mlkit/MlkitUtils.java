@@ -16,11 +16,16 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.SdkConstants;
+import com.android.tools.mlkit.MlkitNames;
 import com.google.common.base.CaseFormat;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Provides common utility methods.
@@ -42,5 +47,19 @@ public class MlkitUtils {
   public static String computeModelClassName(@NotNull String modelFileUrl) {
     String modelFileName = FileUtil.getNameWithoutExtension(VfsUtil.extractFileName(modelFileUrl));
     return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, modelFileName);
+  }
+
+  @Nullable
+  public static String computeModelPackageName(@NotNull Module module) {
+    AndroidFacet facet = AndroidFacet.getInstance(module);
+    if (facet == null) {
+      return null;
+    }
+    String packageName = AndroidManifestUtils.getPackageName(AndroidFacet.getInstance(module));
+    if (packageName == null) {
+      return null;
+    }
+
+    return packageName + MlkitNames.PACKAGE_SUFFIX;
   }
 }
