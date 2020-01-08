@@ -123,7 +123,7 @@ class DefaultInspectorClient(
     registerProcessEnded()
     registerProjectClosed(project)
     // TODO: retry getting adb if it fails the first time
-    adb = AndroidSdkUtils.getAdb(project)?.let { AdbService.getInstance().getDebugBridge(it) } ?:
+    adb = AndroidSdkUtils.getAdb(project)?.let { AdbService.getInstance()?.getDebugBridge(it) } ?:
           Futures.immediateFuture(AndroidDebugBridge.createBridge())
   }
 
