@@ -84,9 +84,9 @@ class ResourceLookupResolverTest {
     val locations = resolver.findFileLocations(data.textColor, data.demo, 10)
     checkLocation(locations[0], "demo.xml:18", "framework:textColor=\"@color/textRedIndirect\"")
     checkLocation(locations[1], "colors.xml:6", "<color name=\"textRedIndirect\">@color/textRed</color>")
-    checkLocation(locations[2], "colors.xml:5", "<color name=\"textRed\">#F32133</color>")
+    checkLocation(locations[2], "colors.xml:5", "<color name=\"textRed\">#FF0000</color>")
     assertThat(locations.size).isEqualTo(3)
-    assertThat(resolver.findAttributeValue(data.textColor, data.demo)).isEqualTo("#F32133")
+    assertThat(resolver.findAttributeValue(data.textColor, data.demo)).isEqualTo("#FF0000")
   }
 
   @Test

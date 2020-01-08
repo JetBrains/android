@@ -120,8 +120,8 @@ class DefaultPropertiesProvider(
           Type.GRAVITY,
           Type.INT_FLAG -> fromFlags(property.flagValue)
           Type.BOOLEAN -> fromBoolean(property)?.toString()
+          Type.CHAR -> fromChar(property)?.toString()
           Type.BYTE,
-          Type.CHAR,
           Type.INT16,
           Type.INT32 -> fromInt32(property)?.toString()
           Type.INT64 -> fromInt64(property)?.toString()
@@ -176,7 +176,7 @@ class DefaultPropertiesProvider(
           Type.ANIM,
           Type.ANIMATOR,
           Type.INTERPOLATOR,
-          Type.DRAWABLE -> stringTable[property.int32Value]
+          Type.DRAWABLE -> stringTable[property.int32Value].ifEmpty { null }
           else -> null  // TODO offer information from other object types
         }
         val value: String? = when (property.type) {
@@ -216,6 +216,11 @@ class DefaultPropertiesProvider(
     private fun fromBoolean(property: Property): Boolean? {
       val intValue = fromInt32(property) ?: return null
       return intValue != 0
+    }
+
+    private fun fromChar(property: Property): Char? {
+      val intValue = fromInt32(property) ?: return null
+      return intValue.toChar()
     }
 
     private fun fromInt32(property: Property): Int? {
