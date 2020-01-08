@@ -20,8 +20,10 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.idea.flags.StudioFlags;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.PsiTestUtil;
+import java.io.File;
 import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -33,8 +35,9 @@ public class MlkitLightClassTest extends AndroidTestCase {
     StudioFlags.MLKIT_TFLITE_MODEL_FILE_TYPE.override(true);
     StudioFlags.MLKIT_LIGHT_CLASSES.override(true);
 
-    PsiFile modelFile = myFixture.addFileToProject("/assets/my_model.tflite", "model data.");
-    PsiTestUtil.addSourceContentToRoots(myModule, modelFile.getVirtualFile());
+    myFixture.setTestDataPath(new File(getModulePath("mlkit"), "testData").getPath());
+    VirtualFile tfliteFile = myFixture.copyFileToProject("my_model.tflite", "/assets/my_model.tflite");
+    PsiTestUtil.addSourceContentToRoots(myModule, tfliteFile);
   }
 
   @Override
