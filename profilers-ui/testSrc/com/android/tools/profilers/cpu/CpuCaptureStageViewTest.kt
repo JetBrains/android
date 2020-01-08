@@ -24,7 +24,6 @@ import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -42,6 +41,7 @@ import com.intellij.ui.JBSplitter
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.HeadlessException
 import java.awt.Point
 import javax.swing.JLabel
 import javax.swing.SwingUtilities
@@ -281,6 +281,24 @@ class CpuCaptureStageViewTest {
     ui.mouse.wheel(0, 0, 1)
     ui.keyboard.release(FakeKeyboard.MENU_KEY)
     assertThat(selectionRange.length).isGreaterThan(rangeLength)
+
+    // Space + mouse drag to pan.
+    // First select a partial trace.
+    selectionRange.set(selectionRange.min + (selectionRange.max - selectionRange.min) / 2, selectionRange.max)
+    val oldRange = Range(selectionRange)
+    ui.keyboard.setFocus(stageView.trackGroupList.component)
+    ui.keyboard.press(FakeKeyboard.Key.SPACE)
+    ui.mouse.press(0, 0)
+    // Pan right to shift the range left.
+    ui.mouse.dragDelta(10, 0)
+    try {
+      ui.keyboard.release(FakeKeyboard.Key.SPACE)
+    }
+    catch (ignored: HeadlessException) {
+      // JList#setDragEnabled doesn't support headless mode but it doesn't matter for this test so we can safely ignore it.
+    }
+    assertThat(selectionRange.min).isLessThan(oldRange.min)
+    assertThat(selectionRange.max).isLessThan(oldRange.max)
   }
 
   private class FakeCaptureNodeModel(val aName: String, val aFullName: String, val anId: String) : CaptureNodeModel {

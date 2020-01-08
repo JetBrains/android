@@ -159,6 +159,16 @@ public class TrackGroupListPanel implements TrackGroupMover {
     }
   }
 
+  /**
+   * Enable/disable dragging and selection for all track groups.
+   */
+  public void setEnabled(boolean enabled) {
+    myTrackGroups.forEach(trackGroup -> {
+      trackGroup.getTrackList().setDragEnabled(enabled);
+      trackGroup.getTrackList().setEnabled(enabled);
+    });
+  }
+
   @NotNull
   public JComponent getComponent() {
     return myPanel;
