@@ -20,6 +20,9 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.google.common.collect.Iterables;
+import com.intellij.codeInsight.completion.CompletionType;
+import com.intellij.codeInsight.lookup.Lookup;
+import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -39,6 +42,11 @@ public class MlkitLightClassTest extends AndroidTestCase {
     myFixture.setTestDataPath(new File(getModulePath("mlkit"), "testData").getPath());
     VirtualFile tfliteFile = myFixture.copyFileToProject("my_model.tflite", "/assets/my_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, tfliteFile);
+
+    PsiFile imageFile = myFixture.addFileToProject("src/com/google/firebase/ml/vision/common/FirebaseVisionImage.java",
+                                                   "package com.google.firebase.ml.vision.common;\n" +
+                                                   "public class FirebaseVisionImage {}\n");
+    myFixture.allowTreeAccessForFile(imageFile.getVirtualFile());
   }
 
   @Override
@@ -63,13 +71,16 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "\n" +
       "import android.app.Activity;\n" +
       "import android.os.Bundle;\n" +
-      "import com.google.mlkit.auto.MyModel;\n" +
+      "import p1.p2.mlkit.auto.MyModel;\n" +
+      "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
       "\n" +
       "public class MainActivity extends Activity {\n" +
       "    @Override\n" +
       "    protected void onCreate(Bundle savedInstanceState) {\n" +
       "        super.onCreate(savedInstanceState);\n" +
-      "        MyModel myModel = new MyModel();\n" +
+      "        MyModel myModel = new MyModel(this);\n" +
+      "        FirebaseVisionImage image = null;\n" +
+      "        myModel.run(image);\n" +
       "    }\n" +
       "}"
     );
@@ -79,6 +90,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testHighlighting_kotlin() {
+    //TODO(jackqdyulei): verify run method once inner output class is built
     PsiFile activityFile = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.kt",
       // language=kotlin
@@ -86,18 +98,101 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "\n" +
       "import android.app.Activity\n" +
       "import android.os.Bundle\n" +
-      "import com.google.mlkit.auto.MyModel\n" +
+      "import p1.p2.mlkit.auto.MyModel\n" +
       "\n" +
       "class MainActivity : Activity() {\n" +
       "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
       "        super.onCreate(savedInstanceState)\n" +
-      "        MyModel()\n" +
+      "        MyModel(this)\n" +
       "    }\n" +
       "}"
     );
 
     myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
     myFixture.checkHighlighting();
+  }
+
+  public void testCompleteRunMethod() {
+    PsiFile activityFile = myFixture.addFileToProject(
+      "/src/p1/p2/MainActivity.java",
+      // language=java
+      "package p1.p2;\n" +
+      "\n" +
+      "import android.app.Activity;\n" +
+      "import android.os.Bundle;\n" +
+      "import p1.p2.mlkit.auto.MyModel;\n" +
+      "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
+      "\n" +
+      "public class MainActivity extends Activity {\n" +
+      "    @Override\n" +
+      "    protected void onCreate(Bundle savedInstanceState) {\n" +
+      "        super.onCreate(savedInstanceState);\n" +
+      "        MyModel myModel = new MyModel(this);\n" +
+      "        myModel.ru<caret>;\n" +
+      "    }\n" +
+      "}"
+    );
+
+    myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.checkResult("package p1.p2;\n" +
+                          "\n" +
+                          "import android.app.Activity;\n" +
+                          "import android.os.Bundle;\n" +
+                          "import p1.p2.mlkit.auto.MyModel;\n" +
+                          "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
+                          "\n" +
+                          "public class MainActivity extends Activity {\n" +
+                          "    @Override\n" +
+                          "    protected void onCreate(Bundle savedInstanceState) {\n" +
+                          "        super.onCreate(savedInstanceState);\n" +
+                          "        MyModel myModel = new MyModel(this);\n" +
+                          "        myModel.run();\n" +
+                          "    }\n" +
+                          "}");
+  }
+
+  public void testCompleteModelClass() {
+    PsiFile activityFile = myFixture.addFileToProject(
+      "/src/p1/p2/MainActivity.java",
+      // language=java
+      "package p1.p2;\n" +
+      "\n" +
+      "import android.app.Activity;\n" +
+      "import android.os.Bundle;\n" +
+      "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
+      "\n" +
+      "public class MainActivity extends Activity {\n" +
+      "    @Override\n" +
+      "    protected void onCreate(Bundle savedInstanceState) {\n" +
+      "        super.onCreate(savedInstanceState);\n" +
+      "        MyMod<caret>;\n" +
+      "    }\n" +
+      "}"
+    );
+
+    myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
+    LookupElement[] elements = myFixture.complete(CompletionType.BASIC);
+    assertThat(elements).hasLength(1);
+    assertThat(elements[0].getLookupString()).isEqualTo("MyModel");
+
+    myFixture.getLookup().setCurrentItem(elements[0]);
+    myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR);
+    myFixture.checkResult("package p1.p2;\n" +
+                          "\n" +
+                          "import android.app.Activity;\n" +
+                          "import android.os.Bundle;\n" +
+                          "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
+                          "\n" +
+                          "import p1.p2.mlkit.auto.MyModel;\n" +
+                          "\n" +
+                          "public class MainActivity extends Activity {\n" +
+                          "    @Override\n" +
+                          "    protected void onCreate(Bundle savedInstanceState) {\n" +
+                          "        super.onCreate(savedInstanceState);\n" +
+                          "        MyModel;\n" +
+                          "    }\n" +
+                          "}");
   }
 
   public void testModuleService() {

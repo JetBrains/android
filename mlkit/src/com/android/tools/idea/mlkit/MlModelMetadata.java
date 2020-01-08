@@ -22,6 +22,16 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import com.android.tools.mlkit.MetadataExtractor;
+import com.android.tools.mlkit.ModelData;
+import com.android.tools.mlkit.Param;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,6 +65,28 @@ public class MlModelMetadata {
     myModelData = byteBuffer != null
                   ? ModelData.buildFrom(new MetadataExtractor(byteBuffer))
                   : null;
+  }
+
+  public boolean isValidModel() {
+    return myModelData != null;
+  }
+
+  @NotNull
+  public List<Param> getInputParams() {
+    if (isValidModel()) {
+      return myModelData.getInputs();
+    }
+
+    return Arrays.asList();
+  }
+
+  @NotNull
+  public List<Param> getOutputParams() {
+    if (isValidModel()) {
+      return myModelData.getOutputs();
+    }
+
+    return Arrays.asList();
   }
 
   @Override

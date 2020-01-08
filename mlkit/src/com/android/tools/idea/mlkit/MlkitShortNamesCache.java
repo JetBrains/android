@@ -50,8 +50,11 @@ public class MlkitShortNamesCache extends PsiShortNamesCache {
       List<LightModelClass> lightClassList = new ArrayList<>();
       FileBasedIndex.getInstance().processValues(MlModelFileIndex.INDEX_ID, name, null, (file, value) -> {
         Module module = ModuleUtilCore.findModuleForFile(file, myProject);
-        if (module != null && AndroidFacet.getInstance(module) != null) {
-          lightClassList.add(MlkitModuleService.getInstance(module).getOrCreateLightModelClass(value));
+        if (module != null && AndroidFacet.getInstance(module) != null && value.isValidModel()) {
+          LightModelClass lightModelClass = MlkitModuleService.getInstance(module).getOrCreateLightModelClass(value);
+          if (lightModelClass != null) {
+            lightClassList.add(lightModelClass);
+          }
         }
         return true;
       }, scope);
@@ -80,6 +83,7 @@ public class MlkitShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public PsiMethod[] getMethodsByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
+    //TODO(jackqdyulei): implement it to return correct methods.
     return PsiMethod.EMPTY_ARRAY;
   }
 

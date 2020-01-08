@@ -17,15 +17,28 @@ package com.android.tools.idea.mlkit.lightpsi;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.mlkit.LightModelClassConfig;
+import com.android.tools.idea.mlkit.MlkitUtils;
+import com.android.tools.mlkit.MlkitNames;
+import com.android.tools.mlkit.Param;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.fileTypes.StdFileTypes;
+import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiType;
+import com.intellij.psi.impl.light.LightMethodBuilder;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.CachedValue;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,6 +49,8 @@ import org.jetbrains.annotations.Nullable;
 public class LightModelClass extends AndroidLightClassBase {
   private final LightModelClassConfig myClassConfig;
   private final PsiJavaFile myContainingFile;
+  private final CachedValue<MyMethods> myCachedMethods;
+  private PsiMethod[] myConstructors;
 
   public LightModelClass(@NotNull Module module, @NotNull LightModelClassConfig classConfig) {
     super(PsiManager.getInstance(module.getProject()), ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL));
@@ -48,6 +63,20 @@ public class LightModelClass extends AndroidLightClassBase {
     myContainingFile.setPackageName(classConfig.myPackageName);
 
     setModuleInfo(module, false);
+
+    //TODO(jackqdyulei): create a more accurate modification tracker
+    ModificationTracker modificationTracker = ModificationTracker.EVER_CHANGED;
+    myCachedMethods = CachedValuesManager.getManager(getProject()).createCachedValue(
+      () -> {
+        //Build methods
+        PsiMethod[] methods = new PsiMethod[1];
+        methods[0] = buildRunMethod(module);
+
+        //TODO(jackqdyulei): add inner class here
+
+        MyMethods myMethods = new MyMethods(methods);
+        return CachedValueProvider.Result.create(myMethods, modificationTracker);
+      }, false);
   }
 
   @Override
@@ -76,5 +105,60 @@ public class LightModelClass extends AndroidLightClassBase {
   @Override
   public boolean isValid() {
     return true;
+  }
+
+  @NotNull
+  @Override
+  public PsiMethod[] getMethods() {
+    //TODO(jackqdyulei): Also return constructors here.
+    return myCachedMethods.getValue().methods;
+  }
+
+  @NotNull
+  private PsiMethod buildRunMethod(@NotNull Module module) {
+    GlobalSearchScope scope = getResolveScope();
+    String outputClassName =
+      String.join(".", MlkitUtils.computeModelPackageName(module), myClassConfig.myModelMetadata.myClassName, MlkitNames.OUTPUT);
+
+    PsiType returnType = PsiType.getTypeByName(outputClassName, getProject(), scope);
+    LightMethodBuilder runMethodBuilder = new LightMethodBuilder(getManager(), "run")
+      .setMethodReturnType(returnType)
+      .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL).setContainingClass(this);
+
+    // Add parameters
+    for (Param param : myClassConfig.myModelMetadata.getInputParams()) {
+      PsiType paramType = PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(param), getProject(), scope);
+      runMethodBuilder.addParameter(param.getName(), paramType);
+    }
+
+    return runMethodBuilder;
+  }
+
+  @NotNull
+  @Override
+  public PsiMethod[] getConstructors() {
+    if (myConstructors == null) {
+      myConstructors = new PsiMethod[1];
+      myConstructors[0] = new LightMethodBuilder(this, JavaLanguage.INSTANCE)
+        .addParameter("context", PsiType.getTypeByName(ClassNames.CONTEXT, getProject(), getResolveScope()))
+        .setConstructor(true)
+        .addModifier(PsiModifier.PUBLIC);
+    }
+
+    return myConstructors;
+  }
+
+  @NotNull
+  @Override
+  public PsiClass[] getInnerClasses() {
+    return super.getInnerClasses();
+  }
+
+  private static class MyMethods {
+    public final PsiMethod[] methods;
+
+    public MyMethods(PsiMethod[] methods) {
+      this.methods = methods;
+    }
   }
 }
