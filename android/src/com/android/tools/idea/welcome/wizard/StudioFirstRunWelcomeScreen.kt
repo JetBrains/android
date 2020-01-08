@@ -52,15 +52,15 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       if (model.installationType.get() != FirstRunModel.InstallationType.CUSTOM) {
         addStep(InstallationTypeWizardStep(model))
       }
-      // FIXME override fun isStepVisible(): Boolean = java.lang.Boolean.TRUE == myState.get(FirstRunWizard.KEY_CUSTOM_INSTALL)
       addStep(JdkSetupStep(model))
       addStep(SelectThemeStep())
-      // if (mode == FirstRunWizardMode.MISSING_SDK) {
-      addStep(MissingSdkAlertStep())
+      if (mode == FirstRunWizardMode.MISSING_SDK) {
+        addStep(MissingSdkAlertStep())
+      }
       // TODO(qumeric): addStep(SdkComponentsStep())
       // TODO(qumeric): addStep(InstallSummaryStep())
       if (isLinux && !isChromeOSAndIsNotHWAccelerated() && mode == FirstRunWizardMode.NEW_INSTALL) {
-        addStep(LinuxHaxmInfoStep()) // FIXME(qumeric): only if needed
+        addStep(LinuxHaxmInfoStep())
       }
       // if (mode != INSTALL_HANDOFF) {
       addStep(InstallSummaryStep(model, Supplier { listOf<RemotePackage>() }))
