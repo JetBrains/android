@@ -210,10 +210,8 @@ public class PostSyncProjectSetup {
         }
       }
 
-      if (StudioFlags.RECOMMENDATION_ENABLED.get()) {
-        MemorySettingsPostSyncChecker
-          .checkSettings(myProject, new TimeBasedReminder(myProject, "memory.settings.postsync", TimeUnit.DAYS.toMillis(1)));
-      }
+      MemorySettingsPostSyncChecker
+        .checkSettings(myProject, new TimeBasedReminder(myProject, "memory.settings.postsync", TimeUnit.DAYS.toMillis(1)));
 
       new ProjectStructureUsageTracker(myProject).trackProjectStructure();
 
