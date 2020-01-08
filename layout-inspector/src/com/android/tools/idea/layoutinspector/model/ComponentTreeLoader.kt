@@ -17,7 +17,7 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.SkiaParser
-import com.android.tools.idea.layoutinspector.common.StringTable
+import com.android.tools.idea.layoutinspector.common.StringTableImpl
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
@@ -53,7 +53,7 @@ private class ComponentTreeLoaderImpl(
   private val tree: LayoutInspectorProto.ComponentTreeEvent, private val resourceLookup: ResourceLookup?
 ) {
   private val loadStartTime = AtomicLong(-1)
-  private val stringTable = StringTable(tree.stringList)
+  private val stringTable = StringTableImpl(tree.stringList)
 
   fun loadComponentTree(client: InspectorClient): ViewNode? {
     val defaultClient = client as? DefaultInspectorClient ?: throw UnsupportedOperationException(
@@ -65,22 +65,22 @@ private class ComponentTreeLoaderImpl(
     return try {
       val rootView = loadRootView()
       val bytes = defaultClient.getPayload(tree.payloadId)
-      var viewRoot: InspectorView? = null
+      var rootViewFromSkiaImage: InspectorView? = null
       if (bytes.isNotEmpty()) {
         try {
-          viewRoot = SkiaParser.getViewTree(bytes)
-          if (viewRoot != null && viewRoot.id.isEmpty()) {
+          rootViewFromSkiaImage = SkiaParser.getViewTree(bytes)
+          if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id.isEmpty()) {
             // We were unable to parse the skia image. Allow the user to interact with the component tree.
-            viewRoot = null
+            rootViewFromSkiaImage = null
           }
-          defaultClient.logInitialRender(viewRoot != null)
+          defaultClient.logInitialRender(rootViewFromSkiaImage != null)
         }
         catch (ex: Exception) {
           Logger.getInstance(LayoutInspector::class.java).warn(ex)
         }
       }
-      if (viewRoot != null) {
-        val imageLoader = ComponentImageLoader(rootView, viewRoot)
+      if (rootViewFromSkiaImage != null && rootView != null) {
+        val imageLoader = ComponentImageLoader(rootView, rootViewFromSkiaImage)
         imageLoader.loadImages()
       }
       rootView
@@ -90,9 +90,9 @@ private class ComponentTreeLoaderImpl(
     }
   }
 
-  private fun loadRootView(): ViewNode {
+  private fun loadRootView(): ViewNode? {
     resourceLookup?.updateConfiguration(tree.resources, stringTable)
-    return loadView(tree.root, null)
+    return if (tree.hasRoot()) loadView(tree.root, null) else null
   }
 
   private fun loadView(view: LayoutInspectorProto.View, parent: ViewNode?): ViewNode {

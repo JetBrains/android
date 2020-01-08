@@ -23,8 +23,13 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.FpsTimer
 import com.android.tools.idea.layoutinspector.legacydevice.LegacyClient
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.idea.layoutinspector.util.ConfigurationBuilder
+import com.android.tools.idea.layoutinspector.util.DemoExample
+import com.android.tools.idea.layoutinspector.util.TestStringTable
+import com.android.tools.idea.layoutinspector.util.TreeBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -34,6 +39,7 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.AgentData.Status.UNATTACHABLE
+import com.intellij.openapi.project.Project
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -89,15 +95,26 @@ class LayoutInspectorTransportRule(
 
   lateinit var inspector: LayoutInspector
   lateinit var inspectorClient: InspectorClient
-  var inspectorModel: () -> InspectorModel = { model(projectRule.project) { view(0L) } }
+  lateinit var inspectorModel: InspectorModel
+  val project: Project get() = projectRule.project
 
   /** If you set this to false before attaching a device, the attach will fail (return [UNATTACHABLE]) */
   var shouldConnectSuccessfully = true
 
+  /**
+   * By default we get an empty model.
+   *
+   * If a connected default device is requested, this initial root will be setup instead.
+   */
+  var initialRoot = view(0L)
+
   // "2" since it's called for debug_view_attributes and debug_view_attributes_application_package
   private val unsetSettingsLatch = CountDownLatch(2)
   private val scheduler = VirtualTimeScheduler()
-  private var inspectorClientFactory: () -> InspectorClient = { DefaultInspectorClient(inspectorModel(), grpcServer.name, scheduler) }
+  private var inspectorClientFactory: () -> InspectorClient = { DefaultInspectorClient(inspectorModel, grpcServer.name, scheduler) }
+  private val commandHandlers = mutableMapOf<
+    LayoutInspectorProto.LayoutInspectorCommand.Type,
+    (Commands.Command, MutableList<Common.Event>) -> Unit>()
 
   private var attachHandler: CommandHandler = object : CommandHandler(timer) {
     override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
@@ -114,7 +131,7 @@ class LayoutInspectorTransportRule(
   }
 
   private val startedLatch = CountDownLatch(1)
-  private var inspectorHandler: CommandHandler = object : CommandHandler(timer) {
+  private val startHandler : CommandHandler = object : CommandHandler(timer) {
     override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
       if (command.layoutInspector.type == LayoutInspectorProto.LayoutInspectorCommand.Type.START) {
         startedLatch.countDown()
@@ -122,22 +139,33 @@ class LayoutInspectorTransportRule(
     }
   }
 
+  private var inspectorHandler: CommandHandler = object : CommandHandler(timer) {
+    override fun handleCommand(command: Commands.Command, events: MutableList<Common.Event>) {
+      val handler = commandHandlers[command.layoutInspector.type]
+      handler?.invoke(command, events) ?: startHandler.handleCommand(command, events)
+    }
+  }
+
+  private val initialActions = mutableListOf<() -> Unit>()
   private val beforeActions = mutableListOf<() -> Unit>()
 
   init {
     adbRule.withDeviceCommandHandler(object : DeviceCommandHandler("shell") {
       override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
-        if (args == "settings put global debug_view_attributes 1") {
-          com.android.fakeadbserver.CommandHandler.writeOkay(socket.getOutputStream())
-          return true
+        when (args) {
+          "settings put global debug_view_attributes 1",
+          "settings put global debug_view_attributes_application_package com.example",
+          "settings delete global debug_view_attributes",
+          "settings delete global debug_view_attributes_application_package" -> {
+            com.android.fakeadbserver.CommandHandler.writeOkay(socket.getOutputStream())
+            if (args.startsWith("settings delete")) {
+              unsetSettingsLatch.countDown()
+            }
+            return true
+          }
+
+          else -> return false
         }
-        else if (args == "settings delete global debug_view_attributes" ||
-                 args == "settings delete global debug_view_attributes_application_package") {
-          com.android.fakeadbserver.CommandHandler.writeOkay(socket.getOutputStream())
-          unsetSettingsLatch.countDown()
-          return true
-        }
-        return false
       }
     })
 
@@ -147,7 +175,7 @@ class LayoutInspectorTransportRule(
   /**
    * Create a [LegacyClient] rather than a [DefaultInspectorClient]
    */
-  fun withLegacyClient() = apply { inspectorClientFactory = { LegacyClient(projectRule.project) } }
+  fun withLegacyClient() = apply { inspectorClientFactory = { LegacyClient(project) } }
 
   /**
    * The default attach handler just attaches (or fails if [shouldConnectSuccessfully] is false). Use this if you want to do something else.
@@ -155,11 +183,11 @@ class LayoutInspectorTransportRule(
   fun withAttachHandler(handler: CommandHandler) = apply { attachHandler = handler }
 
   /**
-   * By default we get a model with one empty view. Use this if you want anything else.
+   * Add a specific [LayoutInspectorProto.LayoutInspectorCommand] handler.
    */
-  fun withModel(modelFactory: () -> InspectorModel) = apply {
-    inspectorModel = modelFactory
-  }
+  fun withCommandHandler(type: LayoutInspectorProto.LayoutInspectorCommand.Type,
+                         handler: (Commands.Command, MutableList<Common.Event>) -> Unit) =
+    apply { commandHandlers[type] = handler }
 
   fun withDefaultDevice(connected: Boolean) = apply {
     beforeActions.add {
@@ -177,15 +205,19 @@ class LayoutInspectorTransportRule(
           if (inspectorClient is DefaultInspectorClient) {
             advanceTime(1100, TimeUnit.MILLISECONDS)
             waitForStart()
-            transportService.addEventToStream(DEFAULT_STREAM.streamId,
-                                              Common.Event.newBuilder()
-                                                .setKind(Common.Event.Kind.LAYOUT_INSPECTOR)
-                                                .setPid(DEFAULT_PROCESS.pid)
-                                                .setGroupId(Common.Event.EventGroupIds.COMPONENT_TREE.number.toLong())
-                                                .build())
+            transportService.addEventToStream(DEFAULT_STREAM.streamId, createComponentTreeEvent(initialRoot))
             advanceTime(1100, TimeUnit.MILLISECONDS)
           }
         }
+    }
+  }
+
+  /**
+   * Add the demo layout from [DemoExample] and include views if the connected option is chosen.
+   */
+  fun withDemoLayout() = apply {
+    initialActions.add {
+      initialRoot = model(project, DemoExample.setUpDemo(projectRule.fixture)).root
     }
   }
 
@@ -236,12 +268,13 @@ class LayoutInspectorTransportRule(
   }
 
   private fun before() {
+    initialActions.forEach { it() }
+    inspectorModel = InspectorModel(project)
     inspectorClientFactory.let {
       inspectorClient = it()
       InspectorClient.clientFactory = { inspectorClient }
     }
-
-    inspector = LayoutInspector(inspectorModel())
+    inspector = LayoutInspector(inspectorModel)
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, attachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.LAYOUT_INSPECTOR, inspectorHandler)
     beforeActions.forEach { it() }
@@ -259,5 +292,22 @@ class LayoutInspectorTransportRule(
 
   private fun waitForUnsetSettings() {
     unsetSettingsLatch.await()
+  }
+
+  private fun createComponentTreeEvent(rootView: ViewNode): Common.Event {
+    val strings = TestStringTable()
+    val tree = TreeBuilder(strings)
+    val config = ConfigurationBuilder(strings)
+    return Common.Event.newBuilder().apply {
+      kind = Common.Event.Kind.LAYOUT_INSPECTOR
+      pid = DEFAULT_PROCESS.pid
+      groupId = Common.Event.EventGroupIds.COMPONENT_TREE.number.toLong()
+      layoutInspectorEventBuilder.treeBuilder.apply {
+        root = tree.makeViewTree(rootView)
+        resources = config.makeDummyConfiguration(project)
+        addAllString(strings.asEntryList())
+        addAllWindowIds(rootView.drawId)
+      }
+    }.build()
   }
 }
