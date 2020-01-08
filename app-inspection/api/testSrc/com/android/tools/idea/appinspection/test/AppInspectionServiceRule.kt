@@ -80,6 +80,7 @@ class AppInspectionServiceRule(
   }
 
   override fun after(description: Description) {
+    TransportEventPoller.stopPoller(poller)
     executorService.shutdownNow()
   }
 

@@ -40,13 +40,6 @@ class AppInspectionDiscoveryHost(
   client: TransportClient,
   poller: TransportEventPoller = TransportEventPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
 ) {
-  /**
-   * This class represents a channel between some host (which should implement this class) and a target Android device.
-   */
-  interface Channel {
-    val name: String
-  }
-
   val discovery = AppInspectionDiscovery(executor, client, poller)
 
   /**
@@ -58,6 +51,13 @@ class AppInspectionDiscoveryHost(
     processDescriptor: ProcessDescriptor
   ): ListenableFuture<AppInspectionTarget> =
     discovery.connect(jarCopier, processDescriptor)
+
+  /**
+   * Shuts down discovery service.
+   */
+  fun shutDown() {
+    discovery.shutDown()
+  }
 }
 
 /**
@@ -78,21 +78,39 @@ class AppInspectionDiscovery internal constructor(
   @GuardedBy("this")
   private val connections = mutableMapOf<ProcessDescriptor, ListenableFuture<AppInspectionTarget>>()
 
+  @GuardedBy("this")
+  private var isShutDown = false
+
   internal fun connect(
     jarCopier: AppInspectionJarCopier,
     processDescriptor: ProcessDescriptor
   ): ListenableFuture<AppInspectionTarget> {
-    return connections.computeIfAbsent(
-      processDescriptor,
-      Function { descriptor ->
-        val transport = AppInspectionTransport(transportClient, descriptor.stream, descriptor.process, executor, transportPoller)
-        AppInspectionTarget.attach(transport, jarCopier)
-          .transform(executor) { connection ->
-            connection.addTargetTerminatedListener(executor) { connections.remove(descriptor)?.cancel(false) }
-            listeners.forEach { (listener, executor) -> executor.execute { listener(connection) } }
-            connection
-          }
-      })
+    return synchronized(this) {
+      if (isShutDown) {
+        throw java.lang.IllegalStateException("AppInspectionDiscovery is shut down!")
+      }
+      connections.computeIfAbsent(
+        processDescriptor,
+        Function { descriptor ->
+          val transport = AppInspectionTransport(transportClient, descriptor.stream, descriptor.process, executor, transportPoller)
+          AppInspectionTarget.attach(transport, jarCopier)
+            .transform(executor) { connection ->
+              connection.addTargetTerminatedListener(executor) { connections.remove(descriptor)?.cancel(false) }
+              listeners.forEach { (listener, executor) -> executor.execute { listener(connection) } }
+              connection
+            }
+        })
+    }
+  }
+
+  internal fun shutDown() {
+    synchronized(this) {
+      if (!isShutDown) {
+        isShutDown = true
+        listeners.clear()
+        connections.forEach { (_, u) -> u.cancel(false) }
+      }
+    }
   }
 
   /**
@@ -102,6 +120,9 @@ class AppInspectionDiscovery internal constructor(
    */
   fun addTargetListener(executor: Executor, listener: TargetListener): TargetListener {
     synchronized(this) {
+      if (isShutDown) {
+        throw IllegalStateException("AppInspection discovery is shut down!")
+      }
       listeners[listener] = executor
       connections.filterValues { it.isDone }.map { it.value.get() }.forEach { executor.execute { listener(it) } }
     }

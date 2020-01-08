@@ -20,17 +20,20 @@ import com.android.ddmlib.IDevice
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
+import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.idea.transport.poller.TransportEventListener
+import com.android.tools.idea.transport.poller.TransportEventPoller
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.util.messages.MessageBus
+import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -78,8 +81,8 @@ class AppInspectionDiscoveryManagerTest {
   @Test
   fun establishNewConnection() {
     val manager = AppInspectionDiscoveryManager(
-      appInspectionRule.client,
       MoreExecutors.directExecutor(),
+      appInspectionRule.client,
       appInspectionRule.poller,
       { mockDevice },
       mockBus
@@ -105,8 +108,8 @@ class AppInspectionDiscoveryManagerTest {
   fun cleansUpStreamsAndProcesses() {
     // setup
     val manager = AppInspectionDiscoveryManager(
-      appInspectionRule.client,
       MoreExecutors.directExecutor(),
+      appInspectionRule.client,
       appInspectionRule.poller,
       { mockDevice },
       mockBus
@@ -159,5 +162,23 @@ class AppInspectionDiscoveryManagerTest {
     streamEndedLatch.await()
     assertThat(manager.streamIdMap).isEmpty()
     assertThat(manager.processIdMap).isEmpty()
+  }
+
+  @Test
+  fun shutDown() {
+    // Setup
+    val client = TransportClient(grpcServerRule.name)
+    val poller = TransportEventPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
+    val manager = AppInspectionDiscoveryManager(MoreExecutors.directExecutor(), client, poller, { mockDevice }, mockBus)
+
+    // Shutdown
+    manager.shutDown()
+
+    // Verify discovery is no longer accessible.
+    try {
+      manager.discoveryHost.discovery.addTargetListener(MoreExecutors.directExecutor()) {}
+      fail("AppInspectionDiscovery should've thrown an IllegalStateException")
+    } catch (expected: IllegalStateException) {
+    }
   }
 }

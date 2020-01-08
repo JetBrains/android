@@ -31,12 +31,14 @@ import com.android.tools.idea.transport.poller.TransportEventListener
 import com.android.tools.idea.transport.poller.TransportEventPoller
 import com.android.tools.profiler.proto.Common
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.messages.MessageBus
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 
 typealias AdbDeviceFinder = (Common.Device) -> IDevice?
@@ -44,20 +46,24 @@ typealias AdbDeviceFinder = (Common.Device) -> IDevice?
 /**
  * This service holds a reference to [AppInspectionDiscoveryManager]. It will establish new connections when they are discovered.
  */
-internal class AppInspectionHostService {
-  private val channel = object : AppInspectionDiscoveryHost.Channel {
-    override val name = TransportService.CHANNEL_NAME
-  }
-
-  private val client = TransportClient(channel.name)
+internal class AppInspectionHostService : Disposable {
+  private val executor = AppExecutorUtil.getAppScheduledExecutorService()
+  private val client = TransportClient(TransportService.CHANNEL_NAME)
   private val poller = TransportEventPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
-  val discoveryManager = AppInspectionDiscoveryManager(
-    client, AppExecutorUtil.getAppScheduledExecutorService(), poller,
-    { device -> AndroidDebugBridge.getBridge()?.devices?.first { TransportServiceProxy.transportDeviceFromIDevice(it) == device } })
+  private val adbDeviceFinder: AdbDeviceFinder = { device ->
+    AndroidDebugBridge.getBridge()?.devices?.first { TransportServiceProxy.transportDeviceFromIDevice(it) == device }
+  }
+  private val messageBus = TransportService.getInstance().messageBus
+
+  val discoveryManager = AppInspectionDiscoveryManager(executor, client, poller, adbDeviceFinder, messageBus)
 
   companion object {
     val instance: AppInspectionHostService
       get() = ServiceManager.getService(AppInspectionHostService::class.java)
+  }
+
+  override fun dispose() {
+    discoveryManager.shutDown()
   }
 }
 
@@ -68,8 +74,8 @@ internal class AppInspectionHostService {
  */
 @VisibleForTesting
 internal class AppInspectionDiscoveryManager(
-  client: TransportClient,
   private val executor: Executor,
+  client: TransportClient,
   private val poller: TransportEventPoller,
   private val adbDeviceFinder: AdbDeviceFinder,
   private val messageBus: MessageBus = TransportService.getInstance().messageBus
@@ -81,6 +87,8 @@ internal class AppInspectionDiscoveryManager(
   internal val processIdMap = ConcurrentHashMap<Long, Common.Process>()
 
   val discoveryHost = AppInspectionDiscoveryHost(AppExecutorUtil.getAppScheduledExecutorService(), client, poller)
+
+  private val isShutDown = AtomicBoolean(false)
 
   init {
     registerListenersForDiscovery(discoveryHost)
@@ -129,6 +137,17 @@ internal class AppInspectionDiscoveryManager(
       false
     }
     poller.registerListener(processEndedListener)
+  }
+
+  /**
+   * Perform shut down on this and discovery host.
+   */
+  @VisibleForTesting
+  internal fun shutDown() {
+    if (isShutDown.compareAndSet(false, true)) {
+      TransportEventPoller.stopPoller(poller)
+      discoveryHost.shutDown()
+    }
   }
 
   private fun AppInspectorJar.toDeployableFile() = DeployableFile.Builder(name).apply {
