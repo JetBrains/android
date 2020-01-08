@@ -23,11 +23,14 @@ import com.android.resources.ResourceType
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffUtil
 import com.android.tools.adtui.stdui.KeyStrokes
+import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ResolutionStackModel
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertiesModel
 import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
-import com.android.tools.idea.layoutinspector.util.InspectorBuilder
+import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
+import com.android.tools.idea.layoutinspector.properties.PropertySection
+import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.android.tools.property.panel.api.PropertyItem
@@ -37,10 +40,9 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.After
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import java.awt.Component
 import java.awt.Container
 import java.awt.event.ActionEvent
@@ -54,28 +56,14 @@ private const val DIFF_THRESHOLD = 0.5
 
 @RunsInEdt
 class ResolutionElementEditorTest {
+  private val projectRule = AndroidProjectRule.withSdk()
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.withSdk()
-
-  @JvmField
-  @Rule
-  val edtRule = EdtRule()
-
-  @Before
-  fun setUp() {
-    InspectorBuilder.setUpDemo(projectRule)
-  }
-
-  @After
-  fun tearDown() {
-    InspectorBuilder.tearDownDemo()
-  }
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   @Test
   fun testPaint() {
-    val editors = createEditor()
+    val editors = createEditors()
     checkImage(editors, "Closed")
 
     editors[0].editorModel.isExpandedTableItem = true
@@ -91,7 +79,7 @@ class ResolutionElementEditorTest {
   @Test
   fun testDynamicHeight() {
     var updateCount = 0
-    val editors = createEditor()
+    val editors = createEditors()
     val editor = editors[0]
     editor.updateRowHeight = { updateCount++ }
     assertThat(editor.isCustomHeight).isFalse()
@@ -153,15 +141,18 @@ class ResolutionElementEditorTest {
     action.actionPerformed(event)
   }
 
-  private fun createEditor(): List<ResolutionElementEditor> {
-    val propertiesModel = InspectorBuilder.createModel(projectRule)
-    val item = InspectorBuilder.createProperty("title", ATTR_TEXT_COLOR, Type.COLOR, null, propertiesModel)
+  private fun createEditors(): List<ResolutionElementEditor> {
+    val model = model(projectRule.project, DemoExample.setUpDemo(projectRule.fixture))
+    val node = model["title"]!!
+    val item = InspectorPropertyItem(
+      ANDROID_URI, ATTR_TEXT_COLOR, ATTR_TEXT_COLOR, Type.COLOR, null, PropertySection.DECLARED, node.layout, node, model.resourceLookup)
     val textStyleMaterial = ResourceReference(ResourceNamespace.ANDROID, ResourceType.STYLE, "TextAppearance.Material")
     val map = listOf(textStyleMaterial).associateWith { item.resourceLookup!!.findAttributeValue(item, it) }
     val value = item.resourceLookup!!.findAttributeValue(item, item.source!!)
     val property = InspectorGroupPropertyItem(
       ANDROID_URI, item.attrName, item.type, value, null, item.group, item.source, item.view, item.resourceLookup, map)
     val editors = mutableListOf<ResolutionElementEditor>()
+    val propertiesModel = InspectorPropertiesModel()
     editors.add(createEditor(property, propertiesModel))
     property.children.forEach { editors.add(createEditor(it, propertiesModel)) }
     return editors

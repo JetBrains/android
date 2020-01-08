@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.tree
 
+import com.android.tools.idea.layoutinspector.FakeAdbRule
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.VIEW1
@@ -24,7 +26,7 @@ import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.model.WINDOW_MANAGER_FLAG_DIM_BEHIND
 import com.android.tools.idea.layoutinspector.util.CheckUtil
-import com.android.tools.idea.layoutinspector.util.InspectorBuilder
+import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.view
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
@@ -39,6 +41,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
@@ -47,25 +50,20 @@ import javax.swing.JTree
 @RunsInEdt
 class LayoutInspectorTreePanelTest {
   private var componentStack: ComponentStack? = null
+  private val projectRule = AndroidProjectRule.withSdk()
+  private val adbRule = FakeAdbRule()
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.onDisk()
-
-  @JvmField
-  @Rule
-  val edtRule = EdtRule()
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(projectRule).around(adbRule).around(EdtRule())!!
 
   @Before
   fun setUp() {
-    InspectorBuilder.setUpDemo(projectRule)
     componentStack = ComponentStack(projectRule.project)
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, Mockito.mock(FileEditorManager::class.java))
   }
 
   @After
   fun tearDown() {
-    InspectorBuilder.tearDownDemo()
     componentStack!!.restore()
     componentStack = null
   }
@@ -73,9 +71,10 @@ class LayoutInspectorTreePanelTest {
   @Test
   fun testGotoDeclaration() {
     val tree = LayoutInspectorTreePanel()
-    val inspector = InspectorBuilder.createLayoutInspectorForDemo(projectRule)
+    val model = model(projectRule.project, DemoExample.setUpDemo(projectRule.fixture))
+    val inspector = LayoutInspector(model)
     tree.setToolContext(inspector)
-    tree.componentTreeSelectionModel.selection = listOf(inspector.layoutInspectorModel["title"]!!)
+    tree.componentTreeSelectionModel.selection = listOf(model["title"]!!)
     val treeComponent = UIUtil.findComponentOfType(tree.component, JTree::class.java)
 
     val fileManager = FileEditorManager.getInstance(projectRule.project)
