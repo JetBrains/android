@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidModuleCleanupStep;
 import com.android.tools.idea.gradle.project.sync.setup.post.MemorySettingsPostSyncChecker;
+import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker;
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GradlePluginUpgrade;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
@@ -126,5 +127,7 @@ public class AndroidModuleModelDataService extends ModuleModelDataService<Androi
 
     MemorySettingsPostSyncChecker
         .checkSettings(project, new TimeBasedReminder(project, "memory.settings.postsync", TimeUnit.DAYS.toMillis(1)));
+
+    new ProjectStructureUsageTracker(project).trackProjectStructure();
   }
 }

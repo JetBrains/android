@@ -181,8 +181,6 @@ public class PostSyncProjectSetup {
         return;
       }
 
-      new ProjectStructureUsageTracker(myProject).trackProjectStructure();
-
       DisposedModules.getInstance(myProject).deleteImlFilesForDisposedModules();
       SupportedModuleChecker.getInstance().checkForSupportedModules(myProject);
 
