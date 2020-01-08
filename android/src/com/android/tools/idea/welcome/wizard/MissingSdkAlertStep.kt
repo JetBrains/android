@@ -16,28 +16,20 @@
 package com.android.tools.idea.welcome.wizard
 
 import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.android.utils.HtmlBuilder
-import com.intellij.ui.components.JBLabel
-import java.awt.BorderLayout
 import javax.swing.JComponent
-import javax.swing.JPanel
+import com.intellij.ui.layout.panel
 
 /**
  * Step to show a message that the SDK is missing.
  */
 class MissingSdkAlertStep : ModelWizardStep.WithoutModel("Missing SDK") {
-  private val panel = JPanel(BorderLayout()).apply {
-    val description = HtmlBuilder().apply {
-      openHtmlBody()
-      beginBold()
-      addHtml("No Android SDK found.")
-      endBold()
-      beginParagraph()
-      addHtml("Before continuing, you must download the necessary components or select an existing SDK.")
-      endParagraph()
-      closeHtmlBody()
-    }.html
-    add(JBLabel(description), BorderLayout.NORTH)
+  private val panel = panel {
+    row {
+      label("No Android SDK found.", bold = true)
+    }
+    row {
+      label("Before continuing, you must download the necessary components or select an existing SDK.")
+    }
   }
   override fun getComponent(): JComponent = panel
 }
