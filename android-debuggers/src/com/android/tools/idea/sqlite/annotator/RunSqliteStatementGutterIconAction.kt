@@ -16,26 +16,20 @@
 package com.android.tools.idea.sqlite.annotator
 
 import com.android.tools.idea.lang.androidSql.AndroidSqlLanguage
-import com.android.tools.idea.lang.androidSql.psi.AndroidSqlBindParameter
-import com.android.tools.idea.lang.androidSql.psi.AndroidSqlPsiTypes
-import com.android.tools.idea.lang.androidSql.psi.AndroidSqlVisitor
+import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.android.tools.idea.sqlite.controllers.ParametersBindingController
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.sqlLanguage.replaceNamedParametersWithPositionalParameters
 import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
-import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
 import com.intellij.icons.AllIcons
-import com.intellij.lang.ASTFactory
 import com.intellij.lang.injection.InjectedLanguageManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.util.ui.JBUI
 import java.awt.Component
@@ -116,31 +110,6 @@ class RunSqliteStatementGutterIconAction(
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.presentation.isEnabledAndVisible = DatabaseInspectorProjectService.getInstance(project).hasOpenDatabase()
-  }
-
-  /**
-   * Returns a SQLite statement where named parameters have been replaced with positional parameters (?)
-   * and the list of named parameters in the original statement.
-   * @param psiElement The [PsiElement] corresponding to a SQLite statement.
-   * @return The text of the SQLite statement with positional parameters and the list of named parameters.
-   */
-  private fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): Pair<String, List<String>> {
-    val psiElementCopy = psiElement.copy()
-    val parametersNames = mutableListOf<String>()
-
-    invokeAndWaitIfNeeded {
-      runUndoTransparentWriteAction {
-        val visitor = object : AndroidSqlVisitor() {
-          override fun visitBindParameter(parameter: AndroidSqlBindParameter) {
-            parametersNames.add(parameter.text)
-            parameter.node.replaceChild(parameter.node.firstChildNode, ASTFactory.leaf(AndroidSqlPsiTypes.NUMBERED_PARAMETER, "?"))
-          }
-        }
-
-        PsiTreeUtil.processElements(psiElementCopy) { it.accept(visitor); true }
-      }
-    }
-    return Pair(psiElementCopy.text, parametersNames)
   }
 
   private class SqliteQueryListCellRenderer : DefaultListCellRenderer() {
