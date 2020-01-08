@@ -17,14 +17,18 @@ package com.android.tools.idea.sqlite.controllers
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
+import com.android.tools.idea.sqlite.sqlLanguage.replaceNamedParametersWithPositionalParameters
+import com.android.tools.idea.sqlite.ui.DatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 
 /**
@@ -34,7 +38,9 @@ import com.intellij.openapi.util.Disposer
  */
 @UiThread
 class SqliteEvaluatorController(
+  private val project: Project,
   private val view: SqliteEvaluatorView,
+  private val viewFactory: DatabaseInspectorViewsFactory,
   private val edtExecutor: FutureCallbackExecutor
 ) : DatabaseInspectorController.TabController {
   private var currentTableController: TableController? = null
@@ -117,8 +123,22 @@ class SqliteEvaluatorController(
 
   private inner class SqliteEvaluatorViewListenerImpl : SqliteEvaluatorView.Listener {
     override fun evaluateSqlActionInvoked(database: SqliteDatabase, sqliteStatement: String) {
-      // TODO(b/143341562) handle SQLite statements with templates for ad-hoc queries.
-      evaluateSqlStatement(database, SqliteStatement(sqliteStatement, emptyList()))
+      val psiFile = AndroidSqlParserDefinition.parseSqlQuery(project, sqliteStatement)
+      val parsedStatement = replaceNamedParametersWithPositionalParameters(psiFile)
+
+      if (parsedStatement.parameters.isEmpty()) {
+        evaluateSqlStatement(database, SqliteStatement(parsedStatement.statementText))
+      }
+      else {
+        val view = viewFactory.createParametersBindingView(project)
+        ParametersBindingController(view, parsedStatement.statementText, parsedStatement.parameters) {
+          evaluateSqlStatement(database, it)
+        }.also {
+          it.setUp()
+          it.show()
+          Disposer.register(project, it)
+        }
+      }
     }
   }
 

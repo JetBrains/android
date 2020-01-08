@@ -28,7 +28,7 @@ import javax.swing.JComponent
 open class MockDatabaseInspectorViewsFactory : DatabaseInspectorViewsFactory {
   val sqliteEvaluatorView: MockSqliteEvaluatorView = spy(MockSqliteEvaluatorView::class.java)
   val tableView: TableView = mock(TableView::class.java)
-  val parametersBindingDialogView = MockParametersBindingDialogView()
+  val parametersBindingDialogView: MockParametersBindingDialogView = spy(MockParametersBindingDialogView())
   val databaseInspectorView: MockDatabaseInspectorView = spy(MockDatabaseInspectorView())
 
   init {
