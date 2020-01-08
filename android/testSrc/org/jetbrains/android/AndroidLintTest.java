@@ -825,6 +825,14 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testInnerclassSeparator() throws Exception {
     deleteManifest();
+    myFixture.addFileToProject("/src/test/pkg/MyActivity.java",
+                               "" +
+                               "package test.pkg;\n" +
+                               "public class MyActivity {\n" +
+                               "    public static class Inner extends android.app.Activity {\n" +
+                               "    };\n" +
+                               "}");
+
     doTestWithFix(new AndroidLintInnerclassSeparatorInspection(),
                   "Replace with .MyActivity$Inner", "AndroidManifest.xml", "xml");
   }
