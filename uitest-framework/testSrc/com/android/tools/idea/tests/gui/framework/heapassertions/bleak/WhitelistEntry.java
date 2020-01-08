@@ -17,5 +17,5 @@ package com.android.tools.idea.tests.gui.framework.heapassertions.bleak;
 
 import java.util.function.Predicate;
 
-public interface WhitelistEntry extends Predicate<LeakInfo> {
+public interface WhitelistEntry<T> extends Predicate<T> {
 }

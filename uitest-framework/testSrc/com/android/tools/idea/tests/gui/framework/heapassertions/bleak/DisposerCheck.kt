@@ -66,3 +66,26 @@ class DisposerInfo private constructor (val growingCounts: Map<Key, Int> = mapOf
   }
 
 }
+
+class DisposerLeakInfo(val k: DisposerInfo.Key, val count: Int) {
+  override fun toString(): String {
+    return "Disposable of type ${k.disposable.javaClass.name} has an increasing number ($count) of children of type ${k.klass.name}"
+  }
+}
+
+class DisposerCheck(w: Whitelist<DisposerLeakInfo> = Whitelist(), ki: Whitelist<DisposerLeakInfo> = Whitelist()): BleakCheck<Nothing?, DisposerLeakInfo>(null, w, ki) {
+  private var disposerInfo: DisposerInfo? = null
+
+  override fun firstIterationFinished() {
+    disposerInfo = DisposerInfo.createBaseline()
+  }
+
+  override fun middleIterationFinished() {
+    disposerInfo = DisposerInfo.propagateFrom(disposerInfo!!);
+  }
+
+  override fun lastIterationFinished() = middleIterationFinished()
+
+  override fun getResults() = disposerInfo?.growingCounts?.map { (key, count) -> DisposerLeakInfo(key, count) } ?: listOf()
+
+}

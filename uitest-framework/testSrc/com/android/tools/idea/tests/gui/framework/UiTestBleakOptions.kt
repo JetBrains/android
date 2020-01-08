@@ -16,7 +16,9 @@
 package com.android.tools.idea.tests.gui.framework
 
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.BleakOptions
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.DisposerCheck
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.LeakInfo
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.MainBleakCheck
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Whitelist
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.WhitelistEntry
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ElidingExpander
@@ -24,7 +26,7 @@ import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.SmartListExpander
 import java.util.function.Supplier
 
-private val globalWhitelist = Whitelist(listOf(
+private val globalWhitelist = Whitelist<LeakInfo>(listOf(
   WhitelistEntry { it.leaktrace.size == 2 },
   WhitelistEntry { info -> info.leaktrace.elements.any { it.type.contains("com.intellij.testGuiFramework") } },
   WhitelistEntry { it.leaktrace.signatureAt(2) == "com.android.layoutlib.bridge.impl.DelegateManager#sJavaReferences" },
@@ -75,7 +77,7 @@ private val globalWhitelist = Whitelist(listOf(
 /**
  * Known issues must have a corresponding tracking bug and should be removed as soon as they're fixed.
  */
-private val knownIssues = Whitelist(listOf(
+private val knownIssues = Whitelist<LeakInfo>(listOf(
   WhitelistEntry { info ->
     // b/144418512: Compose Preview leaking ModuleClassLoader
     info.leaktrace.size == 1 // Only ROOT
@@ -91,5 +93,6 @@ private val customExpanders = Supplier { ElidingExpander.getExpanders() + listOf
 object UiTestBleakOptions {
   // a fresh copy of the default options are provided with each access, to facilitate local modifications (e.g. test-specific whitelists)
   val defaults: BleakOptions
-    get()= BleakOptions().withCustomExpanders(customExpanders).whitelist(globalWhitelist).withKnownIssues(knownIssues)
+    get() = BleakOptions().withCheck(MainBleakCheck(customExpanders, globalWhitelist, knownIssues))
+      .withCheck(DisposerCheck())
 }

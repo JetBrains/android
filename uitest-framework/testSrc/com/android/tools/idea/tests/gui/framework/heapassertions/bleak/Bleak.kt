@@ -16,6 +16,16 @@
 @file:JvmName("Bleak")
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.HeapGraph.Companion.jniHelper
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ArrayObjectIdentityExpander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ClassLoaderExpander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ClassStaticsExpander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.DefaultObjectExpander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.Expander
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ExpanderChooser
+import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.RootExpander
+import java.util.function.Supplier
+
 /**
  * BLeak checks for memory leaks by repeatedly running a test that returns to its original state, taking
  * and analyzing memory snapshots between each run. It looks for paths from GC roots through the heap that
@@ -41,31 +51,58 @@ fun runWithBleak(options: BleakOptions, scenario: () -> Unit) {
   if (!result.success) {
     throw MemoryLeakDetectedError(result.errorMessage)
   }
-  result.knownIssues.takeUnless { it.isEmpty() }?.let {
-    println("${it.size} known issue(s) found when running the test with BLeak.")
-  }
 }
+
+class MainBleakCheck(whitelist: Whitelist<LeakInfo>,
+                     knownIssues: Whitelist<LeakInfo> = Whitelist(),
+                     customExpanderSupplier: Supplier<List<Expander>>):
+  BleakCheck<() -> ExpanderChooser, LeakInfo>({ getExpanderChooser(customExpanderSupplier) }, whitelist, knownIssues) {
+  lateinit var g1: HeapGraph
+  lateinit var g2: HeapGraph
+  var leaks: List<LeakInfo> = listOf()
+
+  private fun buildGraph(firstRun: Boolean = false) = HeapGraph(options()).expandWholeGraph(firstRun)
+
+  override fun firstIterationFinished() {
+    g1 = buildGraph(true)
+  }
+
+  override fun middleIterationFinished() {
+    g2 = buildGraph()
+    g1.propagateGrowing(g2)
+    g1 = g2
+  }
+
+  override fun lastIterationFinished() {
+    g2 = buildGraph()
+    g1.propagateGrowing(g2)
+    leaks = g2.getLeaks(g1)
+  }
+
+  override fun getResults() = leaks;
+
+}
+
+// get a new ExpanderChooser instance each time, since some Expanders may hold references to Nodes from
+// the graphs (notably the label to node maps in ArrayObjectIdentityExpander). Using a single instance
+// of ArrayObjectIdentityExpander across all iterations would keep all of the graphs in memory at once.
+private fun getExpanderChooser(customExpanderSupplier: Supplier<List<Expander>>) = ExpanderChooser(listOf(
+  RootExpander(),
+  ArrayObjectIdentityExpander(),
+  ClassLoaderExpander(jniHelper),
+  ClassStaticsExpander()) +
+  customExpanderSupplier.get() +
+  listOf(DefaultObjectExpander()))
+
 
 private fun iterativeLeakCheck(options: BleakOptions, scenario: () -> Unit): BleakResult {
   scenario()  // warm up
-  var g1 = HeapGraph(options.getExpanderChooser()).expandWholeGraph(initialRun = true)
-  scenario()
-  var g2 = HeapGraph(options.getExpanderChooser()).expandWholeGraph()
-  g1.propagateGrowing(g2)
+  options.checks.forEach { it.firstIterationFinished() }
   for (i in 0 until options.iterations - 1) {
     scenario()
-    if (options.useIncrementalPropagation) {
-      g1 = HeapGraph(options.getExpanderChooser())
-      g2.propagateGrowingIncremental(g1)
-    }
-    else {
-      g1 = HeapGraph(options.getExpanderChooser()).expandWholeGraph()
-      g2.propagateGrowing(g1)
-    }
-    g2 = g1
+    options.checks.forEach { it.middleIterationFinished() }
   }
   scenario()
-  val finalGraph = HeapGraph(options.getExpanderChooser()).expandWholeGraph()
-  g2.propagateGrowing(finalGraph)
-  return BleakResult(finalGraph.getLeaks(g2, options), finalGraph.disposerInfo.growingCounts)
+  options.checks.forEach { it.lastIterationFinished() }
+  return BleakResult(options.checks)
 }

@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
-class Whitelist(val patterns: List<WhitelistEntry>) {
+class Whitelist<T>(val patterns: List<WhitelistEntry<T>> = listOf()) {
 
-  fun matches(info: LeakInfo) = patterns.any { it.test(info) }
+  fun matches(info: T) = patterns.any { it.test(info) }
 
-  operator fun plus(w: Whitelist): Whitelist {
+  operator fun plus(w: Whitelist<T>): Whitelist<T> {
     return Whitelist(this.patterns + w.patterns)
   }
 
-  operator fun plus(e: WhitelistEntry): Whitelist {
+  operator fun plus(e: WhitelistEntry<T>): Whitelist<T> {
     return Whitelist(this.patterns + e)
   }
 }
