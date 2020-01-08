@@ -1,5 +1,3 @@
-package com.android.tools.idea.appinspection.ide
-
 /*
  * Copyright (C) 2020 The Android Open Source Project
  *
@@ -15,35 +13,28 @@ package com.android.tools.idea.appinspection.ide
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.android.tools.idea.appinspection.api
 
-import com.android.ddmlib.IDevice
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
-import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE
-import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.idea.transport.poller.TransportEventListener
-import com.android.tools.idea.transport.poller.TransportEventPoller
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.MoreExecutors
-import com.intellij.util.messages.MessageBus
 import org.junit.Assert.fail
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.Timeout
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-class AppInspectionDiscoveryManagerTest {
+class AppInspectionDiscoveryHostTest {
+
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
@@ -62,71 +53,65 @@ class AppInspectionDiscoveryManagerTest {
       events.add(
         Common.Event.newBuilder()
           .setKind(Common.Event.Kind.AGENT)
-          .setPid(FAKE_PROCESS.pid)
+          .setPid(FakeTransportService.FAKE_PROCESS.pid)
           .setAgentData(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build())
           .build()
       )
     }
   }
 
-  private val mockBus = mock(MessageBus::class.java)
-
-  private val mockDevice = mock(IDevice::class.java)
-
   init {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, attachHandler)
-    `when`(mockDevice.serialNumber).thenReturn("mock")
   }
 
   @Test
   fun establishNewConnection() {
-    val manager = AppInspectionDiscoveryManager(
-      MoreExecutors.directExecutor(),
-      appInspectionRule.client,
-      appInspectionRule.poller,
-      { mockDevice },
-      mockBus
-    )
+    val host = AppInspectionDiscoveryHost(appInspectionRule.executorService, appInspectionRule.client, appInspectionRule.poller)
 
     // add listener so we can wait until target is ready before asserting
     val targetReadyLatch = CountDownLatch(1)
-    manager.discoveryHost.discovery.addTargetListener(appInspectionRule.executorService) {
-      targetReadyLatch.countDown()
-    }
+    host.discovery.addProcessListener(object : AppInspectionProcessListener {
+      override fun onProcessConnect(processDescriptor: ProcessDescriptor) {
+        targetReadyLatch.countDown()
+      }
+
+      override fun onProcessDisconnect(processDescriptor: ProcessDescriptor) {
+      }
+    }, appInspectionRule.executorService)
 
     // add fake device and process
-    transportService.addDevice(FAKE_DEVICE)
-    transportService.addProcess(FAKE_DEVICE, FAKE_PROCESS)
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
 
     // wait and assert
     targetReadyLatch.await()
-    assertThat(manager.processIdMap).hasSize(1)
-    assertThat(manager.streamIdMap).hasSize(1)
+    assertThat(host.processIdMap).hasSize(1)
+    assertThat(host.streamIdMap).hasSize(1)
   }
 
   @Test
   fun cleansUpStreamsAndProcesses() {
     // setup
-    val manager = AppInspectionDiscoveryManager(
-      MoreExecutors.directExecutor(),
-      appInspectionRule.client,
-      appInspectionRule.poller,
-      { mockDevice },
-      mockBus
-    )
+    val host = AppInspectionDiscoveryHost(appInspectionRule.executorService, appInspectionRule.client, appInspectionRule.poller)
 
+    // add listener so we can wait until target is ready before asserting
     val targetReadyLatch = CountDownLatch(1)
-    manager.discoveryHost.discovery.addTargetListener(appInspectionRule.executorService) {
-      targetReadyLatch.countDown()
-    }
+    host.discovery.addProcessListener(object : AppInspectionProcessListener {
+      override fun onProcessConnect(processDescriptor: ProcessDescriptor) {
+        targetReadyLatch.countDown()
+      }
 
-    transportService.addDevice(FAKE_DEVICE)
-    transportService.addProcess(FAKE_DEVICE, FAKE_PROCESS)
+      override fun onProcessDisconnect(processDescriptor: ProcessDescriptor) {
+      }
+    }, appInspectionRule.executorService)
+
+    transportService.addDevice(FakeTransportService.FAKE_DEVICE)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
 
     // wait for stream and process to be set up
     targetReadyLatch.await()
-    assertThat(manager.streamIdMap).hasSize(1)
-    assertThat(manager.processIdMap).hasSize(1)
+    assertThat(host.streamIdMap).hasSize(1)
+    assertThat(host.processIdMap).hasSize(1)
 
     // add listener so we can wait for process to end before asserting
     val streamEndedLatch = CountDownLatch(1)
@@ -141,9 +126,9 @@ class AppInspectionDiscoveryManagerTest {
 
     // send process ended signal
     transportService.addEventToStream(
-      FAKE_DEVICE.deviceId,
+      FakeTransportService.FAKE_DEVICE.deviceId,
       Common.Event.newBuilder().setKind(Common.Event.Kind.PROCESS)
-        .setGroupId(FAKE_PROCESS.pid.toLong())
+        .setGroupId(FakeTransportService.FAKE_PROCESS.pid.toLong())
         .setProcess(
           Common.ProcessData.getDefaultInstance()
         ).build()
@@ -151,8 +136,9 @@ class AppInspectionDiscoveryManagerTest {
 
     // send stream ended signal
     transportService.addEventToStream(
-      0, Common.Event.newBuilder().setKind(Common.Event.Kind.STREAM)
-        .setGroupId(FAKE_DEVICE.deviceId)
+      FakeTransportService.FAKE_DEVICE.deviceId,
+      Common.Event.newBuilder().setKind(Common.Event.Kind.STREAM)
+        .setGroupId(FakeTransportService.FAKE_DEVICE.deviceId)
         .setStream(
           Common.StreamData.getDefaultInstance()
         ).build()
@@ -160,23 +146,27 @@ class AppInspectionDiscoveryManagerTest {
 
     // wait and verify
     streamEndedLatch.await()
-    assertThat(manager.streamIdMap).isEmpty()
-    assertThat(manager.processIdMap).isEmpty()
+    assertThat(host.streamIdMap).isEmpty()
+    assertThat(host.processIdMap).isEmpty()
   }
 
   @Test
   fun shutDown() {
     // Setup
-    val client = TransportClient(grpcServerRule.name)
-    val poller = TransportEventPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
-    val manager = AppInspectionDiscoveryManager(MoreExecutors.directExecutor(), client, poller, { mockDevice }, mockBus)
+    val host = AppInspectionDiscoveryHost(appInspectionRule.executorService, appInspectionRule.client, appInspectionRule.poller)
 
     // Shutdown
-    manager.shutDown()
+    host.shutDown()
 
     // Verify discovery is no longer accessible.
     try {
-      manager.discoveryHost.discovery.addTargetListener(MoreExecutors.directExecutor()) {}
+      host.discovery.addProcessListener(object : AppInspectionProcessListener {
+        override fun onProcessConnect(processDescriptor: ProcessDescriptor) {
+        }
+
+        override fun onProcessDisconnect(processDescriptor: ProcessDescriptor) {
+        }
+      }, appInspectionRule.executorService)
       fail("AppInspectionDiscovery should've thrown an IllegalStateException")
     } catch (expected: IllegalStateException) {
     }

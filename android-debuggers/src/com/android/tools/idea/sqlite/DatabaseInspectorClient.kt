@@ -15,16 +15,19 @@
  */
 package com.android.tools.idea.sqlite
 
+import com.android.tools.idea.appinspection.api.AppInspectionProcessListener
 import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.appinspection.api.AppInspectorJar
+import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.android.tools.idea.appinspection.ide.AppInspectionClientsService
+import com.android.tools.idea.appinspection.ide.createJarCopierForProcess
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.sql.protocol.SqliteInspection
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.openapi.application.ApplicationManager
-import org.jetbrains.ide.PooledThreadExecutor
 import java.util.concurrent.Executor
 
 /**
@@ -37,16 +40,27 @@ class DatabaseInspectorClient private constructor(
 
   companion object {
     private const val inspectorId = "appinspector.sqlite"
+    // TODO(b/147635250): Set release directory
     private val inspectorJar =
-      AppInspectorJar("live_sql_viewer_dex.jar", developmentDirectory = "../../bazel-bin/tools/base/experimental/live-sql-inspector")
+      AppInspectorJar("live_sql_viewer_dex.jar", "", "../../bazel-bin/tools/base/experimental/live-sql-inspector")
 
     /**
      * Starts listening for the creation of new connections to a device.
      */
     fun startListeningForPipelineConnections(databaseInspectorProjectService: DatabaseInspectorProjectService, taskExecutor: Executor) {
-      AppInspectionClientsService.discovery.addTargetListener(PooledThreadExecutor.INSTANCE) { target ->
-        launch(databaseInspectorProjectService, target, FutureCallbackExecutor.wrap(taskExecutor))
-      }
+      AppInspectionClientsService.discovery.addProcessListener(object : AppInspectionProcessListener {
+        override fun onProcessConnect(processDescriptor: ProcessDescriptor) {
+          val jarCopier = AppInspectionClientsService.discovery.createJarCopierForProcess(processDescriptor)
+          AppInspectionClientsService.discovery.attachToProcess(processDescriptor, jarCopier)
+            .transform(taskExecutor) { target ->
+              launch(databaseInspectorProjectService, target, FutureCallbackExecutor.wrap(taskExecutor))
+            }
+        }
+
+        override fun onProcessDisconnect(processDescriptor: ProcessDescriptor) {
+          // TODO(b/147617372): end inspector session
+        }
+      }, taskExecutor)
     }
 
     /**
@@ -62,7 +76,7 @@ class DatabaseInspectorClient private constructor(
       }
 
       taskExecutor.catching(launchInspectorFuture, Throwable::class.java) {
-        // TODO databaseInspectorProjectService.showError(message)
+        // TODO(b/147617372) databaseInspectorProjectService.showError(message)
         it
       }
 
@@ -98,17 +112,17 @@ class DatabaseInspectorClient private constructor(
           }
         }
         event.hasTableUpdate() -> {
-          TODO()
+          // TODO(b/147617372): what should we do when table has an update?
         }
       }
     }
 
     override fun onCrashEvent(message: String) {
-      // TODO databaseInspectorProjectService.showError(message)
+      // TODO(b/147617372): databaseInspectorProjectService.showError(message)
     }
 
     override fun onDispose() {
-      // TODO databaseInspectorProjectService.closeAllLiveDatabase()
+      // TODO(b/147617372): databaseInspectorProjectService.closeAllLiveDatabase()
     }
   }
 
@@ -123,6 +137,6 @@ class DatabaseInspectorClient private constructor(
         .toByteArray()
     )
 
-    // TODO(blocked) error handling.
+    // TODO(b/147617372): blocked right now, error handling.
   }
 }
