@@ -152,6 +152,8 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
       registerAnalyzingEvents();
       getComponent().add(createAnalyzingComponents());
       getComponent().revalidate();
+      // Request focus to enable keyboard shortcuts once loading finishes.
+      myTrackGroupList.getComponent().requestFocusInWindow();
     }
   }
 
@@ -224,6 +226,29 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
         }
       }
     });
+    trackGroupListPanel.getComponent().addKeyListener(new KeyAdapter() {
+      @Override
+      public void keyPressed(KeyEvent e) {
+        switch (e.getKeyCode()) {
+          case KeyEvent.VK_W:
+            // VK_UP is used by JList to move selection up by default.
+            getStage().getTimeline().zoomIn();
+            break;
+          case KeyEvent.VK_S:
+            // VK_DOWN is used by JList to move selection down by default.
+            getStage().getTimeline().zoomOut();
+            break;
+          case KeyEvent.VK_A:
+          case KeyEvent.VK_LEFT:
+            getStage().getTimeline().panView(-getStage().getTimeline().getViewRange().getLength() * TIMELINE_PAN_FACTOR);
+            break;
+          case KeyEvent.VK_D:
+          case KeyEvent.VK_RIGHT:
+            getStage().getTimeline().panView(getStage().getTimeline().getViewRange().getLength() * TIMELINE_PAN_FACTOR);
+            break;
+        }
+      }
+    });
     return trackGroupListPanel;
   }
 
@@ -254,29 +279,6 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
                                 () -> false));
     myTrackGroupList.loadTrackGroups(getStage().getTrackGroupModels(), true);
     myTrackGroupList.registerMultiSelectionModel(getStage().getMultiSelectionModel());
-    myTrackGroupList.addKeyListenerToTrackGroups(new KeyAdapter() {
-      @Override
-      public void keyPressed(KeyEvent e) {
-        switch (e.getKeyCode()) {
-          case KeyEvent.VK_W:
-            // VK_UP is used by JList to move selection up by default.
-            getStage().getTimeline().zoomIn();
-            break;
-          case KeyEvent.VK_S:
-            // VK_DOWN is used by JList to move selection down by default.
-            getStage().getTimeline().zoomOut();
-            break;
-          case KeyEvent.VK_A:
-          case KeyEvent.VK_LEFT:
-            getStage().getTimeline().panView(-getStage().getTimeline().getViewRange().getLength() * TIMELINE_PAN_FACTOR);
-            break;
-          case KeyEvent.VK_D:
-          case KeyEvent.VK_RIGHT:
-            getStage().getTimeline().panView(getStage().getTimeline().getViewRange().getLength() * TIMELINE_PAN_FACTOR);
-            break;
-        }
-      }
-    });
   }
 
   private void onTrackGroupSelectionChange() {

@@ -206,15 +206,12 @@ class CpuCaptureStageViewTest {
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()
     stageView.component.setBounds(0, 0, 500, 500)
-
-    assertThat(stageView.trackGroupList.trackGroups).isNotEmpty()
-    val trackGroup = stageView.trackGroupList.trackGroups[0]
-    val ui = FakeUi(trackGroup.trackList)
+    val ui = FakeUi(stageView.trackGroupList.component)
     val selectionRange = stage.minimapModel.rangeSelectionModel.selectionRange
     var rangeLength = selectionRange.length
 
     // Press W to zoom in.
-    ui.keyboard.setFocus(trackGroup.trackList)
+    ui.keyboard.setFocus(stageView.trackGroupList.component)
     ui.keyboard.press(FakeKeyboard.Key.W)
     ui.keyboard.release(FakeKeyboard.Key.W)
     assertThat(selectionRange.length).isLessThan(rangeLength)
