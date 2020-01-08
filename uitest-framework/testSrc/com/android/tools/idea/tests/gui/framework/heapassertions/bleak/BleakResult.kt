@@ -15,20 +15,9 @@
  */
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
-class BleakResult(leakInfos: List<LeakInfo> = listOf(), private val disposerInfo: Map<DisposerInfo.Key, Int> = mapOf()) {
-  private val leaksAndKnownIssues = leakInfos.filterNot { it.whitelisted }.partition { it.isKnownIssue } // [known issues] + [leaks]
-  private val actualLeaks = leaksAndKnownIssues.second
-
-  val knownIssues = leaksAndKnownIssues.first
-  val success = actualLeaks.isEmpty() && disposerInfo.isEmpty()
+class BleakResult(checks: List<BleakCheck<*,*>> = listOf()) {
+  val success = checks.all { it.success }
   val errorMessage = buildString {
-      if (disposerInfo.isNotEmpty()) {
-        appendln("Disposer Info:")
-        disposerInfo.forEach {
-          append("\nDisposable of type ${it.key.disposable.javaClass.name} has an increasing number (${it.value}) of children of type ${it.key.klass.name}")
-        }
-        append("\n------------------------------\n")
-      }
-      append(actualLeaks.joinToString(separator = "\n------------------------------\n"))
-    }.replace("sun.reflect", "sun.relfect") // Ant filters out lines from exceptions that contain "sun.reflect", among other things.
+    append(checks.map { it.report }.filterNot { it.isEmpty() }.joinToString(separator = "\n**************************\n"))
+  }.replace("sun.reflect", "sun.relfect") // Ant filters out lines from exceptions that contain "sun.reflect", among other things.
 }

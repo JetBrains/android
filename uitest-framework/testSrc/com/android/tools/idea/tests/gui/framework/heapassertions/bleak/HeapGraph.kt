@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.BootstrapClassloaderPlaceholder
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.DefaultObjectExpander
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.Expander
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.ExpanderChooser
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.expander.Node
@@ -38,15 +37,13 @@ typealias Node = HeapGraph.Node
  * Each node corresponds to a single object, and edges represent references, either real, or
  * abstracted. [Expander]s are responsible for defining the nature of this abstraction.
  */
-class HeapGraph(val expanderChooser: ExpanderChooser): DoNotTrace {
-
+class HeapGraph(private val expanderChooser: ExpanderChooser): DoNotTrace {
 
   private val objToNode: MutableMap<Any, Node> = IdentityHashMap()
   private val rootNodes: List<Node> = mutableListOf(Node(jniHelper, true))
   private val nodes: MutableCollection<Node>
     get() = objToNode.values
   val leakRoots: MutableList<Node> = mutableListOf()
-  lateinit var disposerInfo: DisposerInfo
 
   inner class Node(val obj: Any, val isRootNode: Boolean = false): DoNotTrace {
     val expander = expanderChooser.expanderFor(obj)
@@ -162,7 +159,6 @@ class HeapGraph(val expanderChooser: ExpanderChooser): DoNotTrace {
     withThreadsPaused {
         time("Expanding graph") {
           bfs { expand(); if (initialRun && expander.canPotentiallyGrowIndefinitely(this)) markAsGrowing() }
-          if (initialRun) disposerInfo = DisposerInfo.createBaseline()
         }
     }
     println("Graph has ${nodes.size} nodes")
@@ -243,7 +239,6 @@ class HeapGraph(val expanderChooser: ExpanderChooser): DoNotTrace {
             }
           }
         }
-        newGraph.disposerInfo = DisposerInfo.propagateFrom(this.disposerInfo)
       }
     }
     println("New graph has ${newGraph.leakRoots.size} potential leak roots")
@@ -261,16 +256,15 @@ class HeapGraph(val expanderChooser: ExpanderChooser): DoNotTrace {
             }
           }
         }
-        newGraph.disposerInfo = DisposerInfo.propagateFrom(this.disposerInfo)
       }
     }
     println("New graph has ${newGraph.leakRoots.size} potential leak roots")
   }
 
-  fun getLeaks(prevGraph: HeapGraph, options: BleakOptions): List<LeakInfo> {
+  fun getLeaks(prevGraph: HeapGraph): List<LeakInfo> {
     return leakRoots.map { root ->
       (prevGraph.getNodeForPath(root.getPath()) ?: prevGraph.leakRoots.find { it.obj === root.obj })?.let { prevRoot ->
-        LeakInfo(this, options, root, prevRoot)
+        LeakInfo(this, root, prevRoot)
       }
     }.filterNotNull()
   }

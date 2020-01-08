@@ -17,10 +17,8 @@ package com.android.tools.idea.tests.gui.framework.heapassertions.bleak
 
 import java.util.IdentityHashMap
 
-class LeakInfo(val g: HeapGraph, options: BleakOptions, val leakRoot: Node, val prevLeakRoot: Node) {
+class LeakInfo(val g: HeapGraph, val leakRoot: Node, val prevLeakRoot: Node) {
   val leaktrace: Leaktrace = leakRoot.getLeaktrace()
-  val whitelisted = options.whitelist.matches(this)
-  val isKnownIssue = options.knownIssues.matches(this)
   val childrenObjects = leakRoot.childObjects.uniqueByIdentity()
   val prevChildrenObjects = prevLeakRoot.childObjects.uniqueByIdentity()
   val addedChildrenObjects = childrenObjects.filter { c -> prevChildrenObjects.all { it !== c } }
