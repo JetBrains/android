@@ -41,9 +41,14 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.allConstructors
+import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.toUElement
@@ -121,6 +126,32 @@ fun dimensionToString(dimension: Int, defaultValue: String = VALUE_WRAP_CONTENT)
 }
 else {
   "${dimension}dp"
+}
+
+private fun KtClass.hasDefaultConstructor() = allConstructors.isEmpty().or(allConstructors.any { it.getValueParameters().isEmpty() })
+
+/**
+ * Returns whether a `@Composable` [PREVIEW_ANNOTATION_FQN] is defined in a valid location, which can be either:
+ * 1. Top-level functions
+ * 2. Non-nested functions defined in top-level classes that have a default (no parameter) constructor
+ *
+ */
+fun KtNamedFunction.isValidPreviewLocation(): Boolean {
+  if (isTopLevel) {
+    return true
+  }
+
+  if (parentOfType<KtNamedFunction>() == null) {
+    // This is not a nested method
+    val containingClass = containingClass()
+    if (containingClass != null) {
+      // We allow functions that are not top level defined in top level classes that have a default (no parameter) constructor.
+      if (containingClass.isTopLevel() && containingClass.hasDefaultConstructor()) {
+        return true
+      }
+    }
+  }
+  return false
 }
 
 /**

@@ -21,13 +21,16 @@ import com.intellij.openapi.project.Project
 
 /** A run configuration to launch the Compose tooling PreviewActivity to a device/emulator passing a @Composable via intent parameter. */
 open class ComposePreviewRunConfiguration(project: Project, factory: ConfigurationFactory) : AndroidRunConfiguration(project, factory) {
+
+  var composableMethodFqn: String? = null
+    set(value) {
+      field = value
+      ACTIVITY_EXTRA_FLAGS = "--es composable ${value}"
+    }
+
   init {
     // This class is open just to be inherited in the tests, and the derived class is available when it needs to be accessed
     @Suppress("LeakingThis")
     setLaunchActivity("androidx.ui.tooling.preview.PreviewActivity")
-  }
-
-  fun setComposableMethod(methodFqn: String) {
-    ACTIVITY_EXTRA_FLAGS = "--es composable ${methodFqn}"
   }
 }

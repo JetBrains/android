@@ -58,6 +58,9 @@
                      level="WARNING"/>
 
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
+
+    <runConfigurationProducer
+        implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationProducer"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.compose.preview">

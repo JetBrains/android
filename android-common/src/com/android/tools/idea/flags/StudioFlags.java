@@ -712,6 +712,11 @@ public final class StudioFlags {
     "If enabled, the preview will automatically trigger a build after the user finishes typing.",
     false);
 
+  public static final Flag<Boolean> COMPOSE_PREVIEW_RUN_CONFIGURATION = Flag.create(
+    COMPOSE, "preview.run.configuration", "Enable running Compose Previews on device/emulator",
+    "If enabled, it will be possible to create run configurations that launch a Compose Preview directly to the device/emulator.",
+    false);
+
   public static final Flag<Boolean> COMPOSE_EDITOR_SUPPORT = Flag.create(
     COMPOSE, "editor",
     "Compose-specific support in the code editor",

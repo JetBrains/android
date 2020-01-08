@@ -34,7 +34,7 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
   fun testAmStartOptionsWithComposableMethod() {
     val runConfigurationFactory = ComposePreviewRunConfigurationType().configurationFactories[0]
     val runConfiguration = TestComposePreviewRunConfiguration(project, runConfigurationFactory)
-    runConfiguration.setComposableMethod("com.mycomposeapp.SomeClass.SomeComposable")
+    runConfiguration.composableMethodFqn = "com.mycomposeapp.SomeClass.SomeComposable"
 
     val status = mock(LaunchStatus::class.java)
     val task = runConfiguration.getApplicationLaunchTask(FakeApplicationIdProvider(), myFacet, "", false, status) as ActivityLaunchTask

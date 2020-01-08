@@ -137,28 +137,11 @@ class PreviewNeedsComposableAnnotationInspection : BasePreviewAnnotationInspecti
 class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
   override fun getDisplayName() = message("inspection.top.level.function")
 
-  private fun KtClass.hasDefaultConstructor(): Boolean =
-    allConstructors.isEmpty()
-      .or(allConstructors.any { it.getValueParameters().isEmpty() })
-
   override fun visitPreviewAnnotatedFunction(holder: ProblemsHolder,
                                              function: KtNamedFunction,
                                              previewAnnotation: KtAnnotationEntry,
                                              functionAnnotations: Map<String, KtAnnotationEntry>) {
-    if (function.isTopLevel) {
-      return
-    }
-
-    if (function.parentOfType<KtNamedFunction>() == null) {
-      // This is not a nested method
-      val containingClass = function.containingClass()
-      if (containingClass != null) {
-        // We allow functions that are not top level defined in top level classes that have a default (no parameter) constructor.
-        if (containingClass.isTopLevel() && containingClass.hasDefaultConstructor()) {
-          return
-        }
-      }
-    }
+    if (function.isValidPreviewLocation()) return
 
     holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
                            message("inspection.top.level.function"),
