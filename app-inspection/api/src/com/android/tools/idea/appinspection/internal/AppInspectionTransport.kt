@@ -30,7 +30,6 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * Small helper class to work with the one exact process and app-inspection events & commands.
  */
-@VisibleForTesting
 class AppInspectionTransport(
   val client: TransportClient,
   val stream: Common.Stream,

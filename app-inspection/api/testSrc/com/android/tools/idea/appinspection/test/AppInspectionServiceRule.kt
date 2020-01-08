@@ -24,6 +24,7 @@ import com.android.tools.idea.appinspection.api.AppInspectorJar
 import com.android.tools.idea.appinspection.api.TestInspectorClient
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
+import com.android.tools.idea.appinspection.internal.attachAppInspectionTarget
 import com.android.tools.idea.appinspection.internal.launchInspectorForTest
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.transport.TransportClient
@@ -39,7 +40,7 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 
-val TEST_JAR = AppInspectorJar("test")
+val TEST_JAR = AppInspectorJar("test", "test_release_dir", "test_dev_dir")
 
 /**
  * Rule providing all of the underlying components of App Inspection, including [executorService], [poller], [transport] and [client].
@@ -92,7 +93,7 @@ class AppInspectionServiceRule(
   ): ListenableFuture<AppInspectionTarget> {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, defaultAttachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    return AppInspectionTarget.attach(transport, jarCopier)
+    return attachAppInspectionTarget(transport, jarCopier)
   }
 
   /**

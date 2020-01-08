@@ -65,9 +65,6 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
       override fun addTargetTerminatedListener(executor: Executor, listener: TargetTerminatedListener): TargetTerminatedListener {
         return listener
       }
-
-      override val processDescriptor: ProcessDescriptor
-        get() = throw NotImplementedError()
     }
 
     val trackDatabasesCommand = SqliteInspection.Commands.newBuilder()
