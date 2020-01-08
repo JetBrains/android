@@ -33,6 +33,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/base/mlkit-common:studio.android.sdktools.mlkit-common[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/idea/java/java-indexing-impl:intellij.java.indexing.impl[module]",
@@ -61,6 +62,7 @@ iml_module(
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
     ],
+    test_resources = ["testData"],
     # do not sort: must match IML order
     test_runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
