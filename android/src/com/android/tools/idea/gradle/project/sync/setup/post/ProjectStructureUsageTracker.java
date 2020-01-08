@@ -63,11 +63,11 @@ public class ProjectStructureUsageTracker {
 
   @NotNull private final Project myProject;
 
-  ProjectStructureUsageTracker(@NotNull Project project) {
+  public ProjectStructureUsageTracker(@NotNull Project project) {
     myProject = project;
   }
 
-  void trackProjectStructure() {
+  public void trackProjectStructure() {
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
       ModuleManager moduleManager = ModuleManager.getInstance(myProject);
       try {
@@ -101,9 +101,7 @@ public class ProjectStructureUsageTracker {
         appModel = androidModel;
         appCount++;
         GradleLibrary gradleLibrary = trackExternalDependenciesInAndroidApp(androidModel);
-        if (gradleLibrary != null) {
-          gradleLibraries.add(gradleLibrary);
-        }
+        gradleLibraries.add(gradleLibrary);
       }
     }
 
