@@ -87,6 +87,10 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       @Composable
       @Preview(name = "top level preview")
       fun TopLevelPreview() {
+        @Composable
+        @Preview(name = "not a top level preview")
+        fun NotTopLevelFunctionPreview() {
+        }
       }
 
       class aClass {
@@ -129,7 +133,7 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       .map { it.description }
       .toArray(emptyArray())
 
-    assertEquals(2, inspections.size)
+    assertEquals(3, inspections.size)
     assertEquals("Preview must be a top level declarations or in a top level class with a default constructor.",
                  inspections.distinct().single())
   }
