@@ -218,9 +218,9 @@ public class TransportPipelineDialog extends DialogWrapper {
       ApplicationManager.getApplication()::invokeLater,
       event -> !event.getStream().hasStreamConnected(),
       event -> {
-        Common.Stream stream = event.getStream().getStreamConnected().getStream();
-        myStreamIdMap.remove(stream.getStreamId());
-        myProcessesMap.remove(stream.getStreamId());
+        // Group ID here is Stream ID
+        myStreamIdMap.remove(event.getGroupId());
+        myProcessesMap.remove(event.getGroupId());
         rebuildDevicesDropdown();
         return false;
       });
