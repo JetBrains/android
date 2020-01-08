@@ -254,6 +254,30 @@ class CpuCaptureStageViewTest {
     assertThat(selectionRange.max).isGreaterThan(oldRange.max)
   }
 
+  @Test
+  fun trackGroupMouseShortcuts() {
+    val stageView = CpuCaptureStageView(profilersView, stage)
+    stage.enter()
+    assertThat(stageView.trackGroupList.trackGroups).isNotEmpty()
+    stageView.trackGroupList.component.setBounds(0, 0, 500, 500)
+    val ui = FakeUi(stageView.trackGroupList.component)
+    val selectionRange = stage.minimapModel.rangeSelectionModel.selectionRange
+    var rangeLength = selectionRange.length
+
+    // Ctrl/Cmd + wheel up to zoom in.
+    ui.keyboard.press(FakeKeyboard.MENU_KEY)
+    ui.mouse.wheel(0, 0, -1)
+    ui.keyboard.release(FakeKeyboard.MENU_KEY)
+    assertThat(selectionRange.length).isLessThan(rangeLength)
+
+    // Ctrl/Cmd + wheel down to zoom out.
+    rangeLength = selectionRange.length
+    ui.keyboard.press(FakeKeyboard.MENU_KEY)
+    ui.mouse.wheel(0, 0, 1)
+    ui.keyboard.release(FakeKeyboard.MENU_KEY)
+    assertThat(selectionRange.length).isGreaterThan(rangeLength)
+  }
+
   private class FakeCaptureNodeModel(val aName: String, val aFullName: String, val anId: String) : CaptureNodeModel {
     override fun getName(): String {
       return aName

@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.RangeTooltipComponent;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.Range;
@@ -53,8 +54,11 @@ import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import org.jetbrains.annotations.NotNull;
 
@@ -71,10 +75,14 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
 
   private final TrackGroupListPanel myTrackGroupList;
   private final CpuAnalysisPanel myAnalysisPanel;
+  private final JScrollPane myScrollPane;
 
   public CpuCaptureStageView(@NotNull StudioProfilersView view, @NotNull CpuCaptureStage stage) {
     super(view, stage);
-    myTrackGroupList = new TrackGroupListPanel(TRACK_RENDERER_FACTORY);
+    myTrackGroupList = createTrackGroupListPanel();
+    myScrollPane = new JBScrollPane(myTrackGroupList.getComponent(),
+                                    ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
     myAnalysisPanel = new CpuAnalysisPanel(view, stage);
 
     // Tooltip used in the stage
@@ -185,11 +193,7 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     // The tooltip component should be first so it draws on top of all elements. It's only responsible for showing tooltip in the minimap.
     container.add(minimapTooltipComponent, new TabularLayout.Constraint(0, 0));
     container.add(minimap.getComponent(), new TabularLayout.Constraint(0, 0));
-    container.add(
-      new JBScrollPane(myTrackGroupList.getComponent(),
-                       ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                       ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER),
-      new TabularLayout.Constraint(1, 0));
+    container.add(myScrollPane, new TabularLayout.Constraint(1, 0));
     container.add(createBottomAxisPanel(minimapModel.getRangeSelectionModel().getSelectionRange()), new TabularLayout.Constraint(2, 0));
 
     JBSplitter splitter = new JBSplitter(false, 0.5f);
@@ -197,6 +201,30 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
     splitter.setSecondComponent(myAnalysisPanel.getComponent());
     splitter.getDivider().setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 0, 1, 0, 1));
     return splitter;
+  }
+
+  @NotNull
+  private TrackGroupListPanel createTrackGroupListPanel() {
+    TrackGroupListPanel trackGroupListPanel = new TrackGroupListPanel(TRACK_RENDERER_FACTORY);
+    trackGroupListPanel.getComponent().addMouseWheelListener(new MouseWheelListener() {
+      @Override
+      public void mouseWheelMoved(MouseWheelEvent e) {
+        if (AdtUiUtils.isActionKeyDown(e)) {
+          if (e.getWheelRotation() > 0) {
+            getStage().getTimeline().zoomOut();
+          }
+          else {
+            getStage().getTimeline().zoomIn();
+          }
+        }
+        else {
+          // Ctrl/Cmd key is not pressed, dispatch the wheel event to the scroll pane for scrolling to work.
+          e.setSource(myScrollPane);
+          myScrollPane.dispatchEvent(e);
+        }
+      }
+    });
+    return trackGroupListPanel;
   }
 
   private static JComponent createBottomAxisPanel(@NotNull Range range) {
