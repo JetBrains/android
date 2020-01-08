@@ -27,5 +27,6 @@ open class TextEditorWithMultiRepresentationPreview<P : MultiRepresentationPrevi
   init {
     isPureTextEditor = preview.representationNames.isEmpty()
     preview.onRepresentationsUpdated = { isPureTextEditor = preview.representationNames.isEmpty() }
+    preview.registerShortcuts(component)
   }
 }
