@@ -28,7 +28,6 @@ import static java.lang.System.currentTimeMillis;
 import com.android.annotations.concurrency.Slow;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.ProjectStructure;
@@ -90,7 +89,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -182,9 +180,6 @@ public class PostSyncProjectSetup {
         finishFailedSync(taskId, myProject, message);
         return;
       }
-
-      MemorySettingsPostSyncChecker
-        .checkSettings(myProject, new TimeBasedReminder(myProject, "memory.settings.postsync", TimeUnit.DAYS.toMillis(1)));
 
       new ProjectStructureUsageTracker(myProject).trackProjectStructure();
 

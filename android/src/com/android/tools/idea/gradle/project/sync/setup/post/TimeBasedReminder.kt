@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.post
 
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
-import java.util.concurrent.TimeUnit.*
+import java.util.concurrent.TimeUnit.DAYS
 
 /**
  * Provides settings for a basic reminder:
