@@ -85,8 +85,6 @@ interface SourceProviders {
    * precedence order.
    *
    * @see currentSourceProviders
-   *
-   * Note: [testSources] source provider represents the same set of source files in a merged form.
    */
   val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>
 
@@ -99,17 +97,17 @@ interface SourceProviders {
   val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>
 
   /**
-   * Returns a list of all IDEA source providers, for the given facet, in the overlay order
-   * (meaning that later providers override earlier providers when they redefine resources.)
+   * NOTE: (In Gradle) Does not return ALL source providers!
    *
+   * (In Gradle) Returns a list of all active main scope source providers (i.e. the same as [currentSourceProviders]) and additionally
+   * returns frequently used inactive source providers.
    *
-   * Note that the list will never be empty; there is always at least one source provider.
+   * Note: Inactive source providers are not configured as project source roots and do not necessarily represent directories
+   *       under a configured content entry.
    *
+   * Note: Does not include test scope source providers.
    *
-   * The overlay source order is defined by the underlying build system.
-   *
-   * This method should be used when only on-disk source sets are required. It will return
-   * empty source sets for all other source providers (since VirtualFiles MUST exist on disk).
+   * Use this method only if absolutely necessary and consider using [currentSourceProviders] where possible.
    */
   val allSourceProviders: List<NamedIdeaSourceProvider>
 
