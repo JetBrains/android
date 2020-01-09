@@ -18,6 +18,7 @@ package com.android.tools.idea.sqlite
 import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.appinspection.api.AppInspectorJar
+import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.android.tools.idea.appinspection.api.TargetTerminatedListener
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
@@ -64,6 +65,9 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
       override fun addTargetTerminatedListener(executor: Executor, listener: TargetTerminatedListener): TargetTerminatedListener {
         return listener
       }
+
+      override val processDescriptor: ProcessDescriptor
+        get() = throw NotImplementedError()
     }
 
     val trackDatabasesCommand = SqliteInspection.Commands.newBuilder()

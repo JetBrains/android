@@ -42,15 +42,20 @@ class BuildAttributionViewFixture(robot: Robot, target: JPanel) : JPanelFixture(
       .clickLink(text)
 
   fun checkInitState() {
-    tree.requireSelection(" Plugins with tasks determining this build's duration 2 warnings")
+    tree.requireSelectedNodeNameContain("Plugins with tasks determining this build's duration")
     tree.requireRootContainInOrder(listOf(
       "Build: finished at",
       "Plugins with tasks determining this build's duration",
       "Tasks determining this build's duration",
-      "Always-run Tasks",
       "Plugin Configuration Time",
-      "Non-incremental Annotation Processors"
+      "Warnings"
     ))
+  }
+
+  fun checkWarningsNode(expectedChildren: List<String>, expectedWarningsCount: Int) {
+    selectPageByPath(" Warnings ($expectedWarningsCount)", "Warnings")
+    expandSelectedNodeWithKeyStroke()
+    tree.requireSelectedNodeContainInOrder(expectedChildren)
   }
 
   fun requireOpenedPagePathAndHeader(selectedTreePath: String, pageHeaderPattern: String) {
@@ -60,8 +65,8 @@ class BuildAttributionViewFixture(robot: Robot, target: JPanel) : JPanelFixture(
 
   fun selectAndCheckBuildSummaryNode() {
     tree.selectRow(0)
-    tree.requireSelectedNodeNameContain("Build: finished at \\d\\d/\\d\\d/\\d\\d \\d?\\d:\\d\\d (AM|PM)")
-    visiblePage.label("pageHeader").requireText(Pattern.compile("Build finished at \\d\\d/\\d\\d/\\d\\d \\d?\\d:\\d\\d (AM|PM)"))
+    tree.requireSelectedNodeNameContain("Build: finished at \\d\\d?/\\d\\d?/\\d\\d \\d?\\d:\\d\\d (AM|PM)")
+    visiblePage.label("pageHeader").requireText(Pattern.compile("Build finished at \\d\\d?/\\d\\d?/\\d\\d \\d?\\d:\\d\\d (AM|PM)"))
   }
 
   fun selectPageByPath(treePath: String, expectedPageHeaderPattern: String) {

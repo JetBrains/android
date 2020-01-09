@@ -20,12 +20,14 @@ import com.android.ddmlib.Client
 import com.android.ddmlib.ClientData
 import com.android.ddmlib.IDevice
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.ddms.DevicePropertyUtil
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.profiler.proto.Common
 import com.google.common.annotations.VisibleForTesting
+import com.google.common.util.concurrent.Futures
 import com.intellij.concurrency.JobScheduler
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -72,9 +74,10 @@ class LegacyClient(private val project: Project) : InspectorClient {
   }
 
   override fun loadProcesses(): Map<Common.Stream, List<Common.Process>> {
-    var maybeDebugBridge: AndroidDebugBridge? = null
-    ApplicationManager.getApplication().invokeAndWait { maybeDebugBridge = AndroidSdkUtils.getDebugBridge(project) }
-    val debugBridge = maybeDebugBridge ?: return mapOf()
+    val debugBridge = AndroidSdkUtils.getAdb(project)?.let {
+      AdbService.getInstance().getDebugBridge(it).get()
+    } ?: AndroidDebugBridge.createBridge()
+
     val result = mutableMapOf<Common.Stream, List<Common.Process>>()
     for (iDevice in debugBridge.devices) {
       val deviceProto = Common.Device.newBuilder().run {

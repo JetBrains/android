@@ -97,9 +97,9 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
   override fun createDslElement(element: GradleDslElement): PsiElement? {
     // If we are trying to create an extra block, we should skip this step as we don't use proper blocks for extra properties in KTS.
     if (element is ExtDslElement) return getParentPsi(element)
-    var anchorAfter = element.anchor
     val psiElement = element.psiElement
     if (psiElement != null) return psiElement
+    var anchorAfter = element.anchor
     var isRealList = false // This is to keep track if we're creating a real list (listOf()).
     var isVarOrProperty = false
 

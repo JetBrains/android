@@ -29,9 +29,9 @@ import com.android.tools.profiler.proto.Common.Event.Kind.APP_INSPECTION_RESPONS
 /**
  * A convenient test class for [CommandHandler] for AppInspection service commands.
  */
-internal class TestInspectorCommandHandler(timer: FakeTimer,
-                                           private val success: Boolean = true,
-                                           private val error: String = "") : CommandHandler(timer) {
+class TestInspectorCommandHandler(timer: FakeTimer,
+                                  private val success: Boolean = true,
+                                  private val error: String = "") : CommandHandler(timer) {
   override fun handleCommand(command: Commands.Command, events: MutableList<Event>) {
     if (command.appInspectionCommand.hasCreateInspectorCommand() || command.appInspectionCommand.hasDisposeInspectorCommand()) {
       events.add(Event.newBuilder()

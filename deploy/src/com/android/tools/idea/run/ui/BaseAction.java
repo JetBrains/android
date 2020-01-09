@@ -325,7 +325,7 @@ public abstract class BaseAction extends AnAction {
   }
 
   @Nullable
-  private static Executor getExecutor(@NotNull ProcessHandler processHandler, @Nullable Executor defaultExecutor) {
+  protected static Executor getExecutor(@NotNull ProcessHandler processHandler, @Nullable Executor defaultExecutor) {
     if (processHandler instanceof RemoteDebugProcessHandler) {
       // Special case for remote debugger.
       return DefaultDebugExecutor.getDebugExecutorInstance();

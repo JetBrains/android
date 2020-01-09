@@ -19,7 +19,6 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.CollectingOutputReceiver
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adb.AdbService
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspectorPreferredProcess
 import com.android.tools.idea.layoutinspector.isDeviceMatch
 import com.android.tools.idea.layoutinspector.model.ComponentTreeLoader
@@ -78,7 +77,7 @@ private const val MAX_RETRY_COUNT = 60
 
 class DefaultInspectorClient(
   model: InspectorModel,
-  channelNameForTest: String = TransportService.getInstance().channelName,
+  channelNameForTest: String = TransportService.CHANNEL_NAME,
   private val scheduler: ScheduledExecutorService = JobScheduler.getScheduler() // test only
 ) : InspectorClient {
   private val project = model.project
@@ -234,8 +233,7 @@ class DefaultInspectorClient(
                            continue
       val stream = connectedEvent.stream.streamConnected.stream
       // We only want streams of type device to get process information.
-      if (stream.type == Common.Stream.Type.DEVICE &&
-          (!StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get() || stream.device.apiLevel >= 29)) {
+      if (stream.type == Common.Stream.Type.DEVICE && stream.device.featureLevel >= 29) {
         streams.add(stream)
       }
     }

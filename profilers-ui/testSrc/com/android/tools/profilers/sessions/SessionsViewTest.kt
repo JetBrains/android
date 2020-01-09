@@ -704,6 +704,7 @@ class SessionsViewTest(private val useUnifiedEvents: Boolean) {
     assertThat(myProfilers.timeline.isStreaming).isTrue()
   }
 
+  @Ignore("b/138573206")
   @Test
   fun testMemoryHeapDumpSelection() {
     val sessionsPanel = mySessionsView.sessionsPanel

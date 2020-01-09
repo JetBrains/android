@@ -23,9 +23,83 @@ import com.intellij.openapi.vfs.VirtualFileManager
  * An implementation of [IdeaSourceProvider] configured with a static set of file urls for each collection and the manifest but still
  * resolving them dynamically so that changes to the set of files that exist at any given moment are picked up.
  */
-class IdeaSourceProviderImpl(
+// TODO(solodkyy): Merge with (derive from) IdeaSourceProviderCoreImpl when virtual files are statically resolved from the urls.
+class NamedIdeaSourceProviderImpl(
   override val name: String,
-  override val manifestFileUrl: String,
+  private val manifestFileUrl: String,
+  override val javaDirectoryUrls: Collection<String> = emptyList(),
+  override val resourcesDirectoryUrls: Collection<String> = emptyList(),
+  override val aidlDirectoryUrls: Collection<String> = emptyList(),
+  override val renderscriptDirectoryUrls: Collection<String> = emptyList(),
+  override val jniDirectoryUrls: Collection<String> = emptyList(),
+  override val jniLibsDirectoryUrls: Collection<String> = emptyList(),
+  override val resDirectoryUrls: Collection<String> = emptyList(),
+  override val assetsDirectoryUrls: Collection<String> = emptyList(),
+  override val shadersDirectoryUrls: Collection<String> = emptyList()
+) : NamedIdeaSourceProvider {
+  @Volatile
+  private var myManifestFile: VirtualFile? = null
+
+  private val manifestFile: VirtualFile?
+    get() {
+      if (myManifestFile == null || !myManifestFile!!.isValid) {
+        myManifestFile = VirtualFileManager.getInstance().findFileByUrl(manifestFileUrl)
+      }
+      return myManifestFile
+    }
+
+  private val manifestDirectory: VirtualFile?
+    get() = VirtualFileManager.getInstance().findFileByUrl(manifestDirectoryUrl)
+
+  private val manifestDirectoryUrl: String
+    get() = VfsUtil.getParentDir(manifestFileUrl) ?: error("Invalid manifestFileUrl: $manifestFileUrl")
+
+  override val manifestFileUrls: Collection<String>
+    get() = listOf(manifestFileUrl)
+
+  override val manifestFiles: Collection<VirtualFile>
+    get() = listOfNotNull(manifestFile)
+
+  override val manifestDirectoryUrls: Collection<String>
+    get() = listOf(manifestDirectoryUrl)
+
+  override val manifestDirectories: Collection<VirtualFile>
+    get() = listOfNotNull(manifestDirectory)
+
+
+  override val javaDirectories: Collection<VirtualFile> get() = convertUrlSet(javaDirectoryUrls)
+
+  override val resourcesDirectories: Collection<VirtualFile> get() = convertUrlSet(resourcesDirectoryUrls)
+
+  override val aidlDirectories: Collection<VirtualFile> get() = convertUrlSet(aidlDirectoryUrls)
+
+  override val renderscriptDirectories: Collection<VirtualFile> get() = convertUrlSet(renderscriptDirectoryUrls)
+
+  override val jniDirectories: Collection<VirtualFile> get() = convertUrlSet(jniDirectoryUrls)
+
+  override val jniLibsDirectories: Collection<VirtualFile> get() = convertUrlSet(jniLibsDirectoryUrls)
+
+  // TODO: Perform some caching; this method gets called a lot!
+  override val resDirectories: Collection<VirtualFile> get() = convertUrlSet(resDirectoryUrls)
+
+  override val assetsDirectories: Collection<VirtualFile> get() = convertUrlSet(assetsDirectoryUrls)
+
+  override val shadersDirectories: Collection<VirtualFile> get() = convertUrlSet(shadersDirectoryUrls)
+
+  /** Convert a set of IDEA file urls into a set of equivalent virtual files  */
+  private fun convertUrlSet(fileUrls: Collection<String>): Collection<VirtualFile> {
+    val fileManager = VirtualFileManager.getInstance()
+    return fileUrls.mapNotNull { fileManager.findFileByUrl(it) }
+  }
+}
+
+/**
+ * An implementation of [IdeaSourceProviderCore] configured with a static set of file urls for each collection and the manifest but still
+ * resolving them dynamically so that changes to the set of files that exist at any given moment are picked up.
+ */
+class IdeaSourceProviderImpl(
+  override val manifestFileUrls: Collection<String> = emptyList(),
+  override val manifestDirectoryUrls: Collection<String> = emptyList(),
   override val javaDirectoryUrls: Collection<String> = emptyList(),
   override val resourcesDirectoryUrls: Collection<String> = emptyList(),
   override val aidlDirectoryUrls: Collection<String> = emptyList(),
@@ -36,22 +110,9 @@ class IdeaSourceProviderImpl(
   override val assetsDirectoryUrls: Collection<String> = emptyList(),
   override val shadersDirectoryUrls: Collection<String> = emptyList()
 ) : IdeaSourceProvider {
-  @Volatile
-  private var myManifestFile: VirtualFile? = null
+  override val manifestFiles: Collection<VirtualFile> get() = convertUrlSet(manifestFileUrls)
 
-  override val manifestFile: VirtualFile?
-    get() {
-      if (myManifestFile == null || !myManifestFile!!.isValid) {
-        myManifestFile = VirtualFileManager.getInstance().findFileByUrl(manifestFileUrl)
-      }
-      return myManifestFile
-    }
-
-  override val manifestDirectory: VirtualFile?
-    get() = VirtualFileManager.getInstance().findFileByUrl(manifestDirectoryUrl)
-
-  override val manifestDirectoryUrl: String
-    get() = VfsUtil.getParentDir(manifestFileUrl) ?: error("Invalid manifestFileUrl: $manifestFileUrl")
+  override val manifestDirectories: Collection<VirtualFile> get() = convertUrlSet(manifestDirectoryUrls)
 
   override val javaDirectories: Collection<VirtualFile> get() = convertUrlSet(javaDirectoryUrls)
 
@@ -82,23 +143,23 @@ class IdeaSourceProviderImpl(
 /**
  * A builder to build [IdeaSourceProvider] in a Java-friendly way.
  */
-interface IdeaSourceProviderBuilder {
-  fun withName(name: String): IdeaSourceProviderBuilder
-  fun withManifestFileUrl(url: String): IdeaSourceProviderBuilder
-  fun withJavaDirectoryUrls(urls: Collection<String>): IdeaSourceProviderBuilder
-  fun withResourcesDirectoryUrls(urls: Collection<String>): IdeaSourceProviderBuilder
-  fun withAidlDirectoryUrls(urls: Collection<String>): IdeaSourceProviderBuilder
-  fun withRenderscriptDirectoryUrls(urls: Collection<String>): IdeaSourceProviderBuilder
-  fun withJniDirectoryUrls(urls: Collection<String>): IdeaSourceProviderBuilder
-  fun withJniLibsDirectoryUrls(urls: Collection<String>): IdeaSourceProviderBuilder
-  fun withResDirectoryUrls(urls: Collection<String>): IdeaSourceProviderBuilder
-  fun withAssetsDirectoryUrls(urls: Collection<String>): IdeaSourceProviderBuilder
-  fun withShadersDirectoryUrls(urls: Collection<String>): IdeaSourceProviderBuilder
-  fun build(): IdeaSourceProvider
+interface NamedIdeaSourceProviderBuilder {
+  fun withName(name: String): NamedIdeaSourceProviderBuilder
+  fun withManifestFileUrl(url: String): NamedIdeaSourceProviderBuilder
+  fun withJavaDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
+  fun withResourcesDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
+  fun withAidlDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
+  fun withRenderscriptDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
+  fun withJniDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
+  fun withJniLibsDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
+  fun withResDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
+  fun withAssetsDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
+  fun withShadersDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
+  fun build(): NamedIdeaSourceProvider
 
   companion object {
     @JvmStatic
-    fun create(name: String, manifestUrl: String): IdeaSourceProviderBuilder = Builder(name, manifestUrl)
+    fun create(name: String, manifestUrl: String): NamedIdeaSourceProviderBuilder = Builder(name, manifestUrl)
   }
 
   private data class Builder(
@@ -113,30 +174,30 @@ interface IdeaSourceProviderBuilder {
     val resDirectoryUrls: Collection<String> = emptyList(),
     val assetsDirectoryUrls: Collection<String> = emptyList(),
     val shadersDirectoryUrls: Collection<String> = emptyList()
-  ) : IdeaSourceProviderBuilder {
-    override fun withName(name: String): IdeaSourceProviderBuilder = copy(name = name)
+  ) : NamedIdeaSourceProviderBuilder {
+    override fun withName(name: String): NamedIdeaSourceProviderBuilder = copy(name = name)
 
-    override fun withManifestFileUrl(url: String): IdeaSourceProviderBuilder = copy(manifestFileUrl = url)
+    override fun withManifestFileUrl(url: String): NamedIdeaSourceProviderBuilder = copy(manifestFileUrl = url)
 
-    override fun withJavaDirectoryUrls(urls: Collection<String>): IdeaSourceProviderBuilder = copy(javaDirectoryUrls = urls)
+    override fun withJavaDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(javaDirectoryUrls = urls)
 
-    override fun withResourcesDirectoryUrls(urls: Collection<String>): IdeaSourceProviderBuilder = copy(resourcesDirectoryUrls = urls)
+    override fun withResourcesDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(resourcesDirectoryUrls = urls)
 
-    override fun withAidlDirectoryUrls(urls: Collection<String>): IdeaSourceProviderBuilder = copy(aidlDirectoryUrls = urls)
+    override fun withAidlDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(aidlDirectoryUrls = urls)
 
-    override fun withRenderscriptDirectoryUrls(urls: Collection<String>): IdeaSourceProviderBuilder = copy(renderscriptDirectoryUrls = urls)
+    override fun withRenderscriptDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(renderscriptDirectoryUrls = urls)
 
-    override fun withJniDirectoryUrls(urls: Collection<String>): IdeaSourceProviderBuilder = copy(jniDirectoryUrls = urls)
+    override fun withJniDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(jniDirectoryUrls = urls)
 
-    override fun withJniLibsDirectoryUrls(urls: Collection<String>): IdeaSourceProviderBuilder = copy(jniLibsDirectoryUrls = urls)
+    override fun withJniLibsDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(jniLibsDirectoryUrls = urls)
 
-    override fun withResDirectoryUrls(urls: Collection<String>): IdeaSourceProviderBuilder = copy(resDirectoryUrls = urls)
+    override fun withResDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(resDirectoryUrls = urls)
 
-    override fun withAssetsDirectoryUrls(urls: Collection<String>): IdeaSourceProviderBuilder = copy(assetsDirectoryUrls = urls)
+    override fun withAssetsDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(assetsDirectoryUrls = urls)
 
-    override fun withShadersDirectoryUrls(urls: Collection<String>): IdeaSourceProviderBuilder = copy(shadersDirectoryUrls = urls)
+    override fun withShadersDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder = copy(shadersDirectoryUrls = urls)
 
-    override fun build(): IdeaSourceProvider = IdeaSourceProviderImpl(
+    override fun build(): NamedIdeaSourceProvider = NamedIdeaSourceProviderImpl(
       name,
       manifestFileUrl,
       javaDirectoryUrls,

@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.android.model.impl
 
 import com.android.tools.idea.gradle.project.GradleProjectInfo
-import com.android.tools.idea.projectsystem.IdeaSourceProvider
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.dom.manifest.Manifest
@@ -29,10 +29,6 @@ class AndroidModuleInfoProviderImpl(override val module: Module) : AndroidModule
 
     override fun getApplicationPackage() = androidFacet?.let { Manifest.getMainManifest(it) }?.`package`?.toString()
 
-    override fun getMainSourceProvider(): AndroidModuleInfoProvider.SourceProviderMirror? {
-        return androidFacet?.let { SourceProviderManager.getInstance(it).mainIdeaSourceProvider }?.let(::SourceProviderMirrorImpl)
-    }
-
     override fun getActiveSourceProviders(): List<AndroidModuleInfoProvider.SourceProviderMirror> {
         return SourceProviderManager.getInstance(androidFacet ?: return emptyList()).currentSourceProviders.map(::SourceProviderMirrorImpl)
     }
@@ -44,7 +40,7 @@ class AndroidModuleInfoProviderImpl(override val module: Module) : AndroidModule
           .map(::SourceProviderMirrorImpl)
     }
 
-    private class SourceProviderMirrorImpl(val sourceProvider: IdeaSourceProvider) :
+    private class SourceProviderMirrorImpl(val sourceProvider: NamedIdeaSourceProvider) :
         AndroidModuleInfoProvider.SourceProviderMirror {
         override val name: String
             get() = sourceProvider.name

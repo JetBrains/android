@@ -26,7 +26,6 @@ import static java.awt.event.InputEvent.META_DOWN_MASK;
 import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.AspectObserver;
-import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.ViewBinder;
@@ -60,6 +59,7 @@ import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.openapi.wm.IdeGlassPaneUtil;
 import com.intellij.ui.ColoredListCellRenderer;
+import com.intellij.ui.HoverHyperlinkLabel;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
@@ -96,6 +96,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   @NotNull public static final String DETACH_LIVE = "Detach live";
   @NotNull public static final String ZOOM_IN = "Zoom in";
   @NotNull public static final String ZOOM_OUT = "Zoom out";
+  private static final String DESELECT_ALL = "Deselect all";
 
   private final StudioProfilers myProfiler;
   private final ViewBinder<StudioProfilersView, Stage, StageView> myBinder;
@@ -117,12 +118,14 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   private JPanel myStageToolbar;
   private JPanel myCommonToolbar;
   private JPanel myGoLiveToolbar;
+  private JPanel myDeselectAllToolbar;
   private JToggleButton myGoLive;
   private CommonButton myZoomOut;
   private CommonButton myZoomIn;
   private CommonButton myResetZoom;
-  private CommonButton myFrameSelection;
-  private ProfilerAction myFrameSelectionAction;
+  private CommonButton myZoomToSelection;
+  private ProfilerAction myZoomToSelectionAction;
+  private HoverHyperlinkLabel myDeselectAllLabel;
 
   @NotNull
   private final IdeProfilerComponents myIdeProfilerComponents;
@@ -201,8 +204,18 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
 
   @VisibleForTesting
   @NotNull
-  CommonButton getFrameSelectionButton() {
-    return myFrameSelection;
+  public CommonButton getZoomToSelectionButton() {
+    return myZoomToSelection;
+  }
+
+  @VisibleForTesting
+  public HoverHyperlinkLabel getDeselectAllLabel() {
+    return myDeselectAllLabel;
+  }
+
+  @VisibleForTesting
+  public JPanel getDeselectAllToolbar() {
+    return myDeselectAllToolbar;
   }
 
   @VisibleForTesting
@@ -309,6 +322,16 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myToolbar.add(rightToolbar, BorderLayout.EAST);
     rightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
 
+    // Add Deselect All label for stages that support it.
+    myDeselectAllLabel = new HoverHyperlinkLabel(DESELECT_ALL);
+    myDeselectAllLabel.addHyperlinkListener(event -> myStageView.onDeselectAllAction());
+    myDeselectAllLabel.setBorder(new JBEmptyBorder(0, 0, 0, 4));
+    myDeselectAllLabel.setToolTipText("Click to deselect all threads");
+    myDeselectAllToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
+    myDeselectAllToolbar.add(myDeselectAllLabel);
+    myDeselectAllToolbar.add(new FlatSeparator());
+    rightToolbar.add(myDeselectAllToolbar);
+
     myZoomOut = new CommonButton(AllIcons.General.ZoomOut);
     myZoomOut.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.General.ZoomOut));
     myZoomOut.addActionListener(event -> {
@@ -353,18 +376,18 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     myResetZoom.setToolTipText(resetZoomAction.getDefaultToolTipText());
     rightToolbar.add(myResetZoom);
 
-    myFrameSelection = new CommonButton(StudioIcons.Common.ZOOM_SELECT);
-    myFrameSelection.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_SELECT));
-    myFrameSelection.addActionListener(
-      event -> myStageView.getStage().getTimeline().frameViewToRange(myStageView.getStage().getTimeline().getSelectionRange())
+    myZoomToSelection = new CommonButton(StudioIcons.Common.ZOOM_SELECT);
+    myZoomToSelection.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_SELECT));
+    myZoomToSelection.addActionListener(
+      event -> myStageView.getStage().getTimeline().frameViewToRange(myStageView.getZoomToSelectionRange())
     );
-    myFrameSelectionAction = new ProfilerAction.Builder("Zoom to Selection")
+    myZoomToSelectionAction = new ProfilerAction.Builder("Zoom to Selection")
       .setContainerComponent(mySplitter)
-      .setActionRunnable(() -> myFrameSelection.doClick(0))
-      .setEnableBooleanSupplier(() -> myStageView != null && !myStageView.getStage().getTimeline().getSelectionRange().isEmpty())
+      .setActionRunnable(() -> myZoomToSelection.doClick(0))
+      .setEnableBooleanSupplier(() -> myStageView != null && myStageView.shouldEnableZoomToSelection())
       .build();
-    myFrameSelection.setToolTipText(myFrameSelectionAction.getDefaultToolTipText());
-    rightToolbar.add(myFrameSelection);
+    myZoomToSelection.setToolTipText(myZoomToSelectionAction.getDefaultToolTipText());
+    rightToolbar.add(myZoomToSelection);
 
     myGoLiveToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myGoLiveToolbar.add(new FlatSeparator());
@@ -434,7 +457,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
         myZoomOut.setEnabled(false);
         myZoomIn.setEnabled(false);
         myResetZoom.setEnabled(false);
-        myFrameSelection.setEnabled(false);
+        myZoomToSelection.setEnabled(false);
         myGoLive.setEnabled(false);
         myGoLive.setSelected(false);
       }
@@ -442,7 +465,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
         myZoomOut.setEnabled(true);
         myZoomIn.setEnabled(true);
         myResetZoom.setEnabled(true);
-        myFrameSelection.setEnabled(myFrameSelectionAction.isEnabled());
+        myZoomToSelection.setEnabled(myZoomToSelectionAction.isEnabled());
         myGoLive.setEnabled(true);
         myGoLive.setSelected(true);
       }
@@ -452,10 +475,11 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myZoomOut.setEnabled(isValidSession);
       myZoomIn.setEnabled(isValidSession);
       myResetZoom.setEnabled(isValidSession);
-      myFrameSelection.setEnabled(isValidSession && myFrameSelectionAction.isEnabled());
+      myZoomToSelection.setEnabled(isValidSession && myZoomToSelectionAction.isEnabled());
       myGoLive.setEnabled(false);
       myGoLive.setSelected(false);
     }
+    myDeselectAllToolbar.setVisible(false);
   }
 
   private void toggleSessionsPanel(boolean isCollapsed) {
@@ -490,8 +514,10 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       myStageView.getStage().getTimeline().getSelectionRange().removeDependencies(this);
     }
     myStageView = myBinder.build(this, stage);
-    myStageView.getStage().getTimeline().getSelectionRange().addDependency(this)
-      .onChange(Range.Aspect.RANGE, () -> myFrameSelection.setEnabled(myFrameSelectionAction.isEnabled()));
+    myStageView.addTimelineControlUpdater(() -> {
+      myZoomToSelection.setEnabled(myZoomToSelectionAction.isEnabled());
+      myDeselectAllToolbar.setVisible(myStageView.shouldShowDeselectAllLabel());
+    });
     SwingUtilities.invokeLater(() -> {
       Component focussed = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
       if (focussed == null || !SwingUtilities.isDescendingFrom(focussed, mySplitter)) {

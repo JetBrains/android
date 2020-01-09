@@ -41,6 +41,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DEFAU
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_BLOCK_WITH_APPLICATION_STATEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_BLOCK_WITH_ASSIGNMENT_STATEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_BLOCK_WITH_OVERRIDE_STATEMENTS
+import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_MAP_STATEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DELETE_MATCHING_FALLBACKS
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_DELETE_MATCHING_FALLBACKS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.PRODUCT_FLAVOR_MODEL_EDIT_AND_APPLY_INTEGER_LITERAL_ELEMENTS
@@ -300,13 +301,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testDefaultConfigMapStatements() {
-    assumeTrue(isGroovy())
-    val text = "android.defaultConfig.manifestPlaceholders.activityLabel1 \"defaultName1\"\n" +
-               "android.defaultConfig.manifestPlaceholders.activityLabel2 = \"defaultName2\"\n" +
-               "android.defaultConfig.testInstrumentationRunnerArguments.key1 \"value1\"\n" +
-               "android.defaultConfig.testInstrumentationRunnerArguments.key2 = \"value2\""
-
-    writeToBuildFile(text)
+    writeToBuildFile(PRODUCT_FLAVOR_MODEL_DEFAULT_CONFIG_MAP_STATEMENTS)
 
     val android = gradleBuildModel.android()
     assertNotNull(android)
@@ -373,7 +368,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("applicationId", defaultConfig.applicationId())
     assertMissingProperty("consumerProguardFiles", defaultConfig.consumerProguardFiles())
     assertMissingProperty("dimension", defaultConfig.dimension())
-    assertMissingProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
+    verifyEmptyMapProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
     assertMissingProperty("maxSdkVersion", defaultConfig.maxSdkVersion())
     assertMissingProperty("minSdkVersion", defaultConfig.minSdkVersion())
     assertMissingProperty("multiDexEnabled", defaultConfig.multiDexEnabled())
@@ -385,7 +380,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("testFunctionalTest", defaultConfig.testFunctionalTest())
     assertMissingProperty("testHandleProfiling", defaultConfig.testHandleProfiling())
     assertMissingProperty("testInstrumentationRunner", defaultConfig.testInstrumentationRunner())
-    assertMissingProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
+    verifyEmptyMapProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
     assertMissingProperty("useJack", defaultConfig.useJack())
     assertMissingProperty("versionCode", defaultConfig.versionCode())
     assertMissingProperty("versionName", defaultConfig.versionName())
@@ -765,8 +760,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
     val defaultConfig = android.defaultConfig()
 
-    assertMissingProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
-    assertMissingProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
+    verifyEmptyMapProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
+    verifyEmptyMapProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
 
     defaultConfig.manifestPlaceholders().getMapValue("activityLabel1").setValue("newName1")
     defaultConfig.manifestPlaceholders().getMapValue("activityLabel2").setValue("newName2")
@@ -780,8 +775,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
 
     buildModel.resetState()
 
-    assertMissingProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
-    assertMissingProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
+    verifyEmptyMapProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
+    verifyEmptyMapProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
   }
 
   @Test
@@ -876,7 +871,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("applicationId", defaultConfig.applicationId())
     assertMissingProperty("consumerProguardFiles", defaultConfig.consumerProguardFiles())
     assertMissingProperty("dimension", defaultConfig.dimension())
-    assertMissingProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
+    verifyEmptyMapProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
     assertMissingProperty("maxSdkVersion", defaultConfig.maxSdkVersion())
     assertMissingProperty("minSdkVersion", defaultConfig.minSdkVersion())
     assertMissingProperty("multiDexEnabled", defaultConfig.multiDexEnabled())
@@ -888,7 +883,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("testFunctionalTest", defaultConfig.testFunctionalTest())
     assertMissingProperty("testHandleProfiling", defaultConfig.testHandleProfiling())
     assertMissingProperty("testInstrumentationRunner", defaultConfig.testInstrumentationRunner())
-    assertMissingProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
+    verifyEmptyMapProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
     assertMissingProperty("useJack", defaultConfig.useJack())
     assertMissingProperty("versionCode", defaultConfig.versionCode())
     assertMissingProperty("versionName", defaultConfig.versionName())
@@ -901,7 +896,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("applicationId", defaultConfig.applicationId())
     assertMissingProperty("consumerProguardFiles", defaultConfig.consumerProguardFiles())
     assertMissingProperty("dimension", defaultConfig.dimension())
-    assertMissingProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
+    verifyEmptyMapProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
     assertMissingProperty("maxSdkVersion", defaultConfig.maxSdkVersion())
     assertMissingProperty("minSdkVersion", defaultConfig.minSdkVersion())
     assertMissingProperty("multiDexEnabled", defaultConfig.multiDexEnabled())
@@ -913,7 +908,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("testFunctionalTest", defaultConfig.testFunctionalTest())
     assertMissingProperty("testHandleProfiling", defaultConfig.testHandleProfiling())
     assertMissingProperty("testInstrumentationRunner", defaultConfig.testInstrumentationRunner())
-    assertMissingProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
+    verifyEmptyMapProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
     assertMissingProperty("useJack", defaultConfig.useJack())
     assertMissingProperty("versionCode", defaultConfig.versionCode())
     assertMissingProperty("versionName", defaultConfig.versionName())
@@ -926,7 +921,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("applicationId", defaultConfig.applicationId())
     assertMissingProperty("consumerProguardFiles", defaultConfig.consumerProguardFiles())
     assertMissingProperty("dimension", defaultConfig.dimension())
-    assertMissingProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
+    verifyEmptyMapProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
     assertMissingProperty("maxSdkVersion", defaultConfig.maxSdkVersion())
     assertMissingProperty("minSdkVersion", defaultConfig.minSdkVersion())
     assertMissingProperty("multiDexEnabled", defaultConfig.multiDexEnabled())
@@ -938,7 +933,7 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertMissingProperty("testFunctionalTest", defaultConfig.testFunctionalTest())
     assertMissingProperty("testHandleProfiling", defaultConfig.testHandleProfiling())
     assertMissingProperty("testInstrumentationRunner", defaultConfig.testInstrumentationRunner())
-    assertMissingProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
+    verifyEmptyMapProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
     assertMissingProperty("useJack", defaultConfig.useJack())
     assertMissingProperty("versionCode", defaultConfig.versionCode())
     assertMissingProperty("versionName", defaultConfig.versionName())
@@ -1472,8 +1467,8 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     var defaultConfig = android.defaultConfig()
-    assertMissingProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
-    assertMissingProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
+    verifyEmptyMapProperty("manifestPlaceholders", defaultConfig.manifestPlaceholders())
+    verifyEmptyMapProperty("testInstrumentationRunnerArguments", defaultConfig.testInstrumentationRunnerArguments())
 
     defaultConfig.manifestPlaceholders().getMapValue("activityLabel1").setValue("newName1")
     defaultConfig.manifestPlaceholders().getMapValue("activityLabel2").setValue("newName2")

@@ -34,6 +34,8 @@ interface BuildAttributionReportUiData {
   val issues: List<TaskIssuesGroup>
   val configurationTime: ConfigurationUiData
   val annotationProcessors: AnnotationProcessorsReport
+  val totalIssuesCount: Int
+    get() = issues.sumBy { it.warningCount } + annotationProcessors.issueCount
 }
 
 interface BuildSummary {
@@ -41,6 +43,11 @@ interface BuildSummary {
   val totalBuildDuration: TimeWithPercentage
   val criticalPathDuration: TimeWithPercentage
   val configurationDuration: TimeWithPercentage
+  val miscStepsTime: TimeWithPercentage
+    get() = TimeWithPercentage(
+      totalBuildDuration.timeMs - configurationDuration.timeMs - criticalPathDuration.timeMs,
+      totalBuildDuration.totalMs
+    )
 }
 
 interface CriticalPathTasksUiData {
@@ -69,7 +76,10 @@ interface TaskUiData {
   val executionTime: TimeWithPercentage
   val executedIncrementally: Boolean
   val executionMode: String
-  val onCriticalPath: Boolean
+  /** True for tasks that belong to a critical path based on task dependencies analysis.*/
+  val onLogicalCriticalPath: Boolean
+  /** True for tasks that belong effective critical path based on execution times analysis.*/
+  val onExtendedCriticalPath: Boolean
   val pluginName: String
   val sourceType: PluginSourceType
   val reasonsToRun: List<String>
@@ -138,6 +148,7 @@ interface TaskIssueUiData {
   val bugReportBriefDescription: String
   val explanation: String
   val helpLink: String
+  val buildSrcRecommendation: String
 }
 
 /**

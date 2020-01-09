@@ -72,6 +72,7 @@ class BuildAttributionTest {
 
     buildToolWindow.openBuildAttributionUsingTabHeaderClick().run {
       checkInitState()
+      checkWarningsNode(listOf("Always-run Tasks"), 2)
       selectAndCheckBuildSummaryNode()
       checkTasks()
       checkIssues()
@@ -94,17 +95,17 @@ class BuildAttributionTest {
 
     selectPageByPath(" Tasks determining this build's duration 2 warnings/ :app:dummy1", ":app:dummy1")
     findHyperlabelByTextContainsAndClick("Always-run Tasks")
-    requireOpenedPagePathAndHeader(" Always-run Tasks 2 warnings/ :app:dummy1", ":app:dummy1")
+    requireOpenedPagePathAndHeader(" Warnings (2)/ Always-run Tasks 2 warnings/ :app:dummy1", ":app:dummy1")
 
     selectPageByPath(" Tasks determining this build's duration 2 warnings/ :app:dummy2", ":app:dummy2")
     findHyperlabelByTextContainsAndClick("Always-run Tasks")
-    requireOpenedPagePathAndHeader(" Always-run Tasks 2 warnings/ :app:dummy2", ":app:dummy2")
+    requireOpenedPagePathAndHeader(" Warnings (2)/ Always-run Tasks 2 warnings/ :app:dummy2", ":app:dummy2")
   }
 
   private fun BuildAttributionViewFixture.checkIssues() {
-    selectPageByPath(" Always-run Tasks 2 warnings", "Always-run Tasks")
+    selectPageByPath(" Warnings (2)/ Always-run Tasks 2 warnings", "Always-run Tasks")
     findHyperlabelByTextContainsAndClick(":app:dummy1")
-    requireOpenedPagePathAndHeader(" Always-run Tasks 2 warnings/ :app:dummy1", ":app:dummy1")
+    requireOpenedPagePathAndHeader(" Warnings (2)/ Always-run Tasks 2 warnings/ :app:dummy1", ":app:dummy1")
 
     findHyperlabelByTextContainsAndClick("Generate report.")
 
@@ -135,7 +136,7 @@ class BuildAttributionTest {
     )
     expandSelectedNodeWithKeyStroke()
 
-    tree.requireSelectedNodeContainInOrder(listOf("Tasks determining this build's duration 2 warnings", "Always-run Tasks 2 warnings"))
+    tree.requireSelectedNodeContainInOrder(listOf("Tasks determining this build's duration 2 warnings", "Warnings"))
 
     selectedNextNodeWithKeyStroke()
     expandSelectedNodeWithKeyStroke()
@@ -147,7 +148,7 @@ class BuildAttributionTest {
 
     findHyperlabelByTextContainsAndClick("Always-run Tasks")
     requireOpenedPagePathAndHeader(
-      " Plugins with tasks determining this build's duration 2 warnings/ DummyPlugin 2 warnings/ Always-run Tasks 2 warnings/ :app:dummy1",
+      " Plugins with tasks determining this build's duration 2 warnings/ DummyPlugin 2 warnings/ Warnings (2)/ Always-run Tasks 2 warnings/ :app:dummy1",
       ":app:dummy1")
   }
 }

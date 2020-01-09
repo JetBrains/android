@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.ChromeOsSourceDetector;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintUnsupportedChromeOsCameraSystemFeatureInspection extends AndroidLintInspectionBase {
   public AndroidLintUnsupportedChromeOsCameraSystemFeatureInspection() {
-    super(AndroidBundle.message("android.lint.inspections.unsupported.chrome.os.camera.system.feature"), ChromeOsSourceDetector.UNSUPPORTED_CAMERA_FEATURE);
+    super(AndroidBundle.message("android.lint.inspections.unsupported.chrome.os.camera.system.feature"),
+          ChromeOsSourceDetector.UNSUPPORTED_CAMERA_FEATURE);
   }
 }

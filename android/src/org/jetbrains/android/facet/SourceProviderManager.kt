@@ -16,7 +16,9 @@
 package org.jetbrains.android.facet
 
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.projectsystem.SourceProviders
+import com.android.tools.idea.projectsystem.createMergedSourceProvider
 import com.android.tools.idea.projectsystem.sourceProviders
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.vfs.VirtualFile
@@ -32,7 +34,7 @@ interface SourceProviderManager {
      * NOTE: The test instance is automatically discarded on any relevant change to the [facet].
      */
     @JvmStatic
-    fun replaceForTest(facet: AndroidFacet, disposable: Disposable, sourceSet: IdeaSourceProvider) =
+    fun replaceForTest(facet: AndroidFacet, disposable: Disposable, sourceSet: NamedIdeaSourceProvider) =
       SourceProviders.replaceForTest(facet, disposable, sourceSet)
 
     /**
@@ -48,11 +50,17 @@ interface SourceProviderManager {
 
 @Deprecated("Moved. Use com.android.tools.idea.projectsystem.SourceProvidersImpl")
 class SourceProvidersImpl(
-  override val mainIdeaSourceProvider: IdeaSourceProvider,
-  override val currentSourceProviders: List<IdeaSourceProvider>,
-  override val currentTestSourceProviders: List<IdeaSourceProvider>,
-  override val allSourceProviders: List<IdeaSourceProvider>,
+  override val mainIdeaSourceProvider: NamedIdeaSourceProvider,
+  override val currentSourceProviders: List<NamedIdeaSourceProvider>,
+  override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>,
+  override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>,
+  override val allSourceProviders: List<NamedIdeaSourceProvider>,
 
   @Suppress("OverridingDeprecatedMember")
-  override val mainAndFlavorSourceProviders: List<IdeaSourceProvider>
-) : SourceProviders
+  override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
+) : SourceProviders {
+  override val sources: IdeaSourceProvider = createMergedSourceProvider(currentSourceProviders)
+  override val unitTestSources: IdeaSourceProvider = createMergedSourceProvider(currentUnitTestSourceProviders)
+  override val androidTestSources: IdeaSourceProvider = createMergedSourceProvider(currentAndroidTestSourceProviders)
+}
+

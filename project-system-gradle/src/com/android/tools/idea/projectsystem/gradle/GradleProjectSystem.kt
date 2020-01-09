@@ -110,7 +110,8 @@ fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
     (
       model.allSourceProviders.asSequence() +
       model.activeSourceProviders.asSequence() +
-      model.testSourceProviders.asSequence() +
+      model.unitTestSourceProviders.asSequence() +
+      model.androidTestSourceProviders.asSequence() +
       model.defaultSourceProvider +
       (model as? AndroidModuleModel)?.flavorSourceProviders?.asSequence().orEmpty()
     )
@@ -122,7 +123,8 @@ fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
   return SourceProvidersImpl(
     mainIdeaSourceProvider = model.defaultSourceProvider.toIdeaSourceProvider(),
     currentSourceProviders = @Suppress("DEPRECATION") model.activeSourceProviders.map { it.toIdeaSourceProvider() },
-    currentTestSourceProviders = @Suppress("DEPRECATION") model.testSourceProviders.map { it.toIdeaSourceProvider() },
+    currentUnitTestSourceProviders = @Suppress("DEPRECATION") model.unitTestSourceProviders.map { it.toIdeaSourceProvider() },
+    currentAndroidTestSourceProviders = @Suppress("DEPRECATION") model.androidTestSourceProviders.map { it.toIdeaSourceProvider() },
     allSourceProviders = @Suppress("DEPRECATION") model.allSourceProviders.map { it.toIdeaSourceProvider() },
     mainAndFlavorSourceProviders =
     (model as? AndroidModuleModel)?.let { androidModuleModel ->

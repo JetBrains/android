@@ -23,6 +23,22 @@ import org.jetbrains.annotations.NotNull;
 
 @State(name = "AndroidEditors", storages = @Storage("androidEditors.xml"))
 public class AndroidEditorSettings implements PersistentStateComponent<AndroidEditorSettings.MyState> {
+  public enum EditorMode {
+    CODE("Code"), SPLIT("Split"), DESIGN("Design");
+
+    @NotNull
+    private final String myDisplayName;
+
+    EditorMode(@NotNull String displayName) {
+      myDisplayName = displayName;
+    }
+
+    @Override
+    public String toString() {
+      return myDisplayName;
+    }
+  }
+
   private GlobalState myGlobalState = new GlobalState();
 
   public static AndroidEditorSettings getInstance() {
@@ -66,6 +82,8 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
     private boolean myRetina = true;
     private boolean myPreferXmlEditor = false;
     private boolean myShowLint = false;
+    private EditorMode myPreferredEditorMode;
+    private EditorMode myPreferredDrawableEditorMode;
 
     public boolean isRetina() {
       return myRetina;
@@ -121,6 +139,22 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
 
     public void setPreferXmlEditor(boolean preferXmlEditor) {
       myPreferXmlEditor = preferXmlEditor;
+    }
+
+    public EditorMode getPreferredEditorMode() {
+      return myPreferredEditorMode;
+    }
+
+    public void setPreferredEditorMode(EditorMode preferredEditorMode) {
+      myPreferredEditorMode = preferredEditorMode;
+    }
+
+    public EditorMode getPreferredDrawableEditorMode() {
+      return myPreferredDrawableEditorMode;
+    }
+
+    public void setPreferredDrawableEditorMode(EditorMode preferredDrawableEditorMode) {
+      myPreferredDrawableEditorMode = preferredDrawableEditorMode;
     }
   }
 }

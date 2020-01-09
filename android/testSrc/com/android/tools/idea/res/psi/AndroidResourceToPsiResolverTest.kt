@@ -17,20 +17,33 @@ package com.android.tools.idea.res.psi
 
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.FolderConfiguration
-import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.resources.Density
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.project.DefaultModuleSystem
+import com.android.tools.idea.project.DefaultProjectSystem
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.rendering.Locale
+import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.module.JavaModuleType
+import com.intellij.openapi.module.Module
 import com.intellij.psi.PsiElement
+import com.intellij.psi.xml.XmlAttributeValue
+import com.intellij.psi.xml.XmlElement
+import com.intellij.testFramework.PsiTestUtil
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.dom.resources.ResourceValue
+import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper
 
 /**
  * Class to test aspects of [AndroidResourceToPsiResolver].
  */
 abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
-
 
   /**
    * Tests for [AndroidResourceToPsiResolver.getGotoDeclarationFileBasedTargets]
@@ -132,29 +145,160 @@ abstract class AndroidResourceToPsiResolverTest : AndroidTestCase() {
     val fakePsiElement = ResourceReferencePsiElement.create(elementAtCaret)!!
     checkFileDeclarations(fakePsiElement, arrayOf("color/secondary_text_dark.xml"))
   }
+
+  fun setupDynamicFeatureProject(): PsiElement {
+    val dynamicFeatureModuleName = "dynamicfeaturemodule"
+    addDynamicFeatureModule(dynamicFeatureModuleName, myModule, myFixture)
+    myFixture.addFileToProject(
+      "res/values/strings.xml",
+      //language=XML
+      """
+        <resources>
+            <string name="app_name">Captures Application</string>
+        </resources>
+      """.trimIndent())
+    myFixture.addFileToProject(
+      "$dynamicFeatureModuleName/res/values/strings.xml",
+      //language=XML
+      """
+        <resources>
+            <string name="dynamic_name">Captures Application</string>
+        </resources>
+      """.trimIndent())
+
+    val file = myFixture.addFileToProject(
+      "res/values/other_strings.xml",
+      //language=XML
+      """
+        <resources>
+            <string name="references">context<caret></string>
+        </resources>
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    return myFixture.elementAtCaret
+  }
+
+  private fun addDynamicFeatureModule(moduleName: String, module: Module, fixture: JavaCodeInsightTestFixture) {
+    val project = module.project
+    val dynamicFeatureModule = PsiTestUtil.addModule(
+      project,
+      JavaModuleType.getModuleType(),
+      moduleName,
+      fixture.tempDirFixture.findOrCreateDir(moduleName))
+    addAndroidFacet(dynamicFeatureModule)
+    val newModuleSystem = object : AndroidModuleSystem by DefaultModuleSystem(module) {
+      override fun getDynamicFeatureModules(): List<Module> = listOf(dynamicFeatureModule)
+    }
+    val newProjectSystem = object : AndroidProjectSystem by DefaultProjectSystem(project) {
+      override fun getModuleSystem(module: Module): AndroidModuleSystem = newModuleSystem
+    }
+    IdeComponents(project).replaceProjectService(ProjectSystemService::class.java, object : ProjectSystemService(project) {
+      override val projectSystem = newProjectSystem
+    })
+  }
 }
 
 class ResourceManagerToPsiResolverTest : AndroidResourceToPsiResolverTest() {
   override fun setUp() {
     super.setUp()
     StudioFlags.RESOLVE_USING_REPOS.override(false)
+    StudioFlags.NAV_DYNAMIC_SUPPORT.override(true)
   }
 
   override fun tearDown() {
     StudioFlags.RESOLVE_USING_REPOS.clearOverride()
+    StudioFlags.NAV_DYNAMIC_SUPPORT.clearOverride()
     super.tearDown()
+  }
+
+  fun testDynamicFeatureModuleResource() {
+    setupDynamicFeatureProject()
+    val elementAtCaret = myFixture.elementAtCaret
+    assertThat(elementAtCaret).isInstanceOf(XmlElement::class.java)
+    val appNameReference = AndroidResourceToPsiResolver.getInstance().resolveReference(
+      ResourceValue.referenceTo('@', null, "string", "app_name"),
+      elementAtCaret as XmlElement,
+      elementAtCaret.androidFacet!!)
+    assertThat(appNameReference).isNotEmpty()
+    with(LazyValueResourceElementWrapper.computeLazyElement(appNameReference[0].element)) {
+      assertThat(this).isInstanceOf(XmlAttributeValue::class.java)
+      assertThat(this!!.text).isEqualTo("\"app_name\"")
+    }
+    val dynamicNameReference = AndroidResourceToPsiResolver.getInstance().resolveReference(
+      ResourceValue.referenceTo('@', null, "string", "dynamic_name"),
+      elementAtCaret,
+      elementAtCaret.androidFacet!!)
+    assertThat(dynamicNameReference).isEmpty()
+    val appNameReferenceIncluded = AndroidResourceToPsiResolver.getInstance()
+      .resolveReferenceWithDynamicFeatureModules(
+        ResourceValue.referenceTo('@', null, "string", "app_name"),
+        elementAtCaret,
+        elementAtCaret.androidFacet!!)
+    assertThat(appNameReferenceIncluded).isNotEmpty()
+    with(LazyValueResourceElementWrapper.computeLazyElement(appNameReferenceIncluded[0].element)) {
+      assertThat(this!!.text).isEqualTo("\"app_name\"")
+    }
+    val dynamicNameReferenceIncluded = AndroidResourceToPsiResolver.getInstance()
+      .resolveReferenceWithDynamicFeatureModules(
+        ResourceValue.referenceTo('@', null, "string", "dynamic_name"),
+        elementAtCaret,
+        elementAtCaret.androidFacet!!)
+    assertThat(dynamicNameReferenceIncluded).isNotEmpty()
+    with(LazyValueResourceElementWrapper.computeLazyElement(dynamicNameReferenceIncluded[0].element)) {
+      assertThat(this!!.text).isEqualTo("\"dynamic_name\"")
+    }
   }
 }
 
 class ResourceRepositoryToPsiResolverTest : AndroidResourceToPsiResolverTest() {
+
   override fun setUp() {
     super.setUp()
     StudioFlags.RESOLVE_USING_REPOS.override(true)
+    StudioFlags.NAV_DYNAMIC_SUPPORT.override(true)
   }
 
   override fun tearDown() {
     StudioFlags.RESOLVE_USING_REPOS.clearOverride()
+    StudioFlags.NAV_DYNAMIC_SUPPORT.clearOverride()
     super.tearDown()
+  }
+
+  fun testDynamicFeatureModuleResource() {
+    setupDynamicFeatureProject()
+    val elementAtCaret = myFixture.elementAtCaret
+    assertThat(elementAtCaret).isInstanceOf(XmlElement::class.java)
+    val appNameReference = AndroidResourceToPsiResolver.getInstance().resolveReference(
+      ResourceValue.referenceTo('@', null, "string", "app_name"),
+      elementAtCaret as XmlElement,
+      elementAtCaret.androidFacet!!)
+    assertThat(appNameReference).isNotEmpty()
+    with((appNameReference[0].element as ResourceReferencePsiElement).resourceReference) {
+      assertThat(this.name).isEqualTo("app_name")
+    }
+    val dynamicNameReference = AndroidResourceToPsiResolver.getInstance().resolveReference(
+      ResourceValue.referenceTo('@', null, "string", "dynamic_name"),
+      elementAtCaret,
+      elementAtCaret.androidFacet!!)
+    assertThat(dynamicNameReference).isEmpty()
+    val appNameReferenceIncluded = AndroidResourceToPsiResolver.getInstance()
+      .resolveReferenceWithDynamicFeatureModules(
+        ResourceValue.referenceTo('@', null, "string", "app_name"),
+        elementAtCaret,
+        elementAtCaret.androidFacet!!)
+    assertThat(appNameReferenceIncluded).isNotEmpty()
+    with((appNameReferenceIncluded[0].element as ResourceReferencePsiElement).resourceReference) {
+      assertThat(this.name).isEqualTo("app_name")
+    }
+    val dynamicNameReferenceIncluded = AndroidResourceToPsiResolver.getInstance()
+      .resolveReferenceWithDynamicFeatureModules(
+        ResourceValue.referenceTo('@', null, "string", "dynamic_name"),
+        elementAtCaret,
+        elementAtCaret.androidFacet!!)
+    assertThat(dynamicNameReferenceIncluded).isNotEmpty()
+    with((dynamicNameReferenceIncluded[0].element as ResourceReferencePsiElement).resourceReference) {
+      assertThat(this.name).isEqualTo("dynamic_name")
+    }
   }
 
   fun testBestGotoDeclarationTargetDensity() {

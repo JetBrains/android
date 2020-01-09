@@ -34,6 +34,7 @@ import com.google.common.collect.ImmutableList
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 
 private const val WORKBENCH_NAME = "NELE_EDITOR"
 
@@ -45,7 +46,12 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
 
   override fun createEditorPanel() =
     DesignerEditorPanel(this, myProject, myFile, WorkBench<DesignSurface>(myProject, WORKBENCH_NAME, this, this),
-                        { NlDesignSurface.build(myProject, this).apply { setCentered(true) } }, { toolWindowDefinitions(it) })
+                        { NlDesignSurface.builder(myProject, this)
+                          .setDefaultSurfaceState(AndroidEditorSettings.getInstance().globalState.preferredSurfaceState())
+                          .build()
+                          .apply { setCentered(true) }
+                        },
+                        { toolWindowDefinitions(it) })
 
   private fun toolWindowDefinitions(facet: AndroidFacet): List<ToolWindowDefinition<DesignSurface>> {
     val definitions = ImmutableList.builder<ToolWindowDefinition<DesignSurface>>()
@@ -66,4 +72,11 @@ class NlEditor(file: VirtualFile, project: Project) : DesignerEditor(file, proje
   }
 
   override fun getName() = "Design"
+}
+
+fun AndroidEditorSettings.GlobalState.preferredSurfaceState() = when(preferredEditorMode) {
+  AndroidEditorSettings.EditorMode.CODE -> DesignSurface.State.DEACTIVATED
+  AndroidEditorSettings.EditorMode.SPLIT -> DesignSurface.State.SPLIT
+  AndroidEditorSettings.EditorMode.DESIGN -> DesignSurface.State.FULL
+  else -> DesignSurface.State.FULL // default
 }

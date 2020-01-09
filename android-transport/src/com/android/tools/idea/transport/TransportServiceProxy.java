@@ -549,6 +549,7 @@ public class TransportServiceProxy extends ServiceProxy
       // New pipeline event - create a ProcessStarted event for each process.
       myEventQueue.offer(Event.newBuilder()
                            .setGroupId(process.getPid())
+                           .setPid(process.getPid())
                            .setKind(Event.Kind.PROCESS)
                            .setProcess(ProcessData.newBuilder()
                                          .setProcessStarted(ProcessData.ProcessStarted.newBuilder()
@@ -567,6 +568,7 @@ public class TransportServiceProxy extends ServiceProxy
       if (process != null) {
         myEventQueue.offer(Common.Event.newBuilder()
                              .setGroupId(process.getPid())
+                             .setPid(process.getPid())
                              .setKind(Event.Kind.PROCESS)
                              .setIsEnded(true)
                              .setTimestamp(timestampNs)

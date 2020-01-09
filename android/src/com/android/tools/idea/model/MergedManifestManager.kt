@@ -52,7 +52,7 @@ private val RECOMPUTE_INTERVAL = Duration.ofMillis(50)
  * @see [getOrCreateSnapshotInCallingThread]
  * @see [MergedManifestManager.getSnapshot]
  */
-private class MergedManifestSupplier(private val facet: AndroidFacet) :
+private class MergedManifestSupplier(private val module: Module) :
   AsyncSupplier<MergedManifestSnapshot>,
   Disposable,
   ModificationTracker {
@@ -105,9 +105,11 @@ private class MergedManifestSupplier(private val facet: AndroidFacet) :
   @Slow
   private fun getOrCreateSnapshot(cachedSnapshot: MergedManifestSnapshot?): MergedManifestSnapshot {
     return runReadAction {
+      val facet = module.androidFacet
+                  ?: throw IllegalArgumentException("Attempt to obtain manifest info from a non Android module: ${module.name}")
       when {
         // Make sure the module wasn't disposed while we were waiting for the read lock.
-        Disposer.isDisposed(facet) -> MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(facet.module)
+        Disposer.isDisposed(facet) -> MergedManifestSnapshotFactory.createEmptyMergedManifestSnapshot(module)
         cachedSnapshot != null && snapshotUpToDate(cachedSnapshot) -> cachedSnapshot
         else -> MergedManifestSnapshotFactory.createMergedManifestSnapshot(facet, MergedManifestInfo.create(facet))
       }
@@ -233,18 +235,24 @@ private class MergedManifestSupplier(private val facet: AndroidFacet) :
 /**
  * Module service responsible for offloading merged manifest computations
  * to a worker thread and maintaining a cache of the resulting [MergedManifestSnapshot].
+ *
+ * This class is open for mocking. Do not extend it.
  */
-open class MergedManifestManager(module: Module) {
-  private val supplier: MergedManifestSupplier
+open class MergedManifestManager(module: Module) : Disposable {
+  private val supplier = MergedManifestSupplier(module)
   open val mergedManifest: AsyncSupplier<MergedManifestSnapshot> get() = supplier
   open val modificationTracker: ModificationTracker get() = supplier
 
   init {
-    val facet = module.androidFacet
-                ?: throw IllegalArgumentException("Attempt to obtain manifest info from a non Android module: ${module.name}")
-    supplier = MergedManifestSupplier(facet)
-    Disposer.register(facet, supplier)
+    // The Disposer tree doesn't access the fields of the objects
+    // that it contains: it uses only reference equality and
+    // System#identityHashcode. Therefore we don't have to worry
+    // about accessing uninitialized fields when leaking "this".
+    @Suppress("LeakingThis")
+    Disposer.register(this, supplier)
   }
+
+  override fun dispose() { }
 
   companion object {
     @JvmStatic

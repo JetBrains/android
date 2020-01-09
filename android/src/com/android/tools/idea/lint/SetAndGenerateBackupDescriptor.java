@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.lint;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ALLOW_BACKUP;
+import static com.android.SdkConstants.ATTR_FULL_BACKUP_CONTENT;
+import static com.android.SdkConstants.VALUE_FALSE;
+
 import com.android.SdkConstants;
-import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
+import com.android.tools.idea.lint.common.SetAttributeQuickFix;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
-import org.jetbrains.android.inspections.lint.SetAttributeQuickFix;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.SdkConstants.*;
 
 /**
  * A {@link DefaultLintQuickFix} implementation responsible for

@@ -35,6 +35,7 @@ import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.TypeFilterKind
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.TypeFiltersModel
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth
 import com.intellij.openapi.module.Module
@@ -282,22 +283,77 @@ class ResourceExplorerListViewModelImplTest {
   }
 
   @Test
-  fun filterVectorDrawables() {
-    projectRule.fixture.copyDirectoryToProject("res/drawable/", "res/drawable/")
-    val viewModel = createViewModel(projectRule.module, ResourceType.DRAWABLE)
+  fun filterDrawableByXml() {
+    projectRule.fixture.copyDirectoryToProject("res/drawable", "res/drawable")
+    // Test Xml Tag filter for 'vector' drawables, expected resource name is 'vector_drawable'
+    testTypeFilters(ResourceType.DRAWABLE, TypeFilterKind.XML_TAG, "vector", "vector_drawable")
+  }
+
+  @Test
+  fun filterDrawableByFileExtension() {
+    projectRule.fixture.copyDirectoryToProject("res/drawable", "res/drawable")
+    // Test File Extension filter for '.png' files, expect resource name is 'png'.
+    testTypeFilters(ResourceType.DRAWABLE, TypeFilterKind.FILE, ".png", "png")
+  }
+
+  @Test
+  fun filterDataBinding() {
+    projectRule.fixture.copyFileToProject("res/layout/data_binding_layout.xml", "res/layout/data_binding_layout.xml")
+    projectRule.fixture.addFileToProject("res/layout/linear_layout.xml",
+                                         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                         "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                         "    android:orientation=\"vertical\" android:layout_width=\"match_parent\"\n" +
+                                         "    android:layout_height=\"match_parent\">\n" +
+                                         "\n" +
+                                         "</LinearLayout>")
+    testTypeFilters(ResourceType.LAYOUT, TypeFilterKind.XML_TAG, "layout", "data_binding_layout")
+  }
+
+  @Test
+  fun filterConstraintLayoutFromDataBinding() {
+    projectRule.fixture.copyFileToProject("res/layout/data_binding_layout.xml", "res/layout/data_binding_layout.xml")
+    projectRule.fixture.addFileToProject("res/layout/data_binding_cl.xml",
+                                         "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                         "<layout xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
+                                         "\n" +
+                                         "    <data>\n" +
+                                         "        <variable\n" +
+                                         "            name=\"ViewModel\"\n" +
+                                         "            type=\".Fragment\" />\n" +
+                                         "    </data>\n" +
+                                         "\n" +
+                                         "    <androidx.constraintlayout.widget.ConstraintLayout\n" +
+                                         "        android:layout_width=\"match_parent\"\n" +
+                                         "        android:layout_height=\"match_parent\" />\n" +
+                                         "</layout>")
+    testTypeFilters(ResourceType.LAYOUT, TypeFilterKind.XML_TAG, "androidx.constraintlayout.widget.ConstraintLayout", "data_binding_cl")
+  }
+
+  /**
+   * Runs a TypeFilter test using the resources in the test project for the given [resourceType].
+   *
+   * Assumes two resources for the given [resourceType] and one resulting filtered resource.
+   *
+   * @param kind The kind of filter to enable. Eg: [TypeFilterKind.XML_TAG]
+   * @param filterValue The value to use with the filter. Eg: Filter 'vector' for a [TypeFilterKind.XML_TAG] filter.
+   * @param filteredResourceName The name of the expected filtered resource, this test expects only one resource from the applied filter.
+   */
+  private fun testTypeFilters(resourceType: ResourceType, kind: TypeFilterKind, filterValue: String, filteredResourceName: String) {
+    val viewModel = createViewModel(projectRule.module, resourceType)
 
     val unfilteredDrawables = viewModel.getCurrentModuleResourceLists().get()[0].assetSets
     Truth.assertThat(unfilteredDrawables).hasSize(2)
 
-    val filterTypesModel =  viewModel.filterOptions.typeFiltersModel
-    val vectorDrawableFilterOption = filterTypesModel.getSupportedFilters(
-      ResourceType.DRAWABLE).first { it.kind == TypeFilterKind.XML_TAG && it.value == "vector" }
-
-    filterTypesModel.setEnabled(ResourceType.DRAWABLE, vectorDrawableFilterOption, true)
+    viewModel.filterOptions.typeFiltersModel.setFilterOption(resourceType, kind, filterValue, true)
 
     val filteredDrawables = viewModel.getCurrentModuleResourceLists().get()[0].assetSets
     Truth.assertThat(filteredDrawables).hasSize(1)
-    Truth.assertThat(filteredDrawables[0].name).isEqualTo("vector_drawable")
+    Truth.assertThat(filteredDrawables[0].name).isEqualTo(filteredResourceName)
+  }
+
+  private fun TypeFiltersModel.setFilterOption(type: ResourceType, kind: TypeFilterKind, filterValue: String, state: Boolean) {
+    val filterOption = this.getSupportedFilters(type).first { it.kind == kind && it.value == filterValue }
+    this.setEnabled(type, filterOption, state)
   }
 
   private fun createViewModel(module: Module, resourceType: ResourceType): ResourceExplorerListViewModelImpl {

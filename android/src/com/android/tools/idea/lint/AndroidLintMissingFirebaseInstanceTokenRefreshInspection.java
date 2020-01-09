@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.FirebaseMessagingDetector;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintMissingFirebaseInstanceTokenRefreshInspection extends AndroidLintInspectionBase {
   public AndroidLintMissingFirebaseInstanceTokenRefreshInspection() {
-    super(AndroidBundle.message("android.lint.inspections.firebase.messaging.missing.token.refresh"),
+    super(AndroidBundle.message("android.lint.inspections.missing.firebase.instance.token.refresh"),
           FirebaseMessagingDetector.MISSING_TOKEN_REFRESH);
   }
 }

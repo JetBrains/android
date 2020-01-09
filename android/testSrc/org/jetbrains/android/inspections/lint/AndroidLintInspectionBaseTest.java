@@ -17,6 +17,7 @@ package org.jetbrains.android.inspections.lint;
 
 import com.android.tools.idea.lint.AndroidLintHardcodedTextInspection;
 import com.android.tools.idea.lint.AndroidLintTypographyDashesInspection;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.google.common.base.Joiner;
 import junit.framework.TestCase;
 

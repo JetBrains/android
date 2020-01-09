@@ -107,7 +107,7 @@ public class AndroidStudioInitializer implements Runnable {
   }
 
   private static void setupResourceManagerActions() {
-    replaceAction("Images.ShowThumbnails", new ShowFileInResourceManagerAction());
+    hideAction("Images.ShowThumbnails");
     // Move the ShowServicesAction to the end of the queue by re-registering it, since it will always consume the shortcut event.
     // TODO(144579193): Remove this workaround when it's no longer necessary.
     //  Eg: When ShowServicesAction can decide whether it's enabled or not.

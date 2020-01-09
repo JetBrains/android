@@ -111,7 +111,8 @@ class TableController(
   private fun fetchAndDisplayTableData() {
     val fetchTableDataFuture = edtExecutor.transformAsync(resultSet.columns) { columns ->
       if (Disposer.isDisposed(this)) throw ProcessCanceledException()
-      view.showTableColumns(columns!!)
+      view.showTableColumns(columns!!.filter { it.name != table?.rowIdName?.stringName })
+      view.setEditable(table != null)
 
       updateDataAndButtons()
     }
@@ -150,6 +151,7 @@ class TableController(
       } else {
         view.removeRows()
         view.showTableRowBatch(rows)
+        view.setEditable(table != null)
         Futures.immediateFuture(Unit)
       }
     }
@@ -246,14 +248,11 @@ class TableController(
     }
 
     override fun updateCellInvoked(targetRow: SqliteRow, targetColumn: SqliteColumn, newValue: Any?) {
-      if (table == null) {
-        view.reportError("Can't execute update. Table name unknown.", null)
-        return
-      }
+      require(table != null) { "Table is null, can't update." }
 
       val rowIdColumnValue = targetRow.values.firstOrNull { it.column.name == table.rowIdName?.stringName }
 
-      val parametersValues = mutableListOf<Any?>(newValue)
+      val parametersValues = mutableListOf(newValue)
 
       val whereExpression = if (rowIdColumnValue != null) {
         parametersValues.add(rowIdColumnValue.value)

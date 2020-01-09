@@ -59,6 +59,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -478,6 +479,14 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
       .stream()
       .anyMatch(
         view -> view.getIssueTitle().contains(text) || MULTIPLE_SPACES.matcher(view.getIssueDescription()).replaceAll(" ").contains(text));
+  }
+
+  @VisibleForTesting
+  public String getFullIssueText() {
+    return myDisplayedError.values()
+      .stream()
+      .map(view -> view.getIssueTitle() + "\n" + view.getIssueDescription() + "\n\n")
+      .collect(Collectors.joining());
   }
 
   /**

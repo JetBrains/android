@@ -76,7 +76,11 @@ data class SqliteColumn(val name: String, val type: JDBCType, val inPrimaryKey: 
 data class SqliteStatement(val sqliteStatementText: String, val parametersValues: List<Any?>) {
   constructor(sqliteStatement: String) : this(sqliteStatement, emptyList<Any?>())
 
-  override fun toString(): String {
+  /**
+   * Assigns [parametersValues] to corresponding parameters in [sqliteStatementText].
+   * Returns the resulting string.
+   */
+  fun assignValuesToParameters(): String {
     var renderedStatement = sqliteStatementText
     parametersValues.forEach {
       // TODO(b/143946270) doesn't handle statements like: `SELECT * FROM comments WHERE text LIKE "?" AND id > ?`

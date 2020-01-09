@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.truth.Truth.assertThat
 import com.intellij.designer.propertyTable.PropertyTable
+import junit.framework.Assert.fail
 import org.junit.Test
 
 class LegacyPropertiesProviderTest {
@@ -39,6 +40,8 @@ class LegacyPropertiesProviderTest {
     "accessibility:getContentDescription()=4,null focus:getDefaultFocusHighlightEnabled()=4,true drawing:getElevation()=3,0.0 " +
     "getFilterTouchesWhenObscured()=5,false getFitsSystemWindows()=5,false focus:getFocusable()=14,FOCUSABLE_AUTO " +
     "layout:getHeight()=3,123 accessibility:getImportantForAccessibility()=3,yes getImportantForAutofill()=3,yes " +
+    "layout_flags_DIM_BEHIND=3,0x2 layout_flags_ALT_FOCUSABLE_IM=7,0x20000 layout_flags_SPLIT_TOUCH=8,0x800000 " +
+    "layout_flags_HARDWARE_ACCELERATED=9,0x1000000 layout_flags_TRANSLUCENT_STATUS=9,0x4000000 layout_flags=9,0x5820002 " +
     "accessibility:getLabelFor()=2,-1 layout:getLayoutDirection()=22,RESOLVED_DIRECTION_LTR layout:layout_gravity=4,NONE " +
     "layout:layout_weight=3,0.0 layout:layout_bottomMargin=1,0 layout:layout_endMargin=11,-2147483648 layout:layout_leftMargin=1,0 " +
     "layout:layout_mMarginFlags_LEFT_MARGIN_UNDEFINED_MASK=3,0x4 layout:layout_mMarginFlags_RIGHT_MARGIN_UNDEFINED_MASK=3,0x8 " +
@@ -77,6 +80,7 @@ class LegacyPropertiesProviderTest {
     assertThat(root.scrollX).isEqualTo(0)
     assertThat(root.scrollY).isEqualTo(0)
     assertThat(root.viewId.toString()).isEqualTo("ResourceReference{namespace=apk/res-auto, type=id, name=textView}")
+    assertThat(root.isDimBehind).isTrue()
     check(properties, SdkConstants.ATTR_ID, "@id/textView")
     check(properties, SdkConstants.ATTR_TEXT, "Hello\\nWorld , =  @ :")
     check(properties, SdkConstants.ATTR_TEXT_COLOR, "#8A000000")

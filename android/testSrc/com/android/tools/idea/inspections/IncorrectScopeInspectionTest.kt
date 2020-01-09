@@ -44,6 +44,13 @@ class IncorrectScopeInspectionTest : AndroidGradleTestCase() {
     }
   }
 
+  fun testIgnoreEnum() {
+    val file = project.guessProjectDir()!!
+      .findFileByRelativePath("app/src/androidTest/java/com/example/android/kotlin/ExampleTestWithEnums.kt")!!
+    myFixture.openFileInEditor(file)
+    val highlightInfo = myFixture.doHighlighting(HighlightSeverity.ERROR)
+    assertThat(highlightInfo).isEmpty()
+  }
 
   fun testCorrectScopeAndroidTest() {
     val file = project.guessProjectDir()!!

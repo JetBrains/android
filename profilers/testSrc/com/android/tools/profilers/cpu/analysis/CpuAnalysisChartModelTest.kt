@@ -16,6 +16,8 @@
 package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.Range
+import com.android.tools.perflib.vmtrace.ClockType
+import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -36,5 +38,29 @@ class CpuAnalysisChartModelTest {
     model.axisComponentModel.updateImmediately()
     assertThat(selectionRange.min).isEqualTo(minRange + delta)
     assertThat(selectionRange.max).isEqualTo(maxRange)
+  }
+
+  @Test
+  fun selectionRangeDecoupledFromClockType() {
+    // Note: Numbers taken from valid capture.
+    val minRange = 2930527342743.0
+    val maxRange = 2930531342743.0
+    val selectionRange = Range(minRange, maxRange)
+    val capture = CpuProfilerTestUtils.getValidCapture()
+    val model = CpuAnalysisChartModel<CpuCapture>(CpuAnalysisTabModel.Type.TOP_DOWN, selectionRange, capture) { capture.captureNodes }
+    model.dataSeries.add(capture)
+    model.axisComponentModel.updateImmediately()
+    // Test Global
+    assertThat(selectionRange.min).isEqualTo(minRange)
+    assertThat(selectionRange.max).isEqualTo(maxRange)
+    assertThat(selectionRange.isSameAs(model.captureConvertedRange)).isTrue()
+    assertThat(model.clockType).isEqualTo(ClockType.GLOBAL)
+
+    // Test Thread
+    model.clockType = ClockType.THREAD
+    assertThat(selectionRange.min).isEqualTo(minRange)
+    assertThat(selectionRange.max).isEqualTo(maxRange)
+    assertThat(selectionRange.isSameAs(model.captureConvertedRange)).isFalse()
+    assertThat(model.clockType).isEqualTo(ClockType.THREAD)
   }
 }

@@ -17,8 +17,6 @@ package com.android.build.attribution.ui.panels;
 
 import static com.android.build.attribution.ui.panels.BuildAttributionPanelsKt.verticalRuler;
 
-import com.android.utils.HtmlBuilder;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.util.ui.JBUI;
 import java.awt.GridBagConstraints;
@@ -28,6 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class ChartBuildAttributionInfoPanel extends AbstractBuildAttributionInfoPanel {
+  int preferredWidth = 0;
 
   @Override
   public JComponent createBody() {
@@ -101,6 +100,7 @@ public abstract class ChartBuildAttributionInfoPanel extends AbstractBuildAttrib
     c.fill = GridBagConstraints.NONE;
     c.insets = JBUI.insetsRight(8);
     body.add(chart, c);
+    preferredWidth += chart.getPreferredSize().width;
   }
 
   private void addInfo(JBPanel body) {
@@ -129,11 +129,17 @@ public abstract class ChartBuildAttributionInfoPanel extends AbstractBuildAttrib
     if (info != null) {
       body.add(verticalRuler(), rulerConstraints);
       body.add(info, panelConstraints);
+      preferredWidth += info.getPreferredSize().width + 17;
     }
     else {
       //need to add horizontal filler
       body.add(new JBPanel<>(), panelConstraints);
     }
+  }
+
+  @Override
+  public int calculatePreferredWidth() {
+    return preferredWidth;
   }
 
   @NotNull

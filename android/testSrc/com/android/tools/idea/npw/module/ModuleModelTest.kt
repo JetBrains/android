@@ -44,8 +44,7 @@ class ModuleModelTest : AndroidGradleTestCase() {
   fun testInitFillsAllTheDataForLibraryModule() {
     loadSimpleApplication()
 
-    val templateFile = TemplateManager.getTemplate(Template.CATEGORY_APPLICATION, "Java or Kotlin Library")
-    val libraryModuleModel = NewLibraryModuleModel(project, templateFile, projectSyncInvoker).apply {
+    val libraryModuleModel = NewLibraryModuleModel(project, projectSyncInvoker).apply {
       packageName.set("com.google.lib")
     }
 

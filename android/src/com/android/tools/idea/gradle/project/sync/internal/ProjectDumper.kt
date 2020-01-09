@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.facet.java.JavaFacetConfiguration
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacetConfiguration
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.utils.FileUtils
 import com.intellij.facet.Facet
 import com.intellij.facet.FacetManager
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -123,12 +124,12 @@ class ProjectDumper(
 
   fun String.replaceKnownPaths(): String =
     this
-      .let { offlineRepos.fold(it) { text, repo -> text.replace(repo.absolutePath, "<M2>", ignoreCase = false) } }
+      .let { offlineRepos.fold(it) { text, repo -> text.replace(FileUtils.toSystemIndependentPath(repo.absolutePath), "<M2>", ignoreCase = false) } }
       .let { additionalRoots.entries.fold(it) { text, (name, dir) -> text.replace(dir.absolutePath, "<$name>", ignoreCase = false) } }
-      .replace(currentRootDirectory.absolutePath, "<$currentRootDirectoryName>", ignoreCase = false)
-      .replace(gradleCache.absolutePath, "<GRADLE>", ignoreCase = false)
-      .replace(androidSdk.absolutePath, "<ANDROID_SDK>", ignoreCase = false)
-      .replace(devBuildHome.absolutePath, "<DEV>", ignoreCase = false)
+      .replace(FileUtils.toSystemIndependentPath(currentRootDirectory.absolutePath), "<$currentRootDirectoryName>", ignoreCase = false)
+      .replace(FileUtils.toSystemIndependentPath(gradleCache.absolutePath), "<GRADLE>", ignoreCase = false)
+      .replace(FileUtils.toSystemIndependentPath(androidSdk.absolutePath), "<ANDROID_SDK>", ignoreCase = false)
+      .replace(FileUtils.toSystemIndependentPath(devBuildHome.absolutePath), "<DEV>", ignoreCase = false)
       .let {
         if (it.contains(gradleVersionPattern)) {
           it.replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")

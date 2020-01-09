@@ -23,6 +23,10 @@ import static com.android.SdkConstants.TAG_USES_PERMISSION_SDK_23;
 import static com.android.SdkConstants.TAG_USES_PERMISSION_SDK_M;
 import static com.android.tools.lint.checks.PermissionDetector.MISSING_PERMISSION;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.DefaultLintQuickFix;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.lint.checks.PermissionRequirement;
 import com.android.tools.lint.detector.api.LintFix;
@@ -60,9 +64,6 @@ import java.util.Set;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -80,8 +81,8 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message,
-                                             LintFix quickfixData) {
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message,
+                                         LintFix quickfixData) {
     if (quickfixData instanceof LintFix.DataMap) {
       LintFix.DataMap map = (LintFix.DataMap)quickfixData;
       @SuppressWarnings("unchecked")
@@ -100,16 +101,16 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
       if (lastApplicableApi != null) {
         // [missing permissions: Set<String>, maxSdkVersion: Integer] :
         // Add quickfixes for the missing permissions
-        List<AndroidLintQuickFix> fixes = Lists.newArrayListWithExpectedSize(4);
+        List<LintIdeQuickFix> fixes = Lists.newArrayListWithExpectedSize(4);
         for (String name : names) {
           fixes.add(new AddPermissionFix(facet, name, lastApplicableApi));
         }
-        return fixes.toArray(AndroidLintQuickFix.EMPTY_ARRAY);
+        return fixes.toArray(LintIdeQuickFix.EMPTY_ARRAY);
       }
       else if (requirement != null) {
         // [revocable permissions: Set<String>, requirement: PermissionRequirement] :
         // Add quickfix for requesting permissions
-        return new AndroidLintQuickFix[]{
+        return new LintIdeQuickFix[]{
           new AddCheckPermissionFix(facet, requirement, startElement, names)
         };
       }
@@ -134,7 +135,7 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
     @NotNull
     @Override
     public String getName() {
-      return String.format("Add Permission %1$s", myPermissionName.substring(myPermissionName.lastIndexOf('.')+1));
+      return String.format("Add Permission %1$s", myPermissionName.substring(myPermissionName.lastIndexOf('.') + 1));
     }
 
     @Override
@@ -177,9 +178,10 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
           if (tagName.equals(TAG_APPLICATION)) {
             before = tag;
             break;
-          } else if (tagName.equals(TAG_USES_PERMISSION)
-                     || tagName.equals(TAG_USES_PERMISSION_SDK_23)
-                     || tagName.equals(TAG_USES_PERMISSION_SDK_M)) {
+          }
+          else if (tagName.equals(TAG_USES_PERMISSION)
+                   || tagName.equals(TAG_USES_PERMISSION_SDK_23)
+                   || tagName.equals(TAG_USES_PERMISSION_SDK_M)) {
             String name = tag.getAttributeValue(ATTR_NAME, ANDROID_URI);
             if (name != null && name.compareTo(myPermissionName) > 0) {
               before = tag;
@@ -189,7 +191,8 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
         }
         if (before == null) {
           permissionTag = manifestTag.addSubTag(permissionTag, false);
-        } else {
+        }
+        else {
           permissionTag = (XmlTag)manifestTag.addBefore(permissionTag, before);
         }
 
@@ -373,7 +376,6 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
       }
       else {
         sb.append("return");
-
       }
       if (!isKotlin) {
         sb.append(';');

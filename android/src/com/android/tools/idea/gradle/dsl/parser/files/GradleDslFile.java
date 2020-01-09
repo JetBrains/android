@@ -249,7 +249,7 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
 
   public void saveAllChanges() {
     PsiElement element = getPsiElement();
-    // Properties files to not have PsiElements.
+    // Properties files do not have PsiElements.
     if (element == null) {
       return;
     }
@@ -269,6 +269,10 @@ public abstract class GradleDslFile extends GradlePropertiesDslElement {
 
     // Save the file to disk to ensure the changes exist when it is read.
     FileDocumentManager.getInstance().saveDocument(document);
+    // Saving can alter the document, for example if any trailing spaces were present and were removed on save.
+    if (!psiDocumentManager.isCommitted(document)) {
+      psiDocumentManager.commitDocument(document);
+    }
   }
 
   @Nullable

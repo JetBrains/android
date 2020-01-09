@@ -17,6 +17,7 @@ package com.android.tools.idea.model;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
 import static com.android.tools.idea.instantapp.InstantApps.findBaseFeature;
+import static com.android.tools.idea.model.AndroidManifestIndexQueryUtils.queryMinSdkAndTargetSdkFromManifestIndex;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.utils.concurrency.AsyncSupplier;
@@ -24,7 +25,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -38,12 +42,13 @@ import org.jetbrains.annotations.TestOnly;
  * Android information about a module, such as its application package, its minSdkVersion, and so on. This
  * is derived by querying the gradle model, or the manifest file if the model doesn't exist (not constructed, or
  * not a Gradle project).
- *
+ * <p>
  * Note that in some cases you may need to obtain information from the merged manifest file. In such a case,
  * either obtain it from {@link AndroidModuleInfo} if the information is also available in the gradle model
  * (e.g. minSdk, targetSdk, packageName, etc), or use {@link MergedManifestManager#getSnapshot(Module)}.
  */
 public class AndroidModuleInfo extends AndroidFacetScopedService {
+  private static final Logger LOG = Logger.getInstance(AndroidModuleInfo.class);
   @VisibleForTesting
   static final Key<AndroidModuleInfo> KEY = Key.create(AndroidModuleInfo.class.getName());
 
@@ -107,7 +112,8 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
   }
 
   @NotNull
-  private static <T> ListenableFuture<T> getFromMergedManifest(@NotNull AndroidFacet facet, @NotNull Function<MergedManifestSnapshot, T> getter) {
+  private static <T> ListenableFuture<T> getFromMergedManifest(@NotNull AndroidFacet facet,
+                                                               @NotNull Function<MergedManifestSnapshot, T> getter) {
     AsyncSupplier<MergedManifestSnapshot> manifestSupplier = MergedManifestManager.getMergedManifestSupplier(facet.getModule());
     MergedManifestSnapshot cachedManifest = manifestSupplier.getNow();
     if (cachedManifest != null) {
@@ -174,6 +180,19 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
       // Else: not specified in gradle files; fall back to manifest
     }
 
+    if (AndroidManifestIndex.indexEnabled()) {
+      try {
+        return DumbService.getInstance(facet.getModule().getProject())
+          .runReadActionInSmartMode(() -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getMinSdk());
+      }
+      catch (IndexNotReadyException e) {
+        // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+        //  We need to refactor the callers of this to require a *smart*
+        //  read action, at which point we can remove this try-catch.
+        LOG.info(e);
+      }
+    }
+
     return MergedManifestManager.getSnapshot(facet).getMinSdkVersion();
   }
 
@@ -188,6 +207,19 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
       }
 
       // Else: not specified in gradle files; fall back to manifest
+    }
+
+    if (AndroidManifestIndex.indexEnabled()) {
+      try {
+        return DumbService.getInstance(facet.getModule().getProject())
+          .runReadActionInSmartMode(() -> queryMinSdkAndTargetSdkFromManifestIndex(facet).getTargetSdk());
+      }
+      catch (IndexNotReadyException e) {
+        // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+        //  We need to refactor the callers of this to require a *smart*
+        //  read action, at which point we can remove this try-catch.
+        LOG.info(e);
+      }
     }
 
     return MergedManifestManager.getSnapshot(facet).getTargetSdkVersion();
@@ -221,36 +253,6 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
     }
 
     return MergedManifestManager.getSnapshot(facet).getApplicationDebuggable();
-  }
-
-  @NotNull
-  public static AndroidVersion getTargetSdkVersion(@Nullable Module module) {
-    if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        AndroidModuleInfo moduleInfo = getInstance(facet.getModule());
-        if (moduleInfo != null) {
-          return moduleInfo.getTargetSdkVersion();
-        }
-      }
-    }
-
-    return AndroidVersion.DEFAULT;
-  }
-
-  @NotNull
-  public static AndroidVersion getMinSdkVersion(@Nullable Module module) {
-    if (module != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null) {
-        AndroidModuleInfo moduleInfo = getInstance(facet.getModule());
-        if (moduleInfo != null) {
-          return moduleInfo.getMinSdkVersion();
-        }
-      }
-    }
-
-    return AndroidVersion.DEFAULT;
   }
 
   @Override

@@ -15,11 +15,19 @@
  */
 package org.jetbrains.android.refactoring;
 
+import static com.android.SdkConstants.ATTR_ID;
+
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.lint.LintIdeClient;
-import com.android.tools.idea.lint.LintIdeIssueRegistry;
-import com.android.tools.idea.lint.LintIdeRequest;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
+import com.android.tools.idea.gradle.dsl.api.android.FlavorTypeModel.ResValue;
+import com.android.tools.idea.lint.AndroidLintIdeIssueRegistry;
+import com.android.tools.idea.lint.common.LintBatchResult;
+import com.android.tools.idea.lint.common.LintIdeClient;
+import com.android.tools.idea.lint.common.LintIdeRequest;
+import com.android.tools.idea.lint.common.LintIdeSupport;
+import com.android.tools.idea.lint.common.LintProblemData;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.checks.UnusedResourceDetector;
 import com.android.tools.lint.client.api.LintDriver;
@@ -35,12 +43,12 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
-import com.intellij.openapi.util.Segment;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -52,26 +60,24 @@ import com.intellij.refactoring.util.RefactoringUIUtil;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.usageView.UsageViewUtil;
-import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.containers.ContainerUtil;
-import kotlin.collections.CollectionsKt;
-import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
-import org.jetbrains.android.inspections.lint.ProblemData;
+import java.util.stream.Collectors;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.plugins.groovy.GroovyFileType;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyElementTypes;
+import org.jetbrains.kotlin.psi.KtFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
-import org.jetbrains.plugins.groovy.lang.psi.GroovyRecursiveElementVisitor;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrApplicationStatement;
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrExpression;
-import org.jetbrains.plugins.groovy.lang.psi.util.GroovyConstantExpressionEvaluator;
 
-import java.io.File;
 import java.util.*;
 
-import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.EXT_GRADLE;
+import static com.android.SdkConstants.EXT_GRADLE_KTS;
+import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 
 public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   private final String myFilter;
@@ -79,11 +85,13 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   private PsiElement[] myElements = PsiElement.EMPTY_ARRAY;
   private boolean myIncludeIds;
   private String myCachedCommandName = null;
+  private Map<PsiElement, GradleBuildModel> myBuildModelMap;
 
   public UnusedResourcesProcessor(@NotNull Project project, @NotNull Module[] modules, @Nullable String filter) {
     super(project, null);
     myModules = modules;
     myFilter = filter;
+    myBuildModelMap = new HashMap<>();
   }
 
   @Override
@@ -95,7 +103,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   @Override
   @NotNull
   protected UsageInfo[] findUsages() {
-    Map<Issue, Map<File, List<ProblemData>>> map = computeUnusedMap();
+    Map<Issue, Map<File, List<LintProblemData>>> map = computeUnusedMap();
     List<PsiElement> elements = computeUnusedDeclarationElements(map);
     myElements = elements.toArray(PsiElement.EMPTY_ARRAY);
     UsageInfo[] result = new UsageInfo[myElements.length];
@@ -106,7 +114,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   }
 
   @NotNull
-  private List<PsiElement> computeUnusedDeclarationElements(Map<Issue, Map<File, List<ProblemData>>> map) {
+  private List<PsiElement> computeUnusedDeclarationElements(Map<Issue, Map<File, List<LintProblemData>>> map) {
     final List<PsiElement> elements = Lists.newArrayList();
 
     // Make sure lint didn't put extra issues into the map
@@ -119,7 +127,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
     PsiManager manager = PsiManager.getInstance(myProject);
 
     for (Issue issue : new Issue[]{UnusedResourceDetector.ISSUE, UnusedResourceDetector.ISSUE_IDS}) {
-      Map<File, List<ProblemData>> fileListMap = map.get(issue);
+      Map<File, List<LintProblemData>> fileListMap = map.get(issue);
       if (fileListMap != null && !fileListMap.isEmpty()) {
         Map<File, PsiFile> files = Maps.newHashMap();
         for (File file : fileListMap.keySet()) {
@@ -147,7 +155,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
               continue;
             }
 
-            List<ProblemData> problems = fileListMap.get(file);
+            List<LintProblemData> problems = fileListMap.get(file);
 
             if (psiFile.getFileType().isBinary()) {
               // Delete the whole file
@@ -164,38 +172,35 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
                 // Attempt to find the resource in the build file. If we can't,
                 // we'll ignore this resource (it would be dangerous to just delete the
                 // file; see for example http://b.android.com/220069.)
-                if (psiFile.getFileType() == GroovyFileType.GROOVY_FILE_TYPE &&
-                    psiFile instanceof GroovyFile) {
-                  ((GroovyFile)psiFile).accept(new GroovyRecursiveElementVisitor() {
-                    @Override
-                    public void visitApplicationStatement(@NotNull GrApplicationStatement applicationStatement) {
-                      super.visitApplicationStatement(applicationStatement);
-                      if (applicationStatement.getNode().getElementType() != GroovyElementTypes.APPLICATION_EXPRESSION) {
-                        return;
-                      }
-                      PsiElement method = applicationStatement.getFirstChild();
-                      if (method != null && method.getText().equals("resValue")) {
-                        GrExpression[] args = applicationStatement.getArgumentList().getExpressionArguments();
-                        if (args.length >= 3) {
-                          Object typeString = GroovyConstantExpressionEvaluator.evaluate(args[0]);
-                          Object nameString = GroovyConstantExpressionEvaluator.evaluate(args[1]);
-                          // See if this is one of the unused resources
-                          if (typeString != null && nameString != null) {
-                            List<ProblemData> problems = fileListMap.get(VfsUtilCore.virtualToIoFile(psiFile.getVirtualFile()));
-                            if (problems != null) {
-                              for (ProblemData problem : problems) {
-                                String unusedResource = LintFix.getData(problem.getQuickfixData(), String.class);
-                                if (unusedResource != null &&
-                                    unusedResource.equals(SdkConstants.R_PREFIX + typeString + '.' + nameString)) {
-                                  elements.add(applicationStatement);
-                                }
-                              }
-                            }
+                if ((psiFile instanceof GroovyFile || psiFile instanceof KtFile) &&
+                    (psiFile.getName().endsWith(EXT_GRADLE) || psiFile.getName().endsWith(EXT_GRADLE_KTS))) {
+                  GradleBuildModel gradleBuildModel = GradleBuildModel.parseBuildFile(psiFile.getVirtualFile(), myProject);
+                  // Get all the resValue declared within the android block.
+                  AndroidModel androidElement = gradleBuildModel.android();
+                  List<ResValue> resValues = androidElement.defaultConfig().resValues();
+                  resValues.addAll(
+                    androidElement.productFlavors().stream().flatMap(e -> e.resValues().stream()).collect(Collectors.toList()));
+                  resValues.addAll(
+                    androidElement.buildTypes().stream().flatMap(e -> e.resValues().stream()).collect(Collectors.toList()));
+                  for (ResValue resValue : resValues) {
+                    Object typeString = resValue.type();
+                    Object nameString = resValue.name();
+                    // See if this is one of the unused resources
+                    List<LintProblemData> lintProblems = fileListMap.get(VfsUtilCore.virtualToIoFile(psiFile.getVirtualFile()));
+                    if (problems != null) {
+                      for (LintProblemData problem : lintProblems) {
+                        String unusedResource = LintFix.getData(problem.getQuickfixData(), String.class);
+                        if (unusedResource != null && unusedResource.equals(SdkConstants.R_PREFIX + typeString + '.' + nameString)) {
+                          if (resValue.getModel().getPsiElement() != null) {
+                            elements.add(resValue.getModel().getPsiElement());
+                            // Keep track of the current buildModel to apply refactoring later on.
+                            myBuildModelMap.put(resValue.getModel().getPsiElement(), gradleBuildModel);
+                            resValue.remove();
                           }
                         }
                       }
                     }
-                  });
+                  }
                 }
 
                 continue;
@@ -204,7 +209,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
                 // Make sure it's not an unused id declaration in a layout/menu/etc file that's
                 // also being deleted as unused
                 if (issue == UnusedResourceDetector.ISSUE_IDS) {
-                  Map<File, List<ProblemData>> m = map.get(UnusedResourceDetector.ISSUE);
+                  Map<File, List<LintProblemData>> m = map.get(UnusedResourceDetector.ISSUE);
                   if (m != null && m.containsKey(file)) {
                     // Yes - skip
                     continue;
@@ -231,11 +236,11 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
     return elements;
   }
 
-  private void addElementsInFile(List<PsiElement> elements, PsiFile psiFile, List<ProblemData> problems) {
+  private void addElementsInFile(List<PsiElement> elements, PsiFile psiFile, List<LintProblemData> problems) {
     // Delete all the resources in the given file
     if (psiFile instanceof XmlFile) {
       List<Integer> starts = Lists.newArrayListWithCapacity(problems.size());
-      for (ProblemData problem : problems) {
+      for (LintProblemData problem : problems) {
         if (matchesFilter(problem)) {
           starts.add(problem.getTextRange().getStartOffset());
         }
@@ -262,8 +267,8 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
   }
 
   @NotNull
-  private Map<Issue, Map<File, List<ProblemData>>> computeUnusedMap() {
-    Map<Issue, Map<File, List<ProblemData>>> map = Maps.newHashMap();
+  private Map<Issue, Map<File, List<LintProblemData>>> computeUnusedMap() {
+    Map<Issue, Map<File, List<LintProblemData>>> map = Maps.newHashMap();
 
     Set<Issue> issues;
     if (myIncludeIds) {
@@ -280,10 +285,11 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
     UnusedResourceDetector.ISSUE_IDS.setEnabledByDefault(myIncludeIds);
 
     try {
-      LintIdeClient client = LintIdeClient.forBatch(myProject, map, scope, issues);
+      LintBatchResult lintResult = new LintBatchResult(myProject, map, scope, issues);
+      LintIdeClient client = LintIdeSupport.get().createBatchClient(lintResult);
       LintRequest request = new LintIdeRequest(client, myProject, null, Arrays.asList(myModules), false);
       request.setScope(Scope.ALL);
-      LintDriver lint = new LintDriver(new LintIdeIssueRegistry(), client, request);
+      LintDriver lint = new LintDriver(new AndroidLintIdeIssueRegistry(), client, request);
       lint.analyze();
     }
     finally {
@@ -294,10 +300,10 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
     return map;
   }
 
-  private boolean matchesFilter(@NotNull Map<File, List<ProblemData>> fileListMap, @NotNull File file) {
+  private boolean matchesFilter(@NotNull Map<File, List<LintProblemData>> fileListMap, @NotNull File file) {
     if (myFilter != null) {
-      List<ProblemData> problems = fileListMap.get(file);
-      for (ProblemData problem : problems) {
+      List<LintProblemData> problems = fileListMap.get(file);
+      for (LintProblemData problem : problems) {
         String unusedResource = LintFix.getData(problem.getQuickfixData(), String.class);
         if (myFilter.equals(unusedResource)) {
           return true;
@@ -308,7 +314,7 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
     return true;
   }
 
-  private boolean matchesFilter(@NotNull ProblemData problem) {
+  private boolean matchesFilter(@NotNull LintProblemData problem) {
     return myFilter == null || myFilter.equals(LintFix.getData(problem.getQuickfixData(), String.class));
   }
 
@@ -347,7 +353,12 @@ public class UnusedResourcesProcessor extends BaseRefactoringProcessor {
       for (UsageInfo usage : usages) {
         PsiElement element = usage.getElement();
         if (element != null && element.isValid()) {
-          element.delete();
+          if (myBuildModelMap.get(element) != null && myBuildModelMap.get(element).isModified()) {
+            runWriteCommandAction(myProject, myBuildModelMap.get(element)::applyChanges);
+          }
+          else {
+            element.delete();
+          }
         }
       }
     }

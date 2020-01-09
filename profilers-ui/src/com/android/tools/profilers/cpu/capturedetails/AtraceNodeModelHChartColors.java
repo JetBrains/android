@@ -24,6 +24,7 @@ import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
+import com.intellij.ui.ColorUtil;
 import com.intellij.ui.JBColor;
 import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
@@ -52,11 +53,15 @@ class AtraceNodeModelHChartColors {
                                boolean isDeselected) {
     Color color;
     if (chartType == CaptureDetails.Type.CALL_CHART) {
+      int index = model.getFullName().hashCode();
       if (isDeselected) {
         color = DataVisualizationColors.INSTANCE.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 1, isFocused);
-      } else {
-        threadColors.setColorIndex(isFocused ? 1 : 0);
-        color = threadColors.getColor(CpuProfilerStage.ThreadState.RUNNABLE_CAPTURED);
+      }
+      else if (JBColor.isBright()) {
+        color = ColorUtil.darker(DataVisualizationColors.INSTANCE.getColor(index, isFocused), 5);
+      }
+      else {
+        color = ColorUtil.brighter(DataVisualizationColors.INSTANCE.getColor(index, isFocused), 5);
       }
     }
     else {

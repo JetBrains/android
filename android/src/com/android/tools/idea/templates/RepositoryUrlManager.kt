@@ -28,7 +28,7 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.gradle.eclipse.ImportModule
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleLocalCache
-import com.android.tools.idea.lint.LintIdeClient
+import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator
@@ -178,7 +178,10 @@ class RepositoryUrlManager @VisibleForTesting constructor(
     return null
   }
 
-  fun resolveDynamicCoordinateVersion(coordinate: GradleCoordinate, project: Project?, sdkHandler: AndroidSdkHandler): String? {
+  fun resolveDynamicCoordinateVersion(coordinate: GradleCoordinate, project: Project?, sdkHandler: AndroidSdkHandler?): String? {
+    @Suppress("NAME_SHADOWING")
+    val sdkHandler = sdkHandler ?: AndroidSdks.getInstance().tryToChooseSdkHandler()
+
     val revision = coordinate.revision
     if (!revision.endsWith(REVISION_ANY)) {
       // Already resolved.
@@ -243,7 +246,7 @@ class RepositoryUrlManager @VisibleForTesting constructor(
 
     // Perform network lookup to resolve current best version, if possible.
     project ?: return null
-    val client: LintClient = LintIdeClient(project)
+    val client: LintClient = LintIdeSupport.get().createClient(project)
     val latest = getLatestVersionFromRemoteRepo(client, coordinate, filter, coordinate.isPreview)?.toString() ?: return null
     if (latest.startsWith(versionPrefix)) {
       return latest

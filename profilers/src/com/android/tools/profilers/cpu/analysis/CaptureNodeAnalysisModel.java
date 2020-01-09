@@ -38,9 +38,14 @@ public class CaptureNodeAnalysisModel implements CpuAnalyzable<CaptureNodeAnalys
   }
 
   @NotNull
+  public Range getNodeRange() {
+    return new Range(myNode.getStart(), myNode.getEnd());
+  }
+
+  @NotNull
   @Override
   public CpuAnalysisModel<CaptureNodeAnalysisModel> getAnalysisModel() {
-    Range nodeRange = new Range(myNode.getStart(), myNode.getEnd());
+    Range nodeRange = getNodeRange();
     Collection<CaptureNode> nodes = Collections.singleton(myNode);
     CpuAnalysisChartModel<CaptureNodeAnalysisModel> flameChart =
       new CpuAnalysisChartModel<>(CpuAnalysisTabModel.Type.FLAME_CHART, nodeRange, myCapture, unused -> nodes);

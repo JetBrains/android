@@ -23,7 +23,7 @@ import com.android.manifmerger.IntentFilterNodeKeyResolver;
 import com.android.manifmerger.XmlNode;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.PositionXmlParser;
 import com.google.common.io.Files;
@@ -40,6 +40,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
+import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -229,13 +230,8 @@ public class ManifestUtils {
   }
 
   @Nullable/*this file is not from the main module*/
-  public static IdeaSourceProvider findManifestSourceProvider(@NotNull AndroidFacet facet, @NotNull VirtualFile manifestFile) {
-    for (IdeaSourceProvider provider : SourceProviderManager.getInstance(facet).getCurrentSourceProviders()) {
-      if (manifestFile.equals(provider.getManifestFile())) {
-        return provider;
-      }
-    }
-    return null;
+  public static NamedIdeaSourceProvider findManifestSourceProvider(@NotNull AndroidFacet facet, @NotNull VirtualFile manifestFile) {
+    return IdeaSourceProviderUtil.findByFile(SourceProviderManager.getInstance(facet).getCurrentSourceProviders(), manifestFile);
   }
 
   public static @NotNull XmlFile getMainManifest(@NotNull AndroidFacet facet) {

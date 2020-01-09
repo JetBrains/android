@@ -104,8 +104,6 @@ public class GradleSyncExecutor {
           setupRequest.usingCachedGradleModels = true;
           setupRequest.lastSyncTimestamp = buildFileChecksums.getLastGradleSyncTimestamp();
 
-          setSkipAndroidPluginUpgrade(request, setupRequest);
-
           // Create a new taskId when using cache
           ExternalSystemTaskId taskId = createProjectSetupFromCacheTaskWithStartMessage(myProject);
 
@@ -123,7 +121,6 @@ public class GradleSyncExecutor {
 
     // Setup the settings for setup.
     PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-    setupRequest.cleanProjectAfterSync = request.cleanProject;
     setupRequest.usingCachedGradleModels = false;
 
     // Setup the settings for the resolver.
@@ -131,8 +128,6 @@ public class GradleSyncExecutor {
     boolean shouldUseSingleVariantSync = !request.forceFullVariantsSync && GradleSyncState.isSingleVariantSync();
     // We also need to pass the listener so that the callbacks can be used
     setProjectUserDataForAndroidGradleProjectResolver(shouldUseSingleVariantSync, listener);
-
-    setSkipAndroidPluginUpgrade(request, setupRequest);
 
     // the sync should be aware of multiple linked gradle project with a single IDE project
     // and a linked gradle project can be located not in the IDE Project.baseDir
@@ -171,7 +166,7 @@ public class GradleSyncExecutor {
 
   /**
    * Attempts to find and link a Gradle project based at the current Project's base path.
-   *
+   * <p>
    * This method should only be called when running and Android Studio since intellij needs to support legacy Gradle projects
    * which should not be linked via the ExternalSystem API.
    *
@@ -183,7 +178,7 @@ public class GradleSyncExecutor {
     @SystemIndependent String projectBasePath = project.getBasePath();
     // We can't link anything if we have no path
     if (projectBasePath == null) {
-     return null;
+      return null;
     }
 
     String externalProjectPath = ExternalSystemApiUtil.toCanonicalPath(projectBasePath);
@@ -201,20 +196,13 @@ public class GradleSyncExecutor {
     return externalProjectPath;
   }
 
-  private static void setSkipAndroidPluginUpgrade(@NotNull GradleSyncInvoker.Request syncRequest,
-                                                  @NotNull PostSyncProjectSetup.Request setupRequest) {
-    if (ApplicationManager.getApplication().isUnitTestMode() && syncRequest.skipAndroidPluginUpgrade) {
-      setupRequest.skipAndroidPluginUpgrade = true;
-    }
-  }
-
   /**
    * This method sets up the information to be used by the AndroidGradleProjectResolver.
    * We use the projects user data as a way of passing this information across since the resolver is create by the
    * external system infrastructure.
    *
-   * @param singleVariant         whether or not only a single variant should be synced
-   * @param listener              the listener that is being used for the current sync.
+   * @param singleVariant whether or not only a single variant should be synced
+   * @param listener      the listener that is being used for the current sync.
    */
   private void setProjectUserDataForAndroidGradleProjectResolver(boolean singleVariant,
                                                                  @Nullable GradleSyncListener listener) {
@@ -280,6 +268,9 @@ public class GradleSyncExecutor {
       rootManager.orderEntries().withoutModuleSourceEntries().withoutDepModules().forEach(entry -> {
         for (OrderRootType type : OrderRootType.getAllTypes()) {
           List<String> expectedUrls = asList(entry.getUrls(type));
+          if (expectedUrls.isEmpty()) {
+            continue;
+          }
           // CLASSES root contains jar file and res folder, and none of them are guaranteed to exist. Fail validation only if
           // all files are missing.
           if (type.equals(CLASSES)) {

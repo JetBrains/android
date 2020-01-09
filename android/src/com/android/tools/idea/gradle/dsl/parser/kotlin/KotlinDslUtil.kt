@@ -89,7 +89,7 @@ internal fun convertToExternalTextValue(context: GradleDslSimpleExpression, appl
   val resolvedReference = context.resolveReference(referenceText, false) ?: return referenceText
   // Get the resolvedReference value type that might be used for the final cast.
   // TODO(karimai): what if the type need to be imported ?
-  val className = if (resolvedReference is GradleDslLiteral) resolvedReference.value?.javaClass?.simpleName else null
+  val className = if (resolvedReference is GradleDslLiteral) resolvedReference.value?.javaClass?.kotlin?.simpleName else null
   var externalName = StringBuilder()
   var lastArray = false
   var currentParent = resolvedReference.parent

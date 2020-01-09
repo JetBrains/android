@@ -75,7 +75,7 @@ class SqliteEvaluatorController(
   }
 
   fun evaluateSqlStatement(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
-    view.showSqliteStatement(sqliteStatement.toString())
+    view.showSqliteStatement(sqliteStatement.assignValuesToParameters())
     view.selectDatabase(database)
     return execute(database, sqliteStatement)
   }
@@ -99,6 +99,7 @@ class SqliteEvaluatorController(
         } else {
           // update statement
           view.tableView.resetView()
+          view.tableView.setEditable(false)
           listeners.forEach { it.onSchemaUpdated(database) }
         }
 

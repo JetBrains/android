@@ -43,6 +43,8 @@ open class MockTableView : TableView {
 
   override fun setFetchNextRowsButtonState(enable: Boolean) { }
 
+  override fun setEditable(isEditable: Boolean) { }
+
   override fun addListener(listener: TableView.Listener) {
     listeners.add(listener)
   }

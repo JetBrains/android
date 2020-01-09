@@ -47,13 +47,21 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AndroidResourceReference extends AndroidResourceReferenceBase {
   private final GenericDomValue<ResourceValue> myValue;
+  private boolean myIncludeDynamicFeatures;
 
   public AndroidResourceReference(@NotNull GenericDomValue<ResourceValue> value,
                                   @NotNull AndroidFacet facet,
-                                  @NotNull ResourceValue resourceValue) {
+                                  @NotNull ResourceValue resourceValue,
+                                  boolean includeDynamicFeatures) {
     // Range is calculated in calculateDefaultRangeInElement.
     super(value, null, resourceValue, facet);
     myValue = value;
+    myIncludeDynamicFeatures = includeDynamicFeatures;
+  }
+
+  @Override
+  public boolean includeDynamicFeatures() {
+    return myIncludeDynamicFeatures;
   }
 
   @Override

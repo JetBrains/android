@@ -17,6 +17,8 @@
 
 package com.android.tools.idea.model
 
+import com.android.sdklib.AndroidVersion
+import com.android.sdklib.SdkVersionInfo
 import com.android.tools.idea.model.AndroidManifestIndex.Companion.getDataForMergedManifestContributors
 import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -67,3 +69,29 @@ fun AndroidFacet.queryActivitiesFromManifestIndex() = queryManifestIndex { overr
   activityWrappers.addAll(activityAliasWrappers)
   activityWrappers
 }
+
+/**
+ * Returns the first non-null minSdk and targetSdk, or AndroidVersion.DEFAULT if none of the contributors specifies them,
+ * instead of merged results with merging rules applied.
+ */
+fun AndroidFacet.queryMinSdkAndTargetSdkFromManifestIndex() = queryManifestIndex { overrides, contributors ->
+  var minSdkLevel: String? = null
+  var targetSdkLevel: String? = null
+
+  contributors.forEach { manifest ->
+    if (minSdkLevel == null && manifest.minSdkLevel != null) {
+      minSdkLevel = overrides.resolvePlaceholders(manifest.minSdkLevel)
+    }
+
+    if (targetSdkLevel == null && manifest.targetSdkLevel != null) {
+      targetSdkLevel = overrides.resolvePlaceholders(manifest.targetSdkLevel)
+    }
+
+    if (minSdkLevel != null && targetSdkLevel != null) return@forEach
+  }
+
+  MinSdkAndTargetSdk(SdkVersionInfo.getVersion(minSdkLevel, null) ?: AndroidVersion.DEFAULT,
+                     SdkVersionInfo.getVersion(targetSdkLevel, null) ?: AndroidVersion.DEFAULT)
+}
+
+data class MinSdkAndTargetSdk(val minSdk: AndroidVersion, val targetSdk: AndroidVersion)

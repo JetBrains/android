@@ -73,6 +73,7 @@ import com.android.tools.idea.wizard.template.ParameterWidget
 import com.android.tools.idea.wizard.template.Separator
 import com.android.tools.idea.wizard.template.StringParameter
 import com.android.tools.idea.wizard.template.Template
+import com.android.tools.idea.wizard.template.TemplateConstraint
 import com.android.tools.idea.wizard.template.TextFieldWidget
 import com.android.tools.idea.wizard.template.Widget
 import com.google.common.base.Joiner
@@ -273,7 +274,11 @@ class ConfigureTemplateParametersStep2(model: RenderTemplateModel, title: String
     is TextFieldWidget -> RowEntry(widget.p.name, TextFieldProvider2(widget.parameter))
     is LanguageWidget -> RowEntry(message("android.wizard.language.combo.header"), LanguageComboProvider()).also {
       val language = (it.property as SelectedItemProperty<Language>)
-      bindings.bindTwoWay(ObjectProperty.wrap(language), model.renderLanguage)
+      bindings.bindTwoWay(language, model.language)
+      if (TemplateConstraint.Kotlin in model.newTemplate.constraints) {
+        model.language.value = Language.KOTLIN
+        it.setEnabled(false)
+      }
     }
     is PackageNameWidget -> {
       val rowEntry = if (module != null)

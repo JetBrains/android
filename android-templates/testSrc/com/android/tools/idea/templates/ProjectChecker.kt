@@ -314,9 +314,15 @@ data class ProjectChecker(
       (newTemplate.parameters.find { it.name == "Generate a Layout File" } as BooleanParameter?)?.value = generateLayout!!
       (newTemplate.parameters.find { it.name == "Launcher Activity" } as BooleanParameter?)?.value = isLauncher!!
       // TODO: More generalized way of overriding the parameters
-      activityState["multipleScreens"]?.let {multipleScreens ->
-        (newTemplate.parameters.find { it.name == "Split settings hierarchy into separate sub-screens" } as BooleanParameter?)?.value =
-          multipleScreens as Boolean
+      val overrideBooleanParameters = listOf(
+        "multipleScreens" to "Split settings hierarchy into separate sub-screens",
+        "isThingsLauncher" to "Launch activity automatically on boot"
+      )
+      overrideBooleanParameters.forEach {(id, name) ->
+        activityState[id]?.let { value ->
+          (newTemplate.parameters.find { it.name == name } as BooleanParameter?)?.value =
+            value as Boolean
+        }
       }
       runWriteAction {
         newTemplate.render(context, executor)
@@ -376,7 +382,18 @@ data class ProjectChecker(
     if (activityCreationMode != ActivityCreationMode.DO_NOT_CREATE) {
       if (isNewRenderingContext) {
         val appTitle = moduleState.getString(ATTR_APP_TITLE)
-        val recipe: Recipe = { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle, false, "") }
+        // Template is not needed to render the module, obtaining the Template just to check the FormFactor
+        val template = activityState.template
+        val newTemplates = TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }
+        val newTemplate = newTemplates.find { it.name == template.metadata?.title }!!
+        val recipe: Recipe = when (newTemplate.formFactor) {
+          FormFactor.Mobile -> { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle, false, "") }
+          FormFactor.Wear -> { data: TemplateData -> this.generateWearModule(data as ModuleTemplateData, appTitle) }
+          FormFactor.Tv -> { data: TemplateData -> this.generateTvModule(data as ModuleTemplateData, appTitle) }
+          FormFactor.Automotive -> { data: TemplateData -> this.generateAutomotiveModule(data as ModuleTemplateData, appTitle) }
+          FormFactor.Things -> { data: TemplateData -> this.generateThingsModule(data as ModuleTemplateData, appTitle) }
+          FormFactor.Generic -> { data: TemplateData -> this.generatePureLibrary(data as ModuleTemplateData, moduleState.getString(ATTR_CLASS_NAME)) }
+        }
         createProjectForNewRenderingContext(this, moduleName, activityState, recipe = recipe)
       }
       else {

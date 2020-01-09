@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.ChromeOsSourceDetector;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintSourceLockedOrientationActivityInspection extends AndroidLintInspectionBase {
   public AndroidLintSourceLockedOrientationActivityInspection() {
-    super(AndroidBundle.message("android.lint.inspections.source.locked.orientation.activity"), ChromeOsSourceDetector.UNSUPPORTED_LOCKED_ORIENTATION);
+    super(AndroidBundle.message("android.lint.inspections.source.locked.orientation.activity"),
+          ChromeOsSourceDetector.UNSUPPORTED_LOCKED_ORIENTATION);
   }
 }

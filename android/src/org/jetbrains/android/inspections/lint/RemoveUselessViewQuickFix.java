@@ -1,5 +1,7 @@
 package org.jetbrains.android.inspections.lint;
 
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
 import com.android.tools.lint.checks.UselessViewDetector;
 import com.android.tools.lint.detector.api.Issue;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -12,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author Eugene.Kudelevsky
  */
-public class RemoveUselessViewQuickFix implements AndroidLintQuickFix {
+public class RemoveUselessViewQuickFix implements LintIdeQuickFix {
   private final Issue myIssue;
 
   public RemoveUselessViewQuickFix(@NotNull Issue issue) {

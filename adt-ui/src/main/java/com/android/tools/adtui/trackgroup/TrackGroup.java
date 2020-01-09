@@ -28,6 +28,7 @@ import com.android.tools.adtui.stdui.menu.CommonDropDownButton;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
 import com.intellij.util.ui.JBUI;
+import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Font;
@@ -56,6 +57,7 @@ public class TrackGroup extends AspectObserver {
 
   private final JPanel myComponent;
   private final JLabel myTitleLabel;
+  private final JLabel myTitleInfoIcon;
   private final DragAndDropList<TrackModel> myTrackList;
   private final CommonDropDownButton myActionsDropdown;
   private final FlatSeparator mySeparator = new FlatSeparator();
@@ -113,11 +115,17 @@ public class TrackGroup extends AspectObserver {
     myTitleLabel = new JLabel(groupModel.getTitle());
     myTitleLabel.setFont(TITLE_FONT);
     myTitleLabel.setBorder(JBUI.Borders.emptyLeft(16));
+    myTitleInfoIcon = new JLabel(StudioIcons.Common.INFO);
+    myTitleInfoIcon.setVisible(groupModel.getTitleInfo() != null);
+    myTitleInfoIcon.setToolTipText(groupModel.getTitleInfo());
 
     JPanel titlePanel = new JPanel(new BorderLayout());
     titlePanel.setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 1, 0, 1, 0));
     if (!groupModel.getHideHeader()) {
-      titlePanel.add(myTitleLabel, BorderLayout.WEST);
+      JPanel westTitlePanel = new JPanel();
+      westTitlePanel.add(myTitleLabel);
+      westTitlePanel.add(myTitleInfoIcon);
+      titlePanel.add(westTitlePanel, BorderLayout.WEST);
     }
     titlePanel.add(toolbarPanel, BorderLayout.EAST);
 
@@ -206,6 +214,11 @@ public class TrackGroup extends AspectObserver {
   @VisibleForTesting
   JLabel getTitleLabel() {
     return myTitleLabel;
+  }
+
+  @VisibleForTesting
+  JLabel getTitleInfoIcon() {
+    return myTitleInfoIcon;
   }
 
   @VisibleForTesting

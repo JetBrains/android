@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.lint;
 
-import com.android.resources.ResourceUrl;
-import com.android.tools.lint.checks.ManifestDetector;
-import com.intellij.psi.PsiElement;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
-import org.jetbrains.android.inspections.lint.SetAttributeQuickFix;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-
 import static com.android.SdkConstants.ATTR_ALLOW_BACKUP;
 import static com.android.SdkConstants.ATTR_FULL_BACKUP_CONTENT;
+
+import com.android.resources.ResourceUrl;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.lint.common.SetAttributeQuickFix;
+import com.android.tools.lint.checks.ManifestDetector;
+import com.intellij.psi.PsiElement;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidLintAllowBackupInspection extends AndroidLintInspectionBase {
   public AndroidLintAllowBackupInspection() {
@@ -35,17 +35,17 @@ public class AndroidLintAllowBackupInspection extends AndroidLintInspectionBase 
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull String message) {
     ResourceUrl url;
     if (ManifestDetector.MISSING_FULL_BACKUP_CONTENT_RESOURCE.equals(message)
         && (url = ResourceUrl.parse(startElement.getText())) != null) {
       // Find the resource url
-      return new AndroidLintQuickFix[]{
+      return new LintIdeQuickFix[]{
         new GenerateBackupDescriptorFix(url)
       };
     }
     else {
-      return new AndroidLintQuickFix[]{
+      return new LintIdeQuickFix[]{
         new SetAttributeQuickFix("Set backup attribute", null, ATTR_ALLOW_BACKUP, null),
         // The fullBackupContent quick fix should only be visible if the attribute is not set
         // and the allowBackup attribute is set to true.

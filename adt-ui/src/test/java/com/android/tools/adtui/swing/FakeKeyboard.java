@@ -16,14 +16,14 @@
 package com.android.tools.adtui.swing;
 
 import com.intellij.openapi.util.SystemInfo;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.SwingUtilities;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.SwingUtilities;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A fake keyboard device that can be used for holding down keys in tests.
@@ -143,7 +143,10 @@ public final class FakeKeyboard {
     RIGHT(KeyEvent.VK_RIGHT),
     SHIFT(KeyEvent.VK_SHIFT),
     // Add more modifier keys here (alphabetically) as necessary
-    A(KeyEvent.VK_A);
+    A(KeyEvent.VK_A),
+    D(KeyEvent.VK_D),
+    S(KeyEvent.VK_S),
+    W(KeyEvent.VK_W);
     // Add more simple keys here (alphabetically) as necessary
 
     final int code;

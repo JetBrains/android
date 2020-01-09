@@ -17,6 +17,7 @@ package com.android.tools.adtui;
 
 import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.stdui.CommonButton;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.ui.AntialiasingType;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.GraphicsUtil;
@@ -35,7 +36,6 @@ import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.UIManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -136,6 +136,12 @@ public class TabbedToolbar extends JPanel {
   private void selectTab(@NotNull TabLabel tab, @NotNull TabListener listener) {
     myActiveTab = tab.hashCode();
     listener.doAction();
+  }
+
+  @NotNull
+  @VisibleForTesting
+  public JComponent getTabsPanel() {
+    return myTabsPanel;
   }
 
 

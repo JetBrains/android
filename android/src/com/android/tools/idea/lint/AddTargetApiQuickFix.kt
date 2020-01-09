@@ -19,12 +19,16 @@ import com.android.SdkConstants.ATTR_TARGET_API
 import com.android.SdkConstants.FQCN_TARGET_API
 import com.android.SdkConstants.TOOLS_URI
 import com.android.sdklib.SdkVersionInfo
+import com.android.tools.idea.kotlin.hasBackingField
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts
+import com.android.tools.idea.lint.common.LintIdeQuickFix
 import com.android.tools.idea.util.mapAndroidxName
 import com.android.tools.lint.checks.ApiDetector.Companion.REQUIRES_API_ANNOTATION
 import com.intellij.codeInsight.AnnotationUtil
+import com.intellij.codeInsight.FileModificationService
 import com.intellij.codeInsight.intention.AddAnnotationFix
-import com.intellij.lang.StdLanguages
 import com.intellij.lang.java.JavaLanguage
+import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiAnonymousClass
@@ -35,8 +39,6 @@ import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -46,20 +48,18 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
+import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.KtTypeParameter
 import java.util.Locale
-import com.android.tools.idea.kotlin.hasBackingField
-import com.intellij.codeInsight.FileModificationService
-import org.jetbrains.kotlin.psi.KtModifierListOwner
 
 /** Fix which adds a `@TargetApi` annotation at the nearest surrounding method or class  */
 class AddTargetApiQuickFix(private val api: Int,
                            private val requiresApi: Boolean,
                            private val element: PsiElement,
-                           private val filter: Class<out PsiModifierListOwner>?) : AndroidLintQuickFix {
+                           private val filter: Class<out PsiModifierListOwner>?) : LintIdeQuickFix {
 
   private fun getAnnotationValue(fullyQualified: Boolean): String {
     return AddTargetVersionCheckQuickFix.getVersionField(api, fullyQualified)
@@ -67,7 +67,7 @@ class AddTargetApiQuickFix(private val api: Int,
 
   override fun getName(): String {
     return when {
-      element.language == StdLanguages.XML ->
+      element.language == XMLLanguage.INSTANCE ->
         // The quickfixes are sorted alphabetically, but for resources we really don't want
         // this quickfix (Add Target API) to appear before Override Resource, which is
         // usually the better solution. So instead of "Add tools:targetApi" we use a label
@@ -88,7 +88,7 @@ class AddTargetApiQuickFix(private val api: Int,
     when (startElement.language) {
       JavaLanguage.INSTANCE -> handleJava(startElement)
       KotlinLanguage.INSTANCE -> handleKotlin(startElement)
-      StdLanguages.XML -> handleXml(startElement)
+      XMLLanguage.INSTANCE -> handleXml(startElement)
     }
   }
 
@@ -147,13 +147,15 @@ class AddTargetApiQuickFix(private val api: Int,
         if (requiresApi) {
           val module = ModuleUtilCore.findModuleForPsiElement(startElement)
           FqName(module.mapAndroidxName(REQUIRES_API_ANNOTATION))
-        } else {
+        }
+        else {
           FqName(FQCN_TARGET_API)
         },
         getAnnotationValue(true),
         whiteSpaceText = if (annotationContainer.isNewLineNeededForAnnotation()) "\n" else " ")
     }
   }
+
   private fun KtElement.isNewLineNeededForAnnotation() = !(this is KtParameter || this is KtTypeParameter || this is KtPropertyAccessor)
 
   private fun getAnnotationContainer(element: PsiElement): PsiElement? {
@@ -172,8 +174,8 @@ class AddTargetApiQuickFix(private val api: Int,
 
         container
       }
-      StdLanguages.XML -> {
-        PsiTreeUtil.getParentOfType(element, XmlTag::class.java,false)
+      XMLLanguage.INSTANCE -> {
+        PsiTreeUtil.getParentOfType(element, XmlTag::class.java, false)
       }
       KotlinLanguage.INSTANCE -> {
         PsiTreeUtil.findFirstParent(element) {

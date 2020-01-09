@@ -56,6 +56,7 @@ sealed class AndroidResourceDomFileDescription<T : DomElement>(
   override fun initializeFileDescription() {
     registerNamespacePolicy(SdkConstants.ANDROID_NS_NAME, SdkConstants.ANDROID_URI)
     registerNamespacePolicy(SdkConstants.APP_PREFIX, SdkConstants.AUTO_URI)
+    registerNamespacePolicy(SdkConstants.TOOLS_PREFIX, SdkConstants.TOOLS_URI)
   }
 
   companion object {

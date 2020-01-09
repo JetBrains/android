@@ -16,7 +16,6 @@
 package com.android.tools.idea.npw.java
 
 import com.android.sdklib.SdkVersionInfo
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.ExistingProjectModelData
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -25,18 +24,17 @@ import com.android.tools.idea.npw.module.recipes.pureLibrary.generatePureLibrary
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_CLASS_NAME
-import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_MODULE
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 import com.intellij.openapi.project.Project
 import com.intellij.util.lang.JavaVersion
-import java.io.File
 
 class NewLibraryModuleModel(
-  project: Project, templateFile: File, projectSyncInvoker: ProjectSyncInvoker
-) : ModuleModel(templateFile, "lib", "New Library Module", true, ExistingProjectModelData(project, projectSyncInvoker)) {
+  project: Project, projectSyncInvoker: ProjectSyncInvoker
+) : ModuleModel(null, "lib", "New Library Module", true, ExistingProjectModelData(project, projectSyncInvoker)) {
   @JvmField
   val className = StringValueProperty("MyClass")
 
@@ -49,22 +47,15 @@ class NewLibraryModuleModel(
 
   override val renderer = object : ModuleTemplateRenderer() {
     override val recipe: Recipe get() = { td: TemplateData -> generatePureLibrary(td as ModuleTemplateData, className.get()) }
+    override val loggingEvent: AndroidStudioEvent.TemplateRenderer
+      get() = RenderLoggingEvent.JAVA_LIBRARY
 
     override fun init() {
       super.init()
 
-      val newValues = mutableMapOf(
-        ATTR_CLASS_NAME to className.get(),
-        ATTR_IS_NEW_MODULE to true
-      )
-
-      moduleTemplateValues.putAll(newValues)
-
-      if (StudioFlags.NPW_NEW_MODULE_TEMPLATES.get()) {
-        moduleTemplateDataBuilder.apply {
-          projectTemplateDataBuilder.apply {
-            javaVersion = JavaVersion.parse("1.7")
-          }
+      moduleTemplateDataBuilder.apply {
+        projectTemplateDataBuilder.apply {
+          javaVersion = JavaVersion.parse("1.7")
         }
       }
     }

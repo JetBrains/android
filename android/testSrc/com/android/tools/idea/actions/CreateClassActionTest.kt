@@ -53,8 +53,8 @@ class CreateClassActionTest {
   @Test
   fun testGetDestinationDirectoryIdeDoesntHaveOneDirectory() {
     val psiDirectories = SourceProviderManager.getInstance(facet)
-      .currentSourceProviders
-      .flatMap { it.javaDirectoryUrls }
+      .sources
+      .javaDirectoryUrls
       .map { VfsUtil.createDirectories(VfsUtilCore.urlToPath(it)) }
       .map { PsiManager.getInstance(projectRule.project).findDirectory(it)!! }
 

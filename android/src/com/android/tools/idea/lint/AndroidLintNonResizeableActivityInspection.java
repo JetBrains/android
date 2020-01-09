@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.ChromeOsDetector;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintNonResizeableActivityInspection extends AndroidLintInspectionBase {
   public AndroidLintNonResizeableActivityInspection() {
-    super(AndroidBundle.message("android.lint.inspections.non.resizable.activity"), ChromeOsDetector.NON_RESIZEABLE_ACTIVITY);
+    super(AndroidBundle.message("android.lint.inspections.non.resizeable.activity"), ChromeOsDetector.NON_RESIZEABLE_ACTIVITY);
   }
 }

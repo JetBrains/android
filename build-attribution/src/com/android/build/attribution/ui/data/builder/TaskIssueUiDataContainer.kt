@@ -115,6 +115,7 @@ As a result, these tasks are not able to take advantage of incremental build opt
 and might need to run with each subsequent build.
 """
     override val helpLink = "https://d.android.com/r/tools/build-attribution/duplicate-output-folder"
+    override val buildSrcRecommendation = "Edit the plugin(s) to ensure each task specifies a unique output directory."
   }
 
   class AlwaysRunNoOutputIssue(
@@ -125,6 +126,7 @@ and might need to run with each subsequent build.
     override val bugReportBriefDescription = "Task runs on every build because it declares no outputs."
     override val explanation: String = "This task runs on every build because it declares no outputs, which it must do in order to support incremental builds."
     override val helpLink = "https://d.android.com/r/tools/build-attribution/no-task-outputs-declared"
+    override val buildSrcRecommendation = "Annotate the task output fields with one of: OutputDirectory, OutputDirectories, OutputFile, OutputFiles"
   }
 
   class AlwaysRunUpToDateOverride(
@@ -140,5 +142,6 @@ For example, the task might set the following: <code>outputs.upToDateWhen { fals
 To optimize task execution with up-to-date checks, remove the <code>upToDateWhen</code> enclosure.
 """
     override val helpLink = "https://d.android.com/r/tools/build-attribution/upToDateWhen-equals-false"
+    override val buildSrcRecommendation = "Ensure that you don't automatically override up-to-date checks."
   }
 }

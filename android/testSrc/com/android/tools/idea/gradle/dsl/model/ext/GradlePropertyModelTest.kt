@@ -35,6 +35,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CONV
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_LIST_TO_EMPTY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_MAP_TO_EMPTY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_PLACE_HOLDERS_TO_EMPTY
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_PLACE_HOLDERS_TO_EMPTY_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DEEP_DEPENDENCIES
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_AND_RESET_KTS_ARRAY_EXPRESSION_PROPERTY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_DELETE_AND_RESET_PROPERTY
@@ -593,21 +594,22 @@ class GradlePropertyModelTest : GradleFileModelTestCase() {
 
     run {
       val propertyModel = buildModel.android().defaultConfig().manifestPlaceholders()
-      assertMissingProperty(propertyModel)
+      verifyEmptyMapProperty(propertyModel)
       propertyModel.getMapValue("key").setValue("true")
       verifyMapProperty(propertyModel, mapOf("key" to "true"))
       val valueModel = propertyModel.getMapValue("key")
       verifyPropertyModel(valueModel, STRING_TYPE, "true", STRING, DERIVED, 0, "key")
       valueModel.delete()
       assertMissingProperty(valueModel)
-      verifyMapProperty(propertyModel, mapOf())
+      verifyEmptyMapProperty(propertyModel)
     }
 
     applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_CREATE_AND_DELETE_PLACE_HOLDERS_TO_EMPTY_EXPECTED)
 
     run {
       val propertyModel = buildModel.android().defaultConfig().manifestPlaceholders()
-      assertMissingProperty(propertyModel)
+      verifyEmptyMapProperty(propertyModel)
     }
   }
 

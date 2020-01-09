@@ -89,7 +89,7 @@ class StudioFirstRunWelcomeScreen(private val mode: FirstRunWizardMode) : Welcom
       // if (mode == FirstRunWizardMode.MISSING_SDK) {
       addStep(MissingSdkAlertStep())
       // TODO(qumeric): addStep(SdkComponentsStep())
-      // TODO(qumeric): addStep(InstallSummaryStep())
+      // TODO(q   umeric): addStep(InstallSummaryStep())
       if (SystemInfo.isLinux && !SystemInfo.isChromeOS) { // && mode == FirstRunWizardMode.NEW_INSTALL
         addStep(LinuxHaxmInfoStep()) // FIXME(qumeric): only if needed
       }

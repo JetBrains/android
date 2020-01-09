@@ -1208,32 +1208,6 @@ public final class ConstraintComponentUtilities {
     return false;
   }
 
-  public static void cycleChainStyle(@NotNull SceneComponent chainHeadComponent,
-                                     @NotNull String orientationStyle,
-                                     @NotNull SceneComponent component) {
-    NlComponent chainHead = chainHeadComponent.getAuthoritativeNlComponent();
-    String chainStyle = chainHead.getLiveAttribute(SHERPA_URI, orientationStyle);
-    if (chainStyle != null) {
-      if (chainStyle.equalsIgnoreCase(ATTR_LAYOUT_CHAIN_SPREAD)) {
-        chainStyle = ATTR_LAYOUT_CHAIN_SPREAD_INSIDE;
-      }
-      else if (chainStyle.equalsIgnoreCase(ATTR_LAYOUT_CHAIN_SPREAD_INSIDE)) {
-        chainStyle = ATTR_LAYOUT_CHAIN_PACKED;
-      }
-      else if (chainStyle.equalsIgnoreCase(ATTR_LAYOUT_CHAIN_PACKED)) {
-        chainStyle = ATTR_LAYOUT_CHAIN_SPREAD;
-      }
-    }
-    else {
-      chainStyle = ATTR_LAYOUT_CHAIN_SPREAD_INSIDE;
-    }
-    ComponentModification modification = new ComponentModification(chainHead, "Cycle Chain Style");
-    modification.setAttribute(SHERPA_URI, orientationStyle, chainStyle);
-    modification.commit();
-
-    component.getScene().needsRebuildList();
-  }
-
   @AndroidDpCoordinate
   public static int getDpY(@NotNull NlComponent component) {
     return Coordinates.pxToDp(component.getModel(), NlComponentHelperKt.getY(component));

@@ -18,7 +18,7 @@ package com.android.tools.idea.uibuilder.property;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.PropertiesManager;
-import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.lint.checks.ApiLookup;

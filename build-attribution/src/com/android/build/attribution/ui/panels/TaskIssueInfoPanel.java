@@ -19,6 +19,7 @@ import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.duration
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.issueIcon;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.percentageString;
 
+import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel;
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics;
 import com.android.build.attribution.ui.controllers.TaskIssueReporter;
 import com.android.build.attribution.ui.data.InterTaskIssueUiData;
@@ -38,9 +39,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import org.jetbrains.annotations.NotNull;
 
 public class TaskIssueInfoPanel extends JBPanel {
   private final TaskUiData myTaskData;
@@ -65,7 +63,8 @@ public class TaskIssueInfoPanel extends JBPanel {
 
     c.gridy = 1;
     c.fill = GridBagConstraints.HORIZONTAL;
-    add(createRecommendation(), c);
+    JComponent recommendation = createRecommendation();
+    add(recommendation, c);
 
     c.gridy = 2;
     add(createTaskInfo(), c);
@@ -75,6 +74,8 @@ public class TaskIssueInfoPanel extends JBPanel {
     c.weighty = 1.0;
     c.fill = GridBagConstraints.BOTH;
     add(new JBPanel(), c);
+
+    withPreferredWidth(recommendation.getPreferredSize().width);
   }
 
   protected JComponent createIssueDescription() {
@@ -87,23 +88,8 @@ public class TaskIssueInfoPanel extends JBPanel {
       .getHtml();
 
     JLabel iconLabel = new JLabel(issueIcon(myIssue.getType()));
-    JBLabel issueDescription = new JBLabel() {
-      @NotNull
-      @Override
-      protected HyperlinkListener createHyperlinkListener() {
-        HyperlinkListener listener = super.createHyperlinkListener();
-        return new HyperlinkListener() {
-          @Override
-          public void hyperlinkUpdate(HyperlinkEvent e) {
-            myAnalytics.helpLinkClicked();
-            listener.hyperlinkUpdate(e);
-          }
-        };
-      }
-    };
-    issueDescription.setCopyable(true).setAllowAutoWrapping(true);
+    JBLabel issueDescription = new DescriptionWithHelpLinkLabel(text, myAnalytics);
     issueDescription.setVerticalTextPosition(SwingConstants.TOP);
-    issueDescription.setText(text);
 
     JBPanel<JBPanel> panel = new JBPanel<>(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
@@ -123,19 +109,21 @@ public class TaskIssueInfoPanel extends JBPanel {
   }
 
   protected JComponent createRecommendation() {
-    if (myTaskData.getSourceType() == PluginSourceType.BUILD_SRC) {
-      return new JPanel();
-    }
-    HyperlinkLabel recommendationLabel = new HyperlinkLabel();
-    recommendationLabel.addHyperlinkListener(e -> {
-      myAnalytics.bugReportLinkClicked();
-      myIssueReporter.reportIssue(myIssue);
-    });
-    recommendationLabel.setHyperlinkText("Consider filing a bug to report this issue to the plugin developer. ", "Generate report.", "");
-
     JPanel panel = new JPanel(new VerticalLayout(5));
     panel.add(new JBLabel("Recommendation").withFont(JBFont.label().asBold()));
-    panel.add(recommendationLabel);
+    if (myTaskData.getSourceType() == PluginSourceType.BUILD_SRC) {
+      panel.add(new JBLabel(myIssue.getBuildSrcRecommendation()));
+    }
+    else {
+      HyperlinkLabel recommendationLabel = new HyperlinkLabel();
+      recommendationLabel.addHyperlinkListener(e -> {
+        myAnalytics.bugReportLinkClicked();
+        myIssueReporter.reportIssue(myIssue);
+      });
+      recommendationLabel.setHyperlinkText("Consider filing a bug to report this issue to the plugin developer. ", "Generate report.", "");
+
+      panel.add(recommendationLabel);
+    }
     return panel;
   }
 
@@ -174,8 +162,8 @@ public class TaskIssueInfoPanel extends JBPanel {
       .add("Type: ")
       .add(taskData.getTaskType())
       .newline()
-      .add("On Critical Path: ")
-      .add(taskData.getOnCriticalPath() ? "Yes" : "No")
+      .add("Determined this build’s duration: ")
+      .add(taskData.getOnExtendedCriticalPath() ? "Yes" : "No")
       .newline()
       .add("Duration: ")
       .add(durationString(taskData.getExecutionTime()))
@@ -186,7 +174,7 @@ public class TaskIssueInfoPanel extends JBPanel {
       .add(taskData.getExecutedIncrementally() ? "Yes" : "No")
       .closeHtmlBody()
       .getHtml();
-    JBLabel label = new JBLabel().setCopyable(true).setAllowAutoWrapping(true);
+    JBLabel label = new JBLabel().setAllowAutoWrapping(true).setCopyable(true);
     label.setVerticalTextPosition(SwingConstants.TOP);
     label.setText(text);
     return label;

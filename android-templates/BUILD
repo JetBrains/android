@@ -81,5 +81,6 @@ iml_module(
         "//tools/idea/.idea/libraries:truth[test]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
+        "//tools/adt/idea/lint:intellij.lint[module, test]",
     ],
 )

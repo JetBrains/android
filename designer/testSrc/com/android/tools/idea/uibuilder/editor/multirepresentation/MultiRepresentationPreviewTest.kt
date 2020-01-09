@@ -33,6 +33,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.never
 import org.mockito.Mockito.times
 import org.mockito.MockitoAnnotations
+import javax.swing.JComponent
 import javax.swing.JPanel
 
 class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
@@ -71,9 +72,9 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     override fun dispose() { }
   }
 
-  private class SimpleProvider(override val displayName: String, val isAccept: Boolean) : PreviewRepresentationProvider {
+  private open class SimpleProvider(override val displayName: String, val isAccept: Boolean) : PreviewRepresentationProvider {
     override fun accept(project: Project, virtualFile: VirtualFile) = isAccept
-    override fun createRepresentation(psiFile: PsiFile) = DummyPreviewRepresentation()
+    override fun createRepresentation(psiFile: PsiFile) : PreviewRepresentation = DummyPreviewRepresentation()
   }
 
   fun testNoProviders_noHistory() {
@@ -279,4 +280,51 @@ class MultiRepresentationPreviewTest : LightJavaCodeInsightFixtureTestCase() {
     TestCase.assertEquals("Accepting1", multiPreview.currentRepresentationName)
     Mockito.verify(persistenceManager).setValue(endsWith("_selected"), eq("Accepting1"))
   }
+
+  fun testPreviewRepresentationShortcutsRegistered() {
+    Mockito.`when`(persistenceManager.getValue(endsWith("_selected"), anyString())).thenReturn("initialRepresentation")
+
+    val shortcutsApplicableComponent = Mockito.mock(JComponent::class.java)
+
+    val initiallyAcceptedRepresentation = Mockito.mock(PreviewRepresentation::class.java)
+    Mockito.`when`(initiallyAcceptedRepresentation.component).thenReturn(JPanel())
+    val initiallyAcceptingProvider = object : SimpleProvider("initialRepresentation", true) {
+      override fun createRepresentation(psiFile: PsiFile) = initiallyAcceptedRepresentation
+    }
+
+    val laterAcceptedRepresentation = Mockito.mock(PreviewRepresentation::class.java)
+    Mockito.`when`(laterAcceptedRepresentation.component).thenReturn(JPanel())
+    val laterAcceptingProvider = object : PreviewRepresentationProvider {
+      var isAccept: Boolean = false
+      override val displayName = "laterRepresentation"
+      override fun accept(project: Project, virtualFile: VirtualFile) = isAccept
+      override fun createRepresentation(psiFile: PsiFile) = laterAcceptedRepresentation
+    }
+
+    val dummyFile = myFixture.addFileToProject("src/Preview.kt", "")
+
+    multiPreview = UpdatableMultiRepresentationPreview(
+      dummyFile,
+      listOf(
+        initiallyAcceptingProvider,
+        laterAcceptingProvider),
+      persistenceManager)
+    multiPreview.forceUpdateRepresentations()
+
+    Mockito.verify(initiallyAcceptedRepresentation, never()).registerShortcuts(any())
+    Mockito.verify(laterAcceptedRepresentation, never()).registerShortcuts(any())
+
+    multiPreview.registerShortcuts(shortcutsApplicableComponent)
+
+    Mockito.verify(initiallyAcceptedRepresentation).registerShortcuts(shortcutsApplicableComponent)
+    Mockito.verify(laterAcceptedRepresentation, never()).registerShortcuts(any())
+
+    laterAcceptingProvider.isAccept = true
+    multiPreview.forceUpdateRepresentations()
+
+    Mockito.verify(initiallyAcceptedRepresentation).registerShortcuts(shortcutsApplicableComponent)
+    Mockito.verify(laterAcceptedRepresentation).registerShortcuts(shortcutsApplicableComponent)
+  }
 }
+
+fun <T> any(): T = Mockito.any<T>()

@@ -30,7 +30,6 @@ import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
 import static java.lang.System.currentTimeMillis;
 
 import com.android.annotations.concurrency.WorkerThread;
-import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.importing.OpenMigrationToGradleUrlHyperlink;
@@ -74,7 +73,6 @@ import org.jetbrains.annotations.Nullable;
 
 public class GradleSyncInvoker {
   @NotNull private final FileDocumentManager myFileDocumentManager;
-  @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final PreSyncProjectCleanUp myPreSyncProjectCleanUp;
   @NotNull private final PreSyncChecks myPreSyncChecks;
 
@@ -83,16 +81,14 @@ public class GradleSyncInvoker {
     return ServiceManager.getService(GradleSyncInvoker.class);
   }
 
-  public GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager, @NotNull IdeInfo ideInfo) {
-    this(fileDocumentManager, ideInfo, new PreSyncProjectCleanUp(), new PreSyncChecks());
+  public GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager) {
+    this(fileDocumentManager, new PreSyncProjectCleanUp(), new PreSyncChecks());
   }
 
   private GradleSyncInvoker(@NotNull FileDocumentManager fileDocumentManager,
-                            @NotNull IdeInfo ideInfo,
                             @NotNull PreSyncProjectCleanUp preSyncProjectCleanUp,
                             @NotNull PreSyncChecks preSyncChecks) {
     myFileDocumentManager = fileDocumentManager;
-    myIdeInfo = ideInfo;
     myPreSyncProjectCleanUp = preSyncProjectCleanUp;
     myPreSyncChecks = preSyncChecks;
   }
@@ -278,9 +274,7 @@ public class GradleSyncInvoker {
     public final GradleSyncStats.Trigger trigger;
 
     public boolean runInBackground = true;
-    public boolean cleanProject;
     public boolean useCachedGradleModels;
-    public boolean skipAndroidPluginUpgrade;
     public boolean forceFullVariantsSync;
     public boolean skipPreSyncChecks;
     // Perform a variant-only sync if not null.
@@ -312,9 +306,7 @@ public class GradleSyncInvoker {
       Request request = (Request)o;
       return trigger == request.trigger &&
              runInBackground == request.runInBackground &&
-             cleanProject == request.cleanProject &&
              useCachedGradleModels == request.useCachedGradleModels &&
-             skipAndroidPluginUpgrade == request.skipAndroidPluginUpgrade &&
              forceFullVariantsSync == request.forceFullVariantsSync &&
              skipPreSyncChecks == request.skipPreSyncChecks &&
              Objects.equals(variantOnlySyncOptions, request.variantOnlySyncOptions);
@@ -323,7 +315,7 @@ public class GradleSyncInvoker {
     @Override
     public int hashCode() {
       return Objects
-        .hash(trigger, runInBackground, cleanProject, useCachedGradleModels, skipAndroidPluginUpgrade,
+        .hash(trigger, runInBackground, useCachedGradleModels,
               forceFullVariantsSync, skipPreSyncChecks, variantOnlySyncOptions);
     }
 
@@ -332,9 +324,7 @@ public class GradleSyncInvoker {
       return "RequestSettings{" +
              "trigger=" + trigger +
              ", runInBackground=" + runInBackground +
-             ", cleanProject=" + cleanProject +
              ", useCachedGradleModels=" + useCachedGradleModels +
-             ", skipAndroidPluginUpgrade=" + skipAndroidPluginUpgrade +
              ", forceFullVariantsSync=" + forceFullVariantsSync +
              ", skipPreSyncChecks=" + skipPreSyncChecks +
              ", variantOnlySyncOptions=" + variantOnlySyncOptions +

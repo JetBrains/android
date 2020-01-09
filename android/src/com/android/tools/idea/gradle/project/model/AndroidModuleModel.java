@@ -315,6 +315,16 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @NotNull
+  public List<SourceProvider> getUnitTestSourceProviders() {
+    return getTestSourceProviders(mySelectedVariantName, ARTIFACT_UNIT_TEST);
+  }
+
+  @NotNull
+  public List<SourceProvider> getAndroidTestSourceProviders() {
+    return getTestSourceProviders(mySelectedVariantName, ARTIFACT_ANDROID_TEST);
+  }
+
+  @NotNull
   public List<SourceProvider> getTestSourceProviders(@NotNull String artifactName) {
     return getTestSourceProviders(mySelectedVariantName, artifactName);
   }

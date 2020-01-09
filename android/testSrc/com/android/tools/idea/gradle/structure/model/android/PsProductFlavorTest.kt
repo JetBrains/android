@@ -152,7 +152,7 @@ class PsProductFlavorTest : AndroidGradleTestCase() {
       assertThat(resConfigs.parsedValue.asTestValue(), nullValue())
 
       assertThat(manifestPlaceholders.resolved.asTestValue(), equalTo(mapOf()))
-      assertThat(manifestPlaceholders.parsedValue.asTestValue(), nullValue())
+      assertThat(manifestPlaceholders.parsedValue.asTestValue(), equalTo(mapOf()))
 
       assertThat(testInstrumentationRunnerArguments.resolved.asTestValue(), equalTo(mapOf("a" to "AAA", "b" to "BBB", "c" to "CCC")))
       assertThat(testInstrumentationRunnerArguments.parsedValue.asTestValue(), equalTo(mapOf("a" to "AAA", "b" to "BBB", "c" to "CCC")))

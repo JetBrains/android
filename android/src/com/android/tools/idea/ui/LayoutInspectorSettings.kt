@@ -34,8 +34,7 @@ private const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
 
 
 var enableLiveLayoutInspector
-  get() = PropertiesComponent.getInstance().getBoolean(PREFERENCE_KEY, false) ||
-          StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get()
+  get() = PropertiesComponent.getInstance().getBoolean(PREFERENCE_KEY, true)
   set(value) {
     if (value != enableLiveLayoutInspector) {
       if (value) {

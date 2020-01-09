@@ -24,6 +24,7 @@ import com.android.ide.common.util.AssetUtil;
 import com.android.ide.common.util.PathString;
 import com.android.ide.common.vectordrawable.VdIcon;
 import com.android.resources.Density;
+import com.android.tools.idea.npw.assetstudio.IconGenerator.IconOptions;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.CharStreams;
@@ -92,7 +93,7 @@ public final class IconGeneratorTestUtil {
                                    @NotNull String goldenFileFolderName) throws IOException {
     generator.sourceAsset().setValue(imageAsset);
     generator.outputName().set(baseName);
-    IconGenerator.Options options = generator.createOptions(false);
+    IconOptions options = generator.createOptions(false);
     Collection<GeneratedIcon> icons = generator.generateIcons(options).getIcons();
 
     List<String> errors = new ArrayList<>();

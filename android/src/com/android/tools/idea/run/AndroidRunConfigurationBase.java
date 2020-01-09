@@ -273,8 +273,8 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     updateExtraRunStats(stats);
 
     final boolean isDebugging = executor instanceof DefaultDebugExecutor;
-    boolean userSelectedDeployTarget = getDeployTargetContext().getCurrentDeployTargetProvider().requiresRuntimePrompt();
-    stats.setUserSelectedTarget(userSelectedDeployTarget);
+    DeployTargetContext context = getDeployTargetContext();
+    stats.setUserSelectedTarget(context.getCurrentDeployTargetProvider().requiresRuntimePrompt(facet.getModule().getProject()));
 
     // Figure out deploy target, prompt user if needed (ignore completely if user chose to hotswap).
     DeployTarget deployTarget = getDeployTarget(executor, env, isDebugging, facet);
@@ -282,7 +282,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       return null;
     }
 
-    DeployTargetState deployTargetState = getDeployTargetContext().getCurrentDeployTargetState();
+    DeployTargetState deployTargetState = context.getCurrentDeployTargetState();
     if (deployTarget.hasCustomRunProfileState(executor)) {
       return deployTarget.getRunProfileState(executor, env, deployTargetState);
     }
@@ -355,9 +355,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
                                        boolean debug,
                                        @NotNull AndroidFacet facet) {
     DeployTargetProvider currentTargetProvider = getDeployTargetContext().getCurrentDeployTargetProvider();
+    Project project = getProject();
 
     DeployTarget deployTarget;
-    if (currentTargetProvider.requiresRuntimePrompt()) {
+
+    if (currentTargetProvider.requiresRuntimePrompt(project)) {
       deployTarget =
         currentTargetProvider.showPrompt(
           executor,
@@ -374,7 +376,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
       }
     }
     else {
-      deployTarget = currentTargetProvider.getDeployTarget(getProject());
+      deployTarget = currentTargetProvider.getDeployTarget(project);
     }
 
     return deployTarget;

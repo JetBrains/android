@@ -20,6 +20,7 @@ import com.android.tools.adtui.AxisComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
+import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -29,7 +30,9 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
+import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip
+import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.JBSplitter
 import org.junit.Before
@@ -89,8 +92,11 @@ class CpuCaptureStageViewTest {
     assertThat(stageView.trackGroupList.component.componentCount).isEqualTo(2) // threads track group + tooltip component
     val treeWalker = TreeWalker(stageView.trackGroupList.component)
 
-    val titleStrings = treeWalker.descendants().filterIsInstance<JLabel>().map(JLabel::getText).toList()
-    assertThat(titleStrings).containsExactly("Threads (3)")
+    val labels = treeWalker.descendants().filterIsInstance<JLabel>().toList()
+    // Title label
+    assertThat(labels[0].text).isEqualTo("Threads (3)")
+    // Title info icon
+    assertThat(labels[1].toolTipText).ignoringCase().contains("double-click on the thread name to expand/collapse it")
   }
 
   @Test
@@ -166,5 +172,120 @@ class CpuCaptureStageViewTest {
 
     // CPU core tooltip
     // TODO: use a trace with CPU cores data
+  }
+
+  @Test
+  fun zoomToSelectionButton() {
+    profilersView.studioProfilers.stage = stage
+    val captureNode = CaptureNode(FakeCaptureNodeModel("Foo", "Bar", "123"))
+    captureNode.startGlobal = 0
+    captureNode.endGlobal = 10
+
+    assertThat(profilersView.zoomToSelectionButton.isEnabled).isFalse()
+    stage.multiSelectionModel.setSelection(setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
+    assertThat(profilersView.zoomToSelectionButton.isEnabled).isTrue()
+    assertThat(profilersView.stageView.zoomToSelectionRange.isSameAs(Range(0.0, 10.0))).isTrue()
+  }
+
+  @Test
+  fun deselectAllLabel() {
+    profilersView.studioProfilers.stage = stage
+    val captureNode = CaptureNode(FakeCaptureNodeModel("Foo", "Bar", "123"))
+    profilersView.deselectAllLabel.setBounds(0, 0, 100, 100)
+    val ui = FakeUi(profilersView.deselectAllLabel)
+
+    assertThat(profilersView.deselectAllToolbar.isVisible).isFalse()
+    stage.multiSelectionModel.setSelection(setOf(CaptureNodeAnalysisModel(captureNode, stage.capture)))
+    assertThat(profilersView.deselectAllToolbar.isVisible).isTrue()
+    ui.mouse.click(0, 0)
+    assertThat(stage.multiSelectionModel.isEmpty).isTrue()
+  }
+
+  @Test
+  fun trackGroupKeyboardShortcuts() {
+    val stageView = CpuCaptureStageView(profilersView, stage)
+    stage.enter()
+    stageView.component.setBounds(0, 0, 500, 500)
+    val ui = FakeUi(stageView.trackGroupList.component)
+    val selectionRange = stage.minimapModel.rangeSelectionModel.selectionRange
+    var rangeLength = selectionRange.length
+
+    // Press W to zoom in.
+    ui.keyboard.setFocus(stageView.trackGroupList.component)
+    ui.keyboard.press(FakeKeyboard.Key.W)
+    ui.keyboard.release(FakeKeyboard.Key.W)
+    assertThat(selectionRange.length).isLessThan(rangeLength)
+
+    // Press S to zoom out.
+    rangeLength = selectionRange.length
+    ui.keyboard.press(FakeKeyboard.Key.S)
+    ui.keyboard.release(FakeKeyboard.Key.S)
+    assertThat(selectionRange.length).isGreaterThan(rangeLength)
+
+    // Press A or left arrow to pan left.
+    // First select a small range.
+    selectionRange.set(selectionRange.min + 100.0, selectionRange.min + 200.0)
+    var oldRange = Range(selectionRange)
+    ui.keyboard.press(FakeKeyboard.Key.A)
+    ui.keyboard.release(FakeKeyboard.Key.A)
+    assertThat(selectionRange.min).isLessThan(oldRange.min)
+    assertThat(selectionRange.max).isLessThan(oldRange.max)
+    oldRange = Range(selectionRange)
+    ui.keyboard.press(FakeKeyboard.Key.LEFT)
+    ui.keyboard.release(FakeKeyboard.Key.LEFT)
+    assertThat(selectionRange.min).isLessThan(oldRange.min)
+    assertThat(selectionRange.max).isLessThan(oldRange.max)
+
+    // Press D or right arrow to pan right.
+    // First select a small range.
+    selectionRange.set(selectionRange.min + 100.0, selectionRange.min + 200.0)
+    oldRange = Range(selectionRange)
+    ui.keyboard.press(FakeKeyboard.Key.D)
+    ui.keyboard.release(FakeKeyboard.Key.D)
+    assertThat(selectionRange.min).isGreaterThan(oldRange.min)
+    assertThat(selectionRange.max).isGreaterThan(oldRange.max)
+    oldRange = Range(selectionRange)
+    ui.keyboard.press(FakeKeyboard.Key.RIGHT)
+    ui.keyboard.release(FakeKeyboard.Key.RIGHT)
+    assertThat(selectionRange.min).isGreaterThan(oldRange.min)
+    assertThat(selectionRange.max).isGreaterThan(oldRange.max)
+  }
+
+  @Test
+  fun trackGroupMouseShortcuts() {
+    val stageView = CpuCaptureStageView(profilersView, stage)
+    stage.enter()
+    assertThat(stageView.trackGroupList.trackGroups).isNotEmpty()
+    stageView.trackGroupList.component.setBounds(0, 0, 500, 500)
+    val ui = FakeUi(stageView.trackGroupList.component)
+    val selectionRange = stage.minimapModel.rangeSelectionModel.selectionRange
+    var rangeLength = selectionRange.length
+
+    // Ctrl/Cmd + wheel up to zoom in.
+    ui.keyboard.press(FakeKeyboard.MENU_KEY)
+    ui.mouse.wheel(0, 0, -1)
+    ui.keyboard.release(FakeKeyboard.MENU_KEY)
+    assertThat(selectionRange.length).isLessThan(rangeLength)
+
+    // Ctrl/Cmd + wheel down to zoom out.
+    rangeLength = selectionRange.length
+    ui.keyboard.press(FakeKeyboard.MENU_KEY)
+    ui.mouse.wheel(0, 0, 1)
+    ui.keyboard.release(FakeKeyboard.MENU_KEY)
+    assertThat(selectionRange.length).isGreaterThan(rangeLength)
+  }
+
+  private class FakeCaptureNodeModel(val aName: String, val aFullName: String, val anId: String) : CaptureNodeModel {
+    override fun getName(): String {
+      return aName
+    }
+
+    override fun getFullName(): String {
+      return aFullName
+    }
+
+    override fun getId(): String {
+      return anId
+    }
   }
 }
