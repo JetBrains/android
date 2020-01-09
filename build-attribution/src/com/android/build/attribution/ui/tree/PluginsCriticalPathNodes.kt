@@ -50,7 +50,6 @@ import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.treeStructure.SimpleNode
 import java.util.ArrayList
-import java.util.HashMap
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.SwingConstants
@@ -127,19 +126,25 @@ private class PluginNode(
   parent: CriticalPathPluginsRoot
 ) : AbstractBuildAttributionNode(parent, pluginData.name) {
 
-  private val issueRoots = HashMap<TaskIssueType, PluginIssueRootNode>()
-
   private val issueTypeClickListener = object : TreeLinkListener<TaskIssueType> {
     override fun clickedOn(target: TaskIssueType) {
-      issueRoots[target]?.let { nodeSelector.selectNode(it) }
+      findIssueTypeRoot(target).let { nodeSelector.selectNode(it) }
     }
   }
 
   private val issueClickListener = object : TreeLinkListener<TaskIssueUiData> {
     override fun clickedOn(target: TaskIssueUiData) {
-      issueRoots[target.type]?.clickedOn(target)
+      findIssueTypeRoot(target.type).clickedOn(target)
     }
   }
+
+  private fun findIssueTypeRoot(issueType: TaskIssueType): PluginIssueTypeRootNode =
+    children
+      .filterIsInstance<PluginIssuesRootNode>()
+      .first()
+      .children
+      .filterIsInstance<PluginIssueTypeRootNode>()
+      .first { it.issuesGroup.type == issueType }
 
   override val presentationIcon: Icon? = colorIcon(selectedChartItem.legendColor.baseColor)
 
@@ -159,10 +164,6 @@ private class PluginNode(
     nodes.add(PluginTasksRootNode(pluginData, chartItems, selectedChartItem, this, issueClickListener))
     nodes.add(PluginIssuesRootNode(pluginData, this))
     return nodes.toTypedArray()
-  }
-
-  fun registerIssueRoot(pluginIssueRoot: PluginIssueRootNode) {
-    issueRoots[pluginIssueRoot.issuesGroup.type] = pluginIssueRoot
   }
 }
 
@@ -290,15 +291,12 @@ private class PluginIssuesRootNode(
 
   override fun buildChildren(): Array<SimpleNode> {
     return pluginUiData.issues
-      .map { issuesGroup ->
-        PluginIssueRootNode(issuesGroup, pluginUiData, this)
-          .also { parentNode.registerIssueRoot(it) }
-      }
+      .map { issuesGroup -> PluginIssueTypeRootNode(issuesGroup, pluginUiData, this) }
       .toTypedArray()
   }
 }
 
-private class PluginIssueRootNode(
+private class PluginIssueTypeRootNode(
   val issuesGroup: TaskIssuesGroup,
   private val pluginUiData: CriticalPathPluginUiData,
   parent: PluginIssuesRootNode
@@ -318,7 +316,7 @@ private class PluginIssueRootNode(
   override fun createComponent(): AbstractBuildAttributionInfoPanel = object : AbstractBuildAttributionInfoPanel() {
     override fun createHeader(): JComponent = headerLabel(pluginUiData.name)
 
-    override fun createBody(): JComponent = createIssueTypeListPanel(issuesGroup, this@PluginIssueRootNode)
+    override fun createBody(): JComponent = createIssueTypeListPanel(issuesGroup, this@PluginIssueTypeRootNode)
   }
 
   override fun clickedOn(target: TaskIssueUiData) {
