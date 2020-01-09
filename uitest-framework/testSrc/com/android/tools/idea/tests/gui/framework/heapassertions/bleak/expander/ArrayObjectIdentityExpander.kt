@@ -46,10 +46,10 @@ class ArrayObjectIdentityExpander: Expander() {
       labelToNodeMap[n]
     } else null
     for (obj in arr) {
-      if (obj != null && obj !== TObjectHash.REMOVED && (TRACK_WEAK_REFS_IN_ARRAYS || obj !is WeakReference<*>)) {
+      if (obj != null && (TRACK_WEAK_REFS_IN_ARRAYS || obj !is WeakReference<*>)) {
         val label = ObjectLabel(obj)
         val childNode = n.addEdgeTo(obj, label)
-        if (map != null && map[label] == null) {
+        if (childNode != null && map != null && map[label] == null) {
           map[label] = childNode
         }
       }

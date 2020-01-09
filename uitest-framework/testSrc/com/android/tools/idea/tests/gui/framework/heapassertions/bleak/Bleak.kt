@@ -55,13 +55,14 @@ fun runWithBleak(options: BleakOptions, scenario: () -> Unit) {
 
 class MainBleakCheck(whitelist: Whitelist<LeakInfo>,
                      knownIssues: Whitelist<LeakInfo> = Whitelist(),
-                     customExpanderSupplier: Supplier<List<Expander>>):
+                     customExpanderSupplier: Supplier<List<Expander>>,
+                     private val forbiddenObjects: List<Any> = listOf()):
   BleakCheck<() -> ExpanderChooser, LeakInfo>({ getExpanderChooser(customExpanderSupplier) }, whitelist, knownIssues) {
   lateinit var g1: HeapGraph
   lateinit var g2: HeapGraph
   var leaks: List<LeakInfo> = listOf()
 
-  private fun buildGraph(firstRun: Boolean = false) = HeapGraph(options()).expandWholeGraph(firstRun)
+  private fun buildGraph(firstRun: Boolean = false) = HeapGraph(options(), forbiddenObjects).expandWholeGraph(firstRun)
 
   override fun firstIterationFinished() {
     g1 = buildGraph(true)
