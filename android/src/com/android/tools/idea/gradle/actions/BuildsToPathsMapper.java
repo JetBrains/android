@@ -195,6 +195,9 @@ public class BuildsToPathsMapper {
   @Nullable
   private static File tryToGetOutputPreBuild(@NotNull AndroidModuleModel androidModel) {
     Collection<AndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
+    if (outputs.isEmpty()) {
+      return null;
+    }
     File outputFolderOrApk = outputs.iterator().next().getOutputFile();
     if (outputs.size() > 1) {
       return outputFolderOrApk.getParentFile();
