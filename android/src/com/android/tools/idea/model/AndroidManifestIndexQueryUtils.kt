@@ -29,6 +29,8 @@ import com.android.tools.idea.run.activity.DefaultActivityLocator
 import com.android.tools.idea.run.activity.IndexedActivityWrapper.Companion.getActivities
 import com.android.tools.idea.run.activity.IndexedActivityWrapper.Companion.getActivityAliases
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
 import com.intellij.psi.util.CachedValue
@@ -38,6 +40,8 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.util.LinkedList
 import java.util.stream.Stream
 import kotlin.streams.asSequence
+
+private val LOG: Logger get() = logger(::LOG)
 
 /**
  * Applies [processContributors] to the data indexed for [facet]'s merged manifest contributors,
@@ -199,4 +203,16 @@ fun AndroidFacet.queryPackageNameFromManifestIndex(): String? {
 
   val manager = CachedValuesManager.getManager(project)
   return manager.getCachedValue(this, provider)
+}
+
+/**
+ * To track in crash analytics when EAP
+ */
+fun logManifestIndexQueryError(e: Exception) {
+  if (ApplicationManager.getApplication().isEAP) {
+    LOG.error(e)
+  }
+  else {
+    LOG.info(e)
+  }
 }
