@@ -33,7 +33,6 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.EnumMap;
@@ -77,16 +76,13 @@ public class DynamicValueResourceRepository extends LocalResourceRepository
       }
     });
 
-    BuildVariantUpdater.getInstance(myFacet.getModule().getProject()).addSelectionChangeListener(this);
+    BuildVariantUpdater buildVariantUpdater = BuildVariantUpdater.getInstance(myFacet.getModule().getProject());
+    buildVariantUpdater.addSelectionChangeListener(this);
+    Disposer.register(this, () -> buildVariantUpdater.removeSelectionChangeListener(this));
   }
 
   @Override
-  public void dispose() {
-    Project project = myFacet.getModule().getProject();
-    if (!project.isDisposed()) {
-      BuildVariantUpdater.getInstance(project).removeSelectionChangeListener(this);
-    }
-  }
+  public void dispose() {}
 
   @Override
   @Nullable
