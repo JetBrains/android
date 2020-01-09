@@ -25,6 +25,7 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
+import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
@@ -148,11 +149,14 @@ class PreviewMustBeTopLevelFunction : BasePreviewAnnotationInspection() {
       return
     }
 
-    val containingClass = function.containingClass()
-    if (containingClass != null) {
-      // We allow functions that are not top level defined in top level classes that have a default (no parameter) constructor.
-      if (containingClass.isTopLevel() && containingClass.hasDefaultConstructor()) {
-        return
+    if (function.parentOfType<KtNamedFunction>() == null) {
+      // This is not a nested method
+      val containingClass = function.containingClass()
+      if (containingClass != null) {
+        // We allow functions that are not top level defined in top level classes that have a default (no parameter) constructor.
+        if (containingClass.isTopLevel() && containingClass.hasDefaultConstructor()) {
+          return
+        }
       }
     }
 
