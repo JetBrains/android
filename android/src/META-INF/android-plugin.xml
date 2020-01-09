@@ -286,9 +286,7 @@
     </action>
     <action id="Android.Device.Picker.Help" class="com.android.tools.idea.actions.DevicePickerHelpAction"/>
     <action id="Android.FixAndroidRunConfigurations"
-            class="com.android.tools.idea.gradle.project.FixAndroidRunConfigurationsAction"
-            text="Fix Android Run Configurations"
-            description="Add &quot;Gradle-aware Make&quot; launch task to Android Run Configuration(s) if it is missing">
+            class="com.android.tools.idea.gradle.project.FixAndroidRunConfigurationsAction">
     </action>
   </actions>
 
@@ -943,8 +941,7 @@
   <!-- Begin new deployment target selection -->
 
   <actions>
-    <action id="DeviceAndSnapshotComboBox" class="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxAction"
-            text="Select Device">
+    <action id="DeviceAndSnapshotComboBox" class="com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxAction">
       <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="after"/>
     </action>
   </actions>
