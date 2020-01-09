@@ -42,6 +42,9 @@ import java.awt.Cursor
 import java.awt.Point
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.BorderFactory
@@ -74,10 +77,14 @@ class DeviceViewPanel(
   override val screenScalingFactor = 1f
 
   override var isPanning = false
+  private var isSpacePressed = false
   private var lastPanMouseLocation: Point? = null
 
+  private val contentPanel = DeviceViewContentPanel(layoutInspector.layoutInspectorModel, viewSettings)
+
   private val panMouseListener: MouseAdapter = object : MouseAdapter() {
-    private fun currentlyPanning(e: MouseEvent) = isPanning || SwingUtilities.isMiddleMouseButton(e)
+    private fun currentlyPanning(e: MouseEvent) = isPanning || SwingUtilities.isMiddleMouseButton(e) ||
+                                                  (SwingUtilities.isLeftMouseButton(e) && isSpacePressed)
 
     override fun mouseEntered(e: MouseEvent) {
       showGrab()
@@ -97,6 +104,7 @@ class DeviceViewPanel(
     }
 
     override fun mousePressed(e: MouseEvent) {
+      contentPanel.requestFocus()
       if (currentlyPanning(e)) {
         cursor = AdtUiCursors.GRABBING
         lastPanMouseLocation = SwingUtilities.convertPoint(e.component, e.point, this@DeviceViewPanel)
@@ -132,12 +140,38 @@ class DeviceViewPanel(
     }
   }
 
-  private val contentPanel = DeviceViewContentPanel(layoutInspector.layoutInspectorModel, viewSettings, panMouseListener)
   private val scrollPane = JBScrollPane(contentPanel)
   private val layeredPane = JLayeredPane()
   private val deviceViewPanelActionsToolbar: DeviceViewPanelActionsToolbar
 
   init {
+    contentPanel.isFocusable = true
+
+    val mouseListeners = listOf(*contentPanel.mouseListeners)
+    mouseListeners.forEach { contentPanel.removeMouseListener(it) }
+    val mouseMotionListeners = listOf(*contentPanel.mouseMotionListeners)
+    mouseMotionListeners.forEach { contentPanel.removeMouseMotionListener(it) }
+    val keyboardListeners = listOf(*contentPanel.keyListeners)
+    keyboardListeners.forEach { contentPanel.removeKeyListener(it) }
+    contentPanel.addMouseListener(panMouseListener)
+    contentPanel.addMouseMotionListener(panMouseListener)
+    contentPanel.addKeyListener(object: KeyAdapter() {
+      override fun keyPressed(e: KeyEvent) {
+        if (e.keyCode == VK_SPACE) {
+          isSpacePressed = true
+        }
+      }
+
+      override fun keyReleased(e: KeyEvent) {
+        if (e.keyCode == VK_SPACE) {
+          isSpacePressed = false
+        }
+      }
+    })
+    mouseListeners.forEach { contentPanel.addMouseListener(it) }
+    mouseMotionListeners.forEach { contentPanel.addMouseMotionListener(it) }
+    keyboardListeners.forEach { contentPanel.addKeyListener(it) }
+
     scrollPane.border = JBUI.Borders.empty()
     val toolbarComponent = createToolbar()
     add(toolbarComponent, BorderLayout.NORTH)

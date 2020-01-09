@@ -142,6 +142,7 @@ public final class FakeKeyboard {
     META(KeyEvent.VK_META),
     RIGHT(KeyEvent.VK_RIGHT),
     SHIFT(KeyEvent.VK_SHIFT),
+    SPACE(KeyEvent.VK_SPACE),
     // Add more modifier keys here (alphabetically) as necessary
     A(KeyEvent.VK_A),
     D(KeyEvent.VK_D),
