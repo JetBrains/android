@@ -28,7 +28,7 @@ import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
 
-class HighlightingBenchmarks {
+class SimpleHighlightingBenchmark {
   @get:Rule
   val gradleRule = AndroidGradleProjectRule()
 
@@ -38,6 +38,8 @@ class HighlightingBenchmarks {
   @Test
   @RunsInEdt
   fun simpleProjectHighlighting() {
+    enableAllDefaultInspections(gradleRule.fixture)
+
     // Load project.
     gradleRule.load(TestProjectPaths.SIMPLE_APPLICATION)
     GradleBuildInvoker.getInstance(gradleRule.project).generateSources() // Gets us closer to a production setup.

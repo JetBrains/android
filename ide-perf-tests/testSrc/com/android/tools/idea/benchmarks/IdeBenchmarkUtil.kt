@@ -16,11 +16,23 @@
 package com.android.tools.idea.benchmarks
 
 import com.android.tools.perflogger.Metric
+import com.intellij.profile.codeInspection.ProjectInspectionProfileManager
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.testFramework.runInInitMode
 import java.util.concurrent.TimeUnit
 import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
 
 const val EDITOR_PERFGATE_PROJECT_NAME = "Android Studio Editor"
+
+/** Enables all inspections which are on by default in production. */
+fun enableAllDefaultInspections(fixture: CodeInsightTestFixture) {
+  val profileManager = ProjectInspectionProfileManager.getInstance(fixture.project)
+  val defaultProfile = profileManager.getProfile("Project Default", false)!!
+  val tools = runInInitMode { defaultProfile.getAllEnabledInspectionTools(fixture.project) }
+  val inspectionEntries = tools.map { it.tool.tool }
+  fixture.enableInspections(*inspectionEntries.toTypedArray())
+}
 
 /** Runs [action] several times to warm up, and then several times again. */
 fun repeatWithWarmups(

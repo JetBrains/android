@@ -16,19 +16,35 @@
 package com.android.tools.idea.benchmarks
 
 import com.android.testutils.JarTestSuiteRunner
+import com.android.tools.tests.GradleDaemonsRule
 import com.android.tools.tests.IdeaTestSuiteBase
+import org.junit.ClassRule
 import org.junit.runner.RunWith
 
 @RunWith(JarTestSuiteRunner::class)
 @JarTestSuiteRunner.ExcludeClasses(IdeBenchmarkTestSuite::class)
 class IdeBenchmarkTestSuite : IdeaTestSuiteBase() {
   companion object {
+    @get:ClassRule
+    val gradleDaemonCleanup = GradleDaemonsRule()
+
     init {
       try {
         symlinkToIdeaHome(
+          "prebuilts/studio/layoutlib",
+          "tools/adt/idea/android/annotations",
           "tools/adt/idea/android/testData",
+          "tools/adt/idea/ide-perf-tests/testData",
           "tools/base/templates",
           "tools/idea/java")
+
+        // SantaTracker.
+        setUpSourceZip(
+          "prebuilts/studio/buildbenchmarks/SantaTracker.181be75/src.zip",
+          "tools/adt/idea/ide-perf-tests/testData/SantaTracker",
+          DiffSpec("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/setupForIdeTest.diff", 2))
+        setUpOfflineRepo("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/repo.zip",
+                         "prebuilts/tools/common/m2/repository")
 
         setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo")
         setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository")
