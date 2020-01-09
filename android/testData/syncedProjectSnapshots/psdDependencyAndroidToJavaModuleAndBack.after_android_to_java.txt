@@ -425,55 +425,55 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: jarlib-1.1
+        LIBRARY             : Gradle: com.example.jlib:lib3:0.9.1
             LibraryLevel        : project
             IsModuleLevel       : false
+            Scope               : Provided
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib3:0.9.1 [=]
+            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
+        LIBRARY             : Gradle: com.example.jlib:lib3:1.0
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Runtime
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib3:1.0 [=]
+            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
+        LIBRARY             : Gradle: com.example.jlib:lib3:1.0
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib3:1.0 [=]
+            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
+        LIBRARY             : Gradle: com.example.jlib:lib4:0.9.1
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Provided
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:0.9.1 [=]
+            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
+        LIBRARY             : Gradle: com.example.jlib:lib4:1.0
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Runtime
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:1.0 [=]
+            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
+        LIBRARY             : Gradle: com.example.jlib:lib4:1.0
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:1.0 [=]
+            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
+        LIBRARY             : Gradle: jarlib-1.1
+            LibraryLevel        : module
+            IsModuleLevel       : true
             Scope               : Compile
-            IsExported          : true
+            IsExported          : false
             Name                : Gradle: jarlib-1.1 [=]
             *CLASSES            : jar://<PROJECT>/jModuleK/libs/jarlib-1.1.jar!/
-        LIBRARY             : Gradle: lib3-0.9.1
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Provided
-            IsExported          : true
-            Name                : Gradle: lib3-0.9.1 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
-        LIBRARY             : Gradle: lib3-1.0
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Runtime
-            IsExported          : true
-            Name                : Gradle: lib3-1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
-        LIBRARY             : Gradle: lib3-1.0
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Test
-            IsExported          : true
-            Name                : Gradle: lib3-1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
-        LIBRARY             : Gradle: lib4-0.9.1
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Provided
-            IsExported          : true
-            Name                : Gradle: lib4-0.9.1 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
-        LIBRARY             : Gradle: lib4-1.0
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Runtime
-            IsExported          : true
-            Name                : Gradle: lib4-1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
-        LIBRARY             : Gradle: lib4-1.0
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Test
-            IsExported          : true
-            Name                : Gradle: lib4-1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
         ORDER_ENTRY         : jModuleL
     MODULE              : jModuleL
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
@@ -502,19 +502,19 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: lib3-1.0
+        LIBRARY             : Gradle: com.example.jlib:lib3:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
-            IsExported          : true
-            Name                : Gradle: lib3-1.0 [=]
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib3:1.0 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
-        LIBRARY             : Gradle: lib4-1.0
+        LIBRARY             : Gradle: com.example.jlib:lib4:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
-            IsExported          : true
-            Name                : Gradle: lib4-1.0 [=]
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:1.0 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
     MODULE              : jModuleM
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
@@ -543,19 +543,19 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: lib3-0.9.1
+        LIBRARY             : Gradle: com.example.jlib:lib3:0.9.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
-            IsExported          : true
-            Name                : Gradle: lib3-0.9.1 [=]
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib3:0.9.1 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
-        LIBRARY             : Gradle: lib4-0.9.1
+        LIBRARY             : Gradle: com.example.jlib:lib4:0.9.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
-            IsExported          : true
-            Name                : Gradle: lib4-0.9.1 [=]
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:0.9.1 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
     MODULE              : jModuleZ
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
@@ -584,67 +584,67 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: jarlib-1.1
+        LIBRARY             : Gradle: com.example.jlib:lib3:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Runtime
-            IsExported          : true
-            Name                : Gradle: jarlib-1.1 [=]
-            *CLASSES            : jar://<PROJECT>/jModuleK/libs/jarlib-1.1.jar!/
-        LIBRARY             : Gradle: jarlib-1.1
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib3:1.0 [=]
+            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
+        LIBRARY             : Gradle: com.example.jlib:lib3:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
-            IsExported          : true
-            Name                : Gradle: jarlib-1.1 [=]
-            *CLASSES            : jar://<PROJECT>/jModuleK/libs/jarlib-1.1.jar!/
-        LIBRARY             : Gradle: lib3-1.0
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Runtime
-            IsExported          : true
-            Name                : Gradle: lib3-1.0 [=]
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib3:1.0 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
-        LIBRARY             : Gradle: lib3-1.0
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Test
-            IsExported          : true
-            Name                : Gradle: lib3-1.0 [=]
-            *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/1.0/lib3-1.0.jar!/
-        LIBRARY             : Gradle: lib4-0.6
+        LIBRARY             : Gradle: com.example.jlib:lib4:0.6
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Provided
-            IsExported          : true
-            Name                : Gradle: lib4-0.6 [=]
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:0.6 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
-        LIBRARY             : Gradle: lib4-1.0
+        LIBRARY             : Gradle: com.example.jlib:lib4:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Runtime
-            IsExported          : true
-            Name                : Gradle: lib4-1.0 [=]
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:1.0 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
-        LIBRARY             : Gradle: lib4-1.0
+        LIBRARY             : Gradle: com.example.jlib:lib4:1.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
-            IsExported          : true
-            Name                : Gradle: lib4-1.0 [=]
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:1.0 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/1.0/lib4-1.0.jar!/
+        LIBRARY             : Gradle: jarlib-1.1
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Runtime
+            IsExported          : false
+            Name                : Gradle: jarlib-1.1 [=]
+            *CLASSES            : jar://<PROJECT>/jModuleK/libs/jarlib-1.1.jar!/
+        LIBRARY             : Gradle: jarlib-1.1
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Test
+            IsExported          : false
+            Name                : Gradle: jarlib-1.1 [=]
+            *CLASSES            : jar://<PROJECT>/jModuleK/libs/jarlib-1.1.jar!/
         LIBRARY             : Gradle: libsam1-1.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
-            IsExported          : true
+            IsExported          : false
             Name                : Gradle: libsam1-1.1 [=]
             *CLASSES            : jar://<PROJECT>/lib/libsam1-1.1.jar!/
         LIBRARY             : Gradle: libsam2-1.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
-            IsExported          : true
+            IsExported          : false
             Name                : Gradle: libsam2-1.1 [=]
             *CLASSES            : jar://<PROJECT>/lib/libsam2-1.1.jar!/
         ORDER_ENTRY         : jModuleK
@@ -1834,19 +1834,19 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: lib3-0.9.1
+        LIBRARY             : Gradle: com.example.jlib:lib3:0.9.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
-            IsExported          : true
-            Name                : Gradle: lib3-0.9.1 [=]
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib3:0.9.1 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
-        LIBRARY             : Gradle: lib4-0.9.1
+        LIBRARY             : Gradle: com.example.jlib:lib4:0.9.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
-            IsExported          : true
-            Name                : Gradle: lib4-0.9.1 [=]
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:0.9.1 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
     MODULE              : moduleFlavor
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack
@@ -2414,12 +2414,12 @@ PROJECT             : testPsdDependencyAndroidToJavaModuleAndBack
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: lib4-0.6
+        LIBRARY             : Gradle: com.example.jlib:lib4:0.6
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
-            IsExported          : true
-            Name                : Gradle: lib4-0.6 [=]
+            IsExported          : false
+            Name                : Gradle: com.example.jlib:lib4:0.6 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.6/lib4-0.6.jar!/
     MODULE              : testPsdDependencyAndroidToJavaModuleAndBack
         - ModuleGroupPath   : testPsdDependencyAndroidToJavaModuleAndBack

@@ -113,9 +113,9 @@ public class LibraryFilePaths {
   }
 
   @Nullable
-  private static File findArtifactFilePathInRepository(@NotNull File libraryPath,
-                                                       @NotNull String fileNameSuffix,
-                                                       boolean searchInIdeCache) {
+  public static File findArtifactFilePathInRepository(@NotNull File libraryPath,
+                                                      @NotNull String fileNameSuffix,
+                                                      boolean searchInIdeCache) {
     if (!libraryPath.isFile()) {
       // Unlikely to happen. At this point the jar file should exist.
       return null;

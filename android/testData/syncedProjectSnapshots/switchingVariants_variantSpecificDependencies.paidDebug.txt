@@ -21,15 +21,15 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             ManifestFileRelativePath      : /src/main/AndroidManifest.xml
             ResFolderRelativePath         : /src/main/res
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/main/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/free/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/paid/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/src/freeDebug/res [-]
-            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/free/debug [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/src/paidDebug/res [-]
+            - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/paid/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFree/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestPaid/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFreeDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/free/debug [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestPaidDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/paid/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -412,7 +412,6 @@ PROJECT             : testSwitchingVariants_variantSpecificDependencies
             Name                : Gradle: org.hamcrest:hamcrest-core:1.3@jar [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
         ORDER_ENTRY         : moduleA
-        ORDER_ENTRY         : moduleB
     MODULE              : moduleA
         - ModuleGroupPath   : testSwitchingVariants_variantSpecificDependencies
         - ModuleGroupPath   : moduleA

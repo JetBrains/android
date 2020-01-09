@@ -153,6 +153,13 @@ PROJECT             : My Application
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
-            IsExported          : true
+            IsExported          : false
             Name                : Gradle: liba [=]
             *CLASSES            : jar://<PROJECT>/lib1/liba.jar!/
+        LIBRARY             : Gradle: liba_1
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: liba_1 [=]
+            *CLASSES            : jar://<PROJECT>/lib2/liba.jar!/

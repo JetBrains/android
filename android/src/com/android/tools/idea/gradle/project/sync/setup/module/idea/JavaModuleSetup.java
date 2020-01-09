@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 public class JavaModuleSetup extends BaseSetup<JavaModuleSetupStep, JavaModuleModel> {
   public JavaModuleSetup() {
     this(new CheckAndroidModuleWithoutVariantsStep(), new JavaFacetModuleSetupStep(), new ContentRootsModuleSetupStep(),
-         new DependenciesModuleSetupStep(), new ArtifactsByConfigurationModuleSetupStep(), new CompilerOutputModuleSetupStep(),
+         new ArtifactsByConfigurationModuleSetupStep(), new CompilerOutputModuleSetupStep(),
          new JavaLanguageLevelModuleSetupStep());
   }
 

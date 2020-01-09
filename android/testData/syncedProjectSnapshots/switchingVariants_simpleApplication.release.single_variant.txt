@@ -366,12 +366,12 @@ PROJECT             : testSwitchingVariants_simpleApplication
             IsExported          : false
             Name                : Gradle: junit:junit:4.12@jar [=]
             *CLASSES            : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
-        LIBRARY             : Gradle: org.apache.http.legacy-android-29
+        LIBRARY             : Gradle: org.apache.http.legacy
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.apache.http.legacy-android-29 [=]
+            Name                : Gradle: org.apache.http.legacy [=]
             *CLASSES            : jar://<ANDROID_SDK>/platforms/android-29/optional/org.apache.http.legacy.jar!/
         LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3@jar
             LibraryLevel        : project

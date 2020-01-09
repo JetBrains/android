@@ -438,41 +438,41 @@ PROJECT             : testTransitiveDependencies
         JDK                 : <NAME_CUT> JavaSDK
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: animal-sniffer-annotations-1.14
+        LIBRARY             : Gradle: com.google.code.findbugs:jsr305:1.3.9
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
-            IsExported          : true
-            Name                : Gradle: animal-sniffer-annotations-1.14 [=]
-            *CLASSES            : jar://<M2>/org/codehaus/mojo/animal-sniffer-annotations/1.14/animal-sniffer-annotations-1.14.jar!/
-        LIBRARY             : Gradle: error_prone_annotations-2.0.18
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Compile
-            IsExported          : true
-            Name                : Gradle: error_prone_annotations-2.0.18 [=]
-            *CLASSES            : jar://<M2>/com/google/errorprone/error_prone_annotations/2.0.18/error_prone_annotations-2.0.18.jar!/
-        LIBRARY             : Gradle: guava-23.0
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Compile
-            IsExported          : true
-            Name                : Gradle: guava-23.0 [=]
-            *CLASSES            : jar://<M2>/com/google/guava/guava/23.0/guava-23.0.jar!/
-        LIBRARY             : Gradle: j2objc-annotations-1.1
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Compile
-            IsExported          : true
-            Name                : Gradle: j2objc-annotations-1.1 [=]
-            *CLASSES            : jar://<M2>/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar!/
-        LIBRARY             : Gradle: jsr305-1.3.9
-            LibraryLevel        : project
-            IsModuleLevel       : false
-            Scope               : Compile
-            IsExported          : true
-            Name                : Gradle: jsr305-1.3.9 [=]
+            IsExported          : false
+            Name                : Gradle: com.google.code.findbugs:jsr305:1.3.9 [=]
             *CLASSES            : jar://<M2>/com/google/code/findbugs/jsr305/1.3.9/jsr305-1.3.9.jar!/
+        LIBRARY             : Gradle: com.google.errorprone:error_prone_annotations:2.0.18
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.google.errorprone:error_prone_annotations:2.0.18 [=]
+            *CLASSES            : jar://<M2>/com/google/errorprone/error_prone_annotations/2.0.18/error_prone_annotations-2.0.18.jar!/
+        LIBRARY             : Gradle: com.google.guava:guava:23.0
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.google.guava:guava:23.0 [=]
+            *CLASSES            : jar://<M2>/com/google/guava/guava/23.0/guava-23.0.jar!/
+        LIBRARY             : Gradle: com.google.j2objc:j2objc-annotations:1.1
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.google.j2objc:j2objc-annotations:1.1 [=]
+            *CLASSES            : jar://<M2>/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar!/
+        LIBRARY             : Gradle: org.codehaus.mojo:animal-sniffer-annotations:1.14
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: org.codehaus.mojo:animal-sniffer-annotations:1.14 [=]
+            *CLASSES            : jar://<M2>/org/codehaus/mojo/animal-sniffer-annotations/1.14/animal-sniffer-annotations-1.14.jar!/
         ORDER_ENTRY         : javalib2
     MODULE              : javalib2
         - ModuleGroupPath   : testTransitiveDependencies

@@ -838,7 +838,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     // Verify that buildSrc/lib1 has dependency on buildSrc/lib2.
     Module lib1Module = getModule(getName() + "_lib1");
-    assertAbout(moduleDependencies()).that(lib1Module).hasDependency(getName() + "_lib2", DependencyScope.COMPILE, true);
+    assertAbout(moduleDependencies()).that(lib1Module).hasDependency(getName() + "_lib2", DependencyScope.COMPILE, false);
   }
 
   public void testViewBindingOptionsAreCorrectlyVisibleFromIDE() throws Exception {

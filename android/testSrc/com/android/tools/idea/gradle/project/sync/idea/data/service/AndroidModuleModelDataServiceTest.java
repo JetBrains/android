@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
-import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidModuleCleanupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.android.ContentRootsModuleSetupStep;
-import com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.ProjectFiles;
@@ -31,14 +34,8 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import org.mockito.Mock;
-
 import java.util.Collections;
-
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link AndroidModuleModelDataService}.
@@ -99,27 +96,5 @@ public class AndroidModuleModelDataServiceTest extends AndroidGradleTestCase {
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
     myService.onModelsNotFound(modelsProvider);
     verify(myCleanupStep).cleanUpModule(appModule, modelsProvider);
-  }
-
-  public void testAndroidModuleSetupSteps() {
-    myService = new AndroidModuleModelDataService();
-
-    int indexOfContentRootsModuleSetupStep = -1;
-    int indexOfDependenciesModuleSetupStep = -1;
-    AndroidModuleSetupStep[] setupSteps = myService.getModuleSetup().getSetupSteps();
-    for (int i = 0; i < setupSteps.length; i++) {
-      AndroidModuleSetupStep setupStep = setupSteps[i];
-      if (setupStep instanceof ContentRootsModuleSetupStep) {
-        indexOfContentRootsModuleSetupStep = i;
-        continue;
-      }
-      if (setupStep instanceof DependenciesAndroidModuleSetupStep) {
-        indexOfDependenciesModuleSetupStep = i;
-      }
-    }
-
-    // ContentRootsModuleSetupStep should go before DependenciesModuleSetupStep, otherwise any excluded jars set up by
-    // DependenciesModuleSetupStep will be ignored.
-    assertThat(indexOfContentRootsModuleSetupStep).isLessThan(indexOfDependenciesModuleSetupStep);
   }
 }

@@ -217,7 +217,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
   public void testDependencySetUpInJavaModule() throws Exception {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module libModule = myModules.getModule("javalib1");
-    assertAbout(moduleDependencies()).that(libModule).hasDependency("javalib2", COMPILE, true);
+    assertAbout(moduleDependencies()).that(libModule).hasDependency("javalib2", COMPILE, false);
     assertAbout(libraryDependencies()).that(libModule).doesNotContain("Gradle: javalib2.javalib2", COMPILE);
   }
 

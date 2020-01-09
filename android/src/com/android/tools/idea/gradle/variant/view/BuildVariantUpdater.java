@@ -38,6 +38,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.VariantOnlySyncOptions;
+import com.android.tools.idea.gradle.project.sync.idea.VariantSwitcher;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidVariantChangeModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.ndk.NdkVariantChangeModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
@@ -227,7 +228,21 @@ public class BuildVariantUpdater {
       requestVariantOnlyGradleSync(project, moduleName, buildVariantName, invokeVariantSelectionChangeListeners);
     }
     else {
-      setupCachedVariant(project, affectedAndroidFacets, affectedNdkFacets, invokeVariantSelectionChangeListeners);
+      // For now we need to update every facet to ensure content entries are accurate.
+      // TODO: Remove this once content entries use DataNodes.
+      List<AndroidFacet> allAndroidFacets = new ArrayList<>();
+      List<NdkFacet> allNdkFacets = new ArrayList<>();
+      for (Module module : ModuleManager.getInstance(project).getModules()) {
+        AndroidFacet androidFacet = AndroidFacet.getInstance(module);
+        if (androidFacet != null) {
+          allAndroidFacets.add(androidFacet);
+        }
+        NdkFacet ndkFacet = NdkFacet.getInstance(module);
+        if (ndkFacet != null) {
+          allNdkFacets.add(ndkFacet);
+        }
+      }
+      setupCachedVariant(project, allAndroidFacets, allNdkFacets, invokeVariantSelectionChangeListeners);
     }
     return true;
   }
@@ -531,6 +546,11 @@ public class BuildVariantUpdater {
       @Override
       public void run(@NotNull ProgressIndicator indicator) {
         getLog().info("Starting setup of cached variant");
+
+        // While we work to move the rest of the setup we need to perform two commits, once using IDEAs data import and the other
+        // using the remainder of out setup steps.
+        VariantSwitcher.switchVariant(project, affectedAndroidFacets);
+
         // Setup modules
         List<IdeModifiableModelsProvider> modelsProviders = setUpModules(affectedAndroidFacets, affectedNdkFacets, indicator);
 
