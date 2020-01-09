@@ -34,7 +34,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 
 
-const val TOOL_WINDOW_ID = "Layout Inspector"
+const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
 
 private val LAYOUT_INSPECTOR = Key.create<LayoutInspector>("LayoutInspector")
 
@@ -56,7 +56,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     }
     val contentManager = toolWindow.contentManager
 
-    val workbench = WorkBench<LayoutInspector>(project, TOOL_WINDOW_ID, null, project)
+    val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, project)
     val viewSettings = DeviceViewSettings()
     val layoutInspector = LayoutInspector(InspectorModel(project))
     val deviceViewPanel = DeviceViewPanel(layoutInspector, viewSettings, project)
@@ -79,7 +79,7 @@ private class LayoutInspectorToolWindowManagerListener(private val project: Proj
   private var wasWindowVisible = false
 
   override fun stateChanged() {
-    val window = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID) ?: return
+    val window = ToolWindowManager.getInstance(project).getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID) ?: return
     val isWindowVisible = window.isVisible // Layout Inspector tool window is expanded.
     val windowVisibilityChanged = isWindowVisible != wasWindowVisible
     wasWindowVisible = isWindowVisible
