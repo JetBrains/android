@@ -63,7 +63,6 @@ class SqliteEvaluatorViewImpl(
   override fun addDatabase(database: SqliteDatabase, index: Int) {
     evaluatorPanel.databaseComboBox.insertItemAt(ComboBoxItem(database, database.name), index)
     if (evaluatorPanel.databaseComboBox.selectedIndex == -1) evaluatorPanel.databaseComboBox.selectedIndex = 0
-    setSchemaFromSelectedItem()
   }
 
   override fun selectDatabase(database: SqliteDatabase) {
