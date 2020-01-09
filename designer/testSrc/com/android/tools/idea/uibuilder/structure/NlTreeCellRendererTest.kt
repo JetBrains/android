@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.structure
 
 import com.android.tools.idea.common.util.XmlTagUtil
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.uibuilder.model.NlComponentHelper
 import com.android.tools.idea.uibuilder.property.MockNlComponent
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
