@@ -324,8 +324,8 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
                   builder = builder.newLocalQuickFix(action, descriptor).key(key).registerFix();
                 }
               }
-              builder.create();
             }
+            builder.create();
           }
         }
       }
