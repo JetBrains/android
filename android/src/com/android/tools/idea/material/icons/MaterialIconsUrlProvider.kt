@@ -21,7 +21,7 @@ import com.android.tools.idea.material.icons.MaterialIconsUtils.toDirFormat
 import java.net.URL
 
 /**
- * Interface used to get [URL] objects for [MaterialVdIconsLoader].
+ * Interface used to get [URL] objects of [MaterialVdIcons].
  */
 interface MaterialIconsUrlProvider {
 
@@ -39,13 +39,13 @@ interface MaterialIconsUrlProvider {
 /**
  * The default [MaterialIconsUrlProvider] for [VdIcon] files bundled with Android Studio.
  */
-internal class MaterialIconsUrlProviderImpl : MaterialIconsUrlProvider {
+internal class BundledIconsUrlProvider : MaterialIconsUrlProvider {
   override fun getStyleUrl(style: String): URL? {
-    return MaterialVdIconsLoader::class.java.classLoader.getResource(getStyleDirectoryPath(style))
+    return javaClass.classLoader.getResource(getStyleDirectoryPath(style))
   }
 
   override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? {
-    return MaterialVdIconsLoader::class.java.classLoader.getResource(getIconDirectoryPath(style, iconName) + iconFileName)
+    return javaClass.classLoader.getResource(getIconDirectoryPath(style, iconName) + iconFileName)
   }
 
   private fun getIconDirectoryPath(style: String, name: String): String {

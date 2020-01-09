@@ -18,11 +18,9 @@ package com.android.tools.idea.npw.assetstudio.ui;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_FIND;
 
 import com.android.ide.common.vectordrawable.VdIcon;
+import com.android.tools.idea.material.icons.MaterialIconsMetadataUrlProvider;
 import com.android.tools.idea.material.icons.MaterialIconsUrlProvider;
-import com.android.tools.idea.material.icons.MaterialIconsUrlProviderImpl;
 import com.android.tools.idea.material.icons.MaterialVdIcons;
-import com.android.tools.idea.npw.assetstudio.MaterialIconsMetadataUrlProvider;
-import com.android.tools.idea.npw.assetstudio.MaterialIconsMetadataUrlProviderImpl;
 import com.android.tools.idea.npw.assetstudio.MaterialVdIconsProvider;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.DataManager;
@@ -153,13 +151,13 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
   };
 
   public IconPickerDialog(@Nullable VdIcon selectedIcon) {
-    this(selectedIcon, new MaterialIconsMetadataUrlProviderImpl(), new MaterialIconsUrlProviderImpl());
+    this(selectedIcon, null, null);
   }
 
   @VisibleForTesting
   IconPickerDialog(@Nullable VdIcon selectedIcon,
-                   @NotNull MaterialIconsMetadataUrlProvider urlMetadataProvider,
-                   @NotNull MaterialIconsUrlProvider urlLoaderProvider) {
+                   @Nullable MaterialIconsMetadataUrlProvider metadataUrlProvider,
+                   @Nullable MaterialIconsUrlProvider iconsUrlProvider) {
     super(false);
     myIconToSelectInTable = selectedIcon;
 
@@ -234,7 +232,7 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
     myIconTable.setPaintBusy(true);
     myStylesBox.setEnabled(false);
     myCategoriesBox.setEnabled(false);
-    new MaterialVdIconsProvider((materialVdIcons, status) -> {
+    MaterialVdIconsProvider.loadMaterialVdIcons((materialVdIcons, status) -> {
       assert ApplicationManager.getApplication().isDispatchThread();
       myIconTable.getEmptyText().setText(StatusText.DEFAULT_EMPTY_TEXT);
       populateIcons(materialVdIcons);
@@ -247,7 +245,7 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
         myCategoriesBox.addItemListener(myCategoriesBoxListener);
       }
       return null;
-    }, urlMetadataProvider, urlLoaderProvider);
+    }, metadataUrlProvider, iconsUrlProvider);
   }
 
   private void createUIComponents() {
