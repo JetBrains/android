@@ -190,7 +190,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
         // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
         //  We need to refactor the callers of this to require a *smart*
         //  read action, at which point we can remove this try-catch.
-        LOG.info(e);
+        AndroidManifestIndexQueryUtils.logManifestIndexQueryError(e);
       }
     }
 
@@ -219,7 +219,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
         // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
         //  We need to refactor the callers of this to require a *smart*
         //  read action, at which point we can remove this try-catch.
-        LOG.info(e);
+        AndroidManifestIndexQueryUtils.logManifestIndexQueryError(e);
       }
     }
 
@@ -262,7 +262,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
         // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
         //  We need to refactor the callers of this to require a *smart*
         //  read action, at which point we can remove this try-catch.
-        LOG.info(e);
+        AndroidManifestIndexQueryUtils.logManifestIndexQueryError(e);
       }
     }
 

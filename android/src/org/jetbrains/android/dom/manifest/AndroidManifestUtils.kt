@@ -28,10 +28,10 @@ import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.model.AndroidManifestIndex
+import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.model.queryCustomPermissionGroupsFromManifestIndex
 import com.android.tools.idea.model.queryCustomPermissionsFromManifestIndex
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -114,7 +114,7 @@ fun getCustomPermissions(facet: AndroidFacet): Collection<String>? {
       //  We need to refactor the callers of this to require a *smart*
       //  read action, at which point we can remove this try-catch.
       //  It falls back to the original method when index isn't ready.
-      LOG.info(e)
+      logManifestIndexQueryError(e)
     }
   }
 
@@ -140,7 +140,7 @@ fun getCustomPermissionGroups(facet: AndroidFacet): Collection<String>? {
       //  We need to refactor the callers of this to require a *smart*
       //  read action, at which point we can remove this try-catch.
       //  It falls back to the original method when index isn't ready.
-      LOG.info(e)
+      logManifestIndexQueryError(e)
     }
   }
 

@@ -36,6 +36,7 @@ import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityStatus
@@ -62,7 +63,6 @@ import com.google.common.base.Predicate
 import com.google.common.base.Predicates
 import com.google.common.collect.ArrayListMultimap
 import com.google.common.collect.Multimap
-import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
@@ -460,7 +460,7 @@ class GradleModuleSystem(
         // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
         //  We need to refactor the callers of this to require a *smart*
         //  read action, at which point we can remove this try-catch.
-        LOG.info(e)
+        logManifestIndexQueryError(e)
       }
     }
 
