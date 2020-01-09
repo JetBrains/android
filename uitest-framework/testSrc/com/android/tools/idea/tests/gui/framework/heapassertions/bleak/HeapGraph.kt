@@ -37,7 +37,7 @@ typealias Node = HeapGraph.Node
  * Each node corresponds to a single object, and edges represent references, either real, or
  * abstracted. [Expander]s are responsible for defining the nature of this abstraction.
  */
-class HeapGraph(private val expanderChooser: ExpanderChooser): DoNotTrace {
+class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbiddenObjects: List<Any> = listOf()): DoNotTrace {
 
   private val objToNode: MutableMap<Any, Node> = IdentityHashMap()
   private val rootNodes: List<Node> = mutableListOf(Node(jniHelper, true))
@@ -71,7 +71,8 @@ class HeapGraph(private val expanderChooser: ExpanderChooser): DoNotTrace {
 
     fun expandCorrespondingEdge(e: Edge) = expander.expandCorrespondingEdge(this, e)
 
-    fun addEdgeTo(obj: Any, label: Expander.Label): Node {
+    fun addEdgeTo(obj: Any, label: Expander.Label): Node? {
+      if (forbiddenObjects.any { it === obj }) return null
       val e = Edge(this, getOrCreateNode(obj), label)
       edges.add(e)
       return e.end

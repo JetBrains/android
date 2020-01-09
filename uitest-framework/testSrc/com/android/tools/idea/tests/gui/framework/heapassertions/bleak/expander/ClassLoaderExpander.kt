@@ -38,7 +38,7 @@ class ClassLoaderExpander(val bleakHelper: BleakHelper): Expander() {
       bleakHelper.allLoadedClasses().filter{ (it as Class<*>).classLoader == null }.forEach {
         val label = ObjectLabel(it)
         val childNode = n.addEdgeTo(it, label)
-        map[label] = childNode
+        if (childNode != null) map[label] = childNode
       }
     } else {
       val cl = n.obj as ClassLoader
@@ -48,7 +48,7 @@ class ClassLoaderExpander(val bleakHelper: BleakHelper): Expander() {
       for (c in classes.filterNot { it.isArray }) {
         val label = ObjectLabel(c)
         val childNode = n.addEdgeTo(c, label)
-        map[label] = childNode
+        if (childNode != null) map[label] = childNode
       }
     }
   }
