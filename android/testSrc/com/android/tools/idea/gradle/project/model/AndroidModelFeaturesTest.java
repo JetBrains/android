@@ -38,6 +38,7 @@ public class AndroidModelFeaturesTest {
     assertTrue(features.shouldExportDependencies());
     assertTrue(features.isVfsRefreshAfterBuildRequired());
     assertFalse(features.isSingleVariantSyncSupported());
+    assertFalse(features.isBuildOutputFileSupported());
   }
 
   @Test
@@ -54,6 +55,7 @@ public class AndroidModelFeaturesTest {
     assertTrue(features.shouldExportDependencies());
     assertTrue(features.isVfsRefreshAfterBuildRequired());
     assertFalse(features.isSingleVariantSyncSupported());
+    assertFalse(features.isBuildOutputFileSupported());
   }
 
   @Test
@@ -70,6 +72,7 @@ public class AndroidModelFeaturesTest {
     assertTrue(features.shouldExportDependencies());
     assertTrue(features.isVfsRefreshAfterBuildRequired());
     assertFalse(features.isSingleVariantSyncSupported());
+    assertFalse(features.isBuildOutputFileSupported());
   }
 
   @Test
@@ -86,6 +89,7 @@ public class AndroidModelFeaturesTest {
     assertTrue(features.shouldExportDependencies());
     assertTrue(features.isVfsRefreshAfterBuildRequired());
     assertFalse(features.isSingleVariantSyncSupported());
+    assertFalse(features.isBuildOutputFileSupported());
   }
 
   @Test
@@ -102,6 +106,7 @@ public class AndroidModelFeaturesTest {
     assertTrue(features.shouldExportDependencies());
     assertTrue(features.isVfsRefreshAfterBuildRequired());
     assertFalse(features.isSingleVariantSyncSupported());
+    assertFalse(features.isBuildOutputFileSupported());
   }
 
   @Test
@@ -118,6 +123,7 @@ public class AndroidModelFeaturesTest {
     assertTrue(features.shouldExportDependencies());
     assertTrue(features.isVfsRefreshAfterBuildRequired());
     assertFalse(features.isSingleVariantSyncSupported());
+    assertFalse(features.isBuildOutputFileSupported());
   }
 
   @Test
@@ -134,6 +140,7 @@ public class AndroidModelFeaturesTest {
     assertTrue(features.shouldExportDependencies());
     assertTrue(features.isVfsRefreshAfterBuildRequired());
     assertFalse(features.isSingleVariantSyncSupported());
+    assertFalse(features.isBuildOutputFileSupported());
   }
 
   @Test
@@ -150,6 +157,7 @@ public class AndroidModelFeaturesTest {
     assertTrue(features.shouldExportDependencies());
     assertTrue(features.isVfsRefreshAfterBuildRequired());
     assertFalse(features.isSingleVariantSyncSupported());
+    assertFalse(features.isBuildOutputFileSupported());
   }
 
   @Test
@@ -167,23 +175,7 @@ public class AndroidModelFeaturesTest {
     assertTrue(features.shouldExportDependencies());
     assertTrue(features.isVfsRefreshAfterBuildRequired());
     assertFalse(features.isSingleVariantSyncSupported());
-  }
-
-  @Test
-  public void withPluginVersion2_4_0_preview8() {
-    GradleVersion version = GradleVersion.parse("2.4.0-alpha8");
-    AndroidModelFeatures features = new AndroidModelFeatures(version);
-    assertTrue(features.isIssueReportingSupported());
-    assertTrue(features.isShadersSupported());
-    assertTrue(features.isTestedTargetVariantsSupported());
-    assertTrue(features.isProductFlavorVersionSuffixSupported());
-    assertTrue(features.isExternalBuildSupported());
-    assertTrue(features.isConstraintLayoutSdkLocationSupported());
-    assertTrue(features.isPostBuildSyncSupported());
-    assertFalse(features.isLayoutRenderingIssuePresent());
-    assertTrue(features.shouldExportDependencies());
-    assertTrue(features.isVfsRefreshAfterBuildRequired());
-    assertFalse(features.isSingleVariantSyncSupported());
+    assertFalse(features.isBuildOutputFileSupported());
   }
 
   @Test
@@ -201,6 +193,7 @@ public class AndroidModelFeaturesTest {
     assertFalse(features.shouldExportDependencies());
     assertFalse(features.isVfsRefreshAfterBuildRequired());
     assertFalse(features.isSingleVariantSyncSupported());
+    assertFalse(features.isBuildOutputFileSupported());
   }
 
   @Test
@@ -218,6 +211,7 @@ public class AndroidModelFeaturesTest {
     assertFalse(features.shouldExportDependencies());
     assertFalse(features.isVfsRefreshAfterBuildRequired());
     assertFalse(features.isSingleVariantSyncSupported());
+    assertFalse(features.isBuildOutputFileSupported());
   }
 
   @Test
@@ -235,5 +229,24 @@ public class AndroidModelFeaturesTest {
     assertFalse(features.shouldExportDependencies());
     assertFalse(features.isVfsRefreshAfterBuildRequired());
     assertTrue(features.isSingleVariantSyncSupported());
+    assertFalse(features.isBuildOutputFileSupported());
+  }
+
+  @Test
+  public void withPluginVersion4_0_0() {
+    GradleVersion version = GradleVersion.parse("4.0.0");
+    AndroidModelFeatures features = new AndroidModelFeatures(version);
+    assertTrue(features.isIssueReportingSupported());
+    assertTrue(features.isShadersSupported());
+    assertTrue(features.isTestedTargetVariantsSupported());
+    assertTrue(features.isProductFlavorVersionSuffixSupported());
+    assertTrue(features.isExternalBuildSupported());
+    assertTrue(features.isConstraintLayoutSdkLocationSupported());
+    assertFalse(features.isPostBuildSyncSupported());
+    assertFalse(features.isLayoutRenderingIssuePresent());
+    assertFalse(features.shouldExportDependencies());
+    assertFalse(features.isVfsRefreshAfterBuildRequired());
+    assertTrue(features.isSingleVariantSyncSupported());
+    assertTrue(features.isBuildOutputFileSupported());
   }
 }
