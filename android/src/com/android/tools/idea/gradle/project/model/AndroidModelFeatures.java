@@ -29,6 +29,7 @@ public class AndroidModelFeatures {
   private final boolean myExternalBuildSupported;
   private final boolean myConstraintLayoutSdkLocationSupported;
   private final boolean myLayoutRenderingIssuePresent;
+  private final boolean myBuildOutputFileSupported;
   private final boolean myPostBuildSyncSupported;
   // Should current module export its module/library dependencies.
   private final boolean myExportDependencies;
@@ -41,11 +42,14 @@ public class AndroidModelFeatures {
     myShadersSupported = modelVersionIsAtLeast("2.1.0");
     myConstraintLayoutSdkLocationSupported = myModelVersion != null && myModelVersion.compareTo("2.1.0") > 0;
     myTestedTargetVariantsSupported = myProductFlavorVersionSuffixSupported = myExternalBuildSupported = modelVersionIsAtLeast("2.2.0");
+    myBuildOutputFileSupported = modelVersionIsAtLeast("4.0.0");
 
     // https://code.google.com/p/android/issues/detail?id=170841
     if (modelVersion != null) {
       myLayoutRenderingIssuePresent = modelVersion.getMajor() == 1 && modelVersion.getMinor() == 2 && modelVersion.getMicro() <= 2;
-      myPostBuildSyncSupported = modelVersion.isAtLeast(2, 4, 0, "alpha", 8, false);
+      // Enable post build sync if AGP is between AGP[3.0, 4.0).
+      // For AGP prior to 3.0, post build sync is not supported. For 4.0 and higher, build output file should be used.
+      myPostBuildSyncSupported = modelVersionIsAtLeast("3.0.0") && !modelVersionIsAtLeast("4.0.0");
     }
     else {
       myLayoutRenderingIssuePresent = false;
@@ -98,6 +102,10 @@ public class AndroidModelFeatures {
 
   public boolean isPostBuildSyncSupported() {
     return myPostBuildSyncSupported;
+  }
+
+  public boolean isBuildOutputFileSupported() {
+    return myBuildOutputFileSupported;
   }
 
   public boolean shouldExportDependencies() {
