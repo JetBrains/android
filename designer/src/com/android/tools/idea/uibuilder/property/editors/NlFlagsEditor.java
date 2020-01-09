@@ -132,7 +132,7 @@ public class NlFlagsEditor extends BaseComponentEditor implements NlComponentEdi
         }
         else {
           presentation.setIcon(null);
-          presentation.setText(Presentation.NULL_COMPUTABLE);
+          presentation.setText(Presentation.NULL_STRING);
           presentation.setEnabledAndVisible(false);
         }
       }
