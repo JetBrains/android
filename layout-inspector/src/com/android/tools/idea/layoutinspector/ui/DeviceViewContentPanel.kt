@@ -52,9 +52,7 @@ private val SELECTED_LINE_STROKE = EMPHASIZED_LINE_STROKE
 private val NORMAL_LINE_COLOR = JBColor(Gray.get(128, 128), Gray.get(212, 128))
 private val NORMAL_LINE_STROKE = BasicStroke(NORMAL_BORDER_THICKNESS)
 
-class DeviceViewContentPanel(
-  val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings, mouseInterceptor: MouseAdapter? = null
-) : AdtPrimaryPanel() {
+class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings) : AdtPrimaryPanel() {
 
   val model = DeviceViewPanelModel(inspectorModel)
 
@@ -66,9 +64,6 @@ class DeviceViewContentPanel(
   )
 
   init {
-    addMouseListener(mouseInterceptor)
-    addMouseMotionListener(mouseInterceptor)
-
     inspectorModel.modificationListeners.add(::modelChanged)
     inspectorModel.selectionListeners.add { _, _ -> repaint() }
     inspectorModel.hoverListeners.add { _, _ -> repaint() }

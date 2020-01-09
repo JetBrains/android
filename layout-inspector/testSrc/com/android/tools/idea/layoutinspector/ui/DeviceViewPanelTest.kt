@@ -15,20 +15,31 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.android.tools.adtui.swing.FakeKeyboard
+import com.android.tools.adtui.swing.FakeMouse.Button
+import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorTransportRule
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.ROOT
+import com.android.tools.idea.layoutinspector.model.VIEW1
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import junit.framework.TestCase
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import java.awt.Component
 import java.awt.Container
+import java.awt.Dimension
+import java.awt.Image
+import java.awt.Point
 import javax.swing.JCheckBox
+import javax.swing.JViewport
 
 @RunsInEdt
 class DeviceViewPanelTest {
@@ -59,6 +70,55 @@ class DeviceViewPanelTest {
     val checkbox = toolbar.components.find { it is JCheckBox && it.text == "Live updates" } as JCheckBox
     assertThat(checkbox.isEnabled).isTrue()
     assertThat(checkbox.toolTipText).isNull()
+  }
+
+  @Test
+  fun testDragWithSpace() {
+    testPan({ ui, _ -> ui.keyboard.press(FakeKeyboard.Key.SPACE) },
+            { ui, _ -> ui.keyboard.release(FakeKeyboard.Key.SPACE) })
+  }
+
+  @Test
+  fun testDragInPanMode() {
+    testPan({ _, panel -> panel.isPanning = true },
+            { _, panel -> panel.isPanning = false })
+  }
+
+  @Test
+  fun testDragWithMiddleButton() {
+    testPan({ _, _ -> }, { _, _ -> }, Button.MIDDLE)
+  }
+
+  private fun testPan(startPan: (FakeUi, DeviceViewPanel) -> Unit, endPan: (FakeUi, DeviceViewPanel) -> Unit, panButton: Button = LEFT) {
+    val model = model {
+      view(ROOT, 0, 0, 100, 200) {
+        view(VIEW1, 25, 30, 50, 50, imageBottom = mock(Image::class.java))
+      }
+    }
+
+    val panel = DeviceViewPanel(LayoutInspector(model), DeviceViewSettings(scalePercent = 100), disposableRule.disposable)
+    val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
+    val viewport = flatten(panel).filterIsInstance<JViewport>().first()
+
+    contentPanel.setSize(200, 300)
+    viewport.extentSize = Dimension(100, 100)
+
+    assertThat(viewport.viewPosition).isEqualTo(Point(0, 0))
+
+    val fakeUi = FakeUi(contentPanel)
+    fakeUi.keyboard.setFocus(contentPanel)
+
+    startPan(fakeUi, panel)
+    fakeUi.mouse.drag(20, 20, -10, -10, panButton)
+    TestCase.assertEquals(0.0, contentPanel.model.xOff)
+    TestCase.assertEquals(0.0, contentPanel.model.yOff)
+    assertThat(viewport.viewPosition).isEqualTo(Point(10, 10))
+
+    endPan(fakeUi, panel)
+    fakeUi.mouse.drag(20, 20, -10, -10)
+    TestCase.assertEquals(-0.01, contentPanel.model.xOff)
+    TestCase.assertEquals(-0.01, contentPanel.model.yOff)
+
   }
 }
 
