@@ -52,6 +52,7 @@ import org.jetbrains.android.inspections.AndroidMissingOnClickHandlerInspection
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix
 import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction
+import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.junit.Test
 import java.io.IOException
@@ -659,11 +660,9 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     setAndroidx()
     myFixture.addClass(recyclerViewNew)
     myFixture.addFileToProject("res/values/recyclerView_attrs.xml", recyclerViewAttrs)
-/* b/145854589
     doTestCompletionVariants("recycler_view_0.xml",
                              "androidx.recyclerview.widget.GridLayoutManager",
                              "androidx.recyclerview.widget.LinearLayoutManager")
-b/145854589 */
   }
 
   fun testLayoutManagerAttributeHighlighting() {
@@ -2173,7 +2172,6 @@ b/145854589 */
     myFixture.configureFromExistingVirtualFile(layout.virtualFile)
     myFixture.completeBasic()
 
-/* b/145854589
     assertThat(myFixture.lookupElementStrings).containsExactly(
       "com.example.behaviors.MyBehavior",
       "com.example.behaviors.SomeView\$SomeBehavior"
@@ -2181,7 +2179,6 @@ b/145854589 */
 
     myFixture.type('\n')
     myFixture.checkHighlighting()
-b/145854589 */
   }
 
   fun testCoordinatorLayoutBehavior_strings() {
@@ -2297,5 +2294,6 @@ b/145854589 */
 
   private fun setAndroidx() = runWriteCommandAction(project) {
     project.setAndroidxProperties("true")
+    assertTrue(project.isAndroidx()) // Sanity check, regression test for b/145854589.
   }
 }
