@@ -83,8 +83,8 @@
     </component>
   </project-components>
   <actions>
-    <action id="Project.CallGraph" internal="true" text="Contextual Call Paths" class="com.android.tools.idea.experimental.callgraph.CallGraphAction"/>
-    <action id="Project.InterproceduralThreadAnnotations" internal="true" text="Interprocedural Thread Annotation Checker" class="com.android.tools.idea.experimental.callgraph.WrongThreadInterproceduralAction"/>
+    <action id="Project.CallGraph" internal="true" class="com.android.tools.idea.experimental.callgraph.CallGraphAction"/>
+    <action id="Project.InterproceduralThreadAnnotations" internal="true" class="com.android.tools.idea.experimental.callgraph.WrongThreadInterproceduralAction"/>
     <group id="Library.Properties">
       <separator/>
       <action id="LibraryProperties" class="com.android.tools.idea.gradle.actions.LibraryPropertiesAction"/>
@@ -117,7 +117,7 @@
       <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
     </action>
 
-    <action class="com.android.tools.idea.actions.ExportProjectZip" id="Android.ExportProjectZip" text="Export Project to Zip File...">
+    <action class="com.android.tools.idea.actions.ExportProjectZip" id="Android.ExportProjectZip">
       <override-text place="MainMenu" text="Project to Zip File..."/>
       <add-to-group group-id="FileExportGroup" anchor="last"/>
     </action>
@@ -141,7 +141,7 @@
     <action id="NewAndroidVectorAsset" class="com.android.tools.idea.actions.NewVectorAssetAction">
       <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewAndroidImageAsset"/>
     </action>
-    <action id="Android.CreateResourcesActionGroup" text="Android resource file" class="org.jetbrains.android.actions.CreateResourceFileActionGroup">
+    <action id="Android.CreateResourcesActionGroup" class="org.jetbrains.android.actions.CreateResourceFileActionGroup">
       <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
     </action>
     <action id="Android.CreateResourceDirectory" class="org.jetbrains.android.actions.CreateResourceDirectoryAction">
@@ -156,12 +156,12 @@
     <action id="Android.OpenStringResourceEditor" class="com.android.tools.idea.actions.OpenStringResourceEditorAction">
       <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="EditSource"/>
     </action>
-    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="AndroidIcons.Android" popup="true">
+    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" icon="AndroidIcons.Android" popup="true">
       <separator/>
       <action id="Android.RunAndroidAvdManager"
               class="org.jetbrains.android.actions.RunAndroidAvdManagerAction"
               icon="StudioIcons.Shell.Toolbar.DEVICE_MANAGER"
-              description="Opens the Android virtual device (AVD) manager which manages emulator images and snapshots" />
+      />
       <action id="Android.GenerateSourcesAction" class="org.jetbrains.android.actions.AndroidRegenerateSourcesAction"/>
       <separator/>
       <action id="Android.ShowThemeEditor" class="com.android.tools.idea.actions.AndroidShowThemeEditor"/>
@@ -180,22 +180,22 @@
     </group>
 
     <group id="Android.DeviceExplorer.ActionsToolbar">
-      <action id="Android.DeviceExplorer.GotoSharedPrefsFolder" class="com.android.tools.idea.explorer.actions.GotoSharedPrefsFolderAction" icon="StudioIcons.DeviceExplorer.SHARED_PREFS" text="Navigate to shared preferences folder"/>
-      <action id="Android.DeviceExplorer.GotoDatabaseFolder" class="com.android.tools.idea.explorer.actions.GotoDatabaseFolderAction" icon="AndroidIcons.DeviceExplorer.DatabaseFolder" text="Navigate to database folder" />
-      <action id="Android.DeviceExplorer.GotoSdcardFolder" class="com.android.tools.idea.explorer.actions.GotoSdcardFolderAction" icon="StudioIcons.DeviceExplorer.SD_CARD_FOLDER" text="Navigate to SD card folder" />
-      <action id="Android.DeviceExplorer.Help" class="com.android.tools.idea.explorer.actions.HelpAction" icon="AllIcons.Actions.Help" text="Open Device Explorer help" />
+      <action id="Android.DeviceExplorer.GotoSharedPrefsFolder" class="com.android.tools.idea.explorer.actions.GotoSharedPrefsFolderAction" icon="StudioIcons.DeviceExplorer.SHARED_PREFS"/>
+      <action id="Android.DeviceExplorer.GotoDatabaseFolder" class="com.android.tools.idea.explorer.actions.GotoDatabaseFolderAction" icon="AndroidIcons.DeviceExplorer.DatabaseFolder"/>
+      <action id="Android.DeviceExplorer.GotoSdcardFolder" class="com.android.tools.idea.explorer.actions.GotoSdcardFolderAction" icon="StudioIcons.DeviceExplorer.SD_CARD_FOLDER"/>
+      <action id="Android.DeviceExplorer.Help" class="com.android.tools.idea.explorer.actions.HelpAction" icon="AllIcons.Actions.Help"/>
     </group>
 
-    <group id="Internal.Android" text="Android" popup="true" internal="true">
+    <group id="Internal.Android" popup="true" internal="true">
       <action internal="true" id="Android.StopGradleDaemons" class="com.android.tools.idea.gradle.actions.StopGradleDaemonsAction" />
       <action internal="true" id="Android.GetAdbAction" class="com.android.tools.idea.ddms.actions.GetAdbAction" />
       <action internal="true" id="Android.TerminateAdbAction" class="com.android.tools.idea.ddms.actions.TerminateAdbAction" />
       <action internal="true" id="Android.GenerateLayoutTestSkeletonAction" class="com.android.tools.idea.uibuilder.actions.GenerateLayoutTestSkeletonAction"/>
-      <action internal="true" id="StatisticsViewer" class="com.android.tools.idea.stats.ShowStatisticsViewerAction" text="Show statistics viewer"/>
+      <action internal="true" id="StatisticsViewer" class="com.android.tools.idea.stats.ShowStatisticsViewerAction"/>
       <action internal="true" id="Android.EditFlags" class="com.android.tools.idea.flags.ShowStudioFlagsDialogAction"/>
       <action internal="true" id="Android.ShowRoomSchema" class="com.android.tools.idea.actions.ShowRoomSchemaAction"/>
       <action internal="true" id="Android.SwingProfiler" class="com.android.tools.adtui.actions.EnableSwingProfilerAction"/>
-      <action internal="true" id="IdeaNewProject" class="com.intellij.ide.actions.NewProjectAction" text="IDEA New Project..."/>
+      <action internal="true" id="IdeaNewProject" class="com.intellij.ide.actions.NewProjectAction"/>
       <action internal="true" id="Android.IdeaProjectStructure" class="com.android.tools.idea.structure.IdeaProjectStructureAction"/>
       <action internal="true" id="Android.ShowSatisfactionDialog" class="com.android.tools.idea.stats.ShowSatisfactionDialogAction"/>
       <action internal="true" id="Android.TransportDemo" class="com.android.tools.idea.transport.demo.TransportPipelineAction"/>
@@ -216,73 +216,59 @@
     </action>
     <action id="AndroidConnectDebuggerAction"
             class="org.jetbrains.android.actions.AndroidConnectDebuggerAction"
-            text="Attach Debugger to Android Process"
-            description="Attach Debugger to Android Process"
             icon="AllIcons.Debugger.AttachToProcess">
       <add-to-group group-id="ToolbarRunGroup" anchor="after" relative-to-action="RunnerActions"/>
       <add-to-group group-id="RunMenu"/>
     </action>
-    <action id="AndroidModularizeAction" class="com.android.tools.idea.refactoring.modularize.AndroidModularizeAction" text="Modularize..."
-            description="Moves classes and their associated resources to another module">
+    <action id="AndroidModularizeAction" class="com.android.tools.idea.refactoring.modularize.AndroidModularizeAction">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
-    <action id="AndroidUnusedResourceAction" class="org.jetbrains.android.refactoring.UnusedResourcesAction" text="Remove Unused Resources..."
-            description="Removes unused resources">
+    <action id="AndroidUnusedResourceAction" class="org.jetbrains.android.refactoring.UnusedResourcesAction">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
-    <action id="AndroidMigrateToAppCompatAction" class="org.jetbrains.android.refactoring.MigrateToAppCompatAction" text="Migrate to AppCompat..."
-            description="Migrates app to AppCompat">
+    <action id="AndroidMigrateToAppCompatAction" class="org.jetbrains.android.refactoring.MigrateToAppCompatAction">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
-    <action id="AndroidMigrateToAndroidxAction" class="org.jetbrains.android.refactoring.MigrateToAndroidxAction" text="Migrate to AndroidX..."
-            description="Migrates to AndroidX package names">
+    <action id="AndroidMigrateToAndroidxAction" class="org.jetbrains.android.refactoring.MigrateToAndroidxAction">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
-    <action id="AndroidMigrateToResourceNamespacesAction" class="org.jetbrains.android.refactoring.MigrateToResourceNamespacesAction" text="Migrate to Resource Namespaces..."
-            description="Migrates to resource namespaces">
+    <action id="AndroidMigrateToResourceNamespacesAction" class="org.jetbrains.android.refactoring.MigrateToResourceNamespacesAction">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
-    <action id="AndroidExtractStyleAction" class="org.jetbrains.android.refactoring.AndroidExtractStyleAction" text="St_yle..."
-            description="Pulls out style-related attributes from layout and extract them as a new style">
+    <action id="AndroidExtractStyleAction" class="org.jetbrains.android.refactoring.AndroidExtractStyleAction"
+    >
       <add-to-group group-id="IntroduceActionsGroup"/>
     </action>
-    <action id="AndroidExtractAsIncludeAction" class="org.jetbrains.android.refactoring.AndroidExtractAsIncludeAction"
-            text="_Layout..." description="Extracts one or more views into a separate layout">
+    <action id="AndroidExtractAsIncludeAction" class="org.jetbrains.android.refactoring.AndroidExtractAsIncludeAction">
       <add-to-group group-id="IntroduceActionsGroup"/>
     </action>
-    <action id="AndroidInlineStyleReferenceAction" class="org.jetbrains.android.refactoring.AndroidInlineStyleReferenceAction"
-            text="Inline _Style..." description="Inlines Android style">
+    <action id="AndroidInlineStyleReferenceAction" class="org.jetbrains.android.refactoring.AndroidInlineStyleReferenceAction">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
-    <action id="AndroidInlineIncludeAction" class="org.jetbrains.android.refactoring.AndroidInlineIncludeAction"
-            text="Inline _Layout..." description="Inlines included Android layout"/>
-    <action id="AndroidFindStyleApplicationsAction" class="org.jetbrains.android.refactoring.AndroidFindStyleApplicationsAction"
-            text="Use Style _Where Possible..." description="Replaces attributes by Android style reference where possible">
+    <action id="AndroidInlineIncludeAction" class="org.jetbrains.android.refactoring.AndroidInlineIncludeAction"/>
+    <action id="AndroidFindStyleApplicationsAction" class="org.jetbrains.android.refactoring.AndroidFindStyleApplicationsAction">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
-    <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction"
-            text="Add RTL Support Where Possible..." description="Add light-to-left (RTL) support where possible">
+    <action id="AndroidAddRTLSupport" class="com.android.tools.idea.actions.AndroidAddRtlSupportAction">
       <add-to-group group-id="RefactoringMenu"/>
     </action>
 
-    <action id="InferAnnotations" text="Infer Annotations..." class="com.android.tools.idea.actions.annotations.InferSupportAnnotationsAction">
+    <action id="InferAnnotations" class="com.android.tools.idea.actions.annotations.InferSupportAnnotationsAction">
       <add-to-group group-id="InspectCodeGroup" anchor="after" relative-to-action="InferNullity"/>
     </action>
     <action id="StoreDefaultLayout" class="com.android.tools.idea.common.actions.StoreDefaultWindowLayoutAction" overrides="true"/>
     <action id="RestoreDefaultLayout" class="com.android.tools.idea.common.actions.RestoreDefaultWindowLayoutAction" overrides="true"/>
-    <action class="com.android.tools.idea.rendering.webp.ConvertToWebpAction" id="ConvertToWebp" text="Convert to WebP...">
+    <action class="com.android.tools.idea.rendering.webp.ConvertToWebpAction" id="ConvertToWebp">
       <add-to-group group-id="ProjectViewPopupMenu"/>
       <add-to-group group-id="Images.EditorPopupMenu" relative-to-action="RefactoringMenu" anchor="after"/>
     </action>
-    <action class="com.android.tools.idea.rendering.webp.ConvertFromWebpAction" id="ConvertFromWebp" text="Convert to PNG...">
+    <action class="com.android.tools.idea.rendering.webp.ConvertFromWebpAction" id="ConvertFromWebp">
       <add-to-group group-id="ProjectViewPopupMenu"/>
       <add-to-group group-id="Images.EditorPopupMenu" relative-to-action="RefactoringMenu" anchor="after"/>
     </action>
     <action
       id="LayoutEditor.AddSampleData"
-      class="com.android.tools.idea.sampledata.AddSampleDataFileAction"
-      text="Add Sample Data File"
-      description="Adds a new data sample file">
+      class="com.android.tools.idea.sampledata.AddSampleDataFileAction">
     </action>
     <action id="Android.Device.Picker.Help" class="com.android.tools.idea.actions.DevicePickerHelpAction"/>
     <action id="Android.FixAndroidRunConfigurations"
