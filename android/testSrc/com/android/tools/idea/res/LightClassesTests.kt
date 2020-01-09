@@ -319,7 +319,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
     }
 
     fun testManifestClass_java() {
-      myFixture.configureByText(
+      myFixture.loadNewFile(
         "/src/p1/p2/MainActivity.java",
         // language=java
         """
@@ -327,12 +327,13 @@ sealed class LightClassesTestBase : AndroidTestCase() {
 
         import android.app.Activity;
         import android.os.Bundle;
+        import android.util.Log;
 
         public class MainActivity extends Activity {
             @Override
             protected void onCreate(Bundle savedInstanceState) {
                 super.onCreate(savedInstanceState);
-                getResources().getString(Manifest.permission.${caret}SEND_MESSAGE);
+                Log.d("tag", Manifest.permission.${caret}SEND_MESSAGE);
             }
         }
         """.trimIndent()
@@ -344,14 +345,12 @@ sealed class LightClassesTestBase : AndroidTestCase() {
         Manifest.getMainManifest(myFacet)!!.addPermission()!!.apply { name.value = "com.example.SEND_MESSAGE" }
       }
 
-/* b/145874569
       assertThat(resolveReferenceUnderCaret()).isInstanceOf(AndroidLightField::class.java)
-b/145874569 */
       myFixture.checkHighlighting()
     }
 
     fun testManifestClass_kotlin() {
-      val activity = myFixture.addFileToProject(
+      myFixture.loadNewFile(
         "/src/p1/p2/MainActivity.kt",
         // language=kotlin
         """
@@ -369,7 +368,6 @@ b/145874569 */
         }
         """.trimIndent()
       )
-      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
 
       assertThat(resolveReferenceUnderCaret()).isNull()
 
