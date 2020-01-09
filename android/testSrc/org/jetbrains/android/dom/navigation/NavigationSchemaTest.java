@@ -52,8 +52,9 @@ import org.mockito.Mockito;
  */
 public class NavigationSchemaTest extends AndroidTestCase {
   private static final String[] LEAF_DESTINATIONS = new String[] {
-    "fragment", "fragment_sub", "fragment_sub_sub", "other_1", "other_2", "duplicate"
+    "other_1", "other_2", "duplicate"
   };
+  private static final String[] FRAGMENTS = new String[] {"fragment", "fragment_sub", "fragment_sub_sub", "duplicate"};
   private static final String[] ACTIVITIES = new String[] {"activity", "activity_sub"};
   private static final String[] EMPTIES = new String[] {"include" };
   private static final String[] GROUPS = new String[] {"navigation", "navigation_sub"};
@@ -108,7 +109,8 @@ public class NavigationSchemaTest extends AndroidTestCase {
     expected.putAll(NavGraphElement.class, Arrays.asList(GROUPS));
     expected.put(NavGraphElement.class, "include");
     expected.putAll(ConcreteDestinationElement.class, Arrays.asList(LEAF_DESTINATIONS));
-    expected.putAll(ConcreteDestinationElement.class, Arrays.asList(ACTIVITIES));
+    expected.putAll(FragmentDestinationElement.class, Arrays.asList(FRAGMENTS));
+    expected.putAll(ActivityDestinationElement.class, Arrays.asList(ACTIVITIES));
     for (String group : GROUPS) {
       subtags = schema.getDestinationSubtags(group);
       assertEquals(group, expected, subtags);
