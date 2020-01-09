@@ -17,6 +17,8 @@ package com.android.tools.idea.templates.recipe
 
 import com.android.SdkConstants.ATTR_CONTEXT
 import com.android.SdkConstants.DOT_XML
+import com.android.SdkConstants.GRADLE_API_CONFIGURATION
+import com.android.SdkConstants.GRADLE_IMPLEMENTATION_CONFIGURATION
 import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.repository.GradleVersion
 import com.android.resources.ResourceFolderType
@@ -47,6 +49,7 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.ProjectTemplateData
+import com.android.tools.idea.wizard.template.SKIP_LINE
 import com.android.tools.idea.wizard.template.SourceSetType
 import com.android.tools.idea.wizard.template.findResource
 import com.android.utils.XmlUtils.XML_PROLOG
@@ -65,10 +68,16 @@ import com.intellij.openapi.vfs.VirtualFileVisitor
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.XmlElementFactory
+import org.jetbrains.annotations.NonNls
 import java.io.File
 import java.io.IOException
 import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
 import com.android.tools.idea.wizard.template.RecipeExecutor as RecipeExecutor2
+import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.*
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
+
+private val log: Logger get() = logger<DefaultRecipeExecutor2>()
 
 /**
  * Executor support for recipe instructions.
@@ -96,16 +105,15 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     }
   }
 
-  override fun hasDependency(mavenCoordinate: String): Boolean {
-    val buildModel = moduleGradleBuildModel ?: return false
+  override fun hasDependency(mavenCoordinate: String, moduleDir: File?): Boolean {
+    val buildModel =
+      if (moduleDir != null) {
+        projectBuildModel?.getModuleBuildModel(moduleDir)
+      } else {
+        moduleGradleBuildModel
+      } ?: return false
 
-    val existingArtifacts = buildModel.dependencies().artifacts().map {
-      ArtifactDependencySpec.create(it.name().toString(), it.group().toString(), it.version().toString())
-    }
-
-    val artifactToAdd = ArtifactDependencySpec.create(mavenCoordinate)!!
-
-    if (existingArtifacts.any { it.equalsIgnoreVersion(artifactToAdd) }) {
+    if (buildModel.getDependencyConfiguration(mavenCoordinate) != null) {
       return true
     }
 
@@ -117,19 +125,52 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
            dependsOnAndroidTest(androidModel, mavenCoordinate)
   }
 
+  private fun GradleBuildModel.getDependencyConfiguration(mavenCoordinate: String): String? {
+    val configurationsToCheck = listOf(
+        ANDROID_TEST_API,
+        ANDROID_TEST_COMPILE,
+        ANDROID_TEST_IMPLEMENTATION,
+        API,
+        APK,
+        CLASSPATH,
+        COMPILE,
+        IMPLEMENTATION,
+        PROVIDED,
+        RUNTIME,
+        TEST_API,
+        TEST_COMPILE,
+        TEST_IMPLEMENTATION
+    )
+
+    fun checkForConfiguration(configuration: String?): Boolean {
+      val artifacts = dependencies().run { if (configuration == null) artifacts() else artifacts(configuration) }
+
+      val existingArtifacts = artifacts.map {
+        ArtifactDependencySpec.create(it.name().toString(), it.group().toString(), it.version().toString())
+      }
+
+      val artifactToAdd = ArtifactDependencySpec.create(mavenCoordinate)!!
+
+      return existingArtifacts.any { it.equalsIgnoreVersion(artifactToAdd) }
+    }
+
+    return configurationsToCheck.firstOrNull { checkForConfiguration(it) } ?: OTHER_CONFIGURATION.takeIf { checkForConfiguration(null) }
+  }
+
   /**
    * Merges the given XML file into the given destination file (or copies it over if  the destination file does not exist).
    */
   override fun mergeXml(source: String, to: File) {
+    val content = source.withoutSkipLines()
     val targetFile = getTargetFile(to)
     require(hasExtension(targetFile, DOT_XML)) { "Only XML files can be merged at this point: $targetFile" }
 
     val targetText = readTargetText(targetFile) ?: run {
-      save(source, to, true, true)
+      save(content, to, true, true)
       return
     }
 
-    val contents = mergeXmlUtil(RenderingContextAdapter(context), source, targetText, targetFile)
+    val contents = mergeXmlUtil(RenderingContextAdapter(context), content, targetText, targetFile)
 
     writeTargetFile(this, contents, targetFile)
   }
@@ -179,14 +220,26 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
   override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?) {
     // Translate from "compile" to "implementation" based on the parameter map context
     val newConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
-    referencesExecutor.addDependency(newConfiguration, mavenCoordinate)
+    referencesExecutor.addDependency(newConfiguration, mavenCoordinate, minRev)
 
-    val buildModel = moduleGradleBuildModel ?: return
+    val baseFeature = context.moduleTemplateData?.baseFeature
 
-    val resolvedConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
+    val buildModel =
+      if (baseFeature == null) {
+        moduleGradleBuildModel
+      }
+      else {
+        projectBuildModel?.getModuleBuildModel(baseFeature.dir)
+      } ?: return
+
+    var resolvedConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
     val resolvedMavenCoordinate = resolveDependency(repositoryUrlManager, convertToAndroidX(mavenCoordinate), minRev)
 
-    if (hasDependency(resolvedMavenCoordinate)) {
+    // If a Library (e.g. Google Maps) Manifest references its own resources, it needs to be added to the Base, otherwise aapt2 will fail
+    // during linking. Since we don't know the libraries Manifest references, we declare this libraries in the base as "api" dependencies.
+    if (baseFeature != null && resolvedConfiguration == GRADLE_IMPLEMENTATION_CONFIGURATION) {
+        resolvedConfiguration = GRADLE_API_CONFIGURATION
+    } else if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) != null) {
       return
     }
 
@@ -238,7 +291,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
    */
   override fun save(source: String, to: File, trimVertical: Boolean, squishEmptyLines: Boolean) {
     val targetFile = getTargetFile(to)
-    val untrimmedContent = extractFullyQualifiedNames(to, source).trim()
+    val untrimmedContent = extractFullyQualifiedNames(to, source.withoutSkipLines())
     val trimmedUnsquishedContent = if (trimVertical) untrimmedContent.trim() else untrimmedContent
     val content = if (squishEmptyLines) trimmedUnsquishedContent.squishEmptyLines() else trimmedUnsquishedContent
 
@@ -528,11 +581,19 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
   }
 }
 
+// used when some configuration is found but it is not in configuration list.
+private const val OTHER_CONFIGURATION = "__other__"
+
 /**
  * 'classpath' is the configuration name used to specify buildscript dependencies.
  */
 // TODO(qumeric): make private
 const val CLASSPATH_CONFIGURATION_NAME = "classpath"
+
+private fun CharSequence.withoutSkipLines() = this.split("\n")
+  .filter { it.trim() != SKIP_LINE }
+  .joinToString("\n")
+  .replace(SKIP_LINE, "") // for some SKIP_LINEs which are not on their own line
 
 @VisibleForTesting
 fun CharSequence.squishEmptyLines(): String {

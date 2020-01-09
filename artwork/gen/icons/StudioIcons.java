@@ -174,6 +174,7 @@ public class StudioIcons {
       public static final Icon LOOP = load("/studio/icons/layout-editor/motion/loop.svg"); // 16x16
       public static final Icon MAX_SCALE = load("/studio/icons/layout-editor/motion/max-scale.svg"); // 16x16
       public static final Icon MIN_SCALE = load("/studio/icons/layout-editor/motion/min-scale.svg"); // 16x16
+      public static final Icon MOTION_LAYOUT = load("/studio/icons/layout-editor/motion/motion-layout.svg"); // 16x16
       public static final Icon NEXT_TICK = load("/studio/icons/layout-editor/motion/next-tick.svg"); // 16x16
       public static final Icon PAUSE = load("/studio/icons/layout-editor/motion/pause.svg"); // 16x16
       public static final Icon PLAY_BACKWARD = load("/studio/icons/layout-editor/motion/play-backward.svg"); // 16x16
@@ -409,6 +410,7 @@ public class StudioIcons {
       public static final Icon ORIENT_VERTICAL = load("/studio/icons/layout-editor/toolbar/orient-vertical.svg"); // 16x16
       public static final Icon PACK_HORIZONTAL = load("/studio/icons/layout-editor/toolbar/pack-horizontal.svg"); // 16x16
       public static final Icon PACK_VERTICAL = load("/studio/icons/layout-editor/toolbar/pack-vertical.svg"); // 16x16
+      public static final Icon PAN_TOOL_SELECTED = load("/studio/icons/layout-editor/toolbar/pan-tool-selected.svg"); // 16x16
       public static final Icon PAN_TOOL = load("/studio/icons/layout-editor/toolbar/pan-tool.svg"); // 16x16
       public static final Icon PERCENT = load("/studio/icons/layout-editor/toolbar/percent.svg"); // 16x16
       public static final Icon QUESTION = load("/studio/icons/layout-editor/toolbar/question.svg"); // 16x16

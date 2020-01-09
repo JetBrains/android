@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.lint
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.WebViewApiAvailabilityDetector
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase
 import org.jetbrains.android.util.AndroidBundle
 
 class AndroidLintWebViewApiAvailabilityInspection : AndroidLintInspectionBase(
-    AndroidBundle.message("android.lint.inspections.web.view.api.availability"),
-    WebViewApiAvailabilityDetector.ISSUE
+  AndroidBundle.message("android.lint.inspections.web.view.api.availability"),
+  WebViewApiAvailabilityDetector.ISSUE
 )

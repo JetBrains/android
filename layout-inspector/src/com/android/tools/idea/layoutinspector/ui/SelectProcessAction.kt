@@ -65,14 +65,7 @@ class SelectProcessAction(val layoutInspector: LayoutInspector) :
           continue
         }
         val deviceName = buildDeviceName(serial, stream.device.model, stream.device.manufacturer)
-        if (stream.device.featureLevel < 29 && !StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT.get()) {
-          add(object : AnAction("$deviceName (Unsupported for API < 29)") {
-            override fun actionPerformed(e: AnActionEvent) {}
-          }.apply { templatePresentation.isEnabled = false })
-        }
-        else {
-          add(DeviceAction(deviceName, processesMap, stream, client))
-        }
+        add(DeviceAction(deviceName, processesMap, stream, client))
       }
     }
     if (childrenCount == 0) {

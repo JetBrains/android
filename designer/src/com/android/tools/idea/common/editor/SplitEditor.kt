@@ -22,7 +22,9 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CustomShortcutSet
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.fileEditor.FileEditor
@@ -39,11 +41,10 @@ import javax.swing.JComponent
  * of the editor. Please use this class if you're adding a [TextEditorWithPreview] editor to Android Studio.
  */
 abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
-                           designEditor: P,
-                           editorName: String,
-                           defaultLayout: Layout = Layout.SHOW_EDITOR_AND_PREVIEW) : TextEditorWithPreview(textEditor, designEditor,
-                                                                                                           editorName,
-                                                                                                           defaultLayout), TextEditor {
+                                           designEditor: P,
+                                           editorName: String,
+                                           defaultLayout: Layout = Layout.SHOW_EDITOR_AND_PREVIEW)
+  : TextEditorWithPreview(textEditor, designEditor, editorName, defaultLayout), TextEditor, DataProvider {
 
   private val textViewAction = SplitEditorAction("Code", AllIcons.General.LayoutEditorOnly, super.getShowEditorAction())
 
@@ -85,6 +86,15 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
   override fun getShowEditorAndPreviewAction() = splitViewAction
 
   override fun getShowPreviewAction() = previewViewAction
+
+  override fun getData(dataId: String): Any? {
+    if (dataId == LangDataKeys.IDE_VIEW.name) {
+      val component = myEditor.editor.contentComponent
+      val context = DataManager.getInstance().getDataContext(component)
+      return context.getData(dataId)
+    }
+    return null
+  }
 
   private fun getDummyActionEvent() =
     AnActionEvent(null, DataManager.getInstance().getDataContext(component), "", Presentation(), ActionManager.getInstance(), 0)

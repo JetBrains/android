@@ -18,12 +18,12 @@ package com.android.tools.idea.tests.gui.framework.fixture.npw
 import com.android.tools.adtui.LabelWithEditButton
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture
-import org.fest.swing.fixture.JButtonFixture
+import com.intellij.openapi.ui.ComboBox
 import org.fest.swing.fixture.JComboBoxFixture
-import javax.swing.JButton
-import javax.swing.JComboBox
+import org.fest.swing.fixture.JToggleButtonFixture
 import javax.swing.JRootPane
 import javax.swing.JTextField
+import javax.swing.JToggleButton
 
 class ConfigureLibraryStepFixture<W : AbstractWizardFixture<*>>(
   wizard: W, target: JRootPane
@@ -36,7 +36,7 @@ class ConfigureLibraryStepFixture<W : AbstractWizardFixture<*>>(
 
   fun enterPackageName(name: String): ConfigureLibraryStepFixture<W> {
     val editLabelContainer = robot().finder().findByType(target(), LabelWithEditButton::class.java)
-    val editButton = JButtonFixture(robot(), robot().finder().findByType( editLabelContainer, JButton::class.java))
+    val editButton = JToggleButtonFixture(robot(), robot().finder().findByType(editLabelContainer, JToggleButton::class.java))
     editButton.click()
     replaceText(findTextFieldWithLabel("Package name:"), name)
     editButton.click() // click "Done"
@@ -50,8 +50,8 @@ class ConfigureLibraryStepFixture<W : AbstractWizardFixture<*>>(
   }
 
   fun setSourceLanguage(sourceLanguage: String): ConfigureLibraryStepFixture<W> {
-    JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Language:", JComboBox::class.java, true))
-      .selectItem(sourceLanguage)
+    val comboBox = robot().finder().findByType(target(), ComboBox::class.java)
+    JComboBoxFixture(robot(), comboBox).selectItem(sourceLanguage)
     return this
   }
 }

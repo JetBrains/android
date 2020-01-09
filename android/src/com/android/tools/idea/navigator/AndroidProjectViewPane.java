@@ -32,6 +32,7 @@ import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.google.common.collect.Iterables;
 import com.intellij.facet.Facet;
@@ -162,11 +163,12 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
   }
 
   @NotNull
-  public static Iterable<IdeaSourceProvider> getSourceProviders(@NotNull AndroidFacet facet) {
+  public static Iterable<NamedIdeaSourceProvider> getSourceProviders(@NotNull AndroidFacet facet) {
     SourceProviders sourceProviderManager = SourceProviderManager.getInstance(facet);
     return Iterables.concat(
       sourceProviderManager.getCurrentSourceProviders(),
-      sourceProviderManager.getCurrentTestSourceProviders());
+      sourceProviderManager.getCurrentUnitTestSourceProviders(),
+      sourceProviderManager.getCurrentAndroidTestSourceProviders());
   }
 
   @NotNull

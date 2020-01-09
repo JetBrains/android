@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.module
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
+import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultTemplateAt
 import com.android.tools.idea.npw.FormFactor
 import com.android.tools.idea.npw.model.ModuleModelData
 import com.android.tools.idea.npw.model.MultiTemplateRenderer
@@ -41,6 +41,7 @@ import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.model.WizardModel
 import com.android.tools.idea.wizard.template.Recipe
 import com.google.common.annotations.VisibleForTesting
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
@@ -51,16 +52,15 @@ private val log: Logger get() = logger<ModuleModel>()
 
 abstract class ModuleModel(
   override var templateFile: File?,
-  moduleName: String,
+  name: String,
   private val commandName: String = "New Module",
   override val isLibrary: Boolean,
-  projectModelData: ProjectModelData
+  projectModelData: ProjectModelData,
+  _template: NamedModuleTemplate = with(projectModelData) { createDefaultTemplateAt(if (!isNewProject) project.basePath!! else "", name) }
 ) : WizardModel(), ProjectModelData by projectModelData, ModuleModelData {
-  override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(
-    NamedModuleTemplate("", GradleAndroidModuleTemplate.createDefaultTemplateAt(if (!isNewProject) project.basePath!! else "", moduleName).paths)
-  )
+  final override val template: ObjectProperty<NamedModuleTemplate> = ObjectValueProperty(_template)
   override val formFactor: ObjectProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
-  override val moduleName = StringValueProperty(moduleName).apply { addConstraint(String::trim) }
+  final override val moduleName = StringValueProperty(name).apply { addConstraint(String::trim) }
   override val androidSdkInfo = OptionalValueProperty<AndroidVersionsInfo.VersionItem>()
   override val moduleTemplateValues = mutableMapOf<String, Any>()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
@@ -79,6 +79,10 @@ abstract class ModuleModel(
      * A new system recipe which will should be run from [render] if the new system is used.
      */
     protected abstract val recipe: Recipe
+    /**
+     * A value which will be logged for Studio usage tracking.
+     */
+    protected abstract val loggingEvent: RenderLoggingEvent
 
     @WorkerThread
     override fun init() {
@@ -145,7 +149,7 @@ abstract class ModuleModel(
         // assert(moduleRoot == (context.templateData as ModuleTemplateData).rootDir)
 
         val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
-        return recipe.render(context, executor, null)
+        return recipe.render(context, executor, loggingEvent)
       }
 
       val projectRoot = File(project.basePath!!)

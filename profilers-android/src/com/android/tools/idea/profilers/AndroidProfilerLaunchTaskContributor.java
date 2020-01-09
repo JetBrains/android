@@ -113,7 +113,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       return "";
     }
 
-    ProfilerClient client = new ProfilerClient(transportService.getChannelName());
+    ProfilerClient client = new ProfilerClient(TransportService.CHANNEL_NAME);
     Common.Device profilerDevice;
     try {
       profilerDevice = waitForDaemon(device, client);
@@ -464,7 +464,7 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
       if (transportService == null) {
         return startTimeNs;
       }
-      ProfilerClient client = new ProfilerClient(transportService.getChannelName());
+      ProfilerClient client = new ProfilerClient(TransportService.CHANNEL_NAME);
 
       // If we are launching from the "Profile" action, wait for daemon to start properly to get the time.
       // Note: daemon should have started already from AndroidProfilerLaunchTaskContributor#getAmStartOptions already. This wait might be

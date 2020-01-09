@@ -151,7 +151,7 @@ public class BuildTypesElementTest extends GradleFileModelTestCase {
     assertMissingProperty("debuggable", buildType.debuggable());
     assertMissingProperty("embedMicroApp", buildType.embedMicroApp());
     assertMissingProperty("jniDebuggable", buildType.jniDebuggable());
-    assertMissingProperty("manifestPlaceholders", buildType.manifestPlaceholders());
+    verifyEmptyMapProperty("manifestPlaceholders", buildType.manifestPlaceholders());
     assertMissingProperty("minifyEnabled", buildType.minifyEnabled());
     assertMissingProperty("multiDexEnabled", buildType.multiDexEnabled());
     assertMissingProperty("proguardFiles", buildType.proguardFiles());

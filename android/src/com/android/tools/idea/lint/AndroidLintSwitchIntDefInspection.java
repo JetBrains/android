@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.checks.AnnotationDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.TextFormat;
@@ -29,9 +32,6 @@ import com.intellij.psi.PsiSwitchStatement;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import java.util.List;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
-import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,14 +47,14 @@ public class AndroidLintSwitchIntDefInspection extends AndroidLintInspectionBase
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                             @NotNull PsiElement endElement,
-                                             @NotNull String message,
-                                             @Nullable LintFix fixData) {
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                         @NotNull PsiElement endElement,
+                                         @NotNull String message,
+                                         @Nullable LintFix fixData) {
     @SuppressWarnings("unchecked")
     List<String> missingCases = LintFix.getData(fixData, List.class);
     if (missingCases != null && !missingCases.isEmpty()) {
-      return new AndroidLintQuickFix[]{new AndroidLintQuickFix() {
+      return new LintIdeQuickFix[]{new LintIdeQuickFix() {
         @Override
         public void apply(@NotNull PsiElement startElement,
                           @NotNull PsiElement endElement,
@@ -85,7 +85,7 @@ public class AndroidLintSwitchIntDefInspection extends AndroidLintInspectionBase
             CodeStyleManager.getInstance(project).reformat(switchStatement);
           }
           else {
-              // Kotlin
+            // Kotlin
             KtWhenExpression when = PsiTreeUtil.getParentOfType(startElement, KtWhenExpression.class, false);
             if (when != null) {
               Project project = when.getProject();

@@ -16,6 +16,7 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.google.common.collect.Lists;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
@@ -97,7 +98,7 @@ public class CreateMissingClassQuickFix implements LocalQuickFix {
       return;
     }
 
-    final Collection<IdeaSourceProvider> providerList = SourceProviderManager.getInstance(facet). getCurrentSourceProviders();
+    final Collection<NamedIdeaSourceProvider> providerList = SourceProviderManager.getInstance(facet). getCurrentSourceProviders();
     final List<VirtualFile> javaDirectories = Lists.newArrayList();
     for (IdeaSourceProvider provider : providerList) {
       javaDirectories.addAll(provider.getJavaDirectories());

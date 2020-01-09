@@ -22,8 +22,10 @@ import com.android.tools.idea.layoutinspector.properties.LayoutInspectorProperti
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewSettings
+import com.android.tools.idea.transport.TransportService
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent
+import com.intellij.ide.startup.ServiceNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.wm.ToolWindow
@@ -48,6 +50,10 @@ fun lookupLayoutInspector(toolWindow: ToolWindow): LayoutInspector? =
 class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
+    // Ensure the transport service is started
+    if (TransportService.getInstance() == null) {
+      throw ServiceNotReadyException()
+    }
     val contentManager = toolWindow.contentManager
 
     val workbench = WorkBench<LayoutInspector>(project, TOOL_WINDOW_ID, null, project)

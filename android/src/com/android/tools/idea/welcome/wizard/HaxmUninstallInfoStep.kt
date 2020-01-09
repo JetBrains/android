@@ -17,10 +17,8 @@ package com.android.tools.idea.welcome.wizard
 
 import com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll
 import com.android.tools.idea.wizard.model.ModelWizardStep
-import com.intellij.openapi.util.SystemInfo
-import com.intellij.ui.components.JBLabel
 import com.intellij.uiDesigner.core.Spacer
-import javax.swing.JComponent
+import com.intellij.ui.layout.panel
 
 /**
  * This is to be shown as the first HAXM Wizard step just to inform the user that HAXM uninstallation is about to start.
@@ -28,19 +26,19 @@ import javax.swing.JComponent
  * as this would not be in line with common wizard conventions.
  */
 class HaxmUninstallInfoStep : ModelWizardStep.WithoutModel("Uninstalling HAXM") {
-  private val infoLabel = JBLabel(
-    "This wizard will execute HAXM stand-alone uninstaller. This is an additional step required to remove this package."
-  )
-  private val nextLabel = JBLabel("Click 'Next' to proceed")
-
-  private val panel = VerticalPanel(3, 1) {
-    elem(infoLabel, 8, 0, 0, 0)
-    elem(Spacer(), 0, 2, 1, 0)
-    elem(nextLabel, 8, 0, 0, 0)
-  }.build()
-
+  private val panel = panel {
+    row {
+      label("This wizard will execute HAXM stand-alone uninstaller. This is an additional step required to remove this package.")
+    }
+    row {
+      Spacer()()
+    }
+    row {
+      label("Click 'Next' to proceed")
+    }
+  }
   private val root = wrappedWithVScroll(panel)
 
-  override fun getComponent(): JComponent = root
-  override fun getPreferredFocusComponent(): JComponent? = panel
+  override fun getComponent() = root
+  override fun getPreferredFocusComponent() = panel
 }

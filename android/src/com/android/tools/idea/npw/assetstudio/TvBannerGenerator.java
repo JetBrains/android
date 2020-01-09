@@ -60,7 +60,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Generator of Android TV banner icons.
  */
-@SuppressWarnings("UseJBColor") // We are using colors for Android icons, no need for JBColor here.
+@SuppressWarnings("UseJBColor") // Android icons don't need JBColor.
 public class TvBannerGenerator extends IconGenerator {
   public static final Color DEFAULT_BACKGROUND_COLOR = new Color(0xFFFFFF);
   private static final Rectangle IMAGE_SIZE_ADAPTIVE_DP = new Rectangle(0, 0, 320, 180);
@@ -73,7 +73,7 @@ public class TvBannerGenerator extends IconGenerator {
   private static final double DEFAULT_TEXT_SCALE = 0.82;
   /** Margin between image and the edge of the icon relative to the icon width. */
   private static final double IMAGE_MARGIN = 0.03;
-  public static final double PREVIEW_SCALE = 0.32;
+  private static final double PREVIEW_SCALE = 0.31;
 
   private final ObjectProperty<Color> myBackgroundColor = new ObjectValueProperty<>(DEFAULT_BACKGROUND_COLOR);
   private final BoolProperty myGenerateLegacyIcon = new BoolValueProperty(true);
@@ -167,9 +167,8 @@ public class TvBannerGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  protected List<Callable<GeneratedIcon>> createIconGenerationTasks(@NotNull GraphicGeneratorContext context,
-                                                                    @NotNull Options options,
-                                                                    @NotNull String name) {
+  protected List<Callable<GeneratedIcon>> createIconGenerationTasks(
+      @NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) {
     TvBannerOptions tvBannerOptions = (TvBannerOptions)options;
 
     List<Callable<GeneratedIcon>> tasks = new ArrayList<>();
@@ -446,7 +445,7 @@ public class TvBannerGenerator extends IconGenerator {
 
   @Override
   public void generateRasterImage(@Nullable String category, @NotNull Map<String, Map<String, AnnotatedImage>> categoryMap,
-                                  @NotNull GraphicGeneratorContext context, @NotNull Options options, @NotNull String name) {
+                                  @NotNull GraphicGeneratorContext context, @NotNull IconOptions options, @NotNull String name) {
     TvBannerOptions tvBannerOptions = (TvBannerOptions) options;
     TvBannerOptions localOptions = tvBannerOptions.clone();
 
@@ -471,7 +470,7 @@ public class TvBannerGenerator extends IconGenerator {
 
   @Override
   @NotNull
-  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull Options options) {
+  public AnnotatedImage generateRasterImage(@NotNull GraphicGeneratorContext context, @NotNull IconOptions options) {
     if (options.usePlaceholders) {
       return PLACEHOLDER_IMAGE;
     }
@@ -744,8 +743,8 @@ public class TvBannerGenerator extends IconGenerator {
     return Logger.getInstance(TvBannerGenerator.class);
   }
 
-  /** Options specific to generating launcher icons. */
-  public static class TvBannerOptions extends Options implements Cloneable {
+  /** Options specific to generating TV banner icons. */
+  public static class TvBannerOptions extends IconOptions implements Cloneable {
     /** The foreground layer name, used to generate resource paths. */
     public String foregroundLayerName;
 
@@ -798,7 +797,7 @@ public class TvBannerGenerator extends IconGenerator {
     /** Display name, when shape is displayed to the end-user */
     public final String displayName;
 
-    PreviewShape(String id, String displayName) {
+    PreviewShape(@NotNull String id, @NotNull String displayName) {
       this.id = id;
       this.displayName = displayName;
     }

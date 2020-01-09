@@ -15,14 +15,23 @@
  */
 package com.android.tools.idea.gradle.dsl.model.build;
 
+import static com.android.tools.idea.gradle.dsl.TestFileName.SUB_PROJECTS_APPLY_PLUGINS;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SUB_PROJECTS_APPLY_PLUGINS_SUB;
+import static com.android.tools.idea.gradle.dsl.TestFileName.SUB_PROJECTS_APPLY_PLUGINS_SUB2;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SUB_PROJECTS_OVERRIDE_SUB_PROJECT_SECTION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SUB_PROJECTS_OVERRIDE_SUB_PROJECT_SECTION_SUB;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SUB_PROJECTS_SUB_PROJECTS_SECTION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.SUB_PROJECTS_SUB_PROJECTS_SECTION_WITH_LOCAL_PROPERTIES;
 
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.PluginModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
+import com.google.common.collect.ImmutableSet;
+import com.intellij.openapi.module.Module;
 import com.intellij.pom.java.LanguageLevel;
+import java.util.List;
 import org.junit.Test;
 
 
@@ -75,5 +84,26 @@ public class SubProjectsTest extends GradleFileModelTestCase {
     JavaModel subModuleJava = getSubModuleGradleBuildModel().java();
     assertEquals(LanguageLevel.JDK_1_6, subModuleJava.sourceCompatibility().toLanguageLevel()); // 1_4 is overridden with 1_6
     assertEquals(LanguageLevel.JDK_1_7, subModuleJava.targetCompatibility().toLanguageLevel()); // 1_5 is overridden with 1_7
+  }
+
+  @Test
+  public void testApplyPlugins() throws Exception {
+    writeToBuildFile(SUB_PROJECTS_APPLY_PLUGINS);
+    writeToSubModuleBuildFile(SUB_PROJECTS_APPLY_PLUGINS_SUB);
+    Module otherSub = writeToNewSubModule("otherSub", SUB_PROJECTS_APPLY_PLUGINS_SUB2, "");
+    writeToSettingsFile(getSubModuleSettingsText() + getSubModuleSettingsText("otherSub"));
+
+    ProjectBuildModel buildModel = ProjectBuildModel.get(myProject);
+
+    GradleBuildModel mainModel = buildModel.getModuleBuildModel(myModule);
+    List<PluginModel> mainPlugins = mainModel.plugins();
+    GradleBuildModel subModel = buildModel.getModuleBuildModel(mySubModule);
+    List<PluginModel> subPlugins = subModel.plugins();
+    GradleBuildModel sub2Model = buildModel.getModuleBuildModel(otherSub);
+    List<PluginModel> sub2Plugins = sub2Model.plugins();
+
+    assertSameElements(PluginModel.extractNames(mainPlugins), ImmutableSet.of("foo"));
+    assertSameElements(PluginModel.extractNames(subPlugins), ImmutableSet.of("bar", "baz"));
+    assertSameElements(PluginModel.extractNames(sub2Plugins), ImmutableSet.of("bar", "quux"));
   }
 }

@@ -431,12 +431,14 @@ class TemplateValueInjector(private val myTemplateValues: MutableMap<String, Any
     val map = HashMap<String, Any>()
     map[ATTR_APP_THEME_NAME] = themeName
     map[ATTR_APP_THEME_EXISTS] = true
-    val hasActionBar = ThemeHelper.hasActionBar(configuration, themeName)
-    addDerivedTheme(map, themeName, ATTR_APP_THEME_NO_ACTION_BAR, hasActionBar == false, helper, configuration)
-    addDerivedTheme(map, themeName, ATTR_APP_THEME_APP_BAR_OVERLAY, false, helper, configuration)
-    addDerivedTheme(map, themeName, ATTR_APP_THEME_POPUP_OVERLAY, false, helper, configuration)
 
-    templateValues[ATTR_APP_THEME] = map
+    ApplicationManager.getApplication().runReadAction {
+      val hasActionBar = ThemeHelper.hasActionBar(configuration, themeName)
+      addDerivedTheme(map, themeName, ATTR_APP_THEME_NO_ACTION_BAR, hasActionBar == false, helper, configuration)
+      addDerivedTheme(map, themeName, ATTR_APP_THEME_APP_BAR_OVERLAY, false, helper, configuration)
+      addDerivedTheme(map, themeName, ATTR_APP_THEME_POPUP_OVERLAY, false, helper, configuration)
+      templateValues[ATTR_APP_THEME] = map
+    }
   }
 
   private fun addDerivedTheme(map: MutableMap<String, Any>,

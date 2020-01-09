@@ -66,17 +66,8 @@ class ShowFileInResourceManagerActionTest {
   @Test
   fun actionIsNotAvailableOnString() {
     val newFile = rule.fixture.loadNewFile("res/values/strings.xml", "<resource></resource")
-    val testActionEvent = checkActionWithFile(ShowFileInResourceManagerAction(), newFile.virtualFile)
+    val testActionEvent = checkActionWithFile(findResourceManagerAction(), newFile.virtualFile)
     assertFalse { testActionEvent.presentation.isEnabledAndVisible }
-  }
-
-  @Test
-  fun actionFallbackToThumbnailAction() {
-    val newFile = object : LightVirtualFile("photo") {
-      override fun isDirectory(): Boolean = true
-    }
-    val testActionEvent = checkActionWithFile(ShowFileInResourceManagerAction(), newFile)
-    assertTrue { testActionEvent.presentation.isEnabledAndVisible }
   }
 
   @Test

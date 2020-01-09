@@ -19,11 +19,10 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import javax.swing.JComponent
-import javax.swing.JPanel
 
 class AppInspectionToolWindow(window: ToolWindow, project: Project) : Disposable {
-  private val panel = JPanel()
-  val component: JComponent = panel
+  private val appInspectionView = AppInspectionView()
+  val component: JComponent = appInspectionView.component
 
   override fun dispose() {
     // Although we do nothing here, because this class is disposable, other components can register

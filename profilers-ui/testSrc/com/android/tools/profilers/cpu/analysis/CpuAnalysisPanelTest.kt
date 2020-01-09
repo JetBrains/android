@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.analysis
 
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
@@ -36,6 +37,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import javax.swing.JLabel
 
 class CpuAnalysisPanelTest {
 
@@ -78,6 +80,15 @@ class CpuAnalysisPanelTest {
     selectedModel.addTabModel(CpuAnalysisTabModel(CpuAnalysisTabModel.Type.LOGS))
     stage.addCpuAnalysisModel(selectedModel)
     assertThat(panel.tabView.tabCount).isEqualTo(2)
+  }
+
+  @Test
+  fun tabsUpdatedOnTabRemoved() {
+    stage.enter()
+    val treeWalker = TreeWalker(panel.tabs.tabsPanel)
+    assertThat(treeWalker.descendants().filterIsInstance(JLabel::class.java).size).isEqualTo(1)
+    stage.removeCpuAnalysisModel(0)
+    assertThat(treeWalker.descendants().filterIsInstance(JLabel::class.java).size).isEqualTo(0)
   }
 
   @Test

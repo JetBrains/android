@@ -160,6 +160,7 @@ iml_module(
         "//tools/idea/platform/object-serializer:intellij.platform.objectSerializer.annotations[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
         "//tools/idea/plugins/terminal:intellij.terminal[module]",
+        "//tools/adt/idea/lint:intellij.lint[module]",
     ],
 )
 
@@ -200,9 +201,6 @@ iml_module(
         "//tools/base/templates",
         "//tools/base/third_party/kotlin:kotlin-m2repository.zip",
         "//tools/data-binding:data_binding_runtime.zip",
-        "//tools/external/gradle:gradle-distrib-2.6",
-        "//tools/external/gradle:gradle-distrib-4.5",
-        "//tools/external/gradle:gradle-distrib-5.5",
         "//tools/idea:platform-build-info",
         "//tools/idea/java/jdkAnnotations",
         "//tools/idea/java/mockJDK-1.7",
@@ -344,6 +342,7 @@ iml_module(
         "//tools/idea/platform/object-serializer:intellij.platform.objectSerializer[module, test]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
+        "//tools/adt/idea/lint:intellij.lint[module, test]",
     ],
 )
 

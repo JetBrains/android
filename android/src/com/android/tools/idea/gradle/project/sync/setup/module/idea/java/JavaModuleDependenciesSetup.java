@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
 import com.android.tools.idea.gradle.project.sync.setup.module.common.ModuleDependenciesSetup;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.DependencyScope;
@@ -33,6 +34,7 @@ import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 
 class JavaModuleDependenciesSetup extends ModuleDependenciesSetup {
+  private static final Logger LOG = Logger.getInstance(JavaModuleDependenciesSetup.class);
   void setUpLibraryDependency(@NotNull Module module,
                               @NotNull IdeModifiableModelsProvider modelsProvider,
                               @NotNull String libraryName,
@@ -48,7 +50,13 @@ class JavaModuleDependenciesSetup extends ModuleDependenciesSetup {
 
     boolean newLibrary = false;
     Library library = modelsProvider.getLibraryByName(libraryName);
-    if (library == null) {
+    if (library == null || !isLibraryValid(modelsProvider.getModifiableLibraryModel(library), new File[]{binaryPath})) {
+      if (library != null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(library.getName() + " not valid after sync.");
+        }
+        modelsProvider.removeLibrary(library);
+      }
       library = modelsProvider.createLibrary(libraryName);
       newLibrary = true;
     }

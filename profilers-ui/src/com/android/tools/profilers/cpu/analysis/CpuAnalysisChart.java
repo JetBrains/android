@@ -18,21 +18,25 @@ package com.android.tools.profilers.cpu.analysis;
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.FilterComponent;
 import com.android.tools.adtui.TabularLayout;
-import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.ViewBinder;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.filter.FilterHandler;
 import com.android.tools.adtui.model.filter.FilterResult;
-import com.android.tools.adtui.stdui.CommonToggleButton;
+import com.android.tools.perflib.vmtrace.ClockType;
+import com.android.tools.profilers.JComboBoxView;
 import com.android.tools.profilers.ProfilerLayout;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetailsView;
 import com.android.tools.profilers.cpu.capturedetails.ChartDetailsView;
 import com.android.tools.profilers.cpu.capturedetails.TreeDetailsView;
+import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.SimpleListCellRenderer;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,9 +46,12 @@ import org.jetbrains.annotations.NotNull;
 public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
   private final StudioProfilersView myProfilersView;
   private final JPanel myCaptureDetailsPanel = new JPanel(new BorderLayout());
+  private CaptureDetailsView myActiveDetailsView;
 
   @NotNull
   private final ViewBinder<StudioProfilersView, CaptureDetails, CaptureDetailsView> myBinder;
+
+  @NotNull private final AspectObserver myObserver = new AspectObserver();
 
   public CpuAnalysisChart(@NotNull StudioProfilersView view, @NotNull CpuAnalysisTabModel<?> model) {
     super((CpuAnalysisChartModel<?>)model);
@@ -55,27 +62,22 @@ public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
     myBinder.bind(CaptureDetails.CallChart.class, ChartDetailsView.CallChartDetailsView::new);
     myBinder.bind(CaptureDetails.FlameChart.class, ChartDetailsView.FlameChartDetailsView::new);
 
+    getModel().getAspectModel().addDependency(myObserver).onChange(CpuAnalysisChartModel.Aspect.CLOCK_TYPE, this::updateDetailsView);
+
     buildComponents();
   }
 
   private void buildComponents() {
-    setLayout(new TabularLayout("*", "Fit,Fit,*"));
+    setLayout(new TabularLayout("*", "Fit,*"));
 
     // Toolbar
-    CommonToggleButton filterButton = FilterComponent.createFilterToggleButton();
-    JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    toolbar.add(filterButton);
+    JPanel toolbar = new JPanel(new BorderLayout());
+    toolbar.add(buildFilterComponent(), BorderLayout.WEST);
+    toolbar.add(buildClockTypeSelector(), BorderLayout.EAST);
 
-    // Filter component
-    FilterComponent filterComponent = buildFilterComponent();
-    FilterComponent.configureKeyBindingAndFocusBehaviors(this, filterComponent, filterButton);
-
-    // Capture details view
-    myCaptureDetailsPanel.add(myBinder.build(myProfilersView, getModel().createDetails()).getComponent(), BorderLayout.CENTER);
-
+    updateDetailsView();
     add(toolbar, new TabularLayout.Constraint(0, 0));
-    add(filterComponent, new TabularLayout.Constraint(1, 0));
-    add(myCaptureDetailsPanel, new TabularLayout.Constraint(2, 0));
+    add(myCaptureDetailsPanel, new TabularLayout.Constraint(1, 0));
 
     boolean hasAxisComponent = getModel().getDetailsType() == CaptureDetails.Type.FLAME_CHART;
     // For backwards compatibility adding the percentage AxisComponent here. This really should live in the CaptureDetails.Type.FLAME_CHART.
@@ -100,16 +102,33 @@ public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
       @Override
       protected FilterResult applyFilter(@NotNull Filter filter) {
         CpuAnalysisChartModel.CaptureDetailsWithFilterResult results = getModel().applyFilterAndCreateDetails(filter);
-        // Update capture details view.
-        CaptureDetailsView view = myBinder.build(myProfilersView, results.getCaptureDetails());
-        myCaptureDetailsPanel.removeAll();
-        myCaptureDetailsPanel.add(view.getComponent(), BorderLayout.CENTER);
+        updateDetailsView();
         // Return filter result.
         return results.getFilterResult();
       }
     });
-    filterComponent.setVisible(!filterComponent.getModel().getFilter().isEmpty());
-    filterComponent.setBorder(AdtUiUtils.DEFAULT_BOTTOM_BORDER);
+    filterComponent.setVisible(true);
     return filterComponent;
+  }
+
+  private JComponent buildClockTypeSelector() {
+    JComboBox<ClockType> clockTypeSelector = new ComboBox<>();
+    JComboBoxView<ClockType, CpuAnalysisChartModel.Aspect> clockTypes =
+      new JComboBoxView<>(clockTypeSelector, getModel().getAspectModel(), CpuAnalysisChartModel.Aspect.CLOCK_TYPE,
+                          getModel()::getClockTypes, getModel()::getClockType, getModel()::setClockType);
+    clockTypes.bind();
+    clockTypeSelector.setRenderer(SimpleListCellRenderer.create("", value ->
+      value == ClockType.GLOBAL ? "Wall Clock Time" :
+      value == ClockType.THREAD ? "Thread Time" : ""));
+    clockTypeSelector.setEnabled(getModel().isCaptureDualClock());
+    return clockTypeSelector;
+  }
+
+  private void updateDetailsView() {
+    myCaptureDetailsPanel.removeAll();
+    // Need to hold a hard reference to the capture details view otherwise soft dependencies get cleaned up.
+    myActiveDetailsView = myBinder.build(myProfilersView, getModel().createDetails());
+    // Capture details view
+    myCaptureDetailsPanel.add(myActiveDetailsView.getComponent(), BorderLayout.CENTER);
   }
 }

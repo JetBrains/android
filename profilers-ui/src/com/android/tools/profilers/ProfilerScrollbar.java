@@ -95,7 +95,7 @@ public final class ProfilerScrollbar extends JBScrollBar {
         myTimeline.zoom(getZoomWheelDelta() * count, anchor);
       }
       else if (isScrollable()) {
-        myTimeline.pan(getPanWheelDelta() * count);
+        myTimeline.panView(getPanWheelDelta() * count);
       }
       myCheckStream = count > 0;
     });

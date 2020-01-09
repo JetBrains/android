@@ -33,8 +33,8 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.lint.common.LintIdeClient
 import com.android.tools.property.panel.api.PropertiesTable
-import com.android.tools.idea.lint.LintIdeClient
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.uibuilder.model.hasNlComponentInfo
 import com.android.tools.idea.uibuilder.model.viewInfo

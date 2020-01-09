@@ -42,7 +42,7 @@ import com.android.tools.idea.wizard.template.ThemesData
 import com.intellij.openapi.module.Module
 import com.android.tools.idea.wizard.template.ThemeData
 import com.android.tools.idea.wizard.template.Version
-import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -191,13 +191,12 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
   /**
    * Adds information about application theme.
    */
-  fun setApplicationTheme(facet: AndroidFacet) {
+  private fun setApplicationTheme(facet: AndroidFacet) {
     val module = facet.module
     val projectFile = module.project.projectFile ?: return
     val helper = ThemeHelper(module)
     val themeName = helper.appThemeName ?: return
     val configuration = ConfigurationManager.getOrCreateInstance(module).getConfiguration(projectFile)
-    val hasActionBar = ThemeHelper.hasActionBar(configuration, themeName)
 
     fun getDerivedTheme(themeName: String, derivedThemeName: String, useBaseThemeAsDerivedTheme: Boolean): ThemeData {
       val fullThemeName = if (useBaseThemeAsDerivedTheme) themeName else "$themeName.$derivedThemeName"
@@ -209,12 +208,15 @@ class ModuleTemplateDataBuilder(val projectTemplateDataBuilder: ProjectTemplateD
       return ThemeData(fullThemeName, exists)
     }
 
-    themesData = ThemesData(
-      ThemeData(themeName, true),
-      getDerivedTheme(themeName, ATTR_APP_THEME_NO_ACTION_BAR, hasActionBar == false),
-      getDerivedTheme(themeName, ATTR_APP_THEME_APP_BAR_OVERLAY, false),
-      getDerivedTheme(themeName, ATTR_APP_THEME_POPUP_OVERLAY, false)
-    )
+    ApplicationManager.getApplication().runReadAction {
+      val hasActionBar = ThemeHelper.hasActionBar(configuration, themeName)
+      themesData = ThemesData(
+        ThemeData(themeName, true),
+        getDerivedTheme(themeName, ATTR_APP_THEME_NO_ACTION_BAR, hasActionBar == false),
+        getDerivedTheme(themeName, ATTR_APP_THEME_APP_BAR_OVERLAY, false),
+        getDerivedTheme(themeName, ATTR_APP_THEME_POPUP_OVERLAY, false)
+      )
+    }
   }
 
   private fun Version.coerceIfNeeded(project: Project, isNewProject: Boolean = false) =

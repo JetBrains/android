@@ -35,6 +35,7 @@ import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.WriteAction;
@@ -155,7 +156,6 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
         fail("Unexpected exception " + e.getLocalizedMessage());
       }
     });
-
   }
 
   public void testIsSourceModified() throws IOException {
@@ -232,19 +232,20 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     androidProject.setProjectType(AndroidProjectTypes.PROJECT_TYPE_LIBRARY);
     myFacet.getConfiguration().getState().PROJECT_TYPE = AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
     AndroidModel.set(myFacet,
-      AndroidModuleModel.create(androidProject.getName(),
-                                Projects.getBaseDirPath(getProject()),
-                                androidProject,
-                                "debug",
-                                new IdeDependenciesFactory()));
+                     AndroidModuleModel.create(androidProject.getName(),
+                                               Projects.getBaseDirPath(getProject()),
+                                               androidProject,
+                                               "debug",
+                                               new IdeDependenciesFactory()));
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
     assertThat(AndroidModel.isRequired(myFacet)).isTrue();
 
     WriteAction.run(() -> {
       VirtualFile manifestFile = sourceProviderManager.getMainManifestFile();
       if (manifestFile == null) {
-        String manifestUrl = sourceProviderManager.getMainIdeaSourceProvider().getManifestFileUrl();
-        VirtualFile manifestDirectory = sourceProviderManager.getMainIdeaSourceProvider().getManifestDirectory();
+        String manifestUrl = Iterables.getOnlyElement(sourceProviderManager.getMainIdeaSourceProvider().getManifestFileUrls());
+        VirtualFile manifestDirectory =
+          Iterables.getOnlyElement(sourceProviderManager.getMainIdeaSourceProvider().getManifestDirectories());
         manifestFile = manifestDirectory.createChildData(this, VfsUtil.extractFileName(manifestUrl));
       }
       assertThat(manifestFile).named("Manifest virtual file").isNotNull();

@@ -16,8 +16,8 @@
 package com.android.tools.idea.templates
 
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VfsUtilCore.isEqualOrAncestor
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
@@ -42,27 +42,26 @@ import org.jetbrains.android.facet.containsFile
  * With target file == "myoverlay.aidl" the returned list would be ['free'], but if target file == "src",
  * the returned list would be ['main', 'free'] since both of those source providers have source folders which
  * are descendants of "src."
+ *
+ * Returns `null` if none found.
  */
 fun getSourceProvidersForFile(
   facet: AndroidFacet,
-  targetFolder: VirtualFile?,
-  defaultSourceProvider: IdeaSourceProvider?
-): List<IdeaSourceProvider> {
-  val sourceProviderList =
-    if (targetFolder != null) {
-      // Add source providers that contain the file (if any) and any that have files under the given folder
-      SourceProviderManager.getInstance(facet).allSourceProviders
-        .filter { provider ->
-          containsFile(provider, targetFolder) || provider.isContainedBy(targetFolder)
-        }
-        .takeUnless { it.isEmpty() }
-    }
-    else null
-
-  return sourceProviderList ?: listOfNotNull(defaultSourceProvider)
+  targetFolder: VirtualFile?
+): List<NamedIdeaSourceProvider>? {
+  return if (targetFolder != null) {
+    // Add source providers that contain the file (if any) and any that have files under the given folder
+    SourceProviderManager.getInstance(facet).allSourceProviders
+      .filter { provider ->
+        provider.containsFile(targetFolder) || provider.isContainedBy(targetFolder)
+      }
+      .takeUnless { it.isEmpty() }
+  }
+  else null
 }
 
 @VisibleForTesting
 fun IdeaSourceProvider.isContainedBy(targetFolder: VirtualFile): Boolean {
-  return isEqualOrAncestor(targetFolder.url, manifestFileUrl) || allSourceFolderUrls.any { isEqualOrAncestor(targetFolder.url, it) }
+  return manifestFileUrls.any { manifestFileUrl -> isEqualOrAncestor(targetFolder.url, manifestFileUrl) } ||
+         allSourceFolderUrls.any { sourceFolderUrl -> isEqualOrAncestor(targetFolder.url, sourceFolderUrl) }
 }

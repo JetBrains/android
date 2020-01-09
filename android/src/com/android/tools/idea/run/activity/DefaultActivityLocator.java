@@ -325,10 +325,19 @@ public class DefaultActivityLocator extends ActivityLocator {
 
     /**
      * @return the value of android:exported attribute for the activity, null if not specified.
+     *
      * Note that when the attribute is not explicitly set, it is considered exported if it has an intent filter.
+     * If you want to check whether activity is exported either explicitly or implicitly, use {{@link #isLogicallyExported()} instead.
      */
     @Nullable
     public abstract Boolean getExported();
+
+    /**
+     * @return whether the activity is exported, either explicitly, or by having an intent filter.
+     */
+    public boolean isLogicallyExported() {
+      return Boolean.TRUE.equals(getExported()) || hasIntentFilter();
+    }
 
     /**
      * @return whether there is at least 1 intent filter specified for this activity.

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
-import com.android.tools.idea.gradle.structure.configurables.suggestions.AndroidModuleSuggestionsConfigurable
+import com.android.tools.idea.gradle.structure.configurables.suggestions.ModuleSuggestionsConfigurable
 import com.android.tools.idea.tests.gui.framework.find
 import com.android.tools.idea.tests.gui.framework.finder
 import com.android.tools.idea.tests.gui.framework.matcher
@@ -89,6 +89,6 @@ fun ProjectStructureDialogFixture.findSuggestionsConfigurable(): SuggestionConfi
   return SuggestionConfigurableFixture(
     container,
     robot(),
-    findConfigurable(AndroidModuleSuggestionsConfigurable.SUGGESTIONS_VIEW))
+    findConfigurable(ModuleSuggestionsConfigurable.SUGGESTIONS_VIEW))
 }
 

@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.panels
 
+import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.data.CriticalPathPluginUiData
 import com.android.build.attribution.ui.data.TaskIssueType
@@ -38,7 +39,6 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
-import javax.swing.event.HyperlinkListener
 
 const val CRITICAL_PATH_LINK = "https://developer.android.com/r/tools/build-attribution/critical-path"
 
@@ -51,9 +51,20 @@ fun pluginInfoPanel(
   listener: TreeLinkListener<TaskIssueType>,
   analytics: BuildAttributionUiAnalytics
 ): JComponent = JBPanel<JBPanel<*>>(VerticalLayout(15)).apply {
-  add(commonPluginInfo(pluginUiData, analytics))
+  val pluginText = HtmlBuilder()
+    .openHtmlBody()
+    .add(
+      "This plugin has ${pluginUiData.criticalPathTasks.size} ${pluralize("task", pluginUiData.criticalPathTasks.size)} " +
+      "of total duration ${pluginUiData.criticalPathDuration.durationString()} (${pluginUiData.criticalPathDuration.percentageString()})"
+    )
+    .newline()
+    .add("determining this build's duration.")
+    .newline()
+    .addLink("Learn more", CRITICAL_PATH_LINK)
+    .closeHtmlBody()
+  add(DescriptionWithHelpLinkLabel(pluginText.html, analytics))
   add(JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
-    add(JBLabel("Issues with this plugin").withFont(JBUI.Fonts.label().asBold()))
+    add(JBLabel("Warnings detected").withFont(JBUI.Fonts.label().asBold()))
     for (issueGroup in pluginUiData.issues) {
       add(HyperlinkLabel("${issueGroup.type.uiName} (${issueGroup.size})").apply {
         addHyperlinkListener { listener.clickedOn(issueGroup.type) }
@@ -62,64 +73,43 @@ fun pluginInfoPanel(
       })
     }
     if (pluginUiData.issues.isEmpty()) {
-      add(JLabel("No issues found"))
+      add(JLabel("No warnings detected"))
     }
   })
-}
-
-private fun commonPluginInfo(data: CriticalPathPluginUiData, analytics: BuildAttributionUiAnalytics): JBLabel {
-  val pluginText = HtmlBuilder()
-    .openHtmlBody()
-    .add("This plugin has ${data.criticalPathTasks.size} ${pluralize("task", data.criticalPathTasks.size)} determining build duration. ")
-    .addLink("Learn more", CRITICAL_PATH_LINK)
-    .newline()
-    .add("Total duration ${data.criticalPathDuration.durationString()} / ${data.criticalPathDuration.percentageString()}")
-    .closeHtmlBody()
-  return object : JBLabel(pluginText.html) {
-    override fun createHyperlinkListener(): HyperlinkListener {
-      val hyperlinkListener = super.createHyperlinkListener()
-      return HyperlinkListener { e ->
-        analytics.helpLinkClicked()
-        hyperlinkListener.hyperlinkUpdate(e)
-      }
-    }
-  }.setCopyable(true)
-}
-
-fun pluginTasksListPanel(pluginData: CriticalPathPluginUiData, analytics: BuildAttributionUiAnalytics): JComponent =
-  JBPanel<JBPanel<*>>().apply {
-    layout = VerticalLayout(5, SwingConstants.LEFT)
-    add(commonPluginInfo(pluginData, analytics))
-  }
-
-private fun commonTaskInfo(taskData: TaskUiData): JComponent {
-  val text = HtmlBuilder()
-    .openHtmlBody()
-    .beginParagraph()
-    .add(
-      if (taskData.onCriticalPath)
-        "This task frequently determines build duration because of dependencies between its inputs/outputs and other tasks."
-      else
-        "This task occasionally determines build duration because of parallelism constraints introduced by number of cores or other tasks in the same module."
-    )
-    .endParagraph()
-    .newline()
-    .add("Module: ${taskData.module}")
-    .newline()
-    .add("Plugin: ${taskData.pluginName}")
-    .newline()
-    .add("Type: ${taskData.taskType}")
-    .newline()
-    .add("Duration: ${taskData.executionTime.durationString()} / ${taskData.executionTime.percentageString()}")
-    .newline()
-    .add("Executed incrementally: ${if (taskData.executedIncrementally) "Yes" else "No"}")
-    .closeHtmlBody()
-  return JBLabel(text.html).setCopyable(true).setAllowAutoWrapping(true)
+  withPreferredWidth(400)
 }
 
 fun taskInfoPanel(taskData: TaskUiData, listener: TreeLinkListener<TaskIssueUiData>): JPanel {
-  val infoPanel = JPanel(GridBagLayout())
-  val taskInfo = commonTaskInfo(taskData)
+  val infoPanel = JBPanel<JBPanel<*>>(GridBagLayout())
+  val taskDescription = JBLabel(
+    HtmlBuilder()
+      .openHtmlBody()
+      .add(
+        if (taskData.onLogicalCriticalPath)
+          "This task frequently determines build duration because of dependencies between its inputs/outputs and other tasks."
+        else
+          "This task occasionally determines build duration because of parallelism constraints introduced by number of cores or other tasks in the same module."
+      )
+      .closeHtmlBody()
+      .html
+  )
+    .setAllowAutoWrapping(true).setCopyable(true)
+  val taskInfo = JBLabel(
+    HtmlBuilder()
+      .openHtmlBody()
+      .add("Module: ${taskData.module}")
+      .newline()
+      .add("Plugin: ${taskData.pluginName}")
+      .newline()
+      .add("Type: ${taskData.taskType}")
+      .newline()
+      .add("Duration: ${taskData.executionTime.durationString()} / ${taskData.executionTime.percentageString()}")
+      .newline()
+      .add("Executed incrementally: ${if (taskData.executedIncrementally) "Yes" else "No"}")
+      .closeHtmlBody()
+      .html
+  )
+    .setAllowAutoWrapping(true).setCopyable(true)
   val issuesList = JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
     add(JBLabel("Issues with this task").withFont(JBUI.Fonts.label().asBold()))
     for (issue in taskData.issues) {
@@ -143,26 +133,31 @@ fun taskInfoPanel(taskData: TaskUiData, listener: TreeLinkListener<TaskIssueUiDa
   c.anchor = GridBagConstraints.FIRST_LINE_START
   c.fill = GridBagConstraints.HORIZONTAL
   c.insets = JBUI.insetsBottom(8)
-  infoPanel.add(taskInfo, c)
+  infoPanel.add(taskDescription, c)
 
   c.gridy = 1
-  infoPanel.add(issuesList, c)
+  infoPanel.add(taskInfo, c)
 
   c.gridy = 2
+  infoPanel.add(issuesList, c)
+
+  c.gridy = 3
   c.insets = JBUI.insetsTop(8)
   infoPanel.add(reasonsToRunHeader, c)
 
-  c.gridy = 3
+  c.gridy = 4
   c.insets = JBUI.insetsTop(8)
   c.fill = GridBagConstraints.BOTH
   c.weighty = 1.0
   infoPanel.add(reasonsList, c)
+
+  infoPanel.withPreferredWidth(sequenceOf<JComponent>(taskInfo, issuesList).map { it.preferredSize.width }.max()!!)
   return infoPanel
 }
 
 private fun reasonsToRunList(taskData: TaskUiData) = JBLabel().apply {
-  setCopyable(true)
   setAllowAutoWrapping(true)
+  setCopyable(true)
   verticalTextPosition = SwingConstants.TOP
   text = createReasonsText(taskData.reasonsToRun)
 }

@@ -343,7 +343,7 @@ public class StudioProfilersViewTest {
     CommonButton zoomInButton = myView.getZoomInButton();
     CommonButton zoomOutButton = myView.getZoomOutButton();
     CommonButton resetButton = myView.getResetZoomButton();
-    CommonButton frameSelectionButton = myView.getFrameSelectionButton();
+    CommonButton frameSelectionButton = myView.getZoomToSelectionButton();
     JToggleButton liveButton = myView.getGoLiveButton();
 
     // A live session without agent should have all controls enabled

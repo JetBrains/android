@@ -181,6 +181,21 @@ class ProguardR8CompletionContributorTest : ProguardR8TestCase() {
                                                                     "static", "synchronized", "native", "abstract", "strictfp",
                                                                     "volatile", "transient", "final")
 
+
+    // suggests after !
+    myFixture.configureByText(ProguardR8FileType.INSTANCE, """
+        -keep class * {
+          !$caret
+        }
+    """.trimIndent())
+
+    keys = myFixture.completeBasic()
+
+    assertThat(keys).isNotEmpty()
+    assertThat(keys.map { it.lookupString }.toList()).containsAllOf("public", "private", "protected",
+                                                                    "static", "synchronized", "native", "abstract", "strictfp",
+                                                                    "volatile", "transient", "final")
+
     myFixture.configureByText(ProguardR8FileType.INSTANCE, """
         -keep class * {
           public $caret

@@ -32,6 +32,7 @@ import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
@@ -482,6 +483,11 @@ class GradleModuleSystem(
     }
 
   override val isRClassTransitive: Boolean get() = readFromAgpFlags { it.transitiveRClasses } ?: true
+
+  override fun getDynamicFeatureModules(): List<Module> {
+    val project = GradleUtil.getAndroidProject(module) ?: return emptyList()
+    return DynamicAppUtils.getDependentFeatureModulesForBase(module.project, project)
+  }
 
   /**
    * Specifies a version incompatibility between [conflict1] from [module1] and [conflict2] from [module2].

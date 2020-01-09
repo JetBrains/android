@@ -42,6 +42,7 @@ import com.google.wireless.android.sdk.stats.PerfdCrashInfo;
 import com.google.wireless.android.sdk.stats.TransportDaemonStartedInfo;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.util.messages.MessageBus;
 import com.intellij.util.messages.Topic;
 import com.intellij.util.net.NetUtils;
@@ -93,7 +94,9 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
    */
   private final Map<String, DeviceContext> mySerialToDeviceContextMap = new ConcurrentHashMap<>();
 
-  public TransportDeviceManager(@NotNull DataStoreService dataStoreService, @NotNull MessageBus messageBus) {
+  public TransportDeviceManager(@NotNull DataStoreService dataStoreService, @NotNull MessageBus messageBus,
+                                @NotNull Disposable disposableParent) {
+    Disposer.register(disposableParent, this);
     myDataStoreService = dataStoreService;
     myMessageBus = messageBus;
     AndroidDebugBridge.addDebugBridgeChangeListener(this);
@@ -344,7 +347,7 @@ public final class TransportDeviceManager implements AndroidDebugBridge.IDebugBr
          * Reconnect to the agents that were last known connected.
          */
         private void reconnectAgents() {
-          TransportClient client = new TransportClient(TransportService.getInstance().getChannelName());
+          TransportClient client = new TransportClient(TransportService.CHANNEL_NAME);
           DeviceContext context = mySerialToDeviceContextMap.get(transportDevice.getSerial());
           assert context != null;
           for (Long pid : context.myConnectedAgents) {

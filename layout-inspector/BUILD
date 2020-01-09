@@ -132,6 +132,7 @@ iml_module(
         "//tools/adt/idea/transport-database:intellij.android.transportDatabase[module, test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
-        "//tools/base/flags:studio.android.sdktools.flags[module]",
+        "//tools/base/flags:studio.android.sdktools.flags[module, test]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
     ],
 )

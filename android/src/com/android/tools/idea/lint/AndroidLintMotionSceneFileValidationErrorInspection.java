@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.MotionSceneDetector;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintMotionSceneFileValidationErrorInspection extends AndroidLintInspectionBase {
   public AndroidLintMotionSceneFileValidationErrorInspection() {
-    super(AndroidBundle.message("android.lint.inspections.motion.scene.error"), MotionSceneDetector.MOTION_SCENE_FILE_VALIDATION_ERROR);
+    super(AndroidBundle.message("android.lint.inspections.motion.scene.file.validation.error"),
+          MotionSceneDetector.MOTION_SCENE_FILE_VALIDATION_ERROR);
   }
 }

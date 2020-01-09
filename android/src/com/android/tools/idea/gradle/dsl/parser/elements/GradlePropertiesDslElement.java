@@ -34,6 +34,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropertiesElementOrMap;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.PROPERTY_PLACEMENT;
 import static com.android.tools.idea.gradle.dsl.parser.elements.ElementState.*;
@@ -95,6 +96,11 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   private void addAppliedProperty(@NotNull GradleDslElement element) {
     element.addHolder(this);
     addPropertyInternal(element, APPLIED);
+  }
+
+  public void addDefaultProperty(@NotNull GradleDslElement element) {
+    element.setElementType(REGULAR);
+    addPropertyInternal(element, DEFAULT);
   }
 
   private void removePropertyInternal(@NotNull String property) {
@@ -492,12 +498,16 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   }
 
   /**
-   * @return all the current elements with the state TO_BE_ADDED or EXISTING.
+   * @return all the elements which represent the current state of the Dsl object, including modifications.
    */
   @NotNull
   public List<GradleDslElement> getCurrentElements() {
-    return myProperties.myElements.stream().filter(e -> e.myElementState == TO_BE_ADDED || e.myElementState == EXISTING)
-                                  .map(e -> e.myElement).collect(Collectors.toList());
+    Predicate<ElementList.ElementItem> currentElementFilter = e ->
+      e.myElementState == TO_BE_ADDED ||
+      e.myElementState == EXISTING ||
+      (e.myElementState == DEFAULT && e.myElement instanceof GradlePropertiesDslElement &&
+       !(((GradlePropertiesDslElement)e.myElement).getCurrentElements().isEmpty()));
+    return myProperties.myElements.stream().filter(currentElementFilter).map(e -> e.myElement).collect(Collectors.toList());
   }
 
   /**
@@ -645,7 +655,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
         return lastElement;
       }
 
-      if (item.myElementState != TO_BE_REMOVED && item.myElementState != HIDDEN && item.myElementState != APPLIED) {
+      if (Arrays.asList(EXISTING, TO_BE_ADDED, MOVED).contains(item.myElementState)) {
         GradleDslElement currentElement = item.myElement;
         // Don't count empty ProjectPropertiesModel, this can cause the properties to be added at the top of the file where
         // we require that they be below other properties (e.g project(':lib')... should be after include: 'lib').
@@ -677,7 +687,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   public List<GradleDslElement> getContainedElements(boolean includeProperties) {
     List<GradleDslElement> result = new ArrayList<>();
     if (includeProperties) {
-      result.addAll(getElementsWhere(e -> e.myElementState != APPLIED).values());
+      result.addAll(getElementsWhere(e -> (e.myElementState != APPLIED && e.myElementState != DEFAULT)).values());
     }
     else {
       result.addAll(getVariableElements().values());
@@ -791,7 +801,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       @NotNull private GradleDslElement myElement;
       @NotNull private ElementState myElementState;
       // Whether or not this element item exists in THIS DSL file. While element state == EXISTING implies this is true,
-      // the reserve doesn't apply.
+      // the reverse doesn't apply.
       private boolean myExistsOnFile;
 
       private ElementItem(@NotNull GradleDslElement element, @NotNull ElementState state, boolean existsOnFile) {
@@ -947,13 +957,20 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     }
 
     private void reset() {
+      Set<String> seen = new LinkedHashSet<>();
       for (Iterator<ElementItem> i = myElements.iterator(); i.hasNext(); ) {
         ElementItem item = i.next();
         item.myElement.resetState();
         if (item.myElementState == TO_BE_REMOVED) {
           item.myElementState = EXISTING;
         }
+        if (item.myElementState == EXISTING) {
+          seen.add(item.myElement.getName());
+        }
         if (item.myElementState == TO_BE_ADDED) {
+          i.remove();
+        }
+        if (item.myElementState == DEFAULT && seen.contains(item.myElement.getName())) {
           i.remove();
         }
       }
@@ -981,6 +998,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
     private void createElements(@NotNull Predicate<GradleDslElement> addFunc) {
       for (Iterator<ElementItem> i = myElements.iterator(); i.hasNext(); ) {
         ElementItem item = i.next();
+        if (item.myElementState == DEFAULT && item.myElement instanceof GradlePropertiesDslElement &&
+            !(((GradlePropertiesDslElement)item.myElement).getCurrentElements().isEmpty())) {
+          item.myElementState = TO_BE_ADDED;
+        }
         if (item.myElementState == TO_BE_ADDED) {
           if (addFunc.test(item.myElement)) {
             item.myElementState = EXISTING;

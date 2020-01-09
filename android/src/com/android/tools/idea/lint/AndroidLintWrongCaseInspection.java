@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
+import com.android.tools.idea.lint.common.ReplaceStringQuickFix;
 import com.android.tools.lint.checks.WrongCaseDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.openapi.editor.Document;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
-import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
+import java.util.List;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 public class AndroidLintWrongCaseInspection extends AndroidLintInspectionBase {
   public AndroidLintWrongCaseInspection() {
@@ -34,16 +34,16 @@ public class AndroidLintWrongCaseInspection extends AndroidLintInspectionBase {
 
   @NotNull
   @Override
-  public AndroidLintQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
-                                             @NotNull PsiElement endElement,
-                                             @NotNull String message,
-                                             @Nullable LintFix fixData) {
+  public LintIdeQuickFix[] getQuickFixes(@NotNull PsiElement startElement,
+                                         @NotNull PsiElement endElement,
+                                         @NotNull String message,
+                                         @Nullable LintFix fixData) {
     @SuppressWarnings("unchecked")
     List<String> oldAndNew = LintFix.getData(fixData, List.class);
     if (oldAndNew != null && oldAndNew.size() == 2) {
       String current = oldAndNew.get(0);
       String proposed = oldAndNew.get(1);
-      return new AndroidLintQuickFix[]{new ReplaceStringQuickFix(null, null, current, proposed) {
+      return new LintIdeQuickFix[]{new ReplaceStringQuickFix(null, null, current, proposed) {
         @Override
         protected void editAfter(@SuppressWarnings("UnusedParameters") @NotNull Document document) {
           String text = document.getText();

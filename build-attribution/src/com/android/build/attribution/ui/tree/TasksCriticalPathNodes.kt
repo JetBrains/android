@@ -15,6 +15,7 @@
  */
 package com.android.build.attribution.ui.tree
 
+import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel
 import com.android.build.attribution.ui.colorIcon
 import com.android.build.attribution.ui.data.CriticalPathTasksUiData
 import com.android.build.attribution.ui.data.TaskIssueUiData
@@ -34,11 +35,9 @@ import com.android.build.attribution.ui.panels.taskInfoPanel
 import com.android.build.attribution.ui.taskIcon
 import com.android.utils.HtmlBuilder
 import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent
-import com.intellij.ui.components.JBLabel
 import com.intellij.ui.treeStructure.SimpleNode
 import javax.swing.Icon
 import javax.swing.JComponent
-import javax.swing.event.HyperlinkListener
 
 class CriticalPathTasksRoot(
   private val data: CriticalPathTasksUiData,
@@ -92,17 +91,7 @@ class CriticalPathTasksRoot(
           .newline()
           .addLink("Learn more", CRITICAL_PATH_LINK)
           .closeHtmlBody()
-        return object : JBLabel(text.html) {
-          override fun createHyperlinkListener(): HyperlinkListener {
-            val hyperlinkListener = super.createHyperlinkListener()
-            return HyperlinkListener { e ->
-              analytics.helpLinkClicked()
-              hyperlinkListener.hyperlinkUpdate(e)
-            }
-          }
-        }
-          .setAllowAutoWrapping(true)
-          .setCopyable(true)
+        return DescriptionWithHelpLinkLabel(text.html, analytics)
       }
 
       override fun createRightInfoPanel(): JComponent? {

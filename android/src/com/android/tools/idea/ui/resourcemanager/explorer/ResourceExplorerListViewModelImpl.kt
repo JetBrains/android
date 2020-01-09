@@ -421,8 +421,20 @@ class ResourceExplorerListViewModelImpl(
     when(psiElement) {
       is XmlFile -> {
         val tag = runReadAction { psiElement.rootTag } ?: return false
-        // To verify XML Tag filters, we just compare the XML root tag value to the filter value.
+        // To verify XML Tag filters, we just compare the XML root tag value to the filter value, but unless we are intentionally filtering
+        // for data-binding layouts, we then take the first non-data XML tag.
         typeFilters.forEach { filter ->
+          if (filter.kind == TypeFilterKind.XML_TAG) {
+            if (tag.name == filter.value) {
+              return true
+            } else if (tag.name == SdkConstants.TAG_LAYOUT) {
+              // Is data-binding, look for the non-data tag.
+              val dataBindingViewTag = tag.childrenOfType<XmlTag>().firstOrNull { it.name != SdkConstants.TAG_DATA } ?: return false
+              if (dataBindingViewTag.name == filter.value) {
+                return true
+              }
+            }
+          }
           if (filter.kind == TypeFilterKind.XML_TAG && tag.name == filter.value ) {
             return true
           }

@@ -138,7 +138,7 @@ object GuiTestLauncher {
     val options = mutableListOf(
       /* studio64.vmoptions */
       "-Xms256m",
-      "-Xmx1280m",
+      "-Xmx4096m",
       "-XX:ReservedCodeCacheSize=240m",
       "-XX:SoftRefLRUPolicyMSPerMB=50",
       "-Dsun.io.useCanonCaches=false",

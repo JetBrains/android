@@ -22,7 +22,7 @@ import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
 import com.android.tools.idea.navigator.AndroidProjectTreeBuilder;
 import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
-import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -114,10 +114,10 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
   }
 
   @Nullable
-  private IdeaSourceProvider findSourceProvider(@NotNull VirtualFile virtualFile) {
+  private NamedIdeaSourceProvider findSourceProvider(@NotNull VirtualFile virtualFile) {
     AndroidFacet androidFacet = getValue();
     assert androidFacet != null;
-    for (IdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(androidFacet)) {
+    for (NamedIdeaSourceProvider provider : AndroidProjectViewPane.getSourceProviders(androidFacet)) {
       if (IdeaSourceProviderUtil.containsFile(provider, virtualFile)) {
         return provider;
       }

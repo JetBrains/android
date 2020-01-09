@@ -31,10 +31,14 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ui.MouseEventHandler;
 import java.awt.FlowLayout;
 import java.awt.Point;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
@@ -98,6 +102,13 @@ public class TrackGroupListPanel implements TrackGroupMover {
         DelegateMouseEventHandler.delegateTo(getComponent())
           .installListenerOn(trackGroup.getTrackList())
           .installMotionListenerOn(trackGroup.getTrackList());
+        trackGroup.getTrackList().addFocusListener(new FocusAdapter() {
+          @Override
+          public void focusGained(FocusEvent e) {
+            // Focus the parent component so that its KeyListeners can handle keyboard shortcuts.
+            myPanel.requestFocusInWindow();
+          }
+        });
       });
     initTrackGroups();
   }
@@ -224,6 +235,7 @@ public class TrackGroupListPanel implements TrackGroupMover {
   private static class TrackGroupSelectionListener<T extends SelectableTrackModel> implements ListSelectionListener {
     private final TrackGroup myTrackGroup;
     private final MultiSelectionModel<T> myMultiSelectionModel;
+    private boolean handleListSelectionEvent = true;
 
     TrackGroupSelectionListener(@NotNull TrackGroup trackGroup, @NotNull MultiSelectionModel<T> multiSelectionModel) {
       myTrackGroup = trackGroup;
@@ -233,9 +245,16 @@ public class TrackGroupListPanel implements TrackGroupMover {
       // For example, multiple track groups share the same MultiSelectionModel in CPU capture stage. Selecting a track in Track Group A
       // should clear the track selection in Track Group B and vice versa.
       multiSelectionModel.addDependency(trackGroup).onChange(MultiSelectionModel.Aspect.CHANGE_SELECTION, () -> {
-        if (!multiSelectionModel.getSelection().isEmpty() && !trackGroup.isEmpty()) {
+        // The logic here is for matching the selection state of the track groups to the multi-selection model when the that model is
+        // modified by another source (e.g. trace event selection) and therefore we don't want to handle the ListSelectionEvent, which will
+        // modify the multi-selection model again.
+        handleListSelectionEvent = false;
+        if (multiSelectionModel.isEmpty()) {
+          trackGroup.getTrackList().clearSelection();
+        }
+        else if (!trackGroup.isEmpty()) {
           // Selection is changed and may come from another source.
-          T selection = multiSelectionModel.getSelection().iterator().next();
+          T selection = multiSelectionModel.getSelection().get(0);
           T listModel = (T)trackGroup.getTrackModelAt(0).getDataModel();
           // This may cause false positives if both selection are of the same type and isCompatibleWith() performs a type check only.
           if (!listModel.isCompatibleWith(selection)) {
@@ -243,24 +262,18 @@ public class TrackGroupListPanel implements TrackGroupMover {
             trackGroup.getTrackList().clearSelection();
           }
         }
+        handleListSelectionEvent = true;
       });
     }
 
     @Override
     public void valueChanged(ListSelectionEvent e) {
-      for (int i = e.getFirstIndex(); i <= e.getLastIndex(); ++i) {
-        T selectedModel = (T)myTrackGroup.getTrackModelAt(i).getDataModel();
-        if (myTrackGroup.getTrackList().isSelectedIndex(i)) {
-          if (!myMultiSelectionModel.getSelection().isEmpty() &&
-              // This may cause false positives if both selection are of the same type and isCompatibleWith() performs a type check only.
-              !selectedModel.isCompatibleWith(myMultiSelectionModel.getSelection().iterator().next())) {
-            myMultiSelectionModel.clearSelection();
-          }
-          myMultiSelectionModel.addToSelection(selectedModel);
+      if (handleListSelectionEvent) {
+        Set<T> selection = new HashSet<>();
+        for (int selectedIndex : myTrackGroup.getTrackList().getSelectedIndices()) {
+          selection.add((T)myTrackGroup.getTrackModelAt(selectedIndex).getDataModel());
         }
-        else {
-          myMultiSelectionModel.deselect(selectedModel);
-        }
+        myMultiSelectionModel.setSelection(selection);
       }
     }
   }

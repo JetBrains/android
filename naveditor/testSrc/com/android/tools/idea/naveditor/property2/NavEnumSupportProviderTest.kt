@@ -16,21 +16,36 @@
 package com.android.tools.idea.naveditor.property2
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.ATTR_MODULE_NAME
 import com.android.SdkConstants.ATTR_NAME
 import com.android.SdkConstants.ATTR_START_DESTINATION
 import com.android.SdkConstants.AUTO_URI
 import com.android.tools.idea.common.model.NlComponent
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
+import com.android.tools.idea.naveditor.addDynamicFeatureModule
+import com.android.tools.idea.naveditor.property2.support.ClassEnumValue
 import com.android.tools.idea.naveditor.property2.support.NavEnumSupportProvider
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
 import com.android.tools.property.panel.api.EnumValue
+import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
 
 class NavEnumSupportProviderTest : NavTestCase() {
-  fun testDestinations() {
+  override fun setUp() {
+    super.setUp()
+    StudioFlags.NAV_DYNAMIC_SUPPORT.override(true)
+  }
+
+  override fun tearDown() {
+    StudioFlags.NAV_DYNAMIC_SUPPORT.clearOverride()
+    super.tearDown()
+  }
+
+  fun testDestinations() {;
     val model = model("nav.xml") {
       navigation("root") {
         fragment("fragment1")
@@ -70,9 +85,13 @@ class NavEnumSupportProviderTest : NavTestCase() {
   }
 
   fun testNames() {
+    val dynamicFeatureModuleName = "dynamicfeaturemodule"
+    addDynamicFeatureModule(dynamicFeatureModuleName, myModule, myFixture)
+
     addFragment("fragment1")
     addFragment("fragment2")
     addFragment("fragment3")
+    addFragment("dynamicFragment", dynamicFeatureModuleName)
 
     val model = model("nav.xml") {
       navigation("root") {
@@ -85,6 +104,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
 
     val expectedDisplays = listOf("none",
                                   "BlankFragment (mytest.navtest)",
+                                  "dynamicFragment (mytest.navtest)",
                                   "fragment1 (mytest.navtest)",
                                   "fragment2 (mytest.navtest)",
                                   "fragment3 (mytest.navtest)")
@@ -93,39 +113,68 @@ class NavEnumSupportProviderTest : NavTestCase() {
 
     val expectedValues = listOf(null,
                                 "mytest.navtest.BlankFragment",
+                                "mytest.navtest.dynamicFragment",
                                 "mytest.navtest.fragment1",
                                 "mytest.navtest.fragment2",
                                 "mytest.navtest.fragment3")
 
     testValues(expectedValues, values)
+
+    val expectedNames = listOf(null, null, dynamicFeatureModuleName, null, null, null)
+    assertThat(values.map { (it as? ClassEnumValue)?.moduleName }).containsExactlyElementsIn(expectedNames).inOrder()
+  }
+
+  fun testSelectName() {
+    val model = model("nav.xml") {
+      navigation("root") {
+        fragment("fragment1")
+      }
+    }
+
+    val fragment1 = model.find("fragment1")!!
+    val property = getProperty(ANDROID_URI, ATTR_NAME, NelePropertyType.CLASS_NAME, fragment1)
+    val enumValue = ClassEnumValue("mytest.navtest.BlankFragment", "BlankFragment (mytest.navtest)", null, true)
+    enumValue.select(property)
+
+    testSelectName(fragment1, "mytest.navtest.BlankFragment",  null)
+    testSelectName(fragment1, "mytest.navtest.DynamicFragment",  "dynamicfeaturemodule")
+  }
+
+  private fun testSelectName(component: NlComponent, value: String, moduleName: String?) {
+    val property = getProperty(ANDROID_URI, ATTR_NAME, NelePropertyType.CLASS_NAME, component)
+    val enumValue = ClassEnumValue(value, "display", moduleName, true)
+    enumValue.select(property)
+
+    assertEquals(value, component.getAttribute(ANDROID_URI, ATTR_NAME))
+    assertEquals(moduleName, component.getAttribute(AUTO_URI, ATTR_MODULE_NAME))
   }
 
   private fun testDisplays(expectedDisplays: List<String>, values: List<EnumValue>) {
-    expectedDisplays.forEachIndexed { i, expected ->
-      assertEquals(expected, values[i].display)
-    }
+    assertThat(values.map { it.display }).containsExactlyElementsIn(expectedDisplays).inOrder()
   }
 
   private fun testValues(expectedValues: List<String?>, values: List<EnumValue>) {
-    expectedValues.forEachIndexed { i, expected ->
-      assertEquals(expected, values[i].value)
-    }
+    assertThat(values.map { it.value }).containsExactlyElementsIn(expectedValues).inOrder()
   }
 
   private fun getValues(namespace: String, name: String, type: NelePropertyType, component: NlComponent): List<EnumValue> {
-    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
-    val property = NelePropertyItem(namespace, name, type,
-                                    null, "", "",
-                                    propertiesModel, listOf(component))
+    return getValues(getProperty(namespace, name, type, component))
+  }
 
+  private fun getProperty(namespace: String, name: String, type: NelePropertyType, component: NlComponent) : NelePropertyItem {
+    val propertiesModel = NelePropertiesModel(myRootDisposable, myFacet)
+    return NelePropertyItem(namespace, name, type, null, "", "", propertiesModel, listOf(component))
+  }
+
+  private fun getValues(property: NelePropertyItem) : List<EnumValue> {
     val enumSupportProvider = NavEnumSupportProvider()
     val enumSupport = enumSupportProvider(property)
     assertNotNull(enumSupport)
     return enumSupport!!.values
   }
 
-  private fun addFragment(name: String) {
-    val relativePath = "src/mytest/navtest/$name.java"
+  private fun addFragment(name: String, folder: String = "src/mytest/navtest") {
+    val relativePath = "$folder/$name.java"
     val fileText = """
       .package mytest.navtest;
       .import android.support.v4.app.Fragment;

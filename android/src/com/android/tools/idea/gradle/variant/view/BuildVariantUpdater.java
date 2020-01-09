@@ -580,7 +580,6 @@ public class BuildVariantUpdater {
         indicator.setText("Setting up project");
         indicator.setFraction(PROGRESS_SETUP_PROJECT_START);
         PostSyncProjectSetup.Request setupRequest = new PostSyncProjectSetup.Request();
-        setupRequest.cleanProjectAfterSync = false;
         PostSyncProjectSetup.getInstance(project).setUpProject(setupRequest, null, null);
       }
 

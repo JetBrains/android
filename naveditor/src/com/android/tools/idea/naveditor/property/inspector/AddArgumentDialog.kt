@@ -51,6 +51,7 @@ import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 import org.jetbrains.kotlin.utils.doNothing
 import java.awt.CardLayout
+import java.awt.Dimension
 import java.lang.IllegalStateException
 import javax.swing.Action
 import javax.swing.JComponent
@@ -306,6 +307,7 @@ open class AddArgumentDialog(private val existingComponent: NlComponent?, privat
   }
 
   override fun createCenterPanel(): JComponent {
+    dialogUI.myContentPanel.minimumSize = Dimension(320,200)
     return dialogUI.myContentPanel
   }
 

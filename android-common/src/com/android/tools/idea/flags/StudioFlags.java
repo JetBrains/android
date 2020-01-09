@@ -81,11 +81,6 @@ public final class StudioFlags {
     "Show JDK Setup Step in Welcome Wizard",
     true);
 
-  public static final Flag<Boolean> NPW_NEW_PROJECT_TEMPLATE = Flag.create(
-    NPW, "new.project.template", "Use the new project template",
-    "Use the new Kotlin-based template system for new project creation over the old Freemarker system.",
-    true);
-
   public static final Flag<Boolean> NPW_NEW_MODULE_TEMPLATES = Flag.create(
     NPW, "new.module.templates", "Use new module templates",
     "Use the new Kotlin-based template system for module templates over the old Freemarker system when it is available.",
@@ -340,11 +335,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> NAV_NEW_COMPONENT_TREE = Flag.create(
     NAV_EDITOR, "new.component", "Enable the new Component Tree",
     "Enable the new Component Tree",
-    true);
+    false);
   public static final Flag<Boolean> NAV_DYNAMIC_SUPPORT = Flag.create(
     NAV_EDITOR, "dynamic.support", "Support for Dynamic Feature Modules",
     "Support for Dynamic Feature Modules",
-    false);
+    true);
   //endregion
 
   //region Resource Manager
@@ -488,10 +483,6 @@ public final class StudioFlags {
     LAYOUT_INSPECTOR, "dynamic.layout.editor", "Enable dynamic layout editor",
     "If enabled, users can edit layout properties with live updates on a device while the dynamic layout inspector is running.",
     false);
-  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT = Flag.create(
-    LAYOUT_INSPECTOR, "dynamic.layout.inspector.legacy.devices", "View legacy devices in the dynamic layout inspector",
-    "If enabled, pre-api 29 devices will be available in the dynamic layout inspector in a reduced-functionality compatibility mode.",
-    false);
   //endregion
 
   //region Refactorings
@@ -630,11 +621,6 @@ public final class StudioFlags {
 
   //region Project Upgrade
   private static final FlagGroup PROJECT_UPGRADE = new FlagGroup(FLAGS, "project.upgrade", "Project Upgrade");
-  public static final Flag<Boolean> BALLOON_UPGRADE_NOTIFICATION = Flag.create(
-    PROJECT_UPGRADE, "balloon.upgrade.notification", "Enable Balloon Notification for Project Upgrade",
-    "If enabled, the notification of project upgrade will show as balloon in the right-bottom side.",
-    true
-  );
   //endregion
 
   //region Testing
@@ -679,11 +665,6 @@ public final class StudioFlags {
 
   //region Memory
   private static final FlagGroup MEMORY_SETTINGS = new FlagGroup(FLAGS, "memory.settings", "Memory Settings");
-  public static final Flag<Boolean> RECOMMENDATION_ENABLED = Flag.create(
-    MEMORY_SETTINGS, "recommendation.enabled", "Enable memory recommendation",
-    "If enabled, users could get memory settings recommendation",
-    true);
-
   public static final Flag<Boolean> LOW_IDE_XMX_CAP = Flag.create(
     MEMORY_SETTINGS, "low.ide.xmx.cap", "Set low IDE Xmx cap in memory settings",
     "If set, IDE Xmx is capped at 4GB in the configuration dialog. Otherwise, the cap is 8GB",

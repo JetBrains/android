@@ -45,6 +45,8 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_MODULE_NAME
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.TemplateData
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplateRenderer as RenderLoggingEvent
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
@@ -99,7 +101,7 @@ interface ModuleModelData : ProjectModelData {
 
 class NewAndroidModuleModel(
   projectModelData: ProjectModelData,
-  override val template: ObjectProperty<NamedModuleTemplate>,
+  template: NamedModuleTemplate,
   val moduleParent: String?,
   override val formFactor: ObjectProperty<FormFactor>,
   commandName: String = "New Module",
@@ -110,7 +112,8 @@ class NewAndroidModuleModel(
   "",
   commandName,
   isLibrary,
-  projectModelData
+  projectModelData,
+  template
 ) {
   override val moduleTemplateValues = mutableMapOf<String, Any>()
   override val moduleTemplateDataBuilder = ModuleTemplateDataBuilder(projectTemplateDataBuilder)
@@ -134,7 +137,7 @@ class NewAndroidModuleModel(
     templateFile: File? = null
   ) : this(
     projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
-    template = ObjectValueProperty(template),
+    template = template,
     moduleParent = moduleParent,
     formFactor = ObjectValueProperty(FormFactor.MOBILE),
     isLibrary = isLibrary,
@@ -146,7 +149,7 @@ class NewAndroidModuleModel(
     formFactor: ObjectValueProperty<FormFactor> = ObjectValueProperty(FormFactor.MOBILE)
   ) : this(
     projectModelData = projectModel,
-    template = ObjectValueProperty(template),
+    template = template,
     moduleParent = null,
     formFactor = formFactor,
     templateFile = templateFile
@@ -164,6 +167,10 @@ class NewAndroidModuleModel(
       FormFactor.TV -> { data: TemplateData -> generateTvModule(data as ModuleTemplateData, applicationName.get()) }
       FormFactor.THINGS -> { data: TemplateData -> generateThingsModule(data as ModuleTemplateData, applicationName.get()) }
     }
+
+    override val loggingEvent: AndroidStudioEvent.TemplateRenderer
+      get() = formFactor.get().toModuleRenderingLoggingEvent()
+
     @WorkerThread
     override fun init() {
       super.init()
@@ -197,4 +204,12 @@ class NewAndroidModuleModel(
       moduleTemplateValues.putAll(projectTemplateValues)
     }
   }
+}
+
+private fun FormFactor.toModuleRenderingLoggingEvent() = when(this) {
+  FormFactor.MOBILE -> RenderLoggingEvent.ANDROID_MODULE
+  FormFactor.TV -> RenderLoggingEvent.ANDROID_TV_MODULE
+  FormFactor.AUTOMOTIVE -> RenderLoggingEvent.AUTOMOTIVE_MODULE
+  FormFactor.THINGS -> RenderLoggingEvent.THINGS_MODULE
+  FormFactor.WEAR -> RenderLoggingEvent.ANDROID_WEAR_MODULE
 }

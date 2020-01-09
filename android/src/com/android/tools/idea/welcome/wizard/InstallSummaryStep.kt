@@ -23,9 +23,7 @@ import com.android.repository.io.FileOpUtils
 import com.android.tools.idea.welcome.*
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.utils.HtmlBuilder
-import com.google.common.collect.ComparisonChain
 import com.intellij.ide.BrowserUtil
-import com.intellij.ui.components.JBLabel
 import com.intellij.uiDesigner.core.Spacer
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
@@ -35,6 +33,7 @@ import java.util.function.Supplier
 import javax.swing.JComponent
 import javax.swing.JTextPane
 import javax.swing.event.HyperlinkEvent
+import com.intellij.ui.layout.panel
 
 /**
  * Provides an explanation of changes the wizard will perform.
@@ -43,8 +42,6 @@ class InstallSummaryStep(
   private val model: InstallSummaryModel,
   private val packagesProvider: Supplier<out Collection<RemotePackage>>
 ) : ModelWizardStep.WithoutModel("Verify Settings") {
-  private val infoLabel = JBLabel("If you want to review or change any of your installation settings, click Previous.")
-  private val settingsLabel = JBLabel("Current Settings:")
   private val summaryText = JTextPane().apply {
     isEditable = false
     contentType = UIUtil.HTML_MIME
@@ -54,15 +51,23 @@ class InstallSummaryStep(
         BrowserUtil.browse(it.url)
       }
     }
-    // TODO(qumeric) set "label for"? Also what does do do?
+    // TODO(qumeric) set "label for"?
   }
 
-  private val panel = VerticalPanel(5, 1) {
-    elem(infoLabel, 8, 0, 1, 0)
-    elem(Spacer(), 0, 2, 1, 0)
-    elem(settingsLabel, 8, 0, 0, 0)
-    elem(summaryText, 0, 3, 7, 3)
-  }.build()
+  private val panel = panel {
+    row {
+      label("If you want to review or change any of your installation settings, click Previous.")
+    }
+    row {
+      Spacer()()
+    }
+    row {
+      label("Current Settings:")
+    }
+    row {
+      summaryText()
+    }
+  }
 
   private val jdkFolderSection: Section
     get() {
@@ -115,7 +120,6 @@ class InstallSummaryStep(
     // TODO invokeUpdate<Any>(null)
   }
 }
-
 
 private fun getPackagesSection(remotePackages: Collection<RemotePackage>) =
   Section("SDK Components to Download", getPackagesTable(remotePackages).orEmpty())

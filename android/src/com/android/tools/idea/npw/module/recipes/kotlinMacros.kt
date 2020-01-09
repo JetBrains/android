@@ -19,13 +19,18 @@ import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 
+const val stdlibBaseArtifact = "org.jetbrains.kotlin:kotlin-stdlib"
+
 fun RecipeExecutor.addKotlinPlugins()  {
   applyPlugin("kotlin-android")
   applyPlugin("kotlin-android-extensions")
 }
 
 fun RecipeExecutor.addKotlinDependencies(androidX: Boolean) {
-  addDependency("org.jetbrains.kotlin:kotlin-stdlib-jdk7:\$kotlin_version")
+  if (!hasKotlinStdlib()) {
+    addDependency("$stdlibBaseArtifact:\$kotlin_version")
+  }
+
   if (androidX) {
     addDependency("androidx.core:core-ktx:+")
   }
@@ -48,4 +53,9 @@ fun RecipeExecutor.addKotlinIfNeeded(data: ProjectTemplateData, noKtx: Boolean =
     addKotlinPlugins()
     addKotlinDependencies(data.androidXSupport && !noKtx)
   }
+}
+
+private fun RecipeExecutor.hasKotlinStdlib(): Boolean {
+  val stdlibSuffixes = setOf("", "-jdk7", "-jdk8")
+  return stdlibSuffixes.any { hasDependency(stdlibBaseArtifact + it) }
 }

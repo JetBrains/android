@@ -52,7 +52,9 @@ private val SELECTED_LINE_STROKE = EMPHASIZED_LINE_STROKE
 private val NORMAL_LINE_COLOR = JBColor(Gray.get(128, 128), Gray.get(212, 128))
 private val NORMAL_LINE_STROKE = BasicStroke(NORMAL_BORDER_THICKNESS)
 
-class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings) : AdtPrimaryPanel() {
+class DeviceViewContentPanel(
+  val inspectorModel: InspectorModel, val viewSettings: DeviceViewSettings, mouseInterceptor: MouseAdapter? = null
+) : AdtPrimaryPanel() {
 
   val model = DeviceViewPanelModel(inspectorModel)
 
@@ -64,6 +66,9 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
   )
 
   init {
+    addMouseListener(mouseInterceptor)
+    addMouseMotionListener(mouseInterceptor)
+
     inspectorModel.modificationListeners.add(::modelChanged)
     inspectorModel.selectionListeners.add { _, _ -> repaint() }
     inspectorModel.hoverListeners.add { _, _ -> repaint() }
@@ -78,11 +83,13 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
       private var y = 0
 
       override fun mousePressed(e: MouseEvent) {
+        if (e.isConsumed) return
         x = e.x
         y = e.y
       }
 
       override fun mouseDragged(e: MouseEvent) {
+        if (e.isConsumed) return
         if (!model.rotatable) {
           // can't rotate
           return
@@ -101,10 +108,12 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
                                                                  (e.y - size.height / 2.0) / viewSettings.scaleFraction)
 
       override fun mouseClicked(e: MouseEvent) {
+        if (e.isConsumed) return
         inspectorModel.selection = nodeAtPoint(e)
       }
 
       override fun mouseMoved(e: MouseEvent) {
+        if (e.isConsumed) return
         inspectorModel.hoveredNode = findClickedComponent(e.x, e.y)
       }
     }

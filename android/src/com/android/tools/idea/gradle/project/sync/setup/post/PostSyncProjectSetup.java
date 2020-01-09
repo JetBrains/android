@@ -28,15 +28,12 @@ import static java.lang.System.currentTimeMillis;
 import com.android.annotations.concurrency.Slow;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
 import com.android.tools.idea.gradle.project.ProjectStructure;
-import com.android.tools.idea.gradle.project.ProjectStructure.AndroidPluginVersionsInProject;
 import com.android.tools.idea.gradle.project.RunConfigurationChecker;
 import com.android.tools.idea.gradle.project.SupportedModuleChecker;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.project.build.events.AndroidSyncFailure;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -44,8 +41,6 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.setup.module.common.DependencySetupIssues;
-import com.android.tools.idea.gradle.project.sync.setup.post.project.DisposedModules;
-import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgrade;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProvider;
 import com.android.tools.idea.gradle.variant.conflict.Conflict;
 import com.android.tools.idea.gradle.variant.conflict.ConflictSet;
@@ -108,8 +103,6 @@ public class PostSyncProjectSetup {
   @NotNull private final DependencySetupIssues myDependencySetupIssues;
   @NotNull private final ProjectSetup myProjectSetup;
   @NotNull private final ModuleSetup myModuleSetup;
-  @NotNull private final PluginVersionUpgrade myPluginVersionUpgrade;
-  @NotNull private final GradleProjectBuilder myProjectBuilder;
   @NotNull private final RunManagerEx myRunManager;
 
   @NotNull
@@ -125,11 +118,9 @@ public class PostSyncProjectSetup {
                               @NotNull GradleSyncInvoker syncInvoker,
                               @NotNull GradleSyncState syncState,
                               @NotNull GradleSyncMessages syncMessages,
-                              @NotNull DependencySetupIssues dependencySetupIssues,
-                              @NotNull PluginVersionUpgrade pluginVersionUpgrade,
-                              @NotNull GradleProjectBuilder projectBuilder) {
+                              @NotNull DependencySetupIssues dependencySetupIssues) {
     this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
-         new ModuleSetup(project), pluginVersionUpgrade, projectBuilder, RunManagerEx.getInstanceEx(project));
+         new ModuleSetup(project), RunManagerEx.getInstanceEx(project));
   }
 
   @NonInjectable
@@ -143,8 +134,6 @@ public class PostSyncProjectSetup {
                        @NotNull DependencySetupIssues dependencySetupIssues,
                        @NotNull ProjectSetup projectSetup,
                        @NotNull ModuleSetup moduleSetup,
-                       @NotNull PluginVersionUpgrade pluginVersionUpgrade,
-                       @NotNull GradleProjectBuilder projectBuilder,
                        @NotNull RunManagerEx runManager) {
     myProject = project;
     myIdeInfo = ideInfo;
@@ -155,8 +144,6 @@ public class PostSyncProjectSetup {
     myDependencySetupIssues = dependencySetupIssues;
     myProjectSetup = projectSetup;
     myModuleSetup = moduleSetup;
-    myPluginVersionUpgrade = pluginVersionUpgrade;
-    myProjectBuilder = projectBuilder;
     myRunManager = runManager;
   }
 
@@ -193,39 +180,6 @@ public class PostSyncProjectSetup {
         return;
       }
 
-      // Needed internally for development of Android support lib.
-      boolean skipAgpUpgrade = SystemProperties.getBooleanProperty("studio.skip.agp.upgrade", false);
-
-      if (!skipAgpUpgrade && !request.skipAndroidPluginUpgrade) {
-        if (StudioFlags.BALLOON_UPGRADE_NOTIFICATION.get()) {
-          if (myPluginVersionUpgrade.isForcedUpgradable()) {
-            // Do force upgrade anyway.
-            if (myPluginVersionUpgrade.performForcedUpgrade()) {
-              finishSuccessfulSync(taskId);
-              return;
-            }
-          }
-          else {
-            RecommendedPluginVersionUpgrade.checkUpgrade(myProject);
-          }
-        }
-        else {
-          // TODO(b/127454467): remove after StudioFlags.BALLOON_UPGRADE_NOTIFICATION is removed.
-          if (myPluginVersionUpgrade.checkAndPerformUpgrade()) {
-            // Plugin version was upgraded and a sync was triggered.
-            finishSuccessfulSync(taskId);
-            return;
-          }
-        }
-      }
-
-      if (StudioFlags.RECOMMENDATION_ENABLED.get()) {
-        MemorySettingsPostSyncChecker.checkSettings(myProject, new TimeBasedMemorySettingsCheckerReminder());
-      }
-
-      new ProjectStructureUsageTracker(myProject).trackProjectStructure();
-
-      DisposedModules.getInstance(myProject).deleteImlFilesForDisposedModules();
       SupportedModuleChecker.getInstance().checkForSupportedModules(myProject);
 
       findAndShowVariantConflicts();
@@ -234,9 +188,7 @@ public class PostSyncProjectSetup {
       modifyJUnitRunConfigurations();
       RunConfigurationChecker.getInstance(myProject).ensureRunConfigsInvokeBuild();
 
-      AndroidPluginVersionsInProject agpVersions = myProjectStructure.getAndroidPluginVersions();
       myProjectStructure.analyzeProjectStructure();
-      boolean cleanProjectAfterSync = myProjectStructure.getAndroidPluginVersions().haveVersionsChanged(agpVersions);
 
       updateJavaLanguageLevel();
       notifySyncFinished(request);
@@ -479,8 +431,6 @@ public class PostSyncProjectSetup {
 
   public static class Request {
     public boolean usingCachedGradleModels;
-    public boolean cleanProjectAfterSync;
-    public boolean skipAndroidPluginUpgrade;
     public long lastSyncTimestamp = -1L;
 
     @Override
@@ -493,13 +443,12 @@ public class PostSyncProjectSetup {
       }
       Request request = (Request)o;
       return usingCachedGradleModels == request.usingCachedGradleModels &&
-             cleanProjectAfterSync == request.cleanProjectAfterSync &&
              lastSyncTimestamp == request.lastSyncTimestamp;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(usingCachedGradleModels, cleanProjectAfterSync, lastSyncTimestamp);
+      return Objects.hash(usingCachedGradleModels, lastSyncTimestamp);
     }
   }
 }

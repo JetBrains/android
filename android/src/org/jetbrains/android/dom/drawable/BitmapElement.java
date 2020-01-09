@@ -17,7 +17,6 @@ package org.jetbrains.android.dom.drawable;
 
 import com.intellij.util.xml.Convert;
 import com.intellij.util.xml.DefinesXml;
-import com.intellij.util.xml.Required;
 import org.jetbrains.android.dom.AndroidAttributeValue;
 import org.jetbrains.android.dom.AndroidResourceType;
 import org.jetbrains.android.dom.Styleable;
@@ -26,7 +25,7 @@ import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 @DefinesXml
 @Styleable("BitmapDrawable")
 public interface BitmapElement extends DrawableDomElement {
-  @Required
+  // *Not* marked @Required because you can supply srcCompat instead (b/123822220)
   @Convert(ResourceReferenceConverter.class)
   @AndroidResourceType("drawable")
   AndroidAttributeValue<String> getSrc();

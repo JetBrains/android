@@ -159,6 +159,7 @@ class TableControllerTest : PlatformTestCase() {
     orderVerifier.verify(tableView).stopTableLoading()
 
     verify(tableView, times(0)).reportError(any(String::class.java), any(Throwable::class.java))
+    verify(tableView, times(2)).setEditable(true)
   }
 
   fun testSetUpTableNameIsNull() {
@@ -175,6 +176,25 @@ class TableControllerTest : PlatformTestCase() {
 
     // Assert
     verify(tableView).startTableLoading()
+    verify(tableView, times(2)).setEditable(false)
+  }
+
+  fun testRowIdColumnIsNotShownInView() {
+    // Prepare
+    val sqliteTable = SqliteTable("tableName", emptyList(), RowIdName.ROWID, false)
+
+    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
+    tableController = TableController(
+      10, tableView, sqliteTable, mockDatabaseConnection, SqliteStatement(""),
+      edtExecutor
+    )
+    Disposer.register(testRootDisposable, tableController)
+
+    // Act
+    pumpEventsAndWaitForFuture(tableController.setUp())
+
+    // Assert
+    orderVerifier.verify(tableView).showTableColumns(mockResultSet._columns.filter { it.name != sqliteTable.rowIdName?.stringName })
   }
 
   fun testSetUpError() {
@@ -965,48 +985,6 @@ class TableControllerTest : PlatformTestCase() {
       "UPDATE tableName SET c1 = ? WHERE rowid = ?", listOf("new value", 1))
     )
     orderVerifier.verify(tableView).startTableLoading()
-  }
-
-  fun testUpdateCellFailsWhenTableNameUnknown() {
-    // Prepare
-    val customSqliteTable = SqliteTable(
-      "tableName",
-      listOf(
-        SqliteColumn("rowid", JDBCType.INTEGER, false),
-        SqliteColumn("c1", JDBCType.VARCHAR, false)
-      ),
-      RowIdName.ROWID,
-      false
-    )
-
-    `when`(mockDatabaseConnection.execute(any(SqliteStatement::class.java))).thenReturn(Futures.immediateFuture(mockResultSet))
-    tableController = TableController(
-      10,
-      tableView,
-      null,
-      mockDatabaseConnection,
-      SqliteStatement("SELECT * FROM tableName"),
-      edtExecutor
-    )
-    Disposer.register(testRootDisposable, tableController)
-    pumpEventsAndWaitForFuture(tableController.setUp())
-
-    val rowIdCol = customSqliteTable.columns[0]
-    val targetCol = customSqliteTable.columns[1]
-    val targetRow = SqliteRow(
-      listOf(
-        SqliteColumnValue(targetCol, "old value"),
-        SqliteColumnValue(rowIdCol, 1)
-      )
-    )
-    val newValue = "new value"
-
-    // Act
-    tableView.listeners.first().updateCellInvoked(targetRow, targetCol, newValue)
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-
-    // Assert
-    verify(tableView).reportError("Can't execute update. Table name unknown.", null)
   }
 
   fun testUpdateCellOnRealDbIsSuccessfulWith_rowid_() {

@@ -273,6 +273,11 @@ public class CpuCaptureStage extends Stage<Timeline> {
     myAspect.changed(Aspect.ANALYSIS_MODEL_UPDATED);
   }
 
+  public void removeCpuAnalysisModel(int index) {
+    myAnalysisModels.remove(index);
+    myAspect.changed(Aspect.ANALYSIS_MODEL_UPDATED);
+  }
+
   private void onCaptureParsed(@NotNull CpuCapture capture) {
     myTrackGroupTimeline.getDataRange().set(capture.getRange());
     myMinimapModel = new CpuCaptureMinimapModel(getStudioProfilers(), capture, myTrackGroupTimeline.getViewRange());
@@ -348,11 +353,11 @@ public class CpuCaptureStage extends Stage<Timeline> {
     String threadsTitle = String.format(Locale.getDefault(), "Threads (%d)", threadInfos.size());
     TrackGroupModel threads = TrackGroupModel.newBuilder()
       .setTitle(threadsTitle)
+      .setTitleInfo("This section contains thread info. Double-click on the thread name to expand/collapse it.")
       .setTrackSelectable(true)
       .build();
     for (CpuThreadInfo threadInfo : threadInfos) {
       String title = threadInfo.getName();
-      String titleTooltip = title + " (Double-click to expand/collapse)";
       // Since thread tracks display multiple elements with different tooltip we don't set a default tooltip model here but defer to the
       // track renderer to switch between its various tooltip models.
       threads.addTrackModel(
@@ -361,8 +366,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
           ProfilerTrackRendererType.CPU_THREAD,
           title)
           .setCollapsible(true)
-          .setCollapsed(collapseThreads)
-          .setTitleTooltip(titleTooltip));
+          .setCollapsed(collapseThreads));
     }
     return threads;
   }

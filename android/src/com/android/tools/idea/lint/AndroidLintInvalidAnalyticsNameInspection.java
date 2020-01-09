@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.lint;
 
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.checks.FirebaseAnalyticsDetector;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.util.AndroidBundle;
 
 public class AndroidLintInvalidAnalyticsNameInspection extends AndroidLintInspectionBase {
   public AndroidLintInvalidAnalyticsNameInspection() {
-    super(AndroidBundle.message("android.lint.inspections.firebase.analytics.invalid.name"),
+    super(AndroidBundle.message("android.lint.inspections.invalid.analytics.name"),
           FirebaseAnalyticsDetector.INVALID_NAME);
   }
 }

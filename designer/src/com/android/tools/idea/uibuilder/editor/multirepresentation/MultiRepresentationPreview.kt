@@ -55,6 +55,7 @@ open class MultiRepresentationPreview(private val psiFile: PsiFile,
 
   private val project = psiFile.project
   private val virtualFile = psiFile.virtualFile!!
+  private var shortcutsApplicableComponent: JComponent? = null
 
   private val instanceId = "$MULTI_REPRESENTATION_PREVIEW${virtualFile.path}"
 
@@ -112,6 +113,10 @@ open class MultiRepresentationPreview(private val psiFile: PsiFile,
   }
 
   protected fun updateRepresentations() = UIUtil.invokeLaterIfNeeded {
+    if (Disposer.isDisposed(project)) {
+      return@invokeLaterIfNeeded
+    }
+
     val providers = providers.filter { it.accept(project, virtualFile) }.toList()
     val providerNames = providers.map { it.displayName }.toSet()
 
@@ -125,6 +130,9 @@ open class MultiRepresentationPreview(private val psiFile: PsiFile,
     for (provider in providers.filter { it.displayName !in representations.keys }) {
       val representation = provider.createRepresentation(psiFile)
       Disposer.register(this, representation)
+      shortcutsApplicableComponent?.let {
+        representation.registerShortcuts(it)
+      }
       representations[provider.displayName] = representation
     }
 
@@ -142,6 +150,11 @@ open class MultiRepresentationPreview(private val psiFile: PsiFile,
     representations.values.forEach {
       it.updateNotifications(this)
     }
+  }
+
+  fun registerShortcuts(appliedTo: JComponent) {
+    shortcutsApplicableComponent = appliedTo
+    representations.values.forEach { it.registerShortcuts(appliedTo) }
   }
 
   /*

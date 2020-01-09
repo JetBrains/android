@@ -99,9 +99,9 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     }
   }
 
-
   protected AbstractFlavorTypeDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+    addDefaultProperty(new GradleDslExpressionMap(this, GradleNameElement.fake(MANIFEST_PLACEHOLDERS)));
   }
 
   @Override

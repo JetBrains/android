@@ -34,30 +34,28 @@ import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtilRt
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.ComboboxWithBrowseButton
-import com.intellij.ui.HyperlinkLabel
-import com.intellij.ui.components.JBLabel
+import com.intellij.ui.layout.panel
+import com.intellij.uiDesigner.core.Spacer
 import java.awt.event.ItemEvent
 import java.io.File
 
-// TODO(qumeric): dispose listeners etc? check ConfigureTemplateParametersStep etc.
 /**
  * Wizard step for JDK setup.
  */
 class JdkSetupStep : ModelWizardStep.WithoutModel("Select default JDK location") {
-  private val jdkDirectory = JBLabel("Select the directory where the Java Development Kit (JDK) is located.")
   private val jdkLocationComboBox = ComboboxWithBrowseButton()
-  private val jdkWarningLink = HyperlinkLabel()
-  private val jdkWarningLabel = JBLabel("Label")
 
-  private val jdkPanel = VerticalPanel(7, 1) {
-    // TODO(qumeric) vspacer
-    elem(jdkDirectory, 8, 0, 0, 0)
-    // TODO(qumeric) vspacer
-    elem(jdkLocationComboBox, 0, 1, 7, 3)
-    // TODO(qumeric) vspacer
-    elem(jdkWarningLabel, 8, 0, 0, 0)
-    elem(jdkWarningLink,  8, 2, 0, 0)
-  }.build()
+  private val jdkPanel = panel {
+    row {
+      label("Select the directory where the Java Development Kit (JDK) is located.")
+    }
+    row {
+      Spacer()()
+    }
+    row {
+      jdkLocationComboBox()
+    }
+  }
 
   private val validatorPanel = ValidatorPanel(this, wrappedWithVScroll(jdkPanel))
   private val invalidPathMessage = StringValueProperty()
@@ -138,9 +136,6 @@ class JdkSetupStep : ModelWizardStep.WithoutModel("Select default JDK location")
 
   private fun setJdkLocationComboBox(path: File?) {
     jdkLocationComboBox.comboBox.selectedItem = path?.toSystemDependentName()
-    val visible = !IdeSdks.isSameAsJavaHomeJdk(getLocationFromComboBoxWithBrowseButton(jdkLocationComboBox))
-    jdkWarningLink.isVisible = visible
-    jdkWarningLabel.isVisible = visible
   }
 
   private fun File.toSystemDependentName() = FileUtilRt.toSystemDependentName(path)

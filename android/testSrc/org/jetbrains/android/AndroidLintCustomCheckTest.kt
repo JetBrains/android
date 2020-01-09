@@ -18,6 +18,7 @@ package org.jetbrains.android
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.IdeComponents
 import com.intellij.lang.annotation.HighlightSeverity
@@ -25,7 +26,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import org.hamcrest.CoreMatchers.hasItem
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase
 import org.junit.After
 import org.junit.Assert.assertThat
 import org.junit.Before

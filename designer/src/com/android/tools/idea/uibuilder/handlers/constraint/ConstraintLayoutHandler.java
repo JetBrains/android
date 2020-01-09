@@ -105,7 +105,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.Wi
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.BaseLineToggleViewAction;
-import com.android.tools.idea.uibuilder.handlers.constraint.targets.ChainCycleViewAction;
+import com.android.tools.idea.uibuilder.actions.ChainStyleViewActions;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintResizeTarget;
@@ -377,8 +377,6 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   public boolean addPopupMenuActions(@NotNull SceneComponent component, @NotNull List<ViewAction> actions) {
     actions.add(new BaseLineToggleViewAction());
     actions.add(new ClearConstraintsSelectedComponentsAction());
-    actions.add(new ChainCycleViewAction());
-
     actions.add(new DisappearingActionMenu("Constrain", CREATE_CONSTRAINTS, ConstraintViewActions.CONNECT_ACTIONS));
     actions.add(new DisappearingActionMenu("Organize", PACK_HORIZONTAL, ConstraintViewActions.ORGANIZE_ACTIONS));
     actions.add(new DisappearingActionMenu("Align", LEFT_ALIGNED, ConstraintViewActions.ALIGN_ACTIONS));
@@ -1602,6 +1600,12 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       .build();
 
     public static final ImmutableList<ViewAction> CHAIN_ACTIONS = ImmutableList.of(
+      new DisappearingActionMenu("Horizontal Chain Style",
+                                 StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_SPREAD_INLINE,
+                                 ChainStyleViewActions.HORIZONTAL_CHAIN_STYLES),
+      new DisappearingActionMenu("Vertical Chain Style",
+                                 StudioIcons.LayoutEditor.Toolbar.CYCLE_CHAIN_SPREAD_INLINE,
+                                 ChainStyleViewActions.VERTICAL_CHAIN_STYLES),
       new AlignAction(Scout.Arrange.CreateHorizontalChain,
                       CREATE_HORIZ_CHAIN,
                       CREATE_HORIZ_CHAIN,

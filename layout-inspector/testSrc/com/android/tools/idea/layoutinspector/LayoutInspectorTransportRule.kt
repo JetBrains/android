@@ -26,7 +26,6 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
@@ -35,23 +34,60 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.AgentData.Status.UNATTACHABLE
+import org.junit.rules.TestRule
 import org.junit.runner.Description
+import org.junit.runners.model.Statement
 import java.net.Socket
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
+val DEFAULT_PROCESS = Common.Process.newBuilder().apply {
+  name = "myProcess"
+  pid = 12345
+  deviceId = 1234
+  state = Common.Process.State.ALIVE
+}.build()!!
+
+val DEFAULT_DEVICE = Common.Device.newBuilder().apply {
+  deviceId = 1234
+  model = "My Model"
+  manufacturer = "Google"
+  serial = "1234"
+  featureLevel = 29
+  state = Common.Device.State.ONLINE
+}.build()!!
+
+val LEGACY_DEVICE = Common.Device.newBuilder().apply {
+  deviceId = 1234
+  model = "My Legacy Model"
+  manufacturer = "Google"
+  serial = "1234"
+  apiLevel = 27
+  state = Common.Device.State.ONLINE
+}.build()!!
+
+val DEFAULT_STREAM = Common.Stream.newBuilder().apply {
+  device = DEFAULT_DEVICE
+  streamId = 1111
+}.build()!!
+
 /**
  * Rule providing mechanisms for testing the layout inspector. Notably, users of this rule should use [advanceTime] instead of using [timer]
  * or calling [com.android.tools.idea.transport.poller.TransportEventPoller.poll()] directly.
+ *
+ * Any passed-in objects shouldn't be registered as [org.junit.Rule]s by the caller: [LayoutInspectorTransportRule] will call them as
+ * needed.
  */
 class LayoutInspectorTransportRule(
-  private val timer: FakeTimer,
-  private val adbRule: FakeAdbRule,
-  private val transportService: FakeTransportService,
-  private val grpcServer: FakeGrpcServer,
-  private val projectRule: AndroidProjectRule
-) : NamedExternalResource() {
+  private val timer: FakeTimer = FakeTimer(),
+  private val adbRule: FakeAdbRule = FakeAdbRule(),
+  private val transportService: FakeTransportService = FakeTransportService(timer),
+  private val grpcServer: FakeGrpcServer =
+    FakeGrpcServer.createFakeGrpcServer("LayoutInspectorTestChannel", transportService, transportService),
+  private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
+) : TestRule {
 
+  lateinit var inspector: LayoutInspector
   lateinit var inspectorClient: InspectorClient
   var inspectorModel: () -> InspectorModel = { model(projectRule.project) { view(0L) } }
 
@@ -86,6 +122,8 @@ class LayoutInspectorTransportRule(
     }
   }
 
+  private val beforeActions = mutableListOf<() -> Unit>()
+
   init {
     adbRule.withDeviceCommandHandler(object : DeviceCommandHandler("shell") {
       override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
@@ -119,8 +157,36 @@ class LayoutInspectorTransportRule(
   /**
    * By default we get a model with one empty view. Use this if you want anything else.
    */
-  fun withModel(modelFactory: () -> InspectorModel) {
+  fun withModel(modelFactory: () -> InspectorModel) = apply {
     inspectorModel = modelFactory
+  }
+
+  fun withDefaultDevice(connected: Boolean) = apply {
+    beforeActions.add {
+      if (inspectorClient is DefaultInspectorClient) {
+        addProcess(DEFAULT_DEVICE, DEFAULT_PROCESS)
+      }
+      else if (inspectorClient is LegacyClient) {
+        addProcess(LEGACY_DEVICE, DEFAULT_PROCESS)
+        inspectorClient.loadProcesses()
+      }
+    }
+    if (connected) {
+        beforeActions.add {
+          inspectorClient.attach(DEFAULT_STREAM, DEFAULT_PROCESS)
+          if (inspectorClient is DefaultInspectorClient) {
+            advanceTime(1100, TimeUnit.MILLISECONDS)
+            waitForStart()
+            transportService.addEventToStream(DEFAULT_STREAM.streamId,
+                                              Common.Event.newBuilder()
+                                                .setKind(Common.Event.Kind.LAYOUT_INSPECTOR)
+                                                .setPid(DEFAULT_PROCESS.pid)
+                                                .setGroupId(Common.Event.EventGroupIds.COMPONENT_TREE.number.toLong())
+                                                .build())
+            advanceTime(1100, TimeUnit.MILLISECONDS)
+          }
+        }
+    }
   }
 
   /**
@@ -144,21 +210,44 @@ class LayoutInspectorTransportRule(
   /**
    * Add the given process and stream to the transport service.
    */
-  fun addProcess(stream: Common.Stream, process: Common.Process) {
-    val device = stream.device
+  fun addProcess(device: Common.Device, process: Common.Process) {
     adbRule.attachDevice(device.deviceId.toString(), device.manufacturer, device.model, device.version, device.apiLevel.toString(),
                          DeviceState.HostConnectionType.USB)
-    transportService.addDevice(device)
-    transportService.addProcess(device, process)
+    if (device.featureLevel >= 29) {
+      transportService.addDevice(device)
+      transportService.addProcess(device, process)
+    }
   }
 
-  override fun before(description: Description) {
-    inspectorClientFactory.let { inspectorClient = it() }
+  override fun apply(base: Statement, description: Description): Statement {
+    return grpcServer.apply(projectRule.apply(adbRule.apply(
+      object: Statement() {
+        override fun evaluate() {
+          before()
+          try {
+            base.evaluate()
+          }
+          finally {
+            after()
+          }
+        }
+      }, description
+    ), description), description)
+  }
+
+  private fun before() {
+    inspectorClientFactory.let {
+      inspectorClient = it()
+      InspectorClient.clientFactory = { inspectorClient }
+    }
+
+    inspector = LayoutInspector(inspectorModel())
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, attachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.LAYOUT_INSPECTOR, inspectorHandler)
+    beforeActions.forEach { it() }
   }
 
-  override fun after(description: Description) {
+  private fun after() {
     if (inspectorClient.isConnected) {
       val processDone = CountDownLatch(1)
       inspectorClient.registerProcessChanged { processDone.countDown() }

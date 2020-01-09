@@ -105,9 +105,9 @@ class RenderTemplateModel private constructor(
       value.parameters
     )
   }
-  val renderLanguage = ObjectValueProperty(getInitialSourceLanguage(if (!isNewProject) project else null)).apply {
-    addListener {
-      PropertiesComponent.getInstance().setValue(PROPERTIES_RENDER_LANGUAGE_KEY, this.get().toString())
+  init {
+    language.addListener {
+      PropertiesComponent.getInstance().setValue(PROPERTIES_RENDER_LANGUAGE_KEY, language.value.toString())
     }
   }
 
@@ -154,7 +154,7 @@ class RenderTemplateModel private constructor(
             paths, projectLocation.get(), moduleName.get(), this@RenderTemplateModel.packageName.get()
           )
 
-          projectTemplateDataBuilder.language = renderLanguage.get()
+          projectTemplateDataBuilder.language = language.value
 
           if (androidFacet == null) {
             return@apply
@@ -184,7 +184,7 @@ class RenderTemplateModel private constructor(
         return
       }
       templateInjector.setFacet(androidFacet)
-      templateInjector.setLanguage(renderLanguage.get()) // Note: For new projects/modules we have a different UI.
+      templateInjector.setLanguage(language.value) // Note: For new projects/modules we have a different UI.
 
       // Register application-wide settings
       val applicationPackage = androidFacet.getPackageForApplication()
@@ -305,7 +305,6 @@ class RenderTemplateModel private constructor(
      * (presumably in a different project which did have Kotlin).
      * If it *does* have a Kotlin facet, then remember the previous selection (if there was no previous selection yet, default to Kotlin)
      */
-    @JvmStatic
     fun getInitialSourceLanguage(project: Project?): Language {
       return if (project != null && project.hasAnyKotlinModules())
         Language.fromName(PropertiesComponent.getInstance().getValue(PROPERTIES_RENDER_LANGUAGE_KEY), Language.KOTLIN)

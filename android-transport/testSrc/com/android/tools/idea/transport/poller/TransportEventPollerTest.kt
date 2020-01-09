@@ -245,11 +245,12 @@ class TransportEventPollerTest {
       startTime = { 0L },
       callback = {
         if (it.timestamp == 10L) {
+          eventsSeen ++
           latch1.countDown()
         } else if (it.timestamp == 20L) {
+          eventsSeen ++
           latch2.countDown()
         }
-        eventsSeen ++
         false
       },
       executor = MoreExecutors.directExecutor()

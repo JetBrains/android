@@ -16,7 +16,7 @@
 package org.jetbrains.android.dom.converters;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.idea.lint.LintIdeClient;
+import com.android.tools.idea.lint.common.LintIdeClient;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.lint.checks.ApiLookup;
 import com.android.tools.lint.checks.ApiMember;

@@ -91,8 +91,8 @@ Task runs on every build because it declares no outputs.
 Plugin: com.android.application
 Task: compileDebugJavaWithJavac
 Task type: org.gradle.api.tasks.compile.JavaCompile
-Issue detected in 1 module(s), total execution time was 0.400 s (4.0%), by module:
-  Execution mode: FULL, time: 0.400 s (4.0%), on critical path: true
+Issue detected in 1 module(s), total execution time was 0.400 s (5.0%), by module:
+  Execution mode: FULL, time: 0.400 s (5.0%), determines build duration: true, on critical path: true
 
 ====Build information:====
 Execution date: 11/19/19 5:12 PM
@@ -124,8 +124,8 @@ This task might be setting its up-to-date check to always return false.
 Plugin: pluginA
 Task: taskA
 Task type: UNKNOWN
-Issue detected in 1 module(s), total execution time was 0.400 s (4.0%), by module:
-  Execution mode: FULL, time: 0.400 s (4.0%), on critical path: false
+Issue detected in 1 module(s), total execution time was 0.400 s (5.0%), by module:
+  Execution mode: FULL, time: 0.400 s (5.0%), determines build duration: false, on critical path: false
 
 ====Build information:====
 Execution date: 11/19/19 5:12 PM
@@ -158,8 +158,8 @@ Task declares the same output directory as task taskB from pluginB.
 Plugin: pluginA
 Task: taskA
 Task type: UNKNOWN
-Issue detected in 1 module(s), total execution time was 0.400 s (4.0%), by module:
-  Execution mode: FULL, time: 0.400 s (4.0%), on critical path: false
+Issue detected in 1 module(s), total execution time was 0.400 s (5.0%), by module:
+  Execution mode: FULL, time: 0.400 s (5.0%), determines build duration: false, on critical path: false
 
 ====Build information:====
 Execution date: 11/19/19 5:12 PM
@@ -205,9 +205,9 @@ Task runs on every build because it declares no outputs.
 Plugin: pluginB
 Task: taskB
 Task type: UNKNOWN
-Issue detected in 2 module(s), total execution time was 0.400 s (4.0%), by module:
-  Execution mode: FULL, time: 0.300 s (3.0%), on critical path: true
-  Execution mode: INCREMENTAL, time: 0.100 s (1.0%), on critical path: false
+Issue detected in 2 module(s), total execution time was 0.400 s (5.0%), by module:
+  Execution mode: FULL, time: 0.300 s (3.8%), determines build duration: true, on critical path: true
+  Execution mode: INCREMENTAL, time: 0.100 s (1.3%), determines build duration: false, on critical path: false
 
 ====Build information:====
 Execution date: 11/19/19 5:12 PM

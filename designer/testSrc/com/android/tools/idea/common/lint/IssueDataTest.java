@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.lint;
 
 import com.android.tools.idea.common.model.NlComponent;
+import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.lint.detector.api.Category;
 import com.android.tools.lint.detector.api.Implementation;
 import com.android.tools.lint.detector.api.Issue;
@@ -24,7 +25,6 @@ import com.android.tools.lint.detector.api.Severity;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.psi.PsiElement;
 import java.util.List;
-import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Before;

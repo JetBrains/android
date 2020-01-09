@@ -30,6 +30,7 @@ import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerTrackRendererType
 import com.android.tools.profilers.StudioProfilers
+import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
 import com.android.tools.profilers.cpu.analysis.CpuAnalyzable
 import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture
 import com.android.tools.profilers.event.FakeEventService
@@ -88,7 +89,7 @@ class CpuThreadTrackRendererTest {
     // Verify trace event chart selection is updated.
     val traceEventChart = component.components[1] as HTreeChart<CaptureNode>
     assertThat(traceEventChart.selectedNode).isNull()
-    traceEventChart.selectedNode = captureNode
+    multiSelectionModel.setSelection(setOf(CaptureNodeAnalysisModel(captureNode, mockCapture)))
     assertThat(traceEventChart.selectedNode).isSameAs(captureNode)
     multiSelectionModel.clearSelection()
     assertThat(traceEventChart.selectedNode).isNull()

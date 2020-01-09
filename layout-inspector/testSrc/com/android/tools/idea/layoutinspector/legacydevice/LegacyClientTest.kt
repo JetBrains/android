@@ -42,9 +42,6 @@ class LegacyClientTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
-  @get:Rule
-  val flagRule = SetFlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_LEGACY_DEVICE_SUPPORT, true)
-
   @Test
   fun testReloadAllWindows() {
     val inspector = LayoutInspector(InspectorModel(projectRule.project))

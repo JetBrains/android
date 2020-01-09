@@ -18,8 +18,8 @@ package com.android.tools.idea.navigator
 import com.android.builder.model.SourceProvider
 import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.IdeaSourceProvider
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.SnapshotComparisonTest
@@ -180,11 +180,13 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
         }
       }
 
-      fun IdeaSourceProvider.dump() {
-        out("$name (IDEA)")
+      fun IdeaSourceProvider.dump(name: String) {
+        out("${name} (IDEA)")
         nest {
-          dumpUrls("ManifestUrl") { listOf(manifestFileUrl) }
-          dumpPaths("Manifest") { listOfNotNull(manifestFile) }
+          dumpUrls("ManifestFileUrls") { it.manifestFileUrls }
+          dumpPaths("ManifestFiles") { it.manifestFiles }
+          dumpUrls("ManifestDirectoryUrls") { it.manifestDirectoryUrls }
+          dumpPaths("ManifestDirectories") { it.manifestDirectories }
           dumpUrls("AidlDirectoryUrls") { it.aidlDirectoryUrls }
           dumpPaths("AidlDirectories") { it.aidlDirectories }
           dumpUrls("AssetsDirectoryUrls") { it.assetsDirectoryUrls }
@@ -202,6 +204,10 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
           dumpUrls("ShadersDirectoryUrls") { it.shadersDirectoryUrls }
           dumpPaths("ShadersDirectories") { it.shadersDirectories }
         }
+      }
+
+      fun NamedIdeaSourceProvider.dump() {
+        dump(name)
       }
 
       ModuleManager
@@ -223,15 +229,20 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
                   model.defaultSourceProvider.dump()
                   nest("Active:") { model.activeSourceProviders.forEach { it.dump() } }
                   nest("All:") { model.allSourceProviders.forEach { it.dump() } }
-                  nest("Test:") { model.testSourceProviders.forEach { it.dump() } }
+                  nest("UnitTest:") { model.unitTestSourceProviders.forEach { it.dump() } }
+                  nest("AndroidTest:") { model.androidTestSourceProviders.forEach { it.dump() } }
                 }
               }
               nest("by IdeaSourceProviders:") {
                 val sourceProviderManager = SourceProviderManager.getInstance(androidFacet)
                 dumpPathsCore("Manifests", { getManifestFiles(androidFacet) }, { it.url })
+                nest("Sources:") { sourceProviderManager.sources.dump("Sources") }
+                nest("UnitTestSources:") { sourceProviderManager.unitTestSources.dump("UnitTestSources") }
+                nest("AndroidTestSources:") { sourceProviderManager.androidTestSources.dump("AndroidTestSources") }
                 nest("AllIdeaSourceProviders:") { sourceProviderManager.allSourceProviders.forEach { it.dump() } }
                 nest("CurrentSourceProviders:") { sourceProviderManager.currentSourceProviders.forEach { it.dump() } }
-                nest("CurrentTestSourceProviders:") { sourceProviderManager.currentTestSourceProviders.forEach { it.dump() } }
+                nest("CurrentUnitTestSourceProviders:") { sourceProviderManager.currentUnitTestSourceProviders.forEach { it.dump() } }
+                nest("CurrentAndroidTestSourceProviders:") { sourceProviderManager.currentAndroidTestSourceProviders.forEach { it.dump() } }
               }
             }
           }

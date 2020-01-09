@@ -25,6 +25,7 @@ import com.android.tools.idea.observable.ui.TextProperty;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.border.CustomLineBorder;
+import com.intellij.util.ArrayUtil;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -43,14 +44,14 @@ public final class MultiLineTextAssetEditor extends JPanel implements AssetCompo
   private final List<ActionListener> myListeners = new ArrayList<>(1);
 
   public MultiLineTextAssetEditor() {
-    super(new TabularLayout("4px,100px,160px"));
+    super(new TabularLayout("4px,120px,*"));
 
     JPanel spacer = new JPanel();
     JTextPane textPane = new JTextPane();
     textPane.setBackground(JBColor.WHITE);
     textPane.setBorder(new CustomLineBorder(JBColor.border(), 1, 1, 1, 1));
     List<String> fontFamilies = TextAsset.getAllFontFamilies();
-    ComboBox<String> fontCombo = new ComboBox<>(fontFamilies.toArray(new String[0]));
+    ComboBox<String> fontCombo = new ComboBox<>(ArrayUtil.toStringArray(fontFamilies));
 
     add(spacer, new TabularLayout.Constraint(0, 0));
     add(textPane, new TabularLayout.Constraint(0, 1));

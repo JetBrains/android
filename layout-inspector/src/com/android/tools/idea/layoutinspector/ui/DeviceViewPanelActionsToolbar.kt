@@ -59,7 +59,17 @@ object Toggle3dAction : AnAction(MODE_3D) {
     super.update(event)
     val model = event.getData(DEVICE_VIEW_MODEL_KEY)
     event.presentation.icon = if (model?.isRotated == true) RESET_VIEW else MODE_3D
-    event.presentation.isVisible = model?.rotatable == true
+    if (model?.rotatable == true) {
+      event.presentation.isEnabled = true
+      event.presentation.text = if (model.isRotated) "Reset View" else "Rotate View"
+    }
+    else {
+      event.presentation.isEnabled = false
+      event.presentation.text =
+        if (model?.overlay != null) "Rotation not available when overlay is active"
+        else "Rotation not available for devices below API 29"
+    }
+
   }
 }
 
@@ -73,8 +83,8 @@ object LayoutInspectorToolbarGroups : EditorActionsToolbarActionGroups {
                                                        DefaultActionGroup().apply { add(Toggle3dAction) })
 
   override val zoomControlsGroup = DefaultActionGroup().apply {
-    add(ZoomOutAction)
     add(ZoomInAction)
+    add(ZoomOutAction)
     add(ZoomToFitAction)
   }
 }

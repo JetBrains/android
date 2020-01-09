@@ -327,11 +327,11 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @NotNull SurfaceLayoutManager layoutManager,
                           @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
                           @NotNull Function<DesignSurface, InteractionHandler> interactionHandlerProvider,
-                          @NotNull State defaultSurfaceMode,
+                          @NotNull State defaultSurfaceState,
                           @Nullable NavigationHandler navigationHandler,
                           double minScale,
                           double maxScale) {
-    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, defaultSurfaceMode, isEditable);
+    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, defaultSurfaceState, isEditable);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;

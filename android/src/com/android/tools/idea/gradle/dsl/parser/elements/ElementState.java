@@ -24,5 +24,6 @@ public enum ElementState {
   EXISTING, // Exists on file and should stay there.
   HIDDEN, // Exists on file but invisible to the model.
   APPLIED, // These properties come from another file. These elements are not updated with calls to apply/create/delete.
+  DEFAULT, // These properties do not exist on file at all, but represent their default value.
   MOVED, // These properties should be moved.
 }

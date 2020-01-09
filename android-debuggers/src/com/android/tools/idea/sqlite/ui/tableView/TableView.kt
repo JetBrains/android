@@ -58,6 +58,11 @@ interface TableView {
    */
   fun setFetchNextRowsButtonState(enable: Boolean)
 
+  /**
+   * Enable or disable editing of table cells.
+   */
+  fun setEditable(isEditable: Boolean)
+
   fun addListener(listener: Listener)
   fun removeListener(listener: Listener)
 

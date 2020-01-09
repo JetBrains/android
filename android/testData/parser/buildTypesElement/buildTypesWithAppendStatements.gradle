@@ -11,7 +11,6 @@ android {
     proguardFiles 'proguard-android-3.txt', 'proguard-rules-3.txt'
   }
   buildTypes.type2 {
-    testInstrumentationRunnerArguments.key6 "value6"
   }
   buildTypes {
     type2.proguardFile 'proguard-android-4.txt'

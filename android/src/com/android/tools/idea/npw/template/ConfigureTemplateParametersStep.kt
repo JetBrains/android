@@ -225,14 +225,13 @@ class ConfigureTemplateParametersStep(model: RenderTemplateModel, title: String,
         addToPanel(parametersPanel)
 
         if (templateMetadata.constraints.contains(KOTLIN)) {
-          model.renderLanguage.set(Language.KOTLIN)
+          model.language.value = Language.KOTLIN
           setEnabled(false)
         }
       }
 
       val language = (row.property as SelectedItemProperty<Language>)
-      // LanguageComboProvider always sets this
-      bindings.bindTwoWay(ObjectProperty.wrap(language), model.renderLanguage)
+      bindings.bindTwoWay(language, model.language)
     }
 
     fun displaySourceSetChoiceIfNeeded() {

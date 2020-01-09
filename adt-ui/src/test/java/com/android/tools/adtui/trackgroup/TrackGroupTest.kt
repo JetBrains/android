@@ -68,4 +68,17 @@ class TrackGroupTest {
 
     assertThat(trackGroup.titleLabel.parent).isNull()
   }
+
+  @Test
+  fun headerInfoTooltip() {
+    val noInfoTrackGroupModel = TrackGroupModel.newBuilder().setTitle("Foo").build()
+    val noInfoTrackGroup = TrackGroup(noInfoTrackGroupModel, TestTrackRendererFactory())
+    assertThat(noInfoTrackGroup.titleInfoIcon.isVisible).isFalse()
+    assertThat(noInfoTrackGroup.titleInfoIcon.toolTipText).isNull()
+
+    val infoTrackGroupModel = TrackGroupModel.newBuilder().setTitle("Bar").setTitleInfo("Information").build();
+    val infoTrackGroup = TrackGroup(infoTrackGroupModel, TestTrackRendererFactory())
+    assertThat(infoTrackGroup.titleInfoIcon.isVisible).isTrue()
+    assertThat(infoTrackGroup.titleInfoIcon.toolTipText).isEqualTo("Information")
+  }
 }

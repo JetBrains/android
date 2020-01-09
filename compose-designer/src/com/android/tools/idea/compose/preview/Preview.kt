@@ -22,6 +22,7 @@ import com.android.tools.idea.common.editor.DesignFileEditor
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.util.BuildListener
 import com.android.tools.idea.common.util.setupBuildListener
@@ -113,18 +114,9 @@ private fun configureExistingModel(existingModel: NlModel,
                                    displayName: String,
                                    fileContents: String,
                                    surface: NlDesignSurface): NlModel {
-  val psiFileManager = PsiManager.getInstance(existingModel.project)
+  existingModel.updateFileContentBlocking(fileContents)
   // Reconfigure the model by setting the new display name and applying the configuration values
   existingModel.modelDisplayName = displayName
-  val file = existingModel.virtualFile as ComposeAdapterLightVirtualFile
-  ApplicationManager.getApplication().invokeAndWait {
-    WriteAction.run<RuntimeException>  {
-      // Update the contents of the VirtualFile associated to the NlModel. fireEvent value is currently ignored, just set to true in case
-      // that changes in the future.
-      file.setContent(null, fileContents, true)
-      psiFileManager.reloadFromDisk(existingModel.file)
-    }
-  }
   configureLayoutlibSceneManager(surface.getSceneManager(existingModel) as LayoutlibSceneManager,
                                  RenderSettings.getProjectSettings(existingModel.project).showDecorations)
 
@@ -198,7 +190,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     if (oldValue != newValue) {
       // If the state changes, [DesignSurface.zoomToFit] will be called  to re-adjust the preview to the new content since the render sizes
       // will be significantly different. This way, the user will see all the content when this changes.
-      surface.zoomToFit()
+      launch(uiThread) {
+        surface.zoomToFit()
+      }
     }
   }
 

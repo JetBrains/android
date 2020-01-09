@@ -17,6 +17,7 @@ iml_module(
         "//tools/idea/java/plugin:intellij.java.plugin",
         "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
     ],
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
@@ -34,7 +35,6 @@ iml_module(
     deps = [
         "//tools/idea/.idea/libraries:kotlin-stdlib-jdk8",
         "//tools/adt/idea/android:intellij.android.core[module]",
-        "//tools/adt/idea/deploy:intellij.android.deploy[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/adt/idea/app-inspection/api:intellij.android.app-inspection.api[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
@@ -43,5 +43,16 @@ iml_module(
         "//tools/idea/platform/util:intellij.platform.util[module]",
         "//tools/idea/platform/platform-impl:intellij.platform.ide.impl[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
+        "//tools/idea/.idea/libraries:studio-proto",
+        "//tools/idea/.idea/libraries:transport-proto",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
+        "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module, test]",
+        "//tools/idea/.idea/libraries:Guava[test]",
+        "//tools/idea/.idea/libraries:mockito[test]",
+        "//tools/idea/.idea/libraries:studio-grpc[test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
+        "//tools/idea/.idea/libraries:truth[test]",
     ],
 )

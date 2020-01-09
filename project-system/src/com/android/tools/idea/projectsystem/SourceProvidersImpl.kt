@@ -16,11 +16,16 @@
 package com.android.tools.idea.projectsystem
 
 class SourceProvidersImpl(
-  override val mainIdeaSourceProvider: IdeaSourceProvider,
-  override val currentSourceProviders: List<IdeaSourceProvider>,
-  override val currentTestSourceProviders: List<IdeaSourceProvider>,
-  override val allSourceProviders: List<IdeaSourceProvider>,
+  override val mainIdeaSourceProvider: NamedIdeaSourceProvider,
+  override val currentSourceProviders: List<NamedIdeaSourceProvider>,
+  override val currentUnitTestSourceProviders: List<NamedIdeaSourceProvider>,
+  override val currentAndroidTestSourceProviders: List<NamedIdeaSourceProvider>,
+  override val allSourceProviders: List<NamedIdeaSourceProvider>,
 
   @Suppress("OverridingDeprecatedMember")
-  override val mainAndFlavorSourceProviders: List<IdeaSourceProvider>
-) : SourceProviders
+  override val mainAndFlavorSourceProviders: List<NamedIdeaSourceProvider>
+) : SourceProviders {
+  override val sources: IdeaSourceProvider = createMergedSourceProvider(currentSourceProviders)
+  override val unitTestSources: IdeaSourceProvider = createMergedSourceProvider(currentUnitTestSourceProviders)
+  override val androidTestSources: IdeaSourceProvider = createMergedSourceProvider(currentAndroidTestSourceProviders)
+}

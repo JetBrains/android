@@ -39,6 +39,7 @@ import com.android.tools.idea.gradle.util.GradleVersions;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.HtmlLinkManager;
@@ -857,7 +858,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     VirtualFile manifestOverlayVirtualFile = LocalFileSystem.getInstance().findFileByIoFile(manifestOverlayFile);
     assert manifestOverlayVirtualFile != null;
 
-    IdeaSourceProvider sourceProvider = ManifestUtils.findManifestSourceProvider(facet, manifestOverlayVirtualFile);
+    NamedIdeaSourceProvider sourceProvider = ManifestUtils.findManifestSourceProvider(facet, manifestOverlayVirtualFile);
     assert sourceProvider != null;
     final String name = sourceProvider.getName();
 
@@ -1013,7 +1014,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       File resDir = file.getParentFile() == null ? null : file.getParentFile().getParentFile();
       VirtualFile vResDir = resDir == null ? null : LocalFileSystem.getInstance().findFileByIoFile(resDir);
       if (vResDir != null) {
-        for (IdeaSourceProvider provider : SourceProviderManager.getInstance(facet).getCurrentSourceProviders()) {
+        for (NamedIdeaSourceProvider provider : SourceProviderManager.getInstance(facet).getCurrentSourceProviders()) {
           if (provider.getResDirectories().contains(vResDir)) {
             source += provider.getName() + " ";
             break;
@@ -1081,7 +1082,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
           }
         }
 
-        IdeaSourceProvider provider = ManifestUtils.findManifestSourceProvider(facet, vFile);
+        NamedIdeaSourceProvider provider = ManifestUtils.findManifestSourceProvider(facet, vFile);
         if (provider != null /*&& !provider.equals(facet.getMainIdeaSourceProvider())*/) {
           String providerName = provider.getName();
           if (source == null) {

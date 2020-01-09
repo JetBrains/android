@@ -79,6 +79,12 @@ public class CpuAnalysisPanel extends AspectObserver {
     return myTabView;
   }
 
+  @NotNull
+  @VisibleForTesting
+  TabbedToolbar getTabs() {
+    return myTabs;
+  }
+
   /**
    * Update components is called when the {@link CpuCaptureStage} changes state to analyzing a capture.
    */

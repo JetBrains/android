@@ -27,24 +27,24 @@ import java.io.File
 
 /** [IdeaSourceProvider] for legacy Android projects without [SourceProvider].  */
 @Suppress("DEPRECATION")
-class LegacyDelegate constructor(private val facet: AndroidFacet) : IdeaSourceProvider {
+class LegacyDelegate constructor(private val facet: AndroidFacet) : NamedIdeaSourceProvider {
 
   override val name: String = ""
 
-  override val manifestFileUrl: String get() = manifestFile?.url ?: let {
+  private val manifestFileUrl: String get() = manifestFile?.url ?: let {
     val moduleDirPath: String = File(facet.module.moduleFilePath).parent
     VfsUtilCore.pathToUrl(
       FileUtil.toSystemIndependentName(
         moduleDirPath + facet.properties.MANIFEST_FILE_RELATIVE_PATH))
   }
 
-  override val manifestDirectory: VirtualFile?
+  private val manifestDirectory: VirtualFile?
     get() = VirtualFileManager.getInstance().findFileByUrl(manifestDirectoryUrl)
 
-  override val manifestDirectoryUrl: String
+  private val manifestDirectoryUrl: String
     get() = VfsUtil.getParentDir(manifestFileUrl) ?: error("Invalid manifestFileUrl: $manifestFileUrl")
 
-  override val manifestFile: VirtualFile?
+  private val manifestFile: VirtualFile?
     // Not calling AndroidRootUtil.getMainContentRoot(myFacet) because that method can
     // recurse into this same method if it can't find a content root. (This scenario
     // applies when we're looking for manifests in for example a temporary file system,
@@ -65,6 +65,18 @@ class LegacyDelegate constructor(private val facet: AndroidFacet) : IdeaSourcePr
       }
       return null
     }
+
+  override val manifestFileUrls: Collection<String>
+    get() = listOf(manifestFileUrl)
+
+  override val manifestFiles: Collection<VirtualFile>
+    get() = listOfNotNull(manifestFile)
+
+  override val manifestDirectoryUrls: Collection<String>
+    get() = listOf(manifestDirectoryUrl)
+
+  override val manifestDirectories: Collection<VirtualFile>
+    get() = listOfNotNull(manifestDirectory)
 
   override val javaDirectoryUrls: Collection<String> get() = ModuleRootManager.getInstance(
     facet.module).contentRootUrls.toSet()
@@ -127,7 +139,8 @@ fun createSourceProvidersForLegacyModule(facet: AndroidFacet): SourceProviders {
   return SourceProvidersImpl(
     mainIdeaSourceProvider = mainSourceProvider,
     currentSourceProviders = listOf(mainSourceProvider),
-    currentTestSourceProviders = emptyList(),
+    currentUnitTestSourceProviders = emptyList(),
+    currentAndroidTestSourceProviders = emptyList(),
     allSourceProviders = listOf(mainSourceProvider),
     mainAndFlavorSourceProviders = listOf(mainSourceProvider)
   )

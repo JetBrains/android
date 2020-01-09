@@ -1,10 +1,14 @@
 MODULE: app
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./app/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./app/src/main/AndroidManifest.xml
+            ManifestDirectoryUrls:
+                file://./app/src/main
+            ManifestDirectories:
+                file://./app/src/main
             AidlDirectoryUrls:
                 file://./app/src/main/aidl
             AssetsDirectoryUrls:
@@ -419,30 +423,7 @@ MODULE: app
                     ./app/src/basicBarDebug/resources
                 ShadersDirectories:
                     ./app/src/basicBarDebug/shaders
-        Test:
-            androidTest
-                Manifest:
-                    ./app/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTest/aidl
-                AssetsDirectories:
-                    ./app/src/androidTest/assets
-                CDirectories:
-                    ./app/src/androidTest/jni
-                CppDirectories:
-                    ./app/src/androidTest/jni
-                JavaDirectories:
-                    ./app/src/androidTest/java
-                JniLibsDirectories:
-                    ./app/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTest/rs
-                ResDirectories:
-                    ./app/src/androidTest/res
-                ResourcesDirectories:
-                    ./app/src/androidTest/resources
-                ShadersDirectories:
-                    ./app/src/androidTest/shaders
+        UnitTest:
             test
                 Manifest:
                     ./app/src/test/AndroidManifest.xml
@@ -466,29 +447,6 @@ MODULE: app
                     ./app/src/test/resources
                 ShadersDirectories:
                     ./app/src/test/shaders
-            androidTestBasic
-                Manifest:
-                    ./app/src/androidTestBasic/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestBasic/aidl
-                AssetsDirectories:
-                    ./app/src/androidTestBasic/assets
-                CDirectories:
-                    ./app/src/androidTestBasic/jni
-                CppDirectories:
-                    ./app/src/androidTestBasic/jni
-                JavaDirectories:
-                    ./app/src/androidTestBasic/java
-                JniLibsDirectories:
-                    ./app/src/androidTestBasic/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTestBasic/rs
-                ResDirectories:
-                    ./app/src/androidTestBasic/res
-                ResourcesDirectories:
-                    ./app/src/androidTestBasic/resources
-                ShadersDirectories:
-                    ./app/src/androidTestBasic/shaders
             testBasic
                 Manifest:
                     ./app/src/testBasic/AndroidManifest.xml
@@ -512,29 +470,6 @@ MODULE: app
                     ./app/src/testBasic/resources
                 ShadersDirectories:
                     ./app/src/testBasic/shaders
-            androidTestBar
-                Manifest:
-                    ./app/src/androidTestBar/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestBar/aidl
-                AssetsDirectories:
-                    ./app/src/androidTestBar/assets
-                CDirectories:
-                    ./app/src/androidTestBar/jni
-                CppDirectories:
-                    ./app/src/androidTestBar/jni
-                JavaDirectories:
-                    ./app/src/androidTestBar/java
-                JniLibsDirectories:
-                    ./app/src/androidTestBar/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTestBar/rs
-                ResDirectories:
-                    ./app/src/androidTestBar/res
-                ResourcesDirectories:
-                    ./app/src/androidTestBar/resources
-                ShadersDirectories:
-                    ./app/src/androidTestBar/shaders
             testBar
                 Manifest:
                     ./app/src/testBar/AndroidManifest.xml
@@ -558,29 +493,6 @@ MODULE: app
                     ./app/src/testBar/resources
                 ShadersDirectories:
                     ./app/src/testBar/shaders
-            androidTestDebug
-                Manifest:
-                    ./app/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./app/src/androidTestDebug/aidl
-                AssetsDirectories:
-                    ./app/src/androidTestDebug/assets
-                CDirectories:
-                    ./app/src/androidTestDebug/jni
-                CppDirectories:
-                    ./app/src/androidTestDebug/jni
-                JavaDirectories:
-                    ./app/src/androidTestDebug/java
-                JniLibsDirectories:
-                    ./app/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./app/src/androidTestDebug/rs
-                ResDirectories:
-                    ./app/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./app/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./app/src/androidTestDebug/shaders
             testDebug
                 Manifest:
                     ./app/src/testDebug/AndroidManifest.xml
@@ -604,15 +516,296 @@ MODULE: app
                     ./app/src/testDebug/resources
                 ShadersDirectories:
                     ./app/src/testDebug/shaders
+        AndroidTest:
+            androidTest
+                Manifest:
+                    ./app/src/androidTest/AndroidManifest.xml
+                AidlDirectories:
+                    ./app/src/androidTest/aidl
+                AssetsDirectories:
+                    ./app/src/androidTest/assets
+                CDirectories:
+                    ./app/src/androidTest/jni
+                CppDirectories:
+                    ./app/src/androidTest/jni
+                JavaDirectories:
+                    ./app/src/androidTest/java
+                JniLibsDirectories:
+                    ./app/src/androidTest/jniLibs
+                RenderscriptDirectories:
+                    ./app/src/androidTest/rs
+                ResDirectories:
+                    ./app/src/androidTest/res
+                ResourcesDirectories:
+                    ./app/src/androidTest/resources
+                ShadersDirectories:
+                    ./app/src/androidTest/shaders
+            androidTestBasic
+                Manifest:
+                    ./app/src/androidTestBasic/AndroidManifest.xml
+                AidlDirectories:
+                    ./app/src/androidTestBasic/aidl
+                AssetsDirectories:
+                    ./app/src/androidTestBasic/assets
+                CDirectories:
+                    ./app/src/androidTestBasic/jni
+                CppDirectories:
+                    ./app/src/androidTestBasic/jni
+                JavaDirectories:
+                    ./app/src/androidTestBasic/java
+                JniLibsDirectories:
+                    ./app/src/androidTestBasic/jniLibs
+                RenderscriptDirectories:
+                    ./app/src/androidTestBasic/rs
+                ResDirectories:
+                    ./app/src/androidTestBasic/res
+                ResourcesDirectories:
+                    ./app/src/androidTestBasic/resources
+                ShadersDirectories:
+                    ./app/src/androidTestBasic/shaders
+            androidTestBar
+                Manifest:
+                    ./app/src/androidTestBar/AndroidManifest.xml
+                AidlDirectories:
+                    ./app/src/androidTestBar/aidl
+                AssetsDirectories:
+                    ./app/src/androidTestBar/assets
+                CDirectories:
+                    ./app/src/androidTestBar/jni
+                CppDirectories:
+                    ./app/src/androidTestBar/jni
+                JavaDirectories:
+                    ./app/src/androidTestBar/java
+                JniLibsDirectories:
+                    ./app/src/androidTestBar/jniLibs
+                RenderscriptDirectories:
+                    ./app/src/androidTestBar/rs
+                ResDirectories:
+                    ./app/src/androidTestBar/res
+                ResourcesDirectories:
+                    ./app/src/androidTestBar/resources
+                ShadersDirectories:
+                    ./app/src/androidTestBar/shaders
+            androidTestDebug
+                Manifest:
+                    ./app/src/androidTestDebug/AndroidManifest.xml
+                AidlDirectories:
+                    ./app/src/androidTestDebug/aidl
+                AssetsDirectories:
+                    ./app/src/androidTestDebug/assets
+                CDirectories:
+                    ./app/src/androidTestDebug/jni
+                CppDirectories:
+                    ./app/src/androidTestDebug/jni
+                JavaDirectories:
+                    ./app/src/androidTestDebug/java
+                JniLibsDirectories:
+                    ./app/src/androidTestDebug/jniLibs
+                RenderscriptDirectories:
+                    ./app/src/androidTestDebug/rs
+                ResDirectories:
+                    ./app/src/androidTestDebug/res
+                ResourcesDirectories:
+                    ./app/src/androidTestDebug/resources
+                ShadersDirectories:
+                    ./app/src/androidTestDebug/shaders
     by IdeaSourceProviders:
         Manifests:
             file://./app/src/main/AndroidManifest.xml
+        Sources:
+            Sources (IDEA)
+                ManifestFileUrls:
+                    file://./app/src/main/AndroidManifest.xml
+                    file://./app/src/basic/AndroidManifest.xml
+                    file://./app/src/bar/AndroidManifest.xml
+                    file://./app/src/basicBar/AndroidManifest.xml
+                    file://./app/src/debug/AndroidManifest.xml
+                    file://./app/src/basicBarDebug/AndroidManifest.xml
+                ManifestFiles:
+                    file://./app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/main
+                    file://./app/src/basic
+                    file://./app/src/bar
+                    file://./app/src/basicBar
+                    file://./app/src/debug
+                    file://./app/src/basicBarDebug
+                ManifestDirectories:
+                    file://./app/src/main
+                AidlDirectoryUrls:
+                    file://./app/src/main/aidl
+                    file://./app/src/basic/aidl
+                    file://./app/src/bar/aidl
+                    file://./app/src/basicBar/aidl
+                    file://./app/src/debug/aidl
+                    file://./app/src/basicBarDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/main/assets
+                    file://./app/src/basic/assets
+                    file://./app/src/bar/assets
+                    file://./app/src/basicBar/assets
+                    file://./app/src/debug/assets
+                    file://./app/src/basicBarDebug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/main/java
+                    file://./app/src/basic/java
+                    file://./app/src/bar/java
+                    file://./app/src/basicBar/java
+                    file://./app/src/debug/java
+                    file://./app/src/basicBarDebug/java
+                JavaDirectories:
+                    file://./app/src/main/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/main/jniLibs
+                    file://./app/src/basic/jniLibs
+                    file://./app/src/bar/jniLibs
+                    file://./app/src/basicBar/jniLibs
+                    file://./app/src/debug/jniLibs
+                    file://./app/src/basicBarDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/main/rs
+                    file://./app/src/basic/rs
+                    file://./app/src/bar/rs
+                    file://./app/src/basicBar/rs
+                    file://./app/src/debug/rs
+                    file://./app/src/basicBarDebug/rs
+                ResDirectoryUrls:
+                    file://./app/src/main/res
+                    file://./app/src/basic/res
+                    file://./app/src/bar/res
+                    file://./app/src/basicBar/res
+                    file://./app/src/debug/res
+                    file://./app/src/basicBarDebug/res
+                ResDirectories:
+                    file://./app/src/main/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/main/resources
+                    file://./app/src/basic/resources
+                    file://./app/src/bar/resources
+                    file://./app/src/basicBar/resources
+                    file://./app/src/debug/resources
+                    file://./app/src/basicBarDebug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/main/shaders
+                    file://./app/src/basic/shaders
+                    file://./app/src/bar/shaders
+                    file://./app/src/basicBar/shaders
+                    file://./app/src/debug/shaders
+                    file://./app/src/basicBarDebug/shaders
+        UnitTestSources:
+            UnitTestSources (IDEA)
+                ManifestFileUrls:
+                    file://./app/src/test/AndroidManifest.xml
+                    file://./app/src/testBasic/AndroidManifest.xml
+                    file://./app/src/testBar/AndroidManifest.xml
+                    file://./app/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/test
+                    file://./app/src/testBasic
+                    file://./app/src/testBar
+                    file://./app/src/testDebug
+                AidlDirectoryUrls:
+                    file://./app/src/test/aidl
+                    file://./app/src/testBasic/aidl
+                    file://./app/src/testBar/aidl
+                    file://./app/src/testDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/test/assets
+                    file://./app/src/testBasic/assets
+                    file://./app/src/testBar/assets
+                    file://./app/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/test/java
+                    file://./app/src/testBasic/java
+                    file://./app/src/testBar/java
+                    file://./app/src/testDebug/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/test/jniLibs
+                    file://./app/src/testBasic/jniLibs
+                    file://./app/src/testBar/jniLibs
+                    file://./app/src/testDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/test/rs
+                    file://./app/src/testBasic/rs
+                    file://./app/src/testBar/rs
+                    file://./app/src/testDebug/rs
+                ResDirectoryUrls:
+                    file://./app/src/test/res
+                    file://./app/src/testBasic/res
+                    file://./app/src/testBar/res
+                    file://./app/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/test/resources
+                    file://./app/src/testBasic/resources
+                    file://./app/src/testBar/resources
+                    file://./app/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/test/shaders
+                    file://./app/src/testBasic/shaders
+                    file://./app/src/testBar/shaders
+                    file://./app/src/testDebug/shaders
+        AndroidTestSources:
+            AndroidTestSources (IDEA)
+                ManifestFileUrls:
+                    file://./app/src/androidTest/AndroidManifest.xml
+                    file://./app/src/androidTestBasic/AndroidManifest.xml
+                    file://./app/src/androidTestBar/AndroidManifest.xml
+                    file://./app/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/androidTest
+                    file://./app/src/androidTestBasic
+                    file://./app/src/androidTestBar
+                    file://./app/src/androidTestDebug
+                AidlDirectoryUrls:
+                    file://./app/src/androidTest/aidl
+                    file://./app/src/androidTestBasic/aidl
+                    file://./app/src/androidTestBar/aidl
+                    file://./app/src/androidTestDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTest/assets
+                    file://./app/src/androidTestBasic/assets
+                    file://./app/src/androidTestBar/assets
+                    file://./app/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTest/java
+                    file://./app/src/androidTestBasic/java
+                    file://./app/src/androidTestBar/java
+                    file://./app/src/androidTestDebug/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTest/jniLibs
+                    file://./app/src/androidTestBasic/jniLibs
+                    file://./app/src/androidTestBar/jniLibs
+                    file://./app/src/androidTestDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/androidTest/rs
+                    file://./app/src/androidTestBasic/rs
+                    file://./app/src/androidTestBar/rs
+                    file://./app/src/androidTestDebug/rs
+                ResDirectoryUrls:
+                    file://./app/src/androidTest/res
+                    file://./app/src/androidTestBasic/res
+                    file://./app/src/androidTestBar/res
+                    file://./app/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTest/resources
+                    file://./app/src/androidTestBasic/resources
+                    file://./app/src/androidTestBar/resources
+                    file://./app/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTest/shaders
+                    file://./app/src/androidTestBasic/shaders
+                    file://./app/src/androidTestBar/shaders
+                    file://./app/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/main
+                ManifestDirectories:
+                    file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
                 AssetsDirectoryUrls:
@@ -634,8 +827,10 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
             bar (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/bar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/bar
                 AidlDirectoryUrls:
                     file://./app/src/bar/aidl
                 AssetsDirectoryUrls:
@@ -653,8 +848,10 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/bar/shaders
             otherBar (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/otherBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/otherBar
                 AidlDirectoryUrls:
                     file://./app/src/otherBar/aidl
                 AssetsDirectoryUrls:
@@ -672,10 +869,14 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/otherBar/shaders
             paid (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/paid/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./app/src/paid/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/paid
+                ManifestDirectories:
+                    file://./app/src/paid
                 AidlDirectoryUrls:
                     file://./app/src/paid/aidl
                 AssetsDirectoryUrls:
@@ -697,8 +898,10 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/paid/shaders
             basic (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/basic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/basic
                 AidlDirectoryUrls:
                     file://./app/src/basic/aidl
                 AssetsDirectoryUrls:
@@ -716,8 +919,10 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/basic/shaders
             basicBar (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/basicBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/basicBar
                 AidlDirectoryUrls:
                     file://./app/src/basicBar/aidl
                 AssetsDirectoryUrls:
@@ -735,8 +940,10 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/basicBar/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -754,8 +961,10 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/release
                 AidlDirectoryUrls:
                     file://./app/src/release/aidl
                 AssetsDirectoryUrls:
@@ -773,8 +982,10 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/release/shaders
             specialRelease (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/specialRelease/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/specialRelease
                 AidlDirectoryUrls:
                     file://./app/src/specialRelease/aidl
                 AssetsDirectoryUrls:
@@ -792,8 +1003,10 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/specialRelease/shaders
             basicBarDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/basicBarDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/basicBarDebug
                 AidlDirectoryUrls:
                     file://./app/src/basicBarDebug/aidl
                 AssetsDirectoryUrls:
@@ -812,10 +1025,14 @@ MODULE: app
                     file://./app/src/basicBarDebug/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./app/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/main
+                ManifestDirectories:
+                    file://./app/src/main
                 AidlDirectoryUrls:
                     file://./app/src/main/aidl
                 AssetsDirectoryUrls:
@@ -837,8 +1054,10 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
             basic (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/basic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/basic
                 AidlDirectoryUrls:
                     file://./app/src/basic/aidl
                 AssetsDirectoryUrls:
@@ -856,8 +1075,10 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/basic/shaders
             bar (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/bar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/bar
                 AidlDirectoryUrls:
                     file://./app/src/bar/aidl
                 AssetsDirectoryUrls:
@@ -875,8 +1096,10 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/bar/shaders
             basicBar (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/basicBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/basicBar
                 AidlDirectoryUrls:
                     file://./app/src/basicBar/aidl
                 AssetsDirectoryUrls:
@@ -894,8 +1117,10 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/basicBar/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/debug
                 AidlDirectoryUrls:
                     file://./app/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -913,8 +1138,10 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
             basicBarDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/basicBarDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/basicBarDebug
                 AidlDirectoryUrls:
                     file://./app/src/basicBarDebug/aidl
                 AssetsDirectoryUrls:
@@ -931,29 +1158,12 @@ MODULE: app
                     file://./app/src/basicBarDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/basicBarDebug/shaders
-        CurrentTestSourceProviders:
-            androidTest (IDEA)
-                ManifestUrl:
-                    file://./app/src/androidTest/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./app/src/androidTest/aidl
-                AssetsDirectoryUrls:
-                    file://./app/src/androidTest/assets
-                JavaDirectoryUrls:
-                    file://./app/src/androidTest/java
-                JniLibsDirectoryUrls:
-                    file://./app/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTest/rs
-                ResDirectoryUrls:
-                    file://./app/src/androidTest/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTest/shaders
+        CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/test
                 AidlDirectoryUrls:
                     file://./app/src/test/aidl
                 AssetsDirectoryUrls:
@@ -970,28 +1180,11 @@ MODULE: app
                     file://./app/src/test/resources
                 ShadersDirectoryUrls:
                     file://./app/src/test/shaders
-            androidTestBasic (IDEA)
-                ManifestUrl:
-                    file://./app/src/androidTestBasic/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestBasic/aidl
-                AssetsDirectoryUrls:
-                    file://./app/src/androidTestBasic/assets
-                JavaDirectoryUrls:
-                    file://./app/src/androidTestBasic/java
-                JniLibsDirectoryUrls:
-                    file://./app/src/androidTestBasic/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTestBasic/rs
-                ResDirectoryUrls:
-                    file://./app/src/androidTestBasic/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/androidTestBasic/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestBasic/shaders
             testBasic (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/testBasic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/testBasic
                 AidlDirectoryUrls:
                     file://./app/src/testBasic/aidl
                 AssetsDirectoryUrls:
@@ -1008,28 +1201,11 @@ MODULE: app
                     file://./app/src/testBasic/resources
                 ShadersDirectoryUrls:
                     file://./app/src/testBasic/shaders
-            androidTestBar (IDEA)
-                ManifestUrl:
-                    file://./app/src/androidTestBar/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestBar/aidl
-                AssetsDirectoryUrls:
-                    file://./app/src/androidTestBar/assets
-                JavaDirectoryUrls:
-                    file://./app/src/androidTestBar/java
-                JniLibsDirectoryUrls:
-                    file://./app/src/androidTestBar/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTestBar/rs
-                ResDirectoryUrls:
-                    file://./app/src/androidTestBar/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/androidTestBar/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestBar/shaders
             testBar (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/testBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/testBar
                 AidlDirectoryUrls:
                     file://./app/src/testBar/aidl
                 AssetsDirectoryUrls:
@@ -1046,28 +1222,11 @@ MODULE: app
                     file://./app/src/testBar/resources
                 ShadersDirectoryUrls:
                     file://./app/src/testBar/shaders
-            androidTestDebug (IDEA)
-                ManifestUrl:
-                    file://./app/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./app/src/androidTestDebug/aidl
-                AssetsDirectoryUrls:
-                    file://./app/src/androidTestDebug/assets
-                JavaDirectoryUrls:
-                    file://./app/src/androidTestDebug/java
-                JniLibsDirectoryUrls:
-                    file://./app/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./app/src/androidTestDebug/rs
-                ResDirectoryUrls:
-                    file://./app/src/androidTestDebug/res
-                ResourcesDirectoryUrls:
-                    file://./app/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./app/src/androidTestDebug/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./app/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/testDebug
                 AidlDirectoryUrls:
                     file://./app/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -1084,13 +1243,102 @@ MODULE: app
                     file://./app/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./app/src/testDebug/shaders
+        CurrentAndroidTestSourceProviders:
+            androidTest (IDEA)
+                ManifestFileUrls:
+                    file://./app/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/androidTest
+                AidlDirectoryUrls:
+                    file://./app/src/androidTest/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTest/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTest/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/androidTest/rs
+                ResDirectoryUrls:
+                    file://./app/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTest/shaders
+            androidTestBasic (IDEA)
+                ManifestFileUrls:
+                    file://./app/src/androidTestBasic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/androidTestBasic
+                AidlDirectoryUrls:
+                    file://./app/src/androidTestBasic/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTestBasic/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTestBasic/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTestBasic/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/androidTestBasic/rs
+                ResDirectoryUrls:
+                    file://./app/src/androidTestBasic/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTestBasic/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTestBasic/shaders
+            androidTestBar (IDEA)
+                ManifestFileUrls:
+                    file://./app/src/androidTestBar/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/androidTestBar
+                AidlDirectoryUrls:
+                    file://./app/src/androidTestBar/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTestBar/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTestBar/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTestBar/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/androidTestBar/rs
+                ResDirectoryUrls:
+                    file://./app/src/androidTestBar/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTestBar/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTestBar/shaders
+            androidTestDebug (IDEA)
+                ManifestFileUrls:
+                    file://./app/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./app/src/androidTestDebug
+                AidlDirectoryUrls:
+                    file://./app/src/androidTestDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./app/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./app/src/androidTestDebug/java
+                JniLibsDirectoryUrls:
+                    file://./app/src/androidTestDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./app/src/androidTestDebug/rs
+                ResDirectoryUrls:
+                    file://./app/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./app/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./app/src/androidTestDebug/shaders
 MODULE: deep2
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./nested2/trans/deep2/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./nested2/trans/deep2/src/main/AndroidManifest.xml
+            ManifestDirectoryUrls:
+                file://./nested2/trans/deep2/src/main
+            ManifestDirectories:
+                file://./nested2/trans/deep2/src/main
             AidlDirectoryUrls:
                 file://./nested2/trans/deep2/src/main/aidl
             AssetsDirectoryUrls:
@@ -1248,30 +1496,7 @@ MODULE: deep2
                     ./nested2/trans/deep2/src/release/resources
                 ShadersDirectories:
                     ./nested2/trans/deep2/src/release/shaders
-        Test:
-            androidTest
-                Manifest:
-                    ./nested2/trans/deep2/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/trans/deep2/src/androidTest/aidl
-                AssetsDirectories:
-                    ./nested2/trans/deep2/src/androidTest/assets
-                CDirectories:
-                    ./nested2/trans/deep2/src/androidTest/jni
-                CppDirectories:
-                    ./nested2/trans/deep2/src/androidTest/jni
-                JavaDirectories:
-                    ./nested2/trans/deep2/src/androidTest/java
-                JniLibsDirectories:
-                    ./nested2/trans/deep2/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/trans/deep2/src/androidTest/rs
-                ResDirectories:
-                    ./nested2/trans/deep2/src/androidTest/res
-                ResourcesDirectories:
-                    ./nested2/trans/deep2/src/androidTest/resources
-                ShadersDirectories:
-                    ./nested2/trans/deep2/src/androidTest/shaders
+        UnitTest:
             test
                 Manifest:
                     ./nested2/trans/deep2/src/test/AndroidManifest.xml
@@ -1295,29 +1520,6 @@ MODULE: deep2
                     ./nested2/trans/deep2/src/test/resources
                 ShadersDirectories:
                     ./nested2/trans/deep2/src/test/shaders
-            androidTestDebug
-                Manifest:
-                    ./nested2/trans/deep2/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/aidl
-                AssetsDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/assets
-                CDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/jni
-                CppDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/jni
-                JavaDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/java
-                JniLibsDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/rs
-                ResDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./nested2/trans/deep2/src/androidTestDebug/shaders
             testDebug
                 Manifest:
                     ./nested2/trans/deep2/src/testDebug/AndroidManifest.xml
@@ -1341,15 +1543,166 @@ MODULE: deep2
                     ./nested2/trans/deep2/src/testDebug/resources
                 ShadersDirectories:
                     ./nested2/trans/deep2/src/testDebug/shaders
+        AndroidTest:
+            androidTest
+                Manifest:
+                    ./nested2/trans/deep2/src/androidTest/AndroidManifest.xml
+                AidlDirectories:
+                    ./nested2/trans/deep2/src/androidTest/aidl
+                AssetsDirectories:
+                    ./nested2/trans/deep2/src/androidTest/assets
+                CDirectories:
+                    ./nested2/trans/deep2/src/androidTest/jni
+                CppDirectories:
+                    ./nested2/trans/deep2/src/androidTest/jni
+                JavaDirectories:
+                    ./nested2/trans/deep2/src/androidTest/java
+                JniLibsDirectories:
+                    ./nested2/trans/deep2/src/androidTest/jniLibs
+                RenderscriptDirectories:
+                    ./nested2/trans/deep2/src/androidTest/rs
+                ResDirectories:
+                    ./nested2/trans/deep2/src/androidTest/res
+                ResourcesDirectories:
+                    ./nested2/trans/deep2/src/androidTest/resources
+                ShadersDirectories:
+                    ./nested2/trans/deep2/src/androidTest/shaders
+            androidTestDebug
+                Manifest:
+                    ./nested2/trans/deep2/src/androidTestDebug/AndroidManifest.xml
+                AidlDirectories:
+                    ./nested2/trans/deep2/src/androidTestDebug/aidl
+                AssetsDirectories:
+                    ./nested2/trans/deep2/src/androidTestDebug/assets
+                CDirectories:
+                    ./nested2/trans/deep2/src/androidTestDebug/jni
+                CppDirectories:
+                    ./nested2/trans/deep2/src/androidTestDebug/jni
+                JavaDirectories:
+                    ./nested2/trans/deep2/src/androidTestDebug/java
+                JniLibsDirectories:
+                    ./nested2/trans/deep2/src/androidTestDebug/jniLibs
+                RenderscriptDirectories:
+                    ./nested2/trans/deep2/src/androidTestDebug/rs
+                ResDirectories:
+                    ./nested2/trans/deep2/src/androidTestDebug/res
+                ResourcesDirectories:
+                    ./nested2/trans/deep2/src/androidTestDebug/resources
+                ShadersDirectories:
+                    ./nested2/trans/deep2/src/androidTestDebug/shaders
     by IdeaSourceProviders:
         Manifests:
             file://./nested2/trans/deep2/src/main/AndroidManifest.xml
+        Sources:
+            Sources (IDEA)
+                ManifestFileUrls:
+                    file://./nested2/trans/deep2/src/main/AndroidManifest.xml
+                    file://./nested2/trans/deep2/src/debug/AndroidManifest.xml
+                ManifestFiles:
+                    file://./nested2/trans/deep2/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main
+                    file://./nested2/trans/deep2/src/debug
+                ManifestDirectories:
+                    file://./nested2/trans/deep2/src/main
+                AidlDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main/aidl
+                    file://./nested2/trans/deep2/src/debug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main/assets
+                    file://./nested2/trans/deep2/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main/java
+                    file://./nested2/trans/deep2/src/debug/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main/jniLibs
+                    file://./nested2/trans/deep2/src/debug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main/rs
+                    file://./nested2/trans/deep2/src/debug/rs
+                ResDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main/res
+                    file://./nested2/trans/deep2/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main/resources
+                    file://./nested2/trans/deep2/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main/shaders
+                    file://./nested2/trans/deep2/src/debug/shaders
+        UnitTestSources:
+            UnitTestSources (IDEA)
+                ManifestFileUrls:
+                    file://./nested2/trans/deep2/src/test/AndroidManifest.xml
+                    file://./nested2/trans/deep2/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test
+                    file://./nested2/trans/deep2/src/testDebug
+                AidlDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test/aidl
+                    file://./nested2/trans/deep2/src/testDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test/assets
+                    file://./nested2/trans/deep2/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test/java
+                    file://./nested2/trans/deep2/src/testDebug/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test/jniLibs
+                    file://./nested2/trans/deep2/src/testDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test/rs
+                    file://./nested2/trans/deep2/src/testDebug/rs
+                ResDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test/res
+                    file://./nested2/trans/deep2/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test/resources
+                    file://./nested2/trans/deep2/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test/shaders
+                    file://./nested2/trans/deep2/src/testDebug/shaders
+        AndroidTestSources:
+            AndroidTestSources (IDEA)
+                ManifestFileUrls:
+                    file://./nested2/trans/deep2/src/androidTest/AndroidManifest.xml
+                    file://./nested2/trans/deep2/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest
+                    file://./nested2/trans/deep2/src/androidTestDebug
+                AidlDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/aidl
+                    file://./nested2/trans/deep2/src/androidTestDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/assets
+                    file://./nested2/trans/deep2/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/java
+                    file://./nested2/trans/deep2/src/androidTestDebug/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/jniLibs
+                    file://./nested2/trans/deep2/src/androidTestDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/rs
+                    file://./nested2/trans/deep2/src/androidTestDebug/rs
+                ResDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/res
+                    file://./nested2/trans/deep2/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/resources
+                    file://./nested2/trans/deep2/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/shaders
+                    file://./nested2/trans/deep2/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/trans/deep2/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested2/trans/deep2/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main
+                ManifestDirectories:
+                    file://./nested2/trans/deep2/src/main
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1367,8 +1720,10 @@ MODULE: deep2
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/trans/deep2/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/debug
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1386,8 +1741,10 @@ MODULE: deep2
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/trans/deep2/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/release
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/release/aidl
                 AssetsDirectoryUrls:
@@ -1406,10 +1763,14 @@ MODULE: deep2
                     file://./nested2/trans/deep2/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/trans/deep2/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested2/trans/deep2/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/main
+                ManifestDirectories:
+                    file://./nested2/trans/deep2/src/main
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1427,8 +1788,10 @@ MODULE: deep2
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/trans/deep2/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/debug
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1445,29 +1808,12 @@ MODULE: deep2
                     file://./nested2/trans/deep2/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/debug/shaders
-        CurrentTestSourceProviders:
-            androidTest (IDEA)
-                ManifestUrl:
-                    file://./nested2/trans/deep2/src/androidTest/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTest/aidl
-                AssetsDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTest/assets
-                JavaDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTest/java
-                JniLibsDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTest/rs
-                ResDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTest/res
-                ResourcesDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTest/shaders
+        CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/trans/deep2/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/test
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/aidl
                 AssetsDirectoryUrls:
@@ -1484,28 +1830,11 @@ MODULE: deep2
                     file://./nested2/trans/deep2/src/test/resources
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/test/shaders
-            androidTestDebug (IDEA)
-                ManifestUrl:
-                    file://./nested2/trans/deep2/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTestDebug/aidl
-                AssetsDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTestDebug/assets
-                JavaDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTestDebug/java
-                JniLibsDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTestDebug/rs
-                ResDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTestDebug/res
-                ResourcesDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/trans/deep2/src/androidTestDebug/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/trans/deep2/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/testDebug
                 AidlDirectoryUrls:
                     file://./nested2/trans/deep2/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -1522,13 +1851,60 @@ MODULE: deep2
                     file://./nested2/trans/deep2/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/trans/deep2/src/testDebug/shaders
+        CurrentAndroidTestSourceProviders:
+            androidTest (IDEA)
+                ManifestFileUrls:
+                    file://./nested2/trans/deep2/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest
+                AidlDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/rs
+                ResDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTest/shaders
+            androidTestDebug (IDEA)
+                ManifestFileUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug
+                AidlDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug/rs
+                ResDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/trans/deep2/src/androidTestDebug/shaders
 MODULE: dyn_feature
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./dyn_feature/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./dyn_feature/src/main/AndroidManifest.xml
+            ManifestDirectoryUrls:
+                file://./dyn_feature/src/main
+            ManifestDirectories:
+                file://./dyn_feature/src/main
             AidlDirectoryUrls:
                 file://./dyn_feature/src/main/aidl
             AssetsDirectoryUrls:
@@ -1686,30 +2062,7 @@ MODULE: dyn_feature
                     ./dyn_feature/src/release/resources
                 ShadersDirectories:
                     ./dyn_feature/src/release/shaders
-        Test:
-            androidTest
-                Manifest:
-                    ./dyn_feature/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./dyn_feature/src/androidTest/aidl
-                AssetsDirectories:
-                    ./dyn_feature/src/androidTest/assets
-                CDirectories:
-                    ./dyn_feature/src/androidTest/jni
-                CppDirectories:
-                    ./dyn_feature/src/androidTest/jni
-                JavaDirectories:
-                    ./dyn_feature/src/androidTest/java
-                JniLibsDirectories:
-                    ./dyn_feature/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./dyn_feature/src/androidTest/rs
-                ResDirectories:
-                    ./dyn_feature/src/androidTest/res
-                ResourcesDirectories:
-                    ./dyn_feature/src/androidTest/resources
-                ShadersDirectories:
-                    ./dyn_feature/src/androidTest/shaders
+        UnitTest:
             test
                 Manifest:
                     ./dyn_feature/src/test/AndroidManifest.xml
@@ -1733,29 +2086,6 @@ MODULE: dyn_feature
                     ./dyn_feature/src/test/resources
                 ShadersDirectories:
                     ./dyn_feature/src/test/shaders
-            androidTestDebug
-                Manifest:
-                    ./dyn_feature/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./dyn_feature/src/androidTestDebug/aidl
-                AssetsDirectories:
-                    ./dyn_feature/src/androidTestDebug/assets
-                CDirectories:
-                    ./dyn_feature/src/androidTestDebug/jni
-                CppDirectories:
-                    ./dyn_feature/src/androidTestDebug/jni
-                JavaDirectories:
-                    ./dyn_feature/src/androidTestDebug/java
-                JniLibsDirectories:
-                    ./dyn_feature/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./dyn_feature/src/androidTestDebug/rs
-                ResDirectories:
-                    ./dyn_feature/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./dyn_feature/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./dyn_feature/src/androidTestDebug/shaders
             testDebug
                 Manifest:
                     ./dyn_feature/src/testDebug/AndroidManifest.xml
@@ -1779,15 +2109,166 @@ MODULE: dyn_feature
                     ./dyn_feature/src/testDebug/resources
                 ShadersDirectories:
                     ./dyn_feature/src/testDebug/shaders
+        AndroidTest:
+            androidTest
+                Manifest:
+                    ./dyn_feature/src/androidTest/AndroidManifest.xml
+                AidlDirectories:
+                    ./dyn_feature/src/androidTest/aidl
+                AssetsDirectories:
+                    ./dyn_feature/src/androidTest/assets
+                CDirectories:
+                    ./dyn_feature/src/androidTest/jni
+                CppDirectories:
+                    ./dyn_feature/src/androidTest/jni
+                JavaDirectories:
+                    ./dyn_feature/src/androidTest/java
+                JniLibsDirectories:
+                    ./dyn_feature/src/androidTest/jniLibs
+                RenderscriptDirectories:
+                    ./dyn_feature/src/androidTest/rs
+                ResDirectories:
+                    ./dyn_feature/src/androidTest/res
+                ResourcesDirectories:
+                    ./dyn_feature/src/androidTest/resources
+                ShadersDirectories:
+                    ./dyn_feature/src/androidTest/shaders
+            androidTestDebug
+                Manifest:
+                    ./dyn_feature/src/androidTestDebug/AndroidManifest.xml
+                AidlDirectories:
+                    ./dyn_feature/src/androidTestDebug/aidl
+                AssetsDirectories:
+                    ./dyn_feature/src/androidTestDebug/assets
+                CDirectories:
+                    ./dyn_feature/src/androidTestDebug/jni
+                CppDirectories:
+                    ./dyn_feature/src/androidTestDebug/jni
+                JavaDirectories:
+                    ./dyn_feature/src/androidTestDebug/java
+                JniLibsDirectories:
+                    ./dyn_feature/src/androidTestDebug/jniLibs
+                RenderscriptDirectories:
+                    ./dyn_feature/src/androidTestDebug/rs
+                ResDirectories:
+                    ./dyn_feature/src/androidTestDebug/res
+                ResourcesDirectories:
+                    ./dyn_feature/src/androidTestDebug/resources
+                ShadersDirectories:
+                    ./dyn_feature/src/androidTestDebug/shaders
     by IdeaSourceProviders:
         Manifests:
             file://./dyn_feature/src/main/AndroidManifest.xml
+        Sources:
+            Sources (IDEA)
+                ManifestFileUrls:
+                    file://./dyn_feature/src/main/AndroidManifest.xml
+                    file://./dyn_feature/src/debug/AndroidManifest.xml
+                ManifestFiles:
+                    file://./dyn_feature/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/main
+                    file://./dyn_feature/src/debug
+                ManifestDirectories:
+                    file://./dyn_feature/src/main
+                AidlDirectoryUrls:
+                    file://./dyn_feature/src/main/aidl
+                    file://./dyn_feature/src/debug/aidl
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/main/assets
+                    file://./dyn_feature/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/main/java
+                    file://./dyn_feature/src/debug/java
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/main/jniLibs
+                    file://./dyn_feature/src/debug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./dyn_feature/src/main/rs
+                    file://./dyn_feature/src/debug/rs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/main/res
+                    file://./dyn_feature/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/main/resources
+                    file://./dyn_feature/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./dyn_feature/src/main/shaders
+                    file://./dyn_feature/src/debug/shaders
+        UnitTestSources:
+            UnitTestSources (IDEA)
+                ManifestFileUrls:
+                    file://./dyn_feature/src/test/AndroidManifest.xml
+                    file://./dyn_feature/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/test
+                    file://./dyn_feature/src/testDebug
+                AidlDirectoryUrls:
+                    file://./dyn_feature/src/test/aidl
+                    file://./dyn_feature/src/testDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/test/assets
+                    file://./dyn_feature/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/test/java
+                    file://./dyn_feature/src/testDebug/java
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/test/jniLibs
+                    file://./dyn_feature/src/testDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./dyn_feature/src/test/rs
+                    file://./dyn_feature/src/testDebug/rs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/test/res
+                    file://./dyn_feature/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/test/resources
+                    file://./dyn_feature/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./dyn_feature/src/test/shaders
+                    file://./dyn_feature/src/testDebug/shaders
+        AndroidTestSources:
+            AndroidTestSources (IDEA)
+                ManifestFileUrls:
+                    file://./dyn_feature/src/androidTest/AndroidManifest.xml
+                    file://./dyn_feature/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/androidTest
+                    file://./dyn_feature/src/androidTestDebug
+                AidlDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/aidl
+                    file://./dyn_feature/src/androidTestDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/assets
+                    file://./dyn_feature/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/java
+                    file://./dyn_feature/src/androidTestDebug/java
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/jniLibs
+                    file://./dyn_feature/src/androidTestDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/rs
+                    file://./dyn_feature/src/androidTestDebug/rs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/res
+                    file://./dyn_feature/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/resources
+                    file://./dyn_feature/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/shaders
+                    file://./dyn_feature/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./dyn_feature/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./dyn_feature/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/main
+                ManifestDirectories:
+                    file://./dyn_feature/src/main
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1805,8 +2286,10 @@ MODULE: dyn_feature
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./dyn_feature/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/debug
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1824,8 +2307,10 @@ MODULE: dyn_feature
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./dyn_feature/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/release
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/release/aidl
                 AssetsDirectoryUrls:
@@ -1844,10 +2329,14 @@ MODULE: dyn_feature
                     file://./dyn_feature/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./dyn_feature/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./dyn_feature/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/main
+                ManifestDirectories:
+                    file://./dyn_feature/src/main
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/main/aidl
                 AssetsDirectoryUrls:
@@ -1865,8 +2354,10 @@ MODULE: dyn_feature
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./dyn_feature/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/debug
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -1883,29 +2374,12 @@ MODULE: dyn_feature
                     file://./dyn_feature/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/debug/shaders
-        CurrentTestSourceProviders:
-            androidTest (IDEA)
-                ManifestUrl:
-                    file://./dyn_feature/src/androidTest/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./dyn_feature/src/androidTest/aidl
-                AssetsDirectoryUrls:
-                    file://./dyn_feature/src/androidTest/assets
-                JavaDirectoryUrls:
-                    file://./dyn_feature/src/androidTest/java
-                JniLibsDirectoryUrls:
-                    file://./dyn_feature/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./dyn_feature/src/androidTest/rs
-                ResDirectoryUrls:
-                    file://./dyn_feature/src/androidTest/res
-                ResourcesDirectoryUrls:
-                    file://./dyn_feature/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/androidTest/shaders
+        CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./dyn_feature/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/test
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/test/aidl
                 AssetsDirectoryUrls:
@@ -1922,28 +2396,11 @@ MODULE: dyn_feature
                     file://./dyn_feature/src/test/resources
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/test/shaders
-            androidTestDebug (IDEA)
-                ManifestUrl:
-                    file://./dyn_feature/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./dyn_feature/src/androidTestDebug/aidl
-                AssetsDirectoryUrls:
-                    file://./dyn_feature/src/androidTestDebug/assets
-                JavaDirectoryUrls:
-                    file://./dyn_feature/src/androidTestDebug/java
-                JniLibsDirectoryUrls:
-                    file://./dyn_feature/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./dyn_feature/src/androidTestDebug/rs
-                ResDirectoryUrls:
-                    file://./dyn_feature/src/androidTestDebug/res
-                ResourcesDirectoryUrls:
-                    file://./dyn_feature/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./dyn_feature/src/androidTestDebug/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./dyn_feature/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/testDebug
                 AidlDirectoryUrls:
                     file://./dyn_feature/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -1960,14 +2417,61 @@ MODULE: dyn_feature
                     file://./dyn_feature/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./dyn_feature/src/testDebug/shaders
+        CurrentAndroidTestSourceProviders:
+            androidTest (IDEA)
+                ManifestFileUrls:
+                    file://./dyn_feature/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/androidTest
+                AidlDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/aidl
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/java
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/rs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./dyn_feature/src/androidTest/shaders
+            androidTestDebug (IDEA)
+                ManifestFileUrls:
+                    file://./dyn_feature/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./dyn_feature/src/androidTestDebug
+                AidlDirectoryUrls:
+                    file://./dyn_feature/src/androidTestDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./dyn_feature/src/androidTestDebug/java
+                JniLibsDirectoryUrls:
+                    file://./dyn_feature/src/androidTestDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./dyn_feature/src/androidTestDebug/rs
+                ResDirectoryUrls:
+                    file://./dyn_feature/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./dyn_feature/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./dyn_feature/src/androidTestDebug/shaders
 MODULE: jav
 MODULE: lib
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./lib/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./lib/src/main/AndroidManifest.xml
+            ManifestDirectoryUrls:
+                file://./lib/src/main
+            ManifestDirectories:
+                file://./lib/src/main
             AidlDirectoryUrls:
                 file://./lib/src/main/aidl
             AssetsDirectoryUrls:
@@ -2129,30 +2633,7 @@ MODULE: lib
                     ./lib/src/release/resources
                 ShadersDirectories:
                     ./lib/src/release/shaders
-        Test:
-            androidTest
-                Manifest:
-                    ./lib/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/androidTest/aidl
-                AssetsDirectories:
-                    ./lib/src/androidTest/assets
-                CDirectories:
-                    ./lib/src/androidTest/jni
-                CppDirectories:
-                    ./lib/src/androidTest/jni
-                JavaDirectories:
-                    ./lib/src/androidTest/java
-                JniLibsDirectories:
-                    ./lib/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/androidTest/rs
-                ResDirectories:
-                    ./lib/src/androidTest/res
-                ResourcesDirectories:
-                    ./lib/src/androidTest/resources
-                ShadersDirectories:
-                    ./lib/src/androidTest/shaders
+        UnitTest:
             test
                 Manifest:
                     ./lib/src/test/AndroidManifest.xml
@@ -2176,29 +2657,6 @@ MODULE: lib
                     ./lib/src/test/resources
                 ShadersDirectories:
                     ./lib/src/test/shaders
-            androidTestDebug
-                Manifest:
-                    ./lib/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./lib/src/androidTestDebug/aidl
-                AssetsDirectories:
-                    ./lib/src/androidTestDebug/assets
-                CDirectories:
-                    ./lib/src/androidTestDebug/jni
-                CppDirectories:
-                    ./lib/src/androidTestDebug/jni
-                JavaDirectories:
-                    ./lib/src/androidTestDebug/java
-                JniLibsDirectories:
-                    ./lib/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./lib/src/androidTestDebug/rs
-                ResDirectories:
-                    ./lib/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./lib/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./lib/src/androidTestDebug/shaders
             testDebug
                 Manifest:
                     ./lib/src/testDebug/AndroidManifest.xml
@@ -2222,15 +2680,170 @@ MODULE: lib
                     ./lib/src/testDebug/resources
                 ShadersDirectories:
                     ./lib/src/testDebug/shaders
+        AndroidTest:
+            androidTest
+                Manifest:
+                    ./lib/src/androidTest/AndroidManifest.xml
+                AidlDirectories:
+                    ./lib/src/androidTest/aidl
+                AssetsDirectories:
+                    ./lib/src/androidTest/assets
+                CDirectories:
+                    ./lib/src/androidTest/jni
+                CppDirectories:
+                    ./lib/src/androidTest/jni
+                JavaDirectories:
+                    ./lib/src/androidTest/java
+                JniLibsDirectories:
+                    ./lib/src/androidTest/jniLibs
+                RenderscriptDirectories:
+                    ./lib/src/androidTest/rs
+                ResDirectories:
+                    ./lib/src/androidTest/res
+                ResourcesDirectories:
+                    ./lib/src/androidTest/resources
+                ShadersDirectories:
+                    ./lib/src/androidTest/shaders
+            androidTestDebug
+                Manifest:
+                    ./lib/src/androidTestDebug/AndroidManifest.xml
+                AidlDirectories:
+                    ./lib/src/androidTestDebug/aidl
+                AssetsDirectories:
+                    ./lib/src/androidTestDebug/assets
+                CDirectories:
+                    ./lib/src/androidTestDebug/jni
+                CppDirectories:
+                    ./lib/src/androidTestDebug/jni
+                JavaDirectories:
+                    ./lib/src/androidTestDebug/java
+                JniLibsDirectories:
+                    ./lib/src/androidTestDebug/jniLibs
+                RenderscriptDirectories:
+                    ./lib/src/androidTestDebug/rs
+                ResDirectories:
+                    ./lib/src/androidTestDebug/res
+                ResourcesDirectories:
+                    ./lib/src/androidTestDebug/resources
+                ShadersDirectories:
+                    ./lib/src/androidTestDebug/shaders
     by IdeaSourceProviders:
         Manifests:
             file://./lib/src/main/AndroidManifest.xml
+        Sources:
+            Sources (IDEA)
+                ManifestFileUrls:
+                    file://./lib/src/main/AndroidManifest.xml
+                    file://./lib/src/debug/AndroidManifest.xml
+                ManifestFiles:
+                    file://./lib/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/main
+                    file://./lib/src/debug
+                ManifestDirectories:
+                    file://./lib/src/main
+                AidlDirectoryUrls:
+                    file://./lib/src/main/aidl
+                    file://./lib/src/debug/aidl
+                AssetsDirectoryUrls:
+                    file://./lib/src/main/assets
+                    file://./lib/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./lib/src/main/java
+                    file://./lib/src/debug/java
+                JavaDirectories:
+                    file://./lib/src/main/java
+                JniLibsDirectoryUrls:
+                    file://./lib/src/main/jniLibs
+                    file://./lib/src/debug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./lib/src/main/rs
+                    file://./lib/src/debug/rs
+                ResDirectoryUrls:
+                    file://./lib/src/main/res
+                    file://./lib/src/debug/res
+                ResDirectories:
+                    file://./lib/src/main/res
+                ResourcesDirectoryUrls:
+                    file://./lib/src/main/resources
+                    file://./lib/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./lib/src/main/shaders
+                    file://./lib/src/debug/shaders
+        UnitTestSources:
+            UnitTestSources (IDEA)
+                ManifestFileUrls:
+                    file://./lib/src/test/AndroidManifest.xml
+                    file://./lib/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/test
+                    file://./lib/src/testDebug
+                AidlDirectoryUrls:
+                    file://./lib/src/test/aidl
+                    file://./lib/src/testDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./lib/src/test/assets
+                    file://./lib/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./lib/src/test/java
+                    file://./lib/src/testDebug/java
+                JniLibsDirectoryUrls:
+                    file://./lib/src/test/jniLibs
+                    file://./lib/src/testDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./lib/src/test/rs
+                    file://./lib/src/testDebug/rs
+                ResDirectoryUrls:
+                    file://./lib/src/test/res
+                    file://./lib/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./lib/src/test/resources
+                    file://./lib/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./lib/src/test/shaders
+                    file://./lib/src/testDebug/shaders
+        AndroidTestSources:
+            AndroidTestSources (IDEA)
+                ManifestFileUrls:
+                    file://./lib/src/androidTest/AndroidManifest.xml
+                    file://./lib/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/androidTest
+                    file://./lib/src/androidTestDebug
+                AidlDirectoryUrls:
+                    file://./lib/src/androidTest/aidl
+                    file://./lib/src/androidTestDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./lib/src/androidTest/assets
+                    file://./lib/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./lib/src/androidTest/java
+                    file://./lib/src/androidTestDebug/java
+                JniLibsDirectoryUrls:
+                    file://./lib/src/androidTest/jniLibs
+                    file://./lib/src/androidTestDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./lib/src/androidTest/rs
+                    file://./lib/src/androidTestDebug/rs
+                ResDirectoryUrls:
+                    file://./lib/src/androidTest/res
+                    file://./lib/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./lib/src/androidTest/resources
+                    file://./lib/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./lib/src/androidTest/shaders
+                    file://./lib/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./lib/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/main
+                ManifestDirectories:
+                    file://./lib/src/main
                 AidlDirectoryUrls:
                     file://./lib/src/main/aidl
                 AssetsDirectoryUrls:
@@ -2252,8 +2865,10 @@ MODULE: lib
                 ShadersDirectoryUrls:
                     file://./lib/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/debug
                 AidlDirectoryUrls:
                     file://./lib/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -2271,8 +2886,10 @@ MODULE: lib
                 ShadersDirectoryUrls:
                     file://./lib/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/release
                 AidlDirectoryUrls:
                     file://./lib/src/release/aidl
                 AssetsDirectoryUrls:
@@ -2291,10 +2908,14 @@ MODULE: lib
                     file://./lib/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./lib/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/main
+                ManifestDirectories:
+                    file://./lib/src/main
                 AidlDirectoryUrls:
                     file://./lib/src/main/aidl
                 AssetsDirectoryUrls:
@@ -2316,8 +2937,10 @@ MODULE: lib
                 ShadersDirectoryUrls:
                     file://./lib/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/debug
                 AidlDirectoryUrls:
                     file://./lib/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -2334,29 +2957,12 @@ MODULE: lib
                     file://./lib/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/debug/shaders
-        CurrentTestSourceProviders:
-            androidTest (IDEA)
-                ManifestUrl:
-                    file://./lib/src/androidTest/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./lib/src/androidTest/aidl
-                AssetsDirectoryUrls:
-                    file://./lib/src/androidTest/assets
-                JavaDirectoryUrls:
-                    file://./lib/src/androidTest/java
-                JniLibsDirectoryUrls:
-                    file://./lib/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/androidTest/rs
-                ResDirectoryUrls:
-                    file://./lib/src/androidTest/res
-                ResourcesDirectoryUrls:
-                    file://./lib/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/androidTest/shaders
+        CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/test
                 AidlDirectoryUrls:
                     file://./lib/src/test/aidl
                 AssetsDirectoryUrls:
@@ -2373,28 +2979,11 @@ MODULE: lib
                     file://./lib/src/test/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/test/shaders
-            androidTestDebug (IDEA)
-                ManifestUrl:
-                    file://./lib/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./lib/src/androidTestDebug/aidl
-                AssetsDirectoryUrls:
-                    file://./lib/src/androidTestDebug/assets
-                JavaDirectoryUrls:
-                    file://./lib/src/androidTestDebug/java
-                JniLibsDirectoryUrls:
-                    file://./lib/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./lib/src/androidTestDebug/rs
-                ResDirectoryUrls:
-                    file://./lib/src/androidTestDebug/res
-                ResourcesDirectoryUrls:
-                    file://./lib/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./lib/src/androidTestDebug/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./lib/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/testDebug
                 AidlDirectoryUrls:
                     file://./lib/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -2411,13 +3000,60 @@ MODULE: lib
                     file://./lib/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./lib/src/testDebug/shaders
+        CurrentAndroidTestSourceProviders:
+            androidTest (IDEA)
+                ManifestFileUrls:
+                    file://./lib/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/androidTest
+                AidlDirectoryUrls:
+                    file://./lib/src/androidTest/aidl
+                AssetsDirectoryUrls:
+                    file://./lib/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./lib/src/androidTest/java
+                JniLibsDirectoryUrls:
+                    file://./lib/src/androidTest/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./lib/src/androidTest/rs
+                ResDirectoryUrls:
+                    file://./lib/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./lib/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./lib/src/androidTest/shaders
+            androidTestDebug (IDEA)
+                ManifestFileUrls:
+                    file://./lib/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./lib/src/androidTestDebug
+                AidlDirectoryUrls:
+                    file://./lib/src/androidTestDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./lib/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./lib/src/androidTestDebug/java
+                JniLibsDirectoryUrls:
+                    file://./lib/src/androidTestDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./lib/src/androidTestDebug/rs
+                ResDirectoryUrls:
+                    file://./lib/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./lib/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./lib/src/androidTestDebug/shaders
 MODULE: nested1
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./nested1/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./nested1/src/main/AndroidManifest.xml
+            ManifestDirectoryUrls:
+                file://./nested1/src/main
+            ManifestDirectories:
+                file://./nested1/src/main
             AidlDirectoryUrls:
                 file://./nested1/src/main/aidl
             AssetsDirectoryUrls:
@@ -2575,30 +3211,7 @@ MODULE: nested1
                     ./nested1/src/release/resources
                 ShadersDirectories:
                     ./nested1/src/release/shaders
-        Test:
-            androidTest
-                Manifest:
-                    ./nested1/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/src/androidTest/aidl
-                AssetsDirectories:
-                    ./nested1/src/androidTest/assets
-                CDirectories:
-                    ./nested1/src/androidTest/jni
-                CppDirectories:
-                    ./nested1/src/androidTest/jni
-                JavaDirectories:
-                    ./nested1/src/androidTest/java
-                JniLibsDirectories:
-                    ./nested1/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/src/androidTest/rs
-                ResDirectories:
-                    ./nested1/src/androidTest/res
-                ResourcesDirectories:
-                    ./nested1/src/androidTest/resources
-                ShadersDirectories:
-                    ./nested1/src/androidTest/shaders
+        UnitTest:
             test
                 Manifest:
                     ./nested1/src/test/AndroidManifest.xml
@@ -2622,29 +3235,6 @@ MODULE: nested1
                     ./nested1/src/test/resources
                 ShadersDirectories:
                     ./nested1/src/test/shaders
-            androidTestDebug
-                Manifest:
-                    ./nested1/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/src/androidTestDebug/aidl
-                AssetsDirectories:
-                    ./nested1/src/androidTestDebug/assets
-                CDirectories:
-                    ./nested1/src/androidTestDebug/jni
-                CppDirectories:
-                    ./nested1/src/androidTestDebug/jni
-                JavaDirectories:
-                    ./nested1/src/androidTestDebug/java
-                JniLibsDirectories:
-                    ./nested1/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/src/androidTestDebug/rs
-                ResDirectories:
-                    ./nested1/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./nested1/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./nested1/src/androidTestDebug/shaders
             testDebug
                 Manifest:
                     ./nested1/src/testDebug/AndroidManifest.xml
@@ -2668,15 +3258,166 @@ MODULE: nested1
                     ./nested1/src/testDebug/resources
                 ShadersDirectories:
                     ./nested1/src/testDebug/shaders
+        AndroidTest:
+            androidTest
+                Manifest:
+                    ./nested1/src/androidTest/AndroidManifest.xml
+                AidlDirectories:
+                    ./nested1/src/androidTest/aidl
+                AssetsDirectories:
+                    ./nested1/src/androidTest/assets
+                CDirectories:
+                    ./nested1/src/androidTest/jni
+                CppDirectories:
+                    ./nested1/src/androidTest/jni
+                JavaDirectories:
+                    ./nested1/src/androidTest/java
+                JniLibsDirectories:
+                    ./nested1/src/androidTest/jniLibs
+                RenderscriptDirectories:
+                    ./nested1/src/androidTest/rs
+                ResDirectories:
+                    ./nested1/src/androidTest/res
+                ResourcesDirectories:
+                    ./nested1/src/androidTest/resources
+                ShadersDirectories:
+                    ./nested1/src/androidTest/shaders
+            androidTestDebug
+                Manifest:
+                    ./nested1/src/androidTestDebug/AndroidManifest.xml
+                AidlDirectories:
+                    ./nested1/src/androidTestDebug/aidl
+                AssetsDirectories:
+                    ./nested1/src/androidTestDebug/assets
+                CDirectories:
+                    ./nested1/src/androidTestDebug/jni
+                CppDirectories:
+                    ./nested1/src/androidTestDebug/jni
+                JavaDirectories:
+                    ./nested1/src/androidTestDebug/java
+                JniLibsDirectories:
+                    ./nested1/src/androidTestDebug/jniLibs
+                RenderscriptDirectories:
+                    ./nested1/src/androidTestDebug/rs
+                ResDirectories:
+                    ./nested1/src/androidTestDebug/res
+                ResourcesDirectories:
+                    ./nested1/src/androidTestDebug/resources
+                ShadersDirectories:
+                    ./nested1/src/androidTestDebug/shaders
     by IdeaSourceProviders:
         Manifests:
             file://./nested1/src/main/AndroidManifest.xml
+        Sources:
+            Sources (IDEA)
+                ManifestFileUrls:
+                    file://./nested1/src/main/AndroidManifest.xml
+                    file://./nested1/src/debug/AndroidManifest.xml
+                ManifestFiles:
+                    file://./nested1/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/main
+                    file://./nested1/src/debug
+                ManifestDirectories:
+                    file://./nested1/src/main
+                AidlDirectoryUrls:
+                    file://./nested1/src/main/aidl
+                    file://./nested1/src/debug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested1/src/main/assets
+                    file://./nested1/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./nested1/src/main/java
+                    file://./nested1/src/debug/java
+                JniLibsDirectoryUrls:
+                    file://./nested1/src/main/jniLibs
+                    file://./nested1/src/debug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested1/src/main/rs
+                    file://./nested1/src/debug/rs
+                ResDirectoryUrls:
+                    file://./nested1/src/main/res
+                    file://./nested1/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/src/main/resources
+                    file://./nested1/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/src/main/shaders
+                    file://./nested1/src/debug/shaders
+        UnitTestSources:
+            UnitTestSources (IDEA)
+                ManifestFileUrls:
+                    file://./nested1/src/test/AndroidManifest.xml
+                    file://./nested1/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/test
+                    file://./nested1/src/testDebug
+                AidlDirectoryUrls:
+                    file://./nested1/src/test/aidl
+                    file://./nested1/src/testDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested1/src/test/assets
+                    file://./nested1/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested1/src/test/java
+                    file://./nested1/src/testDebug/java
+                JniLibsDirectoryUrls:
+                    file://./nested1/src/test/jniLibs
+                    file://./nested1/src/testDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested1/src/test/rs
+                    file://./nested1/src/testDebug/rs
+                ResDirectoryUrls:
+                    file://./nested1/src/test/res
+                    file://./nested1/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/src/test/resources
+                    file://./nested1/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/src/test/shaders
+                    file://./nested1/src/testDebug/shaders
+        AndroidTestSources:
+            AndroidTestSources (IDEA)
+                ManifestFileUrls:
+                    file://./nested1/src/androidTest/AndroidManifest.xml
+                    file://./nested1/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/androidTest
+                    file://./nested1/src/androidTestDebug
+                AidlDirectoryUrls:
+                    file://./nested1/src/androidTest/aidl
+                    file://./nested1/src/androidTestDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested1/src/androidTest/assets
+                    file://./nested1/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested1/src/androidTest/java
+                    file://./nested1/src/androidTestDebug/java
+                JniLibsDirectoryUrls:
+                    file://./nested1/src/androidTest/jniLibs
+                    file://./nested1/src/androidTestDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested1/src/androidTest/rs
+                    file://./nested1/src/androidTestDebug/rs
+                ResDirectoryUrls:
+                    file://./nested1/src/androidTest/res
+                    file://./nested1/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/src/androidTest/resources
+                    file://./nested1/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/src/androidTest/shaders
+                    file://./nested1/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested1/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/main
+                ManifestDirectories:
+                    file://./nested1/src/main
                 AidlDirectoryUrls:
                     file://./nested1/src/main/aidl
                 AssetsDirectoryUrls:
@@ -2694,8 +3435,10 @@ MODULE: nested1
                 ShadersDirectoryUrls:
                     file://./nested1/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/debug
                 AidlDirectoryUrls:
                     file://./nested1/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -2713,8 +3456,10 @@ MODULE: nested1
                 ShadersDirectoryUrls:
                     file://./nested1/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/release
                 AidlDirectoryUrls:
                     file://./nested1/src/release/aidl
                 AssetsDirectoryUrls:
@@ -2733,10 +3478,14 @@ MODULE: nested1
                     file://./nested1/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested1/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/main
+                ManifestDirectories:
+                    file://./nested1/src/main
                 AidlDirectoryUrls:
                     file://./nested1/src/main/aidl
                 AssetsDirectoryUrls:
@@ -2754,8 +3503,10 @@ MODULE: nested1
                 ShadersDirectoryUrls:
                     file://./nested1/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/debug
                 AidlDirectoryUrls:
                     file://./nested1/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -2772,29 +3523,12 @@ MODULE: nested1
                     file://./nested1/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./nested1/src/debug/shaders
-        CurrentTestSourceProviders:
-            androidTest (IDEA)
-                ManifestUrl:
-                    file://./nested1/src/androidTest/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./nested1/src/androidTest/aidl
-                AssetsDirectoryUrls:
-                    file://./nested1/src/androidTest/assets
-                JavaDirectoryUrls:
-                    file://./nested1/src/androidTest/java
-                JniLibsDirectoryUrls:
-                    file://./nested1/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/src/androidTest/rs
-                ResDirectoryUrls:
-                    file://./nested1/src/androidTest/res
-                ResourcesDirectoryUrls:
-                    file://./nested1/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/androidTest/shaders
+        CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/test
                 AidlDirectoryUrls:
                     file://./nested1/src/test/aidl
                 AssetsDirectoryUrls:
@@ -2811,28 +3545,11 @@ MODULE: nested1
                     file://./nested1/src/test/resources
                 ShadersDirectoryUrls:
                     file://./nested1/src/test/shaders
-            androidTestDebug (IDEA)
-                ManifestUrl:
-                    file://./nested1/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./nested1/src/androidTestDebug/aidl
-                AssetsDirectoryUrls:
-                    file://./nested1/src/androidTestDebug/assets
-                JavaDirectoryUrls:
-                    file://./nested1/src/androidTestDebug/java
-                JniLibsDirectoryUrls:
-                    file://./nested1/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/src/androidTestDebug/rs
-                ResDirectoryUrls:
-                    file://./nested1/src/androidTestDebug/res
-                ResourcesDirectoryUrls:
-                    file://./nested1/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/src/androidTestDebug/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/testDebug
                 AidlDirectoryUrls:
                     file://./nested1/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -2849,13 +3566,60 @@ MODULE: nested1
                     file://./nested1/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested1/src/testDebug/shaders
+        CurrentAndroidTestSourceProviders:
+            androidTest (IDEA)
+                ManifestFileUrls:
+                    file://./nested1/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/androidTest
+                AidlDirectoryUrls:
+                    file://./nested1/src/androidTest/aidl
+                AssetsDirectoryUrls:
+                    file://./nested1/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./nested1/src/androidTest/java
+                JniLibsDirectoryUrls:
+                    file://./nested1/src/androidTest/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested1/src/androidTest/rs
+                ResDirectoryUrls:
+                    file://./nested1/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/src/androidTest/shaders
+            androidTestDebug (IDEA)
+                ManifestFileUrls:
+                    file://./nested1/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/src/androidTestDebug
+                AidlDirectoryUrls:
+                    file://./nested1/src/androidTestDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested1/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested1/src/androidTestDebug/java
+                JniLibsDirectoryUrls:
+                    file://./nested1/src/androidTestDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested1/src/androidTestDebug/rs
+                ResDirectoryUrls:
+                    file://./nested1/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/src/androidTestDebug/shaders
 MODULE: nested1-deep
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./nested1/deep/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./nested1/deep/src/main/AndroidManifest.xml
+            ManifestDirectoryUrls:
+                file://./nested1/deep/src/main
+            ManifestDirectories:
+                file://./nested1/deep/src/main
             AidlDirectoryUrls:
                 file://./nested1/deep/src/main/aidl
             AssetsDirectoryUrls:
@@ -3013,30 +3777,7 @@ MODULE: nested1-deep
                     ./nested1/deep/src/release/resources
                 ShadersDirectories:
                     ./nested1/deep/src/release/shaders
-        Test:
-            androidTest
-                Manifest:
-                    ./nested1/deep/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/deep/src/androidTest/aidl
-                AssetsDirectories:
-                    ./nested1/deep/src/androidTest/assets
-                CDirectories:
-                    ./nested1/deep/src/androidTest/jni
-                CppDirectories:
-                    ./nested1/deep/src/androidTest/jni
-                JavaDirectories:
-                    ./nested1/deep/src/androidTest/java
-                JniLibsDirectories:
-                    ./nested1/deep/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/deep/src/androidTest/rs
-                ResDirectories:
-                    ./nested1/deep/src/androidTest/res
-                ResourcesDirectories:
-                    ./nested1/deep/src/androidTest/resources
-                ShadersDirectories:
-                    ./nested1/deep/src/androidTest/shaders
+        UnitTest:
             test
                 Manifest:
                     ./nested1/deep/src/test/AndroidManifest.xml
@@ -3060,29 +3801,6 @@ MODULE: nested1-deep
                     ./nested1/deep/src/test/resources
                 ShadersDirectories:
                     ./nested1/deep/src/test/shaders
-            androidTestDebug
-                Manifest:
-                    ./nested1/deep/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested1/deep/src/androidTestDebug/aidl
-                AssetsDirectories:
-                    ./nested1/deep/src/androidTestDebug/assets
-                CDirectories:
-                    ./nested1/deep/src/androidTestDebug/jni
-                CppDirectories:
-                    ./nested1/deep/src/androidTestDebug/jni
-                JavaDirectories:
-                    ./nested1/deep/src/androidTestDebug/java
-                JniLibsDirectories:
-                    ./nested1/deep/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested1/deep/src/androidTestDebug/rs
-                ResDirectories:
-                    ./nested1/deep/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./nested1/deep/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./nested1/deep/src/androidTestDebug/shaders
             testDebug
                 Manifest:
                     ./nested1/deep/src/testDebug/AndroidManifest.xml
@@ -3106,15 +3824,166 @@ MODULE: nested1-deep
                     ./nested1/deep/src/testDebug/resources
                 ShadersDirectories:
                     ./nested1/deep/src/testDebug/shaders
+        AndroidTest:
+            androidTest
+                Manifest:
+                    ./nested1/deep/src/androidTest/AndroidManifest.xml
+                AidlDirectories:
+                    ./nested1/deep/src/androidTest/aidl
+                AssetsDirectories:
+                    ./nested1/deep/src/androidTest/assets
+                CDirectories:
+                    ./nested1/deep/src/androidTest/jni
+                CppDirectories:
+                    ./nested1/deep/src/androidTest/jni
+                JavaDirectories:
+                    ./nested1/deep/src/androidTest/java
+                JniLibsDirectories:
+                    ./nested1/deep/src/androidTest/jniLibs
+                RenderscriptDirectories:
+                    ./nested1/deep/src/androidTest/rs
+                ResDirectories:
+                    ./nested1/deep/src/androidTest/res
+                ResourcesDirectories:
+                    ./nested1/deep/src/androidTest/resources
+                ShadersDirectories:
+                    ./nested1/deep/src/androidTest/shaders
+            androidTestDebug
+                Manifest:
+                    ./nested1/deep/src/androidTestDebug/AndroidManifest.xml
+                AidlDirectories:
+                    ./nested1/deep/src/androidTestDebug/aidl
+                AssetsDirectories:
+                    ./nested1/deep/src/androidTestDebug/assets
+                CDirectories:
+                    ./nested1/deep/src/androidTestDebug/jni
+                CppDirectories:
+                    ./nested1/deep/src/androidTestDebug/jni
+                JavaDirectories:
+                    ./nested1/deep/src/androidTestDebug/java
+                JniLibsDirectories:
+                    ./nested1/deep/src/androidTestDebug/jniLibs
+                RenderscriptDirectories:
+                    ./nested1/deep/src/androidTestDebug/rs
+                ResDirectories:
+                    ./nested1/deep/src/androidTestDebug/res
+                ResourcesDirectories:
+                    ./nested1/deep/src/androidTestDebug/resources
+                ShadersDirectories:
+                    ./nested1/deep/src/androidTestDebug/shaders
     by IdeaSourceProviders:
         Manifests:
             file://./nested1/deep/src/main/AndroidManifest.xml
+        Sources:
+            Sources (IDEA)
+                ManifestFileUrls:
+                    file://./nested1/deep/src/main/AndroidManifest.xml
+                    file://./nested1/deep/src/debug/AndroidManifest.xml
+                ManifestFiles:
+                    file://./nested1/deep/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/main
+                    file://./nested1/deep/src/debug
+                ManifestDirectories:
+                    file://./nested1/deep/src/main
+                AidlDirectoryUrls:
+                    file://./nested1/deep/src/main/aidl
+                    file://./nested1/deep/src/debug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested1/deep/src/main/assets
+                    file://./nested1/deep/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./nested1/deep/src/main/java
+                    file://./nested1/deep/src/debug/java
+                JniLibsDirectoryUrls:
+                    file://./nested1/deep/src/main/jniLibs
+                    file://./nested1/deep/src/debug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested1/deep/src/main/rs
+                    file://./nested1/deep/src/debug/rs
+                ResDirectoryUrls:
+                    file://./nested1/deep/src/main/res
+                    file://./nested1/deep/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/deep/src/main/resources
+                    file://./nested1/deep/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/deep/src/main/shaders
+                    file://./nested1/deep/src/debug/shaders
+        UnitTestSources:
+            UnitTestSources (IDEA)
+                ManifestFileUrls:
+                    file://./nested1/deep/src/test/AndroidManifest.xml
+                    file://./nested1/deep/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/test
+                    file://./nested1/deep/src/testDebug
+                AidlDirectoryUrls:
+                    file://./nested1/deep/src/test/aidl
+                    file://./nested1/deep/src/testDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested1/deep/src/test/assets
+                    file://./nested1/deep/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested1/deep/src/test/java
+                    file://./nested1/deep/src/testDebug/java
+                JniLibsDirectoryUrls:
+                    file://./nested1/deep/src/test/jniLibs
+                    file://./nested1/deep/src/testDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested1/deep/src/test/rs
+                    file://./nested1/deep/src/testDebug/rs
+                ResDirectoryUrls:
+                    file://./nested1/deep/src/test/res
+                    file://./nested1/deep/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/deep/src/test/resources
+                    file://./nested1/deep/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/deep/src/test/shaders
+                    file://./nested1/deep/src/testDebug/shaders
+        AndroidTestSources:
+            AndroidTestSources (IDEA)
+                ManifestFileUrls:
+                    file://./nested1/deep/src/androidTest/AndroidManifest.xml
+                    file://./nested1/deep/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/androidTest
+                    file://./nested1/deep/src/androidTestDebug
+                AidlDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/aidl
+                    file://./nested1/deep/src/androidTestDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/assets
+                    file://./nested1/deep/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/java
+                    file://./nested1/deep/src/androidTestDebug/java
+                JniLibsDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/jniLibs
+                    file://./nested1/deep/src/androidTestDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/rs
+                    file://./nested1/deep/src/androidTestDebug/rs
+                ResDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/res
+                    file://./nested1/deep/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/resources
+                    file://./nested1/deep/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/shaders
+                    file://./nested1/deep/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/deep/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested1/deep/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/main
+                ManifestDirectories:
+                    file://./nested1/deep/src/main
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/main/aidl
                 AssetsDirectoryUrls:
@@ -3132,8 +4001,10 @@ MODULE: nested1-deep
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/deep/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/debug
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -3151,8 +4022,10 @@ MODULE: nested1-deep
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/deep/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/release
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/release/aidl
                 AssetsDirectoryUrls:
@@ -3171,10 +4044,14 @@ MODULE: nested1-deep
                     file://./nested1/deep/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/deep/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested1/deep/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/main
+                ManifestDirectories:
+                    file://./nested1/deep/src/main
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/main/aidl
                 AssetsDirectoryUrls:
@@ -3192,8 +4069,10 @@ MODULE: nested1-deep
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/deep/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/debug
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -3210,29 +4089,12 @@ MODULE: nested1-deep
                     file://./nested1/deep/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/debug/shaders
-        CurrentTestSourceProviders:
-            androidTest (IDEA)
-                ManifestUrl:
-                    file://./nested1/deep/src/androidTest/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./nested1/deep/src/androidTest/aidl
-                AssetsDirectoryUrls:
-                    file://./nested1/deep/src/androidTest/assets
-                JavaDirectoryUrls:
-                    file://./nested1/deep/src/androidTest/java
-                JniLibsDirectoryUrls:
-                    file://./nested1/deep/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/deep/src/androidTest/rs
-                ResDirectoryUrls:
-                    file://./nested1/deep/src/androidTest/res
-                ResourcesDirectoryUrls:
-                    file://./nested1/deep/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/androidTest/shaders
+        CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/deep/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/test
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/test/aidl
                 AssetsDirectoryUrls:
@@ -3249,28 +4111,11 @@ MODULE: nested1-deep
                     file://./nested1/deep/src/test/resources
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/test/shaders
-            androidTestDebug (IDEA)
-                ManifestUrl:
-                    file://./nested1/deep/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./nested1/deep/src/androidTestDebug/aidl
-                AssetsDirectoryUrls:
-                    file://./nested1/deep/src/androidTestDebug/assets
-                JavaDirectoryUrls:
-                    file://./nested1/deep/src/androidTestDebug/java
-                JniLibsDirectoryUrls:
-                    file://./nested1/deep/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested1/deep/src/androidTestDebug/rs
-                ResDirectoryUrls:
-                    file://./nested1/deep/src/androidTestDebug/res
-                ResourcesDirectoryUrls:
-                    file://./nested1/deep/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested1/deep/src/androidTestDebug/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested1/deep/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/testDebug
                 AidlDirectoryUrls:
                     file://./nested1/deep/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -3287,13 +4132,60 @@ MODULE: nested1-deep
                     file://./nested1/deep/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested1/deep/src/testDebug/shaders
+        CurrentAndroidTestSourceProviders:
+            androidTest (IDEA)
+                ManifestFileUrls:
+                    file://./nested1/deep/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/androidTest
+                AidlDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/aidl
+                AssetsDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/java
+                JniLibsDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/rs
+                ResDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/deep/src/androidTest/shaders
+            androidTestDebug (IDEA)
+                ManifestFileUrls:
+                    file://./nested1/deep/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested1/deep/src/androidTestDebug
+                AidlDirectoryUrls:
+                    file://./nested1/deep/src/androidTestDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested1/deep/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested1/deep/src/androidTestDebug/java
+                JniLibsDirectoryUrls:
+                    file://./nested1/deep/src/androidTestDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested1/deep/src/androidTestDebug/rs
+                ResDirectoryUrls:
+                    file://./nested1/deep/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested1/deep/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested1/deep/src/androidTestDebug/shaders
 MODULE: nested2
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./nested2/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./nested2/src/main/AndroidManifest.xml
+            ManifestDirectoryUrls:
+                file://./nested2/src/main
+            ManifestDirectories:
+                file://./nested2/src/main
             AidlDirectoryUrls:
                 file://./nested2/src/main/aidl
             AssetsDirectoryUrls:
@@ -3566,30 +4458,7 @@ MODULE: nested2
                     ./nested2/src/basicDebug/resources
                 ShadersDirectories:
                     ./nested2/src/basicDebug/shaders
-        Test:
-            androidTest
-                Manifest:
-                    ./nested2/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/androidTest/aidl
-                AssetsDirectories:
-                    ./nested2/src/androidTest/assets
-                CDirectories:
-                    ./nested2/src/androidTest/jni
-                CppDirectories:
-                    ./nested2/src/androidTest/jni
-                JavaDirectories:
-                    ./nested2/src/androidTest/java
-                JniLibsDirectories:
-                    ./nested2/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/androidTest/rs
-                ResDirectories:
-                    ./nested2/src/androidTest/res
-                ResourcesDirectories:
-                    ./nested2/src/androidTest/resources
-                ShadersDirectories:
-                    ./nested2/src/androidTest/shaders
+        UnitTest:
             test
                 Manifest:
                     ./nested2/src/test/AndroidManifest.xml
@@ -3613,29 +4482,6 @@ MODULE: nested2
                     ./nested2/src/test/resources
                 ShadersDirectories:
                     ./nested2/src/test/shaders
-            androidTestBasic
-                Manifest:
-                    ./nested2/src/androidTestBasic/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/androidTestBasic/aidl
-                AssetsDirectories:
-                    ./nested2/src/androidTestBasic/assets
-                CDirectories:
-                    ./nested2/src/androidTestBasic/jni
-                CppDirectories:
-                    ./nested2/src/androidTestBasic/jni
-                JavaDirectories:
-                    ./nested2/src/androidTestBasic/java
-                JniLibsDirectories:
-                    ./nested2/src/androidTestBasic/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/androidTestBasic/rs
-                ResDirectories:
-                    ./nested2/src/androidTestBasic/res
-                ResourcesDirectories:
-                    ./nested2/src/androidTestBasic/resources
-                ShadersDirectories:
-                    ./nested2/src/androidTestBasic/shaders
             testBasic
                 Manifest:
                     ./nested2/src/testBasic/AndroidManifest.xml
@@ -3659,29 +4505,6 @@ MODULE: nested2
                     ./nested2/src/testBasic/resources
                 ShadersDirectories:
                     ./nested2/src/testBasic/shaders
-            androidTestDebug
-                Manifest:
-                    ./nested2/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/src/androidTestDebug/aidl
-                AssetsDirectories:
-                    ./nested2/src/androidTestDebug/assets
-                CDirectories:
-                    ./nested2/src/androidTestDebug/jni
-                CppDirectories:
-                    ./nested2/src/androidTestDebug/jni
-                JavaDirectories:
-                    ./nested2/src/androidTestDebug/java
-                JniLibsDirectories:
-                    ./nested2/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/src/androidTestDebug/rs
-                ResDirectories:
-                    ./nested2/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./nested2/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./nested2/src/androidTestDebug/shaders
             testDebug
                 Manifest:
                     ./nested2/src/testDebug/AndroidManifest.xml
@@ -3705,15 +4528,229 @@ MODULE: nested2
                     ./nested2/src/testDebug/resources
                 ShadersDirectories:
                     ./nested2/src/testDebug/shaders
+        AndroidTest:
+            androidTest
+                Manifest:
+                    ./nested2/src/androidTest/AndroidManifest.xml
+                AidlDirectories:
+                    ./nested2/src/androidTest/aidl
+                AssetsDirectories:
+                    ./nested2/src/androidTest/assets
+                CDirectories:
+                    ./nested2/src/androidTest/jni
+                CppDirectories:
+                    ./nested2/src/androidTest/jni
+                JavaDirectories:
+                    ./nested2/src/androidTest/java
+                JniLibsDirectories:
+                    ./nested2/src/androidTest/jniLibs
+                RenderscriptDirectories:
+                    ./nested2/src/androidTest/rs
+                ResDirectories:
+                    ./nested2/src/androidTest/res
+                ResourcesDirectories:
+                    ./nested2/src/androidTest/resources
+                ShadersDirectories:
+                    ./nested2/src/androidTest/shaders
+            androidTestBasic
+                Manifest:
+                    ./nested2/src/androidTestBasic/AndroidManifest.xml
+                AidlDirectories:
+                    ./nested2/src/androidTestBasic/aidl
+                AssetsDirectories:
+                    ./nested2/src/androidTestBasic/assets
+                CDirectories:
+                    ./nested2/src/androidTestBasic/jni
+                CppDirectories:
+                    ./nested2/src/androidTestBasic/jni
+                JavaDirectories:
+                    ./nested2/src/androidTestBasic/java
+                JniLibsDirectories:
+                    ./nested2/src/androidTestBasic/jniLibs
+                RenderscriptDirectories:
+                    ./nested2/src/androidTestBasic/rs
+                ResDirectories:
+                    ./nested2/src/androidTestBasic/res
+                ResourcesDirectories:
+                    ./nested2/src/androidTestBasic/resources
+                ShadersDirectories:
+                    ./nested2/src/androidTestBasic/shaders
+            androidTestDebug
+                Manifest:
+                    ./nested2/src/androidTestDebug/AndroidManifest.xml
+                AidlDirectories:
+                    ./nested2/src/androidTestDebug/aidl
+                AssetsDirectories:
+                    ./nested2/src/androidTestDebug/assets
+                CDirectories:
+                    ./nested2/src/androidTestDebug/jni
+                CppDirectories:
+                    ./nested2/src/androidTestDebug/jni
+                JavaDirectories:
+                    ./nested2/src/androidTestDebug/java
+                JniLibsDirectories:
+                    ./nested2/src/androidTestDebug/jniLibs
+                RenderscriptDirectories:
+                    ./nested2/src/androidTestDebug/rs
+                ResDirectories:
+                    ./nested2/src/androidTestDebug/res
+                ResourcesDirectories:
+                    ./nested2/src/androidTestDebug/resources
+                ShadersDirectories:
+                    ./nested2/src/androidTestDebug/shaders
     by IdeaSourceProviders:
         Manifests:
             file://./nested2/src/main/AndroidManifest.xml
+        Sources:
+            Sources (IDEA)
+                ManifestFileUrls:
+                    file://./nested2/src/main/AndroidManifest.xml
+                    file://./nested2/src/basic/AndroidManifest.xml
+                    file://./nested2/src/debug/AndroidManifest.xml
+                    file://./nested2/src/basicDebug/AndroidManifest.xml
+                ManifestFiles:
+                    file://./nested2/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/main
+                    file://./nested2/src/basic
+                    file://./nested2/src/debug
+                    file://./nested2/src/basicDebug
+                ManifestDirectories:
+                    file://./nested2/src/main
+                AidlDirectoryUrls:
+                    file://./nested2/src/main/aidl
+                    file://./nested2/src/basic/aidl
+                    file://./nested2/src/debug/aidl
+                    file://./nested2/src/basicDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/src/main/assets
+                    file://./nested2/src/basic/assets
+                    file://./nested2/src/debug/assets
+                    file://./nested2/src/basicDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/main/java
+                    file://./nested2/src/basic/java
+                    file://./nested2/src/debug/java
+                    file://./nested2/src/basicDebug/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/main/jniLibs
+                    file://./nested2/src/basic/jniLibs
+                    file://./nested2/src/debug/jniLibs
+                    file://./nested2/src/basicDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/src/main/rs
+                    file://./nested2/src/basic/rs
+                    file://./nested2/src/debug/rs
+                    file://./nested2/src/basicDebug/rs
+                ResDirectoryUrls:
+                    file://./nested2/src/main/res
+                    file://./nested2/src/basic/res
+                    file://./nested2/src/debug/res
+                    file://./nested2/src/basicDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/main/resources
+                    file://./nested2/src/basic/resources
+                    file://./nested2/src/debug/resources
+                    file://./nested2/src/basicDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/main/shaders
+                    file://./nested2/src/basic/shaders
+                    file://./nested2/src/debug/shaders
+                    file://./nested2/src/basicDebug/shaders
+        UnitTestSources:
+            UnitTestSources (IDEA)
+                ManifestFileUrls:
+                    file://./nested2/src/test/AndroidManifest.xml
+                    file://./nested2/src/testBasic/AndroidManifest.xml
+                    file://./nested2/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/test
+                    file://./nested2/src/testBasic
+                    file://./nested2/src/testDebug
+                AidlDirectoryUrls:
+                    file://./nested2/src/test/aidl
+                    file://./nested2/src/testBasic/aidl
+                    file://./nested2/src/testDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/src/test/assets
+                    file://./nested2/src/testBasic/assets
+                    file://./nested2/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/test/java
+                    file://./nested2/src/testBasic/java
+                    file://./nested2/src/testDebug/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/test/jniLibs
+                    file://./nested2/src/testBasic/jniLibs
+                    file://./nested2/src/testDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/src/test/rs
+                    file://./nested2/src/testBasic/rs
+                    file://./nested2/src/testDebug/rs
+                ResDirectoryUrls:
+                    file://./nested2/src/test/res
+                    file://./nested2/src/testBasic/res
+                    file://./nested2/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/test/resources
+                    file://./nested2/src/testBasic/resources
+                    file://./nested2/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/test/shaders
+                    file://./nested2/src/testBasic/shaders
+                    file://./nested2/src/testDebug/shaders
+        AndroidTestSources:
+            AndroidTestSources (IDEA)
+                ManifestFileUrls:
+                    file://./nested2/src/androidTest/AndroidManifest.xml
+                    file://./nested2/src/androidTestBasic/AndroidManifest.xml
+                    file://./nested2/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/androidTest
+                    file://./nested2/src/androidTestBasic
+                    file://./nested2/src/androidTestDebug
+                AidlDirectoryUrls:
+                    file://./nested2/src/androidTest/aidl
+                    file://./nested2/src/androidTestBasic/aidl
+                    file://./nested2/src/androidTestDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/src/androidTest/assets
+                    file://./nested2/src/androidTestBasic/assets
+                    file://./nested2/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/androidTest/java
+                    file://./nested2/src/androidTestBasic/java
+                    file://./nested2/src/androidTestDebug/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/androidTest/jniLibs
+                    file://./nested2/src/androidTestBasic/jniLibs
+                    file://./nested2/src/androidTestDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/src/androidTest/rs
+                    file://./nested2/src/androidTestBasic/rs
+                    file://./nested2/src/androidTestDebug/rs
+                ResDirectoryUrls:
+                    file://./nested2/src/androidTest/res
+                    file://./nested2/src/androidTestBasic/res
+                    file://./nested2/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/androidTest/resources
+                    file://./nested2/src/androidTestBasic/resources
+                    file://./nested2/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/androidTest/shaders
+                    file://./nested2/src/androidTestBasic/shaders
+                    file://./nested2/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested2/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/main
+                ManifestDirectories:
+                    file://./nested2/src/main
                 AidlDirectoryUrls:
                     file://./nested2/src/main/aidl
                 AssetsDirectoryUrls:
@@ -3731,8 +4768,10 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/main/shaders
             paid (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/paid/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/paid
                 AidlDirectoryUrls:
                     file://./nested2/src/paid/aidl
                 AssetsDirectoryUrls:
@@ -3750,8 +4789,10 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/paid/shaders
             basic (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/basic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/basic
                 AidlDirectoryUrls:
                     file://./nested2/src/basic/aidl
                 AssetsDirectoryUrls:
@@ -3769,8 +4810,10 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/basic/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/debug
                 AidlDirectoryUrls:
                     file://./nested2/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -3788,8 +4831,10 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/release
                 AidlDirectoryUrls:
                     file://./nested2/src/release/aidl
                 AssetsDirectoryUrls:
@@ -3807,8 +4852,10 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/release/shaders
             basicDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/basicDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/basicDebug
                 AidlDirectoryUrls:
                     file://./nested2/src/basicDebug/aidl
                 AssetsDirectoryUrls:
@@ -3827,10 +4874,14 @@ MODULE: nested2
                     file://./nested2/src/basicDebug/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested2/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/main
+                ManifestDirectories:
+                    file://./nested2/src/main
                 AidlDirectoryUrls:
                     file://./nested2/src/main/aidl
                 AssetsDirectoryUrls:
@@ -3848,8 +4899,10 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/main/shaders
             basic (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/basic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/basic
                 AidlDirectoryUrls:
                     file://./nested2/src/basic/aidl
                 AssetsDirectoryUrls:
@@ -3867,8 +4920,10 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/basic/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/debug
                 AidlDirectoryUrls:
                     file://./nested2/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -3886,8 +4941,10 @@ MODULE: nested2
                 ShadersDirectoryUrls:
                     file://./nested2/src/debug/shaders
             basicDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/basicDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/basicDebug
                 AidlDirectoryUrls:
                     file://./nested2/src/basicDebug/aidl
                 AssetsDirectoryUrls:
@@ -3904,29 +4961,12 @@ MODULE: nested2
                     file://./nested2/src/basicDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/basicDebug/shaders
-        CurrentTestSourceProviders:
-            androidTest (IDEA)
-                ManifestUrl:
-                    file://./nested2/src/androidTest/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./nested2/src/androidTest/aidl
-                AssetsDirectoryUrls:
-                    file://./nested2/src/androidTest/assets
-                JavaDirectoryUrls:
-                    file://./nested2/src/androidTest/java
-                JniLibsDirectoryUrls:
-                    file://./nested2/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/androidTest/rs
-                ResDirectoryUrls:
-                    file://./nested2/src/androidTest/res
-                ResourcesDirectoryUrls:
-                    file://./nested2/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/androidTest/shaders
+        CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/test
                 AidlDirectoryUrls:
                     file://./nested2/src/test/aidl
                 AssetsDirectoryUrls:
@@ -3943,28 +4983,11 @@ MODULE: nested2
                     file://./nested2/src/test/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/test/shaders
-            androidTestBasic (IDEA)
-                ManifestUrl:
-                    file://./nested2/src/androidTestBasic/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./nested2/src/androidTestBasic/aidl
-                AssetsDirectoryUrls:
-                    file://./nested2/src/androidTestBasic/assets
-                JavaDirectoryUrls:
-                    file://./nested2/src/androidTestBasic/java
-                JniLibsDirectoryUrls:
-                    file://./nested2/src/androidTestBasic/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/androidTestBasic/rs
-                ResDirectoryUrls:
-                    file://./nested2/src/androidTestBasic/res
-                ResourcesDirectoryUrls:
-                    file://./nested2/src/androidTestBasic/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/androidTestBasic/shaders
             testBasic (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/testBasic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/testBasic
                 AidlDirectoryUrls:
                     file://./nested2/src/testBasic/aidl
                 AssetsDirectoryUrls:
@@ -3981,28 +5004,11 @@ MODULE: nested2
                     file://./nested2/src/testBasic/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/testBasic/shaders
-            androidTestDebug (IDEA)
-                ManifestUrl:
-                    file://./nested2/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./nested2/src/androidTestDebug/aidl
-                AssetsDirectoryUrls:
-                    file://./nested2/src/androidTestDebug/assets
-                JavaDirectoryUrls:
-                    file://./nested2/src/androidTestDebug/java
-                JniLibsDirectoryUrls:
-                    file://./nested2/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/src/androidTestDebug/rs
-                ResDirectoryUrls:
-                    file://./nested2/src/androidTestDebug/res
-                ResourcesDirectoryUrls:
-                    file://./nested2/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/src/androidTestDebug/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/testDebug
                 AidlDirectoryUrls:
                     file://./nested2/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -4019,13 +5025,81 @@ MODULE: nested2
                     file://./nested2/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/src/testDebug/shaders
+        CurrentAndroidTestSourceProviders:
+            androidTest (IDEA)
+                ManifestFileUrls:
+                    file://./nested2/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/androidTest
+                AidlDirectoryUrls:
+                    file://./nested2/src/androidTest/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/androidTest/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/androidTest/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/src/androidTest/rs
+                ResDirectoryUrls:
+                    file://./nested2/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/androidTest/shaders
+            androidTestBasic (IDEA)
+                ManifestFileUrls:
+                    file://./nested2/src/androidTestBasic/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/androidTestBasic
+                AidlDirectoryUrls:
+                    file://./nested2/src/androidTestBasic/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/src/androidTestBasic/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/androidTestBasic/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/androidTestBasic/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/src/androidTestBasic/rs
+                ResDirectoryUrls:
+                    file://./nested2/src/androidTestBasic/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/androidTestBasic/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/androidTestBasic/shaders
+            androidTestDebug (IDEA)
+                ManifestFileUrls:
+                    file://./nested2/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/src/androidTestDebug
+                AidlDirectoryUrls:
+                    file://./nested2/src/androidTestDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/src/androidTestDebug/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/src/androidTestDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/src/androidTestDebug/rs
+                ResDirectoryUrls:
+                    file://./nested2/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/src/androidTestDebug/shaders
 MODULE: nested2-deep
     by Facet:
         main (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./nested2/deep/src/main/AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./nested2/deep/src/main/AndroidManifest.xml
+            ManifestDirectoryUrls:
+                file://./nested2/deep/src/main
+            ManifestDirectories:
+                file://./nested2/deep/src/main
             AidlDirectoryUrls:
                 file://./nested2/deep/src/main/aidl
             AssetsDirectoryUrls:
@@ -4183,30 +5257,7 @@ MODULE: nested2-deep
                     ./nested2/deep/src/release/resources
                 ShadersDirectories:
                     ./nested2/deep/src/release/shaders
-        Test:
-            androidTest
-                Manifest:
-                    ./nested2/deep/src/androidTest/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/deep/src/androidTest/aidl
-                AssetsDirectories:
-                    ./nested2/deep/src/androidTest/assets
-                CDirectories:
-                    ./nested2/deep/src/androidTest/jni
-                CppDirectories:
-                    ./nested2/deep/src/androidTest/jni
-                JavaDirectories:
-                    ./nested2/deep/src/androidTest/java
-                JniLibsDirectories:
-                    ./nested2/deep/src/androidTest/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/deep/src/androidTest/rs
-                ResDirectories:
-                    ./nested2/deep/src/androidTest/res
-                ResourcesDirectories:
-                    ./nested2/deep/src/androidTest/resources
-                ShadersDirectories:
-                    ./nested2/deep/src/androidTest/shaders
+        UnitTest:
             test
                 Manifest:
                     ./nested2/deep/src/test/AndroidManifest.xml
@@ -4230,29 +5281,6 @@ MODULE: nested2-deep
                     ./nested2/deep/src/test/resources
                 ShadersDirectories:
                     ./nested2/deep/src/test/shaders
-            androidTestDebug
-                Manifest:
-                    ./nested2/deep/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectories:
-                    ./nested2/deep/src/androidTestDebug/aidl
-                AssetsDirectories:
-                    ./nested2/deep/src/androidTestDebug/assets
-                CDirectories:
-                    ./nested2/deep/src/androidTestDebug/jni
-                CppDirectories:
-                    ./nested2/deep/src/androidTestDebug/jni
-                JavaDirectories:
-                    ./nested2/deep/src/androidTestDebug/java
-                JniLibsDirectories:
-                    ./nested2/deep/src/androidTestDebug/jniLibs
-                RenderscriptDirectories:
-                    ./nested2/deep/src/androidTestDebug/rs
-                ResDirectories:
-                    ./nested2/deep/src/androidTestDebug/res
-                ResourcesDirectories:
-                    ./nested2/deep/src/androidTestDebug/resources
-                ShadersDirectories:
-                    ./nested2/deep/src/androidTestDebug/shaders
             testDebug
                 Manifest:
                     ./nested2/deep/src/testDebug/AndroidManifest.xml
@@ -4276,15 +5304,166 @@ MODULE: nested2-deep
                     ./nested2/deep/src/testDebug/resources
                 ShadersDirectories:
                     ./nested2/deep/src/testDebug/shaders
+        AndroidTest:
+            androidTest
+                Manifest:
+                    ./nested2/deep/src/androidTest/AndroidManifest.xml
+                AidlDirectories:
+                    ./nested2/deep/src/androidTest/aidl
+                AssetsDirectories:
+                    ./nested2/deep/src/androidTest/assets
+                CDirectories:
+                    ./nested2/deep/src/androidTest/jni
+                CppDirectories:
+                    ./nested2/deep/src/androidTest/jni
+                JavaDirectories:
+                    ./nested2/deep/src/androidTest/java
+                JniLibsDirectories:
+                    ./nested2/deep/src/androidTest/jniLibs
+                RenderscriptDirectories:
+                    ./nested2/deep/src/androidTest/rs
+                ResDirectories:
+                    ./nested2/deep/src/androidTest/res
+                ResourcesDirectories:
+                    ./nested2/deep/src/androidTest/resources
+                ShadersDirectories:
+                    ./nested2/deep/src/androidTest/shaders
+            androidTestDebug
+                Manifest:
+                    ./nested2/deep/src/androidTestDebug/AndroidManifest.xml
+                AidlDirectories:
+                    ./nested2/deep/src/androidTestDebug/aidl
+                AssetsDirectories:
+                    ./nested2/deep/src/androidTestDebug/assets
+                CDirectories:
+                    ./nested2/deep/src/androidTestDebug/jni
+                CppDirectories:
+                    ./nested2/deep/src/androidTestDebug/jni
+                JavaDirectories:
+                    ./nested2/deep/src/androidTestDebug/java
+                JniLibsDirectories:
+                    ./nested2/deep/src/androidTestDebug/jniLibs
+                RenderscriptDirectories:
+                    ./nested2/deep/src/androidTestDebug/rs
+                ResDirectories:
+                    ./nested2/deep/src/androidTestDebug/res
+                ResourcesDirectories:
+                    ./nested2/deep/src/androidTestDebug/resources
+                ShadersDirectories:
+                    ./nested2/deep/src/androidTestDebug/shaders
     by IdeaSourceProviders:
         Manifests:
             file://./nested2/deep/src/main/AndroidManifest.xml
+        Sources:
+            Sources (IDEA)
+                ManifestFileUrls:
+                    file://./nested2/deep/src/main/AndroidManifest.xml
+                    file://./nested2/deep/src/debug/AndroidManifest.xml
+                ManifestFiles:
+                    file://./nested2/deep/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/main
+                    file://./nested2/deep/src/debug
+                ManifestDirectories:
+                    file://./nested2/deep/src/main
+                AidlDirectoryUrls:
+                    file://./nested2/deep/src/main/aidl
+                    file://./nested2/deep/src/debug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/deep/src/main/assets
+                    file://./nested2/deep/src/debug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/deep/src/main/java
+                    file://./nested2/deep/src/debug/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/deep/src/main/jniLibs
+                    file://./nested2/deep/src/debug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/deep/src/main/rs
+                    file://./nested2/deep/src/debug/rs
+                ResDirectoryUrls:
+                    file://./nested2/deep/src/main/res
+                    file://./nested2/deep/src/debug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/deep/src/main/resources
+                    file://./nested2/deep/src/debug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/deep/src/main/shaders
+                    file://./nested2/deep/src/debug/shaders
+        UnitTestSources:
+            UnitTestSources (IDEA)
+                ManifestFileUrls:
+                    file://./nested2/deep/src/test/AndroidManifest.xml
+                    file://./nested2/deep/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/test
+                    file://./nested2/deep/src/testDebug
+                AidlDirectoryUrls:
+                    file://./nested2/deep/src/test/aidl
+                    file://./nested2/deep/src/testDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/deep/src/test/assets
+                    file://./nested2/deep/src/testDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/deep/src/test/java
+                    file://./nested2/deep/src/testDebug/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/deep/src/test/jniLibs
+                    file://./nested2/deep/src/testDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/deep/src/test/rs
+                    file://./nested2/deep/src/testDebug/rs
+                ResDirectoryUrls:
+                    file://./nested2/deep/src/test/res
+                    file://./nested2/deep/src/testDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/deep/src/test/resources
+                    file://./nested2/deep/src/testDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/deep/src/test/shaders
+                    file://./nested2/deep/src/testDebug/shaders
+        AndroidTestSources:
+            AndroidTestSources (IDEA)
+                ManifestFileUrls:
+                    file://./nested2/deep/src/androidTest/AndroidManifest.xml
+                    file://./nested2/deep/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/androidTest
+                    file://./nested2/deep/src/androidTestDebug
+                AidlDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/aidl
+                    file://./nested2/deep/src/androidTestDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/assets
+                    file://./nested2/deep/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/java
+                    file://./nested2/deep/src/androidTestDebug/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/jniLibs
+                    file://./nested2/deep/src/androidTestDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/rs
+                    file://./nested2/deep/src/androidTestDebug/rs
+                ResDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/res
+                    file://./nested2/deep/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/resources
+                    file://./nested2/deep/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/shaders
+                    file://./nested2/deep/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/deep/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested2/deep/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/main
+                ManifestDirectories:
+                    file://./nested2/deep/src/main
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/main/aidl
                 AssetsDirectoryUrls:
@@ -4302,8 +5481,10 @@ MODULE: nested2-deep
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/deep/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/debug
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -4321,8 +5502,10 @@ MODULE: nested2-deep
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/debug/shaders
             release (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/deep/src/release/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/release
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/release/aidl
                 AssetsDirectoryUrls:
@@ -4341,10 +5524,14 @@ MODULE: nested2-deep
                     file://./nested2/deep/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/deep/src/main/AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./nested2/deep/src/main/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/main
+                ManifestDirectories:
+                    file://./nested2/deep/src/main
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/main/aidl
                 AssetsDirectoryUrls:
@@ -4362,8 +5549,10 @@ MODULE: nested2-deep
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/main/shaders
             debug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/deep/src/debug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/debug
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/debug/aidl
                 AssetsDirectoryUrls:
@@ -4380,29 +5569,12 @@ MODULE: nested2-deep
                     file://./nested2/deep/src/debug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/debug/shaders
-        CurrentTestSourceProviders:
-            androidTest (IDEA)
-                ManifestUrl:
-                    file://./nested2/deep/src/androidTest/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./nested2/deep/src/androidTest/aidl
-                AssetsDirectoryUrls:
-                    file://./nested2/deep/src/androidTest/assets
-                JavaDirectoryUrls:
-                    file://./nested2/deep/src/androidTest/java
-                JniLibsDirectoryUrls:
-                    file://./nested2/deep/src/androidTest/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/deep/src/androidTest/rs
-                ResDirectoryUrls:
-                    file://./nested2/deep/src/androidTest/res
-                ResourcesDirectoryUrls:
-                    file://./nested2/deep/src/androidTest/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/androidTest/shaders
+        CurrentUnitTestSourceProviders:
             test (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/deep/src/test/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/test
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/test/aidl
                 AssetsDirectoryUrls:
@@ -4419,28 +5591,11 @@ MODULE: nested2-deep
                     file://./nested2/deep/src/test/resources
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/test/shaders
-            androidTestDebug (IDEA)
-                ManifestUrl:
-                    file://./nested2/deep/src/androidTestDebug/AndroidManifest.xml
-                AidlDirectoryUrls:
-                    file://./nested2/deep/src/androidTestDebug/aidl
-                AssetsDirectoryUrls:
-                    file://./nested2/deep/src/androidTestDebug/assets
-                JavaDirectoryUrls:
-                    file://./nested2/deep/src/androidTestDebug/java
-                JniLibsDirectoryUrls:
-                    file://./nested2/deep/src/androidTestDebug/jniLibs
-                RenderscriptDirectoryUrls:
-                    file://./nested2/deep/src/androidTestDebug/rs
-                ResDirectoryUrls:
-                    file://./nested2/deep/src/androidTestDebug/res
-                ResourcesDirectoryUrls:
-                    file://./nested2/deep/src/androidTestDebug/resources
-                ShadersDirectoryUrls:
-                    file://./nested2/deep/src/androidTestDebug/shaders
             testDebug (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./nested2/deep/src/testDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/testDebug
                 AidlDirectoryUrls:
                     file://./nested2/deep/src/testDebug/aidl
                 AssetsDirectoryUrls:
@@ -4457,5 +5612,48 @@ MODULE: nested2-deep
                     file://./nested2/deep/src/testDebug/resources
                 ShadersDirectoryUrls:
                     file://./nested2/deep/src/testDebug/shaders
+        CurrentAndroidTestSourceProviders:
+            androidTest (IDEA)
+                ManifestFileUrls:
+                    file://./nested2/deep/src/androidTest/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/androidTest
+                AidlDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/assets
+                JavaDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/rs
+                ResDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/deep/src/androidTest/shaders
+            androidTestDebug (IDEA)
+                ManifestFileUrls:
+                    file://./nested2/deep/src/androidTestDebug/AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://./nested2/deep/src/androidTestDebug
+                AidlDirectoryUrls:
+                    file://./nested2/deep/src/androidTestDebug/aidl
+                AssetsDirectoryUrls:
+                    file://./nested2/deep/src/androidTestDebug/assets
+                JavaDirectoryUrls:
+                    file://./nested2/deep/src/androidTestDebug/java
+                JniLibsDirectoryUrls:
+                    file://./nested2/deep/src/androidTestDebug/jniLibs
+                RenderscriptDirectoryUrls:
+                    file://./nested2/deep/src/androidTestDebug/rs
+                ResDirectoryUrls:
+                    file://./nested2/deep/src/androidTestDebug/res
+                ResourcesDirectoryUrls:
+                    file://./nested2/deep/src/androidTestDebug/resources
+                ShadersDirectoryUrls:
+                    file://./nested2/deep/src/androidTestDebug/shaders
 MODULE: testNestedProjects
 MODULE: trans

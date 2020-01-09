@@ -42,6 +42,10 @@ open class TemplateTest : TemplateTestBase() {
     templateMap[COMPARE_NEW_RENDERING_CONTEXT] = true
   }
 
+  private val withThingsLauncher = { templateMap: MutableMap<String, Any>, _: MutableMap<String, Any> ->
+    templateMap["isThingsLauncher"] = true
+  }
+
   private fun withNewLocation(location: String) = { templateMap: MutableMap<String, Any>, _: MutableMap<String, Any> ->
     templateMap["newLocation"] = location
   }
@@ -90,6 +94,18 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewProjectWithThingsActivityWithKotlin() {
     checkCreateTemplate("activities", "AndroidThingsActivity", ActivityCreationMode.WITH_PROJECT, true, withKotlin)
+  }
+
+  @TemplateCheck
+  fun testCompareThingsActivity() {
+    checkCreateTemplate("activities", "AndroidThingsActivity",
+                        ActivityCreationMode.WITHOUT_PROJECT, true, withNewRenderingContext, withThingsLauncher)
+  }
+
+  @TemplateCheck
+  fun testCompareThingsActivityWithKotlin() {
+    checkCreateTemplate("activities", "AndroidThingsActivity",
+                        ActivityCreationMode.WITHOUT_PROJECT, true, withKotlin, withNewRenderingContext, withThingsLauncher)
   }
 
   @TemplateCheck
@@ -184,6 +200,18 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewProjectWithBlankWearActivityWithKotlin() {
     checkCreateTemplate("activities", "BlankWearActivity", ActivityCreationMode.WITH_PROJECT, true, withKotlin)
+  }
+
+  @TemplateCheck
+  fun testCompareBlankWearActivity() {
+    checkCreateTemplate("activities", "BlankWearActivity",
+                        ActivityCreationMode.WITHOUT_PROJECT, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareBlankWearActivityWithKotlin() {
+    checkCreateTemplate("activities", "BlankWearActivity",
+                        ActivityCreationMode.WITHOUT_PROJECT, true, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -382,6 +410,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareTvActivity() {
+    checkCreateTemplate("activities", "AndroidTVActivity", ActivityCreationMode.WITHOUT_PROJECT, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareTvActivityWithKotlin() {
+    checkCreateTemplate("activities", "AndroidTVActivity", ActivityCreationMode.WITHOUT_PROJECT, true, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testGoogleAdMobAdsActivity() {
     checkCreateTemplate("activities", "GoogleAdMobAdsActivity", ActivityCreationMode.WITHOUT_PROJECT, true)
   }
@@ -389,6 +427,17 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewProjectWithGoogleAdMobAdsActivity() {
     checkCreateTemplate("activities", "GoogleAdMobAdsActivity", ActivityCreationMode.WITH_PROJECT, true)
+  }
+
+  @TemplateCheck
+  fun testCompareGoogleAdMobAdsActivity() {
+    checkCreateTemplate("activities", "GoogleAdMobAdsActivity", ActivityCreationMode.WITHOUT_PROJECT, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareGoogleAdMobAdsActivityWithKotlin() {
+    checkCreateTemplate("activities", "GoogleAdMobAdsActivity",
+                        ActivityCreationMode.WITHOUT_PROJECT, true, withNewRenderingContext, withKotlin)
   }
 
   @TemplateCheck
@@ -401,6 +450,7 @@ open class TemplateTest : TemplateTestBase() {
     checkCreateTemplate("activities", "GoogleMapsActivity", ActivityCreationMode.WITH_PROJECT, true)
   }
 
+  /* TODO: Restore the tests when b/78621322 is fixed
   @TemplateCheck
   fun testCompareGoogleMapsActivity() {
     // TODO(qumeric): Change back to WITHOUT_PROJECT - b/78621322
@@ -413,6 +463,7 @@ open class TemplateTest : TemplateTestBase() {
     checkCreateTemplate("activities", "GoogleMapsActivity",
                         ActivityCreationMode.WITH_PROJECT, true, withKotlin, withNewRenderingContext)
   }
+  */
 
   @TemplateCheck
   fun testGoogleMapsWearActivity() {
@@ -430,6 +481,18 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareGoogleMapsWearActivity() {
+    checkCreateTemplate("activities", "GoogleMapsWearActivity",
+                        ActivityCreationMode.WITHOUT_PROJECT, true, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareGoogleMapsWearActivityWithKotlin() {
+    checkCreateTemplate("activities", "GoogleMapsWearActivity",
+                        ActivityCreationMode.WITHOUT_PROJECT, true, withKotlin, withNewRenderingContext)
+  }
+
+    @TemplateCheck
   fun testNewAutomotiveProjectWithMediaService() {
     checkCreateTemplate("other", "AutomotiveMediaService", ActivityCreationMode.WITH_PROJECT, true)
   }
@@ -447,6 +510,12 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testComposeActivity() {
     checkCreateTemplate("activities", "ComposeActivity", ActivityCreationMode.WITHOUT_PROJECT, true, withKotlin) // Compose is always kotlin
+  }
+
+  @TemplateCheck
+  fun testCompareComposeActivity() {
+    checkCreateTemplate("activities", "ComposeActivity", ActivityCreationMode.WITHOUT_PROJECT, false,
+                        withKotlin, withNewRenderingContext) // Compose is always kotlin
   }
 
   //--- Non-activity templates ---
@@ -474,16 +543,6 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testCompareNewWearModule() {
     checkCreateTemplate("gradle-projects", "AndroidWearModule", ActivityCreationMode.DO_NOT_CREATE, false, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareNewBenchmarkModule() {
-    checkCreateTemplate("gradle-projects", "NewBenchmarkModule", ActivityCreationMode.DO_NOT_CREATE, false, withKotlin, withNewRenderingContext)
-  }
-
-  @TemplateCheck
-  fun testCompareNewPureLibrary() {
-    checkCreateTemplate("gradle-projects", "NewJavaOrKotlinLibrary", ActivityCreationMode.DO_NOT_CREATE, false, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck

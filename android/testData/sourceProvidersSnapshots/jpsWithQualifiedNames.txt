@@ -1,10 +1,14 @@
 MODULE: MyApplication
     by Facet:
          (IDEA)
-            ManifestUrl:
+            ManifestFileUrls:
                 file://./AndroidManifest.xml
-            Manifest:
+            ManifestFiles:
                 file://./AndroidManifest.xml
+            ManifestDirectoryUrls:
+                file://.
+            ManifestDirectories:
+                file://.
             AidlDirectoryUrls:
                 file://./gen
             AssetsDirectoryUrls:
@@ -24,12 +28,46 @@ MODULE: MyApplication
     by IdeaSourceProviders:
         Manifests:
             file://./AndroidManifest.xml
+        Sources:
+            Sources (IDEA)
+                ManifestFileUrls:
+                    file://./AndroidManifest.xml
+                ManifestFiles:
+                    file://./AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://.
+                ManifestDirectories:
+                    file://.
+                AidlDirectoryUrls:
+                    file://./gen
+                AssetsDirectoryUrls:
+                    file://./assets
+                AssetsDirectories:
+                    file://./assets
+                JavaDirectoryUrls:
+                    file://.
+                JavaDirectories:
+                    file://.
+                RenderscriptDirectoryUrls:
+                    file://./gen
+                ResDirectoryUrls:
+                    file://./res
+                ResDirectories:
+                    file://./res
+        UnitTestSources:
+            UnitTestSources (IDEA)
+        AndroidTestSources:
+            AndroidTestSources (IDEA)
         AllIdeaSourceProviders:
              (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://.
+                ManifestDirectories:
+                    file://.
                 AidlDirectoryUrls:
                     file://./gen
                 AssetsDirectoryUrls:
@@ -48,10 +86,14 @@ MODULE: MyApplication
                     file://./res
         CurrentSourceProviders:
              (IDEA)
-                ManifestUrl:
+                ManifestFileUrls:
                     file://./AndroidManifest.xml
-                Manifest:
+                ManifestFiles:
                     file://./AndroidManifest.xml
+                ManifestDirectoryUrls:
+                    file://.
+                ManifestDirectories:
+                    file://.
                 AidlDirectoryUrls:
                     file://./gen
                 AssetsDirectoryUrls:
@@ -68,7 +110,8 @@ MODULE: MyApplication
                     file://./res
                 ResDirectories:
                     file://./res
-        CurrentTestSourceProviders:
+        CurrentUnitTestSourceProviders:
+        CurrentAndroidTestSourceProviders:
 MODULE: justLib
 MODULE: justLib.sub1
 MODULE: justLib.sub2
