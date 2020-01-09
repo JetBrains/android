@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.npw.assetstudio
 
+import com.android.tools.idea.material.icons.MaterialIconsMetadataUrlProvider
 import com.android.tools.idea.material.icons.MaterialIconsUrlProvider
 import com.android.tools.idea.material.icons.MaterialVdIcons
 import com.google.common.truth.Truth
@@ -41,7 +42,7 @@ class MaterialVdIconsProviderTest {
       materialIcons = icons
       latch.countDown()
     }
-    MaterialVdIconsProvider(uiCallback, MaterialIconsMetadataTestUrlProvider(), MaterialIconsTestUrlProvider())
+    MaterialVdIconsProvider.loadMaterialVdIcons(uiCallback, MaterialIconsMetadataTestUrlProvider(), MaterialIconsTestUrlProvider())
     assertTrue(latch.await(WAIT_TIMEOUT, TIMEOUT_UNIT))
     Truth.assertThat(materialIcons.styles).hasLength(2)
     assertEquals(materialIcons.styles[0], "Style 1")
@@ -62,9 +63,9 @@ class MaterialVdIconsProviderTest {
       assertEquals(status, MaterialVdIconsProvider.Status.FINISHED)
       latch.countDown()
     }
-    MaterialVdIconsProvider(uiCallback, object : MaterialIconsMetadataUrlProvider {
+    MaterialVdIconsProvider.loadMaterialVdIcons(uiCallback, object : MaterialIconsMetadataUrlProvider {
       override fun getMetadataUrl(): URL? = null
-    })
+    }, null)
     assertTrue(latch.await(WAIT_TIMEOUT, TIMEOUT_UNIT))
     Truth.assertThat(materialIcons!!.styles).isEmpty()
   }
@@ -77,7 +78,7 @@ class MaterialVdIconsProviderTest {
       icons = materialIcons
       latch.countDown()
     }
-    MaterialVdIconsProvider(uiCallback, MaterialIconsMetadataTestUrlProvider(), object : MaterialIconsUrlProvider {
+    MaterialVdIconsProvider.loadMaterialVdIcons(uiCallback, MaterialIconsMetadataTestUrlProvider(), object : MaterialIconsUrlProvider {
       override fun getStyleUrl(style: String): URL? = null
       override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? = null
     })
