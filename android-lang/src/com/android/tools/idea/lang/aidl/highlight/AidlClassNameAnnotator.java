@@ -16,9 +16,7 @@
 package com.android.tools.idea.lang.aidl.highlight;
 
 import com.android.tools.idea.lang.aidl.psi.*;
-import com.intellij.lang.annotation.Annotation;
-import com.intellij.lang.annotation.AnnotationHolder;
-import com.intellij.lang.annotation.Annotator;
+import com.intellij.lang.annotation.*;
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -30,19 +28,20 @@ public class AidlClassNameAnnotator implements Annotator {
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    final Annotation annotation = holder.createInfoAnnotation(element, null);
+    AnnotationBuilder builder = holder.newSilentAnnotation(HighlightSeverity.INFORMATION);
 
     if (element instanceof AidlClassOrInterfaceType) {
-      annotation.setTextAttributes(DefaultLanguageHighlighterColors.CLASS_REFERENCE);
+      builder = builder.textAttributes(DefaultLanguageHighlighterColors.CLASS_REFERENCE);
     }
-    if (element instanceof AidlDeclarationName) {
+    else if (element instanceof AidlDeclarationName) {
       PsiElement component = element.getParent();
       if (component instanceof AidlInterfaceDeclaration || component instanceof AidlParcelableDeclaration) {
-        annotation.setTextAttributes(DefaultLanguageHighlighterColors.CLASS_NAME);
+        builder = builder.textAttributes(DefaultLanguageHighlighterColors.CLASS_NAME);
       }
       else if (element instanceof AidlMethodDeclaration) {
-        annotation.setTextAttributes(DefaultLanguageHighlighterColors.FUNCTION_DECLARATION);
+        builder = builder.textAttributes(DefaultLanguageHighlighterColors.FUNCTION_DECLARATION);
       }
     }
+    builder.create();
   }
 }

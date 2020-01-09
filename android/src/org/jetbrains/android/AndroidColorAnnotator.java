@@ -15,14 +15,6 @@
  */
 package org.jetbrains.android;
 
-import static com.android.SdkConstants.ANDROID_COLOR_RESOURCE_PREFIX;
-import static com.android.SdkConstants.ANDROID_DRAWABLE_PREFIX;
-import static com.android.SdkConstants.COLOR_RESOURCE_PREFIX;
-import static com.android.SdkConstants.DRAWABLE_PREFIX;
-import static com.android.SdkConstants.MIPMAP_PREFIX;
-import static com.android.SdkConstants.TAG_ITEM;
-import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
-
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItemResolver;
 import com.android.ide.common.resources.ResourceResolver;
@@ -32,9 +24,9 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.GutterIconRenderer;
 import com.android.tools.idea.res.ResourceHelper;
-import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
+import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -49,12 +41,16 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagValue;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
-import java.awt.Color;
 import org.jetbrains.android.AndroidAnnotatorUtil.ColorRenderer;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
+
+import java.awt.*;
+
+import static com.android.SdkConstants.*;
+import static com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType;
 
 /**
  * Annotator which puts colors in the editor gutter for both color files, as well
@@ -112,14 +108,14 @@ public class AndroidColorAnnotator implements Annotator {
       PsiFile file = element.getContainingFile();
       if (file != null && AndroidResourceUtil.isInResourceSubdirectory(file, null)) {
         if (element instanceof XmlTag) {
-          Annotation annotation = holder.createInfoAnnotation(element, null);
-          annotation.setGutterIconRenderer(new ColorRenderer(element, null, true));
+          holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
+          .gutterIconRenderer(new ColorRenderer(element, null, true)).create();
         } else {
           assert element instanceof XmlAttributeValue;
           Color color = ResourceHelper.parseColor(value);
           if (color != null) {
-            Annotation annotation = holder.createInfoAnnotation(element, null);
-            annotation.setGutterIconRenderer(new ColorRenderer(element, null, true));
+            holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
+            .gutterIconRenderer(new ColorRenderer(element, null, true)).create();
           }
         }
       }
@@ -177,16 +173,16 @@ public class AndroidColorAnnotator implements Annotator {
     if (type == ResourceType.COLOR) {
       Color color = ResourceHelper.resolveColor(resourceResolver, value, project);
       if (color != null) {
-        Annotation annotation = holder.createInfoAnnotation(element, null);
-        annotation.setGutterIconRenderer(new ColorRenderer(element, color, false));
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
+        .gutterIconRenderer(new ColorRenderer(element, color, false)).create();
       }
     } else {
       assert type == ResourceType.DRAWABLE || type == ResourceType.MIPMAP;
 
       VirtualFile iconFile = AndroidAnnotatorUtil.resolveDrawableFile(value, resourceResolver, facet);
       if (iconFile != null) {
-        Annotation annotation = holder.createInfoAnnotation(element, null);
-        annotation.setGutterIconRenderer(new GutterIconRenderer(resourceResolver, facet, iconFile, configuration));
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
+        .gutterIconRenderer(new GutterIconRenderer(resourceResolver, facet, iconFile, configuration)).create();
       }
     }
   }

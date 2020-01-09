@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.GutterIconRenderer
 import com.android.tools.idea.res.resolveColor
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.psi.PsiElement
 import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.AndroidAnnotatorUtil.ColorRenderer
@@ -63,16 +64,16 @@ class AndroidResourceReferenceAnnotator : Annotator {
         if (resourceType == COLOR) {
             val color = resourceResolver.resolveColor(resourceValue, element.project)
             if (color != null) {
-                val annotation = holder.createInfoAnnotation(element, null)
-                annotation.gutterIconRenderer = ColorRenderer(element, color, false)
+                holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
+                .gutterIconRenderer(ColorRenderer(element, color, false)).create()
             }
         }
         else {
             val iconFile =
                 AndroidAnnotatorUtil.resolveDrawableFile(resourceValue, resourceResolver, androidFacet)
             if (iconFile != null) {
-                val annotation = holder.createInfoAnnotation(element, null)
-                annotation.gutterIconRenderer = GutterIconRenderer(resourceResolver, androidFacet, iconFile, configuration)
+                holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
+                .gutterIconRenderer(GutterIconRenderer(resourceResolver, androidFacet, iconFile, configuration)).create()
             }
         }
     }
