@@ -88,8 +88,12 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       @Preview(name = "top level preview")
       fun TopLevelPreview() {
         @Composable
-        @Preview(name = "not a top level preview")
+        @Preview(name = "not a top level preview") // ERROR
         fun NotTopLevelFunctionPreview() {
+            @Composable
+            @Preview(name = "not a top level preview, with a lot of nesting") // ERROR
+            fun SuperNestedPreview() {
+            }
         }
       }
 
@@ -97,6 +101,10 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
         @Preview(name = "preview2", apiLevel = 12)
         @Composable
         fun ClassMethodPreview() {
+          @Composable
+          @Preview(name = "not a top level preview in a class") // ERROR
+          fun NotTopLevelFunctionPreviewInAClass() {
+          }
         }
 
         @Preview(name = "preview in a class with default constructor")
@@ -107,7 +115,7 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
 
       private class privateClass {
         class NotTopLevelClass {
-          @Preview("in a non top level class") // Not valid
+          @Preview("in a non top level class") // ERROR
           @Composable
           fun ClassMethodPreview() {
           }
@@ -120,7 +128,7 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       }
 
       class bClass(i: Int) {
-        @Preview("in a class with parameters") // Not valid
+        @Preview("in a class with parameters") // ERROR
         @Composable
         fun ClassMethodPreview() {
         }
@@ -133,7 +141,9 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       .map { it.description }
       .toArray(emptyArray())
 
-    assertEquals(3, inspections.size)
+    val nErrors = "\\/\\/ ERROR".toRegex().findAll(fileContent).count()
+
+    assertEquals(nErrors, inspections.size)
     assertEquals("Preview must be a top level declarations or in a top level class with a default constructor.",
                  inspections.distinct().single())
   }
