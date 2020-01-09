@@ -20,5 +20,7 @@ import java.util.Locale
 internal object MaterialIconsUtils {
   const val MATERIAL_ICONS_PATH = "images/material/icons/"
 
+  const val METADATA_FILE_NAME = "icons_metadata.txt"
+
   fun String.toDirFormat(): String = this.toLowerCase(Locale.US).replace(" ", "")
 }

@@ -34,7 +34,7 @@ private val LOG = Logger.getInstance(MaterialVdIconsLoader::class.java)
  */
 class MaterialVdIconsLoader(
   private val metadata: MaterialIconsMetadata,
-  private val urlProvider: MaterialIconsUrlProvider = MaterialIconsUrlProviderImpl()
+  private val urlProvider: MaterialIconsUrlProvider = BundledIconsUrlProvider()
 ) {
 
   private val styleCategoryToSortedIcons: HashMap<String, Map<String, Array<VdIcon>>> = HashMap()
@@ -148,36 +148,5 @@ class MaterialVdIconsLoader(
         }
       }
     }
-  }
-}
-
-/**
- * The model for the Material [VdIcon]s loaded.
- */
-class MaterialVdIcons(
-  private val styleCategoryToSortedIcons: Map<String, Map<String, Array<VdIcon>>>,
-  private val styleToSortedIcons: Map<String, Array<VdIcon>>
-) {
-
-  val styles: Array<String> = styleCategoryToSortedIcons.keys.sorted().toTypedArray()
-
-  fun getCategories(style: String): Array<String> {
-    return styleCategoryToSortedIcons[style]?.keys?.sorted()?.toTypedArray() ?: arrayOf<String>()
-  }
-
-  fun getIcons(style: String, category: String): Array<VdIcon> {
-    return styleCategoryToSortedIcons[style]?.get(category) ?: arrayOf<VdIcon>()
-  }
-
-  fun getAllIcons(style: String): Array<VdIcon> {
-    return styleToSortedIcons[style] ?: arrayOf()
-  }
-
-  companion object {
-    /**
-     * The default empty instance. Returns empty arrays for every method.
-     */
-    @JvmField
-    val EMPTY = MaterialVdIcons(emptyMap(), emptyMap())
   }
 }
