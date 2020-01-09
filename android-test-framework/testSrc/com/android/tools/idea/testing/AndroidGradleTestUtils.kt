@@ -65,6 +65,7 @@ import com.android.tools.idea.gradle.project.model.JavaModuleModel
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
+import com.android.tools.idea.gradle.project.sync.idea.switchVariant
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup
 import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
@@ -82,6 +83,7 @@ import com.intellij.openapi.externalSystem.model.project.ModuleData
 import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
 import com.intellij.openapi.module.JavaModuleType
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
@@ -676,6 +678,7 @@ fun setupTestProjectFromAndroidModel(
     )
   )
 
+  val androidModels = mutableListOf<AndroidModuleModel>()
   moduleBuilders.forEach { moduleBuilder ->
     val gradlePath = moduleBuilder.gradlePath
     val moduleName = gradlePath.substringAfterLast(':').nullize() ?: projectName;
@@ -696,7 +699,12 @@ fun setupTestProjectFromAndroidModel(
             moduleBuilder.agpVersion ?: LatestKnownPluginVersionProvider.INSTANCE.get()
           ),
           moduleBuilder.selectedBuildVariant
-        )
+        ).also { androidModelDataNode ->
+          val model = ExternalSystemApiUtil.find(androidModelDataNode, AndroidProjectKeys.ANDROID_MODEL)?.data
+          if (model != null) {
+            androidModels.add(model)
+          }
+        }
       }
       is JavaModuleModelBuilder ->
         createJavaModuleDataNode(
@@ -708,6 +716,9 @@ fun setupTestProjectFromAndroidModel(
     }
     projectDataNode.addChild(moduleDataNode)
   }
+
+  // Switch variant to setup any other data nodes.
+  switchVariant(project, androidModels, projectDataNode)
 
   IdeSdks.removeJdksOn(project)
   runWriteAction {

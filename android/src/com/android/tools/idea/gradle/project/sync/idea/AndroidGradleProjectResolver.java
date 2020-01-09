@@ -35,6 +35,7 @@ import static com.android.utils.BuildScriptUtil.findGradleSettingsFile;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.GRADLE_SYNC;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_SYNC_FAILURE_DETAILS;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.UNSUPPORTED_ANDROID_MODEL_VERSION;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.findAll;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isInProcessMode;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
@@ -55,6 +56,7 @@ import com.android.ide.common.gradle.model.IdeNativeVariantAbi;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.gradle.model.GradlePluginModel;
+import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifact;
 import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts;
 import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
@@ -83,13 +85,17 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.execution.configurations.SimpleJavaParameters;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
+import com.intellij.openapi.externalSystem.model.ProjectKeys;
+import com.intellij.openapi.externalSystem.model.project.LibraryDependencyData;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
+import com.intellij.openapi.externalSystem.model.project.ModuleDependencyData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.util.ExternalSystemConstants;
 import com.intellij.openapi.externalSystem.util.Order;
@@ -104,6 +110,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipException;
@@ -122,6 +129,8 @@ import org.jetbrains.plugins.gradle.model.BuildScriptClasspathModel;
 import org.jetbrains.plugins.gradle.model.ExternalProject;
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider;
 import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExtension;
+import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings;
+import org.jetbrains.plugins.gradle.settings.GradleExecutionWorkspace;
 
 /**
  * Imports Android-Gradle projects into IDEA.
@@ -137,6 +146,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull private final IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
   @NotNull private final IdeDependenciesFactory myDependenciesFactory;
+  private boolean myIsImportPre3Dot0;
 
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
@@ -257,6 +267,11 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         AndroidModuleModel model =
           AndroidModuleModel.create(moduleName, moduleRootDirPath, androidProject, selectedVariant.getName(), myDependenciesFactory,
                                     (variantGroup == null) ? null : variantGroup.getVariants(), projectSyncIssues);
+
+        // Set whether or not we have seen an old (pre 3.0) version of the AndroidProject. If we have seen one
+        // Then we require all Java modules to export their dependencies.
+        myIsImportPre3Dot0 |= model.getFeatures().shouldExportDependencies();
+
         populateKaptKotlinGeneratedSourceDir(gradleModule, model);
         ideModule.createChild(ANDROID_MODEL, model);
       }
@@ -356,10 +371,53 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   public void populateModuleDependencies(@NotNull IdeaModule gradleModule,
                                          @NotNull DataNode<ModuleData> ideModule,
                                          @NotNull DataNode<ProjectData> ideProject) {
-    if (!isAndroidGradleProject()) {
-      // For plain Java projects (non-Gradle) we let the framework populate dependencies
-      nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
+    // Call all the other resolvers to ensure that any dependencies that they need to provide are added.
+    nextResolver.populateModuleDependencies(gradleModule, ideModule, ideProject);
+    // In AndroidStudio pre-3.0 all dependencies need to be exported, the common resolvers do not set this.
+    // to remedy this we need to go through all datanodes added by other resolvers and set this flag.
+    if (myIsImportPre3Dot0) {
+      Collection<DataNode<LibraryDependencyData>> libraryDataNodes = findAll(ideModule, ProjectKeys.LIBRARY_DEPENDENCY);
+      for (DataNode<LibraryDependencyData> libraryDataNode : libraryDataNodes) {
+        libraryDataNode.getData().setExported(true);
+      }
+      Collection<DataNode<ModuleDependencyData>> moduleDataNodes = findAll(ideModule, ProjectKeys.MODULE_DEPENDENCY);
+      for (DataNode<ModuleDependencyData> moduleDataNode : moduleDataNodes) {
+        moduleDataNode.getData().setExported(true);
+      }
     }
+
+    SourcesAndJavadocArtifacts sourcesAndJavadocArtifact = resolverCtx.getExtraProject(gradleModule, SourcesAndJavadocArtifacts.class);
+    // TODO: Log error messages from sourcesAndJavadocArtifact.
+
+    GradleExecutionSettings settings = resolverCtx.getSettings();
+    GradleExecutionWorkspace workspace = (settings == null) ? null : settings.getExecutionWorkspace();
+
+    Map<String, SourcesAndJavadocArtifact> sourcesAndJavadocMap;
+    if (sourcesAndJavadocArtifact != null) {
+      sourcesAndJavadocMap =
+        sourcesAndJavadocArtifact
+          .getArtifacts()
+          .stream()
+          .collect(
+            Collectors.toMap((k) -> String.format("%s:%s:%s", k.getId().getGroupId(), k.getId().getArtifactId(), k.getId().getVersion()),
+                             (k) -> k
+            ));
+    } else {
+      sourcesAndJavadocMap = ImmutableMap.of();
+    }
+
+    DependencyUtilKt.setupAndroidDependenciesForModule(ideModule, (id) -> {
+      if (workspace != null) {
+        return workspace.findModuleDataByModuleId(id);
+      }
+      return null;
+    }, (artifactId, artifactPath) -> {
+      SourcesAndJavadocArtifact sja = sourcesAndJavadocMap.get(artifactId);
+      if (sja == null) {
+        return null;
+      }
+      return new SourcesAndJavadocPaths(sja.getSources(),  sja.getJavadoc());
+    });
   }
 
   // Indicates it is an "Android" project if at least one module has an AndroidProject.

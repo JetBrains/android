@@ -44,14 +44,14 @@ internal open class SyncIssueRegistry<Component> : Sealable by BaseSealable() {
 
   fun register(syncIssues: Collection<SyncIssue>) {
     lock.withLock {
-      if (checkSeal()) LOGGER.error("Attempted to add more sync issues when the SyncIssueRegistry was sealed!", IllegalStateException())
+      if (checkSeal()) LOGGER.warn("Attempted to add more sync issues when the SyncIssueRegistry was sealed!", IllegalStateException())
       syncIssueList.addAll(syncIssues)
     }
   }
 
   fun get(): List<SyncIssue> {
     return lock.withLock {
-      if (!checkSeal()) LOGGER.error("Attempted to read sync issues before the SyncIssuesRegister was sealed!", IllegalStateException())
+      if (!checkSeal()) LOGGER.warn("Attempted to read sync issues before the SyncIssuesRegister was sealed!", IllegalStateException())
       ImmutableList.copyOf(syncIssueList)
     }
   }

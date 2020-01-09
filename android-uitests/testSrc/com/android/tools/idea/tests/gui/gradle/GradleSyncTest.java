@@ -362,7 +362,7 @@ public class GradleSyncTest {
     // Make sure the library was added.
     LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(project);
     // Naming scheme follows "Gradle: " + name of the library. See LibraryDependency#setName method
-    String libraryName = GradleConstants.SYSTEM_ID.getReadableName() + ": org.apache.http.legacy-" + TestUtils.getLatestAndroidPlatform();
+    String libraryName = GradleConstants.SYSTEM_ID.getReadableName() + ": org.apache.http.legacy";
     Library library = libraryTable.getLibraryByName(libraryName);
 
     // Verify that the library has the right j

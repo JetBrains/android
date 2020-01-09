@@ -440,12 +440,12 @@ PROJECT             : testWithBuildSrc
             IsExported          : false
             Name                : Gradle: net.sf.kxml:kxml2:2.3.0@jar [=]
             *CLASSES            : jar://<M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar!/
-        LIBRARY             : Gradle: org.apache.http.legacy-android-29
+        LIBRARY             : Gradle: org.apache.http.legacy
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.apache.http.legacy-android-29 [=]
+            Name                : Gradle: org.apache.http.legacy [=]
             *CLASSES            : jar://<ANDROID_SDK>/platforms/android-29/optional/org.apache.http.legacy.jar!/
         LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3@jar
             LibraryLevel        : project
@@ -515,59 +515,59 @@ PROJECT             : testWithBuildSrc
         *isInherited        : true
         ORDER_ENTRY         : <Module source>
         LIBRARY             : Gradle: gradle-api-<GRADLE_VERSION>
-            LibraryLevel        : project
-            IsModuleLevel       : false
+            LibraryLevel        : module
+            IsModuleLevel       : true
             Scope               : Compile
-            IsExported          : true
+            IsExported          : false
             Name                : Gradle: gradle-api-<GRADLE_VERSION> [=]
             *CLASSES            : jar://<GRADLE>/caches/<GRADLE_VERSION>/generated-gradle-jars/gradle-api-<GRADLE_VERSION>.jar!/
         LIBRARY             : Gradle: gradle-installation-beacon-6.1
-            LibraryLevel        : project
-            IsModuleLevel       : false
+            LibraryLevel        : module
+            IsModuleLevel       : true
             Scope               : Compile
-            IsExported          : true
+            IsExported          : false
             Name                : Gradle: gradle-installation-beacon-6.1 [=]
             *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/gradle-installation-beacon-6.1.jar!/
         LIBRARY             : Gradle: groovy-all-1.3-2.5.8
-            LibraryLevel        : project
-            IsModuleLevel       : false
+            LibraryLevel        : module
+            IsModuleLevel       : true
             Scope               : Compile
-            IsExported          : true
+            IsExported          : false
             Name                : Gradle: groovy-all-1.3-2.5.8 [=]
             *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/groovy-all-1.3-2.5.8.jar!/
         LIBRARY             : Gradle: kotlin-reflect-<KOTLIN_VERSION>
-            LibraryLevel        : project
-            IsModuleLevel       : false
+            LibraryLevel        : module
+            IsModuleLevel       : true
             Scope               : Compile
-            IsExported          : true
+            IsExported          : false
             Name                : Gradle: kotlin-reflect-<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-reflect-<KOTLIN_VERSION>.jar!/
         LIBRARY             : Gradle: kotlin-stdlib-<KOTLIN_VERSION>
-            LibraryLevel        : project
-            IsModuleLevel       : false
+            LibraryLevel        : module
+            IsModuleLevel       : true
             Scope               : Compile
-            IsExported          : true
+            IsExported          : false
             Name                : Gradle: kotlin-stdlib-<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
         LIBRARY             : Gradle: kotlin-stdlib-common-<KOTLIN_VERSION>
-            LibraryLevel        : project
-            IsModuleLevel       : false
+            LibraryLevel        : module
+            IsModuleLevel       : true
             Scope               : Compile
-            IsExported          : true
+            IsExported          : false
             Name                : Gradle: kotlin-stdlib-common-<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
         LIBRARY             : Gradle: kotlin-stdlib-jdk7-<KOTLIN_VERSION>
-            LibraryLevel        : project
-            IsModuleLevel       : false
+            LibraryLevel        : module
+            IsModuleLevel       : true
             Scope               : Compile
-            IsExported          : true
+            IsExported          : false
             Name                : Gradle: kotlin-stdlib-jdk7-<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
         LIBRARY             : Gradle: kotlin-stdlib-jdk8-<KOTLIN_VERSION>
-            LibraryLevel        : project
-            IsModuleLevel       : false
+            LibraryLevel        : module
+            IsModuleLevel       : true
             Scope               : Compile
-            IsExported          : true
+            IsExported          : false
             Name                : Gradle: kotlin-stdlib-jdk8-<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<GRADLE>/wrapper/dists/gradle-<GRADLE_VERSION>-bin/xxxxxxxxxxxxxxxxxxxxxxxxx/gradle-<GRADLE_VERSION>/lib/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar!/
         LIBRARY             : Gradle: testWithBuildSrc_buildSrc.buildSrc
@@ -578,6 +578,7 @@ PROJECT             : testWithBuildSrc
             Name                : Gradle: testWithBuildSrc_buildSrc.buildSrc [=]
             *CLASSES            : jar://<PROJECT>/buildSrc/build/libs/buildSrc.jar!/
         ORDER_ENTRY         : testWithBuildSrc_lib1
+        ORDER_ENTRY         : testWithBuildSrc_lib2
         ORDER_ENTRY         : testWithBuildSrc_lib2
     MODULE              : testWithBuildSrc_lib1
         - ModuleGroupPath   : testWithBuildSrc

@@ -444,12 +444,12 @@ PROJECT             : testSimpleApplicationWithAgp3_3_2
             IsExported          : false
             Name                : Gradle: net.sf.kxml:kxml2:2.3.0@jar [=]
             *CLASSES            : jar://<M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar!/
-        LIBRARY             : Gradle: org.apache.http.legacy-android-29
+        LIBRARY             : Gradle: org.apache.http.legacy
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.apache.http.legacy-android-29 [=]
+            Name                : Gradle: org.apache.http.legacy [=]
             *CLASSES            : jar://<ANDROID_SDK>/platforms/android-29/optional/org.apache.http.legacy.jar!/
         LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3@jar
             LibraryLevel        : project
