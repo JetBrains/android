@@ -78,7 +78,9 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     loadProject(MIGRATE_TO_ANDROID_X)
 
     runWriteAction {
-      val gradlePropertiesFile = project.baseDir.createChildData(this, "gradle.properties")
+      // gradle.properties is created by test framework. We do not care about its content here since we never sync the project again
+      // so we can simply overwrite it.
+      val gradlePropertiesFile = project.baseDir.findChild("gradle.properties")!!
       gradlePropertiesFile.setBinaryContent("""
       # Preserve this comment and variable
       random.variable=true
