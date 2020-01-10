@@ -18,7 +18,6 @@ package com.android.tools.idea.flags;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
@@ -33,12 +32,13 @@ import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.text.NumberFormatter;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
-public class ExperimentalSettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
+public class ExperimentalSettingsConfigurable implements SearchableConfigurable {
   @NotNull private final GradleExperimentalSettings mySettings;
   @NotNull private final RenderSettings myRenderSettings;
 
@@ -91,10 +91,10 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     return null;
   }
 
-  @Override
   @Nls
+  @Override
   public String getDisplayName() {
-    return "Experimental";
+    return AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.display.name");
   }
 
   @Override
