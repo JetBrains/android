@@ -23,12 +23,13 @@ import org.junit.Test
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
+import java.io.StringReader
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class MaterialIconsMetadataTest {
 
-  lateinit var testDirectory: File
+  private lateinit var testDirectory: File
 
   @Before
   fun setup() {
@@ -85,5 +86,23 @@ class MaterialIconsMetadataTest {
     val badMetadataFile = testDirectory.resolve("my_metadata_file.txt").apply { writeText("Hello, World!") }
 
     assertFailsWith<JsonParseException> { MaterialIconsMetadata.parse(BufferedReader(InputStreamReader(badMetadataFile.inputStream()))) }
+  }
+
+  @Test
+  fun testParseToStringAndBack() {
+    val iconsMetadata = arrayOf(
+      MaterialMetadataIcon("icon_1", 1, emptyArray(), arrayOf("category_1"), emptyArray()),
+      MaterialMetadataIcon("icon_2", 1, emptyArray(), arrayOf("category_2"), emptyArray())
+    )
+    // Create an instance of MaterialIconsMetadata
+    val metadataObject = MaterialIconsMetadata(host = "my_host", urlPattern = "my_pattern", families = arrayOf("Style 1", "Style 2"),
+                                               icons = iconsMetadata)
+    // Create a Json String
+    val serializedMetadata = MaterialIconsMetadata.parse(metadataObject)
+
+    // Deserialize the Json String and compare resulting object
+    val deserializedMetadata = MaterialIconsMetadata.parse(StringReader(serializedMetadata))
+
+    assertEquals(metadataObject, deserializedMetadata)
   }
 }
