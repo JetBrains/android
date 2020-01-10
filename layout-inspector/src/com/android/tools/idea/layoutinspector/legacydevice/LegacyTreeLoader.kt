@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.layoutinspector.legacydevice
 
-import com.android.ddmlib.ChunkHandler
 import com.android.ddmlib.Client
-import com.android.ddmlib.HandleViewDebug
+import com.android.ddmlib.DebugViewDumpHandler
 import com.android.tools.idea.layoutinspector.model.TreeLoader
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
@@ -62,12 +61,12 @@ object LegacyTreeLoader : TreeLoader {
   }
 
   private fun capture(client: Client, window: String, propertiesUpdater: LegacyPropertiesProvider.Updater): ViewNode? {
-    val hierarchyHandler = CaptureByteArrayHandler(HandleViewDebug.CHUNK_VURT)
-    HandleViewDebug.dumpViewHierarchy(client, window, false, true, false, hierarchyHandler)
+    val hierarchyHandler = CaptureByteArrayHandler(DebugViewDumpHandler.CHUNK_VURT)
+    client.dumpViewHierarchy(window, false, true, false, hierarchyHandler)
     val hierarchyData = hierarchyHandler.getData() ?: return null
     val (rootNode, hash) = parseLiveViewNode(hierarchyData, propertiesUpdater) ?: return null
-    val imageHandler = CaptureByteArrayHandler(HandleViewDebug.CHUNK_VUOP)
-    HandleViewDebug.captureView(client, window, hash, imageHandler)
+    val imageHandler = CaptureByteArrayHandler(DebugViewDumpHandler.CHUNK_VUOP)
+    client.captureView(window, hash, imageHandler)
     try {
       val imageData = imageHandler.getData()
       if (imageData != null) {
@@ -80,7 +79,7 @@ object LegacyTreeLoader : TreeLoader {
     return rootNode
   }
 
-  private class CaptureByteArrayHandler(type: Int) : HandleViewDebug.ViewDumpHandler(type) {
+  private class CaptureByteArrayHandler(type: Int) : DebugViewDumpHandler(type) {
 
     private val mData = AtomicReference<ByteArray>()
 
@@ -182,7 +181,7 @@ object LegacyTreeLoader : TreeLoader {
   }
 
   private class ListViewRootsHandler :
-    HandleViewDebug.ViewDumpHandler(HandleViewDebug.CHUNK_VULW) {
+    DebugViewDumpHandler(DebugViewDumpHandler.CHUNK_VULW) {
 
     private val viewRoots = Lists.newCopyOnWriteArrayList<String>()
 
@@ -191,13 +190,13 @@ object LegacyTreeLoader : TreeLoader {
 
       for (i in 0 until nWindows) {
         val len = data.int
-        viewRoots.add(ChunkHandler.getString(data, len))
+        viewRoots.add(getString(data, len))
       }
     }
 
     @Throws(IOException::class)
     fun getWindows(c: Client, timeout: Long, unit: TimeUnit): List<String> {
-      HandleViewDebug.listViewRoots(c, this)
+      c.listViewRoots(this)
       waitForResult(timeout, unit)
       return viewRoots
     }
