@@ -42,8 +42,8 @@ private fun <T> AndroidFacet.queryManifestIndex(processContributors: (ManifestOv
   val project = this.module.project
   assert(!DumbService.isDumb(project) && ApplicationManager.getApplication().isReadAccessAllowed)
   val modificationTracker = MergedManifestModificationTracker.getInstance(this.module)
-  val overrides = this.module.getModuleSystem().getManifestOverrides()
   val provider = {
+    val overrides = this.module.getModuleSystem().getManifestOverrides()
     val result = processContributors(overrides, getDataForMergedManifestContributors(this))
     CachedValueProvider.Result.create(result, modificationTracker)
   }
