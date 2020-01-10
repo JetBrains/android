@@ -10,7 +10,7 @@
     </properties>
     <border type="none"/>
     <children>
-      <component id="df734" class="javax.swing.JLabel">
+      <component id="df734" class="com.intellij.ui.components.JBLabel">
         <constraints>
           <grid row="7" column="2" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -54,7 +54,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="ff026" class="javax.swing.JLabel" binding="myTemplateIconTitle">
+          <component id="ff026" class="com.intellij.ui.components.JBLabel" binding="myTemplateIconTitle">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="0" indent="0" use-parent-layout="false">
                 <preferred-size width="220" height="-1"/>
@@ -68,7 +68,7 @@
               <verticalTextPosition value="3"/>
             </properties>
           </component>
-          <component id="bedde" class="javax.swing.JLabel" binding="myTemplateIconDetail">
+          <component id="bedde" class="com.intellij.ui.components.JBLabel" binding="myTemplateIconDetail">
             <constraints>
               <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="1" fill="0" indent="0" use-parent-layout="false">
                 <preferred-size width="240" height="-1"/>
@@ -91,7 +91,7 @@
           </grid>
         </constraints>
       </vspacer>
-      <component id="41e8a" class="javax.swing.JLabel">
+      <component id="41e8a" class="com.intellij.ui.components.JBLabel">
         <constraints>
           <grid row="10" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
@@ -111,6 +111,7 @@
           <grid row="11" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
+          <labelFor value="826ea"/>
           <text value="Minimum SDK"/>
         </properties>
       </component>
@@ -122,12 +123,13 @@
           <model/>
         </properties>
       </component>
-      <component id="ef020" class="javax.swing.JLabel">
+      <component id="ef020" class="com.intellij.ui.components.JBLabel">
         <constraints>
           <grid row="1" column="2" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <font style="0"/>
+          <labelFor value="87fc3"/>
           <text value="&amp;Base application module"/>
           <verticalAlignment value="0"/>
         </properties>
@@ -140,7 +142,7 @@
           <name value="baseComboBox"/>
         </properties>
       </component>
-      <component id="b07f9" class="javax.swing.JLabel" binding="myModuleNameLabel" custom-create="true">
+      <component id="b07f9" class="com.intellij.ui.components.JBLabel" binding="myModuleNameLabel" custom-create="true">
         <constraints>
           <grid row="4" column="2" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false">
             <preferred-size width="-1" height="24"/>
@@ -179,7 +181,7 @@
           <grid row="18" column="2" row-span="1" col-span="2" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
         </constraints>
       </vspacer>
-      <component id="467a8" class="javax.swing.JLabel" binding="myModuleTitleLabel">
+      <component id="467a8" class="com.intellij.ui.components.JBLabel" binding="myModuleTitleLabel">
         <constraints>
           <grid row="13" column="2" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
