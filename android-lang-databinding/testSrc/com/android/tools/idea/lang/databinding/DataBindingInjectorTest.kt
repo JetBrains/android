@@ -17,7 +17,7 @@ package com.android.tools.idea.lang.databinding
 
 import com.android.SdkConstants
 import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.databinding.ModuleDataBinding
+import com.android.tools.idea.databinding.module.ModuleDataBinding
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat

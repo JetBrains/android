@@ -18,9 +18,8 @@ package com.android.tools.idea.databinding.actions;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.databinding.DataBindingMode;
-import com.android.tools.idea.databinding.ModuleDataBinding;
+import com.android.tools.idea.databinding.module.ModuleDataBinding;
 import com.android.tools.idea.databinding.TestDataPaths;
-import com.android.tools.idea.databinding.actions.ConvertLayoutToDataBindingAction;
 import com.android.tools.idea.testing.AndroidDomRule;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.google.common.collect.Lists;

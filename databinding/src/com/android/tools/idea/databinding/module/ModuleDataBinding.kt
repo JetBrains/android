@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.databinding
+package com.android.tools.idea.databinding.module
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
+import com.android.tools.idea.databinding.BindingLayout
+import com.android.tools.idea.databinding.BindingLayoutGroup
+import com.android.tools.idea.databinding.DataBindingMode
+import com.android.tools.idea.databinding.DataBindingModeTrackingService
 import com.android.tools.idea.databinding.index.BindingLayoutType
 import com.android.tools.idea.databinding.psiclass.BindingClassConfig
 import com.android.tools.idea.databinding.psiclass.BindingImplClassConfig

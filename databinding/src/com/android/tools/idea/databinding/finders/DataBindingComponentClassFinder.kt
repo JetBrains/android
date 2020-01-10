@@ -17,7 +17,7 @@ package com.android.tools.idea.databinding.finders
 
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.databinding.LayoutBindingProjectComponent
-import com.android.tools.idea.databinding.ModuleDataBinding
+import com.android.tools.idea.databinding.module.ModuleDataBinding
 import com.android.tools.idea.databinding.psiclass.LightDataBindingComponentClass
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass

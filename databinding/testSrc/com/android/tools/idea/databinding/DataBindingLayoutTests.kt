@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.databinding
 
+import com.android.tools.idea.databinding.module.ModuleDataBinding
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret

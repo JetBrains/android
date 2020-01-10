@@ -18,7 +18,7 @@ package com.android.tools.idea.databinding.psiclass;
 import com.android.SdkConstants;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.databinding.DataBindingMode;
-import com.android.tools.idea.databinding.ModuleDataBinding;
+import com.android.tools.idea.databinding.module.ModuleDataBinding;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
 import com.google.common.collect.ImmutableSet;

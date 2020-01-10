@@ -17,7 +17,7 @@ package com.android.tools.idea.databinding.psiclass
 
 import com.android.tools.idea.databinding.util.BrUtil
 import com.android.tools.idea.databinding.util.DataBindingUtil
-import com.android.tools.idea.databinding.ModuleDataBinding
+import com.android.tools.idea.databinding.module.ModuleDataBinding
 import com.android.tools.idea.databinding.project.ProjectLayoutResourcesModificationTracker
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem

@@ -16,12 +16,11 @@
 package com.android.tools.idea.lang.databinding.completion
 
 import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.databinding.ModuleDataBinding
+import com.android.tools.idea.databinding.module.ModuleDataBinding
 import com.android.tools.idea.lang.databinding.getTestDataPath
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
-import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.facet.FacetManager
 import com.intellij.psi.PsiClass
 import com.intellij.testFramework.EdtRule

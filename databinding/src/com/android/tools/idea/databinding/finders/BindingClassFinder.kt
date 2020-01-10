@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding.finders
 
 import com.android.tools.idea.databinding.LayoutBindingProjectComponent
-import com.android.tools.idea.databinding.ModuleDataBinding
+import com.android.tools.idea.databinding.module.ModuleDataBinding
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.module.ModuleManager

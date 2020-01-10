@@ -16,7 +16,7 @@
 package com.android.tools.idea.databinding.cache
 
 import com.android.tools.idea.databinding.LayoutBindingProjectComponent
-import com.android.tools.idea.databinding.ModuleDataBinding
+import com.android.tools.idea.databinding.module.ModuleDataBinding
 import com.android.tools.idea.databinding.project.ProjectLayoutResourcesModificationTracker
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.intellij.openapi.project.Project
