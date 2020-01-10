@@ -31,6 +31,7 @@ import com.android.tools.profilers.cpu.capturedetails.CaptureDetails;
 import com.android.tools.profilers.cpu.capturedetails.CaptureDetailsView;
 import com.android.tools.profilers.cpu.capturedetails.ChartDetailsView;
 import com.android.tools.profilers.cpu.capturedetails.TreeDetailsView;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.SimpleListCellRenderer;
 import java.awt.BorderLayout;
@@ -49,6 +50,9 @@ public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
   private CaptureDetailsView myActiveDetailsView;
 
   @NotNull
+  private final FilterComponent myFilterComponent = buildFilterComponent();
+
+  @NotNull
   private final ViewBinder<StudioProfilersView, CaptureDetails, CaptureDetailsView> myBinder;
 
   @NotNull private final AspectObserver myObserver = new AspectObserver();
@@ -62,7 +66,8 @@ public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
     myBinder.bind(CaptureDetails.CallChart.class, ChartDetailsView.CallChartDetailsView::new);
     myBinder.bind(CaptureDetails.FlameChart.class, ChartDetailsView.FlameChartDetailsView::new);
 
-    getModel().getAspectModel().addDependency(myObserver).onChange(CpuAnalysisChartModel.Aspect.CLOCK_TYPE, this::updateDetailsView);
+    getModel().getAspectModel().addDependency(myObserver)
+      .onChange(CpuAnalysisChartModel.Aspect.CLOCK_TYPE, () -> updateDetailsView(getModel().createDetails()));
 
     buildComponents();
   }
@@ -72,10 +77,10 @@ public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
 
     // Toolbar
     JPanel toolbar = new JPanel(new BorderLayout());
-    toolbar.add(buildFilterComponent(), BorderLayout.WEST);
+    toolbar.add(myFilterComponent, BorderLayout.WEST);
     toolbar.add(buildClockTypeSelector(), BorderLayout.EAST);
 
-    updateDetailsView();
+    updateDetailsView(getModel().createDetails());
     add(toolbar, new TabularLayout.Constraint(0, 0));
     add(myCaptureDetailsPanel, new TabularLayout.Constraint(1, 0));
 
@@ -102,7 +107,7 @@ public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
       @Override
       protected FilterResult applyFilter(@NotNull Filter filter) {
         CpuAnalysisChartModel.CaptureDetailsWithFilterResult results = getModel().applyFilterAndCreateDetails(filter);
-        updateDetailsView();
+        updateDetailsView(results.getCaptureDetails());
         // Return filter result.
         return results.getFilterResult();
       }
@@ -124,11 +129,17 @@ public class CpuAnalysisChart extends CpuAnalysisTab<CpuAnalysisChartModel<?>> {
     return clockTypeSelector;
   }
 
-  private void updateDetailsView() {
+  private void updateDetailsView(@NotNull CaptureDetails captureDetails) {
     myCaptureDetailsPanel.removeAll();
     // Need to hold a hard reference to the capture details view otherwise soft dependencies get cleaned up.
-    myActiveDetailsView = myBinder.build(myProfilersView, getModel().createDetails());
+    myActiveDetailsView = myBinder.build(myProfilersView, captureDetails);
     // Capture details view
     myCaptureDetailsPanel.add(myActiveDetailsView.getComponent(), BorderLayout.CENTER);
+  }
+
+  @VisibleForTesting
+  @NotNull
+  FilterComponent getFilterComponent() {
+    return myFilterComponent;
   }
 }
