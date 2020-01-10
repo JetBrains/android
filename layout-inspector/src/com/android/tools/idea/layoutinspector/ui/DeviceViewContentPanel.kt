@@ -38,6 +38,7 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import java.awt.geom.Rectangle2D
 
 private const val MARGIN = 50
 
@@ -163,13 +164,14 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
     g2.setRenderingHints(HQ_RENDERING_HINTS)
     val selection = inspectorModel.selection
     val view = drawInfo.node
-    if (viewSettings.drawBorders) {
+    val hoveredNode = inspectorModel.hoveredNode
+    if (viewSettings.drawBorders || view == selection || view == hoveredNode) {
       when (view) {
         selection -> {
           g2.color = SELECTED_LINE_COLOR
           g2.stroke = SELECTED_LINE_STROKE
         }
-        inspectorModel.hoveredNode -> {
+        hoveredNode -> {
           g2.color = EMPHASIZED_LINE_COLOR
           g2.stroke = EMPHASIZED_LINE_STROKE
         }
@@ -194,9 +196,15 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
       g2.composite = composite
     }
     if (viewSettings.drawLabel && view == selection) {
-      g2.color = Color.BLACK
       g2.font = g2.font.deriveFont(JBUIScale.scale(LABEL_FONT_SIZE))
-      g2.drawString(view.unqualifiedName, view.x + 5, view.y + 25)
+      val fontMetrics = g2.fontMetrics
+      val width = fontMetrics.stringWidth(view.unqualifiedName)
+      val height = fontMetrics.maxAscent + fontMetrics.maxDescent
+      val border = height * 0.3f
+      g2.color = SELECTED_LINE_COLOR
+      g2.fill(Rectangle2D.Float(view.x.toFloat() - EMPHASIZED_BORDER_THICKNESS / 2f, view.y - height - 2f * border, width + 2 * border, height + 2 * border))
+      g2.color = Color.WHITE
+      g2.drawString(view.unqualifiedName, view.x + border, view.y - fontMetrics.maxDescent - border)
     }
   }
 
