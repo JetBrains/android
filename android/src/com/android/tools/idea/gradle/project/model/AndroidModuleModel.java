@@ -253,7 +253,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull
   public List<SourceProvider> getActiveSourceProviders() {
-    return AndroidModelSourceProviderUtils.getMainSourceProviders(this, mySelectedVariantName);
+    return AndroidModelSourceProviderUtils.collectMainSourceProviders(this, mySelectedVariantName);
   }
 
   @NotNull
@@ -263,22 +263,22 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull
   public List<SourceProvider> getTestSourceProviders() {
-    return AndroidModelSourceProviderUtils.getTestSourceProviders(this, mySelectedVariantName, TEST_ARTIFACT_NAMES);
+    return AndroidModelSourceProviderUtils.collectTestSourceProviders(this, mySelectedVariantName, TEST_ARTIFACT_NAMES);
   }
 
   @NotNull
   public List<SourceProvider> getUnitTestSourceProviders() {
-    return AndroidModelSourceProviderUtils.getTestSourceProviders(this, mySelectedVariantName, ARTIFACT_UNIT_TEST);
+    return AndroidModelSourceProviderUtils.collectTestSourceProviders(this, mySelectedVariantName, ARTIFACT_UNIT_TEST);
   }
 
   @NotNull
   public List<SourceProvider> getAndroidTestSourceProviders() {
-    return AndroidModelSourceProviderUtils.getTestSourceProviders(this, mySelectedVariantName, ARTIFACT_ANDROID_TEST);
+    return AndroidModelSourceProviderUtils.collectTestSourceProviders(this, mySelectedVariantName, ARTIFACT_ANDROID_TEST);
   }
 
   @NotNull
   public List<SourceProvider> getTestSourceProviders(@NotNull String artifactName) {
-    return AndroidModelSourceProviderUtils.getTestSourceProviders(this, mySelectedVariantName, artifactName);
+    return AndroidModelSourceProviderUtils.collectTestSourceProviders(this, mySelectedVariantName, artifactName);
   }
 
   /**
@@ -295,7 +295,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull
   public List<SourceProvider> getAllSourceProviders() {
-    return AndroidModelSourceProviderUtils.getAllSourceProviders(this);
+    return AndroidModelSourceProviderUtils.collectAllSourceProviders(this);
   }
 
   @Override
