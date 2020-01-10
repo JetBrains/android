@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.gradle.project.model;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.SdkConstants.ANDROIDX_DATA_BINDING_LIB_ARTIFACT;
 import static com.android.SdkConstants.DATA_BINDING_LIB_ARTIFACT;
 import static com.android.builder.model.AndroidProject.ARTIFACT_ANDROID_TEST;
 import static com.android.builder.model.AndroidProject.ARTIFACT_UNIT_TEST;
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_TEST;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.util.GradleUtil.dependsOn;
 import static com.android.tools.lint.client.api.LintClient.getGradleDesugaring;
@@ -76,9 +76,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.serialization.PropertyMapping;
 import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -89,17 +86,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.android.facet.AndroidFacetProperties;
 
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
 public class AndroidModuleModel implements AndroidModel, ModuleModel {
-  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 4L;
-
   private static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
 
@@ -732,36 +726,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     }
 
     return null;
-  }
-
-  private void writeObject(ObjectOutputStream out) throws IOException {
-    out.writeObject(myProjectSystemId);
-    out.writeObject(myModuleName);
-    out.writeObject(myRootDirPath);
-    out.writeObject(myAndroidProject);
-    out.writeObject(mySelectedVariantName);
-  }
-
-  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-    myProjectSystemId = (ProjectSystemId)in.readObject();
-    myModuleName = (String)in.readObject();
-    myRootDirPath = (File)in.readObject();
-    myAndroidProject = (IdeAndroidProject)in.readObject();
-    String variantName = (String)in.readObject();
-
-    parseAndSetModelVersion();
-    myFeatures = new AndroidModelFeatures(myModelVersion);
-
-    myBuildTypesByName = new HashMap<>();
-    myProductFlavorsByName = new HashMap<>();
-    myVariantsByName = new HashMap<>();
-    myExtraGeneratedSourceFolders = new HashSet<>();
-
-    populateBuildTypesByName();
-    populateProductFlavorsByName();
-    populateVariantsByName();
-
-    setSelectedVariantName(variantName);
   }
 
   private void parseAndSetModelVersion() {
