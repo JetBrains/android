@@ -30,10 +30,13 @@ import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.layoutinspector.view
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
 import junit.framework.TestCase.assertEquals
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.Mockito.mock
 import java.awt.Color
 import java.awt.Dimension
@@ -47,6 +50,9 @@ private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 private const val DIFF_THRESHOLD = 0.05
 
 class DeviceViewContentPanelTest {
+
+  @get:Rule
+  val chain = RuleChain.outerRule(ProjectRule()).around(DeviceViewSettingsRule())
 
   @Before
   fun setUp() {
@@ -69,6 +75,7 @@ class DeviceViewContentPanelTest {
       }
     }
     val settings = DeviceViewSettings(scalePercent = 30)
+    settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
     assertEquals(Dimension(188, 197), panel.preferredSize)
 
@@ -95,6 +102,7 @@ class DeviceViewContentPanelTest {
     var graphics = generatedImage.createGraphics()
 
     val settings = DeviceViewSettings(scalePercent = 100)
+    settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(200, 300)
 
@@ -137,6 +145,7 @@ class DeviceViewContentPanelTest {
     var graphics = generatedImage.createGraphics()
 
     val settings = DeviceViewSettings(scalePercent = 100)
+    settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(200, 300)
 
@@ -177,6 +186,7 @@ class DeviceViewContentPanelTest {
     val graphics = generatedImage.createGraphics()
 
     val settings = DeviceViewSettings(scalePercent = 50)
+    settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(200, 300)
 
@@ -193,6 +203,7 @@ class DeviceViewContentPanelTest {
     }
 
     val settings = DeviceViewSettings(scalePercent = 100)
+    settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(200, 300)
     val fakeUi = FakeUi(panel)
@@ -226,6 +237,7 @@ class DeviceViewContentPanelTest {
     var graphics = generatedImage.createGraphics()
 
     val settings = DeviceViewSettings(scalePercent = 100)
+    settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(200, 300)
 
@@ -265,6 +277,7 @@ class DeviceViewContentPanelTest {
     var graphics = generatedImage.createGraphics()
 
     val settings = DeviceViewSettings(scalePercent = 100)
+    settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(200, 300)
     panel.paint(graphics)
@@ -297,6 +310,7 @@ class DeviceViewContentPanelTest {
     var graphics = generatedImage.createGraphics()
 
     val settings = DeviceViewSettings(scalePercent = 50)
+    settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(350, 450)
 
@@ -339,6 +353,7 @@ class DeviceViewContentPanelTest {
     var graphics = generatedImage.createGraphics()
 
     val settings = DeviceViewSettings(scalePercent = 50)
+    settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(350, 450)
 
