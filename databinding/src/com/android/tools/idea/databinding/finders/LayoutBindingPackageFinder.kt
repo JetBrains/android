@@ -16,19 +16,16 @@
 package com.android.tools.idea.databinding.finders
 
 import com.android.tools.idea.databinding.LayoutBindingProjectComponent
-import com.android.tools.idea.databinding.ModuleDataBinding.Companion.getInstance
-import com.android.tools.idea.databinding.cache.ProjectResourceCachedValueProvider
-import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider
+import com.android.tools.idea.databinding.ModuleDataBinding
+import com.android.tools.idea.databinding.project.ProjectLayoutResourcesModificationTracker
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import org.jetbrains.android.facet.AndroidFacet
-import java.util.HashMap
-import java.util.HashSet
 
 /**
  * A finder responsible for finding data binding packages missing in the app.
@@ -60,42 +57,21 @@ class LayoutBindingPackageFinder(project: Project) : PsiElementFinder() {
   }
 
   init {
-    packageCache = CachedValuesManager.getManager(project).createCachedValue(
-      object : ProjectResourceCachedValueProvider<Map<String, PsiPackage>, Set<String>>(
-        component) {
-        override fun merge(results: List<Set<String>>): Map<String, PsiPackage> {
-          val merged: MutableMap<String, PsiPackage> = HashMap()
-          for (result in results) {
-            for (qualifiedPackage in result) {
-              if (!merged.containsKey(qualifiedPackage)) {
-                merged[qualifiedPackage] = component.getOrCreatePsiPackage(qualifiedPackage)
-              }
-            }
-          }
-          return merged
-        }
-
-        override fun createCacheProvider(facet: AndroidFacet): ResourceCacheValueProvider<Set<String>> {
-          return object : ResourceCacheValueProvider<Set<String>>(facet, null) {
-            override fun doCompute(): Set<String> {
-              val groups = getInstance(getFacet()).bindingLayoutGroups
-              if (groups.isEmpty()) {
-                return emptySet()
-              }
-              val result: MutableSet<String> = HashSet()
-              for (group in groups) {
-                for (layout in group.layouts) {
-                  result.add(layout.packageName)
-                }
-              }
-              return result
-            }
-
-            override fun defaultValue(): Set<String> {
-              return emptySet()
-            }
+    val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker(project)
+    packageCache = CachedValuesManager.getManager(project).createCachedValue {
+      val packages = component.getAllBindingEnabledFacets()
+        .flatMap { facet ->
+          val moduleDataBinding = ModuleDataBinding.getInstance(facet)
+          val groups = moduleDataBinding.bindingLayoutGroups
+          val lightClasses = groups.mapNotNull { group -> moduleDataBinding.getLightBindingClasses(group).firstOrNull() }
+          lightClasses.map { lightClass ->
+            val packageName = lightClass.qualifiedName.substringBeforeLast('.')
+            component.getOrCreatePsiPackage(packageName)
           }
         }
-      }, false)
+        .associateBy { psiPackage -> psiPackage.qualifiedName }
+
+      CachedValueProvider.Result.create(packages, resourcesModifiedTracker)
+    }
   }
 }

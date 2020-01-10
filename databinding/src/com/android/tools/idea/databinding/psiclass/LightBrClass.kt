@@ -18,7 +18,7 @@ package com.android.tools.idea.databinding.psiclass
 import com.android.tools.idea.databinding.util.BrUtil
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.ModuleDataBinding
-import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider
+import com.android.tools.idea.databinding.project.ProjectLayoutResourcesModificationTracker
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.collect.ImmutableSet
@@ -43,6 +43,7 @@ import com.intellij.psi.impl.light.LightField
 import com.intellij.psi.impl.light.LightIdentifier
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
 import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiUtil
 import org.jetbrains.android.augment.AndroidLightClassBase
@@ -69,43 +70,40 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
     get() = fieldCache.value.map { field -> field.name }.toTypedArray()
 
   private val fieldCache: CachedValue<Array<PsiField>>
-  private val cacheLock = Any()
   private val containingFile: PsiFile
 
   init {
-    fieldCache = CachedValuesManager.getManager(facet.module.project).createCachedValue(
-      // TODO(davidherman): Reliance on javaStructureModificationTracker is known to cause performance problems.
-      object : ResourceCacheValueProvider<Array<PsiField>>(facet, cacheLock,
-                                                           psiManager.modificationTracker.javaStructureModificationTracker) {
-        override fun doCompute(): Array<PsiField> {
-          val project = facet.module.project
-          val elementFactory = PsiElementFactory.getInstance(project)
-          val groups = ModuleDataBinding.getInstance(facet).bindingLayoutGroups.takeIf { it.isNotEmpty() } ?: return defaultValue()
+    val project = facet.module.project
+    val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker(project)
+    fieldCache = CachedValuesManager.getManager(project).createCachedValue {
+      val variableNamesList = mutableListOf(ALL_FIELD)
+      run {
+        val groups = ModuleDataBinding.getInstance(facet).bindingLayoutGroups.takeIf { it.isNotEmpty() } ?: return@run
 
-          val variableNamesSet = groups
-            .flatMap { group -> group.layouts }
-            .flatMap { layout -> layout.data.variables }
-            .map { variable -> variable.name }
-            .toMutableSet()
-          collectVariableNamesFromUserBindables()?.let { bindables -> variableNamesSet.addAll(bindables) }
+        val variableNamesSet = groups
+          .flatMap { group -> group.layouts }
+          .flatMap { layout -> layout.data.variables }
+          .map { variable -> variable.name }
+          .toMutableSet()
+        collectVariableNamesFromUserBindables()?.let { bindables -> variableNamesSet.addAll(bindables) }
 
-          val variableNamesList = variableNamesSet.sorted().toMutableList()
-          variableNamesList.add(0, ALL_FIELD) // _all is always first
+        variableNamesList.addAll(variableNamesSet.sorted())
+      }
 
-          return variableNamesList
-            .map { name -> createPsiField(project, elementFactory, name) }
-            .toTypedArray()
-        }
+      val elementFactory = PsiElementFactory.getInstance(project)
+      val psiFields = variableNamesList
+        .map { name -> createPsiField(project, elementFactory, name) }
+        .toTypedArray()
 
-        override fun defaultValue(): Array<PsiField> {
-          val project = facet.module.project
-          return arrayOf(createPsiField(project, PsiElementFactory.getInstance(project), "_all"))
-        }
-      }, false)
+      // TODO(b/147513068): Reliance on javaStructureModificationTracker is known to cause performance problems.
+      CachedValueProvider.Result.create(psiFields, resourcesModifiedTracker,
+                                        psiManager.modificationTracker.javaStructureModificationTracker)
+    }
+
     setModuleInfo(facet.module, false)
 
     // Create a dummy, backing file to represent this BR file
-    val factory = PsiFileFactory.getInstance(facet.module.project)
+    val factory = PsiFileFactory.getInstance(project)
     val backingFile = factory.createFileFromText("BR.java", JavaFileType.INSTANCE,
                                                  "// This class is generated on-the-fly by the IDE.") as PsiJavaFile
     backingFile.packageName = qualifiedName.replace(".BR", "")

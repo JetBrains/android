@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding.cache
 
 import com.android.tools.idea.databinding.LayoutBindingProjectComponent
 import com.android.tools.idea.databinding.ModuleDataBinding
+import com.android.tools.idea.databinding.project.ProjectLayoutResourcesModificationTracker
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -30,8 +31,6 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.ArrayUtil
 import com.intellij.util.Processor
-import com.intellij.util.containers.HashSet
-import org.jetbrains.android.facet.AndroidFacet
 
 /**
  * Cache for classes generated from data binding layout xml files.
@@ -50,47 +49,51 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   init {
     val cachedValuesManager = CachedValuesManager.getManager(project)
+    val resourcesModifiedTracker = ProjectLayoutResourcesModificationTracker(project)
 
-    val bindingCacheProvider = LightBindingCacheProvider(component)
+    lightBindingCache = cachedValuesManager.createCachedValue {
+      val bindingClasses = component.getAllBindingEnabledFacets()
+        .flatMap { facet ->
+          val moduleDataBinding = ModuleDataBinding.getInstance(facet)
+          val groups = moduleDataBinding.bindingLayoutGroups
+          groups.flatMap { group -> moduleDataBinding.getLightBindingClasses(group) }
+        }
+        .groupBy { lightClass -> lightClass.name }
 
-    lightBindingCache = cachedValuesManager.createCachedValue(bindingCacheProvider, false)
+      CachedValueProvider.Result.create(bindingClasses, resourcesModifiedTracker)
+    }
 
-    allClassNamesCache = cachedValuesManager.createCachedValue(
-      {
-        CachedValueProvider.Result.create(ArrayUtil.toStringArray(lightBindingCache.value.keys), bindingCacheProvider)
-      }, false)
+    allClassNamesCache = cachedValuesManager.createCachedValue {
+      CachedValueProvider.Result.create(ArrayUtil.toStringArray(lightBindingCache.value.keys), resourcesModifiedTracker)
+    }
 
-    methodsByNameCache = cachedValuesManager.createCachedValue(
-      {
-        val allMethods = lightBindingCache.value.values
-          .flatten()
-          .flatMap { psiClass -> psiClass.methods.asIterable() }
-          .groupBy { method -> method.name }
+    methodsByNameCache = cachedValuesManager.createCachedValue {
+      val allMethods = lightBindingCache.value.values
+        .flatten()
+        .flatMap { psiClass -> psiClass.methods.asIterable() }
+        .groupBy { method -> method.name }
 
-        CachedValueProvider.Result.create(allMethods, bindingCacheProvider)
-      }, false)
+      CachedValueProvider.Result.create(allMethods, resourcesModifiedTracker)
+    }
 
-    fieldsByNameCache = cachedValuesManager.createCachedValue(
-      {
-        val allFields = lightBindingCache.value.values
-          .flatten()
-          .flatMap { psiClass -> psiClass.fields.asIterable() }
-          .groupBy { field -> field.name }
+    fieldsByNameCache = cachedValuesManager.createCachedValue {
+      val allFields = lightBindingCache.value.values
+        .flatten()
+        .flatMap { psiClass -> psiClass.fields.asIterable() }
+        .groupBy { field -> field.name }
 
-        CachedValueProvider.Result.create(allFields, bindingCacheProvider)
-      }, false)
+      CachedValueProvider.Result.create(allFields, resourcesModifiedTracker)
+    }
 
-    allMethodNamesCache = cachedValuesManager.createCachedValue(
-      {
-        val names = methodsByNameCache.value.keys
-        CachedValueProvider.Result.create(names.toTypedArray(), bindingCacheProvider)
-      }, false)
+    allMethodNamesCache = cachedValuesManager.createCachedValue {
+      val names = methodsByNameCache.value.keys
+      CachedValueProvider.Result.create(names.toTypedArray(), resourcesModifiedTracker)
+    }
 
-    allFieldNamesCache = cachedValuesManager.createCachedValue(
-      {
-        val names = fieldsByNameCache.value.keys
-        CachedValueProvider.Result.create(names.toTypedArray(), bindingCacheProvider)
-      }, false)
+    allFieldNamesCache = cachedValuesManager.createCachedValue {
+      val names = fieldsByNameCache.value.keys
+      CachedValueProvider.Result.create(names.toTypedArray(), resourcesModifiedTracker)
+    }
   }
 
   override fun getClassesByName(name: String, scope: GlobalSearchScope): Array<PsiClass> {
@@ -139,29 +142,5 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun getAllFieldNames(): Array<String> {
     return allFieldNamesCache.value
-  }
-
-  private class LightBindingCacheProvider(component: LayoutBindingProjectComponent)
-    : ProjectResourceCachedValueProvider.MergedMapValueProvider<String, LightBindingClass>(component) {
-
-    override fun createCacheProvider(facet: AndroidFacet): ResourceCacheValueProvider<Map<String, List<LightBindingClass>>> {
-      return DelegateLayoutInfoCacheProvider(facet)
-    }
-  }
-
-  private class DelegateLayoutInfoCacheProvider(facet: AndroidFacet)
-    : ResourceCacheValueProvider<Map<String, List<LightBindingClass>>>(facet, null) {
-
-    override fun doCompute(): Map<String, List<LightBindingClass>> {
-      val moduleDataBinding = ModuleDataBinding.getInstance(facet)
-      val groups = moduleDataBinding.bindingLayoutGroups.takeIf { it.isNotEmpty() } ?: return defaultValue()
-      return groups
-        .flatMap { group -> moduleDataBinding.getLightBindingClasses(group) }
-        .groupBy { bindingClass -> bindingClass.name }
-    }
-
-    override fun defaultValue(): Map<String, List<LightBindingClass>> {
-      return mapOf()
-    }
   }
 }
