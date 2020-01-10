@@ -70,8 +70,8 @@ public class LintInspectionDescriptionLinkHandlerTest extends UsefulTestCase {
                               "This attribute must be set as a reference to a drawable resource containing the image " +
                               "(for example <code>@drawable/icon</code>)." +
                               "<br><br>Issue id: MissingApplicationIcon<br><br>More info:<br><a href=\"" +
-                              "http://developer.android.com/tools/publishing/preparing.html#publishing-configure" +
-                              "\">http://developer.android.com/tools/publishing/preparing.html#publishing-configure</a><br>";
+                              "https://developer.android.com/studio/publish/preparing#publishing-configure" +
+                              "\">https://developer.android.com/studio/publish/preparing#publishing-configure</a><br>";
     assertThat(handler.getDescription("MissingApplicationIcon", editor)).isEqualTo(issueExplanation);
   }
 
