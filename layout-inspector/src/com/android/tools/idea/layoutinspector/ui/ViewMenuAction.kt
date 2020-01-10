@@ -24,7 +24,7 @@ import icons.StudioIcons
 
 object ViewMenuAction : DropDownAction(null, "View options", StudioIcons.Common.VISIBILITY_INLINE) {
   init {
-    add(object : ToggleAction("Show borders") {
+    add(object : ToggleAction("Show Borders") {
       override fun isSelected(event: AnActionEvent): Boolean {
         return event.getData(DEVICE_VIEW_SETTINGS_KEY)?.drawBorders == true
       }
