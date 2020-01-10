@@ -74,7 +74,7 @@
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUseValueOf" displayName="Should use valueOf instead of new" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintUseValueOfInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintUsingHttp" displayName="Using HTTP instead of HTTPS" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintUsingHttpInspection"/>
     <globalInspection hasStaticDescription="true" shortName="AndroidLintVisibleForTests" displayName="Visible Only For Tests" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintVisibleForTestsInspection"/>
-    <globalInspection hasStaticDescription="true" shortName="AndroidLintWeekBasedYear" displayName="Week Based Year" bundle="messages.LintBundle" enabledByDefault="false" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintWeekBasedYearInspection"/>
+    <globalInspection hasStaticDescription="true" shortName="AndroidLintWeekBasedYear" displayName="Week Based Year" bundle="messages.LintBundle" enabledByDefault="true" level="WARNING" implementationClass="com.android.tools.idea.lint.common.AndroidLintWeekBasedYearInspection"/>
 
   </extensions>
 </idea-plugin>
