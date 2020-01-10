@@ -20,6 +20,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.databinding.module.ModuleDataBinding;
 import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.google.common.collect.Lists;

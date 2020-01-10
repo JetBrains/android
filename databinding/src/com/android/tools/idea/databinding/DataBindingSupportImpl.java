@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.databinding;
 
+import com.android.tools.idea.databinding.module.ModuleDataBinding;
 import com.intellij.openapi.util.ModificationTracker;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;

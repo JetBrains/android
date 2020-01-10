@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding
 
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT
+import com.android.tools.idea.databinding.module.ModuleDataBinding
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.moveCaret
