@@ -25,7 +25,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.dependsOn;
 import static com.android.tools.lint.client.api.LintClient.getGradleDesugaring;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
-import static com.intellij.util.ArrayUtil.contains;
 
 import com.android.builder.model.AaptOptions;
 import com.android.builder.model.AndroidArtifact;
@@ -60,7 +59,6 @@ import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.android.tools.lint.detector.api.Lint;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
@@ -81,7 +79,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -94,7 +91,7 @@ import org.jetbrains.annotations.Nullable;
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
 public class AndroidModuleModel implements AndroidModel, ModuleModel {
-  private static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
+  static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
 
   @NotNull private ProjectSystemId myProjectSystemId;
@@ -111,7 +108,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull private Map<String, BuildTypeContainer> myBuildTypesByName = new HashMap<>();
   @NotNull private Map<String, ProductFlavorContainer> myProductFlavorsByName = new HashMap<>();
-  @NotNull private Map<String, IdeVariant> myVariantsByName = new HashMap<>();
+  @NotNull Map<String, IdeVariant> myVariantsByName = new HashMap<>();
   @NotNull private Set<File> myExtraGeneratedSourceFolders = new HashSet<>();
 
   @Nullable
@@ -256,112 +253,32 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull
   public List<SourceProvider> getActiveSourceProviders() {
-    return getMainSourceProviders(mySelectedVariantName);
-  }
-
-  @NotNull
-  private List<SourceProvider> getMainSourceProviders(@NotNull String variantName) {
-    Variant variant = myVariantsByName.get(variantName);
-    if (variant == null) {
-      getLogger().error("Unknown variant name '" + variantName + "' found in the module '" + myModuleName + "'");
-      return ImmutableList.of();
-    }
-
-    List<SourceProvider> providers = new ArrayList<>();
-    // Main source provider.
-    providers.add(getDefaultSourceProvider());
-    // Flavor source providers.
-    for (String flavor : variant.getProductFlavors()) {
-      ProductFlavorContainer productFlavor = findProductFlavor(flavor);
-      assert productFlavor != null;
-      providers.add(productFlavor.getSourceProvider());
-    }
-
-    // Multi-flavor source provider.
-    AndroidArtifact mainArtifact = variant.getMainArtifact();
-    SourceProvider multiFlavorProvider = mainArtifact.getMultiFlavorSourceProvider();
-    if (multiFlavorProvider != null) {
-      providers.add(multiFlavorProvider);
-    }
-
-    // Build type source provider.
-    BuildTypeContainer buildType = findBuildType(variant.getBuildType());
-    assert buildType != null;
-    providers.add(buildType.getSourceProvider());
-
-    // Variant  source provider.
-    SourceProvider variantProvider = mainArtifact.getVariantSourceProvider();
-    if (variantProvider != null) {
-      providers.add(variantProvider);
-    }
-
-    return providers;
+    return AndroidModelSourceProviderUtils.getMainSourceProviders(this, mySelectedVariantName);
   }
 
   @NotNull
   public Collection<SourceProvider> getTestSourceProviders(@NotNull Iterable<SourceProviderContainer> containers) {
-    return getSourceProvidersForArtifacts(containers, TEST_ARTIFACT_NAMES);
+    return AndroidModelSourceProviderUtils.getSourceProvidersForArtifacts(containers, TEST_ARTIFACT_NAMES);
   }
 
   @NotNull
   public List<SourceProvider> getTestSourceProviders() {
-    return getTestSourceProviders(mySelectedVariantName, TEST_ARTIFACT_NAMES);
+    return AndroidModelSourceProviderUtils.getTestSourceProviders(this, mySelectedVariantName, TEST_ARTIFACT_NAMES);
   }
 
   @NotNull
   public List<SourceProvider> getUnitTestSourceProviders() {
-    return getTestSourceProviders(mySelectedVariantName, ARTIFACT_UNIT_TEST);
+    return AndroidModelSourceProviderUtils.getTestSourceProviders(this, mySelectedVariantName, ARTIFACT_UNIT_TEST);
   }
 
   @NotNull
   public List<SourceProvider> getAndroidTestSourceProviders() {
-    return getTestSourceProviders(mySelectedVariantName, ARTIFACT_ANDROID_TEST);
+    return AndroidModelSourceProviderUtils.getTestSourceProviders(this, mySelectedVariantName, ARTIFACT_ANDROID_TEST);
   }
 
   @NotNull
   public List<SourceProvider> getTestSourceProviders(@NotNull String artifactName) {
-    return getTestSourceProviders(mySelectedVariantName, artifactName);
-  }
-
-  @NotNull
-  private List<SourceProvider> getTestSourceProviders(@NotNull String variantName, @NotNull String... testArtifactNames) {
-    validateTestArtifactNames(testArtifactNames);
-
-    // Collect the default config test source providers.
-    Collection<SourceProviderContainer> extraSourceProviders = getAndroidProject().getDefaultConfig().getExtraSourceProviders();
-    List<SourceProvider> providers = new ArrayList<>(getSourceProvidersForArtifacts(extraSourceProviders, testArtifactNames));
-
-    Variant variant = myVariantsByName.get(variantName);
-    assert variant != null;
-
-    // Collect the product flavor test source providers.
-    for (String flavor : variant.getProductFlavors()) {
-      ProductFlavorContainer productFlavor = findProductFlavor(flavor);
-      assert productFlavor != null;
-      providers.addAll(getSourceProvidersForArtifacts(productFlavor.getExtraSourceProviders(), testArtifactNames));
-    }
-
-    // Collect the build type test source providers.
-    BuildTypeContainer buildType = findBuildType(variant.getBuildType());
-    assert buildType != null;
-    providers.addAll(getSourceProvidersForArtifacts(buildType.getExtraSourceProviders(), testArtifactNames));
-
-    // TODO: Does it make sense to add multi-flavor test source providers?
-    // TODO: Does it make sense to add variant test source providers?
-    return providers;
-  }
-
-  private static void validateTestArtifactNames(@NotNull String[] testArtifactNames) {
-    for (String name : testArtifactNames) {
-      if (!isTestArtifact(name)) {
-        String msg = String.format("'%1$s' is not a test artifact", name);
-        throw new IllegalArgumentException(msg);
-      }
-    }
-  }
-
-  private static boolean isTestArtifact(@Nullable String artifactName) {
-    return contains(artifactName, TEST_ARTIFACT_NAMES);
+    return AndroidModelSourceProviderUtils.getTestSourceProviders(this, mySelectedVariantName, artifactName);
   }
 
   /**
@@ -378,41 +295,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull
   public List<SourceProvider> getAllSourceProviders() {
-    Collection<Variant> variants = myAndroidProject.getVariants();
-    List<SourceProvider> providers = new ArrayList<>();
-
-    // Add main source set
-    providers.add(getDefaultSourceProvider());
-
-    // Add all flavors
-    Collection<ProductFlavorContainer> flavors = myAndroidProject.getProductFlavors();
-    for (ProductFlavorContainer flavorContainer : flavors) {
-      providers.add(flavorContainer.getSourceProvider());
-    }
-
-    // Add the multi-flavor source providers
-    for (Variant variant : variants) {
-      SourceProvider provider = variant.getMainArtifact().getMultiFlavorSourceProvider();
-      if (provider != null) {
-        providers.add(provider);
-      }
-    }
-
-    // Add all the build types
-    Collection<BuildTypeContainer> buildTypes = myAndroidProject.getBuildTypes();
-    for (BuildTypeContainer btc : buildTypes) {
-      providers.add(btc.getSourceProvider());
-    }
-
-    // Add all the variant source providers
-    for (Variant variant : variants) {
-      SourceProvider provider = variant.getMainArtifact().getVariantSourceProvider();
-      if (provider != null) {
-        providers.add(provider);
-      }
-    }
-
-    return providers;
+    return AndroidModelSourceProviderUtils.getAllSourceProviders(this);
   }
 
   @Override
@@ -610,21 +493,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
       newVariantName = sorted.get(0);
     }
     return newVariantName;
-  }
-
-  @NotNull
-  private static Collection<SourceProvider> getSourceProvidersForArtifacts(@NotNull Iterable<SourceProviderContainer> containers,
-                                                                           @NotNull String... artifactNames) {
-    Set<SourceProvider> providers = new LinkedHashSet<>();
-    for (SourceProviderContainer container : containers) {
-      for (String artifactName : artifactNames) {
-        if (artifactName.equals(container.getArtifactName())) {
-          providers.add(container.getSourceProvider());
-          break;
-        }
-      }
-    }
-    return providers;
   }
 
   @NotNull
