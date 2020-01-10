@@ -91,6 +91,7 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
@@ -4146,10 +4147,10 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
     byte[] newContent = Files.readAllBytes(new File(myFixture.getTestDataPath(), DRAWABLE_BLUE).toPath());
     WriteAction.run(() -> logoFile.setBinaryContent(newContent));
-    UIUtil.dispatchAllInvocationEvents();
-    WaitFor waitFor = new WaitFor(10000, 500) {
+    WaitFor waitFor = new WaitFor((int)TimeUnit.SECONDS.toMillis(10), 500) {
       @Override
       protected boolean condition() {
+        UIUtil.dispatchAllInvocationEvents();
         int blue = renderer.renderDrawable(bitmapXml, COLORED_DRAWABLE_SIZE).join().getRGB(0, 0);
         return "0000ff".equals(Integer.toHexString(blue).substring(2));
       }
