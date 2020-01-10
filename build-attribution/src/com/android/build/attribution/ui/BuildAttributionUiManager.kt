@@ -30,6 +30,8 @@ import com.intellij.ui.content.ContentManager
 import com.intellij.ui.content.ContentManagerAdapter
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.impl.ContentImpl
+import com.intellij.util.ui.components.BorderLayoutPanel
+import java.awt.BorderLayout
 
 /**
  * This class is responsible for creating, opening and properly disposing of Build attribution UI.
@@ -88,7 +90,8 @@ class BuildAttributionUiManager(
 
   private fun Content.replaceContentView() {
     buildAttributionTreeView?.let { view ->
-      component = view.component
+      component.removeAll()
+      component.add(view.component, BorderLayout.CENTER)
       Disposer.register(this, view)
       uiAnalytics.buildReportReplaced()
     }
@@ -96,7 +99,8 @@ class BuildAttributionUiManager(
 
   private fun createNewTab() {
     buildAttributionTreeView?.let { view ->
-      buildContent = ContentImpl(view.component, "Build Speed", true).also { content ->
+      buildContent = ContentImpl(BorderLayoutPanel(), "Build Speed", true).also { content ->
+        content.component.add(view.component, BorderLayout.CENTER)
         Disposer.register(project, content)
         Disposer.register(content, view)
         // When tab is getting closed (and disposed) we want to release the reference on the view.
