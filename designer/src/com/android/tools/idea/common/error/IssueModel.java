@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.common.error;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.util.ListenerCollection;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.ui.GuiUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Model to centralize every issue that should be used in the Layout Editor
@@ -34,14 +34,22 @@ import java.util.List;
 public class IssueModel {
 
   private ImmutableList<Issue> myIssues = ImmutableList.of();
-  private final ListenerCollection<IssueModelListener> myListeners = ListenerCollection.createWithExecutor(
-    command -> GuiUtils.invokeLaterIfNeeded(command, ModalityState.defaultModalityState()));
+  private final ListenerCollection<IssueModelListener> myListeners;
   protected int myWarningCount;
   protected int myErrorCount;
   @VisibleForTesting
   public final Runnable myUpdateCallback = () -> updateErrorsList();
 
   private List<IssueProvider> myIssueProviders = new ArrayList<>();
+
+  @VisibleForTesting
+  IssueModel(@NotNull Executor listenerExecutor) {
+    myListeners = ListenerCollection.createWithExecutor(listenerExecutor);
+  }
+
+  public IssueModel() {
+    this(command -> GuiUtils.invokeLaterIfNeeded(command, ModalityState.defaultModalityState()));
+  }
 
   @VisibleForTesting
   public void updateErrorsList() {

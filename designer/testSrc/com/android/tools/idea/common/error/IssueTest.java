@@ -17,7 +17,6 @@ package com.android.tools.idea.common.error;
 
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.uibuilder.error.MockIssueFactory;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.psi.PsiElement;

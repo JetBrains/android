@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.error;
+package com.android.tools.idea.common.error;
 
-import com.android.tools.idea.common.error.Issue;
-import com.android.tools.idea.common.error.IssueModel;
-import com.android.tools.idea.common.error.IssueProvider;
-import com.android.tools.idea.common.error.LintIssueProvider;
 import com.android.tools.idea.common.lint.LintAnnotationsModel;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
+import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.codeHighlighting.HighlightDisplayLevel;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.mock.MockApplication;
@@ -36,13 +34,13 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-public class NlIssueModelTest {
+public class IssueModelTest {
   private IssueModel myIssueModel;
   private Disposable myDisposable;
 
   @Before
   public void setUp() throws Exception {
-    myIssueModel = new IssueModel();
+    myIssueModel = new IssueModel(MoreExecutors.directExecutor());
     myDisposable = Disposer.newDisposable();
     ApplicationManager.setApplication(new MockApplication(myDisposable), myDisposable);
   }
@@ -93,19 +91,15 @@ public class NlIssueModelTest {
     myIssueModel.addErrorModelListener(listener2);
     myIssueModel.addIssueProvider(new RenderIssueProvider(createRenderErrorModel(
       MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR))));
-/* b/145854391
     assertTrue(listenerCalled[0]);
     assertTrue(listenerCalled[1]);
-b/145854391 */
     listenerCalled[0] = false;
     listenerCalled[1] = false;
     myIssueModel.removeErrorModelListener(listener1);
     myIssueModel.addIssueProvider(new RenderIssueProvider(createRenderErrorModel(
       MockIssueFactory.createRenderIssue(HighlightSeverity.ERROR))));
     assertFalse(listenerCalled[0]);
-/* b/145854391
     assertTrue(listenerCalled[1]);
-b/145854391 */
   }
 
   @Test
