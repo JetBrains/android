@@ -71,7 +71,6 @@ import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.PackageMigr
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.kotlin.idea.codeInsight.KotlinOptimizeImportsRefactoringHelper
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrLiteral
 
 private const val CLASS_MIGRATION_BASE_PRIORITY = 1_000_000
 private const val PACKAGE_MIGRATION_BASE_PRIORITY = 1_000
@@ -426,8 +425,15 @@ open class MigrateToAndroidxProcessor(val project: Project,
 
       fun addStringUsage(model: GradlePropertyModel, oldString: String, newString: String) {
         val psiElement = model.psiElement ?: return
-        for (literal in PsiTreeUtil.findChildrenOfType(psiElement, GrLiteral::class.java).filter { it.value == oldString }) {
-          gradleUsages.add(MigrateToAppCompatUsageInfo.GradleStringUsageInfo(literal, newString))
+        if (model.getValue(GradlePropertyModel.STRING_TYPE) == oldString) {
+          model.setValue(newString)
+          gradleUsages.add(MigrateToAppCompatUsageInfo.GradleStringUsageInfo(psiElement, newString, gradleBuildModel))
+        }
+        else {
+          // Here the lookup will go through all the children psiElements
+          for (literal in PsiTreeUtil.findChildrenOfType(psiElement, PsiElement::class.java).filter { it.text == oldString }) {
+            gradleUsages.add(MigrateToAppCompatUsageInfo.GradleStringUsageInfo(literal, newString, gradleBuildModel))
+          }
         }
       }
 
