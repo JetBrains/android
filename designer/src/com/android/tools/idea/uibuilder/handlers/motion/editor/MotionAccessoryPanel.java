@@ -220,10 +220,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             if (tag.length > 0 && tag[0] instanceof NlComponentTag) {
               updateSelectionInLayoutEditor((NlComponentTag)tag[0]);
             }
-            if (DEBUG) {
-              Debug.log("LAYOUT_VIEW myMotionHelper.setState(null); ");
-            }
-            myMotionHelper.setState(null);
             break;
           case KEY_FRAME_GROUP:
             // The NelePropertiesModel should be handling the properties in these cases...
@@ -531,8 +527,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     // So everything was correctly working, updating the layoutparams of the concerned view,
     // but nothing was moving as what we will need to do here is to change the constraintset *live*
     // Additionally we need to correctly reset the state of the motionhelper if we recreate it.
-    if (mLastSelection == MotionEditorSelector.Type.LAYOUT
-        || mLastSelection == MotionEditorSelector.Type.LAYOUT_VIEW) {
+    if (mLastSelection == MotionEditorSelector.Type.LAYOUT) {
       myMotionHelper.setState(null);
       mSelectedStartConstraintId = null;
     } else if (mLastSelection == MotionEditorSelector.Type.CONSTRAINT_SET) {
