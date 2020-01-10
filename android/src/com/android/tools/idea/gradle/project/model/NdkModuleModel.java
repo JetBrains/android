@@ -30,9 +30,6 @@ import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
 import com.intellij.serialization.PropertyMapping;
 import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -44,9 +41,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class NdkModuleModel implements ModuleModel {
-  // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 4L;
-
   @NotNull private String myModuleName;
   @NotNull private File myRootDirPath;
   @NotNull private IdeNativeAndroidProject myAndroidProject;
@@ -321,33 +315,6 @@ public class NdkModuleModel implements ModuleModel {
   @NotNull
   public NdkModelFeatures getFeatures() {
     return myFeatures;
-  }
-
-  private void writeObject(ObjectOutputStream out) throws IOException {
-    out.writeObject(myModuleName);
-    out.writeObject(myRootDirPath);
-    out.writeObject(myAndroidProject);
-    out.writeObject(mySelectedVariantName);
-    out.writeObject(myVariantAbi);
-  }
-
-  private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-    myModuleName = (String)in.readObject();
-    myRootDirPath = (File)in.readObject();
-    myAndroidProject = (IdeNativeAndroidProject)in.readObject();
-    mySelectedVariantName = (String)in.readObject();
-    //noinspection unchecked
-    myVariantAbi = (List<IdeNativeVariantAbi>)in.readObject();
-
-    parseAndSetModelVersion();
-    myFeatures = new NdkModelFeatures(myModelVersion);
-
-    myVariantNamesByVariantAndAbiName = new HashMap<>();
-    myVariantsByName = new HashMap<>();
-    myToolchainsByName = new HashMap<>();
-    mySettingsByName = new HashMap<>();
-
-    populateModuleFields();
   }
 
   @Override
