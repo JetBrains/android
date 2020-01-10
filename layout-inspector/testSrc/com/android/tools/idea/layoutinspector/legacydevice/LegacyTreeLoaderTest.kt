@@ -16,13 +16,12 @@
 package com.android.tools.idea.layoutinspector.legacydevice
 
 import com.android.ddmlib.ByteBufferUtil
-import com.android.ddmlib.Client
+import com.android.ddmlib.DebugViewDumpHandler
+import com.android.ddmlib.DebugViewDumpHandler.CHUNK_VULW
+import com.android.ddmlib.DebugViewDumpHandler.CHUNK_VURT
 import com.android.ddmlib.FakeClientBuilder
-import com.android.ddmlib.HandleViewDebug
-import com.android.ddmlib.HandleViewDebug.CHUNK_VULW
-import com.android.ddmlib.HandleViewDebug.CHUNK_VURT
-import com.android.ddmlib.JdwpPacket
 import com.android.ddmlib.internal.ClientImpl
+import com.android.ddmlib.internal.jdwp.chunkhandler.JdwpPacket
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
@@ -33,7 +32,9 @@ import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatcher
 import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.ArgumentMatchers.argThat
+import org.mockito.ArgumentMatchers.eq
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
@@ -140,9 +141,11 @@ DONE.
       argument.payload.getInt(8) == 1 /* VURT_DUMP_HIERARCHY */
     }, any())).thenAnswer { invocation ->
       invocation
-        .getArgument(1, HandleViewDebug.ViewDumpHandler::class.java)
-        .handleChunk(client, CHUNK_VURT, ByteBuffer.wrap(treeSample.toByteArray (Charsets.UTF_8)), true, 1)
+        .getArgument(1, DebugViewDumpHandler::class.java)
+        .handleChunk(client, CHUNK_VURT, ByteBuffer.wrap(treeSample.toByteArray(Charsets.UTF_8)), true, 1)
     }
+    `when`(client.dumpViewHierarchy(eq("window1"), anyBoolean(), anyBoolean(), anyBoolean(),
+                                    any(DebugViewDumpHandler::class.java))).thenCallRealMethod()
     val (viewNode, windowId) = LegacyTreeLoader.loadComponentTree(
       LegacyEvent("window1", LegacyPropertiesProvider.Updater(), listOf("window1")),
       mock(ResourceLookup::class.java), legacyClient)!!

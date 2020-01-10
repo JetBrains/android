@@ -19,7 +19,6 @@ import com.android.annotations.NonNull;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
-import com.android.ddmlib.HandleViewDebug;
 import com.android.ddmlib.IDevice;
 import com.android.layoutinspector.model.ClientWindow;
 import com.android.layoutinspector.model.LayoutFileData;
@@ -386,7 +385,7 @@ public class LayoutInspectorContext implements Disposable, DataProvider, ViewNod
       }
 
       try {
-        HandleViewDebug.dumpDisplayList(myModel.getClient(), myModel.getWindow().getTitle(), node.toString());
+        myModel.getClient().dumpDisplayList(myModel.getWindow().getTitle(), node.toString());
       }
       catch (IOException e1) {
         createNotification(AndroidBundle.message("android.ddms.actions.layoutinspector.dumpdisplay.notification.failure", e1.getMessage()),
