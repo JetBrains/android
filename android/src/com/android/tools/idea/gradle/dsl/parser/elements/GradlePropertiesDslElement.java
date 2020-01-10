@@ -688,7 +688,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
   public List<GradleDslElement> getContainedElements(boolean includeProperties) {
     List<GradleDslElement> result = new ArrayList<>();
     if (includeProperties) {
-      result.addAll(getElementsWhere(e -> (e.myElementState != APPLIED && e.myElementState != DEFAULT)).values());
+      result.addAll(getElementsWhere(e -> (e.myElementState != APPLIED && !e.isDefaultElement())).values());
     }
     else {
       result.addAll(getVariableElements().values());
@@ -809,6 +809,10 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
         myElement = element;
         myElementState = state;
         myExistsOnFile = existsOnFile;
+      }
+      private boolean isDefaultElement() {
+        return myElementState == DEFAULT && myElement instanceof GradlePropertiesDslElement &&
+                  (((GradlePropertiesDslElement)myElement).getCurrentElements().isEmpty());
       }
     }
 
