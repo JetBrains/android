@@ -4628,7 +4628,7 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     return result;
   }
 
-  // '==' | '=' | '!=' | '<>' | IS NOT? | LIKE | GLOB | MATCH | REGEXP
+  // '==' | '=' | '!=' | '<>' | IS NOT?
   private static boolean equivalence_expression_0(PsiBuilder builder, int level) {
     if (!recursion_guard_(builder, level, "equivalence_expression_0")) return false;
     boolean result;
@@ -4638,10 +4638,6 @@ public class AndroidSqlParser implements PsiParser, LightPsiParser {
     if (!result) result = consumeTokenSmart(builder, NOT_EQ);
     if (!result) result = consumeTokenSmart(builder, UNEQ);
     if (!result) result = equivalence_expression_0_4(builder, level + 1);
-    if (!result) result = consumeTokenSmart(builder, LIKE);
-    if (!result) result = consumeTokenSmart(builder, GLOB);
-    if (!result) result = consumeTokenSmart(builder, MATCH);
-    if (!result) result = consumeTokenSmart(builder, REGEXP);
     exit_section_(builder, marker, null, result);
     return result;
   }

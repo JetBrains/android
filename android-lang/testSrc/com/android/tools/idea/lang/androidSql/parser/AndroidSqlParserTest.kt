@@ -1650,6 +1650,79 @@ class ErrorMessagesTest : AndroidSqlParserTest() {
     )
   }
 
+  fun testLikeExpressions() {
+    assertEquals(
+      """
+      FILE
+        AndroidSqlSelectStatementImpl(SELECT_STATEMENT)
+          AndroidSqlSelectCoreImpl(SELECT_CORE)
+            AndroidSqlSelectCoreSelectImpl(SELECT_CORE_SELECT)
+              PsiElement(SELECT)('SELECT')
+              AndroidSqlResultColumnsImpl(RESULT_COLUMNS)
+                AndroidSqlResultColumnImpl(RESULT_COLUMN)
+                  PsiElement(*)('*')
+              AndroidSqlFromClauseImpl(FROM_CLAUSE)
+                PsiElement(FROM)('FROM')
+                AndroidSqlTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                  AndroidSqlFromTableImpl(FROM_TABLE)
+                    AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                      PsiElement(IDENTIFIER)('foo')
+              AndroidSqlWhereClauseImpl(WHERE_CLAUSE)
+                PsiElement(WHERE)('WHERE')
+                AndroidSqlLikeExpressionImpl(LIKE_EXPRESSION)
+                  AndroidSqlColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                    AndroidSqlColumnNameImpl(COLUMN_NAME)
+                      PsiElement(IDENTIFIER)('bar')
+                  PsiElement(LIKE)('LIKE')
+                  AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
+                    PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''baz'')
+      """.trimIndent(),
+      toParseTreeText("SELECT * FROM foo WHERE bar LIKE 'baz'")
+    )
+
+    assertEquals(
+      """
+      FILE
+        AndroidSqlSelectStatementImpl(SELECT_STATEMENT)
+          AndroidSqlSelectCoreImpl(SELECT_CORE)
+            AndroidSqlSelectCoreSelectImpl(SELECT_CORE_SELECT)
+              PsiElement(SELECT)('SELECT')
+              AndroidSqlResultColumnsImpl(RESULT_COLUMNS)
+                AndroidSqlResultColumnImpl(RESULT_COLUMN)
+                  PsiElement(*)('*')
+              AndroidSqlFromClauseImpl(FROM_CLAUSE)
+                PsiElement(FROM)('FROM')
+                AndroidSqlTableOrSubqueryImpl(TABLE_OR_SUBQUERY)
+                  AndroidSqlFromTableImpl(FROM_TABLE)
+                    AndroidSqlDefinedTableNameImpl(DEFINED_TABLE_NAME)
+                      PsiElement(IDENTIFIER)('foo')
+              AndroidSqlWhereClauseImpl(WHERE_CLAUSE)
+                PsiElement(WHERE)('WHERE')
+                AndroidSqlLikeExpressionImpl(LIKE_EXPRESSION)
+                  AndroidSqlColumnRefExpressionImpl(COLUMN_REF_EXPRESSION)
+                    AndroidSqlColumnNameImpl(COLUMN_NAME)
+                      PsiElement(IDENTIFIER)('bar')
+                  PsiElement(NOT)('NOT')
+                  PsiElement(LIKE)('LIKE')
+                  AndroidSqlParenExpressionImpl(PAREN_EXPRESSION)
+                    PsiElement(()('(')
+                    AndroidSqlConcatExpressionImpl(CONCAT_EXPRESSION)
+                      AndroidSqlConcatExpressionImpl(CONCAT_EXPRESSION)
+                        AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
+                          PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''%'')
+                        PsiElement(||)('||')
+                        AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
+                          AndroidSqlBindParameterImpl(BIND_PARAMETER)
+                            PsiElement(NUMBERED_PARAMETER)('?')
+                      PsiElement(||)('||')
+                      AndroidSqlLiteralExpressionImpl(LITERAL_EXPRESSION)
+                        PsiElement(SINGLE_QUOTE_STRING_LITERAL)(''%'')
+                    PsiElement())(')')
+      """.trimIndent(),
+      toParseTreeText("SELECT * FROM foo WHERE bar NOT LIKE ('%' || ? || '%')")
+    )
+  }
+
   fun testPriorities() {
     assertEquals(
       """
