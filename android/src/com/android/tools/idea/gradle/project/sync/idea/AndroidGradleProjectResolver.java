@@ -59,7 +59,6 @@ import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts;
 import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -67,6 +66,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.sync.SdkSync;
 import com.android.tools.idea.gradle.project.sync.SelectedVariantCollector;
 import com.android.tools.idea.gradle.project.sync.SelectedVariants;
 import com.android.tools.idea.gradle.project.sync.SyncActionOptions;
@@ -86,8 +86,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure;
 import com.intellij.execution.configurations.SimpleJavaParameters;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
@@ -131,7 +129,7 @@ import org.jetbrains.plugins.gradle.service.project.AbstractProjectResolverExten
 @Order(ExternalSystemConstants.UNORDERED)
 public class AndroidGradleProjectResolver extends AbstractProjectResolverExtension {
   private static final Key<Boolean> IS_ANDROID_PROJECT_KEY = Key.create("IS_ANDROID_PROJECT_KEY");
-  private static final Logger LOG = Logger.getInstance(AndroidGradleProjectResolver.class);
+  static final Logger RESOLVER_LOG = Logger.getInstance(AndroidGradleProjectResolver.class);
 
   @NotNull private final CommandLineArgs myCommandLineArgs;
   @NotNull private final ProjectFinder myProjectFinder;
@@ -139,7 +137,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @NotNull private final IdeNativeAndroidProject.Factory myNativeAndroidProjectFactory;
   @NotNull private final IdeaJavaModuleModelFactory myIdeaJavaModuleModelFactory;
   @NotNull private final IdeDependenciesFactory myDependenciesFactory;
-  @NotNull private final ModalityState myModality;
 
   @SuppressWarnings("unused")
   // This constructor is used by the IDE. This class is an extension point implementation, registered in plugin.xml.
@@ -161,7 +158,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     myNativeAndroidProjectFactory = nativeAndroidProjectFactory;
     myIdeaJavaModuleModelFactory = ideaJavaModuleModelFactory;
     myDependenciesFactory = dependenciesFactory;
-    myModality = ModalityState.defaultModalityState();
   }
 
   @Override
@@ -194,7 +190,12 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       }
     }
 
-    return nextResolver.createModule(gradleModule, projectDataNode);
+    DataNode<ModuleData> moduleDataNode = nextResolver.createModule(gradleModule, projectDataNode);
+    if (androidProject != null) {
+      moduleDataNode.getData().setSourceCompatibility(androidProject.getJavaCompileOptions().getSourceCompatibility());
+      moduleDataNode.getData().setTargetCompatibility(androidProject.getJavaCompileOptions().getTargetCompatibility());
+    }
+    return moduleDataNode;
   }
 
   private void populateSourcesAndJavadocModel(@NotNull IdeaModule gradleModule) {
@@ -495,6 +496,8 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   public void preImportCheck() {
     simulateRegisteredSyncError();
+
+    SdkSyncUtil.syncAndroidSdks(SdkSync.getInstance(), resolverCtx.getProjectPath());
   }
 
   @Override

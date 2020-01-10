@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
+import com.android.tools.idea.gradle.project.sync.idea.SdkSyncUtil;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidModuleCleanupStep;
 import com.android.tools.idea.gradle.project.sync.setup.post.MemorySettingsPostSyncChecker;
@@ -27,6 +27,8 @@ import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsa
 import com.android.tools.idea.gradle.project.sync.setup.post.TimeBasedReminder;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GradlePluginUpgrade;
 import com.android.tools.idea.gradle.project.sync.validation.android.AndroidModuleValidator;
+import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.Key;
@@ -35,7 +37,7 @@ import com.intellij.openapi.externalSystem.service.project.IdeModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.SystemProperties;
+import com.intellij.openapi.projectRoots.Sdk;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -83,6 +85,23 @@ public class AndroidModuleModelDataService extends ModuleModelDataService<Androi
     AndroidModuleValidator moduleValidator = myModuleValidatorFactory.create(project);
     for (Module module : modelsProvider.getModules()) {
       AndroidModuleModel androidModel = modelsByModuleName.get(module.getName());
+
+      // The SDK needs to be set here for Android modules, unfortunately we can't use intellijs
+      // code to set this us as we need to reload the SDKs in case AGP has just downloaded it.
+      // Android model is null for the root project module.
+      if (androidModel != null) {
+        Sdk sdkToUse = SdkSyncUtil.computeSdkReloadingAsNeeded(
+          AndroidSdks.getInstance(),
+          androidModel.getAndroidProject().getName(),
+          androidModel.getAndroidProject().getCompileTarget(),
+          androidModel.getAndroidProject().getBootClasspath(),
+          IdeSdks.getInstance()
+        );
+        if (sdkToUse != null) {
+          modelsProvider.getModifiableRootModel(module).setSdk(sdkToUse);
+        }
+      }
+
       setUpModule(module, moduleValidator, modelsProvider, androidModel);
     }
 
