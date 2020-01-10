@@ -352,6 +352,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "        values\n"
                  + "          strings.xml\n"
                  + "build.gradle\n"
+                 + "gradle.properties\n"
                  + "import-summary.txt\n"
                  + "local.properties\n"
                  + "settings.gradle\n",
@@ -625,6 +626,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "        values\n"
                  + "          strings.xml\n"
                  + "build.gradle\n"
+                 + "gradle.properties\n"
                  + "import-summary.txt\n"
                  + "local.properties\n"
                  + "settings.gradle\n",
@@ -2363,6 +2365,7 @@ public class GradleImportTest extends AndroidTestCase {
                  + "        values\n"
                  + "          strings.xml\n"
                  + "build.gradle\n"
+                 + "gradle.properties\n"
                  + "import-summary.txt\n"
                  + "local.properties\n"
                  + "newmodule\n"

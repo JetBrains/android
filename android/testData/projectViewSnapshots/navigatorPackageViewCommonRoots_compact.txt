@@ -13,4 +13,5 @@ testNavigatorPackageViewCommonRoots_compact (icon: /toolwindows/toolWindowProjec
     Gradle Scripts (icon: /icons/gradle.svg)
         build.gradle (Module: testNavigatorPackageViewCommonRoots_compact) (icon: /icons/gradleFile.svg)
         gradle-wrapper.properties (Gradle Version) (icon: /fileTypes/properties.svg)
+        gradle.properties (Project Properties) (icon: /fileTypes/properties.svg)
         local.properties (SDK Location) (icon: /fileTypes/properties.svg)

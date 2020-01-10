@@ -77,6 +77,7 @@ public class ExportProjectZipTest extends AndroidGradleTestCase {
                                                  "testExportProject/app/src/main/res/values/colors.xml",
                                                  "testExportProject/app/build.gradle",
                                                  "testExportProject/build.gradle",
+                                                 "testExportProject/gradle.properties",
                                                  "testExportProject/gradle/",
                                                  "testExportProject/gradle/wrapper/",
                                                  "testExportProject/gradle/wrapper/gradle-wrapper.jar",

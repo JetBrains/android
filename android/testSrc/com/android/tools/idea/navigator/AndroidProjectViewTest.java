@@ -160,6 +160,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                       "  gradle-wrapper.properties (Gradle Version)\n" +
                       "  proguard-rules.pro (ProGuard Rules for app)\n" +
                       "  proguard.cfg (ProGuard Rules for lib)\n" +
+                      "  gradle.properties (Project Properties)\n" +
                       "  settings.gradle (Project Settings)\n" +
                       "  local.properties (SDK Location)\n";
     int numLines = expected.split("\n").length;
@@ -245,6 +246,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                       " Gradle Scripts\n" +
                       "  build.gradle (Module: " + modules[0].getName() + ")\n" +
                       "  gradle-wrapper.properties (Gradle Version)\n" +
+                      "  gradle.properties (Project Properties)\n" +
                       "  local.properties (SDK Location)\n" +
                       " " + modules[0].getName() + " (Android)\n" +
                       "  java\n" +
@@ -282,6 +284,7 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
                       "  build.gradle.kts (Module: lib)\n" +
                       "  build.gradle.kts (Project: " + projectName + ")\n" +
                       "  gradle-wrapper.properties (Gradle Version)\n" +
+                      "  gradle.properties (Project Properties)\n" +
                       "  local.properties (SDK Location)\n" +
                       "  settings.gradle.kts (Project Settings)\n" +
                       " app (Android)\n" +
