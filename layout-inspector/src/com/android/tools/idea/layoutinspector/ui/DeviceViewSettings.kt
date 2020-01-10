@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.DataKey
 import kotlin.properties.Delegates
 
 val DEVICE_VIEW_SETTINGS_KEY = DataKey.create<DeviceViewSettings>(DeviceViewSettings::class.qualifiedName!!)
 
-class DeviceViewSettings(
-  scalePercent: Int = 100,
-  drawBorders: Boolean = true,
-  drawLabel: Boolean = false
-) {
+private const val DRAW_BORDERS_KEY = "live.layout.inspector.draw.borders"
+private const val DRAW_LABEL_KEY = "live.layout.inspector.draw.label"
+
+class DeviceViewSettings(scalePercent: Int = 100) {
   val modificationListeners = mutableListOf<() -> Unit>()
 
   /** Scale of the view in percentage: 100 = 100% */
@@ -36,11 +36,17 @@ class DeviceViewSettings(
   val scaleFraction: Double
     get() = scalePercent / 100.0
 
-  var drawBorders: Boolean by Delegates.observable(drawBorders) {
-    _, _, _ -> modificationListeners.forEach { it() }
-  }
+  var drawBorders: Boolean
+    get() = PropertiesComponent.getInstance().getBoolean(DRAW_BORDERS_KEY, true)
+    set(value) {
+      PropertiesComponent.getInstance().setValue(DRAW_BORDERS_KEY, value, true)
+      modificationListeners.forEach { it() }
+    }
 
-  var drawLabel: Boolean by Delegates.observable(drawLabel) {
-    _, _, _ -> modificationListeners.forEach { it() }
-  }
+  var drawLabel: Boolean
+    get() = PropertiesComponent.getInstance().getBoolean(DRAW_LABEL_KEY, true)
+    set(value) {
+      PropertiesComponent.getInstance().setValue(DRAW_LABEL_KEY, value, true)
+      modificationListeners.forEach { it() }
+    }
 }
