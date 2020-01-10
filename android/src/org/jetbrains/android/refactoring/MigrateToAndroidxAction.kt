@@ -24,7 +24,6 @@ import com.android.support.parseMigrationFile
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.project.sync.setup.post.project.GradleKtsBuildFilesWarningStep.HAS_KTS_BUILD_FILES
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -51,13 +50,7 @@ class MigrateToAndroidxAction : BaseRefactoringAction() {
   override fun getHandler(dataContext: DataContext): RefactoringActionHandler? = MigrateToAndroidxHandler()
 
   override fun update(anActionEvent: AnActionEvent) {
-    if (HAS_KTS_BUILD_FILES.get(anActionEvent.project, false)) {
-      anActionEvent.presentation.isEnabled = false
-      anActionEvent.presentation.description = "Migration to AndroidX package names is not supported for projects that use Gradle KTS build files"
-    }
-    else {
-      anActionEvent.presentation.description = "Migrates to AndroidX package names"
-    }
+    anActionEvent.presentation.description = "Migrates to AndroidX package names"
   }
 
   override fun isAvailableForLanguage(language: Language) = true

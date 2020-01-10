@@ -16,6 +16,7 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
@@ -680,15 +681,22 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
   static class GradleStringUsageInfo extends GradleUsageInfo {
 
     @NotNull private final String myNewValue;
+    private final GradleBuildModel myBuildModel;
 
-    public GradleStringUsageInfo(@NotNull GrLiteral element, @NotNull String newValue) {
+    public GradleStringUsageInfo(@NotNull PsiElement element, @NotNull String newValue, @NotNull GradleBuildModel buildModel) {
       super(element);
       myNewValue = newValue;
+      myBuildModel = buildModel;
     }
 
     @Nullable
     @Override
     public PsiElement applyChange(@NotNull PsiMigration migration) {
+      if (myBuildModel.isModified()) {
+        myBuildModel.applyChanges();
+        return getElement();
+      }
+
       PsiElement element = getElement();
       if (element == null) {
         return null;
