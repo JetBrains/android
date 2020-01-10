@@ -515,7 +515,8 @@ public class VectorDrawableTransformer {
           myColumn = 1;
         } else {
           if (myLine != 1 || myColumn != 1 || c != '\uFEFF') {  // Byte order mark doesn't occupy a column.
-            if (myColumn == 1) {
+            if (myColumn == 1 &&
+                (c != '\r' || myOffset >= myText.length() || myText.charAt(myOffset + 1) != '\n')) { // Don't indent empty lines on Windows
               out.append(indent);
             }
             myColumn++;
