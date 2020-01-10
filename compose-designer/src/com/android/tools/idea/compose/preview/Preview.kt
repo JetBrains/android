@@ -28,6 +28,7 @@ import com.android.tools.idea.common.util.BuildListener
 import com.android.tools.idea.common.util.setupBuildListener
 import com.android.tools.idea.common.util.setupChangeListener
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
+import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -177,6 +178,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       configureLayoutlibSceneManager(LayoutlibSceneManager(model, surface, settingsProvider),
                                      fullDeviceSize = currentRenderSettings.showDecorations)
     }
+    .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }
     .setEditable(true)
     .build()
     .apply {
