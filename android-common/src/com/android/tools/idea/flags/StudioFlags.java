@@ -192,6 +192,14 @@ public final class StudioFlags {
     false);
   //endregion
 
+  //region Asset Studio
+  private static final FlagGroup ASSET = new FlagGroup(FLAGS, "asset", "Asset Studio");
+  public static final Flag<Boolean> ASSET_COPY_MATERIAL_ICONS = Flag.create(
+    ASSET, "copy.material.icons", "Allow copying icons to Sdk folder",
+    "Allow the IconPickerDialog in Asset Studio to copy bundle material icons in to the Android/Sdk folder",
+    false);
+  //endregion
+
   //region Layout Editor
   private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
   public static final Flag<Boolean> NELE_ANIMATIONS_PREVIEW = Flag.create(

@@ -119,7 +119,7 @@ class MaterialVdIconsLoader(
     if (iconUrl == null) {
       LOG.warn("Could not load icon: Name=$iconName FileName=$iconFileName")
     }
-    return urlProvider.getIconUrl(style, iconName, iconFileName)
+    return iconUrl
   }
 
   private fun openAndVisitIconFiles(url: URL?, iconZipVisitor: (ZipEntry) -> Unit, iconFileVisitor: (File) -> Unit) {

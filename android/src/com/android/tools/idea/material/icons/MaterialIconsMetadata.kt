@@ -15,45 +15,120 @@
  */
 package com.android.tools.idea.material.icons
 
+import com.android.utils.HashCodes
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonDeserializationContext
 import com.google.gson.JsonDeserializer
 import com.google.gson.JsonElement
+import com.google.gson.JsonIOException
+import com.google.gson.JsonSyntaxException
+import com.google.gson.annotations.SerializedName
 import java.io.Reader
 import java.lang.reflect.Type
 
 /**
  * Metadata for the Material design icons, based on the metadata file obtained from http://fonts.google.com/metadata/icons.
  */
-class MaterialIconsMetadata(
+data class MaterialIconsMetadata(
   val host: String,
+  @SerializedName("asset_url_pattern")
   val urlPattern: String,
   val families: Array<String>,
   val icons: Array<MaterialMetadataIcon>
 ) {
   companion object {
+    /**
+     * @return The deserialized [MaterialIconsMetadata] from the [reader] object.
+     */
+    @Throws(JsonIOException::class, JsonSyntaxException::class)
     fun parse(reader: Reader): MaterialIconsMetadata {
-      return with(GsonBuilder()
-                    .registerTypeAdapter(MaterialIconsMetadata::class.java, MetadataDeserializer())
-                    .registerTypeAdapter(MaterialMetadataIcon::class.java, IconDeserializer())
-                    .generateNonExecutableJson()
-                    .create()) {
+      return with(getMetadataGson()) {
         fromJson<MaterialIconsMetadata>(reader, MaterialIconsMetadata::class.java)
       }
     }
+
+    /**
+     * @return A Json [String] of the serialized [MaterialIconsMetadata], note that it generates an NonExecutable Json using Gson.
+     */
+    fun parse(metadata: MaterialIconsMetadata): String {
+      return with(getMetadataGson()) {
+        toJson(metadata, MaterialIconsMetadata::class.java)
+      }
+    }
+
+    private fun getMetadataGson(): Gson {
+      return GsonBuilder()
+        .registerTypeAdapter(MaterialIconsMetadata::class.java, MetadataDeserializer())
+        .registerTypeAdapter(MaterialMetadataIcon::class.java, IconDeserializer())
+        .generateNonExecutableJson()
+        .create()
+    }
+  }
+
+  /**
+   * Override equals to compare arrays by content.
+   */
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as MaterialIconsMetadata
+
+    if (host != other.host) return false
+    if (urlPattern != other.urlPattern) return false
+    if (!families.contentEquals(other.families)) return false
+    if (!icons.contentEquals(other.icons)) return false
+
+    return true
+  }
+
+  /**
+   * Override hashcode to compare arrays by content.
+   */
+  override fun hashCode(): Int {
+    return HashCodes.mix(host.hashCode(), urlPattern.hashCode(), families.contentHashCode(), icons.contentHashCode())
   }
 }
 
 /**
  * Metadata of each icon within [MaterialIconsMetadata.icons].
  */
-class MaterialMetadataIcon(
+data class MaterialMetadataIcon(
   val name: String,
   val version: Int,
+  @SerializedName("unsupported_families")
   val unsupportedFamilies: Array<String>,
   val categories: Array<String>,
   val tags: Array<String>
-)
+) {
+
+  /**
+   * Override equals to compare arrays by content.
+   */
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as MaterialMetadataIcon
+
+    if (name != other.name) return false
+    if (version != other.version) return false
+    if (!unsupportedFamilies.contentEquals(other.unsupportedFamilies)) return false
+    if (!categories.contentEquals(other.categories)) return false
+    if (!tags.contentEquals(other.tags)) return false
+
+    return true
+  }
+
+  /**
+   * Override hashcode to compare arrays by content.
+   */
+  override fun hashCode(): Int {
+    return HashCodes.mix(
+      name.hashCode(), version, unsupportedFamilies.contentHashCode(), categories.contentHashCode(), tags.contentHashCode())
+  }
+}
 
 /**
  * [JsonDeserializer] for [MaterialIconsMetadata].

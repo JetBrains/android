@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.npw.assetstudio
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.material.icons.MaterialIconsMetadata
 import com.android.tools.idea.material.icons.MaterialIconsMetadataUrlProvider
 import com.android.tools.idea.material.icons.BundledMetadataUrlProvider
 import com.android.tools.idea.material.icons.MaterialIconsUrlProvider
 import com.android.tools.idea.material.icons.BundledIconsUrlProvider
+import com.android.tools.idea.material.icons.MaterialIconsCopyHandler
+import com.android.tools.idea.material.icons.MaterialIconsUtils.getIconsSdkTargetPath
 import com.android.tools.idea.material.icons.MaterialVdIcons
 import com.android.tools.idea.material.icons.MaterialVdIconsLoader
 import com.android.tools.idea.npw.assetstudio.MaterialVdIconsProvider.Status
@@ -29,6 +32,7 @@ import com.intellij.util.concurrency.EdtExecutorService
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
@@ -80,7 +84,8 @@ class MaterialVdIconsProvider {
           refreshUiCallback(MaterialVdIcons.EMPTY, Status.FINISHED)
         }
         else -> {
-          loadMaterialVdIcons(metadata, iconsUrlProvider ?: BundledIconsUrlProvider(), refreshUiCallback)
+          loadMaterialVdIcons(
+            metadata, iconsUrlProvider ?: BundledIconsUrlProvider(), StudioFlags.ASSET_COPY_MATERIAL_ICONS.get(), refreshUiCallback)
         }
       }
     }
@@ -89,6 +94,7 @@ class MaterialVdIconsProvider {
 
 private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
                                 iconsUrlProvider: MaterialIconsUrlProvider,
+                                copyToSdkFolder: Boolean,
                                 refreshUiCallback: (MaterialVdIcons, Status) -> Unit) {
   val iconsLoader = MaterialVdIconsLoader(metadata, iconsUrlProvider)
   val backgroundExecutor = createBackgroundExecutor()
@@ -109,8 +115,28 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
         }
         // Invoke the ui-callback with the loaded icons and current status value.
         refreshUiCallback(icons, status)
+
+        if (copyToSdkFolder && status == Status.FINISHED) {
+          // When finished loading, copy icons to the Android/Sdk directory.
+          copyBundledIcons(metadata, icons, backgroundExecutor)
+        }
       }
     }, EdtExecutorService.getScheduledExecutorInstance())
+  }
+}
+
+private fun copyBundledIcons(metadata: MaterialIconsMetadata, icons: MaterialVdIcons, executor: ExecutorService) {
+  val targetPath = getIconsSdkTargetPath()
+  if (targetPath == null) {
+    LOG.warn("No Android Sdk folder, can't copy Material Icons.")
+    return
+  }
+  CompletableFuture.supplyAsync(Supplier {
+    MaterialIconsCopyHandler(metadata, icons).copyTo(targetPath)
+  }, executor).whenComplete { _, throwable ->
+    if (throwable != null) {
+      LOG.error("Error while copying icons", throwable)
+    }
   }
 }
 
