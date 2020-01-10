@@ -3,7 +3,7 @@
   <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="15" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="5" bottom="0" right="0"/>
     <constraints>
-      <xy x="20" y="20" width="381" height="434"/>
+      <xy x="20" y="20" width="381" height="444"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -14,6 +14,7 @@
             <preferred-size width="150" height="-1"/>
           </grid>
         </constraints>
+        <properties/>
       </component>
       <component id="6c8a2" class="com.android.tools.adtui.LabelWithEditButton" binding="myPackageName">
         <constraints>
@@ -47,6 +48,7 @@
         </constraints>
         <properties>
           <font style="1"/>
+          <labelFor value="6c8a2"/>
           <text value="Package name"/>
         </properties>
       </component>
@@ -92,6 +94,7 @@
         </constraints>
         <properties>
           <font style="1"/>
+          <labelFor value="9427e"/>
           <text value="Minimum SDK"/>
         </properties>
       </component>
