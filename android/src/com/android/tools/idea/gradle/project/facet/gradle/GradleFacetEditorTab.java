@@ -20,10 +20,10 @@ import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import javax.swing.JComponent;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
 
 /**
  * For IntelliJ IDEA only, not used in Android Studio
@@ -40,7 +40,7 @@ public class GradleFacetEditorTab extends FacetEditorTab {
   @Override
   @Nls
   public String getDisplayName() {
-    return "Android Gradle Module Settings";
+    return AndroidBundle.message("configurable.GradleFacetEditorTab.display.name");
   }
 
   @Override

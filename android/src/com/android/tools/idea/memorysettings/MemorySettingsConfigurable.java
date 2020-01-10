@@ -72,7 +72,7 @@ public class MemorySettingsConfigurable implements SearchableConfigurable {
 
   @Override
   public String getDisplayName() {
-    return "Memory Settings";
+    return AndroidBundle.message("configurable.MemorySettingsConfigurable.display.name");
   }
 
   @Override

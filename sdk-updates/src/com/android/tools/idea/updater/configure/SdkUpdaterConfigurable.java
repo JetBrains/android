@@ -49,6 +49,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.AncestorListenerAdapter;
 import com.intellij.ui.JBColor;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,7 +87,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   @Nls
   @Override
   public String getDisplayName() {
-    return "Android SDK Updater";
+    return AndroidBundle.message("configurable.SdkUpdaterConfigurable.display.name");
   }
 
   @Nullable

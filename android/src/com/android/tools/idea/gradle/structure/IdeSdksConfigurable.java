@@ -92,6 +92,7 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -508,7 +509,7 @@ public class IdeSdksConfigurable implements Place.Navigator, Configurable {
 
   @Override
   public String getDisplayName() {
-    return "SDK Location";
+    return AndroidBundle.message("configurable.IdeSdksConfigurable.display.name");
   }
 
   @Override
