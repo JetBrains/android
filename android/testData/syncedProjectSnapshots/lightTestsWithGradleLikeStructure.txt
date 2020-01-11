@@ -20,7 +20,6 @@ PROJECT             : LightSyncBasedTestsWithGradleLikeStructureTest
             - ResFoldersRelativePath      : file://<PROJECT>/unitTest/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/unitTest/src/debug/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/unitTest/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/unitTest/src/test/res [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
