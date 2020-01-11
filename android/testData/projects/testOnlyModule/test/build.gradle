@@ -36,4 +36,6 @@ repositories {
 
 dependencies {
   implementation 'junit:junit:4.12'
+  implementation 'com.android.support:appcompat-v7:+'
+  implementation 'com.android.support.test.espresso:espresso-core:+'
 }

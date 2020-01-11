@@ -109,7 +109,7 @@ public class BuildApkActionTest extends HeavyPlatformTestCase {
     myAction.actionPerformed(event);
 
     Module[] allModules = {appModule, featureModule};
-    verify(myBuildInvoker).assemble(eq(allModules), eq(TestCompileType.ALL), any(OutputBuildAction.class));
+    verify(myBuildInvoker).assemble(eq(allModules), eq(TestCompileType.ALL), eq(null));
   }
 
   private static void setUpModuleAsAndroidModule(Module module, AndroidModuleModel androidModel, IdeAndroidProject ideAndroidProject) {

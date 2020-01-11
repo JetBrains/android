@@ -17,6 +17,7 @@ package com.android.tools.idea.instantapp
 
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.run.AndroidAppRunConfigurationBase
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidProgramRunner
@@ -67,6 +68,10 @@ class DynamicFeatureInstantAppTest : AndroidGradleTestCase(){
     MockitoAnnotations.initMocks(this)
 
     loadProject(INSTANT_APP_WITH_DYNAMIC_FEATURES, "app")
+
+    // Run build task for main variant.
+    val taskName = AndroidModuleModel.get(myAndroidFacet)!!.selectedVariant.mainArtifact.assembleTaskName
+    invokeGradleTasks(project, taskName)
 
     configSettings = RunManager.getInstance(project).createRunConfiguration("debug", AndroidRunConfigurationType.getInstance().factory)
     configuration = configSettings.configuration as AndroidAppRunConfigurationBase
