@@ -39,7 +39,6 @@ import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.Facets;
@@ -90,7 +89,8 @@ public class BuildBundleActionTest extends PlatformTestCase {
       if (myDefaultTestDialog != null) {
         Messages.setTestDialog(myDefaultTestDialog);
       }
-    } finally {
+    }
+    finally {
       super.tearDown();
     }
   }
@@ -110,7 +110,7 @@ public class BuildBundleActionTest extends PlatformTestCase {
 
     myAction.actionPerformed(event);
 
-    verify(myBuildInvoker).bundle(eq(appModules), any(OutputBuildAction.class));
+    verify(myBuildInvoker).bundle(eq(appModules), eq(null));
   }
 
   public void testUpdateGradlePluginNotification() {
@@ -138,7 +138,7 @@ public class BuildBundleActionTest extends PlatformTestCase {
     verify(myAndroidPluginVersionUpdater).updatePluginVersion(any(), any(), any());
   }
 
-  public void testUpdateGradlePluginCanceledNotification() throws InterruptedException {
+  public void testUpdateGradlePluginCanceledNotification() {
     Module appModule = createModule("app1");
     setUpModuleAsAndroidModule(appModule, myAndroidModel, myIdeAndroidProject, myIdeVariant, myMainArtifact);
     when(myMainArtifact.getBundleTaskName()).thenReturn(null);
