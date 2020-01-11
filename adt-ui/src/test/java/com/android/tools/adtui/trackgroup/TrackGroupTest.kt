@@ -44,6 +44,7 @@ class TrackGroupTest {
 
     assertThat(trackGroup.trackList.isVisible).isFalse()
     assertThat(trackGroup.actionsDropdown.isVisible).isFalse()
+    assertThat(trackGroup.actionsDropdown.toolTipText).isEqualTo("More actions")
     assertThat(trackGroup.separator.isVisible).isFalse()
     assertThat(trackGroup.collapseButton.text).isEqualTo("Expand Section")
 
