@@ -72,50 +72,15 @@ class AndroidContentEntriesSetup extends ContentEntriesSetup {
   public void execute(@NotNull List<ContentEntry> contentEntries) {
     IdeVariant selectedVariant = myAndroidModel.getSelectedVariant();
 
-    IdeAndroidArtifact mainArtifact = selectedVariant.getMainArtifact();
-    addSourceFolders(mainArtifact, contentEntries, false);
+    addGeneratedSourceFolders(selectedVariant.getMainArtifact(), contentEntries, false);
+    selectedVariant.getTestArtifacts().forEach(it ->addGeneratedSourceFolders(it, contentEntries, true));
 
-    for (IdeBaseArtifact artifact : selectedVariant.getTestArtifacts()) {
-      addSourceFolders(artifact, contentEntries, true);
-    }
-
-    for (String flavorName : selectedVariant.getProductFlavors()) {
-      ProductFlavorContainer flavor = myAndroidModel.findProductFlavor(flavorName);
-      if (flavor != null) {
-        addSourceFolder(flavor, contentEntries);
-      }
-    }
-
-    String buildTypeName = selectedVariant.getBuildType();
-    BuildTypeContainer buildTypeContainer = myAndroidModel.findBuildType(buildTypeName);
-    if (buildTypeContainer != null) {
-      addSourceFolder(buildTypeContainer.getSourceProvider(), contentEntries, false);
-
-      Collection<SourceProvider> testSourceProviders = myAndroidModel.getTestSourceProviders(buildTypeContainer.getExtraSourceProviders());
-      for (SourceProvider testSourceProvider : testSourceProviders) {
-        addSourceFolder(testSourceProvider, contentEntries, true);
-      }
-    }
-
-    ProductFlavorContainer defaultConfig = getAndroidProject().getDefaultConfig();
-    addSourceFolder(defaultConfig, contentEntries);
+    myAndroidModel.getActiveSourceProviders().forEach(it ->addSourceFolder(it, contentEntries, false));
+    myAndroidModel.getUnitTestSourceProviders().forEach(it ->addSourceFolder(it, contentEntries, true));
+    myAndroidModel.getAndroidTestSourceProviders().forEach(it ->addSourceFolder(it, contentEntries, true));
 
     addExcludedOutputFolders(contentEntries);
     addOrphans();
-  }
-
-  private void addSourceFolders(@NotNull IdeBaseArtifact artifact, @NotNull List<ContentEntry> contentEntries, boolean isTest) {
-    addGeneratedSourceFolders(artifact, contentEntries, isTest);
-
-    SourceProvider variantSourceProvider = artifact.getVariantSourceProvider();
-    if (variantSourceProvider != null) {
-      addSourceFolder(variantSourceProvider, contentEntries, isTest);
-    }
-
-    SourceProvider multiFlavorSourceProvider = artifact.getMultiFlavorSourceProvider();
-    if (multiFlavorSourceProvider != null) {
-      addSourceFolder(multiFlavorSourceProvider, contentEntries, isTest);
-    }
   }
 
   private void addGeneratedSourceFolders(@NotNull IdeBaseArtifact artifact, @NotNull List<ContentEntry> contentEntries, boolean isTest) {
@@ -130,15 +95,6 @@ class AndroidContentEntriesSetup extends ContentEntriesSetup {
       sourceType = getResourceSourceType(isTest);
       AndroidArtifact androidArtifact = (AndroidArtifact)artifact;
       addSourceFolders(androidArtifact.getGeneratedResourceFolders(), contentEntries, sourceType, true);
-    }
-  }
-
-  private void addSourceFolder(@NotNull ProductFlavorContainer flavor, @NotNull List<ContentEntry> contentEntries) {
-    addSourceFolder(flavor.getSourceProvider(), contentEntries, false);
-
-    Collection<SourceProvider> testSourceProviders = myAndroidModel.getTestSourceProviders(flavor.getExtraSourceProviders());
-    for (SourceProvider sourceProvider : testSourceProviders) {
-      addSourceFolder(sourceProvider, contentEntries, true);
     }
   }
 

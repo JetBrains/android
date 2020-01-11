@@ -258,16 +258,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   @NotNull
-  public Collection<SourceProvider> getTestSourceProviders(@NotNull Iterable<SourceProviderContainer> containers) {
-    return AndroidModelSourceProviderUtils.getSourceProvidersForArtifacts(containers, TEST_ARTIFACT_NAMES);
-  }
-
-  @NotNull
-  public List<SourceProvider> getTestSourceProviders() {
-    return AndroidModelSourceProviderUtils.collectTestSourceProviders(this, getSelectedVariant());
-  }
-
-  @NotNull
   public List<SourceProvider> getUnitTestSourceProviders() {
     return AndroidModelSourceProviderUtils.collectUnitTestSourceProviders(this, getSelectedVariant());
   }
@@ -448,11 +438,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @NotNull
   public IdeAndroidProject getAndroidProject() {
     return myAndroidProject;
-  }
-
-  @NotNull
-  private static Logger getLogger() {
-    return Logger.getInstance(AndroidModuleModel.class);
   }
 
   /**
