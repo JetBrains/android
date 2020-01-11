@@ -20,6 +20,8 @@ import com.android.tools.adtui.RangeTimeScrollBar;
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.hchart.HTreeChart;
 import com.android.tools.adtui.chart.hchart.HTreeChartVerticalScrollBar;
+import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
@@ -276,6 +278,8 @@ public abstract class ChartDetailsView extends CaptureDetailsView {
       horizontalScrollBar.setPreferredSize(new Dimension(horizontalScrollBar.getPreferredSize().width, 10));
 
       JPanel panel = new JPanel(new TabularLayout("*,Fit", "*,Fit"));
+      panel.setBorder(AdtUiUtils.DEFAULT_TOP_BORDER);
+      panel.setBackground(StudioColorsKt.getPrimaryContentBackground());
       panel.add(myChart, new TabularLayout.Constraint(0, 0));
       panel.add(new HTreeChartVerticalScrollBar<>(myChart), new TabularLayout.Constraint(0, 1));
       panel.add(horizontalScrollBar, new TabularLayout.Constraint(1, 0, 1, 2));
