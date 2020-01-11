@@ -31,6 +31,8 @@ import com.android.builder.model.TestVariantBuildOutput;
 import com.android.builder.model.TestedTargetVariant;
 import com.android.builder.model.VariantBuildOutput;
 import com.android.ddmlib.IDevice;
+import com.android.ide.common.build.GenericBuiltArtifacts;
+import com.android.ide.common.build.GenericBuiltArtifactsLoader;
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
@@ -82,11 +84,17 @@ public class GradleApkProvider implements ApkProvider {
   private final boolean myTest;
   private Computable<OutputKind> myOutputKindProvider;
 
-  /** Specify where to look for build output APKs */
+  /**
+   * Specify where to look for build output APKs
+   */
   public enum OutputKind {
-    /** Default behavior: Look for build output in the regular Gradle Model output */
+    /**
+     * Default behavior: Look for build output in the regular Gradle Model output
+     */
     Default,
-    /** Bundle behavior: Look for build output in the Bundle task output model */
+    /**
+     * Bundle behavior: Look for build output in the Bundle task output model
+     */
     AppBundleOutputModel,
   }
 
@@ -295,10 +303,25 @@ public class GradleApkProvider implements ApkProvider {
               boolean fromTestArtifact) throws ApkProvisionException {
     AndroidModuleModel androidModel = AndroidModuleModel.get(facet);
     assert androidModel != null;
+    if (androidModel.getFeatures().isBuildOutputFileSupported()) {
+      return getApkFromBuildOutputFile(variant, device, fromTestArtifact);
+    }
     if (androidModel.getFeatures().isPostBuildSyncSupported()) {
       return getApkFromPostBuildSync(variant, device, facet, fromTestArtifact);
     }
     return getApkFromPreBuildSync(variant, device, fromTestArtifact);
+  }
+
+  @NotNull
+  File getApkFromBuildOutputFile(@NotNull IdeVariant variant,
+                                 @NotNull IDevice device,
+                                 boolean fromTestArtifact) throws ApkProvisionException {
+    IdeAndroidArtifact artifact = fromTestArtifact ? variant.getAndroidTestArtifact() : variant.getMainArtifact();
+    assert artifact != null;
+    String outputFile = artifact.getAssembleTaskOutputListingFile();
+    GenericBuiltArtifacts builtArtifacts = GenericBuiltArtifactsLoader.loadFromFile(new File(outputFile), new LogWrapper(getLogger()));
+    assert builtArtifacts != null;
+    return myBestOutputFinder.findBestOutput(variant, device, builtArtifacts);
   }
 
   @NotNull
@@ -308,8 +331,8 @@ public class GradleApkProvider implements ApkProvider {
                               boolean fromTestArtifact) throws ApkProvisionException {
     IdeAndroidArtifact artifact = fromTestArtifact ? variant.getAndroidTestArtifact() : variant.getMainArtifact();
     assert artifact != null;
-    List<AndroidArtifactOutput> outputs = new ArrayList<>(artifact.getOutputs());
-    return getBestOutput(variant, device, outputs);
+    @SuppressWarnings("deprecation") List<AndroidArtifactOutput> outputs = new ArrayList<>(artifact.getOutputs());
+    return myBestOutputFinder.findBestOutput(variant, device, outputs);
   }
 
   @NotNull
@@ -355,7 +378,8 @@ public class GradleApkProvider implements ApkProvider {
                 int apiWithSplitApk = AndroidVersion.ALLOW_SPLIT_APK_INSTALLATION.getApiLevel();
                 if (!device.getVersion().isGreaterOrEqualThan(apiWithSplitApk)) {
                   // b/119663247
-                  throw new ApkProvisionException("Running Instrumented Tests for Dynamic Features is currently not supported on API < 21.");
+                  throw new ApkProvisionException(
+                    "Running Instrumented Tests for Dynamic Features is currently not supported on API < 21.");
                 }
                 outputs.addAll(testVariantBuildOutput.getOutputs());
               }
@@ -371,22 +395,9 @@ public class GradleApkProvider implements ApkProvider {
 
     // If empty, it means that either ProjectBuildOut has not been filled correctly or the variant was not found.
     // In this case we try to get an APK known at sync time, if any.
-    return outputs.isEmpty() ? getApkFromPreBuildSync(variant, device, fromTestArtifact) : getBestOutput(variant, device, outputs);
-  }
-
-  /**
-   * Find the best output for the selected device and variant.
-   * If multiple splits are available, it selects the best one.
-   */
-  @NotNull
-  private File getBestOutput(@NotNull IdeVariant variant, @NotNull IDevice device, @NotNull List<? extends OutputFile> outputs)
-    throws ApkProvisionException {
-    if (outputs.isEmpty()) {
-      throw new ApkProvisionException("No outputs for the main artifact of variant: " + variant.getDisplayName());
-    }
-    List<OutputFile> apkFiles = myBestOutputFinder.findBestOutput(variant, device, outputs);
-    // Install apk (note that variant.getOutputFile() will point to a .aar in the case of a library).
-    return apkFiles.get(0).getOutputFile();
+    return outputs.isEmpty()
+           ? getApkFromPreBuildSync(variant, device, fromTestArtifact)
+           : myBestOutputFinder.findBestOutput(variant, device, outputs);
   }
 
   /**
