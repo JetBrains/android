@@ -20,7 +20,6 @@ PROJECT             : testLightTestsWithMultipleModulesTestProjectStructureInAnd
             - ResFoldersRelativePath      : file://<TEMP>/app/src/main/res [-]
             - ResFoldersRelativePath      : file://<TEMP>/app/src/debug/res [-]
             - TestResFoldersRelativePath  : file://<TEMP>/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<TEMP>/app/src/test/res [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -95,7 +94,6 @@ PROJECT             : testLightTestsWithMultipleModulesTestProjectStructureInAnd
             - ResFoldersRelativePath      : file://<TEMP>/lib/src/main/res [-]
             - ResFoldersRelativePath      : file://<TEMP>/lib/src/debug/res [-]
             - TestResFoldersRelativePath  : file://<TEMP>/lib/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<TEMP>/lib/src/test/res [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false

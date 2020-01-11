@@ -43,9 +43,7 @@ PROJECT             : AS36
             - ResFoldersRelativePath      : file://<PROJECT>/libs/android_library/src/debug/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/libs/android_library/build/generated/res/rs/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/src/test/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/src/testDebug/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/libs/android_library/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -517,9 +515,7 @@ PROJECT             : AS36
             - ResFoldersRelativePath      : file://<PROJECT>/app/src/debug/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/app/build/generated/res/rs/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/test/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/testDebug/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -992,9 +988,7 @@ PROJECT             : AS36
             - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature/src/debug/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature/build/generated/res/rs/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/src/test/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/src/testDebug/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -1105,9 +1099,7 @@ PROJECT             : AS36
             - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature2/src/debug/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/features/dynamicfeature2/build/generated/res/rs/debug [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/src/test/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/src/androidTestDebug/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/src/testDebug/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/features/dynamicfeature2/build/generated/res/rs/androidTest/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs

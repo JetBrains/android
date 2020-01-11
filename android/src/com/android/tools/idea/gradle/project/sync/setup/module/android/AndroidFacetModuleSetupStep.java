@@ -93,7 +93,7 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
     facetProperties.TEST_RES_FOLDERS_RELATIVE_PATH =
       Stream.concat(
         androidModel
-          .getTestSourceProviders()
+          .getAndroidTestSourceProviders()
           .stream()
           .flatMap(provider -> provider.getResDirectories().stream()),
         androidTestArtifact != null ? androidTestArtifact.getGeneratedResourceFolders().stream() : Stream.empty()

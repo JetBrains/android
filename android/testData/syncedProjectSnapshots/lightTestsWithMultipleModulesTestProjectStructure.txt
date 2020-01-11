@@ -31,7 +31,6 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
             - ResFoldersRelativePath      : file://<PROJECT>/unitTest/app/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/unitTest/app/src/debug/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/unitTest/app/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/unitTest/app/src/test/res [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
@@ -111,7 +110,6 @@ PROJECT             : LightSyncBasedTestsWithMultipleModulesTestProjectStructure
             - ResFoldersRelativePath      : file://<PROJECT>/unitTest/lib/src/main/res [-]
             - ResFoldersRelativePath      : file://<PROJECT>/unitTest/lib/src/debug/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/unitTest/lib/src/androidTest/res [-]
-            - TestResFoldersRelativePath  : file://<PROJECT>/unitTest/lib/src/test/res [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
             UseCustomApkResourceFolder    : false
