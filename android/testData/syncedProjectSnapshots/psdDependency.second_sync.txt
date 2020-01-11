@@ -28,6 +28,7 @@ PROJECT             : testPsdDependency
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFree/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFreeDebug/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/free/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -678,6 +679,7 @@ PROJECT             : testPsdDependency
             - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTestFree/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/src/androidTestFreeDebug/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/mainModule/build/generated/res/rs/androidTest/free/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
@@ -2183,6 +2185,7 @@ PROJECT             : testPsdDependency
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTestFree/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/src/androidTestFreeDebug/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/moduleFlavor/build/generated/res/rs/androidTest/free/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs

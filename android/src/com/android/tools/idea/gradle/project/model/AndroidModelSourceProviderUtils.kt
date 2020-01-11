@@ -17,54 +17,78 @@
 
 package com.android.tools.idea.gradle.project.model
 
+import com.android.builder.model.BaseArtifact
+import com.android.builder.model.BuildTypeContainer
+import com.android.builder.model.ProductFlavorContainer
 import com.android.builder.model.SourceProvider
 import com.android.builder.model.SourceProviderContainer
-import com.android.builder.model.Variant
-import com.intellij.openapi.diagnostic.Logger
+import com.android.ide.common.gradle.model.IdeVariant
+import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
+import com.android.projectmodel.ARTIFACT_NAME_MAIN
+import com.android.projectmodel.ARTIFACT_NAME_UNIT_TEST
+import com.android.tools.idea.gradle.project.model.ArtifactSelector.ANDROID_TEST
+import com.android.tools.idea.gradle.project.model.ArtifactSelector.MAIN
+import com.android.tools.idea.gradle.project.model.ArtifactSelector.UNIT_TEST
 import com.intellij.util.containers.addIfNotNull
 
-private val LOG = Logger.getInstance(AndroidModuleModel::class.java)
+/**
+ * Usage: with(selector) {
+ *   variant.selectArtifact()
+ *   buildTypeContainer.selectProvider()
+ *   productFlavorContainer.selectProvider()
+ * }
+ */
+private enum class ArtifactSelector(val selector: IdeVariant.() -> BaseArtifact?, val artifactName: String) {
+  MAIN({ mainArtifact }, ARTIFACT_NAME_MAIN),
+  UNIT_TEST({ unitTestArtifact }, ARTIFACT_NAME_UNIT_TEST),
+  ANDROID_TEST({ androidTestArtifact }, ARTIFACT_NAME_ANDROID_TEST);
 
-internal fun AndroidModuleModel.collectMainSourceProviders(variantName: String): List<SourceProvider> {
-  val variant = myVariantsByName[variantName] ?: run {
-    LOG.error("Unknown variant name '$variantName' found in the module '${this@collectMainSourceProviders.moduleName}'")
-    return listOf()
-  }
-  return mutableListOf<SourceProvider>().apply {
-    add(defaultSourceProvider)
-    addAll(variant.productFlavors.mapNotNull { findProductFlavor(it)?.sourceProvider })
-    addIfNotNull(variant.mainArtifact.multiFlavorSourceProvider)
-    addIfNotNull(findBuildType(variant.buildType)?.sourceProvider)
-    addIfNotNull(variant.mainArtifact.variantSourceProvider)
-  }
+  fun IdeVariant.selectArtifact(): BaseArtifact? = selector()
+  fun BuildTypeContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
+  fun ProductFlavorContainer.selectProvider() = providerBy({ sourceProvider }, { extraSourceProviders })
+
+  private fun <T> T.providerBy(main: T.() -> SourceProvider, extra: T.() -> Collection<SourceProviderContainer>) =
+    when (artifactName) {
+      ARTIFACT_NAME_MAIN -> main()
+      else -> extra().singleOrNull { it.artifactName == artifactName }?.sourceProvider
+    }
 }
 
-internal fun AndroidModuleModel.collectTestSourceProviders(
-  variantName: String,
-  vararg testArtifactNames: String
-): List<SourceProvider> {
-  validateTestArtifactNames(testArtifactNames)
-  val variant: Variant = myVariantsByName[variantName]!!
-  return mutableListOf<SourceProvider>().apply {
-    addAll(androidProject.defaultConfig.extraSourceProviders.getSourceProvidersForArtifacts(*testArtifactNames))
-    addAll(variant.productFlavors.flatMap {
-      findProductFlavor(it)?.extraSourceProviders?.getSourceProvidersForArtifacts(*testArtifactNames).orEmpty()
-    })
-    addAll(findBuildType(variant.buildType)!!.extraSourceProviders.getSourceProvidersForArtifacts(
-      *testArtifactNames))
-    // TODO: Does it make sense to add multi-flavor test source providers?
-    // TODO: Does it make sense to add variant test source providers?
-  }
-}
+internal fun AndroidModuleModel.collectMainSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, MAIN)
+internal fun AndroidModuleModel.collectUnitTestSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, UNIT_TEST)
+internal fun AndroidModuleModel.collectAndroidTestSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, ANDROID_TEST)
 
-internal fun AndroidModuleModel.collectAllSourceProviders(): List<SourceProvider> {
-  val variants = androidProject.variants
+internal fun AndroidModuleModel.collectTestSourceProviders(variant: IdeVariant) =
+  collectUnitTestSourceProviders(variant) + collectAndroidTestSourceProviders(variant)
+
+internal fun AndroidModuleModel.collectAllSourceProviders(): List<SourceProvider> = collectAllProvidersFor(MAIN)
+internal fun AndroidModuleModel.collectAllUnitTestSourceProviders(): List<SourceProvider> = collectAllProvidersFor(UNIT_TEST)
+internal fun AndroidModuleModel.collectAllAndroidTestSourceProviders(): List<SourceProvider> = collectAllProvidersFor(ANDROID_TEST)
+
+private fun AndroidModuleModel.collectCurrentProvidersFor(variant: IdeVariant, artifactSelector: ArtifactSelector): List<SourceProvider> =
+  mutableListOf<SourceProvider>().apply {
+    with(artifactSelector) {
+      addIfNotNull(androidProject.defaultConfig.selectProvider())
+      val artifact = variant.selectArtifact()
+      // TODO(solodkyy): Reverse order as the correct application order is from the last dimenssion to the first.
+      addAll(variant.productFlavors.mapNotNull { findProductFlavor(it)?.selectProvider() })
+      addIfNotNull(artifact?.multiFlavorSourceProvider)
+      addIfNotNull(findBuildType(variant.buildType)?.selectProvider())
+      addIfNotNull(artifact?.variantSourceProvider)
+
+    }
+  }
+
+private fun AndroidModuleModel.collectAllProvidersFor(artifactSelector: ArtifactSelector): List<SourceProvider> {
+  val variants = androidProject.variants.filterIsInstance<IdeVariant>()
   return mutableListOf<SourceProvider>().apply {
-    add(defaultSourceProvider)
-    addAll(androidProject.productFlavors.map { it.sourceProvider })
-    addAll(variants.mapNotNull { it.mainArtifact.multiFlavorSourceProvider })
-    addAll(androidProject.buildTypes.map { it.sourceProvider })
-    addAll(variants.mapNotNull { it.mainArtifact.variantSourceProvider })
+    with(artifactSelector) {
+      addIfNotNull(androidProject.defaultConfig.selectProvider())
+      addAll(androidProject.productFlavors.mapNotNull { it.selectProvider() })
+      addAll(variants.mapNotNull { it.selectArtifact()?.multiFlavorSourceProvider })
+      addAll(androidProject.buildTypes.mapNotNull { it.selectProvider() })
+      addAll(variants.mapNotNull { it.selectArtifact()?.variantSourceProvider })
+    }
   }
 }
 
@@ -75,4 +99,3 @@ private fun validateTestArtifactNames(testArtifactNames: Array<out String>) =
   testArtifactNames.firstOrNull { it !in AndroidModuleModel.TEST_ARTIFACT_NAMES }?.let {
     throw IllegalArgumentException("'$it' is not a test artifact")
   }
-

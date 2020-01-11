@@ -59,6 +59,7 @@ import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.android.tools.lint.detector.api.Lint;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
@@ -253,7 +254,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull
   public List<SourceProvider> getActiveSourceProviders() {
-    return AndroidModelSourceProviderUtils.collectMainSourceProviders(this, mySelectedVariantName);
+    return AndroidModelSourceProviderUtils.collectMainSourceProviders(this, getSelectedVariant());
   }
 
   @NotNull
@@ -263,22 +264,26 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull
   public List<SourceProvider> getTestSourceProviders() {
-    return AndroidModelSourceProviderUtils.collectTestSourceProviders(this, mySelectedVariantName, TEST_ARTIFACT_NAMES);
+    return AndroidModelSourceProviderUtils.collectTestSourceProviders(this, getSelectedVariant());
   }
 
   @NotNull
   public List<SourceProvider> getUnitTestSourceProviders() {
-    return AndroidModelSourceProviderUtils.collectTestSourceProviders(this, mySelectedVariantName, ARTIFACT_UNIT_TEST);
+    return AndroidModelSourceProviderUtils.collectUnitTestSourceProviders(this, getSelectedVariant());
   }
 
   @NotNull
   public List<SourceProvider> getAndroidTestSourceProviders() {
-    return AndroidModelSourceProviderUtils.collectTestSourceProviders(this, mySelectedVariantName, ARTIFACT_ANDROID_TEST);
+    return AndroidModelSourceProviderUtils.collectAndroidTestSourceProviders(this, getSelectedVariant());
   }
 
   @NotNull
   public List<SourceProvider> getTestSourceProviders(@NotNull String artifactName) {
-    return AndroidModelSourceProviderUtils.collectTestSourceProviders(this, mySelectedVariantName, artifactName);
+    switch (artifactName) {
+      case ARTIFACT_ANDROID_TEST: return AndroidModelSourceProviderUtils.collectAndroidTestSourceProviders(this, getSelectedVariant());
+      case ARTIFACT_UNIT_TEST: return AndroidModelSourceProviderUtils.collectUnitTestSourceProviders(this, getSelectedVariant());
+    }
+    return ImmutableList.of();
   }
 
   /**

@@ -48,7 +48,9 @@ PROJECT             : MultiFlavor
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTest/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFirstAbc/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestSecondAbc/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbc/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestDebug/res [-]
+            - TestResFoldersRelativePath  : file://<PROJECT>/app/src/androidTestFirstAbcSecondAbcDebug/res [-]
             - TestResFoldersRelativePath  : file://<PROJECT>/app/build/generated/res/rs/androidTest/firstAbcSecondAbc/debug [-]
             AssetsFolderRelativePath      : /src/main/assets
             LibsFolderRelativePath        : /libs
