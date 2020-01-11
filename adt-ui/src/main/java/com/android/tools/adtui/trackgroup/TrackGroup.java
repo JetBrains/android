@@ -99,6 +99,7 @@ public class TrackGroup extends AspectObserver {
     });
 
     myActionsDropdown = new CommonDropDownButton(new CommonAction("", AllIcons.Actions.More));
+    myActionsDropdown.setToolTipText("More actions");
     initShowMoreDropdown();
 
     myCollapseButton = new CommonButton(COLLAPSE_ICON);
