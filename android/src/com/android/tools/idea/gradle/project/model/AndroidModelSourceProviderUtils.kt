@@ -58,9 +58,6 @@ internal fun AndroidModuleModel.collectMainSourceProviders(variant: IdeVariant) 
 internal fun AndroidModuleModel.collectUnitTestSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, UNIT_TEST)
 internal fun AndroidModuleModel.collectAndroidTestSourceProviders(variant: IdeVariant) = collectCurrentProvidersFor(variant, ANDROID_TEST)
 
-internal fun AndroidModuleModel.collectTestSourceProviders(variant: IdeVariant) =
-  collectUnitTestSourceProviders(variant) + collectAndroidTestSourceProviders(variant)
-
 internal fun AndroidModuleModel.collectAllSourceProviders(): List<SourceProvider> = collectAllProvidersFor(MAIN)
 internal fun AndroidModuleModel.collectAllUnitTestSourceProviders(): List<SourceProvider> = collectAllProvidersFor(UNIT_TEST)
 internal fun AndroidModuleModel.collectAllAndroidTestSourceProviders(): List<SourceProvider> = collectAllProvidersFor(ANDROID_TEST)
@@ -75,7 +72,6 @@ private fun AndroidModuleModel.collectCurrentProvidersFor(variant: IdeVariant, a
       addIfNotNull(artifact?.multiFlavorSourceProvider)
       addIfNotNull(findBuildType(variant.buildType)?.selectProvider())
       addIfNotNull(artifact?.variantSourceProvider)
-
     }
   }
 
@@ -91,11 +87,3 @@ private fun AndroidModuleModel.collectAllProvidersFor(artifactSelector: Artifact
     }
   }
 }
-
-internal fun Iterable<SourceProviderContainer>.getSourceProvidersForArtifacts(vararg artifactNames: String): Collection<SourceProvider> =
-  mapNotNull { container -> container.takeIf { it.artifactName in artifactNames }?.sourceProvider }.toSet()
-
-private fun validateTestArtifactNames(testArtifactNames: Array<out String>) =
-  testArtifactNames.firstOrNull { it !in AndroidModuleModel.TEST_ARTIFACT_NAMES }?.let {
-    throw IllegalArgumentException("'$it' is not a test artifact")
-  }
