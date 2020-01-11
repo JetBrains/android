@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
-import static com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel.stripID;
-
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceFolderType;
@@ -168,7 +166,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
               Debug.log("id of constraint set " + id);
             }
             if (id != null) {
-              mSelectedStartConstraintId = stripID(id);
+              mSelectedStartConstraintId = Utils.stripID(id);
               mSelectedEndConstraintId = null;
               myMotionHelper.setState(mSelectedStartConstraintId);
             }
@@ -177,8 +175,8 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             }
             break;
           case TRANSITION:
-            mSelectedStartConstraintId = stripID(tag[0].getAttributeValue("constraintSetStart"));
-            mSelectedEndConstraintId = stripID(tag[0].getAttributeValue("constraintSetEnd"));
+            mSelectedStartConstraintId = Utils.stripID(tag[0].getAttributeValue("constraintSetStart"));
+            mSelectedEndConstraintId = Utils.stripID(tag[0].getAttributeValue("constraintSetEnd"));
             myMotionHelper.setTransition(mSelectedStartConstraintId, mSelectedEndConstraintId);
             myMotionHelper.setProgress(mLastProgress);
             if (flags == MotionEditorSelector.Listener.CONTROL_FLAG) {
@@ -667,7 +665,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     for (int i = 0; i < children.length; i++) {
       XmlAttribute attribute = children[i].getAttribute("android:id");
       if (attribute != null) {
-        String childId = stripID(attribute.getValue());
+        String childId = Utils.stripID(attribute.getValue());
         if (childId.equalsIgnoreCase(constraintSetId)) {
           return children[i];
         }
