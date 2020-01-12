@@ -573,25 +573,14 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   }
 
   /**
-   * Returns the source provider for the current build type, which will never be {@code null} for a project backed by an
-   * {@link AndroidProject}, and always {@code null} for a legacy Android project.
-   *
-   * @return the build type source set or {@code null}.
-   */
-  @NotNull
-  public SourceProvider getBuildTypeSourceProvider() {
-    Variant selectedVariant = getSelectedVariant();
-    BuildTypeContainer buildType = findBuildType(selectedVariant.getBuildType());
-    assert buildType != null;
-    return buildType.getSourceProvider();
-  }
-
-  /**
    * Returns the source providers for the available flavors, which will never be {@code null} for a project backed by an
    * {@link AndroidProject}, and always {@code null} for a legacy Android project.
    *
    * @return the flavor source providers or {@code null} in legacy projects.
+   *
+   * @deprecated no reason to use just a subset of source providers outside of Gradle project system.
    */
+  @Deprecated
   @NotNull
   public List<SourceProvider> getFlavorSourceProviders() {
     Variant selectedVariant = getSelectedVariant();
@@ -623,28 +612,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
     state.ASSEMBLE_TEST_TASK_NAME = "";
     state.COMPILE_JAVA_TEST_TASK_NAME = "";
-  }
-
-  /**
-   * Returns the source provider specific to the flavor combination, if any.
-   *
-   * @return the source provider or {@code null}.
-   */
-  @Nullable
-  public SourceProvider getMultiFlavorSourceProvider() {
-    AndroidArtifact mainArtifact = getSelectedVariant().getMainArtifact();
-    return mainArtifact.getMultiFlavorSourceProvider();
-  }
-
-  /**
-   * Returns the source provider specific to the variant, if any.
-   *
-   * @return the source provider or {@code null}.
-   */
-  @Nullable
-  public SourceProvider getVariantSourceProvider() {
-    AndroidArtifact mainArtifact = getSelectedVariant().getMainArtifact();
-    return mainArtifact.getVariantSourceProvider();
   }
 
   @Override
