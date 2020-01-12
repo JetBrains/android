@@ -90,6 +90,7 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
   this@dump.dumpNode()
 }
 
+@Suppress("DEPRECATION")
 fun AndroidModuleModel.format(): String = "\n" + """
     androidProject = ${androidProject.format()}
     selectedMainCompileDependencies = ${selectedMainCompileDependencies.format()}
@@ -125,10 +126,7 @@ fun AndroidModuleModel.format(): String = "\n" + """
     syncIssues = ${syncIssues?.format()}
     artifactForAndroidTest = ${artifactForAndroidTest?.format()}
     testExecutionStrategy = $testExecutionStrategy
-    buildTypeSourceProvider = ${buildTypeSourceProvider.format()}
     flavorSourceProviders = ${flavorSourceProviders.format()}
-    multiFlavorSourceProvider = ${multiFlavorSourceProvider?.format()}
-    variantSourceProvider = ${variantSourceProvider?.format()}
     dataBindingMode = $dataBindingMode
     classJarProvider = $classJarProvider
     namespacing = $namespacing
