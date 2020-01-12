@@ -25,6 +25,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.dependsOn;
 import static com.android.tools.lint.client.api.LintClient.getGradleDesugaring;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+import static java.util.stream.Collectors.toMap;
 
 import com.android.builder.model.AaptOptions;
 import com.android.builder.model.AndroidArtifact;
@@ -37,7 +38,6 @@ import com.android.builder.model.ProductFlavor;
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.ProjectSyncIssues;
 import com.android.builder.model.SourceProvider;
-import com.android.builder.model.SourceProviderContainer;
 import com.android.builder.model.SyncIssue;
 import com.android.builder.model.TestOptions;
 import com.android.builder.model.Variant;
@@ -61,7 +61,6 @@ import com.android.tools.lint.detector.api.Lint;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
@@ -80,9 +79,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.annotations.NotNull;
@@ -107,9 +108,9 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Nullable private Boolean myOverridesManifestPackage;
   @Nullable private transient AndroidVersion myMinSdkVersion;
 
-  @NotNull private Map<String, BuildTypeContainer> myBuildTypesByName = new HashMap<>();
-  @NotNull private Map<String, ProductFlavorContainer> myProductFlavorsByName = new HashMap<>();
-  @NotNull Map<String, IdeVariant> myVariantsByName = new HashMap<>();
+  @NotNull private final transient Map<String, BuildTypeContainer> myBuildTypesByName;
+  @NotNull private final transient Map<String, ProductFlavorContainer> myProductFlavorsByName;
+  @NotNull final transient Map<String, IdeVariant> myVariantsByName;
   @NotNull private Set<File> myExtraGeneratedSourceFolders = new HashSet<>();
 
   @Nullable
@@ -172,31 +173,11 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myRootDirPath = rootDirPath;
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);
-
-    populateBuildTypesByName();
-    populateProductFlavorsByName();
-    populateVariantsByName();
+    myBuildTypesByName = myAndroidProject.getBuildTypes().stream().collect(toMap(it -> it.getBuildType().getName(), it -> it));
+    myProductFlavorsByName = myAndroidProject.getProductFlavors().stream().collect(toMap(it -> it.getProductFlavor().getName(), it -> it));
+    myVariantsByName = myAndroidProject.getVariants().stream().map(it -> (IdeVariant)it).collect(toMap(it -> it.getName(), it -> it));
 
     mySelectedVariantName = findVariantToSelect(variantName);
-  }
-
-
-  private void populateBuildTypesByName() {
-    for (BuildTypeContainer container : myAndroidProject.getBuildTypes()) {
-      String name = container.getBuildType().getName();
-      myBuildTypesByName.put(name, container);
-    }
-  }
-
-  private void populateProductFlavorsByName() {
-    for (ProductFlavorContainer container : myAndroidProject.getProductFlavors()) {
-      String name = container.getProductFlavor().getName();
-      myProductFlavorsByName.put(name, container);
-    }
-  }
-
-  private void populateVariantsByName() {
-    myAndroidProject.forEachVariant(variant -> myVariantsByName.put(variant.getName(), variant));
   }
 
   /**
