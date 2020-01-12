@@ -650,17 +650,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Override
   @NotNull
   public Map<String, DynamicResourceValue> getResValues() {
-    Variant selectedVariant = getSelectedVariant();
-
-    // flavors and default config:
-    Map<String, DynamicResourceValue> result =
-      new HashMap<>(GradleModelConverterUtil.classFieldsToDynamicResourceValues(selectedVariant.getMergedFlavor().getResValues()));
-
-    BuildTypeContainer buildType = findBuildType(selectedVariant.getBuildType());
-    if (buildType != null) {
-      result.putAll(GradleModelConverterUtil.classFieldsToDynamicResourceValues(buildType.getBuildType().getResValues()));
-    }
-
-    return result;
+    return GradleModelConverterUtil.classFieldsToDynamicResourceValues(getSelectedVariant().getMainArtifact().getResValues());
   }
 }
