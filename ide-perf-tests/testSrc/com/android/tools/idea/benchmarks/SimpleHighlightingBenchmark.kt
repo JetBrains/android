@@ -42,7 +42,7 @@ class SimpleHighlightingBenchmark {
 
     // Load project.
     gradleRule.load(TestProjectPaths.SIMPLE_APPLICATION)
-    GradleBuildInvoker.getInstance(gradleRule.project).generateSources() // Gets us closer to a production setup.
+    gradleRule.generateSources() // Gets us closer to a production setup.
 
     // Open editor.
     val fixture = gradleRule.fixture
