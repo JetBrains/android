@@ -89,7 +89,7 @@ class FullProjectHighlightingBenchmark(private val projectName: String, private 
   fun fullProjectHighlighting() {
     enableAllDefaultInspections(gradleRule.fixture)
     gradleRule.load(projectName)
-    GradleBuildInvoker.getInstance(gradleRule.project).generateSources() // Gets us closer to a production setup.
+    gradleRule.generateSources() // Gets us closer to a production setup.
     for (fileType in fileTypes) {
       // Ideally each file type would get its own JUnit test, but
       // we don't want to run Gradle sync more than we need to.

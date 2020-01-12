@@ -58,6 +58,10 @@ class AndroidGradleProjectRule : NamedExternalResource() {
     fun invokeTasks(project: Project, vararg tasks: String): GradleInvocationResult {
       return AndroidGradleTestCase.invokeGradleTasks(project, *tasks)
     }
+
+    public override fun generateSources() { // Changes visibility only.
+      super.generateSources()
+    }
   }
 
   private val delegateTestCase = DelegateGradleTestCase()
@@ -110,6 +114,10 @@ class AndroidGradleProjectRule : NamedExternalResource() {
   fun requestSyncAndWait(request: GradleSyncInvoker.Request) {
     val syncListener = delegateTestCase.requestSync(request)
     AndroidGradleTests.checkSyncStatus(syncListener)
+  }
+
+  fun generateSources() {
+    delegateTestCase.generateSources()
   }
 
   /**
