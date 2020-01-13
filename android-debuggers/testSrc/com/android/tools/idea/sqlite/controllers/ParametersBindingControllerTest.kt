@@ -16,8 +16,8 @@
 package com.android.tools.idea.sqlite.controllers
 
 import com.android.testutils.MockitoKt.any
-import com.android.tools.idea.sqlite.mocks.MockParametersBindingDialogView
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
+import com.android.tools.idea.sqlite.mocks.MockParametersBindingDialogView
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.parametersBinding.ParametersBindingDialogView
 import com.intellij.openapi.util.Disposer
@@ -25,6 +25,7 @@ import com.intellij.testFramework.PlatformTestCase
 import org.mockito.InOrder
 import org.mockito.Mockito
 import org.mockito.Mockito.spy
+import org.mockito.Mockito.verify
 
 class ParametersBindingControllerTest : PlatformTestCase() {
   private lateinit var controller: ParametersBindingController
@@ -55,6 +56,34 @@ class ParametersBindingControllerTest : PlatformTestCase() {
     // Assert
     orderVerifier.verify(view).addListener(any(ParametersBindingDialogView.Listener::class.java))
     orderVerifier.verify(view).showNamedParameters(setOf("param1", "param2"))
+  }
+
+  fun testSetupRenamesPositionalTemplates() {
+    // Prepare
+    controller = ParametersBindingController(
+      view, "select * from Foo", listOf("?", "?")
+    ) { ranStatements.add(it) }
+    Disposer.register(project, controller)
+
+    // Act
+    controller.setUp()
+
+    // Assert
+    verify(view).showNamedParameters(setOf("param 1", "param 2"))
+  }
+
+  fun testSetupRenamesPositionalTemplates2() {
+    // Prepare
+    controller = ParametersBindingController(
+      view, "select * from Foo", listOf("?", ":paramName", "?")
+    ) { ranStatements.add(it) }
+    Disposer.register(project, controller)
+
+    // Act
+    controller.setUp()
+
+    // Assert
+    verify(view).showNamedParameters(setOf("param 1", ":paramName", "param 3"))
   }
 
   fun testRunStatement() {

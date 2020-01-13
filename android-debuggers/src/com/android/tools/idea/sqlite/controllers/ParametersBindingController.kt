@@ -27,13 +27,14 @@ import com.intellij.openapi.Disposable
 class ParametersBindingController(
   private val view: ParametersBindingDialogView,
   private val sqliteStatement: String,
-  private val parametersNames: List<String>,
+  private var parametersNames: List<String>,
   private val runStatement: (SqliteStatement) -> Unit
 ): Disposable {
 
   private val listener = ParametersBindingViewListenerImpl()
 
   fun setUp() {
+    parametersNames = parametersNames.mapIndexed { i, s -> if (s.startsWith("?")) "param ${i+1}" else s }
     view.addListener(listener)
     view.showNamedParameters(parametersNames.toSet())
   }
