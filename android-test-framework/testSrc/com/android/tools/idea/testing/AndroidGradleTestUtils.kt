@@ -93,7 +93,7 @@ import org.jetbrains.plugins.gradle.model.ExternalTask
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
 import java.io.File
 
-typealias AndroidProjectBuilder = (projectName: String, basePath: File, agpVersion: String) -> AndroidProject
+typealias AndroidProjectBuilderCore = (projectName: String, basePath: File, agpVersion: String) -> AndroidProject
 
 sealed class ModuleModelBuilder {
   abstract val gradlePath: String
@@ -106,10 +106,19 @@ data class AndroidModuleModelBuilder(
   override val gradleVersion: String? = null,
   override val agpVersion: String? = null,
   val selectedBuildVariant: String,
-  val projectBuilder: AndroidProjectBuilder
+  val projectBuilder: AndroidProjectBuilderCore
 ) : ModuleModelBuilder() {
   constructor (gradlePath: String, selectedBuildVariant: String, projectBuilder: AndroidProjectBuilder)
     : this(gradlePath, null, null, selectedBuildVariant, projectBuilder)
+
+  constructor (
+    gradlePath: String,
+    gradleVersion: String? = null,
+    agpVersion: String? = null,
+    selectedBuildVariant: String,
+    projectBuilder: AndroidProjectBuilder
+  )
+    : this(gradlePath, gradleVersion, agpVersion, selectedBuildVariant, projectBuilder.build())
 }
 
 data class JavaModuleModelBuilder(
@@ -128,6 +137,7 @@ data class JavaModuleModelBuilder(
 }
 
 data class AndroidModuleDependency(val moduleGradlePath: String, val variant: String?)
+
 /**
  * An interface providing access to [AndroidProject] sub-model builders are used to build [AndroidProject] and its other sub-models.
  */
@@ -158,33 +168,96 @@ interface AndroidProjectStubBuilder {
 }
 
 /**
- * A helper method for building [AndroidProject] stubs.
+ * A helper class for building [AndroidProject] stubs.
  *
  * This method creates a model of a simple project which can be slightly customized by providing alternative implementations of
  * sub-model builders.
+ *
+ * If a totally different is needed implement [AndroidProjectBuilderCore] directly.
  */
-fun createAndroidProjectBuilder(
-  buildId: AndroidProjectStubBuilder.() -> String = { "/tmp/buildId" }, //  buildId should not be assumed to be a path.
-  projectType: AndroidProjectStubBuilder.() -> Int = { AndroidProjectTypes.PROJECT_TYPE_APP },
-  minSdk: AndroidProjectStubBuilder.() -> Int = { 16 },
-  targetSdk: AndroidProjectStubBuilder.() -> Int = { 22 },
-  defaultConfig: AndroidProjectStubBuilder.() -> ProductFlavorContainerStub = { buildDefaultConfigStub() },
-  mainSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub = { buildMainSourceProviderStub() },
-  androidTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub? = { buildAndroidTestSourceProviderContainerStub() },
-  unitTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub? = { buildUnitTestSourceProviderContainerStub() },
-  debugSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub? = { buildDebugSourceProviderStub() },
-  releaseSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub? = { buildReleaseSourceProviderStub() },
-  debugBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildDebugBuildTypeStub() },
-  releaseBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildReleaseBuildTypeStub() },
-  dynamicFeatures: AndroidProjectStubBuilder.() -> List<String> = { emptyList() },
-  viewBindingOptions: AndroidProjectStubBuilder.() -> ViewBindingOptionsStub = { buildViewBindingOptions() },
-  mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub = { variant -> buildMainArtifactStub(variant) },
-  androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub = { variant -> buildAndroidTestArtifactStub(variant) },
-  unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> JavaArtifactStub = { variant -> buildUnitTestArtifactStub(variant) },
-  androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
-  androidProject: AndroidProjectStubBuilder.() -> AndroidProject = { buildAndroidProjectStub() }
-): AndroidProjectBuilder {
-  return { projectName, basePath, agpVersion ->
+data class AndroidProjectBuilder(
+  val buildId: AndroidProjectStubBuilder.() -> String = { "/tmp/buildId" }, //  buildId should not be assumed to be a path.
+  val projectType: AndroidProjectStubBuilder.() -> Int = { AndroidProjectTypes.PROJECT_TYPE_APP },
+  val minSdk: AndroidProjectStubBuilder.() -> Int = { 16 },
+  val targetSdk: AndroidProjectStubBuilder.() -> Int = { 22 },
+  val defaultConfig: AndroidProjectStubBuilder.() -> ProductFlavorContainerStub = { buildDefaultConfigStub() },
+  val mainSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub = { buildMainSourceProviderStub() },
+  val androidTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub? = { buildAndroidTestSourceProviderContainerStub() },
+  val unitTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub? = { buildUnitTestSourceProviderContainerStub() },
+  val debugSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub? = { buildDebugSourceProviderStub() },
+  val releaseSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub? = { buildReleaseSourceProviderStub() },
+  val debugBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildDebugBuildTypeStub() },
+  val releaseBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildReleaseBuildTypeStub() },
+  val dynamicFeatures: AndroidProjectStubBuilder.() -> List<String> = { emptyList() },
+  val viewBindingOptions: AndroidProjectStubBuilder.() -> ViewBindingOptionsStub = { buildViewBindingOptions() },
+  val mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub = { variant -> buildMainArtifactStub(variant) },
+  val androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub =
+    { variant -> buildAndroidTestArtifactStub(variant) },
+  val unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> JavaArtifactStub =
+    { variant -> buildUnitTestArtifactStub(variant) },
+  val androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency> = { emptyList() },
+  val androidProject: AndroidProjectStubBuilder.() -> AndroidProject = { buildAndroidProjectStub() }
+) {
+
+  fun withBuildId(buildId: AndroidProjectStubBuilder.() -> String) =
+    copy(buildId = buildId)
+
+  fun withProjectType(projectType: AndroidProjectStubBuilder.() -> Int) =
+    copy(projectType = projectType)
+
+  fun withMinSdk(minSdk: AndroidProjectStubBuilder.() -> Int) =
+    copy(minSdk = minSdk)
+
+  fun withTargetSdk(targetSdk: AndroidProjectStubBuilder.() -> Int) =
+    copy(targetSdk = targetSdk)
+
+  fun withDefaultConfig(defaultConfig: AndroidProjectStubBuilder.() -> ProductFlavorContainerStub) =
+    copy(defaultConfig = defaultConfig)
+
+  fun withMainSourceProvider(mainSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub) =
+    copy(mainSourceProvider = mainSourceProvider)
+
+  fun withAndroidTestSourceProvider(androidTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub?) =
+    copy(androidTestSourceProvider = androidTestSourceProvider)
+
+  fun withUnitTestSourceProvider(unitTestSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderContainerStub?) =
+    copy(unitTestSourceProvider = unitTestSourceProvider)
+
+  fun withDebugSourceProvider(debugSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub?) =
+    copy(debugSourceProvider = debugSourceProvider)
+
+  fun withReleaseSourceProvider(releaseSourceProvider: AndroidProjectStubBuilder.() -> SourceProviderStub?) =
+    copy(releaseSourceProvider = releaseSourceProvider)
+
+  fun withDebugBuildType(debugBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub?) =
+    copy(debugBuildType = debugBuildType)
+
+  fun withReleaseBuildType(releaseBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub?) =
+    copy(releaseBuildType = releaseBuildType)
+
+  fun withDynamicFeatures(dynamicFeatures: AndroidProjectStubBuilder.() -> List<String>) =
+    copy(dynamicFeatures = dynamicFeatures)
+
+  fun withViewBindingOptions(viewBindingOptions: AndroidProjectStubBuilder.() -> ViewBindingOptionsStub) =
+    copy(viewBindingOptions = viewBindingOptions)
+
+  fun withMainArtifactStub(mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub) =
+    copy(mainArtifactStub = mainArtifactStub)
+
+  fun withAndroidTestArtifactStub(androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub) =
+    copy(androidTestArtifactStub = androidTestArtifactStub)
+
+  fun withUnitTestArtifactStub(unitTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> JavaArtifactStub) =
+    copy(unitTestArtifactStub = unitTestArtifactStub)
+
+  fun withAndroidModuleDependencyList(androidModuleDependencyList: AndroidProjectStubBuilder.(variant: String) -> List<AndroidModuleDependency>) =
+    copy(androidModuleDependencyList = androidModuleDependencyList)
+
+  fun withAndroidProject(androidProject: AndroidProjectStubBuilder.() -> AndroidProject) =
+    copy(androidProject = androidProject)
+
+
+  fun build(): AndroidProjectBuilderCore = { projectName, basePath, agpVersion ->
     val builder = object : AndroidProjectStubBuilder {
       override val agpVersion: String = agpVersion
       override val buildId: String = buildId()
@@ -214,29 +287,33 @@ fun createAndroidProjectBuilder(
   }
 }
 
-fun createAndroidProjectBuilderForDefaultTestProjectStructure(): AndroidProjectBuilder =
-    createAndroidProjectBuilder(
-      minSdk = { AndroidVersion.MIN_RECOMMENDED_API },
-      targetSdk = { AndroidVersion.VersionCodes.O_MR1 },
-      mainSourceProvider = {
-        SourceProviderStub(
-          ARTIFACT_NAME_MAIN,
-          File(basePath, "AndroidManifest.xml"),
-          listOf(File(basePath, "src")),
-          emptyList(),
-          emptyList(),
-          emptyList(),
-          emptyList(),
-          emptyList(),
-          listOf(File(basePath, "res")),
-          emptyList(),
-          emptyList(),
-          emptyList())
-      },
-      androidTestSourceProvider = { null },
-      unitTestSourceProvider = { null },
-      releaseSourceProvider = { null }
-    )
+@JvmOverloads
+fun createAndroidProjectBuilderForDefaultTestProjectStructure(
+  projectType: Int = AndroidProjectTypes.PROJECT_TYPE_APP
+): AndroidProjectBuilder =
+  AndroidProjectBuilder(
+    projectType = { projectType },
+    minSdk = { AndroidVersion.MIN_RECOMMENDED_API },
+    targetSdk = { AndroidVersion.VersionCodes.O_MR1 },
+    mainSourceProvider = {
+      SourceProviderStub(
+        ARTIFACT_NAME_MAIN,
+        File(basePath, "AndroidManifest.xml"),
+        listOf(File(basePath, "src")),
+        emptyList(),
+        emptyList(),
+        emptyList(),
+        emptyList(),
+        emptyList(),
+        listOf(File(basePath, "res")),
+        emptyList(),
+        emptyList(),
+        emptyList())
+    },
+    androidTestSourceProvider = { null },
+    unitTestSourceProvider = { null },
+    releaseSourceProvider = { null }
+  )
 
 fun AndroidProjectStubBuilder.buildMainSourceProviderStub() =
   SourceProviderStub(ARTIFACT_NAME_MAIN, basePath.resolve("src/main"), "AndroidManifest.xml")
