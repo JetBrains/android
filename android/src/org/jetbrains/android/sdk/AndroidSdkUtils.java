@@ -446,19 +446,6 @@ public final class AndroidSdkUtils {
     return AndroidSdks.getInstance().tryToChooseAndroidSdk() != null;
   }
 
-  public static boolean isGlassInstalled() {
-    StudioLoggerProgressIndicator progress = new StudioLoggerProgressIndicator(AndroidSdkUtils.class);
-    AndroidSdkHandler handler = AndroidSdks.getInstance().tryToChooseSdkHandler();
-    Collection<IAndroidTarget> targets = handler.getAndroidTargetManager(progress).getTargets(progress);
-    for (IAndroidTarget target : targets) {
-      if (!target.isPlatform() && target.getName().startsWith("Glass Development Kit")) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   /**
    * For a given target, returns a brief user-facing string that describes the platform, including the API level, platform version number,
    * and codename. Does the right thing with pre-release platforms.
