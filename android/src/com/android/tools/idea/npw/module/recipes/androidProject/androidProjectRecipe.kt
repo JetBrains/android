@@ -16,9 +16,11 @@
 package com.android.tools.idea.npw.module.recipes.androidProject
 
 import com.android.SdkConstants.FN_BUILD_GRADLE
+import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
 import com.android.SdkConstants.FN_GRADLE_PROPERTIES
 import com.android.SdkConstants.FN_LOCAL_PROPERTIES
 import com.android.SdkConstants.FN_SETTINGS_GRADLE
+import com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS
 import com.android.tools.idea.npw.platform.Language
 import com.android.tools.idea.wizard.template.ProjectTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -31,19 +33,30 @@ fun RecipeExecutor.androidProjectRecipe(
   appTitle: String,
   language: Language,
   addAndroidXSupport: Boolean,
+  useGradleKts: Boolean,
   makeIgnore: Boolean = true
 ) {
   val topOut = data.rootDir
-  save(
-    androidProjectBuildGradle(language == Language.KOTLIN, data.kotlinVersion, data.gradlePluginVersion),
-    topOut.resolve(FN_BUILD_GRADLE)
-  )
+
+  if (useGradleKts) {
+    save(
+      androidProjectBuildGradleKts(language == Language.KOTLIN, data.kotlinVersion, data.gradlePluginVersion),
+      topOut.resolve(FN_BUILD_GRADLE_KTS)
+    )
+  }
+  else {
+    save(
+      androidProjectBuildGradle(language == Language.KOTLIN, data.kotlinVersion, data.gradlePluginVersion),
+      topOut.resolve(FN_BUILD_GRADLE)
+    )
+  }
 
   if (makeIgnore) {
     copy(resource("project_ignore"), topOut.resolve(".gitignore"))
   }
 
-  save(androidProjectGradleSettings(appTitle), topOut.resolve(FN_SETTINGS_GRADLE))
+  val settingsFile = topOut.resolve(if (useGradleKts) FN_SETTINGS_GRADLE_KTS else FN_SETTINGS_GRADLE)
+  save(androidProjectGradleSettings(appTitle), settingsFile) // Note: The initial gradle settings file is the same in kts or groovy
   save(
     androidProjectGradleProperties(addAndroidXSupport, language == Language.KOTLIN, data.overridePathCheck),
     topOut.resolve(FN_GRADLE_PROPERTIES))
