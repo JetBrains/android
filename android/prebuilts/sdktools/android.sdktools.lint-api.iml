@@ -4,6 +4,7 @@
     <exclude-output />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" name="jetbrains-annotations-java5" level="project" />
     <orderEntry type="library" exported="" name="asm-tools" level="project" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" exported="" />
     <orderEntry type="library" exported="" name="Guava" level="project" />
