@@ -70,6 +70,7 @@ import java.util.List;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public class GradleSyncInvoker {
   @NotNull private final FileDocumentManager myFileDocumentManager;
@@ -329,6 +330,20 @@ public class GradleSyncInvoker {
              ", skipPreSyncChecks=" + skipPreSyncChecks +
              ", variantOnlySyncOptions=" + variantOnlySyncOptions +
              '}';
+    }
+  }
+
+  @TestOnly
+  public static class FakeInvoker extends GradleSyncInvoker {
+    public FakeInvoker() {
+      super(ApplicationManager.getApplication().getService(FileDocumentManager.class));
+    }
+
+    @Override
+    public void requestProjectSync(@NotNull Project project, @NotNull Request request, @Nullable GradleSyncListener listener) {
+      if (listener != null) {
+        listener.syncSkipped(project);
+      }
     }
   }
 }
