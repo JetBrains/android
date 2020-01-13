@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.benchmarks
 
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
@@ -26,8 +25,7 @@ import com.intellij.openapi.fileTypes.FileType
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.ProjectScope
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.kotlin.konan.file.File
 import org.junit.Before
@@ -46,9 +44,6 @@ import org.junit.runners.Parameterized
 class FullProjectHighlightingBenchmark(private val projectName: String, private val fileTypes: List<FileType>) {
   @get:Rule
   val gradleRule = AndroidGradleProjectRule()
-
-  @get:Rule
-  val edtRule = EdtRule()
 
   @Before
   fun setup() {
@@ -85,15 +80,19 @@ class FullProjectHighlightingBenchmark(private val projectName: String, private 
   }
 
   @Test
-  @RunsInEdt
   fun fullProjectHighlighting() {
     enableAllDefaultInspections(gradleRule.fixture)
+
     gradleRule.load(projectName)
     gradleRule.generateSources() // Gets us closer to a production setup.
-    for (fileType in fileTypes) {
-      // Ideally each file type would get its own JUnit test, but
-      // we don't want to run Gradle sync more than we need to.
-      measureHighlighting(fileType)
+    waitForAsyncVfsRefreshes() // Avoids write actions during highlighting.
+
+    runInEdtAndWait {
+      for (fileType in fileTypes) {
+        // Ideally each file type would get its own JUnit test, but
+        // we don't want to run Gradle sync more than we need to.
+        measureHighlighting(fileType)
+      }
     }
   }
 

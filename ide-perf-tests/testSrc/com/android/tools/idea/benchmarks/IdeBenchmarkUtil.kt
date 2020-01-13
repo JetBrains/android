@@ -16,9 +16,12 @@
 package com.android.tools.idea.benchmarks
 
 import com.android.tools.perflogger.Metric
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.vfs.newvfs.RefreshQueue
 import com.intellij.profile.codeInspection.ProjectInspectionProfileManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInInitMode
+import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
@@ -32,6 +35,24 @@ fun enableAllDefaultInspections(fixture: CodeInsightTestFixture) {
   val tools = runInInitMode { defaultProfile.getAllEnabledInspectionTools(fixture.project) }
   val inspectionEntries = tools.map { it.tool.tool }
   fixture.enableInspections(*inspectionEntries.toTypedArray())
+}
+
+/**
+ * Blocks until all pending async VFS refreshes have completed.
+ * Must *not* be called from the EDT.
+ *
+ * This helps ensure that a VFS refresh does not happen *during* a benchmark, which
+ * can trigger assertion failures in the platform and would anyway add noise to the
+ * timing samples.
+ */
+fun waitForAsyncVfsRefreshes() {
+  assert(!ApplicationManager.getApplication().isDispatchThread) {
+    "Cannot block on an async VFS refresh from the EDT (otherwise deadlock is imminent)"
+  }
+  // Here we assume that the RefreshQueue uses FIFO ordering.
+  val semaphore = Semaphore(0)
+  RefreshQueue.getInstance().refresh(true, false, Runnable(semaphore::release))
+  semaphore.acquire()
 }
 
 /** Runs [action] several times to warm up, and then several times again. */

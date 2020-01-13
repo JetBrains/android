@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.benchmarks
 
-import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.perflogger.Benchmark
@@ -23,8 +22,7 @@ import com.android.tools.perflogger.Metric
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiManager
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndWait
 import org.junit.Rule
 import org.junit.Test
 
@@ -32,50 +30,49 @@ class SimpleHighlightingBenchmark {
   @get:Rule
   val gradleRule = AndroidGradleProjectRule()
 
-  @get:Rule
-  val edtRule = EdtRule()
-
   @Test
-  @RunsInEdt
   fun simpleProjectHighlighting() {
     enableAllDefaultInspections(gradleRule.fixture)
 
     // Load project.
     gradleRule.load(TestProjectPaths.SIMPLE_APPLICATION)
     gradleRule.generateSources() // Gets us closer to a production setup.
+    waitForAsyncVfsRefreshes() // Avoids write actions during highlighting.
 
-    // Open editor.
-    val fixture = gradleRule.fixture
-    val project = gradleRule.project
-    val projectDir = project.guessProjectDir()!!
-    val javaFile = projectDir.findFileByRelativePath("app/src/main/java/google/simpleapplication/MyActivity.java")!!
-    fixture.openFileInEditor(javaFile)
+    runInEdtAndWait {
+      // Open editor.
+      val fixture = gradleRule.fixture
+      val project = gradleRule.project
+      val projectDir = project.guessProjectDir()!!
+      val javaFile = projectDir.findFileByRelativePath("app/src/main/java/google/simpleapplication/MyActivity.java")!!
+      fixture.openFileInEditor(javaFile)
 
-    // Setup for Perfgate.
-    val benchmark = Benchmark.Builder("Highlighting simpleApplication")
-      .setDescription("Syntax highlighting benchmark for a simple application.")
-      .setProject(EDITOR_PERFGATE_PROJECT_NAME)
-      .build()
-    val metric = Metric("highlighting_latency")
+      // Setup for Perfgate.
+      val benchmark = Benchmark.Builder("Highlighting simpleApplication")
+        .setDescription("Syntax highlighting benchmark for a simple application.")
+        .setProject(EDITOR_PERFGATE_PROJECT_NAME)
+        .build()
+      val metric = Metric("highlighting_latency")
 
-    // Measure.
-    val samplesMs = measureTimeMs(
-      warmupIterations = 10,
-      mainIterations = 10,
-      setUp = {
-        PsiManager.getInstance(project).dropPsiCaches()
-        System.gc()
-      },
-      action = {
-        val info = fixture.doHighlighting(HighlightSeverity.ERROR)
-        assert(info.isEmpty())
-      }
-    )
-    val samplesStr = samplesMs.joinToString(prefix = "[", postfix = "]") { it.sampleData.toString() }
-    println("Recorded samples: $samplesStr")
+      // Measure.
+      val samplesMs = measureTimeMs(
+        warmupIterations = 10,
+        mainIterations = 10,
+        setUp = {
+          PsiManager.getInstance(project).dropPsiCaches()
+          System.gc()
+        },
+        action = {
+          val info = fixture.doHighlighting(HighlightSeverity.ERROR)
+          assert(info.isEmpty())
+        }
+      )
+      val samplesStr = samplesMs.joinToString(prefix = "[", postfix = "]") { it.sampleData.toString() }
+      println("Recorded samples: $samplesStr")
 
-    // Save Perfgate data.
-    metric.addSamples(benchmark, *samplesMs.toTypedArray())
-    metric.commit()
+      // Save Perfgate data.
+      metric.addSamples(benchmark, *samplesMs.toTypedArray())
+      metric.commit()
+    }
   }
 }
