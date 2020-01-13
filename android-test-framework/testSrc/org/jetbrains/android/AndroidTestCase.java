@@ -3,6 +3,7 @@
 package org.jetbrains.android;
 
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
+import static com.intellij.openapi.util.io.FileUtil.getTempDirectory;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.model.AndroidModel;
@@ -57,6 +58,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.testFramework.fixtures.impl.GlobalInspectionContextForTests;
 import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
+import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.UIUtil;
 import java.io.File;
@@ -95,8 +97,11 @@ public abstract class AndroidTestCase extends AndroidTestBase {
 
     IdeaTestFixtureFactory.getFixtureFactory().registerFixtureBuilder(
       AndroidModuleFixtureBuilder.class, AndroidModuleFixtureBuilderImpl.class);
-    TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = IdeaTestFixtureFactory.getFixtureFactory().createFixtureBuilder(getName());
-    myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture());
+    AndroidTempDirTestFixture tempDirFixture = new AndroidTempDirTestFixture(getName());
+    TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder =
+      IdeaTestFixtureFactory.getFixtureFactory()
+        .createFixtureBuilder(getName(), tempDirFixture.getProjectDir().getParentFile().toPath(), true);
+    myFixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.getFixture(), tempDirFixture);
     AndroidModuleFixtureBuilder moduleFixtureBuilder = projectBuilder.addModule(AndroidModuleFixtureBuilder.class);
     initializeModuleFixtureBuilderWithSrcAndGen(moduleFixtureBuilder, myFixture.getTempDirPath());
 

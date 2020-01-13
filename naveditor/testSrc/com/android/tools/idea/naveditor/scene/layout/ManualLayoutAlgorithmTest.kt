@@ -28,6 +28,9 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.DocumentsEditor
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.testFramework.PlatformTestUtil
 
 /**
@@ -149,8 +152,10 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
     algorithm.save(component)
     PlatformTestUtil.saveProject(project)
 
-    // Tests always use file-based storage, not directory-based
-    assertTrue(project.projectFile!!.contentsToByteArray().toString(Charsets.UTF_8).contains("fragment1"))
+    assertTrue(
+      LocalFileSystem.getInstance().findFileByPath(project.basePath!! + "/.idea/navEditor.xml")!!
+        .contentsToByteArray().toString(Charsets.UTF_8)
+        .contains("fragment1"))
 
     // Now create everything anew and verify the old position is restored
     model = model("nav.xml") {
@@ -249,7 +254,7 @@ class ManualLayoutAlgorithmTest : NavTestCase() {
         fragment("fragment2")
       }
     }
-    val editor = object: NavEditor(model.virtualFile, project), DocumentsEditor {
+    val editor = object : NavEditor(model.virtualFile, project), DocumentsEditor {
       override fun getDocuments() = arrayOf(FileDocumentManager.getInstance().getDocument(model.virtualFile))
     }
     val surface = NavDesignSurface(project, myRootDisposable)

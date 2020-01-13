@@ -497,7 +497,7 @@ class NavDesignSurfaceTest : NavTestCase() {
     val navConfigurationManager = NavDesignSurface(project, project).getConfigurationManager(myFacet)
     assertNotEquals(defaultConfigurationManager, navConfigurationManager)
 
-    val navFile = findVirtualProjectFile(project, "../unitTest/res/navigation/navigation.xml")!!
+    val navFile = findVirtualProjectFile(project, "res/navigation/navigation.xml")!!
     val defaultConfiguration = defaultConfigurationManager.getConfiguration(navFile)
     val navConfiguration = navConfigurationManager.getConfiguration(navFile)
     val navDevice = navConfiguration.device

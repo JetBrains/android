@@ -117,7 +117,7 @@ class AddDestinationMenuTest : NavTestCase() {
   }
 
   fun testContent() {
-    val virtualFile = findVirtualProjectFile(project, "../unitTest/res/layout/activity_main.xml")
+    val virtualFile = findVirtualProjectFile(project, "res/layout/activity_main.xml")
     val xmlFile = PsiManager.getInstance(project).findFile(virtualFile!!) as XmlFile
 
     addFragment("fragment1")
@@ -127,7 +127,7 @@ class AddDestinationMenuTest : NavTestCase() {
 
     addActivity("activity2")
     addActivityWithLayout("activity3")
-    val activity3VirtualFile = findVirtualProjectFile(project, "../unitTest/res/layout/activity3.xml")
+    val activity3VirtualFile = findVirtualProjectFile(project, "res/layout/activity3.xml")
     val activity3XmlFile = PsiManager.getInstance(project).findFile(activity3VirtualFile!!) as XmlFile
 
     addActivityWithNavHost("activity1")

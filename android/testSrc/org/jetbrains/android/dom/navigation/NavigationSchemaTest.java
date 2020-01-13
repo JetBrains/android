@@ -29,6 +29,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDocumentManager;
@@ -68,7 +69,9 @@ public class NavigationSchemaTest extends AndroidTestCase {
       File aar = new File(PathManager.getHomePath(), prebuiltPath);
       File tempDir = FileUtil.createTempDirectory("NavigationSchemaTest", null);
       ZipUtil.extract(aar, tempDir, null);
-      PsiTestUtil.addLibrary(myFixture.getModule(), new File(tempDir, "classes.jar").getPath());
+      String path = new File(tempDir, "classes.jar").getPath();
+      LocalFileSystem.getInstance().refreshAndFindFileByPath(path);
+      PsiTestUtil.addLibrary(myFixture.getModule(), path);
     }
     NavigationSchema.createIfNecessary(myModule);
   }
