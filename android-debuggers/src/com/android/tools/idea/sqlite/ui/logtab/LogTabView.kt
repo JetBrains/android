@@ -30,4 +30,5 @@ interface LogTabView {
   val component: JComponent
 
   fun log(log: String)
+  fun logError(log: String)
 }

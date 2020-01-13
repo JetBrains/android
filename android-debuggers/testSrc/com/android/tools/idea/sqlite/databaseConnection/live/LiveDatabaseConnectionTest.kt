@@ -18,17 +18,22 @@ package com.android.tools.idea.sqlite.databaseConnection.live
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
+import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
+import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionListener
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.sql.protocol.SqliteInspection
 import com.google.common.util.concurrent.Futures
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.PlatformTestCase
 import org.jetbrains.ide.PooledThreadExecutor
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
 
 class LiveDatabaseConnectionTest : PlatformTestCase() {
   private val taskExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE)
@@ -162,5 +167,38 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     assertEquals(sqliteRows[0].values[2].value, ByteString.copyFrom("a blob".toByteArray()))
     assertEquals(sqliteRows[0].values[3].value, 1)
     assertEquals(sqliteRows[0].values[4].value, "null")
+  }
+
+  fun testEventBusIsCalledOnSuccess() {
+    // Prepare
+    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
+      .thenReturn(Futures.immediateFuture(SqliteInspection.Cursor.newBuilder().build().toByteArray()))
+    val liveDatabaseConnection = LiveDatabaseConnection(mockMessenger, 1, taskExecutor)
+
+    val mockDatabaseConnectionListener = mock(DatabaseConnectionListener::class.java)
+    ApplicationManager.getApplication().messageBus.connect().subscribe(DatabaseConnection.TOPIC, mockDatabaseConnectionListener)
+
+    // Act
+    pumpEventsAndWaitForFuture(liveDatabaseConnection.execute(SqliteStatement("SELECT * FROM Book")))
+
+    // Assert
+    verify(mockDatabaseConnectionListener).onSqliteStatementExecutionSuccess(SqliteStatement("SELECT * FROM Book"))
+  }
+
+  fun testEventBusIsCalledOnFailure() {
+    // Prepare
+    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
+    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFailedFuture(RuntimeException()))
+    val liveDatabaseConnection = LiveDatabaseConnection(mockMessenger, 1, taskExecutor)
+
+    val mockDatabaseConnectionListener = mock(DatabaseConnectionListener::class.java)
+    ApplicationManager.getApplication().messageBus.connect().subscribe(DatabaseConnection.TOPIC, mockDatabaseConnectionListener)
+
+    // Act
+    pumpEventsAndWaitForFutureException(liveDatabaseConnection.execute(SqliteStatement("SELECT * FROM Book")))
+
+    // Assert
+    verify(mockDatabaseConnectionListener).onSqliteStatementExecutionFailed(SqliteStatement("SELECT * FROM Book"))
   }
 }
