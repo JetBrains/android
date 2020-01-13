@@ -212,7 +212,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
         group.addAll(configurationActions);
       }
     }
-    DropDownAction viewOptions = new DropDownAction("View Options", null, StudioIcons.Common.VISIBILITY_INLINE);
+    DropDownAction viewOptions = new DropDownAction(null, "View Options", StudioIcons.Common.VISIBILITY_INLINE);
     viewOptions.add(new ToggleShowDecorationAction());
     viewOptions.setPopup(true);
     group.add(viewOptions);
