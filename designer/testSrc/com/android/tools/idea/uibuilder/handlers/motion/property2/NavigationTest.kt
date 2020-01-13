@@ -125,7 +125,7 @@ class NavigationTest {
     motionRule.selectTransition("start", "end")
     check(AUTO_URI, ATTR_DURATION, TRANSITION, SCENE_FILE, 103, "motion:duration=\"2000\"")
     check(AUTO_URI, ATTR_MOTION_INTERPOLATOR, TRANSITION, SCENE_FILE, 104, "motion:motionInterpolator=\"linear\">")
-    check(AUTO_URI, ATTR_TARGET_ID, ON_CLICK, SCENE_FILE, 106, "<OnClick motion:targetId=\"@+id/run\" />")
+    check(AUTO_URI, ATTR_TARGET_ID, ON_CLICK, SCENE_FILE, 106, "<OnClick motion:targetId=\"@+id/run\"/>")
     check(AUTO_URI, ATTR_DRAG_DIRECTION, ON_SWIPE, SCENE_FILE, 109, "motion:dragDirection=\"dragRight\"")
   }
 

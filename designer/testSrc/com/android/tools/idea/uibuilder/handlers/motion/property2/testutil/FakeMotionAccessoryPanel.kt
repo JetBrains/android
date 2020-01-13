@@ -85,6 +85,9 @@ class FakeMotionAccessoryPanel: AccessoryPanelInterface, MotionDesignSurfaceEdit
   val listenerCount: Int
     get() = listeners.size
 
+  val selection: MotionSelection
+    get() = lastSelection!!
+
   override fun addListener(listener: AccessorySelectionListener) {
     listeners.add(listener)
   }
