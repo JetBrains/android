@@ -194,12 +194,4 @@ public class CreateTransition extends BaseCreatePanel {
     return MotionSceneAttrs.Tags.TRANSITION;
   }
 
-  public static void main(String[] arg) {
-    JFrame f = new JFrame(TITLE);
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    f.setContentPane(new CreateTransition());
-    f.pack();
-    f.validate();
-    f.setVisible(true);
-  }
 }

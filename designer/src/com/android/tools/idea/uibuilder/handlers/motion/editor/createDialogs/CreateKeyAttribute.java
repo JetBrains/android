@@ -219,12 +219,4 @@ public class CreateKeyAttribute extends BaseCreateKey {
     return "KeyAttribute";
   }
 
-  public static void main(String[] arg) {
-    JFrame f = new JFrame(TITLE);
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    f.setContentPane(new CreateKeyAttribute());
-    f.pack();
-    f.validate();
-    f.setVisible(true);
-  }
 }
