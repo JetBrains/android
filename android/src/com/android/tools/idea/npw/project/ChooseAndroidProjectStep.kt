@@ -280,7 +280,7 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
 
         val newTemplateRenderers =
           if (useNewTemplates)
-            TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }
+            TemplateResolver.getAllTemplates()
               .filter { WizardUiContext.NewProject in it.uiContexts && it.formFactor == formFactor.toTemplateFormFactor()}
               .map(::NewTemplateRendererWithDescription)
           else

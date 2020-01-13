@@ -132,8 +132,7 @@ data class NewAndroidComponentAction @JvmOverloads constructor(
       facet, TemplateHandle(templateFile!!), initialPackageSuggestion, moduleTemplates[0], "New $activityDescription",
       DefaultProjectSyncInvoker(), shouldOpenFiles
     )
-    val newActivity = TemplateResolver.EP_NAME.extensions
-      .flatMap { it.getTemplates() }
+    val newActivity = TemplateResolver.getAllTemplates()
       .filter { WizardUiContext.MenuEntry in it.uiContexts }
       .find { it.name == templateName }
 

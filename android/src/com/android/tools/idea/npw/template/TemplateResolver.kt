@@ -15,13 +15,21 @@
  */
 package com.android.tools.idea.npw.template
 
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.wizard.template.Category
+import com.android.tools.idea.wizard.template.Template
 import com.android.tools.idea.wizard.template.WizardTemplateProvider
 import com.intellij.openapi.extensions.ExtensionPointName
 
 class TemplateResolver {
 
   companion object {
-    @JvmField
-    val EP_NAME = ExtensionPointName<WizardTemplateProvider>("com.android.tools.idea.wizard.template.wizardTemplateProvider")
+    private val EP_NAME = ExtensionPointName<WizardTemplateProvider>("com.android.tools.idea.wizard.template.wizardTemplateProvider")
+
+    fun getAllTemplates() : List<Template> {
+      return EP_NAME.extensions
+        .flatMap { it.getTemplates() }
+        .filter { it.category != Category.Compose || StudioFlags.COMPOSE_WIZARD_TEMPLATES.get()}
+    }
   }
 }

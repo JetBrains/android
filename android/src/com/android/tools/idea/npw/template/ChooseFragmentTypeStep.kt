@@ -44,7 +44,7 @@ class ChooseFragmentTypeStep(
       .map(ChooseGalleryItemStep::OldTemplateRenderer)
 
     templateRenderers = if (StudioFlags.NPW_NEW_ACTIVITY_TEMPLATES.get()) {
-      val newTemplateRenderers = TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }
+      val newTemplateRenderers = TemplateResolver.getAllTemplates()
         .filter { WizardUiContext.FragmentGallery in it.uiContexts }
         .map(::NewTemplateRenderer)
       val newTemplateNames = newTemplateRenderers.map { it.template.name }
