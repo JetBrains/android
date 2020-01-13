@@ -95,14 +95,14 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
   private JTextField myModuleName;
   private JTextField myPackageName;
   private JComboBox<Module> myBaseApplication;
-  private JLabel myTemplateIconTitle;
-  private JLabel myTemplateIconDetail;
+  private JBLabel myTemplateIconTitle;
+  private JBLabel myTemplateIconDetail;
   private JCheckBox myFusingCheckbox;
   private JBLabel myInstantModuleInfo;
   private JBLabel myInstantInfoIcon;
   private JTextField myModuleTitle;
-  private JLabel myModuleTitleLabel;
-  private JLabel myModuleNameLabel;
+  private JBLabel myModuleTitleLabel;
+  private JBLabel myModuleNameLabel;
   private JComboBox<Language> myLanguageCombo;
   private AndroidApiLevelComboBox myApiLevelCombo;
 
