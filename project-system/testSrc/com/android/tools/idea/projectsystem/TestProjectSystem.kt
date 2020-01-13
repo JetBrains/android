@@ -101,7 +101,7 @@ class TestProjectSystem @JvmOverloads constructor(
         return Triple(found, missing, "")
       }
 
-      override fun getResolvedDependentLibraries(): Collection<Library> {
+      override fun getResolvedLibraryDependencies(): Collection<Library> {
         return emptySet()
       }
 

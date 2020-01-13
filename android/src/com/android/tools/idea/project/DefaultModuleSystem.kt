@@ -136,7 +136,7 @@ class DefaultModuleSystem(override val module: Module) :
 
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(module)
 
-  override fun getResolvedDependentLibraries(): Collection<Library> {
+  override fun getResolvedLibraryDependencies(): Collection<Library> {
     val libraries = mutableListOf<Library>()
 
     ModuleRootManager.getInstance(module)

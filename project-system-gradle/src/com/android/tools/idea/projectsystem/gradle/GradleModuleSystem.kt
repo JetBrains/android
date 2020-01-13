@@ -114,7 +114,7 @@ class GradleModuleSystem(
   private val groupsWithVersionIdentifyRequirements = listOf(SdkConstants.SUPPORT_LIB_GROUP_ID)
 
   override fun getResolvedDependency(coordinate: GradleCoordinate): GradleCoordinate? {
-    return getResolvedDependentLibraries()
+    return getResolvedLibraryDependencies()
       .asSequence()
       .mapNotNull { GradleCoordinate.parseCoordinateString(it.address) }
       .find { it.matches(coordinate) }
@@ -138,7 +138,7 @@ class GradleModuleSystem(
       }
     }
     else {
-      getResolvedDependentLibraries(module)
+      getResolvedLibraryDependencies(module)
         .asSequence()
         .mapNotNull { GradleCoordinate.parseCoordinateString(it.address) }
     }
@@ -148,12 +148,12 @@ class GradleModuleSystem(
 
   override fun getDirectResourceModuleDependents(): List<Module> = ModuleManager.getInstance(module.project).getModuleDependentModules(module)
 
-  override fun getResolvedDependentLibraries(): Collection<Library> {
-    // TODO: b/129297171 When this bug is resolved we may not need getResolvedDependentLibraries(Module)
-    return getResolvedDependentLibraries(module)
+  override fun getResolvedLibraryDependencies(): Collection<Library> {
+    // TODO: b/129297171 When this bug is resolved we may not need getResolvedLibraryDependencies(Module)
+    return getResolvedLibraryDependencies(module)
   }
 
-  private fun getResolvedDependentLibraries(module: Module): Collection<Library> {
+  private fun getResolvedLibraryDependencies(module: Module): Collection<Library> {
     val gradleModel = AndroidModuleModel.get(module) ?: return emptySet()
 
     val converter = GradleModelConverter(gradleModel.androidProject)
