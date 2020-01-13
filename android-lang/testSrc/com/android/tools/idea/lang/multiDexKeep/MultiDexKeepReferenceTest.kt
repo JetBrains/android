@@ -34,7 +34,7 @@ class MultiDexKeepReferenceTest : AndroidTestCase() {
         package com.example.myapplication;
 
         public class MainActivity  {
-
+          public static class Inner {}
         }
 
       """.trimIndent()
@@ -72,6 +72,18 @@ class MultiDexKeepReferenceTest : AndroidTestCase() {
     assertThat(psiClass.qualifiedName).isEqualTo("com.example.myapplication.MainActivity")
   }
 
+  fun testResolve_innerClass() {
+    myFixture.configureByText(
+      MultiDexKeepFileType.INSTANCE,
+      """
+        com/example/myapplication/MainActivity${'$'}Inner.class${caret}
+      """.trimIndent())
+
+    assertThat(myFixture.elementAtCaret).isInstanceOf(PsiClass::class.java)
+    val psiClass = myFixture.elementAtCaret as PsiClass
+    assertThat(psiClass.qualifiedName).isEqualTo("com.example.myapplication.MainActivity.Inner")
+  }
+
   fun testCodeCompletionOnEmptyFile() {
     myFixture.configureByText(
       MultiDexKeepFileType.INSTANCE,
@@ -81,6 +93,7 @@ class MultiDexKeepReferenceTest : AndroidTestCase() {
 
     assertThat(myFixture.lookupElementStrings).containsExactly(
       "com/example/myapplication/MainActivity.class",
+      "com/example/myapplication/MainActivity${'$'}Inner.class",
       "com/example/myapplication/OtherClass.class",
       "p1/p2/R.class",
       "com/myjar/MyJarClass.class"
@@ -98,6 +111,7 @@ class MultiDexKeepReferenceTest : AndroidTestCase() {
 
     assertThat(myFixture.lookupElementStrings).containsExactly(
       "com/example/myapplication/MainActivity.class",
+      "com/example/myapplication/MainActivity${'$'}Inner.class",
       "com/example/myapplication/OtherClass.class"
     )
   }

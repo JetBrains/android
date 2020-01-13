@@ -15,7 +15,7 @@
 
   tokens=[
     EOL='regexp:\n'
-    STRING='regexp:[a-zA-Z0-9/.]+'
+    STRING='regexp:[a-zA-Z0-9/.$]+'
   ]
 
   generate=[names='long' java='8']

@@ -83,6 +83,18 @@ class MultiDexKeepParserTest : AndroidParsingTestCase(MultiDexKeepFileType.INSTA
     )
   }
 
+  fun testInnerClasses() {
+    assertEquals(
+      """
+        MultiDexKeep File
+          MultiDexKeepClassNamesImpl(CLASS_NAMES)
+            MultiDexKeepClassNameImpl(CLASS_NAME)
+              PsiElement(class file name)('com/somePackage/SomeClass${'$'}Inner.class')
+      """.trimIndent(),
+      toParseTreeText("com/somePackage/SomeClass\$Inner.class")
+    )
+  }
+
   fun testMultipleLinesParsedResult() {
     assertEquals(
       """

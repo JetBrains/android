@@ -18,6 +18,7 @@ package com.android.tools.idea.lang.multiDexKeep;
 import com.android.tools.idea.lang.multiDexKeep.psi.MultiDexKeepClassName;
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
 import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.lang.jvm.util.JvmClassUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.module.impl.scopes.JdkScope;
@@ -55,7 +56,11 @@ public class MultiDexKeepReference extends PsiReferenceBase<MultiDexKeepClassNam
       return null;
     }
 
-    String qualifiedName = name.replace('/', '.').substring(0, name.lastIndexOf(".class"));
+    String qualifiedName =
+      name
+        .substring(0, name.lastIndexOf(".class"))
+        .replace('/', '.')
+        .replace('$', '.');
     return JavaPsiFacade.getInstance(project).findClass(qualifiedName, GlobalSearchScope.projectScope(project));
   }
 
@@ -78,7 +83,7 @@ public class MultiDexKeepReference extends PsiReferenceBase<MultiDexKeepClassNam
 
     ArrayList<LookupElement> result = new ArrayList<>();
     AllClassesSearch.search(scope, myElement.getProject()).forEach(psiClass -> {
-      String qualifiedName = psiClass.getQualifiedName();
+      String qualifiedName = JvmClassUtil.getJvmClassName(psiClass);
       if (qualifiedName != null) {
         result.add(JavaLookupElementBuilder.forClass(psiClass, qualifiedName.replace(".", "/").concat(".class")));
       }
