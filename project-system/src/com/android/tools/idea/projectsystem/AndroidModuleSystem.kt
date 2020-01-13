@@ -125,7 +125,7 @@ interface AndroidModuleSystem: ClassFileFinder, SampleDataDirectoryProvider, Mod
    * <p>
    * **Note**: This function will not acquire read/write locks during it's operation.
    */
-  fun getResolvedDependentLibraries(): Collection<Library>
+  fun getResolvedLibraryDependencies(): Collection<Library>
 
   /**
    * Returns the Android modules that this module transitively depends on for resources.
