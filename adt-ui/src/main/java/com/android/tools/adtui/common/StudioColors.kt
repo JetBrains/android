@@ -16,7 +16,7 @@
 package com.android.tools.adtui.common
 
 import com.intellij.ui.JBColor
-import javax.swing.UIManager
+import com.intellij.util.ui.JBUI
 
 /**
  * Colors defined in the UX prototype
@@ -84,11 +84,11 @@ val selectionForeground = JBColor.namedColor("List.selectionForeground", JBColor
  *
  * Example: Analysis tab of a cpu profiling capture.
  */
-val tabbedPaneFocus = UIManager.getColor("TabbedPane.focus")
+val tabbedPaneFocus = JBUI.CurrentTheme.TabbedPane.ENABLED_SELECTED_COLOR
 
 /**
  * Color of the background when user mouse overs an intellij style tab.
  *
  * Example: Analysis tab of a cpu profiling capture.
  */
-val tabbedPaneHoverHighlight = UIManager.getColor("TabbedPane.shadow")
+val tabbedPaneHoverHighlight = JBUI.CurrentTheme.TabbedPane.HOVER_COLOR
