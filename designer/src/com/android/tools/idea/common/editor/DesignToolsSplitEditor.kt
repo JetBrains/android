@@ -59,11 +59,12 @@ open class DesignToolsSplitEditor(textEditor: TextEditor,
   private var stateRestored = false
 
   override fun getComponent(): JComponent {
+    val thisComponent = super.getComponent()
     if (!stateRestored) {
       stateRestored = true
       restoreSurfaceState()
     }
-    return super.getComponent()
+    return thisComponent
   }
 
   private fun restoreSurfaceState() {
