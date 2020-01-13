@@ -63,6 +63,7 @@ class ExistingProjectModelData(
   override val enableCppSupport: BoolValueProperty = BoolValueProperty()
   override val cppFlags: StringValueProperty = StringValueProperty("")
   override val useAppCompat = BoolValueProperty()
+  override val useGradleKts = BoolValueProperty(project.hasKtsUsage())
   override val isNewProject = false
   override val projectTemplateValues: MutableMap<String, Any> = mutableMapOf()
   override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
@@ -212,4 +213,9 @@ private fun FormFactor.toModuleRenderingLoggingEvent() = when(this) {
   FormFactor.AUTOMOTIVE -> RenderLoggingEvent.AUTOMOTIVE_MODULE
   FormFactor.THINGS -> RenderLoggingEvent.THINGS_MODULE
   FormFactor.WEAR -> RenderLoggingEvent.ANDROID_WEAR_MODULE
+}
+
+private fun Project.hasKtsUsage() : Boolean {
+  // TODO(parentej): Check if settings is kts or any module is kts
+  return false
 }
