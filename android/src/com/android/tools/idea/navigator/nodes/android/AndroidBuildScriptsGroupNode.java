@@ -39,8 +39,8 @@ import java.io.File;
 import java.util.*;
 
 import static com.android.SdkConstants.*;
-import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
+import static com.android.tools.idea.gradle.util.GradleUtil.*;
 import static com.intellij.openapi.util.io.FileUtilRt.toSystemIndependentName;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 
@@ -57,7 +57,7 @@ public class AndroidBuildScriptsGroupNode extends ProjectViewNode<List<PsiDirect
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     Map<VirtualFile, String> scripts = getBuildScriptsWithQualifiers();
     List<PsiFileNode> children = new ArrayList<>(scripts.size());
 

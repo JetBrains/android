@@ -54,7 +54,7 @@ public class LibFolderNode extends ProjectViewNode<VirtualFile> {
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     assert myProject != null;
     List<NativeLibrary> libraries = new ArrayList<>();
 
@@ -66,7 +66,7 @@ public class LibFolderNode extends ProjectViewNode<VirtualFile> {
     }
 
     ViewSettings settings = getSettings();
-    List<AbstractTreeNode> children = new ArrayList<>();
+    List<AbstractTreeNode<?>> children = new ArrayList<>();
     for (NativeLibrary library : libraries) {
       children.add(new LibraryNode(myProject, library, settings));
     }

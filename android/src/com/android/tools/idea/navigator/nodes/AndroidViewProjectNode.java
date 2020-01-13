@@ -67,14 +67,14 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     assert myProject != null;
     ViewSettings settings = getSettings();
 
     // add a node for every module
     // TODO: make this conditional on getSettings().isShowModules(), otherwise collapse them all at the root
     List<Module> modules = Arrays.asList(ModuleManager.getInstance(myProject).getModules());
-    List<AbstractTreeNode> children = new ArrayList<>(modules.size());
+    List<AbstractTreeNode<?>> children = new ArrayList<>(modules.size());
     for (Module module : modules) {
       ApkFacet apkFacet = ApkFacet.getInstance(module);
       if (isRootModuleWithNoSources(module) && apkFacet == null) {

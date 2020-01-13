@@ -78,7 +78,7 @@ public class PathTreesTest extends JavaProjectTestCase {
     SourceCodeFilter filter = mock(SourceCodeFilter.class);
     ViewSettings settings = mock(ViewSettings.class);
 
-    List<AbstractTreeNode> nodes = PathTrees.getSourceFolderNodes(myTree, filter, getProject(), settings);
+    List<AbstractTreeNode<?>> nodes = PathTrees.getSourceFolderNodes(myTree, filter, getProject(), settings);
     assertThat(nodes).hasSize(1);
 
     AbstractTreeNode node = nodes.get(0);

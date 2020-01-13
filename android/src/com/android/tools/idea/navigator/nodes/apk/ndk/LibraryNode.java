@@ -19,7 +19,6 @@ import com.android.tools.idea.apk.debugging.NativeLibrary;
 import com.android.tools.idea.apk.paths.PathTree;
 import com.android.tools.idea.navigator.nodes.ndk.includes.model.SimpleIncludeValue;
 import com.android.tools.idea.navigator.nodes.ndk.includes.resolver.NdkIncludeResolver;
-import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.base.Joiner;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
@@ -28,16 +27,11 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.util.HashMap;
-import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static com.android.tools.idea.navigator.nodes.apk.SourceFolders.isInSourceFolder;
 import static com.android.tools.idea.navigator.nodes.apk.ndk.PathTrees.getSourceFolderNodes;
@@ -73,9 +67,9 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     assert myProject != null;
-    List<AbstractTreeNode> children = new ArrayList<>();
+    List<AbstractTreeNode<?>> children = new ArrayList<>();
     ViewSettings settings = getSettings();
     children.add(new LibraryFileNode(myProject, myLibrary, settings));
 

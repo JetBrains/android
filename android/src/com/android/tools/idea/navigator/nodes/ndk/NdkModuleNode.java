@@ -15,11 +15,6 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk;
 
-import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
-import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
-import static com.intellij.openapi.util.text.StringUtil.trimEnd;
-import static com.intellij.openapi.util.text.StringUtil.trimStart;
-
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.NativeArtifact;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
@@ -38,12 +33,18 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
+import static com.intellij.openapi.util.text.StringUtil.trimEnd;
+import static com.intellij.openapi.util.text.StringUtil.trimStart;
 
 public class NdkModuleNode extends AndroidViewModuleNode {
   public NdkModuleNode(@NotNull Project project, @NotNull Module value, @NotNull ViewSettings settings) {
@@ -52,7 +53,7 @@ public class NdkModuleNode extends AndroidViewModuleNode {
 
   @Override
   @NotNull
-  public Collection<AbstractTreeNode> getChildren() {
+  public Collection<AbstractTreeNode<?>> getChildren() {
     Module module = getValue();
     if (module == null) {
       return Collections.emptyList();
@@ -68,9 +69,9 @@ public class NdkModuleNode extends AndroidViewModuleNode {
   }
 
   @NotNull
-  public static Collection<AbstractTreeNode> getNativeSourceNodes(@NotNull Project project,
-                                                                  @NotNull NdkModuleModel ndkModel,
-                                                                  @NotNull ViewSettings settings) {
+  public static Collection<AbstractTreeNode<?>> getNativeSourceNodes(@NotNull Project project,
+                                                                     @NotNull NdkModuleModel ndkModel,
+                                                                     @NotNull ViewSettings settings) {
     NativeAndroidProject nativeAndroidProject = ndkModel.getAndroidProject();
     Collection<String> sourceFileExtensions = nativeAndroidProject.getFileExtensions().keySet();
 
@@ -85,7 +86,7 @@ public class NdkModuleNode extends AndroidViewModuleNode {
         return NdkLibraryNode.getSourceFolderNodes(project, nativeLibraries.values(), settings, sourceFileExtensions);
       }
     }
-    List<AbstractTreeNode> children = new ArrayList<>();
+    List<AbstractTreeNode<?>> children = new ArrayList<>();
     for (String name : nativeLibraries.keySet()) {
       String nativeLibraryType = "";
       String nativeLibraryName = trimEnd(name, ".so");
@@ -115,7 +116,8 @@ public class NdkModuleNode extends AndroidViewModuleNode {
       }
     }
     if (children.size() == 1) {
-      return children.get(0).getChildren();
+      //noinspection unchecked
+      return (Collection<AbstractTreeNode<?>>)children.get(0).getChildren();
     }
     return children;
   }

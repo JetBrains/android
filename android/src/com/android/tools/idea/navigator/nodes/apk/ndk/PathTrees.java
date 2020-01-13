@@ -68,11 +68,11 @@ final class PathTrees {
   }
 
   @NotNull
-  static List<AbstractTreeNode> getSourceFolderNodes(@NotNull PathTree tree,
+  static List<AbstractTreeNode<?>> getSourceFolderNodes(@NotNull PathTree tree,
                                                      @NotNull SourceCodeFilter filter,
                                                      @NotNull Project project,
                                                      @NotNull ViewSettings settings) {
-    List<AbstractTreeNode> children = new ArrayList<>();
+    List<AbstractTreeNode<?>> children = new ArrayList<>();
 
     // Only add the root nodes. PsiDirectoryNode will populate the children automatically.
     List<PathNode> rootSrcNodes = new ArrayList<>();

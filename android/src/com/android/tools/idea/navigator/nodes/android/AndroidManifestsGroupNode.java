@@ -63,11 +63,11 @@ public class AndroidManifestsGroupNode extends ProjectViewNode<AndroidFacet> imp
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     Project project = getNotNullProject();
     PsiManager psiManager = PsiManager.getInstance(project);
 
-    List<AbstractTreeNode> children = new ArrayList<>();
+    List<AbstractTreeNode<?>> children = new ArrayList<>();
     for (VirtualFile manifest : mySources) {
       if (!manifest.isValid()) {
         continue;
