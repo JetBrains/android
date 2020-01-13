@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.runconfiguration
+package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.tools.idea.compose.preview.ComposeLightJavaCodeInsightFixtureTestCase
-import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
-import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationProducer
-import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
 import com.android.tools.idea.flags.StudioFlags
 import com.intellij.execution.Location
 import com.intellij.execution.PsiLocation
