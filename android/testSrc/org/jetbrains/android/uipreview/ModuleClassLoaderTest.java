@@ -16,24 +16,21 @@
 package org.jetbrains.android.uipreview;
 
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.createAndroidProjectBuilderForDefaultTestProjectStructure;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 
 import com.android.AndroidProjectTypes;
-import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceRepository;
-import com.android.tools.idea.Projects;
-import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.testing.AndroidModuleModelBuilder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
@@ -159,13 +156,10 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   }
 
   public void testIsSourceModified() throws IOException {
-    File rootDirPath = Projects.getBaseDirPath(getProject());
-    AndroidProjectStub androidProject = TestProjects.createBasicProject();
-    AndroidModel.set(myFacet,
-                     AndroidModuleModel.create(androidProject.getName(), rootDirPath, androidProject, "debug",
-                                               new IdeDependenciesFactory()));
-    myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
-    assertThat(AndroidModel.isRequired(myFacet)).isTrue();
+    setupTestProjectFromAndroidModel(
+      getProject(),
+      new File(getProject().getBasePath()),
+      new AndroidModuleModelBuilder(":", "debug", createAndroidProjectBuilderForDefaultTestProjectStructure()));
 
     File srcDir = new File(Files.createTempDir(), "src");
     File rSrc = new File(srcDir, "com/google/example/R.java");
@@ -225,20 +219,16 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   }
 
   public void testLibRClass() throws Exception {
+    setupTestProjectFromAndroidModel(
+      getProject(),
+      new File(getProject().getBasePath()),
+      new AndroidModuleModelBuilder(
+        ":",
+        "debug",
+        createAndroidProjectBuilderForDefaultTestProjectStructure(AndroidProjectTypes.PROJECT_TYPE_LIBRARY)));
+
     SourceProviders sourceProviderManager = SourceProviderManager.getInstance(myFacet);
     VirtualFile defaultManifest = sourceProviderManager.getMainManifestFile();
-
-    AndroidProjectStub androidProject = TestProjects.createBasicProject();
-    androidProject.setProjectType(AndroidProjectTypes.PROJECT_TYPE_LIBRARY);
-    myFacet.getConfiguration().getState().PROJECT_TYPE = AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
-    AndroidModel.set(myFacet,
-                     AndroidModuleModel.create(androidProject.getName(),
-                                               Projects.getBaseDirPath(getProject()),
-                                               androidProject,
-                                               "debug",
-                                               new IdeDependenciesFactory()));
-    myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
-    assertThat(AndroidModel.isRequired(myFacet)).isTrue();
 
     WriteAction.run(() -> {
       VirtualFile manifestFile = sourceProviderManager.getMainManifestFile();

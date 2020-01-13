@@ -127,7 +127,7 @@ data class JavaModuleModelBuilder(
   val buildable: Boolean = true
 ) : ModuleModelBuilder() {
 
-  constructor (gradlePath: String, buildable: Boolean = true) : this(gradlePath, null,  buildable)
+  constructor (gradlePath: String, buildable: Boolean = true) : this(gradlePath, null, buildable)
 
   override val agpVersion: String? = null
 
@@ -614,7 +614,7 @@ fun setupTestProjectFromAndroidModel(
   else {
     assume().that(moduleManager.modules.size).isEqualTo(0)
   }
-  ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem (project))
+  ProjectSystemService.getInstance(project).replaceProjectSystemForTests(GradleProjectSystem(project))
   val gradlePlugins = listOf(
     "com.android.java.model.builder.JavaLibraryPlugin", "org.gradle.buildinit.plugins.BuildInitPlugin",
     "org.gradle.buildinit.plugins.WrapperPlugin", "org.gradle.api.plugins.HelpTasksPlugin",
