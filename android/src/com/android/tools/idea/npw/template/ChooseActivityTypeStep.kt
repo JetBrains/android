@@ -57,7 +57,7 @@ class ChooseActivityTypeStep(
         if (isNewModule) {
           yield(NewTemplateRenderer(Template.NoActivity))
         }
-        yieldAll(TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }
+        yieldAll(TemplateResolver.getAllTemplates()
                    .filter { WizardUiContext.ActivityGallery in it.uiContexts }
                    .map(::NewTemplateRenderer))
       }

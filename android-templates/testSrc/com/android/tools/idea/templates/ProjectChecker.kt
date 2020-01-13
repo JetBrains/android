@@ -384,7 +384,7 @@ data class ProjectChecker(
         val appTitle = moduleState.getString(ATTR_APP_TITLE)
         // Template is not needed to render the module, obtaining the Template just to check the FormFactor
         val template = activityState.template
-        val newTemplates = TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }
+        val newTemplates = TemplateResolver.getAllTemplates()
         val newTemplate = newTemplates.find { it.name == template.metadata?.title }!!
         val recipe: Recipe = when (newTemplate.formFactor) {
           FormFactor.Mobile -> { data: TemplateData -> this.generateAndroidModule(data as ModuleTemplateData, appTitle, false, "") }
@@ -415,7 +415,7 @@ data class ProjectChecker(
           populateDirectoryParameters()
         }
         if (isNewRenderingContext) {
-          val newTemplates = TemplateResolver.EP_NAME.extensions.flatMap { it.getTemplates() }
+          val newTemplates = TemplateResolver.getAllTemplates()
           val newTemplate = newTemplates.find { it.name == template.metadata?.title }!!
 
           // Make sure we didn't forgot to specify a thumbnail
