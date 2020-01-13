@@ -67,10 +67,10 @@ object TemplateUtils {
    * @return a list of string API names, starting from 1 and up through the maximum known versions (with no gaps) */
   val knownVersions: List<String>
     @JvmStatic get() {
-      val sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk()!!
-      val targets = sdkData.targets.filter { it.isPlatform && !it.version.isPreview }
+      val sdkData = AndroidSdks.getInstance().tryToChooseAndroidSdk()
+      val targets = sdkData?.targets.orEmpty().filter { it.isPlatform && !it.version.isPreview }
 
-      val targetLevels = targets.map {it.version.apiLevel}
+      val targetLevels = targets.map { it.version.apiLevel }
       val maxApi = max(HIGHEST_KNOWN_STABLE_API, targetLevels.max() ?: 0)
 
       return (1..maxApi).map { SdkVersionInfo.getAndroidName(it) }

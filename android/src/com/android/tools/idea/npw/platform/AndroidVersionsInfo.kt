@@ -74,10 +74,8 @@ class AndroidVersionsInfo {
   fun loadLocalVersions() {
     // Load the local definitions of the android compilation targets.
     knownTargetVersions = sequence {
-      if (AndroidSdkUtils.isAndroidSdkAvailable()) {
-        knownVersions.forEachIndexed { i, version ->
-          yield(VersionItem(version, i + 1))
-        }
+      knownVersions.forEachIndexed { i, version ->
+        yield(VersionItem(version, i + 1))
       }
       loadInstalledCompilationTargets()
         .filter { it.version.isPreview || it.additionalLibraries.isNotEmpty() }
