@@ -16,6 +16,7 @@
 package org.jetbrains.android.refactoring
 
 import com.android.AndroidProjectTypes
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.intellij.codeInsight.daemon.impl.analysis.XmlUnusedNamespaceInspection
 import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -48,6 +49,7 @@ class MigrateToResourceNamespacesProcessorTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
+    replaceApplicationService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
 
     myFixture.enableInspections(
       AndroidDomInspection::class.java,
