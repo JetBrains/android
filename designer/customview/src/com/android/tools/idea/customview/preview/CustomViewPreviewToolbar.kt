@@ -61,7 +61,7 @@ internal class CustomViewPreviewToolbar(private val surface: DesignSurface) : To
     val customViewPreviewActions = DefaultActionGroup()
     val customViews = CustomViewSelector()
 
-    val wrapWidth = object : ToggleAction(null, "Set preview width to wrap content", StudioIcons.LayoutEditor.Toolbar.WRAP_WIDTH) {
+    val wrapWidth = object : ToggleAction("Wrap content horizontally", "Set preview width to wrap content", StudioIcons.LayoutEditor.Toolbar.WRAP_WIDTH) {
       override fun isSelected(e: AnActionEvent) = findPreviewEditorsForContext(e.dataContext).any { it.shrinkWidth }
 
       override fun setSelected(e: AnActionEvent, state: Boolean) {
@@ -69,7 +69,7 @@ internal class CustomViewPreviewToolbar(private val surface: DesignSurface) : To
       }
     }
 
-    val wrapHeight = object : ToggleAction(null, "Set preview height to wrap content", StudioIcons.LayoutEditor.Toolbar.WRAP_HEIGHT) {
+    val wrapHeight = object : ToggleAction("Wrap content vertically", "Set preview height to wrap content", StudioIcons.LayoutEditor.Toolbar.WRAP_HEIGHT) {
       override fun isSelected(e: AnActionEvent) = findPreviewEditorsForContext(e.dataContext).any { it.shrinkHeight }
 
       override fun setSelected(e: AnActionEvent, state: Boolean) {
