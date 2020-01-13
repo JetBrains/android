@@ -16,16 +16,23 @@
 package com.android.tools.idea.lang.multiDexKeep;
 
 import com.android.tools.idea.lang.multiDexKeep.psi.MultiDexKeepClassName;
+import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
 import com.intellij.codeInsight.lookup.LookupElement;
-import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.module.impl.scopes.JdkScope;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.JdkOrderEntry;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiPackage;
 import com.intellij.psi.PsiReferenceBase;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.searches.AllClassesSearch;
+import com.intellij.util.ArrayUtil;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,29 +63,27 @@ public class MultiDexKeepReference extends PsiReferenceBase<MultiDexKeepClassNam
   @NotNull
   @Override
   public Object[] getVariants() {
-    Project project = myElement.getProject();
-    PsiPackage rootPackage = JavaPsiFacade.getInstance(project).findPackage("");
-
-    ArrayList<LookupElement> classNames = new ArrayList<>();
-    if (rootPackage != null) {
-      collectClassNames(rootPackage, GlobalSearchScope.projectScope(project), classNames);
+    Module module = ModuleUtilCore.findModuleForPsiElement(myElement);
+    if (module == null) {
+      return ArrayUtil.EMPTY_OBJECT_ARRAY;
+    }
+    JdkOrderEntry jdkOrderEntry = ContainerUtil.findInstance(ModuleRootManager.getInstance(module).getOrderEntries(), JdkOrderEntry.class);
+    if (jdkOrderEntry == null) {
+      return ArrayUtil.EMPTY_OBJECT_ARRAY;
     }
 
-    return classNames.toArray();
-  }
+    // Classes from the project and libraries are packaged into the APK, but SDK classes are not so it makes no sense to show them.
+    GlobalSearchScope scope =
+      myElement.getResolveScope().intersectWith(GlobalSearchScope.notScope(new JdkScope(module.getProject(), jdkOrderEntry)));
 
-  private static void collectClassNames(@NotNull PsiPackage currentPackage,
-                                        @NotNull GlobalSearchScope projectScope,
-                                        @NotNull ArrayList<LookupElement> classNames) {
-    for (PsiClass psiClass : currentPackage.getClasses(projectScope)) {
+    ArrayList<LookupElement> result = new ArrayList<>();
+    AllClassesSearch.search(scope, myElement.getProject()).forEach(psiClass -> {
       String qualifiedName = psiClass.getQualifiedName();
       if (qualifiedName != null) {
-        classNames.add(LookupElementBuilder.create(psiClass, qualifiedName.replace(".", "/").concat(".class")));
+        result.add(JavaLookupElementBuilder.forClass(psiClass, qualifiedName.replace(".", "/").concat(".class")));
       }
-    }
+    });
 
-    for (PsiPackage childPackage : currentPackage.getSubPackages(projectScope)) {
-      collectClassNames(childPackage, projectScope, classNames);
-    }
+    return result.toArray();
   }
 }
