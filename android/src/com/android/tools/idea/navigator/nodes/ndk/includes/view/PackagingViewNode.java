@@ -67,7 +67,7 @@ public class PackagingViewNode extends IncludeViewNode<PackageValue> {
 
   @NotNull
   @Override
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     Project project = getProject();
     if (project == null) {
       //noinspection unchecked

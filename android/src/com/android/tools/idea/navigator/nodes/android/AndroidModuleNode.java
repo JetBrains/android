@@ -80,7 +80,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
 
   @Override
   @NotNull
-  protected Collection<AbstractTreeNode> getModuleChildren() {
+  protected Collection<AbstractTreeNode<?>> getModuleChildren() {
     if (getModule() == null) {
       return platformGetChildren();
     }
@@ -92,11 +92,11 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   }
 
   @NotNull
-  static Collection<AbstractTreeNode> getChildren(@NotNull AndroidFacet facet,
+  static Collection<AbstractTreeNode<?>> getChildren(@NotNull AndroidFacet facet,
                                                   @NotNull ViewSettings settings,
                                                   @NotNull AndroidProjectViewPane projectViewPane,
                                                   @NotNull Iterable<NamedIdeaSourceProvider> providers) {
-    List<AbstractTreeNode> result = new ArrayList<>();
+    List<AbstractTreeNode<?>> result = new ArrayList<>();
     Project project = facet.getModule().getProject();
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
     HashMultimap<AndroidSourceType, VirtualFile> sourcesByType = getSourcesBySourceType(providers, androidModuleModel);

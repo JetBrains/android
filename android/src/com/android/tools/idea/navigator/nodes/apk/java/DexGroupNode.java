@@ -71,7 +71,7 @@ public class DexGroupNode extends ProjectViewNode<VirtualFile> {
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     if (myDexFileStructure != null) {
       try {
         myPackages = myDexFileStructure.getPackages();
@@ -86,9 +86,9 @@ public class DexGroupNode extends ProjectViewNode<VirtualFile> {
   }
 
   @NotNull
-  private Collection<? extends AbstractTreeNode> getChildren(@NotNull Collection<ApkPackage> packages) {
+  private Collection<? extends AbstractTreeNode<?>> getChildren(@NotNull Collection<ApkPackage> packages) {
     assert myProject != null;
-    List<AbstractTreeNode> children = new ArrayList<>();
+    List<AbstractTreeNode<?>> children = new ArrayList<>();
     ViewSettings settings = getSettings();
     if (settings.isFlattenPackages()) {
       // "Flat" package view.
@@ -101,7 +101,7 @@ public class DexGroupNode extends ProjectViewNode<VirtualFile> {
     return children;
   }
 
-  private void addPackagesAsFlatList(@NotNull Collection<ApkPackage> packages, @NotNull List<AbstractTreeNode> children) {
+  private void addPackagesAsFlatList(@NotNull Collection<ApkPackage> packages, @NotNull List<AbstractTreeNode<?>> children) {
     for (ApkPackage apkPackage : packages) {
       boolean hideEmptyMiddlePackages = getSettings().isHideEmptyMiddlePackages();
       if (!hideEmptyMiddlePackages || !apkPackage.getClasses().isEmpty()) {
@@ -111,7 +111,7 @@ public class DexGroupNode extends ProjectViewNode<VirtualFile> {
     }
   }
 
-  private void addPackagesAsTree(@NotNull Collection<ApkPackage> packages, @NotNull List<AbstractTreeNode> children) {
+  private void addPackagesAsTree(@NotNull Collection<ApkPackage> packages, @NotNull List<AbstractTreeNode<?>> children) {
     if (getSettings().isHideEmptyMiddlePackages()) {
       for (ApkPackage apkPackage : packages) {
         if (!apkPackage.getClasses().isEmpty() || apkPackage.doSubpackagesHaveClasses()) {

@@ -57,7 +57,7 @@ public class NdkModuleNode extends AndroidViewModuleNode {
 
   @Override
   @NotNull
-  protected Collection<AbstractTreeNode> getModuleChildren() {
+  protected Collection<AbstractTreeNode<?>> getModuleChildren() {
     Module module = getValue();
     if (module == null) {
       return Collections.emptyList();
@@ -73,7 +73,7 @@ public class NdkModuleNode extends AndroidViewModuleNode {
   }
 
   @NotNull
-  public static Collection<AbstractTreeNode> getNativeSourceNodes(@NotNull Project project,
+  public static Collection<AbstractTreeNode<?>> getNativeSourceNodes(@NotNull Project project,
                                                                   @NotNull NdkModuleModel ndkModel,
                                                                   @NotNull ViewSettings settings) {
     NativeAndroidProject nativeAndroidProject = ndkModel.getAndroidProject();
@@ -107,7 +107,7 @@ public class NdkModuleNode extends AndroidViewModuleNode {
       }
       nativeLibraries.put(new NativeLibraryKey(nativeLibraryName, nativeLibraryType), artifact);
     }
-    List<AbstractTreeNode> children = new ArrayList<>();
+    List<AbstractTreeNode<?>> children = new ArrayList<>();
     for (NativeLibraryKey key : nativeLibraries.keySet()) {
       String nativeLibraryType = key.getType().getDisplayText();
       String nativeLibraryName = key.getName();
@@ -120,7 +120,7 @@ public class NdkModuleNode extends AndroidViewModuleNode {
       children.add(node);
     }
     if (children.size() == 1) {
-      return children.get(0).getChildren();
+      return (Collection<AbstractTreeNode<?>>)children.get(0).getChildren();
     }
     return children;
   }

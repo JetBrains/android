@@ -63,8 +63,8 @@ public class PsiIncludeDirectoryView extends PsiDirectoryNode {
 
   @Override
   @NotNull
-  public Collection<AbstractTreeNode> getChildrenImpl() {
-    List<AbstractTreeNode> result = new ArrayList<>();
+  public Collection<AbstractTreeNode<?>> getChildrenImpl() {
+    List<AbstractTreeNode<?>> result = new ArrayList<>();
     PsiDirectory value = getPsiDirectory();
     value.processChildren(element -> {
       if (VirtualFiles.isElementAncestorOfExclude(element, myVirtualFileExcludes)) {

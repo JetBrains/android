@@ -61,9 +61,9 @@ public class AndroidJniFolderNode extends ProjectViewNode<NdkModuleModel> implem
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     assert myProject != null;
-    Collection<AbstractTreeNode> nativeSourceNodes = getNativeSourceNodes(myProject, getNdkModel(), getSettings());
+    Collection<AbstractTreeNode<?>> nativeSourceNodes = getNativeSourceNodes(myProject, getNdkModel(), getSettings());
     if (nativeSourceNodes.size() == 1) {
       AbstractTreeNode sourceNode = Iterables.getOnlyElement(nativeSourceNodes);
       if (sourceNode instanceof NdkSourceFolderNode) {

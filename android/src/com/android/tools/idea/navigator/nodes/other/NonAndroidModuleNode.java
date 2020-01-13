@@ -46,10 +46,10 @@ public class NonAndroidModuleNode extends AndroidViewModuleNode {
 
   @Override
   @NotNull
-  protected Collection<AbstractTreeNode> getModuleChildren() {
+  protected Collection<AbstractTreeNode<?>> getModuleChildren() {
     Module module = getModule();
     Set<NonAndroidSourceType> sourceTypes = getNonEmptySourceTypes(module);
-    List<AbstractTreeNode> nodes = new ArrayList<>(sourceTypes.size());
+    List<AbstractTreeNode<?>> nodes = new ArrayList<>(sourceTypes.size());
 
     assert myProject != null;
     for (NonAndroidSourceType type : sourceTypes) {
