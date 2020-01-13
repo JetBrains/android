@@ -51,8 +51,8 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
   }
 
   public final override fun setupConfigurationFromContext(configuration: ComposePreviewRunConfiguration,
-                                                   context: ConfigurationContext,
-                                                   sourceElement: Ref<PsiElement>): Boolean {
+                                                          context: ConfigurationContext,
+                                                          sourceElement: Ref<PsiElement>): Boolean {
     if (!StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.get()) {
       return false
     }
