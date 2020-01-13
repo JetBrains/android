@@ -445,6 +445,10 @@ public abstract class AndroidTestCase extends AndroidTestBase {
     myProjectComponentStack.registerServiceInstance(key, instance);
   }
 
+  public <T> void replaceApplicationService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
+    myIdeComponents.replaceApplicationService(serviceType, newServiceInstance);
+  }
+
   public <T> void replaceProjectService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
     myIdeComponents.replaceProjectService(serviceType, newServiceInstance);
   }
