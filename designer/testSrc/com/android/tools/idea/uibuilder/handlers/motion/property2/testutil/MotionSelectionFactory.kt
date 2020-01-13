@@ -57,7 +57,7 @@ class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {
     val component = nlModel.find(target) ?: throw error("NlComponent not found: $target")
     val keyFrameSet = findKeyFrameSet(start, end)
     val keyFrame = findKeyFrame(keyFrameSet, keyType, framePosition, target)
-    return MotionSelection(MotionEditorSelector.Type.CONSTRAINT_SET, arrayOf(keyFrame), listOf(component))
+    return MotionSelection(MotionEditorSelector.Type.KEY_FRAME, arrayOf(keyFrame), listOf(component))
   }
 
   private fun findConstraintSet(id: String): MotionSceneTag {

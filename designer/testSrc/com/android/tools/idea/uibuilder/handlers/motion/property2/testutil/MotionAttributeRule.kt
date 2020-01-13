@@ -48,10 +48,13 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 
+const val DEFAULT_LAYOUT_FILE = "layout.xml"
+const val DEFAULT_SCENE_FILE = "scene.xml"
+
 class MotionAttributeRule(
   private val projectRule: AndroidProjectRule,
-  private val motionLayoutFilename: String,
-  private val motionSceneFilename: String
+  private val motionLayoutFilename: String = DEFAULT_LAYOUT_FILE,
+  private val motionSceneFilename: String = DEFAULT_SCENE_FILE
 ) : ExternalResource() {
   private var componentStack: ComponentStack? = null
   private var nlModel: SyncNlModel? = null

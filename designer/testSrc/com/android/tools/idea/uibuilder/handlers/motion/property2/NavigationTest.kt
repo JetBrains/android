@@ -22,6 +22,7 @@ import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.ATTR_TEXT_SIZE
 import com.android.SdkConstants.AUTO_URI
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ATTR_ANDROID_ROTATION
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.ConstraintSet.DERIVE_CONSTRAINTS_FROM
@@ -44,15 +45,19 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSc
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags.TRANSITION
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Transition.ATTR_DURATION
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Transition.ATTR_MOTION_INTERPOLATOR
+import com.android.tools.idea.uibuilder.handlers.motion.property2.testutil.DEFAULT_LAYOUT_FILE
+import com.android.tools.idea.uibuilder.handlers.motion.property2.testutil.DEFAULT_SCENE_FILE
 import com.android.tools.idea.uibuilder.handlers.motion.property2.testutil.MotionAttributeRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
-private const val LAYOUT_FILE = "layout.xml"
-private const val SCENE_FILE = "scene.xml"
+private const val LAYOUT_FILE = DEFAULT_LAYOUT_FILE
+private const val SCENE_FILE = DEFAULT_SCENE_FILE
 private const val ATTR_PIVOT_X = "pivotX"
 
 @RunsInEdt
@@ -62,7 +67,7 @@ class NavigationTest {
   val projectRule = AndroidProjectRule.withSdk()
 
   @JvmField @Rule
-  val motionRule = MotionAttributeRule(projectRule, LAYOUT_FILE, SCENE_FILE)
+  val motionRule = MotionAttributeRule(projectRule)
 
   @JvmField @Rule
   val edtRule = EdtRule()
@@ -72,8 +77,22 @@ class NavigationTest {
     motionRule.enableFileOpenCaptures()
   }
 
+  @After
+  fun tearDown() {
+    StudioFlags.RESOLVE_USING_REPOS.clearOverride()
+  }
+
   @Test
   fun testConstraintSet() {
+    motionRule.selectConstraintSet("start")
+    check(ANDROID_URI, ATTR_ID, CONSTRAINTSET, SCENE_FILE, 6, "android:id=\"@+id/start\"")
+    check(AUTO_URI, DERIVE_CONSTRAINTS_FROM, CONSTRAINTSET, SCENE_FILE, 67, "<ConstraintSet android:id=\"@+id/base\">")
+  }
+
+  @Ignore("Feature not ready in 4.0")
+  @Test
+  fun testConstraintSetWithResolveUsingRepos() {
+    StudioFlags.RESOLVE_USING_REPOS.override(true)
     motionRule.selectConstraintSet("start")
     check(ANDROID_URI, ATTR_ID, CONSTRAINTSET, SCENE_FILE, 6, "android:id=\"@+id/start\"")
     check(AUTO_URI, DERIVE_CONSTRAINTS_FROM, CONSTRAINTSET, SCENE_FILE, 67, "<ConstraintSet android:id=\"@+id/base\">")
