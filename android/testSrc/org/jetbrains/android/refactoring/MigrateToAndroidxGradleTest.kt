@@ -15,8 +15,10 @@
  */
 package org.jetbrains.android.refactoring
 
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_ANDROID_X
+import com.android.tools.idea.testing.TestProjectPaths.MIGRATE_TO_ANDROID_X_KTS
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.vfs.VfsUtil
@@ -31,39 +33,32 @@ import kotlin.text.Regex.Companion.escapeReplacement
 private fun String.removeVersions(): String =
   replace(Regex("\\d+\\.\\d+(\\.\\d+)?(-\\p{Alnum}+)?"), "V.V.V")
 
-private fun String.replaceCompileSdkWith(version: String) =
-  replace(Regex("compileSdkVersion .*"), escapeReplacement("compileSdkVersion $version"))
+private fun String.replaceCompileSdkWith(version: String, isGroovy: Boolean) =
+  replace(Regex("compileSdkVersion[(\\s].*"),
+          escapeReplacement(if (isGroovy) "compileSdkVersion $version" else "compileSdkVersion($version)"))
 
 /**
  * This class tests Migration to AndroidX for a Gradle project.
  */
 class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
-  fun testMigrationRefactoring() {
-    loadProject(MIGRATE_TO_ANDROID_X)
+  private fun doTestMigrationRefactoring(mainBuildScript: String, appBuildScript: String, activityMain: String, expectedSequence: String) {
     runProcessor()
 
-    val activityMain = getTextForFile("app/src/main/res/layout/activity_main.xml")
-    val mainGradle = getTextForFile("build.gradle")
-    val appGradle = getTextForFile("app/build.gradle")
+    val activityMain = getTextForFile(activityMain)
+    val mainGradle = getTextForFile(mainBuildScript)
+    val appGradle = getTextForFile(appBuildScript)
 
     assertEquals(2, mainGradle.lineSequence().filter { it.contains("google()") }.count())
 
     val implementationLines = appGradle.lineSequence()
       .map { it.trim() }
-      .filter { it.startsWith("implementation") || it.startsWith("def testVariable") }
+      .filter { it.startsWith("implementation") || it.contains("testVariable =") }
       .filterNot { it.contains("fileTree") }
       .map { it.removeVersions() } // Remove versions
-      .sorted()
       .joinToString(separator = "\n")
       .trimIndent()
 
-    assertEquals("""
-    def testVariable = 'com.google.android.material:material:V.V.V'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:+"
-    implementation 'androidx.constraintlayout:constraintlayout:V.V.V'
-    implementation group: 'androidx.appcompat', name: 'appcompat', version: 'V.V.V'
-    implementation testVariable
-      """.trimIndent(), implementationLines)
+    assertEquals(expectedSequence.trimIndent(), implementationLines)
 
     val mainActivityKt = getTextForFile("app/src/main/java/com/example/google/migratetoandroidx/MainActivity.kt")
     assertFalse(mainActivityKt.contains("android.support"))
@@ -74,8 +69,38 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     assertTrue(mainActivityKt.contains("import kotlinx.android.synthetic.main.activity_main.*"))
   }
 
-  fun testExistingGradleProperties() {
+  fun testMigrationRefactoringGroovy() {
     loadProject(MIGRATE_TO_ANDROID_X)
+    val activityMain = "app/src/main/res/layout/activity_main.xml"
+    val mainBuildScript = "build.gradle"
+    val appBuildScript = "app/build.gradle"
+    val expectedSequence = """
+    def testVariable = 'com.google.android.material:material:V.V.V'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:+"
+    implementation group: 'androidx.appcompat', name: 'appcompat', version: 'V.V.V'
+    implementation 'androidx.constraintlayout:constraintlayout:V.V.V'
+    implementation testVariable
+      """
+    doTestMigrationRefactoring(mainBuildScript, appBuildScript, activityMain, expectedSequence)
+  }
+
+  fun testMigrationRefactoringKts() {
+    loadProject(MIGRATE_TO_ANDROID_X_KTS)
+    val activityMain = "app/src/main/res/layout/activity_main.xml"
+    val mainBuildScript = "build.gradle.kts"
+    val appBuildScript = "app/build.gradle.kts"
+    val expectedSequence = """
+    val testVariable = "com.google.android.material:material:V.V.V"
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:+")
+    implementation(mapOf("group" to "androidx.appcompat", "name" to "appcompat", "version" to "V.V.V"))
+    implementation("androidx.constraintlayout:constraintlayout:V.V.V")
+    implementation(testVariable)
+      """
+    doTestMigrationRefactoring(mainBuildScript, appBuildScript, activityMain, expectedSequence)
+  }
+
+  private fun doTestExistingGradleProperties() {
+    loadProject(MIGRATE_TO_ANDROID_X_KTS)
 
     runWriteAction {
       // gradle.properties is created by test framework. We do not care about its content here since we never sync the project again
@@ -96,14 +121,22 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
                gradleProperties.contains("random.variable=true"))
   }
 
-  fun testVerifyPrerequisites() {
-    loadProject(MIGRATE_TO_ANDROID_X)
+  fun testExistingGradlePropertiesGroovy() {
+    loadProject(MIGRATE_TO_ANDROID_X_KTS)
+    doTestExistingGradleProperties()
+  }
 
-    val appGradleFile = myFixture.project.baseDir.findFileByRelativePath("app/build.gradle")!!
-    val appGradleContent = getTextForFile("app/build.gradle")
+  fun testExistingGradlePropertiesKts() {
+    loadProject(MIGRATE_TO_ANDROID_X_KTS)
+    doTestExistingGradleProperties()
+  }
 
-    arrayOf("\"\$version_27\"", "ext.version_27").forEach {
-      setFileContent(appGradleFile, appGradleContent.replaceCompileSdkWith(it))
+  private fun doTestVerifyPrerequisites(mainBuildScript: String, appBuildScript: String, isGroovy: Boolean) {
+    val appGradleFile = myFixture.project.baseDir.findFileByRelativePath(appBuildScript)!!
+    val appGradleContent = getTextForFile(appBuildScript)
+
+    arrayOf("\"\$version_27\"", if (isGroovy) "ext.version_27" else "extra[\"version_27\"]").forEach {
+      setFileContent(appGradleFile, appGradleContent.replaceCompileSdkWith(it, isGroovy))
       try {
         runProcessor(checkPrerequisites = true)
         fail("Prerequisites check should have failed for compileSdkVersion \"$it\"")
@@ -114,14 +147,23 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
       }
     }
 
-    setFileContent(appGradleFile, appGradleContent.replaceCompileSdkWith("28"))
+    setFileContent(appGradleFile, appGradleContent.replaceCompileSdkWith("28", isGroovy))
 
     // Downgrade the gradle plugin and check it fails
-    val rootGradleFile = VfsUtil.findRelativeFile(myFixture.project.baseDir, "build.gradle")!!
-    val rootGradleContent = getTextForFile("build.gradle")
-    setFileContent(rootGradleFile, rootGradleContent
-      .replace("gradle_version = '+", "gradle_version = '3.0.1")
-      .replace(Regex("com.android.tools.build:gradle:.*'"), "com.android.tools.build:gradle:\\\$gradle_version'"))
+    val rootGradleFile = VfsUtil.findRelativeFile(myFixture.project.baseDir, mainBuildScript)!!
+
+    // Use the GradleBuildModel to update property accordingly to the build language.
+    val buildModel = GradleBuildModel.parseBuildFile(rootGradleFile, myFixture.project)
+    val ext = buildModel.buildscript().ext()
+    val gradle_version = ext.findProperty("gradle_version")
+    gradle_version.setValue("3.0.1")
+    WriteCommandAction.runWriteCommandAction(project) {
+      buildModel.applyChanges()
+    }
+
+    setFileContent(rootGradleFile, getTextForFile(mainBuildScript)
+      .replace(Regex("com.android.tools.build:gradle:.*${if (isGroovy) "'" else '"'}"),
+               "com.android.tools.build:gradle:\\\$gradle_version${if (isGroovy) "'" else '"'}"))
     try {
       runProcessor(checkPrerequisites = true)
       fail("Prerequisites check should have failed for gradle version 3.0.1")
@@ -133,7 +175,23 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     }
   }
 
-  fun testWarning() {
+  fun testVerifyPrerequisitesGroovy() {
+    loadProject(MIGRATE_TO_ANDROID_X)
+
+    val mainBuildScript = "build.gradle"
+    val appBuildScript = "app/build.gradle"
+    doTestVerifyPrerequisites(mainBuildScript, appBuildScript, true)
+  }
+
+  fun testVerifyPrerequisitesKts() {
+    loadProject(MIGRATE_TO_ANDROID_X_KTS)
+
+    val mainBuildScript = "build.gradle.kts"
+    val appBuildScript = "app/build.gradle.kts"
+    doTestVerifyPrerequisites(mainBuildScript, appBuildScript, false)
+  }
+
+  private fun doTestWarning() {
     loadProject(MIGRATE_TO_ANDROID_X)
 
     val warningMessage = """Before proceeding, we recommend that you make a backup of your project.
@@ -149,21 +207,41 @@ class MigrateToAndroidxGradleTest : AndroidGradleTestCase() {
     })
   }
 
+  fun testWarningGroovy() {
+    loadProject(MIGRATE_TO_ANDROID_X)
+    doTestWarning()
+  }
+
+  fun testWarningKts() {
+    loadProject(MIGRATE_TO_ANDROID_X_KTS)
+    doTestWarning()
+  }
+
   /**
    * Regression test for b/123303598
    */
-  fun testBug123303598() {
-    loadProject(MIGRATE_TO_ANDROID_X)
+  private fun doTestBug123303598(buildFileName: String) {
+    loadProject(MIGRATE_TO_ANDROID_X_KTS)
 
-    val appGradleFile = myFixture.project.baseDir.findFileByRelativePath("build.gradle")!!
-    var appGradleContent = getTextForFile("build.gradle")
+    val mainGradleFile = myFixture.project.baseDir.findFileByRelativePath(buildFileName)!!
+    var mainGradleContent = getTextForFile(buildFileName)
 
     // Remove repositories blocks and check that we do not throw an NPE when evaluating the block
-    appGradleContent = appGradleContent.replace(Regex("repositories \\{.*?AndroidGradleTestCase[\\n\\s]+}\n",
+    mainGradleContent = mainGradleContent.replace(Regex("repositories \\{.*?AndroidGradleTestCase[\\n\\s]+}\n",
                                                       setOf(RegexOption.MULTILINE, RegexOption.DOT_MATCHES_ALL)),
                                                 "")
-    setFileContent(appGradleFile, appGradleContent)
+    setFileContent(mainGradleFile, mainGradleContent)
     runProcessor(checkPrerequisites = false)
+  }
+
+  fun testBug123303598Groovy() {
+    loadProject(MIGRATE_TO_ANDROID_X)
+    doTestBug123303598("build.gradle")
+  }
+
+  fun testBug123303598Kts() {
+    loadProject(MIGRATE_TO_ANDROID_X_KTS)
+    doTestBug123303598("build.gradle.kts")
   }
 
   private fun setFileContent(file: VirtualFile, content: String) {
