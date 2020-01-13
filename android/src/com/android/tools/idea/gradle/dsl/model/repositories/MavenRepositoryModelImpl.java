@@ -59,10 +59,4 @@ public class MavenRepositoryModelImpl extends UrlBasedRepositoryModelImpl implem
     MavenCredentialsDslElement credentials = myPropertiesDslElement.getPropertyElement(CREDENTIALS);
     return credentials != null ? new MavenCredentialsModel(credentials) : null;
   }
-
-  @NotNull
-  @Override
-  public RepositoryType getType() {
-    return RepositoryType.MAVEN;
-  }
 }
