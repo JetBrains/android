@@ -51,8 +51,8 @@ public class AndroidTreeStructureProvider implements TreeStructureProvider {
 
   @Override
   @NotNull
-  public Collection<AbstractTreeNode> modify(@NotNull AbstractTreeNode parent,
-                                             @NotNull Collection<AbstractTreeNode> children,
+  public Collection<AbstractTreeNode<?>> modify(@NotNull AbstractTreeNode<?> parent,
+                                             @NotNull Collection<AbstractTreeNode<?>> children,
                                              ViewSettings settings) {
     Project project = parent.getProject();
     if (project != null && AndroidProjectInfo.getInstance(project).requiresAndroidModel()) {
@@ -62,7 +62,7 @@ public class AndroidTreeStructureProvider implements TreeStructureProvider {
         if (orderEntry instanceof JdkOrderEntry) {
           Sdk sdk = ((JdkOrderEntry)orderEntry).getJdk();
           if (sdk.getSdkType() instanceof JavaSdk) {
-            List<AbstractTreeNode> newChildren = Lists.newArrayList();
+            List<AbstractTreeNode<?>> newChildren = Lists.newArrayList();
             for (AbstractTreeNode child : children) {
               if (isRtJar(child)) {
                 newChildren.add(child);
@@ -76,7 +76,7 @@ public class AndroidTreeStructureProvider implements TreeStructureProvider {
         }
       }
       else if (isRtJar(parent)) {
-        List<AbstractTreeNode> newChildren = Lists.newArrayList();
+        List<AbstractTreeNode<?>> newChildren = Lists.newArrayList();
         for (AbstractTreeNode child : children) {
           if (child instanceof PsiDirectoryNode) {
             VirtualFile file = ((PsiDirectoryNode)child).getVirtualFile();
@@ -113,6 +113,6 @@ public class AndroidTreeStructureProvider implements TreeStructureProvider {
 
   @VisibleForTesting
   public interface ChangeListener extends EventListener {
-    void nodeChanged(@NotNull AbstractTreeNode parent, @NotNull Collection<AbstractTreeNode> newChildren);
+    void nodeChanged(@NotNull AbstractTreeNode<?> parent, @NotNull Collection<AbstractTreeNode<?>> newChildren);
   }
 }

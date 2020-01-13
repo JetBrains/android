@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
-import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
-import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
-import static com.intellij.util.PlatformIcons.PACKAGE_ICON;
-
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
@@ -33,13 +29,18 @@ import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiFile;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+
+import static com.intellij.ui.SimpleTextAttributes.GRAY_ATTRIBUTES;
+import static com.intellij.ui.SimpleTextAttributes.REGULAR_ATTRIBUTES;
+import static com.intellij.util.PlatformIcons.PACKAGE_ICON;
 
 /**
  * {@link AndroidResGroupNode} groups together all the configuration specific alternatives of a single resource.
@@ -96,7 +97,7 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     List<PsiFileNode> children = new ArrayList<>(myFiles.size());
     assert myProject != null;
     for (PsiFile file : myFiles) {

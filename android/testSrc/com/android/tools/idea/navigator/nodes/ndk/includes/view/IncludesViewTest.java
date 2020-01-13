@@ -45,7 +45,7 @@ public class IncludesViewTest extends JavaProjectTestCase {
       .addLocalHeaders("foo.h")
       .addArtifact("my-artifact", "foo.cpp");
 
-    Collection<? extends AbstractTreeNode> nodes = IncludeViewTests.getChildNodesForIncludes(getProject(), layout.getNativeIncludes());
+    Collection<? extends AbstractTreeNode<?>> nodes = IncludeViewTests.getChildNodesForIncludes(getProject(), layout.getNativeIncludes());
     assertThat(nodes).hasSize(0);
   }
 
@@ -56,7 +56,7 @@ public class IncludesViewTest extends JavaProjectTestCase {
       .addRemoteArtifactIncludePaths("my-artifact", "my-sdk")
       .addArtifact("my-artifact", "bar.cpp");
 
-    List<? extends AbstractTreeNode> nodes =
+    List<? extends AbstractTreeNode<?>> nodes =
       Lists.newArrayList(IncludeViewTests.getChildNodesForIncludes(getProject(), layout.getNativeIncludes()));
     assertThat(nodes).hasSize(2);
     PsiFileNode node = (PsiFileNode)nodes.get(0);
@@ -76,19 +76,19 @@ public class IncludesViewTest extends JavaProjectTestCase {
       .addRemoteArtifactIncludePaths("my-artifact", "third_party/my-sdk-2")
       .addArtifact("my-artifact", "bar.cpp");
 
-    List<? extends AbstractTreeNode> nodes =
+    List<? extends AbstractTreeNode<?>> nodes =
       Lists.newArrayList(IncludeViewTests.getChildNodesForIncludes(getProject(), layout.getNativeIncludes()));
     assertThat(nodes).hasSize(1);
     PackagingFamilyViewNode node = (PackagingFamilyViewNode)nodes.get(0);
     PackageFamilyValue nodeValue = node.getValue();
     assertThat(nodeValue.toString().startsWith("Third Party Packages")).isTrue();
-    Collection<? extends AbstractTreeNode> children = node.getChildren();
+    Collection<? extends AbstractTreeNode<?>> children = node.getChildren();
     assertThat(children).hasSize(2);
     SimpleIncludeViewNode package1 = (SimpleIncludeViewNode)children.iterator().next();
     assertThat(package1.getChildren()).hasSize(1);
     SimpleIncludeValue package1Value = package1.getValue();
     assertThat(package1Value.getSimplePackageName()).isEqualTo("my-sdk-1");
-    List<? extends AbstractTreeNode> grandChildren = Lists.newArrayList(package1.getChildren());
+    List<? extends AbstractTreeNode<?>> grandChildren = Lists.newArrayList(package1.getChildren());
     assertThat(((PsiFileNode)grandChildren.get(0)).getVirtualFile().getName()).isEqualTo("foo.h");
     checkPresentationDataHasOsSpecificSlashes(package1, "my-sdk-1 (third_party{os-slash}my-sdk-1)");
   }
@@ -101,13 +101,13 @@ public class IncludesViewTest extends JavaProjectTestCase {
       .addRemoteArtifactIncludePaths("my-artifact", "third-party/my-sdk-2")
       .addArtifact("my-artifact", "bar.cpp");
 
-    List<? extends AbstractTreeNode> nodes =
+    List<? extends AbstractTreeNode<?>> nodes =
       Lists.newArrayList(IncludeViewTests.getChildNodesForIncludes(getProject(), layout.getNativeIncludes()));
     assertThat(nodes).hasSize(1);
     PackagingFamilyViewNode node = (PackagingFamilyViewNode)nodes.get(0);
     PackageFamilyValue nodeValue = node.getValue();
     assertThat(nodeValue.toString().startsWith("Third Party Packages")).isTrue();
-    Collection<? extends AbstractTreeNode> children = node.getChildren();
+    Collection<? extends AbstractTreeNode<?>> children = node.getChildren();
     assertThat(children).hasSize(2);
     checkPresentationDataContainsOsSpecificSlashes(node, "Third Party Packages");
   }
@@ -120,13 +120,13 @@ public class IncludesViewTest extends JavaProjectTestCase {
       .addRemoteArtifactIncludePaths("my-artifact", "third_party/my-sdk-2")
       .addArtifact("my-artifact", "bar.cpp");
 
-    List<? extends AbstractTreeNode> nodes =
+    List<? extends AbstractTreeNode<?>> nodes =
       Lists.newArrayList(IncludeViewTests.getChildNodesForIncludes(getProject(), layout.getNativeIncludes()));
     assertThat(nodes).hasSize(1);
     PackagingFamilyViewNode node = (PackagingFamilyViewNode)nodes.get(0);
     PackageFamilyValue nodeValue = node.getValue();
     assertThat(nodeValue.toString().startsWith("Third Party Packages")).isTrue();
-    Collection<? extends AbstractTreeNode> children = node.getChildren();
+    Collection<? extends AbstractTreeNode<?>> children = node.getChildren();
     assertThat(children).hasSize(2);
     SimpleIncludeViewNode package1 = (SimpleIncludeViewNode)children.iterator().next();
     checkPresentationDataHasOsSpecificSlashes(package1, "my-sdk-1 (third_party{os-slash}my-sdk-1)");
@@ -145,7 +145,7 @@ public class IncludesViewTest extends JavaProjectTestCase {
     File ndkRootFolder = new File(layout.getRemoteRoot(), "ndk-build");
     when(mockIdeSdks.getAndroidNdkPath()).thenReturn(ndkRootFolder);
 
-    List<? extends AbstractTreeNode> nodes =
+    List<? extends AbstractTreeNode<?>> nodes =
       Lists.newArrayList(IncludeViewTests.getChildNodesForIncludes(getProject(), layout.getNativeIncludes()));
     assertThat(nodes).hasSize(2);
   }

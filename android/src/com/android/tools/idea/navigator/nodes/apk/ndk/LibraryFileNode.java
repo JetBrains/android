@@ -50,7 +50,7 @@ public class LibraryFileNode extends LibraryNode {
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     return Collections.emptyList();
   }
 

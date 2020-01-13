@@ -58,7 +58,7 @@ public class AndroidTestsNode extends ProjectViewNode<AndroidFacet> implements F
 
   @Override
   @NotNull
-  public Collection<AbstractTreeNode> getChildren() {
+  public Collection<AbstractTreeNode<?>> getChildren() {
     Module module = getModule();
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet == null || facet.getConfiguration().getModel() == null) {

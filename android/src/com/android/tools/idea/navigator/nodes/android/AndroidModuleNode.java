@@ -15,13 +15,6 @@
  */
 package com.android.tools.idea.navigator.nodes.android;
 
-import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
-import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
-import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_JAVA;
-import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_RES;
-
 import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeJavaArtifact;
 import com.android.ide.common.util.PathString;
@@ -45,17 +38,21 @@ import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+import java.util.*;
+
+import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
+import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_JAVA;
+import static org.jetbrains.android.facet.AndroidSourceType.GENERATED_RES;
 
 /**
  * {@link com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode} does not classify source types, and just assumes that all source
@@ -82,7 +79,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
 
   @Override
   @NotNull
-  public Collection<AbstractTreeNode> getChildren() {
+  public Collection<AbstractTreeNode<?>> getChildren() {
     AndroidFacet facet = AndroidFacet.getInstance(getModule());
     if (facet == null || facet.getConfiguration().getModel() == null) {
       return super.getChildren();
@@ -91,12 +88,12 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   }
 
   @NotNull
-  static Collection<AbstractTreeNode> getChildren(@NotNull AndroidFacet facet,
+  static Collection<AbstractTreeNode<?>> getChildren(@NotNull AndroidFacet facet,
                                                   @NotNull ViewSettings settings,
                                                   @NotNull AndroidProjectViewPane projectViewPane,
                                                   @NotNull List<IdeaSourceProvider> providers) {
     Project project = facet.getModule().getProject();
-    List<AbstractTreeNode> result = new ArrayList<>();
+    List<AbstractTreeNode<?>> result = new ArrayList<>();
 
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
     HashMultimap<AndroidSourceType, VirtualFile> sourcesByType = getSourcesBySourceType(providers, androidModuleModel);
