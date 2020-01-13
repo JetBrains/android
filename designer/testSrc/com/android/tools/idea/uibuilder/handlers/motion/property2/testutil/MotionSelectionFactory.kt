@@ -29,8 +29,9 @@ import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionSelectio
 import com.intellij.psi.xml.XmlFile
 
 class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {
-  private val motionScene = MotionSceneTag(sceneFile.rootTag, null)
-  private val meModel = MeModel(motionScene, convertToNlComponentTag(nlModel.components.single()), null, null)
+  private val motionLayout = nlModel.components.single()
+  private val motionScene = MotionSceneTag.parse(motionLayout, nlModel.project, sceneFile.virtualFile, sceneFile)
+  private val meModel = MeModel(motionScene, convertToNlComponentTag(motionLayout), null, null)
 
   fun createConstraintSet(id: String): MotionSelection {
     val tag = findConstraintSet(id)
@@ -49,7 +50,7 @@ class MotionSelectionFactory(private val nlModel: NlModel, sceneFile: XmlFile) {
 
   fun createTransition(start: String, end: String): MotionSelection {
     val tag = findTransition(start, end)
-    return MotionSelection(MotionEditorSelector.Type.CONSTRAINT_SET, arrayOf(tag), nlModel.components)
+    return MotionSelection(MotionEditorSelector.Type.TRANSITION, arrayOf(tag), nlModel.components)
   }
 
   fun createKeyFrame(start: String, end: String, keyType: String, framePosition: Int, target: String): MotionSelection {

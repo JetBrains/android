@@ -30,7 +30,7 @@
     </Constraint>
 
     <Constraint android:id="@+id/button">
-        <Layout
+      <Layout
           android:layout_width="1dp"
           android:layout_height="1dp"/>
     </Constraint>
@@ -59,7 +59,7 @@
         motion:layout_constraintVertical_bias="0.3">
       <CustomAttribute
           motion:attributeName="textSize"
-          motion:customPixelDimension="13sp" />
+          motion:customPixelDimension="13sp"/>
     </Constraint>
 
   </ConstraintSet>
@@ -103,12 +103,12 @@
       motion:duration="2000"
       motion:motionInterpolator="linear">
 
-    <OnClick motion:targetId="@+id/run" />
+    <OnClick motion:targetId="@+id/run"/>
 
     <OnSwipe
         motion:dragDirection="dragRight"
         motion:touchAnchorId="@+id/widget"
-        motion:touchAnchorSide="right" />
+        motion:touchAnchorSide="right"/>
 
     <KeyFrameSet>
       <KeyPosition
