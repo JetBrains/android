@@ -3,6 +3,7 @@ package org.jetbrains.android.refactoring;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -86,6 +87,8 @@ public class AndroidInlineStyleTest extends AndroidTestCase {
   }
 
   public void test14() {
+    // Having the same resource name as in a library is no longer a conflict
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) { return; }
     final String libStylesPath = getAdditionalModulePath("lib") + "/res/values/styles.xml";
     final String stylesLocalPath = BASE_PATH + getTestName(true) + "_styles.xml";
     myFixture.copyFileToProject(stylesLocalPath, libStylesPath);
@@ -94,6 +97,8 @@ public class AndroidInlineStyleTest extends AndroidTestCase {
   }
 
   public void test15() {
+    // Having the same resource name as in a library is no longer a conflict
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) { return; }
     final String libModuleDir = getAdditionalModulePath("lib");
     final String libStylesPath = libModuleDir + "/res/values/styles.xml";
     final String appStylePath = "/res/values/styles.xml";
@@ -283,6 +288,7 @@ public class AndroidInlineStyleTest extends AndroidTestCase {
   }
 
   public void test30() {
+    if (StudioFlags.RESOLVE_USING_REPOS.get()) { return; }
     doTestCommonInlineConflicts();
   }
 
