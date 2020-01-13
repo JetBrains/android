@@ -121,6 +121,10 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
         }
       }
     }
+    else {
+      // Attempt to rename a synthetic element related to the resource
+      RenameUtil.rename(usage, newName)
+    }
   }
 
   override fun findReferences(

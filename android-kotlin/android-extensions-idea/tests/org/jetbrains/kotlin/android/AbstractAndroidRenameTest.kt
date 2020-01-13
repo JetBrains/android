@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.android
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PlatformTestUtil
 
@@ -27,7 +28,7 @@ abstract class AbstractAndroidRenameTest : KotlinAndroidTestCase() {
         copyResourceDirectoryForTest(path)
         val virtualFile = myFixture.copyFileToProject("$path${getTestName(true)}.kt", "src/${getTestName(true)}.kt")
         myFixture.configureFromExistingVirtualFile(virtualFile)
-        myFixture.renameElement(myFixture.elementAtCaret, NEW_ID_NAME)
+        myFixture.renameElement(myFixture.elementAtCaret, if (StudioFlags.RESOLVE_USING_REPOS.get()) NEW_NAME else NEW_ID_NAME)
         myFixture.checkResultByFile("$path/expected/${getTestName(true)}.kt")
         assertResourcesEqual("$testDataPath/$path/expected/res")
     }
