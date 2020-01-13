@@ -326,7 +326,7 @@ public class MotionSceneTag implements MTag {
     return new MotionSceneTagWriter(this);
   }
 
-  static class Root extends MotionSceneTag {
+  public static class Root extends MotionSceneTag {
     Project mProject;
     VirtualFile mVirtualFile;
     XmlFile mXmlFile;

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2.testutil
 
+import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -29,9 +30,11 @@ import com.android.tools.idea.uibuilder.surface.AccessoryPanel
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.property.panel.api.PropertiesTable
 import com.google.common.truth.Truth
+import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
+import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx
 import com.intellij.openapi.util.text.LineColumn
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -89,8 +92,11 @@ class MotionAttributeRule(
   val attributesModel: MotionLayoutAttributesModel
     get() = model!!
 
+  val selection: MotionSelection
+    get() = timeline!!.selection
+
   fun enableFileOpenCaptures() {
-    fileManager = Mockito.mock(FileEditorManager::class.java)
+    fileManager = Mockito.mock(FileEditorManagerEx::class.java)
     componentStack!!.registerComponentInstance(FileEditorManager::class.java, fileManager!!)
     Mockito.`when`(fileManager!!.openEditor(ArgumentMatchers.any(OpenFileDescriptor::class.java), ArgumentMatchers.anyBoolean()))
       .thenReturn(listOf(Mockito.mock(FileEditor::class.java)))
@@ -105,6 +111,22 @@ class MotionAttributeRule(
     Truth.assertThat(line.second).isEqualTo(text)
     Truth.assertThat(line.first.line + 1).isEqualTo(lineNumber)
   }
+
+  fun sceneFileLines(range: IntRange): String {
+    val text = sceneFile!!.text
+    val start = StringUtil.lineColToOffset(text, range.first - 1, 1)
+    val end = StringUtil.lineColToOffset(text, range.last, 1)
+    return text.substring(start, end).trimIndent().trimEnd()
+  }
+
+  val lastUndoDescription: String?
+    get() {
+      val manager = UndoManager.getInstance(model!!.project)
+      if (!manager.isUndoAvailable(null)) {
+        return null
+      }
+      return manager.getUndoActionNameAndDescription(null).second
+    }
 
   override fun before() {
     componentStack = ComponentStack(projectRule.project)
@@ -147,7 +169,7 @@ class MotionAttributeRule(
 
   private fun select(selection: MotionSelection) {
     timeline!!.select(selection)
-    NelePropertiesModelTest.waitUntilLastSelectionUpdateCompleted(model!!)
+    runInEdtAndWait { NelePropertiesModelTest.waitUntilLastSelectionUpdateCompleted(model!!) }
   }
 
   private fun findLineAtOffset(file: VirtualFile, offset: Int): Pair<LineColumn, String> {
