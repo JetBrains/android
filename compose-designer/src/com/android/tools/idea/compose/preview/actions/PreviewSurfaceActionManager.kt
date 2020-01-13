@@ -15,18 +15,39 @@
  */
 package com.android.tools.idea.compose.preview.actions
 
+import com.android.tools.idea.common.actions.CopyResultImageAction
 import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.IdeActions
 import javax.swing.JComponent
 
 /**
  * [ActionManager] to be used by the Compose Preview.
  */
-internal class PreviewSurfaceActionManager(surface: DesignSurface): ActionManager<DesignSurface>(surface) {
-  override fun registerActionsShortcuts(component: JComponent) {}
-  override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup = DefaultActionGroup()
+internal class PreviewSurfaceActionManager(private val surface: DesignSurface) : ActionManager<DesignSurface>(surface) {
+  private val copyResultImageAction = CopyResultImageAction(
+    {
+      // Copy the model of the current selected object (if any)
+      surface.selectionModel.primary?.model?.let {
+        return@CopyResultImageAction surface.getSceneManager(it) as LayoutlibSceneManager
+      }
+
+      // If no model is selected, copy the image under the mouse
+      val mouseLocation = surface.getMousePosition(true) ?: return@CopyResultImageAction null
+      surface.getHoverSceneView(mouseLocation.x, mouseLocation.y)?.sceneManager as? LayoutlibSceneManager
+    })
+
+  override fun registerActionsShortcuts(component: JComponent) {
+    registerAction(copyResultImageAction, IdeActions.ACTION_COPY, component)
+  }
+
+  override fun getPopupMenuActions(leafComponent: NlComponent?): DefaultActionGroup = DefaultActionGroup().apply {
+    add(copyResultImageAction)
+  }
+
   override fun getToolbarActions(component: NlComponent?, newSelection: MutableList<NlComponent>): DefaultActionGroup =
     DefaultActionGroup()
 }
