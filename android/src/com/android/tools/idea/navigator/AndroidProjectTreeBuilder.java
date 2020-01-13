@@ -46,7 +46,7 @@ public class AndroidProjectTreeBuilder extends ProjectTreeBuilder {
                                    @NotNull JTree tree,
                                    @NotNull DefaultTreeModel treeModel,
                                    @NotNull ProjectAbstractTreeStructureBase treeStructure,
-                                   @Nullable Comparator<NodeDescriptor> comparator) {
+                                   @Nullable Comparator<NodeDescriptor<?>> comparator) {
     super(project, tree, treeModel, comparator, treeStructure);
 
     MessageBusConnection connection = project.getMessageBus().connect();

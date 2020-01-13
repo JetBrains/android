@@ -19,13 +19,15 @@ import com.android.tools.lint.detector.api.interprocedural.*
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
 import com.intellij.analysis.AnalysisScope
-import com.intellij.ide.hierarchy.*
-import com.intellij.ide.hierarchy.newAPI.actions.BrowseHierarchyActionBase
+import com.intellij.ide.hierarchy.HierarchyBrowser
+import com.intellij.ide.hierarchy.HierarchyProvider
+import com.intellij.ide.hierarchy.JavaHierarchyUtil
 import com.intellij.ide.hierarchy.call.CallHierarchyNodeDescriptor
 import com.intellij.ide.hierarchy.newAPI.CallHierarchyBrowserBase
 import com.intellij.ide.hierarchy.newAPI.HierarchyNodeDescriptor
 import com.intellij.ide.hierarchy.newAPI.HierarchyScopeType
 import com.intellij.ide.hierarchy.newAPI.HierarchyTreeStructure
+import com.intellij.ide.hierarchy.newAPI.actions.BrowseHierarchyActionBase
 import com.intellij.ide.util.treeView.NodeDescriptor
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.application.ApplicationManager
@@ -42,7 +44,7 @@ import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UastContext
 import org.jetbrains.uast.convertWithParent
 import org.jetbrains.uast.visitor.UastVisitor
-import java.util.Comparator
+import java.util.*
 import javax.swing.JTree
 import kotlin.collections.ArrayList
 
@@ -135,7 +137,7 @@ open class ContextualCallPathBrowser(
     else -> false
   }
 
-  override fun getComparator(): Comparator<NodeDescriptor<Any>> = JavaHierarchyUtil.getComparator(myProject)
+  override fun getComparator(): Comparator<NodeDescriptor<*>> = JavaHierarchyUtil.getComparator(myProject)
 }
 
 class ContextualCallPathProvider(val graph: ContextualCallGraph) : HierarchyProvider {
