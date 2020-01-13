@@ -29,10 +29,4 @@ public class JCenterDefaultRepositoryModel extends UrlBasedRepositoryModelImpl {
   public JCenterDefaultRepositoryModel(@NotNull GradlePropertiesDslElement holder, @NotNull GradleDslElement element) {
     super(holder, element, "BintrayJCenter2", "https://jcenter.bintray.com/");
   }
-
-  @NotNull
-  @Override
-  public RepositoryType getType() {
-    return RepositoryType.JCENTER_DEFAULT;
-  }
 }

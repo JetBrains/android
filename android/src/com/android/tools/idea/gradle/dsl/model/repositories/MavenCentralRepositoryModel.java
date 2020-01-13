@@ -29,14 +29,13 @@ import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.isPropert
  */
 public class MavenCentralRepositoryModel extends UrlBasedRepositoryModelImpl {
   @NonNls public static final String MAVEN_CENTRAL_METHOD_NAME = "mavenCentral";
+  @NonNls public static final String MAVEN_CENTRAL_DEFAULT_REPO_URL = "https://repo1.maven.org/maven2/";
 
   @NonNls private static final String ARTIFACT_URLS = "artifactUrls";
 
   public MavenCentralRepositoryModel(@NotNull GradlePropertiesDslElement holder, @NotNull GradleDslElement dslElement) {
-    super(holder, dslElement, "MavenRepo", "https://repo1.maven.org/maven2/");
+    super(holder, dslElement, "MavenRepo", MAVEN_CENTRAL_DEFAULT_REPO_URL);
   }
-
-
 
   @NotNull
   public ResolvedPropertyModel artifactUrls() {
@@ -46,11 +45,5 @@ public class MavenCentralRepositoryModel extends UrlBasedRepositoryModelImpl {
     else {
       return GradlePropertyModelBuilder.create(myDslElement).asMethod(true).buildResolved();
     }
-  }
-
-  @NotNull
-  @Override
-  public RepositoryType getType() {
-    return RepositoryType.MAVEN_CENTRAL;
   }
 }

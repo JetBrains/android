@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.GoogleDefaultRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.UrlBasedRepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.RepositoryClosureTransform;
@@ -45,5 +46,21 @@ public abstract class UrlBasedRepositoryModelImpl extends RepositoryModelImpl im
   public ResolvedPropertyModel url() {
     return GradlePropertyModelBuilder.create(myDslElement).asMethod(true).withDefault(myDefaultRepoUrl)
       .addTransform(new RepositoryClosureTransform(URL)).buildResolved();
+  }
+
+  @NotNull
+  @Override
+  public RepositoryType getType() {
+    String url = url().forceString();
+    if (JCenterRepositoryModel.JCENTER_DEFAULT_REPO_URL.equals(url)) {
+      return RepositoryType.JCENTER_DEFAULT;
+    }
+    else if (MavenCentralRepositoryModel.MAVEN_CENTRAL_DEFAULT_REPO_URL.equals(url)) {
+      return RepositoryType.MAVEN_CENTRAL;
+    }
+    else if (GoogleDefaultRepositoryModel.GOOGLE_DEFAULT_REPO_URL.equals(url)) {
+      return RepositoryType.GOOGLE_DEFAULT;
+    }
+    return RepositoryType.MAVEN;
   }
 }

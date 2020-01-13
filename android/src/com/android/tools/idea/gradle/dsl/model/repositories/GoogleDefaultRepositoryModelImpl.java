@@ -30,10 +30,4 @@ public class GoogleDefaultRepositoryModelImpl extends UrlBasedRepositoryModelImp
   public GoogleDefaultRepositoryModelImpl(@NotNull GradlePropertiesDslElement holder, @NotNull GradleDslElement element) {
     super(holder, element, GOOGLE_DEFAULT_REPO_NAME, GOOGLE_DEFAULT_REPO_URL);
   }
-
-  @NotNull
-  @Override
-  public RepositoryType getType() {
-    return GOOGLE_DEFAULT;
-  }
 }
