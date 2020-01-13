@@ -30,6 +30,7 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.notifications.NotificationPanel
+import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
@@ -39,6 +40,8 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.intellij.ide.util.PropertiesComponent
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -54,6 +57,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.util.function.BiFunction
 import java.util.function.Consumer
+import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.OverlayLayout
 
@@ -327,5 +331,9 @@ class CustomViewPreviewRepresentation(
 
   override fun updateNotifications(parentEditor: FileEditor) {
     notificationsPanel.updateNotifications(virtualFile, parentEditor, project)
+  }
+
+  override fun registerShortcuts(applicableTo: JComponent) {
+    ForceCompileAndRefreshAction(surface).registerCustomShortcutSet(getBuildAndRefreshShortcut(), applicableTo, this)
   }
 }
