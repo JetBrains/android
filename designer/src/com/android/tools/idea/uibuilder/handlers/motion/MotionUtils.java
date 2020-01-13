@@ -28,6 +28,7 @@ import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
+import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
@@ -85,6 +86,9 @@ public class MotionUtils {
 
     if (isInBaseState(motionLayout)) {
       component.startAttributeTransaction();
+      for (AttributeSnapshot attribute : component.getAttributes()) {
+        modification.setAttribute(attribute.namespace, attribute.name, attribute.value);
+      }
       return;
     }
 
