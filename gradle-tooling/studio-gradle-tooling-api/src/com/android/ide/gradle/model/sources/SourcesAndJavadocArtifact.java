@@ -15,6 +15,7 @@
  */
 package com.android.ide.gradle.model.sources;
 
+import com.android.ide.gradle.model.ArtifactIdentifier;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +28,7 @@ public interface SourcesAndJavadocArtifact {
    * Returns a unique identifier.
    */
   @NotNull
-  SourcesAndJavadocArtifactIdentifier getId();
+  ArtifactIdentifier getId();
 
   /**
    * Returns the location of downloaded Sources file, null if Sources is not available.

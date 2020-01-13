@@ -20,9 +20,9 @@ import com.android.builder.model.BaseArtifact
 import com.android.builder.model.Library
 import com.android.builder.model.Variant
 import com.android.ide.common.repository.GradleVersion
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifactIdentifier
+import com.android.ide.gradle.model.ArtifactIdentifier
+import com.android.ide.gradle.model.ArtifactIdentifiersParameter
 import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts
-import com.android.ide.gradle.model.sources.SourcesAndJavadocParameter
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule
 import com.google.common.annotations.VisibleForTesting
 import org.gradle.tooling.BuildController
@@ -47,7 +47,7 @@ fun getSourcesAndJavadocArtifacts(
     // Query for SourcesAndJavadocArtifacts model.
     if (identifiers.isNotEmpty()) {
       controller.findModel(module.gradleProject, SourcesAndJavadocArtifacts::class.java,
-                           SourcesAndJavadocParameter::class.java) { parameter ->
+                           ArtifactIdentifiersParameter::class.java) { parameter ->
         parameter.artifactIdentifiers = identifiers
       }?.also {
         consumer.consumeProjectModel(module.gradleProject, it, SourcesAndJavadocArtifacts::class.java)
@@ -59,7 +59,7 @@ fun getSourcesAndJavadocArtifacts(
 @UsedInBuildAction
 private fun collectIdentifiers(
   variants: Collection<Variant>
-): List<SourcesAndJavadocArtifactIdentifier> {
+): List<ArtifactIdentifier> {
   val libraries = mutableListOf<Library>()
   // Collect libraries from all artifacts of all variants.
   @Suppress("DEPRECATION")
@@ -74,7 +74,7 @@ private fun collectIdentifiers(
   }
 
   return libraries.filter { it.project == null }.map { it.resolvedCoordinates }.toSet().map {
-    object : SourcesAndJavadocArtifactIdentifier {
+    object : ArtifactIdentifier {
       override fun getVersion(): String = it.version
       override fun getArtifactId(): String = it.artifactId
       override fun getGroupId(): String = it.groupId
@@ -97,6 +97,6 @@ fun is3Dot5OrNewer(project: AndroidProject): Boolean {
 }
 
 @UsedInBuildAction
-fun idToString(identifier: SourcesAndJavadocArtifactIdentifier): String {
+fun idToString(identifier: ArtifactIdentifier): String {
   return identifier.groupId + ":" + identifier.artifactId + ":" + identifier.version
 }

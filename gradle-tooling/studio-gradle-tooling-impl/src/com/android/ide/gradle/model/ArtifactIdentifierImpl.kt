@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.ide.gradle.model.sources.impl
+package com.android.ide.gradle.model
 
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifactIdentifier
 import java.io.Serializable
 
-data class SourcesAndJavadocArtifactIdentifierImpl(
+data class ArtifactIdentifierImpl(
   private val groupId: String,
   private val artifactId: String,
   private val version: String
-) : SourcesAndJavadocArtifactIdentifier, Serializable {
+) : ArtifactIdentifier, Serializable {
   override fun getGroupId() = groupId
   override fun getArtifactId() = artifactId
   override fun getVersion() = version

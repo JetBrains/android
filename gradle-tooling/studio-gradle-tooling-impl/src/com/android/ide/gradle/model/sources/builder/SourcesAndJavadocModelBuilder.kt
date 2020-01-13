@@ -15,10 +15,10 @@
  */
 package com.android.ide.gradle.model.sources.builder
 
+import com.android.ide.gradle.model.ArtifactIdentifierImpl
+import com.android.ide.gradle.model.ArtifactIdentifiersParameter
 import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifact
 import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts
-import com.android.ide.gradle.model.sources.SourcesAndJavadocParameter
-import com.android.ide.gradle.model.sources.impl.SourcesAndJavadocArtifactIdentifierImpl
 import com.android.ide.gradle.model.sources.impl.SourcesAndJavadocArtifactImpl
 import com.android.ide.gradle.model.sources.impl.SourcesAndJavadocArtifactsImpl
 import org.gradle.api.Project
@@ -42,7 +42,7 @@ import java.io.File
  * This model builder downloads sources and javadoc for components specifies in parameter, and returns model
  * [SourcesAndJavadocArtifacts], which contains the locations of downloaded jar files.
  */
-class SourcesAndJavadocModelBuilder : ParameterizedToolingModelBuilder<SourcesAndJavadocParameter> {
+class SourcesAndJavadocModelBuilder : ParameterizedToolingModelBuilder<ArtifactIdentifiersParameter> {
   override fun canBuild(modelName: String): Boolean {
     return modelName == SourcesAndJavadocArtifacts::class.java.name
   }
@@ -51,11 +51,11 @@ class SourcesAndJavadocModelBuilder : ParameterizedToolingModelBuilder<SourcesAn
     throw RuntimeException("Please use parameterized tooling API to obtain SourcesAndJavadocArtifacts model.")
   }
 
-  override fun getParameterType(): Class<SourcesAndJavadocParameter> {
-    return SourcesAndJavadocParameter::class.java
+  override fun getParameterType(): Class<ArtifactIdentifiersParameter> {
+    return ArtifactIdentifiersParameter::class.java
   }
 
-  override fun buildAll(modelName: String, parameter: SourcesAndJavadocParameter, project: Project): Any {
+  override fun buildAll(modelName: String, parameter: ArtifactIdentifiersParameter, project: Project): Any {
     // Collect the components to download Sources and Javadoc for. DefaultModuleComponentIdentifier is the only supported type.
     // See DefaultArtifactResolutionQuery::validateComponentIdentifier.
     val ids = parameter.artifactIdentifiers.map {
@@ -93,7 +93,7 @@ class SourcesAndJavadocModelBuilder : ParameterizedToolingModelBuilder<SourcesAn
       artifacts = docQuery.execute().resolvedComponents.filter { it.id is ModuleComponentIdentifier }.map {
         val id = it.id as ModuleComponentIdentifier
         SourcesAndJavadocArtifactImpl(
-          SourcesAndJavadocArtifactIdentifierImpl(id.group, id.module, id.version),
+          ArtifactIdentifierImpl(id.group, id.module, id.version),
           getFile(it, SourcesArtifact::class.java),
           getFile(it, JavadocArtifact::class.java),
           idToPomFile[it.id.displayName])

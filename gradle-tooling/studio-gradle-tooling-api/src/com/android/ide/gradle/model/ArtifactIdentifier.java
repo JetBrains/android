@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.ide.gradle.model.sources;
+package com.android.ide.gradle.model;
 
+import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifact;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * The unique identifier of {@link SourcesAndJavadocArtifact}
  */
-public interface SourcesAndJavadocArtifactIdentifier {
+public interface ArtifactIdentifier {
   /**
    * Returns the name of the artifact's group.
    */

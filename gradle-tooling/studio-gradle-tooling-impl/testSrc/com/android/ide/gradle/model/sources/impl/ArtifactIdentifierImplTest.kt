@@ -15,16 +15,17 @@
  */
 package com.android.ide.gradle.model.sources.impl
 
+import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import nl.jqno.equalsverifier.EqualsVerifier
 import org.junit.Test
 
 /**
- * Test class for [SourcesAndJavadocArtifactIdentifierImpl].
+ * Test class for [ArtifactIdentifierImpl].
  */
-class SourcesAndJavadocArtifactIdentifierImplTest {
+class ArtifactIdentifierImplTest {
   @Test
   @Throws(Exception::class)
   fun equals() {
-    EqualsVerifier.forClass(SourcesAndJavadocArtifactIdentifierImpl::class.java).verify()
+    EqualsVerifier.forClass(ArtifactIdentifierImpl::class.java).verify()
   }
 }
