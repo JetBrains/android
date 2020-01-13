@@ -19,7 +19,6 @@ import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
 import com.android.repository.io.FileOpUtils
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
@@ -48,7 +47,6 @@ import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_NEW_PROJECT
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_TOP_OUT
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor2
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor2
-import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.templates.recipe.RenderingContext2
 import com.android.tools.idea.wizard.WizardConstants
 import com.android.tools.idea.wizard.model.WizardModel
@@ -91,6 +89,7 @@ interface ProjectModelData {
   val projectLocation: StringProperty
   val enableCppSupport: BoolProperty
   val useAppCompat: BoolProperty
+  val useGradleKts: BoolProperty
   val cppFlags: StringProperty
   var project: Project
   val isNewProject: Boolean
@@ -107,6 +106,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val projectLocation = StringValueProperty()
   override val enableCppSupport = BoolValueProperty(PropertiesComponent.getInstance().isTrueValue(PROPERTIES_CPP_SUPPORT_KEY))
   override val useAppCompat = BoolValueProperty()
+  override val useGradleKts = BoolValueProperty()
   override val cppFlags = StringValueProperty()
   override lateinit var project: Project
   override val isNewProject = true

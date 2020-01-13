@@ -95,6 +95,11 @@ public final class StudioFlags {
     NPW, "show.fragment.gallery", "Show fragment gallery",
     "Show fragment gallery which contains fragment based templates",
     true);
+
+  public static final Flag<Boolean> NPW_SHOW_GRADLE_KTS_OPTION = Flag.create(
+    NPW, "show.gradle.kts.option", "Show gradle kts option",
+    "Shows an option on new Project/Module to allow the use of Kotlin script",
+    false);
   //endregion
 
   //region Profiler

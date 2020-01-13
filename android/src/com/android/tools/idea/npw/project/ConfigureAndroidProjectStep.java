@@ -34,6 +34,7 @@ import com.android.repository.api.UpdatablePackage;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
@@ -78,8 +79,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -112,6 +111,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JBLabel myTemplateIconTitle;
   private JBLabel myTemplateIconDetail;
   private JPanel myFormFactorSdkControlsPanel;
+  private JBCheckBox myGradleKtsCheck;
   private FormFactorSdkControls myFormFactorSdkControls;
 
   public ConfigureAndroidProjectStep(@NotNull NewProjectModuleModel newProjectModuleModel, @NotNull NewProjectModel projectModel) {
@@ -170,6 +170,12 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
     myBindings.bindTwoWay(new SelectedItemProperty<>(myProjectLanguage), myProjectModel.getLanguage());
     myBindings.bindTwoWay(myProjectModel.getUseAppCompat(), new SelectedProperty(myAppCompatCheck));
+    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()) {
+      myBindings.bindTwoWay(myProjectModel.getUseGradleKts(), new SelectedProperty(myGradleKtsCheck));
+    }
+    else {
+      myGradleKtsCheck.setVisible(false);
+    }
 
     myValidatorPanel.registerValidator(myProjectModel.getApplicationName(), new ProjectNameValidator());
 
