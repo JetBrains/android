@@ -16,10 +16,9 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.tools.idea.compose.preview.PREVIEW_ANNOTATION_FQN
-import com.android.tools.idea.compose.preview.isValidPreviewLocation
+import com.android.tools.idea.compose.preview.isValidComposePreview
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.getClassName
-import com.android.tools.idea.kotlin.getQualifiedName
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
 import com.intellij.execution.configurations.ConfigurationFactory
@@ -78,10 +77,5 @@ open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer
 
 private fun KtNamedFunction.composePreviewFunctionFqn() = "${getClassName()}.${name}"
 
-private fun ConfigurationContext.containingComposePreviewFunction(): KtNamedFunction? {
-  return psiLocation?.let { location ->
-    location.getNonStrictParentOfType<KtNamedFunction>()?.takeIf {
-      it.isValidPreviewLocation() && it.annotationEntries.any { annotation -> annotation.getQualifiedName() == PREVIEW_ANNOTATION_FQN }
-    }
-  }
-}
+private fun ConfigurationContext.containingComposePreviewFunction() =
+  psiLocation?.let { location -> location.getNonStrictParentOfType<KtNamedFunction>()?.takeIf { it.isValidComposePreview() } }

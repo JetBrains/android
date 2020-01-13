@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.kotlin.getQualifiedName
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.application.ReadAction
@@ -126,7 +127,7 @@ private fun KtClass.hasDefaultConstructor() = allConstructors.isEmpty().or(allCo
  * 2. Non-nested functions defined in top-level classes that have a default (no parameter) constructor
  *
  */
-fun KtNamedFunction.isValidPreviewLocation(): Boolean {
+internal fun KtNamedFunction.isValidPreviewLocation(): Boolean {
   if (isTopLevel) {
     return true
   }
@@ -143,6 +144,14 @@ fun KtNamedFunction.isValidPreviewLocation(): Boolean {
   }
   return false
 }
+
+/**
+ *  Whether this function is properly annotated with [PREVIEW_ANNOTATION_FQN] and is defined in a valid location.
+ *
+ *  @see [isValidPreviewLocation]
+ */
+fun KtNamedFunction.isValidComposePreview() =
+  isValidPreviewLocation() && annotationEntries.any { annotation -> annotation.getQualifiedName() == PREVIEW_ANNOTATION_FQN }
 
 /**
  * Truncates the given dimension value to fit between the [min] and [max] values. If the receiver is null,
