@@ -436,10 +436,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   @NotNull
-  public Set<Class> getExtraProjectModelClasses() {
+  public Set<Class<?>> getExtraProjectModelClasses() {
     // Use LinkedHashSet to maintain insertion order.
     // GlobalLibraryMap should be requested after AndroidProject.
-    Set<Class> modelClasses = new LinkedHashSet<>();
+    Set<Class<?>> modelClasses = new LinkedHashSet<>();
     modelClasses.add(AndroidProject.class);
     modelClasses.add(NativeAndroidProject.class);
     modelClasses.add(GlobalLibraryMap.class);
