@@ -565,7 +565,7 @@ public final class StudioFlags {
     EDITOR, "multidexkeepfile.support.enabled",
     "Enable support for MultiDexKeepFile format",
     "If enabled, it offers support (such as code completion) for the MultiDexKeepFile format.",
-    false
+    true
   );
 
   public static final Flag<Boolean> ADVANCED_JNI_ASSISTANCE = Flag.create(
