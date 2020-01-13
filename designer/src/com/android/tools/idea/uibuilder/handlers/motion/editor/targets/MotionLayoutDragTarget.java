@@ -103,11 +103,7 @@ public class MotionLayoutDragTarget extends DragBaseTarget implements MultiCompo
       if (motionLayout.isInTransition()) {
         return;
       }
-      String state = motionLayout.getState();
       NlAttributesHolder componentAttributes = attributes;
-      if (state == null || state.equals("motion_base")) {
-        componentAttributes = myComponent.getAuthoritativeNlComponent();
-      }
 
       SceneComponent targetStartComponent = getTargetComponent(componentAttributes, parent, ConstraintComponentUtilities.ourStartAttributes);
       SceneComponent targetEndComponent = getTargetComponent(componentAttributes, parent, ConstraintComponentUtilities.ourEndAttributes);
