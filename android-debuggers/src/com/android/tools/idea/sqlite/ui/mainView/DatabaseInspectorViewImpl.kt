@@ -29,6 +29,8 @@ import com.android.tools.idea.sqlite.model.FileSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteTable
+import com.android.tools.idea.sqlite.ui.logtab.LogTabView
+import com.android.tools.idea.sqlite.ui.logtab.LogTabViewImpl
 import com.android.tools.idea.sqlite.ui.renderers.SchemaTreeCellRenderer
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
@@ -73,6 +75,7 @@ class DatabaseInspectorViewImpl(
   private var sqliteEditorPanel = SqliteEditorPanel()
   private val defaultUiPanel = DefaultUiPanel()
   private val tabs = JBEditorTabs(project, ActionManager.getInstance(), IdeFocusManager.getInstance(project), project)
+  private val logTabView = LogTabViewImpl(project)
 
   override val component: JComponent = rootPanel
 
@@ -104,8 +107,17 @@ class DatabaseInspectorViewImpl(
     }
 
     sqliteEditorPanel.tabsRoot.add(tabs)
+    setUpLogTab()
 
     setUpSqliteSchemaTree()
+  }
+
+  private fun setUpLogTab() {
+    val tab = TabInfo(logTabView.component)
+    tab.text = "Log"
+
+    tabs.addTab(tab)
+    tabs.select(tab, true)
   }
 
   private fun setUpSqliteSchemaTree() {
@@ -208,6 +220,10 @@ class DatabaseInspectorViewImpl(
   override fun reportError(message: String, t: Throwable) {
     val errorMessage = if (t.message != null) "$message: ${t.message}" else message
     workBench.loadingStopped(errorMessage)
+  }
+
+  override fun getLogTabView(): LogTabView {
+    return logTabView
   }
 
   override fun reportSyncProgress(message: String) {

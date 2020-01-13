@@ -63,6 +63,7 @@ class DatabaseInspectorControllerImpl(
   private val uiThread = edtExecutor.asCoroutineDispatcher()
   private val workerThread = taskExecutor.asCoroutineDispatcher()
   private val view = viewFactory.createDatabaseInspectorView(project)
+  private val logTabView = view.getLogTabView()
 
   /**
    * Controllers for all open tabs, keyed by id.
