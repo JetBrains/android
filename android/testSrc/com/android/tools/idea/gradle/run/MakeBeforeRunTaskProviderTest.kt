@@ -29,7 +29,6 @@ import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.IdeComponents
-import com.android.tools.idea.testing.createAndroidProjectBuilder
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.base.Charsets
 import com.google.common.collect.ImmutableList
@@ -72,7 +71,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
   }
 
   private fun setUpTestProject(
-    vararg modules: Pair<String, AndroidProjectBuilder> = arrayOf(":" to createAndroidProjectBuilder())
+    vararg modules: Pair<String, AndroidProjectBuilder> = arrayOf(":" to AndroidProjectBuilder())
   ) = setUpTestProject(null, *modules)
 
   private fun setUpTestProject(agpVersion: String?, vararg modules: Pair<String, AndroidProjectBuilder>) {
@@ -139,8 +138,8 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
    */
   fun testDeviceArgumentsForPreLollipopDeviceWithDynamicFeature() { // Setup an additional Dynamic Feature module
     setUpTestProject(
-      ":" to createAndroidProjectBuilder(dynamicFeatures = { listOf(":feature1") }),
-      ":feature1" to createAndroidProjectBuilder(projectType = { AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE })
+      ":" to AndroidProjectBuilder(dynamicFeatures = { listOf(":feature1") }),
+      ":feature1" to AndroidProjectBuilder(projectType = { AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE })
     )
     // Setup a pre-L device
     `when`(myDevice.version).thenReturn(AndroidVersion(20))
@@ -205,7 +204,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
   }
 
   fun testRunGradleSyncWithPostBuildSyncNotSupported() {
-    setUpTestProject("2.0.0", ":" to createAndroidProjectBuilder())
+    setUpTestProject("2.0.0", ":" to AndroidProjectBuilder())
     val syncInvoker = IdeComponents(myProject).mockApplicationService(GradleSyncInvoker::class.java)
     val syncState = IdeComponents(
       myProject).mockProjectService(

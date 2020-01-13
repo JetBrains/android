@@ -22,9 +22,9 @@ import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testing.AndroidModuleDependency
 import com.android.tools.idea.testing.AndroidModuleModelBuilder
+import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.Modules
-import com.android.tools.idea.testing.createAndroidProjectBuilder
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.truth.Truth
 import com.intellij.execution.configurations.JavaRunConfigurationModule
@@ -164,7 +164,7 @@ private fun androidModule(
   gradlePath,
   agpVersion = agpVersion,
   selectedBuildVariant = "debug",
-  projectBuilder = createAndroidProjectBuilder(
+  projectBuilder = AndroidProjectBuilder(
     projectType = { projectType },
     androidModuleDependencyList = { moduleDependencies.map { AndroidModuleDependency(it, "debug") } },
     dynamicFeatures = { dynamicFeatures }

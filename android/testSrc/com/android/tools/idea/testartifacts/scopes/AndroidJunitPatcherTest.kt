@@ -22,7 +22,6 @@ import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.buildDependenciesStub
 import com.android.tools.idea.testing.buildMainArtifactStub
 import com.android.tools.idea.testing.buildUnitTestArtifactStub
-import com.android.tools.idea.testing.createAndroidProjectBuilder
 import com.android.tools.idea.testing.setupTestProjectFromAndroidModel
 import com.google.common.collect.Iterables
 import com.google.common.collect.Sets
@@ -106,7 +105,7 @@ class AndroidJunitPatcherTest : AndroidTestCase() {
   }
 
   fun testPathChanges() {
-    setUpProject(createAndroidProjectBuilder())
+    setUpProject(AndroidProjectBuilder())
     patcher.patchJavaParameters(myModule, javaParameters)
     val result = javaParameters.classPath.pathList.map { normalize(it) }
     val resultSet = result.toSet()
@@ -121,7 +120,7 @@ class AndroidJunitPatcherTest : AndroidTestCase() {
   }
 
   fun testCaseInsensitivity() {
-    setUpProject(createAndroidProjectBuilder())
+    setUpProject(AndroidProjectBuilder())
     if (!SystemInfo.isWindows) {
       // This test only makes sense on Windows.
       println("Skipping AndroidJunitPatcherTest#testCaseInsensitivity: not running on Windows.")
@@ -139,7 +138,7 @@ class AndroidJunitPatcherTest : AndroidTestCase() {
   }
 
   fun testMultipleMockableJars_oldModel() {
-    setUpProject(createAndroidProjectBuilder())
+    setUpProject(AndroidProjectBuilder())
     val jar22 = root + "lib1/build/intermediates/mockable-android-22.jar"
     val jar15 = root + "lib2/build/intermediates/mockable-android-15.jar"
     val classPath = javaParameters.classPath
@@ -154,7 +153,7 @@ class AndroidJunitPatcherTest : AndroidTestCase() {
   }
 
   fun testMultipleMockableJars_newModel() {
-    setUpProject(createAndroidProjectBuilder(
+    setUpProject(AndroidProjectBuilder(
       unitTestArtifactStub = { buildUnitTestArtifactStub(it, mockablePlatformJar = File(mockableAndroidJar)) }
     ))
     javaParameters.classPath.remove(mockableAndroidJar)
@@ -166,7 +165,7 @@ class AndroidJunitPatcherTest : AndroidTestCase() {
 
   fun testKotlinClasses() {
     val testKotlinClassesDir = File(testKotlinClasses)
-    setUpProject(createAndroidProjectBuilder(
+    setUpProject(AndroidProjectBuilder(
       mainArtifactStub = { buildMainArtifactStub(it, classFolders = setOf(File(kotlinClasses))) },
       unitTestArtifactStub = { buildUnitTestArtifactStub(it, classFolders = setOf(testKotlinClassesDir)) }
     ))
@@ -181,7 +180,7 @@ class AndroidJunitPatcherTest : AndroidTestCase() {
     val runtimeJar = "/tmp/runtime.jar"
     // Fix for Windows since the drive will be prepended
     val canonicalName = FileUtil.toCanonicalPath(File(runtimeJar).absolutePath)
-    setUpProject(createAndroidProjectBuilder(
+    setUpProject(AndroidProjectBuilder(
       unitTestArtifactStub = {
         buildUnitTestArtifactStub(it, dependencies = buildDependenciesStub(runtimeOnlyClasses = listOf(File(runtimeJar))))
       }
