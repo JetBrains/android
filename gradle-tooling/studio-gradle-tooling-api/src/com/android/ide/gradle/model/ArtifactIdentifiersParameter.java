@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.ide.gradle.model.sources;
+package com.android.ide.gradle.model;
 
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The parameter for [SourcesAndJavadocModelBuilder] to build customized models.
+ * The parameter for [SourcesAndJavadocModelBuilder] and [SamplesModelBuilder] to build customized models.
  */
-public interface SourcesAndJavadocParameter {
+public interface ArtifactIdentifiersParameter {
   /**
    * Return a list of component ids to download sources and javadoc for.
    *
    * @return the list of components to download sources and javadoc for.
    */
   @NotNull
-  Collection<SourcesAndJavadocArtifactIdentifier> getArtifactIdentifiers();
+  Collection<ArtifactIdentifier> getArtifactIdentifiers();
 
   /**
    * Sets the list of component ids to download sources and javadoc for.
    *
    * @param ids the list of component ids to download sources and javadoc for.
    */
-  void setArtifactIdentifiers(@NotNull Collection<SourcesAndJavadocArtifactIdentifier> ids);
+  void setArtifactIdentifiers(@NotNull Collection<ArtifactIdentifier> ids);
 }
 

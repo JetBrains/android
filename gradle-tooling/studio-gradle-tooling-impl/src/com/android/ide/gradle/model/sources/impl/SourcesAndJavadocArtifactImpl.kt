@@ -15,13 +15,13 @@
  */
 package com.android.ide.gradle.model.sources.impl
 
+import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifact
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifactIdentifier
 import java.io.File
 import java.io.Serializable
 
 data class SourcesAndJavadocArtifactImpl(
-  private val id: SourcesAndJavadocArtifactIdentifier,
+  private val id: ArtifactIdentifier,
   private val sources: File?,
   private val javadoc: File?,
   private val mavenPom: File?
