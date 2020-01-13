@@ -35,7 +35,7 @@ fun RecipeExecutor.androidProjectRecipe(
 ) {
   val topOut = data.rootDir
   save(
-    androidProjectBuildGradle(language == Language.KOTLIN, data.kotlinVersion, false, data.gradlePluginVersion),
+    androidProjectBuildGradle(language == Language.KOTLIN, data.kotlinVersion, data.gradlePluginVersion),
     topOut.resolve(FN_BUILD_GRADLE)
   )
 
