@@ -717,35 +717,35 @@ public final class StudioFlags {
     "Compose-specific support in the code editor",
     "Controls whether Compose-specific editor features, like completion tweaks, are enabled. This flag has priority over " +
     "all flags in the `compose.editor.*` namespace.",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_PRESENTATION = Flag.create(
     COMPOSE, "editor.completion.presentation",
     "Custom presentation for code completion items for composable functions",
     "If enabled, code completion items for composable functions use a custom presentation (icon, text).",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_WEIGHER = Flag.create(
     COMPOSE, "editor.completion.weigher",
     "Custom weigher for Compose",
     "If enabled, code completion puts composable functions above other completion suggestions.",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_COMPLETION_INSERT_HANDLER = Flag.create(
     COMPOSE, "editor.completion.insert.handler",
     "Custom insert handler for composable functions",
     "If enabled, code completion for composable functions uses a custom InsertHandler that inserts required parameter names.",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_AUTO_DOCUMENTATION = Flag.create(
     COMPOSE, "editor.auto.documentation",
     "Show quick documentation automatically for Compose",
     "If enabled, during code completion popup with documentation shows automatically",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_RENDER_SAMPLE_IN_DOCUMENTATION = Flag.create(
