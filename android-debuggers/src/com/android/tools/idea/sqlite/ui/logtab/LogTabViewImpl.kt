@@ -34,10 +34,15 @@ class LogTabViewImpl(project: Project) : LogTabView {
 
   override fun log(log: String) {
     consoleView.print(log, ConsoleViewContentType.NORMAL_OUTPUT)
-    printNewLine()
+    printNewLine(ConsoleViewContentType.NORMAL_OUTPUT)
   }
 
-  private fun printNewLine() {
-    consoleView.print("\n", ConsoleViewContentType.NORMAL_OUTPUT)
+  override fun logError(log: String) {
+    consoleView.print(log, ConsoleViewContentType.ERROR_OUTPUT)
+    printNewLine(ConsoleViewContentType.ERROR_OUTPUT)
+  }
+
+  private fun printNewLine(contentType: ConsoleViewContentType) {
+    consoleView.print("\n", contentType)
   }
 }

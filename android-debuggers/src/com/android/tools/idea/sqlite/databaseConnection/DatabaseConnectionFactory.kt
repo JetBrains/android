@@ -17,7 +17,6 @@ package com.android.tools.idea.sqlite.databaseConnection
 
 import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.idea.sqlite.DatabaseInspectorClient
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.JdbcDatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveDatabaseConnection
 import com.google.common.util.concurrent.Futures
