@@ -250,9 +250,9 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         moduleRoot = null
       )
       val executor = if (dryRun) FindReferencesRecipeExecutor2(context) else DefaultRecipeExecutor2(context)
-      val recipe: Recipe = { appTitle: String, language: Language, useAndroidX: Boolean ->
-        { data: TemplateData -> androidProjectRecipe(data as ProjectTemplateData, appTitle, language, useAndroidX) }
-      }(applicationName.get(), language.value, !useAppCompat.get())
+      val recipe: Recipe = { data: TemplateData ->
+        androidProjectRecipe(data as ProjectTemplateData, applicationName.get(), language.value, !useAppCompat.get())
+      }
 
       recipe.render(context, executor, AndroidStudioEvent.TemplateRenderer.ANDROID_PROJECT)
     }
