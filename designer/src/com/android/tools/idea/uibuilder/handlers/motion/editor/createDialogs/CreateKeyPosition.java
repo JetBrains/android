@@ -213,12 +213,4 @@ public class CreateKeyPosition extends BaseCreateKey {
     return "KeyPosition";
   }
 
-  public static void main(String[] arg) {
-    JFrame f = new JFrame(TITLE);
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    f.setContentPane(new CreateKeyPosition());
-    f.pack();
-    f.validate();
-    f.setVisible(true);
-  }
 }

@@ -36,12 +36,4 @@ public class CreateKeyTimeCycle extends CreateKeyCycle {
     return MotionSceneAttrs.Tags.KEY_TIME_CYCLE;
   }
 
-  public static void main(String[] arg) {
-    JFrame f = new JFrame(TITLE);
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    f.setContentPane(new CreateKeyTimeCycle());
-    f.pack();
-    f.validate();
-    f.setVisible(true);
-  }
 }

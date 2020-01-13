@@ -127,13 +127,4 @@ public class CreateConstraintSet extends BaseCreatePanel {
   public String getName() {
     return MotionSceneAttrs.Tags.CONSTRAINTSET;
   }
-
-  public static void main(String[] arg) {
-    JFrame f = new JFrame(TITLE);
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    f.setContentPane(new CreateConstraintSet());
-    f.pack();
-    f.validate();
-    f.setVisible(true);
-  }
 }

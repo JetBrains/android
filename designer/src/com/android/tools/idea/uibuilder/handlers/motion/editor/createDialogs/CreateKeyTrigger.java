@@ -199,12 +199,4 @@ public class CreateKeyTrigger extends BaseCreateKey {
     return "KeyTrigger";
   }
 
-  public static void main(String[] arg) {
-    JFrame f = new JFrame(TITLE);
-    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    f.setContentPane(new CreateKeyTrigger());
-    f.pack();
-    f.validate();
-    f.setVisible(true);
-  }
 }
