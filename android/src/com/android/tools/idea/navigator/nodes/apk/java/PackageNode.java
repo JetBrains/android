@@ -50,10 +50,10 @@ class PackageNode extends ProjectViewNode<ApkPackage> {
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     assert myProject != null;
 
-    Collection<AbstractTreeNode> children = new ArrayList<>();
+    Collection<AbstractTreeNode<?>> children = new ArrayList<>();
     ViewSettings settings = getSettings();
     if (!settings.isFlattenPackages()) {
       addSubpackagesAsTree(myPackage.getSubpackages(), children);
@@ -64,7 +64,7 @@ class PackageNode extends ProjectViewNode<ApkPackage> {
     return children;
   }
 
-  private void addSubpackagesAsTree(@NotNull Collection<ApkPackage> subpackages, @NotNull Collection<AbstractTreeNode> children) {
+  private void addSubpackagesAsTree(@NotNull Collection<ApkPackage> subpackages, @NotNull Collection<AbstractTreeNode<?>> children) {
     if (getSettings().isHideEmptyMiddlePackages()) {
       for (ApkPackage subpackage : subpackages) {
         if (!subpackage.getClasses().isEmpty() || subpackage.doSubpackagesHaveClasses()) {

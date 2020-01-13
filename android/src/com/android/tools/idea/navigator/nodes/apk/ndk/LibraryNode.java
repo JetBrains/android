@@ -73,9 +73,9 @@ public class LibraryNode extends ProjectViewNode<NativeLibrary> {
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     assert myProject != null;
-    List<AbstractTreeNode> children = new ArrayList<>();
+    List<AbstractTreeNode<?>> children = new ArrayList<>();
     ViewSettings settings = getSettings();
     children.add(new LibraryFileNode(myProject, myLibrary, settings));
 

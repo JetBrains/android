@@ -64,7 +64,7 @@ final public class SimpleIncludeViewNode extends IncludeViewNode<SimpleIncludeVa
 
   @NotNull
   @Override
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     LocalFileSystem fileSystem = LocalFileSystem.getInstance();
     Project project = getProject();
     if (project == null) {

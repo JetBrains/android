@@ -55,7 +55,7 @@ class ClassNode extends ProjectViewNode<ApkClass> {
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     // TODO show members
     return Collections.emptyList();
   }

@@ -96,7 +96,7 @@ public class AndroidResGroupNode extends ProjectViewNode<List<PsiFile>> implemen
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     List<PsiFileNode> children = new ArrayList<>(myFiles.size());
     assert myProject != null;
     for (PsiFile file : myFiles) {

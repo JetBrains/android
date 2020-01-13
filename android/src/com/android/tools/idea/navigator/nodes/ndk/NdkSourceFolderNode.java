@@ -66,7 +66,7 @@ public class NdkSourceFolderNode extends PsiDirectoryNode {
   }
 
   @Override
-  public Collection<AbstractTreeNode> getChildrenImpl() {
+  public Collection<AbstractTreeNode<?>> getChildrenImpl() {
     PsiDirectory folder = getValue();
     if (folder == null) {
       return Collections.emptyList();
