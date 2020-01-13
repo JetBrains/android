@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2.testutil
 
-import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -48,10 +47,13 @@ import org.mockito.ArgumentMatchers
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 
+const val DEFAULT_LAYOUT_FILE = "layout.xml"
+const val DEFAULT_SCENE_FILE = "scene.xml"
+
 class MotionAttributeRule(
   private val projectRule: AndroidProjectRule,
-  private val motionLayoutFilename: String,
-  private val motionSceneFilename: String
+  private val motionLayoutFilename: String = DEFAULT_LAYOUT_FILE,
+  private val motionSceneFilename: String = DEFAULT_SCENE_FILE
 ) : ExternalResource() {
   private var componentStack: ComponentStack? = null
   private var nlModel: SyncNlModel? = null

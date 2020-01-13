@@ -34,7 +34,7 @@ class MotionLayoutPropertyProviderTest {
 
   @JvmField
   @Rule
-  val motionRule = MotionAttributeRule(projectRule, "layout.xml", "scene.xml")
+  val motionRule = MotionAttributeRule(projectRule)
 
   @JvmField
   @Rule
