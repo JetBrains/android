@@ -53,6 +53,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
@@ -73,6 +74,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
 
 public class GradleSyncInvoker {
+  private static final Logger LOG = Logger.getInstance(GradleSyncInvoker.class);
+
   @NotNull private final FileDocumentManager myFileDocumentManager;
   @NotNull private final PreSyncProjectCleanUp myPreSyncProjectCleanUp;
   @NotNull private final PreSyncChecks myPreSyncChecks;
@@ -185,6 +188,7 @@ public class GradleSyncInvoker {
     }
     invokeLaterIfProjectAlive(project, () -> {
       String msg = String.format("The project '%s' is not a Gradle-based project", project.getName());
+      LOG.error(msg);
       AndroidNotification.getInstance(project).showBalloon("Project Sync", msg, ERROR, new OpenMigrationToGradleUrlHyperlink());
 
       if (listener != null) {

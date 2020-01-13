@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.refactoring
 
+import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.impl.migration.PsiMigrationManager
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
@@ -31,6 +32,7 @@ class MigrateToAndroidxTest : AndroidTestCase() {
     super.setUp()
     // This is needed for resolving framework classes
     myFixture.allowTreeAccessForAllFiles()
+    replaceApplicationService(GradleSyncInvoker::class.java, GradleSyncInvoker.FakeInvoker())
   }
 
   /**
