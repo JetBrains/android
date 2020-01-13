@@ -23,7 +23,7 @@ import static com.android.tools.idea.lang.multiDexKeep.psi.MultiDexKeepPsiTypes.
 %unicode
 
 EOL=\n
-STRING=[a-zA-Z0-9/.]+
+STRING=[a-zA-Z0-9/.$]+
 
 %%
 <YYINITIAL> {

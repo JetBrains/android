@@ -55,7 +55,7 @@ public class _MultiDexKeepLexer implements FlexLexer {
 
   /* The ZZ_CMAP_A table has 256 entries */
   static final char ZZ_CMAP_A[] = zzUnpackCMap(
-    "\12\0\1\1\43\0\14\2\7\0\32\2\6\0\32\2\205\0");
+    "\12\0\1\1\31\0\1\2\11\0\14\2\7\0\32\2\6\0\32\2\205\0");
 
   /** 
    * Translates DFA states to action switch labels.
@@ -274,7 +274,7 @@ public class _MultiDexKeepLexer implements FlexLexer {
   /**
    * Refills the input buffer.
    *
-   * @return      <code>false</code>, iff there was new input.
+   * @return      {@code false}, iff there was new input.
    *
    * @exception   java.io.IOException  if any I/O-Error occurs
    */
@@ -310,7 +310,7 @@ public class _MultiDexKeepLexer implements FlexLexer {
 
 
   /**
-   * Returns the character at position <tt>pos</tt> from the
+   * Returns the character at position {@code pos} from the
    * matched text.
    *
    * It is equivalent to yytext().charAt(pos), but faster
