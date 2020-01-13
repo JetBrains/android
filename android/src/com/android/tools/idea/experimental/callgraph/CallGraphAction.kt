@@ -133,7 +133,7 @@ open class ContextualCallPathBrowser(
     else -> false
   }
 
-  override fun getComparator(): Comparator<NodeDescriptor<Any>> = JavaHierarchyUtil.getComparator(myProject)
+  override fun getComparator(): Comparator<NodeDescriptor<*>> = JavaHierarchyUtil.getComparator(myProject)
 }
 
 class ContextualCallPathProvider(val graph: ContextualCallGraph) : HierarchyProvider {
