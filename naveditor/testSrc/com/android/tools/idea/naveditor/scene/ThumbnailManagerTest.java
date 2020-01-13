@@ -181,7 +181,7 @@ public class ThumbnailManagerTest extends NavTestCase {
   public void testGeneratedImage() throws Exception {
     ThumbnailManager manager = ThumbnailManager.getInstance(myFacet);
 
-    VirtualFile file = NavTestCase.findVirtualProjectFile(getProject(), "../unitTest/res/layout/activity_main.xml");
+    VirtualFile file = NavTestCase.findVirtualProjectFile(getProject(), "res/layout/activity_main.xml");
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(file);
 
     NlModel model = NlModel.create(getProject(), null, myFacet, psiFile.getVirtualFile(), mySurface.getComponentRegistrar());
