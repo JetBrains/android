@@ -12,6 +12,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlTag;
+import org.jetbrains.android.dom.converters.AndroidResourceReference;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.ErrorReporter;
@@ -33,7 +34,8 @@ public class AndroidInlineStyleHandler extends InlineActionHandler {
 
   @Override
   public boolean isEnabledForLanguage(Language l) {
-    return l == XMLLanguage.INSTANCE;
+    // ResourceReferencePsiElement can be inlined and is of Language: Language.ANY
+    return l == XMLLanguage.INSTANCE || l == Language.ANY;
   }
 
   @Override
@@ -52,7 +54,23 @@ public class AndroidInlineStyleHandler extends InlineActionHandler {
     if (psiReference == null) {
       return;
     }
-    PsiElement destination = element instanceof LazyValueResourceElementWrapper? element : psiReference.getElement();
+    PsiElement destination;
+    if (element instanceof LazyValueResourceElementWrapper) {
+      destination = element;
+    }
+    else if (psiReference instanceof AndroidResourceReference) {
+      PsiElement[] targetElements = ((AndroidResourceReference)psiReference).computeTargetElements();
+      if (targetElements.length > 0) {
+        destination = targetElements[0];
+      }
+      else {
+        destination = psiReference.getElement();
+      }
+    }
+    else {
+      destination = psiReference.getElement();
+    }
+
     final AndroidInlineUtil.MyStyleData data = AndroidInlineUtil.getInlinableStyleDataFromContext(destination);
 
     if (data != null) {
