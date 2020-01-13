@@ -21,16 +21,12 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
-import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
-import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.openapi.actionSystem.ShortcutSet
 import com.intellij.openapi.application.ReadAction
-import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.DumbService
@@ -70,12 +66,6 @@ internal const val COMPOSE_VIEW_ADAPTER = "$PREVIEW_PACKAGE.ComposeViewAdapter"
 
 /** [COMPOSE_VIEW_ADAPTER] view attribute containing the FQN of the @Composable name to call */
 private const val COMPOSABLE_NAME_ATTR = "tools:composableName"
-
-/** Action ID of the IDE declared force refresh action (see PlatformActions.xml). This allows us to re-use the shortcut of the declared action. */
-private const val FORCE_REFRESH_ACTION_ID = "ForceRefresh"
-
-/** [ShortcutSet] that triggers a build and refreshes the preview */
-internal fun getBuildAndRefreshShortcut(): ShortcutSet = KeymapUtil.getActiveKeymapShortcuts(FORCE_REFRESH_ACTION_ID)
 
 const val UNDEFINED_API_LEVEL = -1
 const val UNDEFINED_DIMENSION = -1

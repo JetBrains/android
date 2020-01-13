@@ -35,6 +35,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.notifications.NotificationPanel
+import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_PREVIEW_AUTO_BUILD
 import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
@@ -47,9 +48,7 @@ import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.utils.concurrency.EvictingExecutor
 import com.intellij.ide.util.PsiNavigationSupport
-import com.intellij.openapi.application.AppUIExecutor
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -63,7 +62,6 @@ import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.pom.Navigatable
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
 import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
@@ -78,7 +76,6 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import org.jetbrains.kotlin.backend.common.pop
 import java.awt.BorderLayout
-import java.util.concurrent.TimeUnit
 import java.util.function.Consumer
 import java.util.function.Supplier
 import javax.swing.JComponent

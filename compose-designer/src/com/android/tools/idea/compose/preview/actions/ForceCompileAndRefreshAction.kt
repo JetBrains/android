@@ -40,7 +40,7 @@ internal fun requestBuildForSurface(surface: DesignSurface) {
  * [AnAction] that triggers a compilation of the current module. The build will automatically trigger a refresh
  * of the surface.
  */
-class ForceCompileAndRefreshAction(private val surface: DesignSurface) :
+internal class ForceCompileAndRefreshAction(private val surface: DesignSurface) :
   AnAction(message("notification.action.build.and.refresh"), null, GREEN_REFRESH_BUTTON) {
   override fun actionPerformed(e: AnActionEvent) = requestBuildForSurface(surface)
 
