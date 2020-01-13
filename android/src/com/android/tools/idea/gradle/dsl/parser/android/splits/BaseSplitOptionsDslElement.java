@@ -49,7 +49,6 @@ public abstract class BaseSplitOptionsDslElement extends GradleDslBlockElement {
     {"include", property, INCLUDE, VAL},
     {"include", atLeast(0), INCLUDE, OTHER},
     {"setInclude", exactly(1), INCLUDE, SET},
-    {"reset", exactly(0), INCLUDE, OTHER}
   }).collect(toModelMap());
 
   @NotNull
@@ -60,7 +59,6 @@ public abstract class BaseSplitOptionsDslElement extends GradleDslBlockElement {
     {"exclude", atLeast(0), EXCLUDE, OTHER},
     {"include", property, INCLUDE, VAR},
     {"include", atLeast(0), INCLUDE, OTHER},
-    {"reset", exactly(0), INCLUDE, OTHER}
   }).collect(toModelMap());
 
   @Override
