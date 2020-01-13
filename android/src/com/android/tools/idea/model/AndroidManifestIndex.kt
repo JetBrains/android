@@ -153,9 +153,16 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
           LOG.error("Manifest index was queried even though it's disabled.")
           false
         }
-        !ApplicationManager.getApplication().isReadAccessAllowed or DumbService.isDumb(project) -> {
-          LOG.error("Manifest index queried outside of a smart read action.")
+        !ApplicationManager.getApplication().isReadAccessAllowed -> {
+          LOG.error("Manifest index queried outside of a read action.")
           false
+        }
+        DumbService.isDumb(project) -> {
+          // When we call runReadActionInSmartMode, if it's already called with read access allowed, we don't wait for
+          // smart mode to begin, and fails with IndexNotReadyException thrown. So we need to call with try-catch block
+          // and try to recover if IndexNotReadyException.
+          LOG.info("Manifest index queried outside of a smart mode.")
+          true
         }
         else -> true
       }

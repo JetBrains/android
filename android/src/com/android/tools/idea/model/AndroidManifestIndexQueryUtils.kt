@@ -40,7 +40,7 @@ import java.util.stream.Stream
  */
 private fun <T> AndroidFacet.queryManifestIndex(processContributors: (ManifestOverrides, Stream<AndroidManifestRawText>) -> T): T {
   val project = this.module.project
-  assert(!DumbService.isDumb(project) && ApplicationManager.getApplication().isReadAccessAllowed)
+  assert(ApplicationManager.getApplication().isReadAccessAllowed)
   val modificationTracker = MergedManifestModificationTracker.getInstance(this.module)
   val provider = {
     val overrides = this.module.getModuleSystem().getManifestOverrides()
@@ -59,6 +59,7 @@ private fun <T> AndroidFacet.queryManifestIndex(processContributors: (ManifestOv
  * it's fetched in AndroidManifest.xml in generated Apk
  */
 fun AndroidFacet.queryActivitiesFromManifestIndex() = queryManifestIndex { overrides, contributors ->
+  assert(!DumbService.isDumb(this.module.project) && ApplicationManager.getApplication().isReadAccessAllowed)
   val activityWrappers = LinkedList<DefaultActivityLocator.ActivityWrapper>()
   val activityAliasWrappers = LinkedList<DefaultActivityLocator.ActivityWrapper>()
 
