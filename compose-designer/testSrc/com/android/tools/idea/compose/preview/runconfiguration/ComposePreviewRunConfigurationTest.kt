@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.runconfiguration
+package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfiguration
-import com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.ActivityLaunchTask
