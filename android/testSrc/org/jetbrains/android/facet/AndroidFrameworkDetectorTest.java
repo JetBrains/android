@@ -58,7 +58,7 @@ public class AndroidFrameworkDetectorTest extends PlatformTestCase {
   public void testDetectWithProjectWithBuildFile() {
     new IdeComponents(myProject).replaceProjectService(GradleProjectInfo.class, myProjectInfo);
     when(myProjectInfo.isBuildWithGradle()).thenReturn(false);
-    when(myProjectInfo.hasTopLevelGradleBuildFile()).thenReturn(true);
+    when(myProjectInfo.hasTopLevelGradleFile()).thenReturn(true);
 
     List<? extends DetectedFrameworkDescription> descriptions = myDetector.detect(Collections.emptyList(), myContext);
     assertThat(descriptions).isEmpty();

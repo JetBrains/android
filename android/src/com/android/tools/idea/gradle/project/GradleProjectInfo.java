@@ -46,10 +46,9 @@ import javax.swing.*;
 import java.io.File;
 import java.util.List;
 
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.tools.idea.gradle.util.GradleUtil.findGradleBuildFile;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.android.tools.idea.gradle.util.GradleUtil.findGradleSettingsFile;
 import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
@@ -135,7 +134,7 @@ public class GradleProjectInfo {
       if (GradleSyncState.getInstance(myProject).getLastSyncFinishedTimeStamp() != -1L) {
         return true;
       }
-      return hasTopLevelGradleBuildFile();
+      return hasTopLevelGradleFile();
     });
   }
 
@@ -148,17 +147,18 @@ public class GradleProjectInfo {
   }
 
   /**
-   * Indicates whether the project has build.gradle or build.gradle.kts file in the project's root folder.
+   * Indicates whether the project has a file which gradle could use to perform initialization, either of a "single project" or a
+   * "multi-project" build.
    *
-   * @return {@code true} if the project has build.gradle or build.gradle.kts file in the project's root folder; {@code false} otherwise.
+   * @return {@code true} if the project has a Gradle build or settings file in the project's root folder; {@code false} otherwise.
    */
-  public boolean hasTopLevelGradleBuildFile() {
+  public boolean hasTopLevelGradleFile() {
     if (myProject.isDefault()) {
       return false;
     }
     VirtualFile baseDir = myProject.getBaseDir();
     if (baseDir != null) {
-      return findGradleBuildFile(baseDir) != null;
+      return ((findGradleBuildFile(baseDir) != null) || (findGradleSettingsFile(baseDir) != null));
     }
     return false;
   }
