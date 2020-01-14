@@ -264,10 +264,12 @@ open class TemplateTest : AndroidGradleTestCase() {
     checkCreateTemplate("Google Maps Activity", withKotlin)
   }
 
+  /* disable in 4.1 Beta: b/157525027
   @TemplateCheck
   fun testComposeActivity() {
     checkCreateTemplate("Empty Compose Activity", withKotlin) // Compose is always Kotlin
   }
+  */
 
   @TemplateCheck
   fun testNewBlankWearActivity() {
