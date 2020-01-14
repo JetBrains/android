@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.material.icons
 
+import org.jetbrains.kotlin.utils.newHashMapWithExpectedSize
+
 /**
  * A builder class for [MaterialIconsMetadata] that incrementally takes [MaterialMetadataIcon].
  */
@@ -24,21 +26,21 @@ class MaterialIconsMetadataBuilder(
   private val families: Array<String>
 ) {
 
-  private val icons: ArrayList<MaterialMetadataIcon> = ArrayList(1200) // There are around 1057 icons available.
+  private val iconsMap = newHashMapWithExpectedSize<String, MaterialMetadataIcon>(1200) // There are around 1057 icons available
 
   /**
    * Add a [MaterialMetadataIcon] to the list of existing icons.
    *
-   * Note that it doesn't check for duplicates.
+   * Overwrites duplicate values.
    */
   fun addIconMetadata(iconMetadata: MaterialMetadataIcon) {
-    icons.add(iconMetadata)
+    iconsMap[iconMetadata.name] = iconMetadata
   }
 
   /**
    * Create a copy of [MaterialMetadataIcon] containing the current list of icons added into this instance through [addIconMetadata].
    */
   fun build(): MaterialIconsMetadata {
-    return MaterialIconsMetadata(host, urlPattern, families, icons.toTypedArray())
+    return MaterialIconsMetadata(host, urlPattern, families, iconsMap.toSortedMap().values.toTypedArray())
   }
 }
