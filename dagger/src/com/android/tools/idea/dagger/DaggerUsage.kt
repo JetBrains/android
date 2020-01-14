@@ -94,7 +94,7 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
   }
 
   @WorkerThread
-  override fun processElementUsages(element: PsiElement, processor: Processor<Usage>, options: FindUsagesOptions) {
+  override fun processElementUsages(element: PsiElement, processor: Processor<in Usage>, options: FindUsagesOptions) {
     runReadAction {
       val usages: Collection<PsiElement> = when {
         !DAGGER_SUPPORT_ENABLED.get() -> return@runReadAction
