@@ -15,11 +15,13 @@
  */
 package com.android.tools.idea.gradle.actions;
 
-import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
+import static com.android.tools.idea.testing.JavaModuleModelBuilder.getRootModuleBuilder;
 import static com.google.common.truth.Truth.assertThat;
-import static java.util.Collections.emptyList;
+import static com.google.common.truth.TruthJUnit.assume;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
@@ -28,20 +30,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
-import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
-import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.testing.Facets;
+import com.android.tools.idea.testing.AndroidModuleModelBuilder;
+import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.TestMessagesDialog;
 import com.google.common.collect.ImmutableList;
@@ -51,22 +43,14 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.testFramework.PlatformTestCase;
-import org.gradle.tooling.model.GradleProject;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
+import java.io.File;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link BuildApkAction}.
  */
 public class BuildBundleActionTest extends PlatformTestCase {
-  @Mock private GradleProjectInfo myGradleProjectInfo;
   @Mock private GradleBuildInvoker myBuildInvoker;
-  @Mock private ProjectStructure myProjectStructure;
-  @Mock private AndroidModuleModel myAndroidModel;
-  @Mock private IdeAndroidProject myIdeAndroidProject;
-  @Mock private IdeVariant myIdeVariant;
-  @Mock private IdeAndroidArtifact myMainArtifact;
   @Mock private AndroidPluginVersionUpdater myAndroidPluginVersionUpdater;
   private BuildBundleAction myAction;
   private TestDialog myDefaultTestDialog;
@@ -77,59 +61,69 @@ public class BuildBundleActionTest extends PlatformTestCase {
     initMocks(this);
 
     new IdeComponents(myProject).replaceProjectService(GradleBuildInvoker.class, myBuildInvoker);
-    new IdeComponents(myProject).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
-    new IdeComponents(myProject).replaceProjectService(ProjectStructure.class, myProjectStructure);
     new IdeComponents(myProject).replaceProjectService(AndroidPluginVersionUpdater.class, myAndroidPluginVersionUpdater);
     myAction = new BuildBundleAction();
   }
 
   @Override
   protected void tearDown() throws Exception {
-    try {
-      if (myDefaultTestDialog != null) {
-        Messages.setTestDialog(myDefaultTestDialog);
-      }
+    if (myDefaultTestDialog != null) {
+      Messages.setTestDialog(myDefaultTestDialog);
     }
-    finally {
-      super.tearDown();
-    }
+    super.tearDown();
   }
 
   public void testActionPerformed() {
-    Module appModule = createModule("app1");
-    setUpModuleAsAndroidModule(appModule, myAndroidModel, myIdeAndroidProject, myIdeVariant, myMainArtifact);
-    // Ignore return value, as we just want to make sure the "bundle" action does not apply to all modules
-    createModule("app2");
-
-    Module[] appModules = {appModule};
-    when(myProjectStructure.getAppModules()).thenReturn(ImmutableList.copyOf(appModules));
-    when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
+    setupTestProjectFromAndroidModel(
+      getProject(),
+      new File(getProject().getBasePath()),
+      getRootModuleBuilder(),
+      new AndroidModuleModelBuilder(
+        ":app1", "debug",
+        new AndroidProjectBuilder()
+          .withProjectType(it -> PROJECT_TYPE_APP)
+          .withDynamicFeatures(it -> ImmutableList.of(":feature1"))
+      ),
+      new AndroidModuleModelBuilder(":feature1", "debug", new AndroidProjectBuilder().withProjectType(it -> PROJECT_TYPE_DYNAMIC_FEATURE))
+    );
+    Module[] appModules = new Module[]{gradleModule(getProject(), ":app1")};
+    assume().that(appModules).asList().doesNotContain(null);
 
     AnActionEvent event = mock(AnActionEvent.class);
     when(event.getProject()).thenReturn(getProject());
-
     myAction.actionPerformed(event);
 
     verify(myBuildInvoker).bundle(eq(appModules), eq(null));
   }
 
   public void testUpdateGradlePluginNotification() {
-    Module appModule = createModule("app1");
-    setUpModuleAsAndroidModule(appModule, myAndroidModel, myIdeAndroidProject, myIdeVariant, myMainArtifact);
-    when(myMainArtifact.getBundleTaskName()).thenReturn(null);
-    // Ignore return value, as we just want to make sure the "bundle" action does not apply to all modules
-    createModule("app2");
+    setupTestProjectFromAndroidModel(
+      getProject(),
+      new File(getProject().getBasePath()),
+      getRootModuleBuilder(),
+      new AndroidModuleModelBuilder(
+        ":app1", "debug",
+        new AndroidProjectBuilder()
+          .withProjectType(it -> PROJECT_TYPE_APP)
+          .withSupportsBundleTask(it -> false)
+      ),
+      new AndroidModuleModelBuilder(
+        ":app2", "debug",
+        new AndroidProjectBuilder()
+          .withProjectType(it -> PROJECT_TYPE_APP)
+          .withSupportsBundleTask(it -> false)
+      )
+    );
+    Module[] appModules = new Module[]{gradleModule(getProject(), ":app1"), gradleModule(getProject(), ":app2")};
+    assume().that(appModules).asList().doesNotContain(null);
 
-    Module[] appModules = {appModule};
-    when(myProjectStructure.getAppModules()).thenReturn(ImmutableList.copyOf(appModules));
-    when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
+
+    @SuppressWarnings("MagicConstant") // Using custom button IDs
+      TestMessagesDialog testDialog = new TestMessagesDialog(1 /* Update*/);
+    myDefaultTestDialog = Messages.setTestDialog(testDialog);
 
     AnActionEvent event = mock(AnActionEvent.class);
     when(event.getProject()).thenReturn(getProject());
-
-    @SuppressWarnings("MagicConstant") // Using custom button IDs
-    TestMessagesDialog testDialog = new TestMessagesDialog(1 /* Update*/);
-    myDefaultTestDialog = Messages.setTestDialog(testDialog);
     myAction.actionPerformed(event);
 
     assertThat(testDialog.getDisplayedMessage()).isEqualTo(getHtmlUpdateMessage());
@@ -138,23 +132,33 @@ public class BuildBundleActionTest extends PlatformTestCase {
     verify(myAndroidPluginVersionUpdater).updatePluginVersion(any(), any(), any());
   }
 
-  public void testUpdateGradlePluginCanceledNotification() {
-    Module appModule = createModule("app1");
-    setUpModuleAsAndroidModule(appModule, myAndroidModel, myIdeAndroidProject, myIdeVariant, myMainArtifact);
-    when(myMainArtifact.getBundleTaskName()).thenReturn(null);
-    // Ignore return value, as we just want to make sure the "bundle" action does not apply to all modules
-    createModule("app2");
+  public void testUpdateGradlePluginCanceledNotification() throws InterruptedException {
+    setupTestProjectFromAndroidModel(
+      getProject(),
+      new File(getProject().getBasePath()),
+      getRootModuleBuilder(),
+      new AndroidModuleModelBuilder(
+        ":app1", "debug",
+        new AndroidProjectBuilder()
+          .withProjectType(it -> PROJECT_TYPE_APP)
+          .withSupportsBundleTask(it -> false)
+      ),
+      new AndroidModuleModelBuilder(
+        ":app2", "debug",
+        new AndroidProjectBuilder()
+          .withProjectType(it -> PROJECT_TYPE_APP)
+          .withSupportsBundleTask(it -> false)
+      )
+    );
+    Module[] appModules = new Module[]{gradleModule(getProject(), ":app1"), gradleModule(getProject(), ":app2")};
+    assume().that(appModules).asList().doesNotContain(null);
 
-    Module[] appModules = {appModule};
-    when(myProjectStructure.getAppModules()).thenReturn(ImmutableList.copyOf(appModules));
-    when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
+    @SuppressWarnings("MagicConstant") // Using custom button IDs
+      TestMessagesDialog testDialog = new TestMessagesDialog(0 /* Cancel*/);
+    myDefaultTestDialog = Messages.setTestDialog(testDialog);
 
     AnActionEvent event = mock(AnActionEvent.class);
     when(event.getProject()).thenReturn(getProject());
-
-    @SuppressWarnings("MagicConstant") // Using custom button IDs
-    TestMessagesDialog testDialog = new TestMessagesDialog(0 /* Cancel*/);
-    myDefaultTestDialog = Messages.setTestDialog(testDialog);
     myAction.actionPerformed(event);
 
     assertThat(testDialog.getDisplayedMessage()).isEqualTo(getHtmlUpdateMessage());
@@ -167,35 +171,5 @@ public class BuildBundleActionTest extends PlatformTestCase {
            "App bundles allow you to support multiple device configurations from a single build artifact.<BR/>" +
            "App stores that support the bundle format use it to build and sign your APKs for you, and<BR/>" +
            "serve those APKs to users as needed.<BR/><BR/></body></html>";
-  }
-
-  private static void setUpModuleAsAndroidModule(@NotNull Module module,
-                                                 @NotNull AndroidModuleModel androidModel,
-                                                 @NotNull IdeAndroidProject ideAndroidProject,
-                                                 @NotNull IdeVariant ideVariant,
-                                                 @NotNull IdeAndroidArtifact mainArtifact) {
-    setUpModuleAsGradleModule(module);
-
-    when(androidModel.getAndroidProject()).thenReturn(ideAndroidProject);
-    when(androidModel.getSelectedVariant()).thenReturn(ideVariant);
-    when(ideVariant.getMainArtifact()).thenReturn(mainArtifact);
-    when(mainArtifact.getBundleTaskName()).thenReturn("bundleDebug");
-
-    AndroidModelFeatures androidModelFeatures = mock(AndroidModelFeatures.class);
-    when(androidModel.getFeatures()).thenReturn(androidModelFeatures);
-
-    AndroidFacet androidFacet = Facets.createAndAddAndroidFacet(module);
-    AndroidModel.set(androidFacet, androidModel);
-  }
-
-  private static void setUpModuleAsGradleModule(@NotNull Module module) {
-    GradleFacet gradleFacet = createAndAddGradleFacet(module);
-    String gradlePath = GRADLE_PATH_SEPARATOR + module.getName();
-    gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradlePath;
-
-    GradleProject gradleProjectStub = new GradleProjectStub(emptyList(), gradlePath, getBaseDirPath(module.getProject()));
-    GradleModuleModel model = new GradleModuleModel(module.getName(), gradleProjectStub, emptyList(), null, null, null, null);
-
-    gradleFacet.setGradleModuleModel(model);
   }
 }
