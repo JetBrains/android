@@ -55,7 +55,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.io.File;
-import java.util.function.Predicate;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
@@ -172,7 +171,7 @@ public class AndroidProfilerToolWindow implements Disposable {
    * project.
    */
   @Nullable
-  StudioProfilers getProfilers() {
+  public StudioProfilers getProfilers() {
     return myProfilersWrapper != null ? myProfilersWrapper.getProfilers() : null;
   }
 
@@ -187,7 +186,8 @@ public class AndroidProfilerToolWindow implements Disposable {
   public void profile(@NotNull PreferredProcessInfo processInfo) {
     if (tryInitializeProfilers()) {
       StudioProfilers profilers = myProfilersWrapper.getProfilers();
-      profilers.setPreferredProcess(processInfo.deviceName, processInfo.processName, processInfo.processFilter);
+      profilers
+        .setPreferredProcess(processInfo.getDeviceName(), processInfo.getProcessName(), p -> processInfo.getProcessFilter().invoke(p));
     }
   }
 
@@ -253,10 +253,16 @@ public class AndroidProfilerToolWindow implements Disposable {
    */
   @NotNull
   static String getDeviceDisplayName(@NotNull IDevice device) {
-    StringBuilder deviceNameBuilder = new StringBuilder();
     String manufacturer = TransportServiceProxy.getDeviceManufacturer(device);
     String model = TransportServiceProxy.getDeviceModel(device);
     String serial = device.getSerialNumber();
+    return getDeviceDisplayName(manufacturer, model, serial);
+  }
+
+  /** Gets the display name of a device with the given manufacturer, model, and serial string. */
+  @NotNull
+  public static String getDeviceDisplayName(@NotNull String manufacturer, @NotNull String model, @NotNull String serial) {
+    StringBuilder deviceNameBuilder = new StringBuilder();
     String suffix = String.format("-%s", serial);
     if (model.endsWith(suffix)) {
       model = model.substring(0, model.length() - suffix.length());
@@ -300,7 +306,8 @@ public class AndroidProfilerToolWindow implements Disposable {
       // but then opens the profiling window manually.
       PreferredProcessInfo processInfo = myProject.getUserData(LAST_RUN_APP_INFO);
       if (processInfo != null) {
-        myProfilers.setPreferredProcess(processInfo.deviceName, processInfo.processName, processInfo.processFilter);
+        myProfilers
+          .setPreferredProcess(processInfo.getDeviceName(), processInfo.getProcessName(), p -> processInfo.getProcessFilter().invoke(p));
         myProject.putUserData(LAST_RUN_APP_INFO, null);
       }
       else {
@@ -428,7 +435,8 @@ public class AndroidProfilerToolWindow implements Disposable {
         if (windowVisibilityChanged) {
           PreferredProcessInfo processInfo = myProject.getUserData(LAST_RUN_APP_INFO);
           if (processInfo != null && Common.Session.getDefaultInstance().equals(myProfilers.getSession())) {
-            myProfilers.setPreferredProcess(processInfo.deviceName, processInfo.processName, processInfo.processFilter);
+            myProfilers.setPreferredProcess(processInfo.getDeviceName(), processInfo.getProcessName(),
+                                            p -> processInfo.getProcessFilter().invoke(p));
           }
         }
       }
@@ -442,18 +450,6 @@ public class AndroidProfilerToolWindow implements Disposable {
           ToolWindowManager.getInstance(myProject).notifyByBalloon(AndroidProfilerToolWindowFactory.ID, MessageType.INFO, messageHtml);
         }
       }
-    }
-  }
-
-  static class PreferredProcessInfo {
-    @NotNull private final String deviceName;
-    @Nullable private final String processName;
-    @NotNull private final Predicate<Common.Process> processFilter;
-
-    PreferredProcessInfo(@NotNull String deviceName, @Nullable String processName, @NotNull Predicate<Common.Process> processFilter) {
-      this.deviceName = deviceName;
-      this.processName = processName;
-      this.processFilter = processFilter;
     }
   }
 }
