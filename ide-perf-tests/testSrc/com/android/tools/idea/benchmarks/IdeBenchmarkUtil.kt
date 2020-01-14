@@ -16,7 +16,10 @@
 package com.android.tools.idea.benchmarks
 
 import com.android.tools.perflogger.Metric
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.impl.ApplicationInfoImpl
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.newvfs.RefreshQueue
 import com.intellij.profile.codeInspection.ProjectInspectionProfileManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
@@ -27,6 +30,17 @@ import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
 
 const val EDITOR_PERFGATE_PROJECT_NAME = "Android Studio Editor"
+
+/**
+ * Makes sure that [ApplicationInfoImpl.isInStressTest] returns true, which
+ * in turns disables some expensive debug assertions in the platform.
+ * This gets us closer to a production setup.
+ */
+fun disableExpensivePlatformAssertions(fixture: CodeInsightTestFixture) {
+  ApplicationInfoImpl.setInStressTest(true)
+  Disposer.register(fixture.testRootDisposable,
+                    Disposable { ApplicationInfoImpl.setInStressTest(false) })
+}
 
 /** Enables all inspections which are on by default in production. */
 fun enableAllDefaultInspections(fixture: CodeInsightTestFixture) {

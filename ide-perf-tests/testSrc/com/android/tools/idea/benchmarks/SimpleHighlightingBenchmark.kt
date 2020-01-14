@@ -32,6 +32,7 @@ class SimpleHighlightingBenchmark {
 
   @Test
   fun simpleProjectHighlighting() {
+    disableExpensivePlatformAssertions(gradleRule.fixture)
     enableAllDefaultInspections(gradleRule.fixture)
 
     // Load project.
