@@ -46,6 +46,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.IncorrectOperationException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -267,7 +268,13 @@ public abstract class AndroidLightClassBase extends LightElement implements PsiC
   @NotNull
   @Override
   public PsiMethod[] findMethodsByName(@NonNls String name, boolean checkBases) {
-    return PsiMethod.EMPTY_ARRAY;
+    List<PsiMethod> methods = new ArrayList<>();
+    for (PsiMethod method : getMethods()) {
+      if (method.getName().equals(name)) {
+        methods.add(method);
+      }
+    }
+    return methods.isEmpty() ? PsiMethod.EMPTY_ARRAY : methods.toArray(PsiMethod.EMPTY_ARRAY);
   }
 
   @NotNull
