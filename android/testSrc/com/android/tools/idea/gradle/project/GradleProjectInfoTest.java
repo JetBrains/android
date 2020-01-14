@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project;
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
+import static com.android.tools.idea.testing.ProjectFiles.createFile;
 import static com.android.tools.idea.testing.ProjectFiles.createFileInProjectRoot;
 import static com.google.common.truth.Truth.assertThat;
 import static org.easymock.EasyMock.createMock;
@@ -60,24 +61,35 @@ public class GradleProjectInfoTest extends PlatformTestCase {
     myProjectInfo = GradleProjectInfo.getInstance(getProject());
   }
 
-  public void testHasTopLevelGradleBuildFileUsingGradleProject() throws Exception {
+  public void testHasTopLevelGradleFileBuildGradle() throws Exception {
     createFileInProjectRoot(getProject(), "build.gradle");
-    assertTrue(myProjectInfo.hasTopLevelGradleBuildFile());
+    assertTrue(myProjectInfo.hasTopLevelGradleFile());
   }
 
-  public void testHasTopLevelGradleBuildFileWithKtsFile() throws Exception {
+  public void testHasTopLevelGradleFileWithBuildGradleKts() throws Exception {
     createFileInProjectRoot(getProject(), "build.gradle.kts");
-    assertTrue(myProjectInfo.hasTopLevelGradleBuildFile());
+    assertTrue(myProjectInfo.hasTopLevelGradleFile());
   }
 
+  public void testHasTopLevelGradleFileSettingsGradle() throws Exception {
+    createFileInProjectRoot(getProject(), "settings.gradle");
+    assertTrue(myProjectInfo.hasTopLevelGradleFile());
+  }
+
+  public void testHasTopLevelGradleFileWithSettingsGradleKts() throws Exception {
+    createFileInProjectRoot(getProject(), "settings.gradle.kts");
+    assertTrue(myProjectInfo.hasTopLevelGradleFile());
+  }
   public void testHasTopLevelGradleBuildFileUsingNonGradleProject() {
     File projectFolderPath = getBaseDirPath(getProject());
-    File buildFilePath = new File(projectFolderPath, "build.gradle");
-    if (buildFilePath.exists()) {
-      assertTrue("Failed to delete top-level build.gradle file", buildFilePath.delete());
+    String[] filenames = { "build.gradle", "build.gradle.kts", "settings.gradle", "settings.gradle.kts" };
+    for (String filename : filenames ) {
+      File buildFilePath = new File(projectFolderPath, filename);
+      if (buildFilePath.exists()) {
+        assertTrue("Failed to delete top-level " + filename + " file", buildFilePath.delete());
+      }
     }
-
-    assertFalse(myProjectInfo.hasTopLevelGradleBuildFile());
+    assertFalse(myProjectInfo.hasTopLevelGradleFile());
   }
 
   public void testIsBuildWithGradleUsingGradleProject() {
