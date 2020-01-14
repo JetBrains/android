@@ -120,6 +120,17 @@ class DeviceViewContentPanelTest {
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_rotated.png"), generatedImage, DIFF_THRESHOLD)
 
+    panel.model.layerSpacing = 10
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_spacing1.png"), generatedImage, DIFF_THRESHOLD)
+
+    panel.model.layerSpacing = 200
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_spacing2.png"), generatedImage, DIFF_THRESHOLD)
+
+    panel.model.layerSpacing = INITIAL_LAYER_SPACING
     val windowRoot = model[ROOT]!!
     model.selection = windowRoot
     graphics = generatedImage.createGraphics()

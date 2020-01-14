@@ -123,7 +123,10 @@ class DeviceViewContentPanel(val inspectorModel: InspectorModel, val viewSetting
     })
 
     viewSettings.modificationListeners.add { repaint() }
-    model.modificationListeners.add { repaint() }
+    model.modificationListeners.add {
+      revalidate()
+      repaint()
+    }
   }
 
   private fun findClickedComponent(x: Int, y: Int) = model.findTopRect((x - size.width / 2.0) / viewSettings.scaleFraction,
