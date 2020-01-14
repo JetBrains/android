@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.sqlite.databaseConnection
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.google.common.util.concurrent.ListenableFuture
@@ -47,6 +48,7 @@ interface DatabaseConnection : Disposable {
   }
 }
 
+@WorkerThread
 interface DatabaseConnectionListener {
   /** Called when the execution of a [SqliteStatement] has been successful **/
   fun onSqliteStatementExecutionSuccess(sqliteStatement: SqliteStatement)

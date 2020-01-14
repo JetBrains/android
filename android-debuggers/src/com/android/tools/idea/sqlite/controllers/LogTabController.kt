@@ -20,16 +20,17 @@ import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionListen
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.logtab.LogTabView
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.invokeLater
 
 class LogTabController(private val view: LogTabView) {
   init {
     ApplicationManager.getApplication().messageBus.connect().subscribe(DatabaseConnection.TOPIC, object : DatabaseConnectionListener {
       override fun onSqliteStatementExecutionSuccess(sqliteStatement: SqliteStatement) {
-        view.log("Execution successful: ${sqliteStatement.sqliteStatementText}")
+        invokeLater { view.log("Execution successful: ${sqliteStatement.sqliteStatementText}") }
       }
 
       override fun onSqliteStatementExecutionFailed(sqliteStatement: SqliteStatement) {
-        view.logError("Execution failed: ${sqliteStatement.sqliteStatementText}")
+        invokeLater { view.logError("Execution failed: ${sqliteStatement.sqliteStatementText}") }
       }
     })
   }
