@@ -168,37 +168,4 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
     assertEquals(sqliteRows[0].values[3].value, 1)
     assertEquals(sqliteRows[0].values[4].value, "null")
   }
-
-  fun testEventBusIsCalledOnSuccess() {
-    // Prepare
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java)))
-      .thenReturn(Futures.immediateFuture(SqliteInspection.Cursor.newBuilder().build().toByteArray()))
-    val liveDatabaseConnection = LiveDatabaseConnection(mockMessenger, 1, taskExecutor)
-
-    val mockDatabaseConnectionListener = mock(DatabaseConnectionListener::class.java)
-    ApplicationManager.getApplication().messageBus.connect().subscribe(DatabaseConnection.TOPIC, mockDatabaseConnectionListener)
-
-    // Act
-    pumpEventsAndWaitForFuture(liveDatabaseConnection.execute(SqliteStatement("SELECT * FROM Book")))
-
-    // Assert
-    verify(mockDatabaseConnectionListener).onSqliteStatementExecutionSuccess(SqliteStatement("SELECT * FROM Book"))
-  }
-
-  fun testEventBusIsCalledOnFailure() {
-    // Prepare
-    val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
-    `when`(mockMessenger.sendRawCommand(any(ByteArray::class.java))).thenReturn(Futures.immediateFailedFuture(RuntimeException()))
-    val liveDatabaseConnection = LiveDatabaseConnection(mockMessenger, 1, taskExecutor)
-
-    val mockDatabaseConnectionListener = mock(DatabaseConnectionListener::class.java)
-    ApplicationManager.getApplication().messageBus.connect().subscribe(DatabaseConnection.TOPIC, mockDatabaseConnectionListener)
-
-    // Act
-    pumpEventsAndWaitForFutureException(liveDatabaseConnection.execute(SqliteStatement("SELECT * FROM Book")))
-
-    // Assert
-    verify(mockDatabaseConnectionListener).onSqliteStatementExecutionFailed(SqliteStatement("SELECT * FROM Book"))
-  }
 }
