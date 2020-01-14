@@ -66,8 +66,8 @@ public class AndroidFrameworkDetector extends FacetBasedFrameworkDetector<Androi
       GradleProjectInfo gradleProjectInfo = GradleProjectInfo.getInstance(project);
       // See https://code.google.com/p/android/issues/detail?id=203384
       // Since this method is invoked before sync, 'isBuildWithGradle' may return false even for Gradle projects. If that happens, we fall
-      // back to checking that a project has a build.gradle file.
-      if (gradleProjectInfo.isBuildWithGradle() || gradleProjectInfo.hasTopLevelGradleBuildFile()) {
+      // back to checking that a project has a suitable Gradle file at its toplevel.
+      if (gradleProjectInfo.isBuildWithGradle() || gradleProjectInfo.hasTopLevelGradleFile()) {
         return Collections.emptyList();
       }
     }
