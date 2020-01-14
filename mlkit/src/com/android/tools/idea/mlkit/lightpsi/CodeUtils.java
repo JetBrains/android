@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.mlkit.lightpsi;
 
-import com.android.tools.idea.mlkit.MlkitUtils;
 import com.android.tools.mlkit.Param;
-import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiType;
-import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.openapi.module.Module;
+import com.intellij.psi.PsiClass;
+import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Utility method to generate light class.
@@ -32,11 +32,16 @@ public class CodeUtils {
    */
   @NotNull
   public static String getTypeQualifiedName(@NotNull Param param) {
-    if (param.getContentType() == Param.ContentType.IMAGE) {
-      return ClassNames.VISION_IMAGE;
+    if (param.getSource() == Param.Source.INPUT) {
+      if (param.getContentType() == Param.ContentType.IMAGE) {
+        return ClassNames.VISION_IMAGE;
+      } else {
+        return ClassNames.BYTE_BUFFER;
+      }
     } else {
+      //TODO(jackqdyulei): support more type after API is finalized
       return ClassNames.BYTE_BUFFER;
     }
-  }
 
+  }
 }

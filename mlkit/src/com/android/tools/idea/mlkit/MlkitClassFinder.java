@@ -31,6 +31,7 @@ import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.indexing.FileBasedIndex;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -57,8 +58,8 @@ public class MlkitClassFinder extends PsiElementFinder {
   @Override
   public PsiClass[] findClasses(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
     if (StudioFlags.MLKIT_LIGHT_CLASSES.get()) {
-      List<LightModelClass> lightClassList = new ArrayList<>();
-      String className = StringUtil.getShortName(qualifiedName);
+      List<PsiClass> lightClassList = new ArrayList<>();
+      String className = computeDataKey(qualifiedName);
       FileBasedIndex.getInstance().processValues(MlModelFileIndex.INDEX_ID, className, null, (file, value) -> {
         Module module = ModuleUtilCore.findModuleForFile(file, myProject);
         if (module != null && AndroidFacet.getInstance(module) != null && value.isValidModel()) {
@@ -66,7 +67,13 @@ public class MlkitClassFinder extends PsiElementFinder {
           if (lightModelClass != null && lightModelClass.getQualifiedName().equals(qualifiedName)) {
             lightClassList.add(lightModelClass);
           }
+          for (PsiClass innerClass : lightModelClass.getInnerClasses()) {
+            if (innerClass.getQualifiedName().equals(qualifiedName)) {
+              lightClassList.add(innerClass);
+            }
+          }
         }
+
         return true;
       }, scope);
 
@@ -74,6 +81,19 @@ public class MlkitClassFinder extends PsiElementFinder {
     }
 
     return PsiClass.EMPTY_ARRAY;
+  }
+
+  @NotNull
+  private String computeDataKey(@NotNull String qualifiedName) {
+    // If it might inner class, then find second last element which matches data key.
+    if (qualifiedName.endsWith(MlkitNames.OUTPUT) || qualifiedName.endsWith(MlkitNames.LABEL)) {
+      String[] candidates = qualifiedName.split("\\.");
+      if (candidates.length >= 2) {
+        return candidates[candidates.length-2];
+      }
+    }
+
+    return StringUtil.getShortName(qualifiedName);
   }
 
   @Nullable

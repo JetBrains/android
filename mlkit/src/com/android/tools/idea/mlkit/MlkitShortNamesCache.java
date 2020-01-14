@@ -29,7 +29,9 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.indexing.FileBasedIndex;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,7 +49,7 @@ public class MlkitShortNamesCache extends PsiShortNamesCache {
   @Override
   public PsiClass[] getClassesByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
     if (StudioFlags.MLKIT_LIGHT_CLASSES.get()) {
-      List<LightModelClass> lightClassList = new ArrayList<>();
+      List<PsiClass> lightClassList = new ArrayList<>();
       FileBasedIndex.getInstance().processValues(MlModelFileIndex.INDEX_ID, name, null, (file, value) -> {
         Module module = ModuleUtilCore.findModuleForFile(file, myProject);
         if (module != null && AndroidFacet.getInstance(module) != null && value.isValidModel()) {

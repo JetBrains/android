@@ -39,6 +39,10 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,7 +53,7 @@ import org.jetbrains.annotations.Nullable;
 public class LightModelClass extends AndroidLightClassBase {
   private final LightModelClassConfig myClassConfig;
   private final PsiJavaFile myContainingFile;
-  private final CachedValue<MyMethods> myCachedMethods;
+  private final CachedValue<MyClassMembers> myCachedMembers;
   private PsiMethod[] myConstructors;
 
   public LightModelClass(@NotNull Module module, @NotNull LightModelClassConfig classConfig) {
@@ -66,17 +70,38 @@ public class LightModelClass extends AndroidLightClassBase {
 
     //TODO(jackqdyulei): create a more accurate modification tracker
     ModificationTracker modificationTracker = ModificationTracker.EVER_CHANGED;
-    myCachedMethods = CachedValuesManager.getManager(getProject()).createCachedValue(
+    myCachedMembers = CachedValuesManager.getManager(getProject()).createCachedValue(
       () -> {
         //Build methods
         PsiMethod[] methods = new PsiMethod[1];
         methods[0] = buildRunMethod(module);
 
-        //TODO(jackqdyulei): add inner class here
+        //Build inner class
+        List<Param> params = myClassConfig.myModelMetadata.getOutputParams();
 
-        MyMethods myMethods = new MyMethods(methods);
-        return CachedValueProvider.Result.create(myMethods, modificationTracker);
+        Map<String, PsiClass> innerClassMap = new HashMap<>();
+        MlkitOutputLightClass mlkitOutputClass = new MlkitOutputLightClass(module, params, this);
+        innerClassMap.putIfAbsent(mlkitOutputClass.getName(), mlkitOutputClass);
+
+        for (Param param : params) {
+          PsiClass psiClass = getParamInnerClass(module, param);
+          if (psiClass != null) {
+            innerClassMap.putIfAbsent(psiClass.getName(), psiClass);
+          }
+        }
+
+        MyClassMembers data = new MyClassMembers(methods, innerClassMap.values().toArray(PsiClass.EMPTY_ARRAY));
+        return CachedValueProvider.Result.create(data, modificationTracker);
       }, false);
+  }
+
+  @Nullable
+  private PsiClass getParamInnerClass(@NotNull Module module, @NotNull Param param) {
+    if (param.getFileType() == Param.FileType.TENSOR_AXIS_LABELS) {
+      return new MlkitLabelLightClass(module, param, this);
+    }
+    // TODO(jackqdyulei): Add more here when FileType has more types.
+    return null;
   }
 
   @Override
@@ -111,7 +136,7 @@ public class LightModelClass extends AndroidLightClassBase {
   @Override
   public PsiMethod[] getMethods() {
     //TODO(jackqdyulei): Also return constructors here.
-    return myCachedMethods.getValue().methods;
+    return myCachedMembers.getValue().myMethods;
   }
 
   @NotNull
@@ -151,14 +176,16 @@ public class LightModelClass extends AndroidLightClassBase {
   @NotNull
   @Override
   public PsiClass[] getInnerClasses() {
-    return super.getInnerClasses();
+    return myCachedMembers.getValue().myInnerClasses;
   }
 
-  private static class MyMethods {
-    public final PsiMethod[] methods;
+  private static class MyClassMembers {
+    public final PsiMethod[] myMethods;
+    public final PsiClass[] myInnerClasses;
 
-    public MyMethods(PsiMethod[] methods) {
-      this.methods = methods;
+    public MyClassMembers(PsiMethod[] methods, PsiClass[] innerClass) {
+      this.myMethods = methods;
+      this.myInnerClasses = innerClass;
     }
   }
 }

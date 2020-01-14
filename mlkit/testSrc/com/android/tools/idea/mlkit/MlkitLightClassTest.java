@@ -25,6 +25,7 @@ import com.intellij.codeInsight.lookup.Lookup;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.PsiTestUtil;
 import java.io.File;
@@ -43,9 +44,10 @@ public class MlkitLightClassTest extends AndroidTestCase {
     VirtualFile tfliteFile = myFixture.copyFileToProject("my_model.tflite", "/assets/my_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, tfliteFile);
 
-    PsiFile imageFile = myFixture.addFileToProject("src/com/google/firebase/ml/vision/common/FirebaseVisionImage.java",
-                                                   "package com.google.firebase.ml.vision.common;\n" +
-                                                   "public class FirebaseVisionImage {}\n");
+    PsiFile imageFile = myFixture.addFileToProject(
+      "src/com/google/firebase/ml/vision/common/FirebaseVisionImage.java",
+      "package com.google.firebase.ml.vision.common;\n" +
+      "public class FirebaseVisionImage {}\n");
     myFixture.allowTreeAccessForFile(imageFile.getVirtualFile());
   }
 
@@ -71,6 +73,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "\n" +
       "import android.app.Activity;\n" +
       "import android.os.Bundle;\n" +
+      "import java.nio.ByteBuffer;" +
       "import p1.p2.mlkit.auto.MyModel;\n" +
       "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
       "\n" +
@@ -80,7 +83,8 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "        super.onCreate(savedInstanceState);\n" +
       "        MyModel myModel = new MyModel(this);\n" +
       "        FirebaseVisionImage image = null;\n" +
-      "        myModel.run(image);\n" +
+      "        MyModel.Output output = myModel.run(image);\n" +
+      "        ByteBuffer byteBuffer = output.getProbability();\n" +
       "    }\n" +
       "}"
     );
@@ -90,7 +94,6 @@ public class MlkitLightClassTest extends AndroidTestCase {
   }
 
   public void testHighlighting_kotlin() {
-    //TODO(jackqdyulei): verify run method once inner output class is built
     PsiFile activityFile = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.kt",
       // language=kotlin
@@ -99,11 +102,17 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "import android.app.Activity\n" +
       "import android.os.Bundle\n" +
       "import p1.p2.mlkit.auto.MyModel\n" +
+      "import android.util.Log\n" +
+      "import com.google.firebase.ml.vision.common.FirebaseVisionImage\n" +
       "\n" +
       "class MainActivity : Activity() {\n" +
       "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
       "        super.onCreate(savedInstanceState)\n" +
-      "        MyModel(this)\n" +
+      "        val image: FirebaseVisionImage? = null\n" +
+      "        val mymodel = MyModel(this)\n" +
+      "        val output = mymodel.run(image)\n" +
+      "        val probability = output.probability\n" +
+      "        Log.d(\"TAG\", probability.toString())\n" +
       "    }\n" +
       "}"
     );
@@ -135,19 +144,64 @@ public class MlkitLightClassTest extends AndroidTestCase {
 
     myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
     myFixture.complete(CompletionType.BASIC);
+    myFixture.checkResult(
+      "package p1.p2;\n" +
+      "\n" +
+      "import android.app.Activity;\n" +
+      "import android.os.Bundle;\n" +
+      "import p1.p2.mlkit.auto.MyModel;\n" +
+      "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
+      "\n" +
+      "public class MainActivity extends Activity {\n" +
+      "    @Override\n" +
+      "    protected void onCreate(Bundle savedInstanceState) {\n" +
+      "        super.onCreate(savedInstanceState);\n" +
+      "        MyModel myModel = new MyModel(this);\n" +
+      "        myModel.run();\n" +
+      "    }\n" +
+      "}");
+  }
+
+  public void testCompleteInnerClass() {
+    PsiFile activityFile = myFixture.addFileToProject(
+      "/src/p1/p2/MainActivity.java",
+      // language=java
+      "package p1.p2;\n" +
+      "\n" +
+      "import android.app.Activity;\n" +
+      "import android.os.Bundle;\n" +
+      "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
+      "\n" +
+      "public class MainActivity extends Activity {\n" +
+      "    @Override\n" +
+      "    protected void onCreate(Bundle savedInstanceState) {\n" +
+      "        super.onCreate(savedInstanceState);\n" +
+      "        MyModel.<caret>;\n" +
+      "    }\n" +
+      "}"
+    );
+
+    myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
+    LookupElement[] elements = myFixture.complete(CompletionType.BASIC);
+    assertThat(elements).hasLength(2);
+    assertThat(elements[0].toString()).isEqualTo("MyModel.Label");
+    assertThat(elements[1].toString()).isEqualTo("MyModel.Output");
+
+    myFixture.getLookup().setCurrentItem(elements[0]);
+    myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR);
     myFixture.checkResult("package p1.p2;\n" +
                           "\n" +
                           "import android.app.Activity;\n" +
                           "import android.os.Bundle;\n" +
-                          "import p1.p2.mlkit.auto.MyModel;\n" +
                           "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
+                          "\n" +
+                          "import p1.p2.mlkit.auto.MyModel;\n" +
                           "\n" +
                           "public class MainActivity extends Activity {\n" +
                           "    @Override\n" +
                           "    protected void onCreate(Bundle savedInstanceState) {\n" +
                           "        super.onCreate(savedInstanceState);\n" +
-                          "        MyModel myModel = new MyModel(this);\n" +
-                          "        myModel.run();\n" +
+                          "        MyModel.Label;\n" +
                           "    }\n" +
                           "}");
   }
@@ -197,9 +251,9 @@ public class MlkitLightClassTest extends AndroidTestCase {
 
   public void testModuleService() {
     MlkitModuleService mlkitService = MlkitModuleService.getInstance(myModule);
-    List<LightModelClass> lightClasses = mlkitService.getLightModelClassList();
+    List<PsiClass> lightClasses = mlkitService.getLightModelClassList();
     assertThat(lightClasses).hasSize(1);
-    LightModelClass lightClass = Iterables.getOnlyElement(lightClasses);
+    PsiClass lightClass = Iterables.getOnlyElement(lightClasses);
     assertThat(lightClass.getName()).isEqualTo("MyModel");
     assertThat(ModuleUtilCore.findModuleForPsiElement(lightClass)).isEqualTo(myModule);
   }
