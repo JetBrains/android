@@ -297,10 +297,11 @@ class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : 
 
 class AndroidComposeSuppressor : InspectionSuppressor {
   override fun isSuppressedFor(element: PsiElement, toolId: String): Boolean {
-    return toolId == "FunctionName" &&
-      element.language == KotlinLanguage.INSTANCE &&
-      element.node.elementType == KtTokens.IDENTIFIER &&
-      element.parent.isComposableFunction()
+    return StudioFlags.COMPOSE_EDITOR_SUPPORT.get() &&
+           toolId == "FunctionName" &&
+           element.language == KotlinLanguage.INSTANCE &&
+           element.node.elementType == KtTokens.IDENTIFIER &&
+           element.parent.isComposableFunction()
   }
 
   override fun getSuppressActions(element: PsiElement?, toolId: String): Array<SuppressQuickFix> {

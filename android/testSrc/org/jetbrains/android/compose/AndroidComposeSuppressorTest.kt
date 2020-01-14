@@ -15,10 +15,21 @@
  */
 package org.jetbrains.android.compose
 
+import com.android.tools.idea.flags.StudioFlags
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.kotlin.idea.inspections.FunctionNameInspection
 
 class AndroidComposeSuppressorTest : AndroidTestCase() {
+
+  override fun setUp() {
+    super.setUp()
+    StudioFlags.COMPOSE_EDITOR_SUPPORT.override(true)
+  }
+
+  override fun tearDown() {
+    StudioFlags.COMPOSE_EDITOR_SUPPORT.clearOverride()
+    super.tearDown()
+  }
 
   fun testFunctionNameWarning(): Unit = myFixture.run {
     enableInspections(FunctionNameInspection::class.java)
