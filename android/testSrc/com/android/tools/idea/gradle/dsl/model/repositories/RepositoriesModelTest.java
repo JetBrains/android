@@ -25,12 +25,15 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_METHOD_CALL_PRESENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL;
-import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL_EMPTY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL_EMPTY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL_PRESENT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_TO_EMPTY_BUILDSCRIPT;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_TO_EMPTY_BUILDSCRIPT_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_WITH_WITH;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_JCENTER_REPOSITORY_BY_URL_EMPTY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_MAVEN_CENTRAL_REPOSITORY_BY_URL_EMPTY_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_REPOSITORY_BY_URL_EMPTY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_TO_EXISTING_FLAT_REPOSITORY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_TO_EXISTING_FLAT_REPOSITORY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_MULTIPLE_LOCAL_REPOS;
@@ -52,11 +55,13 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_NAME_FOR_METHOD_CALL;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_NAME_FOR_METHOD_CALL_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_URL_FOR_METHOD_CALL;
-import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_WITH_WITH;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_URL_FOR_METHOD_CALL_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel.RepositoryType;
 import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_NAME;
 import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_DEFAULT_REPO_URL;
 import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.GOOGLE_METHOD_NAME;
+import static com.android.tools.idea.gradle.dsl.model.repositories.JCenterRepositoryModel.JCENTER_DEFAULT_REPO_URL;
+import static com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralRepositoryModel.MAVEN_CENTRAL_DEFAULT_REPO_URL;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assume.assumeTrue;
 
@@ -363,11 +368,57 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddGoogleRepositoryByUrlEmpty() throws IOException {
-    writeToBuildFile(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL_EMPTY);
+    writeToBuildFile(REPOSITORIES_MODEL_ADD_REPOSITORY_BY_URL_EMPTY);
     GradleBuildModel buildModel = getGradleBuildModel();
     List<RepositoryModel> repositories = buildModel.repositories().repositories();
-    assertThat(repositories).hasSize(0);
+    assumeTrue(repositories.isEmpty());
     verifyAddGoogleRepositoryByUrl(REPOSITORIES_MODEL_ADD_GOOGLE_REPOSITORY_BY_URL_EMPTY_EXPECTED);
+  }
+
+  @Test
+  public void testAddMavenCentralRepositoryByUrlEmpty() throws IOException {
+    writeToBuildFile(REPOSITORIES_MODEL_ADD_REPOSITORY_BY_URL_EMPTY);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assumeTrue(repositories.isEmpty());
+    int prevSize = repositories.size();
+
+    repositoriesModel.addMavenRepositoryByUrl(MAVEN_CENTRAL_DEFAULT_REPO_URL, "MavenRepo");
+    assertTrue(buildModel.isModified());
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_ADD_MAVEN_CENTRAL_REPOSITORY_BY_URL_EMPTY_EXPECTED);
+
+    assertFalse(buildModel.isModified());
+
+    repositoriesModel = buildModel.repositories();
+    repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(prevSize + 1);
+    verifyMavenRepositoryModel(repositories.get(prevSize), MAVEN_CENTRAL_DEFAULT_REPO_URL, "MavenRepo", RepositoryType.MAVEN_CENTRAL);
+  }
+
+  @Test
+  public void testAddJCenterRepositoryByUrlEmpty() throws IOException {
+    writeToBuildFile(REPOSITORIES_MODEL_ADD_REPOSITORY_BY_URL_EMPTY);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assumeTrue(repositories.isEmpty());
+
+    int prevSize = repositories.size();
+
+    repositoriesModel.addMavenRepositoryByUrl(JCENTER_DEFAULT_REPO_URL, "BintrayJCenter2");
+    assertTrue(buildModel.isModified());
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_ADD_JCENTER_REPOSITORY_BY_URL_EMPTY_EXPECTED);
+
+    assertFalse(buildModel.isModified());
+
+    repositoriesModel = buildModel.repositories();
+    repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(prevSize + 1);
+    verifyMavenRepositoryModel(repositories.get(prevSize), JCENTER_DEFAULT_REPO_URL, "BintrayJCenter2", RepositoryType.JCENTER_DEFAULT);
   }
 
   @Test
@@ -442,13 +493,18 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     verifyGoogleMavenRepositoryModel(repositories.get(prevSize));
   }
 
-  private static void verifyGoogleMavenRepositoryModel(RepositoryModel repository) {
+  private static void verifyMavenRepositoryModel(RepositoryModel repository, String url, String name, RepositoryType type) {
     assertThat(repository).isInstanceOf(MavenRepositoryModelImpl.class);
     MavenRepositoryModelImpl mavenRepository = (MavenRepositoryModelImpl)repository;
-    assertNotNull("url", mavenRepository.url().getPsiElement());
-    assertEquals("url", GOOGLE_DEFAULT_REPO_URL, mavenRepository.url().toString());
-    assertNotNull("name", mavenRepository.name().getPsiElement());
-    assertEquals("name", GOOGLE_DEFAULT_REPO_NAME, mavenRepository.name().toString());
+    assertNotNull("url Psi", mavenRepository.url().getPsiElement());
+    assertEquals("url", url, mavenRepository.url().toString());
+    assertNotNull("name Psi", mavenRepository.name().getPsiElement());
+    assertEquals("name", name, mavenRepository.name().toString());
+    assertEquals("type", type, mavenRepository.getType());
+  }
+
+  private static void verifyGoogleMavenRepositoryModel(RepositoryModel repository) {
+    verifyMavenRepositoryModel(repository, GOOGLE_DEFAULT_REPO_URL, GOOGLE_DEFAULT_REPO_NAME, RepositoryType.GOOGLE_DEFAULT);
   }
 
   @Test
@@ -472,6 +528,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     FlatDirRepositoryModel flatModel = (FlatDirRepositoryModel)repos.get(0);
     assertThat(flatModel.dirs().toList()).hasSize(1);
     assertEquals("/usr/local/repo", flatModel.dirs().toList().get(0).toString());
+    assertEquals(RepositoryType.FLAT_DIR, flatModel.getType());
   }
 
   @Test
@@ -495,6 +552,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     FlatDirRepositoryModel flatModel = (FlatDirRepositoryModel)repos.get(0);
     assertThat(flatModel.dirs().toList()).hasSize(1);
     assertEquals("/usr/local/repo", flatModel.dirs().toList().get(0).toString());
+    assertEquals(RepositoryType.FLAT_DIR, flatModel.getType());
   }
 
   @Test
