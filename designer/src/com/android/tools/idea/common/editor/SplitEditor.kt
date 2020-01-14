@@ -144,7 +144,15 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
         // when in design mode, as we change the mode to text-only.
         onUserSelectedAction()
       }
-      component.requestFocus()
+
+      if (state) {
+        if (delegate == super@SplitEditor.getShowPreviewAction()) {
+          myPreview.component.requestFocus()
+        }
+        else {
+          editor.component.requestFocus()
+        }
+      }
     }
 
     override fun update(e: AnActionEvent) {
