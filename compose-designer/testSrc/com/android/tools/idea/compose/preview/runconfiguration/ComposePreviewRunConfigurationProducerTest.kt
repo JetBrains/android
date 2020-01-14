@@ -26,7 +26,6 @@ import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.MapDataContext
-import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
 class ComposePreviewRunConfigurationProducerTest : ComposeLightJavaCodeInsightFixtureTestCase() {
@@ -37,16 +36,18 @@ class ComposePreviewRunConfigurationProducerTest : ComposeLightJavaCodeInsightFi
     super.setUp()
     StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.override(true)
 
-    @Language("kotlin")
-    val file = myFixture.addFileToProject("src/Test.kt", """
-      import androidx.ui.tooling.preview.Preview
-      import androidx.compose.Composable
+    val file = myFixture.addFileToProject(
+      "src/Test.kt",
+      // language=kotlin
+      """
+        import androidx.ui.tooling.preview.Preview
+        import androidx.compose.Composable
 
-      @Composable
-      @Preview
-      fun Preview1() {
-      }
-    """.trimIndent())
+        @Composable
+        @Preview
+        fun Preview1() {
+        }
+      """.trimIndent())
     composableFunction = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first()
   }
 
@@ -75,27 +76,29 @@ class ComposePreviewRunConfigurationProducerTest : ComposeLightJavaCodeInsightFi
   }
 
   fun testInvalidContexts() {
-    @Language("kotlin")
-    val file = myFixture.addFileToProject("src/TestNotPreview.kt", """
-      import androidx.ui.tooling.preview.Preview
-      import androidx.compose.Composable
+    val file = myFixture.addFileToProject(
+      "src/TestNotPreview.kt",
+      // language=kotlin
+      """
+        import androidx.ui.tooling.preview.Preview
+        import androidx.compose.Composable
 
-      @Preview
-      @Composable
-      fun Test() {
-        fun NotAPreview() {
-        }
-      }
-
-      @Preview
-      @Composable
-      fun Test() {
         @Preview
         @Composable
-        fun NestedPreview() {
+        fun Test() {
+          fun NotAPreview() {
+          }
         }
-      }
-    """.trimIndent())
+
+        @Preview
+        @Composable
+        fun Test() {
+          @Preview
+          @Composable
+          fun NestedPreview() {
+          }
+        }
+      """.trimIndent())
 
     val notPreview = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first { it.name == "NotAPreview" }
     val notPreviewConfiguration = createConfigurationFromElement(notPreview)
