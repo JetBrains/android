@@ -20,7 +20,6 @@ import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFut
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.DatabaseInspectorFlagController
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionListener
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.fileType.SqliteTestUtil
 import com.android.tools.idea.sqlite.model.SqliteAffinity
@@ -34,8 +33,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import org.jetbrains.ide.PooledThreadExecutor
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
 import java.sql.DriverManager
 
 class JdbcDatabaseConnectionTest : PlatformTestCase() {
@@ -293,30 +290,6 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     assertEquals(SqliteAffinity.TEXT, columns.first { it.name == "column2" }.affinity)
     assertEquals(SqliteAffinity.REAL, columns.first { it.name == "column3" }.affinity)
     assertEquals(SqliteAffinity.REAL, columns.first { it.name == "column4" }.affinity)
-  }
-
-  fun testEventBusIsCalledOnSuccess() {
-    // Prepare
-    val mockDatabaseConnectionListener = mock(DatabaseConnectionListener::class.java)
-    ApplicationManager.getApplication().messageBus.connect().subscribe(DatabaseConnection.TOPIC, mockDatabaseConnectionListener)
-
-    // Act
-    pumpEventsAndWaitForFuture(databaseConnection.execute(SqliteStatement("SELECT * FROM Book")))
-
-    // Assert
-    verify(mockDatabaseConnectionListener).onSqliteStatementExecutionSuccess(SqliteStatement("SELECT * FROM Book"))
-  }
-
-  fun testEventBusIsCalledOnFailure() {
-    // Prepare
-    val mockDatabaseConnectionListener = mock(DatabaseConnectionListener::class.java)
-    ApplicationManager.getApplication().messageBus.connect().subscribe(DatabaseConnection.TOPIC, mockDatabaseConnectionListener)
-
-    // Act
-    pumpEventsAndWaitForFutureException(databaseConnection.execute(SqliteStatement("SELECT * FROM wrongtable")))
-
-    // Assert
-    verify(mockDatabaseConnectionListener).onSqliteStatementExecutionFailed(SqliteStatement("SELECT * FROM wrongtable"))
   }
 
   private fun SqliteResultSet.hasColumn(name: String, affinity: SqliteAffinity) : Boolean {

@@ -28,11 +28,8 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.getRowIdName
 import com.android.tools.sql.protocol.SqliteInspection
-import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.SettableFuture
-import com.intellij.openapi.application.ApplicationManager
 import java.util.concurrent.Executor
 
 /**
@@ -63,42 +60,20 @@ class LiveDatabaseConnection(
   }
 
   override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet?> {
-    val messageBus = ApplicationManager.getApplication().messageBus.syncPublisher(DatabaseConnection.TOPIC)
-    try {
-      // TODO(b/144336989) pass SqliteStatement object instead of String.
-      val queryBuilder = SqliteInspection.QueryCommand.newBuilder().setQuery(sqliteStatement.assignValuesToParameters()).setDatabaseId(id)
-      // TODO: next CL. Figure out how to do this
-      //hints.forEach { queryBuilder.addAffectedTables(it) }
-      val command = SqliteInspection.Commands.newBuilder().setQuery(queryBuilder).build()
-      val responseFuture = messenger.sendRawCommand(command.toByteArray())
+    // TODO(b/144336989) pass SqliteStatement object instead of String.
+    val queryBuilder = SqliteInspection.QueryCommand.newBuilder().setQuery(sqliteStatement.assignValuesToParameters()).setDatabaseId(id)
+    // TODO: next CL. Figure out how to do this
+    //hints.forEach { queryBuilder.addAffectedTables(it) }
+    val command = SqliteInspection.Commands.newBuilder().setQuery(queryBuilder).build()
+    val responseFuture = messenger.sendRawCommand(command.toByteArray())
 
-      val handleResponseFuture: ListenableFuture<SqliteResultSet?> = taskExecutor.transform(responseFuture) {
-        messageBus.onSqliteStatementExecutionSuccess(sqliteStatement)
-        val cursor = SqliteInspection.Cursor.parseFrom(it)
-        if (cursor.rowsList.size == 0) {
-          null
-        } else {
-          getLiveSqliteResultSet(cursor)
-        }
+    return taskExecutor.transform(responseFuture) {
+      val cursor = SqliteInspection.Cursor.parseFrom(it)
+      if (cursor.rowsList.size == 0) {
+        null
+      } else {
+        getLiveSqliteResultSet(cursor)
       }
-
-      val settableFuture = SettableFuture.create<SqliteResultSet?>()
-
-      taskExecutor.addCallback(handleResponseFuture, object : FutureCallback<SqliteResultSet?> {
-        override fun onSuccess(result: SqliteResultSet?) {
-          settableFuture.set(result)
-        }
-
-        override fun onFailure(t: Throwable) {
-          messageBus.onSqliteStatementExecutionFailed(sqliteStatement)
-          settableFuture.setException(t)
-        }
-      })
-
-      return settableFuture
-    } catch (e: Exception) {
-      messageBus.onSqliteStatementExecutionFailed(sqliteStatement)
-      throw e
     }
   }
 

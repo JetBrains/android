@@ -60,7 +60,7 @@ class DatabaseConnectionFactoryImpl : DatabaseConnectionFactory {
 
         logger.info("Successfully opened database: ${sqliteFile.path}")
 
-        return@executeAsync JdbcDatabaseConnection(connection, sqliteFile, executor)
+        return@executeAsync BroadcastingDatabaseConnection(JdbcDatabaseConnection(connection, sqliteFile, executor), executor)
 
       }
       catch (e: Exception) {
@@ -74,6 +74,6 @@ class DatabaseConnectionFactoryImpl : DatabaseConnectionFactory {
     id: Int,
     executor: FutureCallbackExecutor
   ): ListenableFuture<DatabaseConnection> {
-    return Futures.immediateFuture(LiveDatabaseConnection(messenger, id, executor))
+    return Futures.immediateFuture(BroadcastingDatabaseConnection(LiveDatabaseConnection(messenger, id, executor), executor))
   }
 }

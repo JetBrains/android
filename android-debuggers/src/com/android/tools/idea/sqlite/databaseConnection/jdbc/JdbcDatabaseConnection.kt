@@ -17,7 +17,6 @@ package com.android.tools.idea.sqlite.databaseConnection.jdbc
 
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection.Companion.TOPIC
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteColumn
@@ -26,7 +25,6 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.model.SqliteTable
 import com.android.tools.idea.sqlite.model.getRowIdName
 import com.google.common.util.concurrent.ListenableFuture
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.SequentialTaskExecutor
@@ -93,23 +91,16 @@ class JdbcDatabaseConnection(
 
   override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet?> {
     return sequentialTaskExecutor.executeAsync {
-      val messageBus = ApplicationManager.getApplication().messageBus.syncPublisher(TOPIC)
-      try {
-        val preparedStatement = connection.resolvePreparedStatement(sqliteStatement)
-        val hasResultSet = preparedStatement.execute().also {
-          messageBus.onSqliteStatementExecutionSuccess(sqliteStatement)
-          logger.info("SQL statement \"${sqliteStatement.sqliteStatementText}\" executed with success.")
-        }
+      val preparedStatement = connection.resolvePreparedStatement(sqliteStatement)
+      val hasResultSet = preparedStatement.execute().also {
+        logger.info("SQL statement \"${sqliteStatement.sqliteStatementText}\" executed with success.")
+      }
 
-        if (hasResultSet) {
-          JdbcSqliteResultSet(this, connection, sqliteStatement)
-        }
-        else {
-          null
-        }
-      } catch (e: Exception) {
-        messageBus.onSqliteStatementExecutionFailed(sqliteStatement)
-        throw e
+      if (hasResultSet) {
+        JdbcSqliteResultSet(this, connection, sqliteStatement)
+      }
+      else {
+        null
       }
     }
   }
