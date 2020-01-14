@@ -773,7 +773,7 @@ public final class StudioFlags {
     COMPOSE, "wizard.templates",
     "Show Compose Wizards",
     "If enabled, allows adding new Compose Projects/Modules/Activities through the wizards",
-    true
+    false
   );
   //endregion
 
