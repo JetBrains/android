@@ -100,8 +100,8 @@ fun parseLanguageLevel(text: String): Annotated<ParsedValue<LanguageLevel>> =
 
 fun parseHashString(text: String) =
   if (text.isEmpty()) ParsedValue.NotSet.annotated()
-  else AndroidTargetHash.getPlatformVersion(text)?.let { ParsedValue.Set.Parsed(text, DslText.Literal).annotated() }
-       ?: ParsedValue.Set.Parsed(text, DslText.Literal).annotateWithError("Invalid hash string")
+  else ParsedValue.Set.Parsed(text, DslText.Literal).annotated()
+
 
 fun parseGradleVersion(text: String): Annotated<ParsedValue<GradleVersion>> =
   if (text == "")
