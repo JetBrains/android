@@ -20,6 +20,7 @@ import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.logtab.LogTabView
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.PlatformTestUtil
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 
@@ -37,6 +38,7 @@ class LogTabControllerTest : LightPlatformTestCase() {
     // Act
     ApplicationManager.getApplication()
       .messageBus.syncPublisher(DatabaseConnection.TOPIC).onSqliteStatementExecutionSuccess(SqliteStatement("statement"))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
     verify(mockLogTabView).log("Execution successful: statement")
@@ -48,6 +50,7 @@ class LogTabControllerTest : LightPlatformTestCase() {
     // Act
     ApplicationManager.getApplication()
       .messageBus.syncPublisher(DatabaseConnection.TOPIC).onSqliteStatementExecutionFailed(SqliteStatement("statement"))
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
     verify(mockLogTabView).logError("Execution failed: statement")
