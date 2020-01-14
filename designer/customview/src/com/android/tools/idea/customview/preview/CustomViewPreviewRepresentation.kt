@@ -46,14 +46,18 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClassOwner
 import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import java.awt.BorderLayout
 import java.util.function.BiFunction
 import java.util.function.Consumer
@@ -79,17 +83,20 @@ private fun getXmlLayout(qualifiedName: String, shrinkWidth: Boolean, shrinkHeig
  * present in the file.
  */
 class CustomViewPreviewRepresentation(
-  private val psiFile: PsiFile,
+  psiFile: PsiFile,
   persistenceProvider: (Project) -> PropertiesComponent = { p -> PropertiesComponent.getInstance(p)}) :
   PreviewRepresentation, CustomViewPreviewManager {
 
+  companion object {
+    private val LOG = Logger.getInstance(CustomViewPreviewRepresentation::class.java)
+  }
   private val project = psiFile.project
-  private val virtualFile = psiFile.virtualFile!!
+  private val psiFilePointer = SmartPointerManager.createPointer(psiFile)
   private val persistenceManager = persistenceProvider(project)
   private var stateTracker: CustomViewVisualStateTracker
   private var configurationListener = ConfigurationListener { true }
 
-  private val previewId = "$CUSTOM_VIEW_PREVIEW_ID${virtualFile.path}"
+  private val previewId = "$CUSTOM_VIEW_PREVIEW_ID${psiFile.virtualFile!!.path}"
   private val currentStatePropertyName = "${previewId}_SELECTED"
   private fun dimensionsPropertyNameForClass(className: String) = "${previewId}_${className}_DIMENSIONS"
   private fun wrapContentWidthPropertyNameForClass(className: String) = "${previewId}_${className}_WRAP_CONTENT_W"
@@ -199,7 +206,7 @@ class CustomViewPreviewRepresentation(
         CustomViewVisualStateTracker.BuildState.SUCCESSFUL
       else -> CustomViewVisualStateTracker.BuildState.FAILED
     }
-    val fileState = if (FileDocumentManager.getInstance().isFileModified(virtualFile))
+    val fileState = if (FileDocumentManager.getInstance().isFileModified(psiFile.virtualFile))
       CustomViewVisualStateTracker.FileState.MODIFIED
     else
       CustomViewVisualStateTracker.FileState.UP_TO_DATE
@@ -207,7 +214,13 @@ class CustomViewPreviewRepresentation(
       buildState = buildState,
       fileState = fileState,
       onNotificationStateChanged = {
-        EditorNotifications.getInstance(project).updateNotifications(virtualFile)
+        val file = psiFilePointer.element
+        if (file == null || !file.isValid) {
+          LOG.warn("onNotificationStateChanged with invalid PsiFile")
+          return@CustomViewVisualStateTracker
+        }
+
+        EditorNotifications.getInstance(project).updateNotifications(file.virtualFile)
       },
       onPreviewStateChanged = {
         UIUtil.invokeLaterIfNeeded {
@@ -234,6 +247,18 @@ class CustomViewPreviewRepresentation(
 
     setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
+        val file = psiFilePointer.element
+        if (file == null || !file.isValid) {
+          LOG.debug("invalid PsiFile")
+          return
+        }
+
+        // Clean-up the class loading cache for all the possibly affected modules.
+        val module = ModuleUtil.findModuleForFile(file)!!
+        val modules = mutableSetOf<Module>()
+        ModuleUtil.collectModulesDependsOn(module, modules)
+        modules.forEach { ModuleClassLoaderManager.get().clearCache(it) }
+
         stateTracker.setBuildState(CustomViewVisualStateTracker.BuildState.SUCCESSFUL)
         refresh()
       }
@@ -263,10 +288,16 @@ class CustomViewPreviewRepresentation(
    * Refresh the preview surfaces
    */
   private fun refresh() {
+    val psiFile = psiFilePointer.element
+    if (psiFile == null || !psiFile.isValid) {
+      LOG.warn("refresh with invalid PsiFile")
+      return
+    }
+
     stateTracker.setVisualState(CustomViewVisualStateTracker.VisualState.RENDERING)
     // We are in a smart mode here
     classes = (AndroidPsiUtils.getPsiFileSafely(project,
-                                                virtualFile) as PsiClassOwner).classes.filter { it.name != null && it.extendsView() }.mapNotNull { it.qualifiedName }
+                                                psiFile.virtualFile) as PsiClassOwner).classes.filter { it.name != null && it.extendsView() }.mapNotNull { it.qualifiedName }
     // This may happen if custom view classes got removed from the file
     if (classes.isEmpty()) {
       return
@@ -284,6 +315,12 @@ class CustomViewPreviewRepresentation(
   }
 
   private fun updateModel() {
+    val psiFile = psiFilePointer.element
+    if (psiFile == null || !psiFile.isValid) {
+      LOG.warn("updateModel with invalid PsiFile")
+      return
+    }
+
     val selectedClass = classes.firstOrNull { fqcn2name(it) == currentView }
     selectedClass?.let {
       val fileContent = getXmlLayout(selectedClass, shrinkWidth, shrinkHeight)
@@ -330,7 +367,13 @@ class CustomViewPreviewRepresentation(
   }
 
   override fun updateNotifications(parentEditor: FileEditor) {
-    notificationsPanel.updateNotifications(virtualFile, parentEditor, project)
+    val psiFile = psiFilePointer.element
+    if (psiFile == null || !psiFile.isValid) {
+      LOG.warn("updateNotifications with invalid PsiFile")
+      return
+    }
+
+    notificationsPanel.updateNotifications(psiFile.virtualFile, parentEditor, project)
   }
 
   override fun registerShortcuts(applicableTo: JComponent) {
