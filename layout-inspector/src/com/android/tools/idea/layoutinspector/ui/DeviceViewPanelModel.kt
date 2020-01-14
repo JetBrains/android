@@ -30,8 +30,6 @@ import kotlin.math.hypot
 import kotlin.math.min
 import kotlin.math.sqrt
 
-private const val LAYER_SPACING = 150
-
 val DEVICE_VIEW_MODEL_KEY = DataKey.create<DeviceViewPanelModel>(DeviceViewPanelModel::class.qualifiedName!!)
 
 data class ViewDrawInfo(val bounds: Shape, val transform: AffineTransform, val node: ViewNode, val clip: Rectangle)
@@ -46,10 +44,10 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   private var maxDepth: Int = 0
 
   internal val maxWidth
-    get() = hypot((maxDepth * LAYER_SPACING).toFloat(), rootBounds.width.toFloat()).toInt()
+    get() = hypot((maxDepth * layerSpacing).toFloat(), rootBounds.width.toFloat()).toInt()
 
   internal val maxHeight
-    get() = hypot((maxDepth * LAYER_SPACING).toFloat(), rootBounds.height.toFloat()).toInt()
+    get() = hypot((maxDepth * layerSpacing).toFloat(), rootBounds.height.toFloat()).toInt()
 
   val isRotated
     get() = xOff != 0.0 || yOff != 0.0
@@ -67,10 +65,17 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
       field = value
       modificationListeners.forEach { it() }
     }
+
   var overlayAlpha: Float = INITIAL_ALPHA_PERCENT / 100f
     set(value) {
       field = value
       modificationListeners.forEach { it() }
+    }
+
+  var layerSpacing: Int = INITIAL_LAYER_SPACING
+    set(value) {
+      field = value
+      refresh()
     }
 
   init {
@@ -175,7 +180,7 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
         val viewTransform = AffineTransform(transform)
 
         val sign = if (xOff < 0) -1 else 1
-        viewTransform.translate(magnitude * (level - maxDepth / 2) * LAYER_SPACING * sign, 0.0)
+        viewTransform.translate(magnitude * (level - maxDepth / 2) * layerSpacing * sign, 0.0)
         viewTransform.scale(sqrt(1.0 - magnitude * magnitude), 1.0)
         viewTransform.rotate(-angle)
         viewTransform.translate(-rootBounds.width / 2.0, -rootBounds.height / 2.0)
