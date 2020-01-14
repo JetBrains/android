@@ -153,7 +153,8 @@
 
     <applicationInitializedListener implementation="com.android.tools.idea.stats.UserSentimentProjectComponent"/>
     <applicationConfigurable parentId="preferences.general"
-                             displayName="Memory Settings"
+                             bundle="messages.AndroidBundle"
+                             key="configurable.MemorySettingsConfigurable.display.name"
                              provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
                              id="memory.settings"/>
   </extensions>
