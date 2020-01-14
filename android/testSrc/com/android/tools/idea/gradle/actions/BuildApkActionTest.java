@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_APP;
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_DYNAMIC_FEATURE;
-import static com.android.SdkConstants.GRADLE_PATH_SEPARATOR;
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
-import static java.util.Collections.emptyList;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
+import static com.android.tools.idea.testing.JavaModuleModelBuilder.getRootModuleBuilder;
+import static com.google.common.truth.TruthJUnit.assume;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
@@ -27,40 +28,24 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-import com.android.ide.common.gradle.model.IdeAndroidProject;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType;
-import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
-import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
-import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.testing.Facets;
+import com.android.tools.idea.testing.AndroidModuleModelBuilder;
+import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.HeavyPlatformTestCase;
-import org.gradle.tooling.model.GradleProject;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
+import java.io.File;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link BuildApkAction}.
  */
 public class BuildApkActionTest extends HeavyPlatformTestCase {
-  @Mock private GradleProjectInfo myGradleProjectInfo;
   @Mock private GradleBuildInvoker myBuildInvoker;
-  @Mock private ProjectStructure myProjectStructure;
-  @Mock private AndroidModuleModel myAndroidModel;
-  @Mock private IdeAndroidProject myIdeAndroidProject;
-  @Mock private AndroidModuleModel myAndroidModel2;
-  @Mock private IdeAndroidProject myIdeAndroidProject2;
   private BuildApkAction myAction;
 
   @Override
@@ -69,69 +54,47 @@ public class BuildApkActionTest extends HeavyPlatformTestCase {
     initMocks(this);
 
     new IdeComponents(myProject).replaceProjectService(GradleBuildInvoker.class, myBuildInvoker);
-    new IdeComponents(myProject).replaceProjectService(GradleProjectInfo.class, myGradleProjectInfo);
-    new IdeComponents(myProject).replaceProjectService(ProjectStructure.class, myProjectStructure);
     myAction = new BuildApkAction();
   }
 
   public void testActionPerformed() {
-    Module app1Module = createModule("app1");
-    Module app2Module = createModule("app2");
-
-    Module[] appModules = {app1Module, app2Module};
-    when(myProjectStructure.getAppModules()).thenReturn(ImmutableList.copyOf(appModules));
-    when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
+    setupTestProjectFromAndroidModel(
+      getProject(),
+      new File(getProject().getBasePath()),
+      getRootModuleBuilder(),
+      new AndroidModuleModelBuilder(":app1", "debug", new AndroidProjectBuilder().withProjectType(it -> PROJECT_TYPE_APP)),
+      new AndroidModuleModelBuilder(":app2", "debug", new AndroidProjectBuilder().withProjectType(it -> PROJECT_TYPE_APP))
+    );
+    Module[] appModules = new Module[]{gradleModule(getProject(), ":app1"), gradleModule(getProject(), ":app2")};
+    assume().that(appModules).asList().doesNotContain(null);
 
     AnActionEvent event = mock(AnActionEvent.class);
     when(event.getProject()).thenReturn(getProject());
-
     myAction.actionPerformed(event);
 
-    verify(myBuildInvoker).assemble(eq(appModules), eq(TestCompileType.ALL), any(OutputBuildAction.class));
+    verify(myBuildInvoker).assemble(eq(appModules), eq(TestCompileType.ALL), eq(null));
   }
 
   public void testActionPerformedForDynamicApp() {
-    // Setup "app" as a dynamic app with a single feature "feature1"
-    Module appModule = createModule("app");
-    setUpModuleAsAndroidModule(appModule, myAndroidModel, myIdeAndroidProject);
-
-    Module featureModule = createModule("feature1");
-    setUpModuleAsAndroidModule(featureModule, myAndroidModel2, myIdeAndroidProject2);
-    when(myIdeAndroidProject.getDynamicFeatures()).thenReturn(ImmutableList.of(":feature1"));
-    when(myIdeAndroidProject2.getProjectType()).thenReturn(PROJECT_TYPE_DYNAMIC_FEATURE);
-
-    when(myProjectStructure.getAppModules()).thenReturn(ImmutableList.of(appModule));
-    when(myGradleProjectInfo.isBuildWithGradle()).thenReturn(true);
+    setupTestProjectFromAndroidModel(
+      getProject(),
+      new File(getProject().getBasePath()),
+      getRootModuleBuilder(),
+      new AndroidModuleModelBuilder(
+        ":app", "debug",
+        new AndroidProjectBuilder()
+          .withProjectType(it -> PROJECT_TYPE_APP)
+          .withDynamicFeatures(it -> ImmutableList.of(":feature1"))
+      ),
+      new AndroidModuleModelBuilder(":feature1", "debug", new AndroidProjectBuilder().withProjectType(it -> PROJECT_TYPE_DYNAMIC_FEATURE))
+    );
+    Module[] allModules = new Module[]{gradleModule(getProject(), ":app"), gradleModule(getProject(), ":feature1")};
+    assume().that(allModules).asList().doesNotContain(null);
 
     AnActionEvent event = mock(AnActionEvent.class);
     when(event.getProject()).thenReturn(getProject());
-
     myAction.actionPerformed(event);
 
-    Module[] allModules = {appModule, featureModule};
     verify(myBuildInvoker).assemble(eq(allModules), eq(TestCompileType.ALL), eq(null));
-  }
-
-  private static void setUpModuleAsAndroidModule(Module module, AndroidModuleModel androidModel, IdeAndroidProject ideAndroidProject) {
-    setUpModuleAsGradleModule(module);
-
-    when(androidModel.getAndroidProject()).thenReturn(ideAndroidProject);
-
-    AndroidModelFeatures androidModelFeatures = mock(AndroidModelFeatures.class);
-    when(androidModel.getFeatures()).thenReturn(androidModelFeatures);
-
-    AndroidFacet androidFacet = Facets.createAndAddAndroidFacet(module);
-    AndroidModel.set(androidFacet, androidModel);
-  }
-
-  private static void setUpModuleAsGradleModule(@NotNull Module module) {
-    GradleFacet gradleFacet = createAndAddGradleFacet(module);
-    String gradlePath = GRADLE_PATH_SEPARATOR + module.getName();
-    gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradlePath;
-
-    GradleProject gradleProjectStub = new GradleProjectStub(emptyList(), gradlePath, getBaseDirPath(module.getProject()));
-    GradleModuleModel model = new GradleModuleModel(module.getName(), gradleProjectStub, emptyList(), null, null, null, null);
-
-    gradleFacet.setGradleModuleModel(model);
   }
 }

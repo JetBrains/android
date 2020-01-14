@@ -66,6 +66,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTask
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup
+import com.android.tools.idea.gradle.util.GradleProjects
+import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
@@ -82,6 +84,7 @@ import com.intellij.openapi.externalSystem.model.project.ProjectData
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.module.JavaModuleType
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.StdModuleTypes.JAVA
 import com.intellij.openapi.project.Project
@@ -132,6 +135,7 @@ data class JavaModuleModelBuilder(
   override val agpVersion: String? = null
 
   companion object {
+    @JvmStatic
     val rootModuleBuilder = JavaModuleModelBuilder(":", buildable = false)
   }
 }
@@ -834,3 +838,11 @@ private fun createGradleModuleDataNode(
   )
   return moduleDataNode
 }
+
+/**
+ * Finds a module by the given [gradlePath].
+ *
+ * Note: In the case of composite build [gradlePath] can be in a form of `includedProject:module:module` for modules from included projects.
+ */
+fun Project.gradleModule(gradlePath: String): Module? =
+  ModuleManager.getInstance(this).modules.singleOrNull { GradleProjects.getGradleModulePath(it) == gradlePath }
