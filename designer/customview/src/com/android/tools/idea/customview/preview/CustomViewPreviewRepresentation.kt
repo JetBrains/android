@@ -78,13 +78,24 @@ private fun getXmlLayout(qualifiedName: String, shrinkWidth: Boolean, shrinkHeig
     android:layout_height="${layoutType(shrinkHeight)}"/>"""
 }
 
+fun getBuildState(project: Project): CustomViewVisualStateTracker.BuildState {
+  val gradleState = GradleBuildState.getInstance(project)
+  val prevBuildStatus = gradleState.summary?.status
+  return when {
+    gradleState.isBuildInProgress -> CustomViewVisualStateTracker.BuildState.IN_PROGRESS
+    prevBuildStatus == null || prevBuildStatus == BuildStatus.SKIPPED || prevBuildStatus == BuildStatus.SUCCESS ->
+      CustomViewVisualStateTracker.BuildState.SUCCESSFUL
+    else -> CustomViewVisualStateTracker.BuildState.FAILED
+  }
+}
 /**
  * A preview for a file containing custom android view classes. Allows selecting between the classes if multiple custom view classes are
  * present in the file.
  */
 class CustomViewPreviewRepresentation(
   psiFile: PsiFile,
-  persistenceProvider: (Project) -> PropertiesComponent = { p -> PropertiesComponent.getInstance(p)}) :
+  persistenceProvider: (Project) -> PropertiesComponent = { p -> PropertiesComponent.getInstance(p)},
+  buildStateProvider: (Project) -> CustomViewVisualStateTracker.BuildState = ::getBuildState) :
   PreviewRepresentation, CustomViewPreviewManager {
 
   companion object {
@@ -198,14 +209,7 @@ class CustomViewPreviewRepresentation(
   }
 
   init {
-    val gradleState = GradleBuildState.getInstance(project)
-    val prevBuildStatus = gradleState.summary?.status
-    val buildState = when {
-      gradleState.isBuildInProgress -> CustomViewVisualStateTracker.BuildState.IN_PROGRESS
-      prevBuildStatus == null || prevBuildStatus == BuildStatus.SKIPPED || prevBuildStatus == BuildStatus.SUCCESS ->
-        CustomViewVisualStateTracker.BuildState.SUCCESSFUL
-      else -> CustomViewVisualStateTracker.BuildState.FAILED
-    }
+    val buildState = buildStateProvider(project)
     val fileState = if (FileDocumentManager.getInstance().isFileModified(psiFile.virtualFile))
       CustomViewVisualStateTracker.FileState.MODIFIED
     else
