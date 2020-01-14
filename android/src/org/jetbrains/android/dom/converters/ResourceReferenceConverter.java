@@ -162,6 +162,10 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     myIncludeDynamicFeatures = includeDynamicFeatures;
   }
 
+  public boolean getIncludeDynamicFeatures() {
+    return myIncludeDynamicFeatures;
+  }
+
   public void setExpandedCompletionSuggestion(boolean expandedCompletionSuggestion) {
     myExpandedCompletionSuggestion = expandedCompletionSuggestion;
   }

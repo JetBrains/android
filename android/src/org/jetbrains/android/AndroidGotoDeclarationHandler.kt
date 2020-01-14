@@ -33,6 +33,7 @@ import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.ManifestElementWithRequiredName
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.android.util.AndroidUtils
 import java.util.ArrayList
 
@@ -51,9 +52,16 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
                                                                                        TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED,
                                                                                        offset)) {
       is ResourceReferencePsiElement -> {
-        // We take the containing file of the source element as context as ModuleUtilCore can only find the module of an AAR file, not an
-        // element in that file.
-        AndroidResourceToPsiResolver.getInstance().getGotoDeclarationTargets(targetElement.resourceReference, sourceElement.containingFile)
+        // Depending on the context, we might need to check DynamicFeature modules.
+        if (AndroidResourceUtil.requiresDynamicFeatureModuleResources(sourceElement)) {
+          AndroidResourceToPsiResolver.getInstance().getGotoDeclarationTargetsWithDynamicFeatureModules(
+            targetElement.resourceReference,
+            sourceElement.containingFile)
+        } else {
+          // We take the containing file of the source element as context as ModuleUtilCore can only find the module of an AAR file, not an
+          // element in that file.
+          AndroidResourceToPsiResolver.getInstance().getGotoDeclarationTargets(targetElement.resourceReference, sourceElement.containingFile)
+        }
       }
       is StyleableAttrLightField -> {
         if (!StudioFlags.RESOLVE_USING_REPOS.get()) {

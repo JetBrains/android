@@ -93,6 +93,7 @@ import com.intellij.ide.actions.CreateElementActionBase;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.fileTemplates.FileTemplateUtil;
+import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.application.WriteAction;
@@ -129,6 +130,9 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Processor;
+import com.intellij.util.xml.Converter;
+import com.intellij.util.xml.DomManager;
+import com.intellij.util.xml.GenericAttributeValue;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -147,6 +151,7 @@ import org.jetbrains.android.augment.ManifestClass;
 import org.jetbrains.android.augment.StyleableAttrLightField;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.color.ColorSelector;
+import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
 import org.jetbrains.android.dom.drawable.DrawableSelector;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.Item;
@@ -210,6 +215,25 @@ public class AndroidResourceUtil {
     Comparator.nullsLast(Comparator.comparing(ResolveResult::getElement, RESOURCE_ELEMENT_COMPARATOR));
 
   private AndroidResourceUtil() {
+  }
+
+  public static boolean requiresDynamicFeatureModuleResources(@NotNull PsiElement context) {
+    if (context.getLanguage() != XMLLanguage.INSTANCE) {
+      return false;
+    }
+    XmlAttribute attribute = PsiTreeUtil.getParentOfType(context, XmlAttribute.class);
+    if (attribute == null) {
+      return false;
+    }
+    GenericAttributeValue<?> domElement = DomManager.getDomManager(context.getProject()).getDomElement(attribute);
+    if (domElement == null) {
+      return false;
+    }
+    Converter<?> domElementConverter = domElement.getConverter();
+    if (!(domElementConverter instanceof ResourceReferenceConverter)) {
+      return false;
+    }
+    return ((ResourceReferenceConverter)domElementConverter).getIncludeDynamicFeatures();
   }
 
   @NotNull
