@@ -67,7 +67,6 @@ import com.android.tools.idea.gradle.project.sync.idea.IdeaSyncPopulateProjectTa
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup
 import com.android.tools.idea.gradle.util.GradleProjects
-import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
@@ -164,6 +163,7 @@ interface AndroidProjectStubBuilder {
   val releaseBuildType: BuildTypeContainer?
   val dynamicFeatures: List<String>
   val viewBindingOptions: ViewBindingOptions
+  val supportsBundleTask: Boolean
   fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
   fun mainArtifact(variant: String): AndroidArtifact
   fun androidTestArtifact(variant: String): AndroidArtifact
@@ -194,6 +194,7 @@ data class AndroidProjectBuilder(
   val releaseBuildType: AndroidProjectStubBuilder.() -> BuildTypeContainerStub? = { buildReleaseBuildTypeStub() },
   val dynamicFeatures: AndroidProjectStubBuilder.() -> List<String> = { emptyList() },
   val viewBindingOptions: AndroidProjectStubBuilder.() -> ViewBindingOptionsStub = { buildViewBindingOptions() },
+  val supportsBundleTask: AndroidProjectStubBuilder.() -> Boolean = { true },
   val mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub = { variant -> buildMainArtifactStub(variant) },
   val androidTestArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub =
     { variant -> buildAndroidTestArtifactStub(variant) },
@@ -245,6 +246,9 @@ data class AndroidProjectBuilder(
   fun withViewBindingOptions(viewBindingOptions: AndroidProjectStubBuilder.() -> ViewBindingOptionsStub) =
     copy(viewBindingOptions = viewBindingOptions)
 
+  fun withSupportsBundleTask(supportsBundleTask: AndroidProjectStubBuilder.() -> Boolean) =
+    copy(supportsBundleTask = supportsBundleTask)
+
   fun withMainArtifactStub(mainArtifactStub: AndroidProjectStubBuilder.(variant: String) -> AndroidArtifactStub) =
     copy(mainArtifactStub = mainArtifactStub)
 
@@ -281,6 +285,7 @@ data class AndroidProjectBuilder(
       override val releaseBuildType: BuildTypeContainer? = releaseBuildType()
       override val dynamicFeatures: List<String> = dynamicFeatures()
       override val viewBindingOptions: ViewBindingOptions = viewBindingOptions()
+      override val supportsBundleTask: Boolean = supportsBundleTask()
       override fun androidModuleDependencies(variant: String): List<AndroidModuleDependency> = androidModuleDependencyList(variant)
       override fun mainArtifact(variant: String): AndroidArtifact = mainArtifactStub(variant)
       override fun androidTestArtifact(variant: String): AndroidArtifact = androidTestArtifactStub(variant)
@@ -444,7 +449,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     listOf(),
     null,
     null,
-    "bundle".takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant),
+    "bundle".takeIf { supportsBundleTask && projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant),
     buildPath.resolve("intermediates/bundle_ide_model/$variant/output.json"),
     "extractApksFor".takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variant),
     buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variant/output.json"),
