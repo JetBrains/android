@@ -156,13 +156,14 @@ class RenderTemplateModel private constructor(
 
           projectTemplateDataBuilder.language = language.value
 
+          val sha1File = androidFacet?.let { getDebugKeystore(it) } ?: getOrCreateDefaultDebugKeystore()
+          projectTemplateDataBuilder.debugKeyStoreSha1 = KeystoreUtils.sha1(sha1File)
+
           if (androidFacet == null) {
             return@apply
           }
 
           setFacet(androidFacet)
-          val sha1File = getDebugKeystore(androidFacet)
-          projectTemplateDataBuilder.debugKeyStoreSha1 = KeystoreUtils.sha1(sha1File)
 
           // Register application-wide settings
           val applicationPackage = androidFacet.getPackageForApplication()
