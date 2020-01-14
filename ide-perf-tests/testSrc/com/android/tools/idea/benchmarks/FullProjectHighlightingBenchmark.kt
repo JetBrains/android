@@ -81,6 +81,7 @@ class FullProjectHighlightingBenchmark(private val projectName: String, private 
 
   @Test
   fun fullProjectHighlighting() {
+    disableExpensivePlatformAssertions(gradleRule.fixture)
     enableAllDefaultInspections(gradleRule.fixture)
 
     gradleRule.load(projectName)
