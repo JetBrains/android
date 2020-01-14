@@ -121,7 +121,7 @@ class DataBindingShortNamesCache(private val component: DataBindingProjectCompon
 
   override fun processMethodsWithName(name: String,
                                       scope: GlobalSearchScope,
-                                      processor: Processor<PsiMethod>): Boolean {
+                                      processor: Processor<in PsiMethod>): Boolean {
     for (method in getMethodsByName(name, scope)) {
       if (!processor.process(method)) {
         return false
