@@ -242,22 +242,47 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
   @NotNull
   public PsiElement[] getGotoDeclarationTargets(@NotNull ResourceReference resourceReference,
                                                 @NotNull PsiElement context) {
+    List<PsiElement> resourceList = getGotoDeclarationElements(resourceReference, context);
+    if (resourceList.size() > 1) {
+      // Sort to ensure the output is stable, and to prefer the base folders.
+      resourceList.sort(AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
+    }
+    return resourceList.toArray(PsiElement.EMPTY_ARRAY);
+  }
+
+  @NotNull
+  @Override
+  public PsiElement[] getGotoDeclarationTargetsWithDynamicFeatureModules(@NotNull ResourceReference resourceReference,
+                                                                         @NotNull PsiElement context) {
+    List<PsiElement> resourceList = getGotoDeclarationElements(resourceReference, context);
+    List<PsiElement> dynamicFeatureGotoDeclarationElements = getDynamicFeatureGotoDeclarationElements(resourceReference, context);
+    resourceList.addAll(dynamicFeatureGotoDeclarationElements);
+    if (resourceList.size() > 1) {
+      // Sort to ensure the output is stable, and to prefer the base folders.
+      resourceList.sort(AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
+    }
+    return resourceList.toArray(PsiElement.EMPTY_ARRAY);
+  }
+
+  @NotNull
+  private static List<PsiElement> getGotoDeclarationElements(@NotNull ResourceReference resourceReference,
+                                                             @NotNull PsiElement context) {
+    List<PsiElement> resourceList = new ArrayList<>();
     AndroidFacet facet = AndroidFacet.getInstance(context);
     if (facet == null) {
-      return PsiElement.EMPTY_ARRAY;
+      return resourceList;
     }
     ResourceType resourceType = resourceReference.getResourceType();
     ResourceNamespace namespace = resourceReference.getNamespace();
     String resourceName = resourceReference.getName();
 
-    List<PsiElement> resourceList = new ArrayList<>();
 
     ModuleResourceManagers resourceManagers = ModuleResourceManagers.getInstance(facet);
     ResourceManager manager = namespace == ResourceNamespace.ANDROID
                                   ? resourceManagers.getFrameworkResourceManager(false)
                                   : resourceManagers.getLocalResourceManager();
     if (manager == null) {
-      return PsiElement.EMPTY_ARRAY;
+      return resourceList;
     }
 
     manager.collectLazyResourceElements(namespace,
@@ -280,13 +305,30 @@ public class ResourceManagerToPsiResolver implements AndroidResourceToPsiResolve
         }
       }
     }
+    return resourceList;
+  }
 
-    if (resourceList.size() > 1) {
-      // Sort to ensure the output is stable, and to prefer the base folders.
-      resourceList.sort(AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
+  private List<PsiElement> getDynamicFeatureGotoDeclarationElements(ResourceReference reference, PsiElement context) {
+    List<PsiElement> resourceList = new ArrayList<>();
+    AndroidModuleSystem androidModuleSystem = ProjectSystemUtil.getModuleSystem(context);
+    if (androidModuleSystem != null) {
+      List<Module> modules = androidModuleSystem.getDynamicFeatureModules();
+      for (Module module : modules) {
+        LocalResourceRepository moduleResources = ResourceRepositoryManager.getModuleResources(module);
+        if (moduleResources == null) {
+          continue;
+        }
+        List<ResourceItem> resources =
+          moduleResources.getResources(reference.getNamespace(), reference.getResourceType(), reference.getName());
+        for (ResourceItem item : resources) {
+          PsiElement declaration = resolveToDeclaration(item, context.getProject());
+          if (declaration != null) {
+            resourceList.add(declaration);
+          }
+        }
+      }
     }
-
-    return resourceList.toArray(PsiElement.EMPTY_ARRAY);
+    return resourceList;
   }
 
   private static class AarResourceResolveResult implements ResolveResult {

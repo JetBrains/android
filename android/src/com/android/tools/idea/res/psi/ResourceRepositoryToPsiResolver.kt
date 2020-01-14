@@ -134,12 +134,36 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
   }
 
   override fun getGotoDeclarationTargets(resourceReference: ResourceReference, context: PsiElement): Array<out PsiElement> {
+    return getGotoDeclarationElements(resourceReference, context).toTypedArray()
+  }
+
+  override fun getGotoDeclarationTargetsWithDynamicFeatureModules(resourceReference: ResourceReference,
+                                                                  context: PsiElement): Array<PsiElement> {
+    val mainResources = getGotoDeclarationElements(resourceReference, context)
+    val dynamicFeatureResources = getGotoDeclarationElementsFromDynamicFeatureModules(resourceReference, context)
+    return (mainResources + dynamicFeatureResources).toTypedArray()
+  }
+
+  private fun getGotoDeclarationElements(resourceReference: ResourceReference, context: PsiElement): List<PsiElement> {
     return ResourceRepositoryManager.getInstance(context)
       ?.allResources
       ?.getResources(resourceReference)
       ?.mapNotNull { resolveToDeclaration(it, context.project) }
       .orEmpty()
-      .toTypedArray()
+  }
+
+  private fun getGotoDeclarationElementsFromDynamicFeatureModules(
+    resourceReference: ResourceReference,
+    context: PsiElement
+  ): List<PsiElement> {
+    val resourceList = mutableListOf<PsiElement>()
+    val moduleSystem = context.getModuleSystem() ?: return emptyList()
+    val dynamicFeatureModules = moduleSystem.getDynamicFeatureModules()
+    for (module in dynamicFeatureModules) {
+      val moduleResources = ResourceRepositoryManager.getModuleResources(module) ?: continue
+      resourceList.addAll(moduleResources.getResources(resourceReference).mapNotNull { resolveToDeclaration(it, context.project) })
+    }
+    return resourceList
   }
 
   /**
