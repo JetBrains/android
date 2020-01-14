@@ -34,13 +34,13 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Container
 import java.awt.Cursor
+import java.awt.LayoutManager
 import java.awt.Point
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
@@ -146,6 +146,46 @@ class DeviceViewPanel(
   private val deviceViewPanelActionsToolbar: DeviceViewPanelActionsToolbar
 
   init {
+    val origLayout = scrollPane.viewport.layout
+    scrollPane.viewport.layout = object: LayoutManager by origLayout {
+      private var lastLayerSpacing = INITIAL_LAYER_SPACING
+
+      override fun layoutContainer(parent: Container?) {
+        when {
+          contentPanel.model.layerSpacing != lastLayerSpacing -> {
+            lastLayerSpacing = contentPanel.model.layerSpacing
+            val viewport = scrollPane.viewport
+            val position = viewport.viewPosition.apply { translate(-viewport.viewSize.width / 2, -viewport.viewSize.height / 2) }
+            origLayout.layoutContainer(parent)
+            viewport.viewPosition = position.apply { translate(viewport.viewSize.width / 2, viewport.viewSize.height / 2) }
+          }
+          currentZoomOperation != null -> {
+            val viewport = scrollPane.viewport
+            viewport.viewPosition = when (currentZoomOperation) {
+              ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> {
+                origLayout.layoutContainer(parent)
+                val bounds = scrollPane.viewport.extentSize
+                val size = scrollPane.viewport.view.preferredSize
+                Point((size.width - bounds.width) / 2, (size.height - bounds.height) / 2)
+              }
+              else -> {
+                val position = SwingUtilities.convertPoint(viewport, Point(viewport.width/2, viewport.height/2), contentPanel)
+                val xPercent = position.x.toDouble() / contentPanel.width.toDouble()
+                val yPercent = position.y.toDouble() / contentPanel.height.toDouble()
+
+                origLayout.layoutContainer(parent)
+
+                val newPosition = Point((contentPanel.width * xPercent).toInt(), (contentPanel.height * yPercent).toInt())
+                newPosition.translate(-viewport.width/2, -viewport.height/2)
+                newPosition
+              }
+            }
+            currentZoomOperation = null
+          }
+          else -> origLayout.layoutContainer(parent)
+        }
+      }
+    }
     contentPanel.isFocusable = true
 
     val mouseListeners = listOf(*contentPanel.mouseListeners)
@@ -225,9 +265,7 @@ class DeviceViewPanel(
       return false
     }
     val root = layoutInspector.layoutInspectorModel.root
-    val position = scrollPane.viewport.viewPosition.apply { translate(scrollPane.viewport.width / 2, scrollPane.viewport.height / 2) }
-    position.x = (position.x / scale).toInt()
-    position.y = (position.y / scale).toInt()
+    currentZoomOperation = type
     when (type) {
       ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> {
         val availableWidth = scrollPane.width - scrollPane.verticalScrollBar.width
@@ -241,23 +279,9 @@ class DeviceViewPanel(
       ZoomType.IN -> viewSettings.scalePercent += 10
       ZoomType.OUT -> viewSettings.scalePercent -= 10
     }
+    updateLayeredPaneSize()
     contentPanel.revalidate()
 
-    ApplicationManager.getApplication().invokeLater {
-      scrollPane.viewport.viewPosition = when (type) {
-        ZoomType.FIT, ZoomType.FIT_INTO, ZoomType.SCREEN -> {
-          val bounds = scrollPane.viewport.extentSize
-          val size = scrollPane.viewport.view.preferredSize
-          Point((size.width - bounds.width) / 2, (size.height - bounds.height) / 2)
-        }
-        else -> {
-          position.x = (position.x * scale).toInt()
-          position.y = (position.y * scale).toInt()
-          position.translate(-scrollPane.viewport.width / 2, -scrollPane.viewport.height / 2)
-          position
-        }
-      }
-    }
     return true
   }
 
@@ -299,6 +323,8 @@ class DeviceViewPanel(
     leftGroup.add(Separator.getInstance())
     leftGroup.add(PauseLayoutInspectorAction(layoutInspector::currentClient))
     leftGroup.add(CaptureAction(layoutInspector::currentClient, layoutInspector.layoutInspectorModel))
+    leftGroup.add(Separator.getInstance())
+    leftGroup.add(LayerSpacingSliderAction)
     val actionToolbar = ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true)
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
     actionToolbar.component.name = DEVICE_VIEW_ACTION_TOOLBAR_NAME
