@@ -204,7 +204,7 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
   }
 
   fun testRunGradleSyncWithBuildOutputFileSupported() {
-    setUpTestProject("4.0.0", ":" to AndroidProjectBuilder())
+    setUpTestProject("4.1.0", ":" to AndroidProjectBuilder())
     val syncInvoker = IdeComponents(myProject).mockApplicationService(GradleSyncInvoker::class.java)
     val syncState = IdeComponents(
       myProject).mockProjectService(

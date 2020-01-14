@@ -242,6 +242,24 @@ public class AndroidModelFeaturesTest {
     assertTrue(features.isProductFlavorVersionSuffixSupported());
     assertTrue(features.isExternalBuildSupported());
     assertTrue(features.isConstraintLayoutSdkLocationSupported());
+    assertTrue(features.isPostBuildSyncSupported());
+    assertFalse(features.isLayoutRenderingIssuePresent());
+    assertFalse(features.shouldExportDependencies());
+    assertFalse(features.isVfsRefreshAfterBuildRequired());
+    assertTrue(features.isSingleVariantSyncSupported());
+    assertFalse(features.isBuildOutputFileSupported());
+  }
+
+  @Test
+  public void withPluginVersion4_1_0() {
+    GradleVersion version = GradleVersion.parse("4.1.0");
+    AndroidModelFeatures features = new AndroidModelFeatures(version);
+    assertTrue(features.isIssueReportingSupported());
+    assertTrue(features.isShadersSupported());
+    assertTrue(features.isTestedTargetVariantsSupported());
+    assertTrue(features.isProductFlavorVersionSuffixSupported());
+    assertTrue(features.isExternalBuildSupported());
+    assertTrue(features.isConstraintLayoutSdkLocationSupported());
     assertFalse(features.isPostBuildSyncSupported());
     assertFalse(features.isLayoutRenderingIssuePresent());
     assertFalse(features.shouldExportDependencies());
