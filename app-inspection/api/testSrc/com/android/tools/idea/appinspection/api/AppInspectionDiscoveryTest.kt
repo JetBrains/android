@@ -26,6 +26,7 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.Timeout
@@ -145,6 +146,7 @@ class AppInspectionDiscoveryTest {
     assertThat(discoveryHost.discovery.processesForTesting).isEmpty()
   }
 
+  @Ignore
   @Test
   fun attachMultipleTimesToSameProcess() {
     // Setup
