@@ -835,7 +835,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
             }
           }
           setModificationCount(ourModificationCounter.incrementAndGet());
-          invalidateParentCaches();
+          invalidateParentCaches(this, ResourceType.values());
         }
       }
     }
