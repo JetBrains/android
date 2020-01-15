@@ -54,13 +54,6 @@ final class ProjectStub extends UserDataHolderBase implements Project {
   }
 
   @Override
-  @Nullable
-  @NonNls
-  public String getPresentableUrl() {
-    return null;
-  }
-
-  @Override
   @NotNull
   @NonNls
   public String getLocationHash() {
