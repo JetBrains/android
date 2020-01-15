@@ -147,21 +147,23 @@ public class CpuCaptureStage extends Stage<Timeline> {
    * Create a capture stage that loads a given trace id. If a trace id is not found null will be returned.
    */
   @Nullable
-  public static CpuCaptureStage create(@NotNull StudioProfilers profilers, @NotNull String configurationName, long traceId) {
+  public static CpuCaptureStage create(@NotNull StudioProfilers profilers, @NotNull ProfilingConfiguration configuration, long traceId) {
     File captureFile = getAndSaveCapture(profilers, traceId);
     if (captureFile == null) {
       return null;
     }
     String captureProcessNameHint = CpuProfiler.getTraceInfoFromId(profilers, traceId).getConfiguration().getAppName();
-    return new CpuCaptureStage(profilers, configurationName, captureFile, captureProcessNameHint, profilers.getSession().getPid());
+    return new CpuCaptureStage(profilers, configuration, captureFile, captureProcessNameHint, profilers.getSession().getPid());
   }
 
   /**
    * Create a capture stage based on a file, this is used for both importing traces as well as cached traces loaded from trace ids.
    */
   @NotNull
-  public static CpuCaptureStage create(@NotNull StudioProfilers profilers, @NotNull String configurationName, @NotNull File captureFile) {
-    return new CpuCaptureStage(profilers, configurationName, captureFile, null, 0);
+  public static CpuCaptureStage create(@NotNull StudioProfilers profilers,
+                                       @NotNull ProfilingConfiguration configuration,
+                                       @NotNull File captureFile) {
+    return new CpuCaptureStage(profilers, configuration, captureFile, null, 0);
   }
 
   /**
@@ -169,13 +171,13 @@ public class CpuCaptureStage extends Stage<Timeline> {
    */
   @VisibleForTesting
   CpuCaptureStage(@NotNull StudioProfilers profilers,
-                  @NotNull String configurationName,
+                  @NotNull ProfilingConfiguration configuration,
                   @NotNull File captureFile,
                   @Nullable String captureProcessNameHint,
                   int captureProcessIdHint) {
     super(profilers);
     myCpuCaptureHandler =
-      new CpuCaptureHandler(profilers.getIdeServices(), captureFile, configurationName, captureProcessNameHint, captureProcessIdHint);
+      new CpuCaptureHandler(profilers.getIdeServices(), captureFile, configuration, captureProcessNameHint, captureProcessIdHint);
   }
 
   public State getState() {
@@ -244,6 +246,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
   @Override
   public void enter() {
     getStudioProfilers().getUpdater().register(myCpuCaptureHandler);
+    getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(this.getClass());
     myCpuCaptureHandler.parse(capture -> {
       try {
         if (capture == null) {
