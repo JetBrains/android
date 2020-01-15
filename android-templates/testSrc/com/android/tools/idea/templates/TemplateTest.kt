@@ -602,6 +602,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareCustomView() {
+    checkCreateTemplate("other", "CustomView", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareCustomViewWithKotlin() {
+    checkCreateTemplate("other", "CustomView", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewIntentService() {
     checkCreateTemplate("other", "IntentService")
   }
