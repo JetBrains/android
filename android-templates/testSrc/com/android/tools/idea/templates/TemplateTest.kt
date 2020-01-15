@@ -841,7 +841,6 @@ open class TemplateTest : TemplateTestBase() {
     checkCreateTemplate("other", "AndroidManifest", ActivityCreationMode.WITHOUT_PROJECT, withNewLocation("src/foo/AndroidManifest.xml"))
   }
 
-
   @TemplateCheck
   fun testNewLayoutResourceFile() {
     checkCreateTemplate("other", "LayoutResourceFile")
