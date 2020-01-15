@@ -101,6 +101,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   @NotNull private final LightBindingClassConfig myConfig;
   @NotNull private final PsiJavaFile myBackingFile;
 
+  @Nullable private PsiMethod[] myPsiConstructors; // Created lazily
   @Nullable private PsiMethod[] myPsiMethods; // Created lazily
   @Nullable private PsiField[] myPsiFields; // Created lazily
   @Nullable private PsiReferenceList myExtendsList; // Created lazily
@@ -121,9 +122,6 @@ public class LightBindingClass extends AndroidLightClassBase {
 
   private PsiMethod[] computeMethods() {
     List<PsiMethod> methods = new ArrayList<>();
-
-    PsiMethod constructor = createConstructor();
-    methods.add(constructor);
 
     createRootOverride(methods);
 
@@ -190,7 +188,7 @@ public class LightBindingClass extends AndroidLightClassBase {
   private PsiMethod createConstructor() {
     LightMethodBuilder constructor = new LightMethodBuilder(this, JavaLanguage.INSTANCE);
     constructor.setConstructor(true);
-    constructor.addModifier("private");
+    constructor.addModifier(PsiModifier.PRIVATE);
     return constructor;
   }
 
@@ -219,6 +217,17 @@ public class LightBindingClass extends AndroidLightClassBase {
   @Override
   public PsiField[] getAllFields() {
     return getFields();
+  }
+
+  @NotNull
+  @Override
+  public PsiMethod[] getConstructors() {
+    if (myPsiConstructors == null) {
+      myPsiConstructors = new PsiMethod[] {
+        createConstructor()
+      };
+    }
+    return myPsiConstructors;
   }
 
   @NotNull
