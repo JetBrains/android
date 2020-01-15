@@ -15,65 +15,51 @@
  */
 package com.android.tools.idea.gradle.rendering;
 
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static com.google.common.truth.TruthJUnit.assume;
 
-import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
-import com.android.tools.idea.Projects;
-import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
-import com.android.tools.idea.testing.IdeComponents;
+import com.android.tools.idea.testing.AndroidModuleModelBuilder;
+import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.google.common.collect.ImmutableList;
-import com.intellij.facet.FacetManager;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.mock.MockPsiFile;
 import com.intellij.mock.MockPsiManager;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
-import org.jetbrains.android.facet.AndroidFacet;
 
 public class GradleRenderErrorContributorTest extends PlatformTestCase {
   private GradleRenderErrorContributor.GradleProvider myProvider;
-  private RenderErrorModel myRenderErrorModel;
-  private IdeDependenciesFactory myDependenciesFactory;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    myDependenciesFactory = new IdeDependenciesFactory();
-    new IdeComponents(myProject).replaceProjectService(GradleProjectInfo.class, mock(GradleProjectInfo.class));
-    when(GradleProjectInfo.getInstance(myProject).isBuildWithGradle()).thenReturn(true);
-
-    setUpAndroidFacetWithGradleModelWithIssue();
-
-    RenderResult result = createResultWithBrokenClass();
-    myRenderErrorModel = RenderErrorModelFactory.createErrorModel(null, result, null);
-
     // For the isApplicable tests.
     myProvider = new GradleRenderErrorContributor.GradleProvider();
   }
 
   public void testProviderIsApplicable() {
+    setUpAndroidFacetWithGradleModelWithIssue();
     assertThat(myProvider.isApplicable(myProject)).isTrue();
   }
 
   public void testProviderNotApplicableIfNotBuildWithGradle() {
-    when(GradleProjectInfo.getInstance(myProject).isBuildWithGradle()).thenReturn(false);
     assertThat(myProvider.isApplicable(myProject)).isFalse();
   }
 
   public void testReportIssue170841() {
-    ImmutableList<RenderErrorModel.Issue> issues = myRenderErrorModel.getIssues();
+    setUpAndroidFacetWithGradleModelWithIssue();
+
+    RenderResult result = createResultWithBrokenClass();
+    RenderErrorModel renderErrorModel = RenderErrorModelFactory.createErrorModel(null, result, null);
+
+    ImmutableList<RenderErrorModel.Issue> issues = renderErrorModel.getIssues();
     assertThat(issues).isNotEmpty();
     RenderErrorModel.Issue issue170841 = null;
     for (RenderErrorModel.Issue issue : issues) {
@@ -101,26 +87,11 @@ public class GradleRenderErrorContributorTest extends PlatformTestCase {
   }
 
   private void setUpAndroidFacetWithGradleModelWithIssue() {
-    ApplicationManager.getApplication().runWriteAction(
-      () -> {
-        FacetManager.getInstance(myModule).addFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
-      }
+    setupTestProjectFromAndroidModel(
+      getProject(),
+      new File(getProject().getBasePath()),
+      new AndroidModuleModelBuilder(":", null, "1.2.2", "debug", new AndroidProjectBuilder())
     );
-    AndroidFacet facet = AndroidFacet.getInstance(myModule);
-    assertThat(facet).isNotNull();
-
-    File root = Projects.getBaseDirPath(myProject);
-    AndroidProjectStub androidProject = TestProjects.createBasicProject();
-
-    // The problematic plugin version.
-    // https://code.google.com/p/android/issues/detail?id=170841
-    androidProject.setModelVersion("1.2.2");
-
-    AndroidModuleModel model = AndroidModuleModel.create(androidProject.getName(), root, androidProject, "debug", myDependenciesFactory);
-    AndroidModel.set(facet, model);
-    model = AndroidModuleModel.get(myModule);
-
-    assertThat(model).isNotNull();
-    assertThat(model.getFeatures().isLayoutRenderingIssuePresent()).isTrue();
+    assume().that(AndroidModuleModel.get(myModule).getFeatures().isLayoutRenderingIssuePresent()).isTrue();
   }
 }
