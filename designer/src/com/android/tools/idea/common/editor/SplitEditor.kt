@@ -146,11 +146,11 @@ abstract class SplitEditor<P : FileEditor>(textEditor: TextEditor,
       }
 
       if (state) {
-        if (delegate == super@SplitEditor.getShowPreviewAction()) {
-          myPreview.component.requestFocus()
+        if (this == showPreviewAction) {
+          component.requestFocusInWindow()
         }
         else {
-          editor.component.requestFocus()
+          editor.contentComponent.requestFocusInWindow()
         }
       }
     }
