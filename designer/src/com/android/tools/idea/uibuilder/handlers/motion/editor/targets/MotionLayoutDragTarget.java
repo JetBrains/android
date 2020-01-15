@@ -104,6 +104,7 @@ public class MotionLayoutDragTarget extends DragBaseTarget implements MultiCompo
         return;
       }
       NlAttributesHolder componentAttributes = attributes;
+      myComponent.setPosition(x, y);
 
       SceneComponent targetStartComponent = getTargetComponent(componentAttributes, parent, ConstraintComponentUtilities.ourStartAttributes);
       SceneComponent targetEndComponent = getTargetComponent(componentAttributes, parent, ConstraintComponentUtilities.ourEndAttributes);

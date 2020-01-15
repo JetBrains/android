@@ -1005,7 +1005,7 @@ public class MotionLayoutAnchorTarget extends AnchorTarget {
   public void addHit(@NotNull SceneContext transform,
                      @NotNull ScenePicker picker,
                      @JdkConstants.InputEventMask int modifiersEx) {
-    if (!myIsEdge || this instanceof MotionLayoutGuidelineAnchorTarget) {
+    if (!myIsEdge) {
       // This anchor is not the edge of root ConstraintLayout. Consider as normal size.
       super.addHit(transform, picker, modifiersEx);
       return;
