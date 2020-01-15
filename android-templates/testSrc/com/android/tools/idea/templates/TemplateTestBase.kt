@@ -25,6 +25,7 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.Parameter.Type
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API_STRING
+import com.android.tools.idea.templates.TemplateAttributes.ATTR_CPP_SUPPORT
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_HAS_APPLICATION_THEME
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LAUNCHER
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_IS_LIBRARY_MODULE
@@ -239,11 +240,14 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
       }
       else {
         assert(p.type === Type.BOOLEAN)
-        if (p.id == ATTR_IS_LAUNCHER && (activityCreationMode == ActivityCreationMode.WITH_PROJECT || "BasicActivity" !in projectNameBase)) {
+        when {
           // ATTR_IS_LAUNCHER is always true when launched from new project
-          return@forEach
+          p.id == ATTR_IS_LAUNCHER && (activityCreationMode == ActivityCreationMode.WITH_PROJECT || "BasicActivity" !in projectNameBase) ->
+            return@forEach
+          // CPP projects are always created with Empty Activity
+          p.id == ATTR_CPP_SUPPORT && "EmptyActivity" !in projectNameBase -> return@forEach
+          else -> checkAndRestore(!(initial as Boolean))
         }
-        checkAndRestore(!(initial as Boolean))
       }
     }
     val projectName = "${projectNameBase}_default"
