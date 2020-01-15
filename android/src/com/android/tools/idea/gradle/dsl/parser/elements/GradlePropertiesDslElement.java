@@ -165,7 +165,7 @@ public abstract class GradlePropertiesDslElement extends GradleDslElementImpl {
       else if (isPropertiesElementOrMap(newProperty)) {
         // If the element we are trying to add a GradlePropertiesDslElement that doesn't exist, create it.
         GradlePropertiesDslElement createdElement =
-          getDslFile().getParser().getBlockElement(Arrays.asList(entry.getKey().split("\\.")), this, null);
+          getDslFile().getParser().getPropertiesElement(Arrays.asList(entry.getKey().split("\\.")), this, null);
         if (createdElement != null) {
           // Merge it with the created element.
           createdElement.mergePropertiesFrom((GradlePropertiesDslElement)newProperty);

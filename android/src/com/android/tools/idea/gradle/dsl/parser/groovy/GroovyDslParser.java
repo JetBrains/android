@@ -255,10 +255,10 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
 
   @Nullable
   @Override
-  public GradlePropertiesDslElement getBlockElement(@NotNull List<String> nameParts,
-                                                    @NotNull GradlePropertiesDslElement parentElement,
-                                                    @Nullable GradleNameElement nameElement) {
-    return SharedParserUtilsKt.getBlockElement(myDslFile, nameParts, this, parentElement, nameElement);
+  public GradlePropertiesDslElement getPropertiesElement(@NotNull List<String> nameParts,
+                                                         @NotNull GradlePropertiesDslElement parentElement,
+                                                         @Nullable GradleNameElement nameElement) {
+    return SharedParserUtilsKt.getPropertiesElement(myDslFile, nameParts, this, parentElement, nameElement);
   }
 
   private void parsePsi(@NotNull PsiElement psiElement, @NotNull GradleDslFile gradleDslFile) {
@@ -287,7 +287,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     GradleNameElement name = GradleNameElement.from(element, this);
 
     if (name.isQualified()) {
-      GradlePropertiesDslElement nestedElement = getBlockElement(name.qualifyingParts(), dslElement, null);
+      GradlePropertiesDslElement nestedElement = getPropertiesElement(name.qualifyingParts(), dslElement, null);
       if (nestedElement != null) {
         dslElement = nestedElement;
       }
@@ -322,7 +322,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     }
 
     if (name.isQualified()) {
-      dslElement = getBlockElement(name.qualifyingParts(), dslElement, null);
+      dslElement = getPropertiesElement(name.qualifyingParts(), dslElement, null);
     }
 
     if (dslElement == null) {
@@ -350,17 +350,17 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     List<GradlePropertiesDslElement> blockElements = Lists.newArrayList(); // The block elements this closure needs to be applied.
 
     if (dslElement instanceof GradleDslFile && name.name().equals("allprojects")) {
-      // The "allprojects" closure needs to be applied to this project and all it's sub projects.
+      // The "allprojects" closure needs to be applied to this project and all its sub projects.
       blockElements.add(dslElement);
       // After applying the allprojects closure to this project, process it as subprojects section to also pass the same properties to
       // subprojects.
       name = GradleNameElement.create("subprojects");
     }
 
-    GradlePropertiesDslElement blockElement = getBlockElement(ImmutableList.of(name.name()), dslElement, name);
-    if (blockElement != null) {
-      blockElement.setPsiElement(closableBlock);
-      blockElements.add(blockElement);
+    GradlePropertiesDslElement propertiesElement = getPropertiesElement(ImmutableList.of(name.name()), dslElement, name);
+    if (propertiesElement != null) {
+      propertiesElement.setPsiElement(closableBlock);
+      blockElements.add(propertiesElement);
     }
 
     if (blockElements.isEmpty()) {
@@ -423,7 +423,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     }
 
     if (name.isQualified()) {
-      GradlePropertiesDslElement nestedElement = getBlockElement(name.qualifyingParts(), blockElement, null);
+      GradlePropertiesDslElement nestedElement = getPropertiesElement(name.qualifyingParts(), blockElement, null);
       if (nestedElement != null) {
         blockElement = nestedElement;
       }
@@ -538,7 +538,7 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
     }
 
     if (name.isQualified()) {
-      GradlePropertiesDslElement nestedElement = getBlockElement(name.qualifyingParts(), blockElement, null);
+      GradlePropertiesDslElement nestedElement = getPropertiesElement(name.qualifyingParts(), blockElement, null);
       if (nestedElement != null) {
         blockElement = nestedElement;
       }
