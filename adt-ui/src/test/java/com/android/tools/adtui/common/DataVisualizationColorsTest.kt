@@ -17,8 +17,10 @@ package com.android.tools.adtui.common
 
 import com.android.testutils.TestResources
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ui.JBColor
 import org.junit.Before
 import org.junit.Test
+import java.awt.Color
 import java.io.FileInputStream
 
 class DataVisualizationColorsTest {
@@ -33,14 +35,16 @@ class DataVisualizationColorsTest {
    */
   @Test
   fun validateFileFormat() {
-    val palette = DataVisualizationColors.palette
-    assertThat(palette).isNotEmpty()
+    assertThat(DataVisualizationColors.dataPalette).isNotEmpty()
+    assertThat(DataVisualizationColors.fontPalette).isNotEmpty()
   }
 
   @Test
-  fun validateFileHasSameNumberVarientsForEachColor() {
-    val palette = DataVisualizationColors.palette
-    palette.values.forEach {
+  fun validateFileHasSameNumberVariantsForEachColor() {
+    DataVisualizationColors.dataPalette.values.forEach {
+      assertThat(it.size).isEqualTo(DataVisualizationColors.numberOfTonesPerColor)
+    }
+    DataVisualizationColors.fontPalette.values.forEach {
       assertThat(it.size).isEqualTo(DataVisualizationColors.numberOfTonesPerColor)
     }
   }
@@ -55,7 +59,7 @@ class DataVisualizationColorsTest {
 
   @Test
   fun colorsByIndexHandlesOutOfBounds() {
-    val palette = DataVisualizationColors.palette
+    val palette = DataVisualizationColors.dataPalette
     val numberOfColors = palette.size
     val numberOfTones = DataVisualizationColors.numberOfTonesPerColor
     assertThat(DataVisualizationColors.getColor(-1)).isEqualTo(
@@ -85,5 +89,11 @@ class DataVisualizationColorsTest {
     val gray = DataVisualizationColors.getColor("Gray", false)
     val focusedGray = DataVisualizationColors.getColor("Gray", true)
     assertThat(gray).isNotEqualTo(focusedGray)
+  }
+
+  @Test
+  fun getFontColors() {
+    assertThat(DataVisualizationColors.getFontColor(0)).isEqualTo(JBColor(Color.BLACK, Color.WHITE))
+    assertThat(DataVisualizationColors.getFontColor("Light Blue")).isEqualTo(JBColor(Color.BLACK, Color.BLACK))
   }
 }
