@@ -15,14 +15,28 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.ATTR_LAYOUT_BASELINE_TO_BASELINE_OF;
+import static com.android.SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_X;
+import static com.android.SdkConstants.ATTR_LAYOUT_EDITOR_ABSOLUTE_Y;
+import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_BOTTOM;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_END;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_START;
+import static com.android.SdkConstants.ATTR_LAYOUT_MARGIN_TOP;
+import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 import static com.android.SdkConstants.SHERPA_URI;
+import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils.MOTION_LAYOUT_PROPERTIES;
 
 import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlAttributesHolder;
 import com.android.tools.idea.common.model.NlComponent;
@@ -86,8 +100,13 @@ public class MotionUtils {
 
     if (isInBaseState(motionLayout)) {
       component.startAttributeTransaction();
-      for (AttributeSnapshot attribute : component.getAttributes()) {
-        modification.setAttribute(attribute.namespace, attribute.name, attribute.value);
+      for (Pair<String, String> attribute : ConstraintComponentUtilities.ourLayoutAttributes) {
+        String namespace = attribute.getFirst();
+        String attributeName = attribute.getSecond();
+        String definedAttribute = component.getLiveAttribute(namespace, attributeName);
+        if (definedAttribute != null) {
+          modification.setAttribute(namespace, attributeName, definedAttribute);
+        }
       }
       return;
     }
@@ -105,13 +124,12 @@ public class MotionUtils {
     HashMap<String, MotionAttributes.DefinedAttribute> definedAttributes = attrs.getAttrMap();
 
     for (Pair<String, String> attribute : ConstraintComponentUtilities.ourLayoutAttributes) {
+      String namespace = attribute.getFirst();
       String attributeName = attribute.getSecond();
       MotionAttributes.DefinedAttribute definedAttribute = definedAttributes.get(attributeName);
       if (definedAttribute != null) {
-        modification.removeAttribute(SdkConstants.TOOLS_URI, attributeName);
-        modification.removeAttribute(SdkConstants.SHERPA_URI, attributeName);
-        modification.removeAttribute(SdkConstants.ANDROID_URI, attributeName);
-        modification.setAttribute(SdkConstants.SHERPA_URI, attributeName, definedAttribute.getValue());
+        namespace = getFilteredNamespace(namespace, attributeName, false);
+        modification.setAttribute(namespace, attributeName, definedAttribute.getValue());
       }
     }
   }
@@ -134,15 +152,10 @@ public class MotionUtils {
       return;
     }
 
+    ConstraintComponentUtilities.cleanup(modification, component);
     if (isInBaseState(motionLayout)) {
-      // in this case, the need to apply the memorized attributes by hand -- the internal
-      // AttributesTransaction of the component wouldn't have been used yet.
-      AttributesTransaction transaction = component.startAttributeTransaction();
-      for (Pair<String, String> key : modification.getAttributes().keySet()) {
-        String value = modification.getAttributes().get(key);
-        transaction.setAttribute(key.getFirst(), key.getSecond(), value);
-      }
-      modification.directCommit();
+      AttributesTransaction transaction = fillTransaction(modification);
+      NlWriteCommandActionUtil.run(component, modification.getLabel(), transaction::commit);
       return;
     }
 
@@ -220,19 +233,61 @@ public class MotionUtils {
     }
 
     if (isInBaseState(motionLayout)) {
-      // in this case, the need to apply the memorized attributes by hand -- the internal
-      // AttributesTransaction of the component wouldn't have been used yet.
-      AttributesTransaction transaction = component.startAttributeTransaction();
-      for (Pair<String, String> key : modification.getAttributes().keySet()) {
-        String value = modification.getAttributes().get(key);
-        transaction.setAttribute(key.getFirst(), key.getSecond(), value);
-      }
+      AttributesTransaction transaction = fillTransaction(modification);
       transaction.apply();
+      motionLayout.updateLiveAttributes(component, modification, motionLayout.getState());
       return;
     }
 
     // let's apply in memory by updating the constraintset directly
     motionLayout.updateLiveAttributes(component, modification, motionLayout.getState());
+  }
+
+  // in this case, we need to apply the memorized attributes by hand -- the internal
+  // AttributesTransaction of the component wouldn't have been used yet.
+  private static AttributesTransaction fillTransaction(ComponentModification modification) {
+    NlComponent component = modification.getComponent();
+    AttributesTransaction transaction = component.startAttributeTransaction();
+    for (Pair<String, String> key : modification.getAttributes().keySet()) {
+      String value = modification.getAttributes().get(key);
+      String namespace = key.getFirst();
+      String attribute = key.getSecond();
+      namespace = getFilteredNamespace(namespace, attribute, true);
+      transaction.setAttribute(namespace, attribute, value);
+    }
+    return transaction;
+  }
+
+  private static final HashMap<String, Pair<String, String>> ourFilteredAttributes = new HashMap<>();
+  static {
+    ourFilteredAttributes.put(ATTR_ID, Pair.of(ANDROID_URI, SHERPA_URI));
+    ourFilteredAttributes.put(ATTR_LAYOUT_WIDTH, Pair.of(ANDROID_URI, SHERPA_URI));
+    ourFilteredAttributes.put(ATTR_LAYOUT_HEIGHT, Pair.of(ANDROID_URI, SHERPA_URI));
+    ourFilteredAttributes.put(ATTR_LAYOUT_MARGIN_START, Pair.of(ANDROID_URI, SHERPA_URI));
+    ourFilteredAttributes.put(ATTR_LAYOUT_MARGIN_END, Pair.of(ANDROID_URI, SHERPA_URI));
+    ourFilteredAttributes.put(ATTR_LAYOUT_MARGIN_LEFT, Pair.of(ANDROID_URI, SHERPA_URI));
+    ourFilteredAttributes.put(ATTR_LAYOUT_MARGIN_RIGHT, Pair.of(ANDROID_URI, SHERPA_URI));
+    ourFilteredAttributes.put(ATTR_LAYOUT_MARGIN_TOP, Pair.of(ANDROID_URI, SHERPA_URI));
+    ourFilteredAttributes.put(ATTR_LAYOUT_MARGIN_BOTTOM, Pair.of(ANDROID_URI, SHERPA_URI));
+    ourFilteredAttributes.put(ATTR_LAYOUT_EDITOR_ABSOLUTE_X, Pair.of(TOOLS_URI, SHERPA_URI));
+    ourFilteredAttributes.put(ATTR_LAYOUT_EDITOR_ABSOLUTE_Y, Pair.of(TOOLS_URI, SHERPA_URI));
+  }
+
+  /**
+   * Depending if we are in the base state or not we need to return a different namespaces for
+   * the attributes tracked in ourFilteredAttributes map.
+   *
+   * @param namespace
+   * @param attribute
+   * @param isInBaseState
+   * @return correct namespace depending on the state.
+   */
+  private static String getFilteredNamespace(String namespace, String attribute, boolean isInBaseState) {
+    Pair<String, String> namespaces = ourFilteredAttributes.get(attribute);
+    if (namespaces == null) {
+      return namespace;
+    }
+    return isInBaseState ? namespaces.getFirst() : namespaces.getSecond();
   }
 
   /**

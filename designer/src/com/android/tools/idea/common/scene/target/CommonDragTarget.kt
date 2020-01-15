@@ -389,11 +389,8 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
 
     val attributesTransactions = draggedComponents.map {
       val modification = ComponentModification(it.authoritativeNlComponent, "Drag component")
-      var update = !isPlaceholderLiveUpdatable(placeholder)
-      if (placeholder is MotionLayoutPlaceholder) {
-        update = !MotionUtils.isInBaseState(MotionLayoutComponentHelper.create(primaryNlComponent))
-      }
-      if (update) {
+      if (!isPlaceholderLiveUpdatable(placeholder)
+          || (placeholder is MotionLayoutPlaceholder)) {
         placeholder.updateAttribute(it, modification)
       }
       modification
