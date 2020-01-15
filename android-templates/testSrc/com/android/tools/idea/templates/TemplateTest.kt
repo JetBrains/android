@@ -602,6 +602,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareIntentService() {
+    checkCreateTemplate("other", "IntentService", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareIntentServiceWithKotlin() {
+    checkCreateTemplate("other", "IntentService", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewListFragment() {
     checkCreateTemplate("fragments", "ListFragment")
   }
