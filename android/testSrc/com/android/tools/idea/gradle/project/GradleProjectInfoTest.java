@@ -179,31 +179,6 @@ public class GradleProjectInfoTest extends PlatformTestCase {
     when(syncState.getLastSyncFinishedTimeStamp()).thenReturn(timestamp);
   }
 
-  public void testInvokesIndexHonoringExclusion() throws IOException {
-    Module module = getModule();
-    AndroidFacet facet = createAndAddAndroidFacet(module);
-
-    AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
-    AndroidModel.set(facet, androidModel);
-
-    ProjectFileIndex projectFileIndex = mock(ProjectFileIndex.class);
-    Project project = getProject();
-    myProjectInfo = new GradleProjectInfo(project, mock(AndroidProjectInfo.class), projectFileIndex);
-
-    VirtualFile excludedFile = createFileInProjectRoot(project, "something.txt");
-
-    when(projectFileIndex.getModuleForFile(excludedFile, true)).thenReturn(null);
-    when(projectFileIndex.getModuleForFile(excludedFile, false)).thenReturn(module);
-
-    AndroidModuleModel found = myProjectInfo.findAndroidModelInModule(excludedFile);
-    assertNull(found);
-    verify(projectFileIndex).getModuleForFile(excludedFile, true);
-
-    found = myProjectInfo.findAndroidModelInModule(excludedFile, false);
-    assertSame(androidModel, found);
-    verify(projectFileIndex).getModuleForFile(excludedFile, false);
-  }
-
   public void testGetSelectedModules() {
     createAndAddGradleFacet(myModule);
 
