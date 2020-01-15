@@ -79,7 +79,6 @@ fun buildGradle(
     isApplicationProject,
     packageName,
     hasTests = hasTests,
-    canHaveCpp = true,
     canUseProguard = true,
     addLintOptions = addLintOptions
   )

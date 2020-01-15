@@ -99,7 +99,6 @@ fun androidConfig(
   hasApplicationId: Boolean = false,
   applicationId: String = "",
   hasTests: Boolean = false,
-  canHaveCpp: Boolean = false,
   canUseProguard: Boolean = false,
   addLintOptions: Boolean = false
 ): String {
@@ -118,7 +117,7 @@ fun androidConfig(
     """
   }
 
-  val cppBlock = renderIf(canHaveCpp && includeCppSupport) {
+  val cppBlock = renderIf(includeCppSupport) {
     """
       externalNativeBuild {
         cmake {
@@ -127,7 +126,7 @@ fun androidConfig(
       }
   """
   }
-  val cppBlock2 = renderIf(canHaveCpp && includeCppSupport) {
+  val cppBlock2 = renderIf(includeCppSupport) {
     """
       externalNativeBuild {
         cmake {
