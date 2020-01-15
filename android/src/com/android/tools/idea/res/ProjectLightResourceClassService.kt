@@ -75,13 +75,7 @@ private data class ResourceClasses(
 /**
  * A [LightResourceClassService] that provides R classes for local modules by finding manifests of all Android modules in the project.
  */
-class ProjectLightResourceClassService(
-  private val project: Project,
-  private val psiManager: PsiManager,
-  private val projectFacetManager: ProjectFacetManager,
-  private val aarResourceRepositoryCache: AarResourceRepositoryCache,
-  private val androidLightPackagesCache: AndroidLightPackage.InstanceCache
-) : LightResourceClassService {
+class ProjectLightResourceClassService(private val project: Project) : LightResourceClassService {
   companion object {
     @JvmStatic
     fun getInstance(project: Project) = ServiceManager.getService(project, ProjectLightResourceClassService::class.java)!!
@@ -199,6 +193,7 @@ class ProjectLightResourceClassService(
 
   private fun getModuleRClasses(facet: AndroidFacet): ResourceClasses {
     return moduleClassesCache.getAndUnwrap(facet) {
+      val psiManager = PsiManager.getInstance(project)
       // TODO: get this from the model
       val modifier = if (facet.configuration.isLibraryProject) FieldModifier.NON_FINAL else FieldModifier.FINAL
       val transitivity = if (facet.module.getModuleSystem().isRClassTransitive) Transitivity.TRANSITIVE else Transitivity.NON_TRANSITIVE
@@ -222,13 +217,15 @@ class ProjectLightResourceClassService(
     // Build the classes from what is currently on disk. They may be null if the necessary files are not there, e.g. the res.apk file
     // is required to build the namespaced class.
     return aarClassesCache.getAndUnwrap(aarLibrary) {
+      val psiManager = PsiManager.getInstance(project)
+
       ResourceClasses(
         namespaced = aarLibrary.resApkFile?.toFile()?.takeIf { it.exists() }?.let { resApk ->
           SmallAarRClass(
             psiManager,
             ideaLibrary,
             packageName,
-            aarResourceRepositoryCache.getProtoRepository(aarLibrary),
+            AarResourceRepositoryCache.instance.getProtoRepository(aarLibrary),
             ResourceNamespace.fromPackageName(packageName)
           )
         },
@@ -251,7 +248,7 @@ class ProjectLightResourceClassService(
 
   override fun findRClassPackage(packageName: String): PsiPackage? {
     return if (aarsByPackage.value.containsKey(packageName) || findAndroidFacetsWithPackageName(packageName).isNotEmpty()) {
-      androidLightPackagesCache.get(packageName)
+      AndroidLightPackage.withName(packageName, project)
     }
     else {
       null
@@ -260,7 +257,7 @@ class ProjectLightResourceClassService(
 
   override fun getAllLightRClasses(): Collection<PsiClass> {
     val libraryClasses = findAllLibrariesWithResources(project).values.asSequence().map { getAarRClasses(it) }
-    val moduleClasses = projectFacetManager.getFacets(AndroidFacet.ID).asSequence().map { getModuleRClasses(it) }
+    val moduleClasses = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).asSequence().map { getModuleRClasses(it) }
 
     return (libraryClasses + moduleClasses)
       .flatMap { it.all }
@@ -270,7 +267,7 @@ class ProjectLightResourceClassService(
 
   private fun findAndroidFacetsWithPackageName(packageName: String): List<AndroidFacet> {
     // TODO(b/110188226): cache this and figure out how to invalidate that cache.
-    return projectFacetManager.getFacets(AndroidFacet.ID).filter {
+    return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).filter {
       getPackageName(it) == packageName || getTestPackageName(it) == packageName
     }
   }
