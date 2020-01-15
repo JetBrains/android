@@ -53,25 +53,16 @@ import com.android.projectmodel.DynamicResourceValue;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
-import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.lint.detector.api.Desugaring;
 import com.android.tools.lint.detector.api.Lint;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.serialization.PropertyMapping;
 import java.io.File;
 import java.util.ArrayList;
@@ -79,11 +70,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.annotations.NotNull;
@@ -93,7 +82,6 @@ import org.jetbrains.annotations.Nullable;
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
 public class AndroidModuleModel implements AndroidModel, ModuleModel {
-  static final String[] TEST_ARTIFACT_NAMES = {ARTIFACT_UNIT_TEST, ARTIFACT_ANDROID_TEST};
   private static final AndroidVersion NOT_SPECIFIED = new AndroidVersion(0, null);
 
   @NotNull private ProjectSystemId myProjectSystemId;
@@ -261,12 +249,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    * @return true if the variant model with given name has been requested before.
    */
   public boolean variantExists(@NotNull String variantName) {
-    for (Variant variant : myAndroidProject.getVariants()) {
-      if (variantName.equals(variant.getName())) {
-        return true;
-      }
-    }
-    return false;
+    return myVariantsByName.containsKey(variantName);
   }
 
   @NotNull
@@ -634,45 +617,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @Override
   public boolean isClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile) {
-    return testIsClassFileOutOfDate(module, fqcn, classFile);
-  }
-
-  public static boolean testIsClassFileOutOfDate(@NotNull Module module, @NotNull String fqcn, @NotNull VirtualFile classFile) {
-    Project project = module.getProject();
-    GlobalSearchScope scope = module.getModuleWithDependenciesScope();
-    VirtualFile sourceFile =
-      ApplicationManager.getApplication().runReadAction((Computable<VirtualFile>)() -> {
-        PsiClass psiClass = JavaPsiFacade.getInstance(project).findClass(fqcn, scope);
-        if (psiClass == null) {
-          return null;
-        }
-        PsiFile psiFile = psiClass.getContainingFile();
-        if (psiFile == null) {
-          return null;
-        }
-        return psiFile.getVirtualFile();
-      });
-
-    if (sourceFile == null) {
-      return false;
-    }
-
-    // Edited but not yet saved?
-    if (FileDocumentManager.getInstance().isFileModified(sourceFile)) {
-      return true;
-    }
-
-    // Check timestamp
-    long sourceFileModified = sourceFile.getTimeStamp();
-
-    // User modifications on the source file might not always result on a new .class file.
-    // We use the project modification time instead to display the warning more reliably.
-    long lastBuildTimestamp = classFile.getTimeStamp();
-    Long projectBuildTimestamp = PostProjectBuildTasksExecutor.getInstance(project).getLastBuildTimestamp();
-    if (projectBuildTimestamp != null) {
-      lastBuildTimestamp = projectBuildTimestamp;
-    }
-    return sourceFileModified > lastBuildTimestamp && lastBuildTimestamp > 0L;
+    return ClassFileUtil.isClassSourceFileNewerThanClassClassFile(module, fqcn, classFile);
   }
 
   @NotNull
