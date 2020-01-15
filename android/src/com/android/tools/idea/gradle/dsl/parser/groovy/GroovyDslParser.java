@@ -20,6 +20,8 @@ import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.REGULAR;
 import static com.android.tools.idea.gradle.dsl.api.ext.PropertyType.VARIABLE;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INCOMPLETE_PARSING;
 import static com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference.INVALID_EXPRESSION;
+import static com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.ensureUnquotedText;
 import static com.android.tools.idea.gradle.dsl.parser.groovy.GroovyDslUtil.findInjections;
 import static com.intellij.psi.util.PsiTreeUtil.findChildOfType;
@@ -36,6 +38,7 @@ import com.android.tools.idea.gradle.dsl.parser.SharedParserUtilsKt;
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationDslElement;
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
@@ -331,9 +334,21 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
 
     GrClosableBlock[] closureArguments = expression.getClosureArguments();
     GrArgumentList argumentList = expression.getArgumentList();
-    if (argumentList.getAllArguments().length > 0 || closureArguments.length == 0) {
-      // This element is a method call with arguments and an optional closure associated with it.
-      // ex: compile("dependency") {}
+    int nArgs = argumentList.getAllArguments().length;
+
+    // we distinguish between "regular" method calls and those which introduce Dsl blocks.  Calls which introduce Dsl blocks have
+    // zero regular arguments; usually they have one closure argument, but that closure argument is not essential.  In most cases
+    // a call with no closure argument will not do anything, but some (e.g. bare method calls to google() under repositories { ... })
+    // will have an effect and must be parsed as their respective block.
+
+    // We will check for whether a call should be interpreted as a block by interrogating the parent Dsl for whether a child with that
+    // name would be recognized.  There remain a few special cases which are not handled using the Dsl tables, which must always be
+    // considered as blocks.
+    List<String> specialCases = Arrays.asList("allprojects", APPLY_BLOCK_NAME, EXT.name);
+
+    if (nArgs > 0 || (!specialCases.contains(name.name()) && dslElement.getChildPropertiesElementDescription(name.name()) == null)) {
+      // This element is a method call with arguments and an optional closure associated with it.  Handle as a regular method call.
+      // ex: compile("dependency") {}, reset()
       GradleDslSimpleExpression methodCall = getMethodCall(dslElement, expression, name, argumentList, name.fullName(), false);
       if (closureArguments.length > 0) {
         methodCall.setParsedClosureElement(getClosureElement(methodCall, closureArguments[0], name));
@@ -343,10 +358,13 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
       return true;
     }
 
-    // Now this element is pure block element, i.e a method call with no argument but just a closure argument. So, here just process the
-    // closure and treat it as a block element.
-    // ex: android {}
-    GrClosableBlock closableBlock = closureArguments[0];
+    // Now this element is a block element, i.e a method call with no normal arguments and zero or one closure arguments.  Create the block
+    // element, and process the closure if present within that block's context.
+    // ex: android {}, jcenter()
+    GrClosableBlock closableBlock = null;
+    if (closureArguments.length > 0) {
+      closableBlock = closureArguments[0];
+    }
     List<GradlePropertiesDslElement> blockElements = Lists.newArrayList(); // The block elements this closure needs to be applied.
 
     if (dslElement instanceof GradleDslFile && name.name().equals("allprojects")) {
@@ -359,15 +377,29 @@ public class GroovyDslParser extends GroovyDslNameConverter implements GradleDsl
 
     GradlePropertiesDslElement propertiesElement = getPropertiesElement(ImmutableList.of(name.name()), dslElement, name);
     if (propertiesElement != null) {
-      propertiesElement.setPsiElement(closableBlock);
+      // If we have a closableBlock, use it as the block's PsiElement; if we don't, use the whole expression as the PsiElement (so that
+      // new elements can be added to the parent block after this element) and mark the new PropertiesDslElement as not having braces,
+      // and so needing recreation if it is subsequently changed (e.g. by users of the Dsl model APIs).
+      if (closableBlock != null) {
+        propertiesElement.setPsiElement(closableBlock);
+      }
+      else {
+        propertiesElement.setPsiElement(expression);
+        if (propertiesElement instanceof GradleDslBlockElement) {
+          ((GradleDslBlockElement) propertiesElement).setHasBraces(false);
+        }
+      }
       blockElements.add(propertiesElement);
     }
 
     if (blockElements.isEmpty()) {
       return false;
     }
-    for (GradlePropertiesDslElement element : blockElements) {
-      parseGrClosableBlock(closableBlock, element);
+
+    if (closableBlock != null) {
+      for (GradlePropertiesDslElement element : blockElements) {
+        parseGrClosableBlock(closableBlock, element);
+      }
     }
     return true;
   }
