@@ -239,7 +239,7 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
       }
       else {
         assert(p.type === Type.BOOLEAN)
-        if (p.id == ATTR_IS_LAUNCHER && activityCreationMode == ActivityCreationMode.WITH_PROJECT) {
+        if (p.id == ATTR_IS_LAUNCHER && (activityCreationMode == ActivityCreationMode.WITH_PROJECT || "BasicActivity" !in projectNameBase)) {
           // ATTR_IS_LAUNCHER is always true when launched from new project
           return@forEach
         }
