@@ -21,6 +21,7 @@ import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.ide.model.AppInspectionTargetsComboBoxModel
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
+import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
@@ -41,6 +42,12 @@ import javax.swing.event.ListDataListener
 class AppInspectionTargetsComboBoxModelTest {
 
   companion object {
+    private val FAKE_PROCESS_DESCRIPTOR = ProcessDescriptor(
+      Common.Stream.newBuilder().setDevice(FakeTransportService.FAKE_DEVICE)
+        .setType(Common.Stream.Type.DEVICE).setStreamId(0).build(),
+      FakeTransportService.FAKE_PROCESS
+    )
+
     private val DEAD_FAKE_PROCESS = FakeTransportService.FAKE_PROCESS.toBuilder().setState(Common.Process.State.DEAD).build()
   }
 
@@ -91,20 +98,17 @@ class AppInspectionTargetsComboBoxModelTest {
     })
 
     // Attach to a fake process.
-    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+    timer.currentTimeNs = 1
+    val connectionFuture = discoveryHost.connect(AppInspectionServiceRule.TestTransportFileCopier(), FAKE_PROCESS_DESCRIPTOR)
+    connectionFuture.get()
     addedLatch.await()
 
     // Verify the added target.
     Truth.assertThat(model.size).isEqualTo(1)
-    Truth.assertThat(model.getElementAt(0)).isEqualTo(
-      ProcessDescriptor(
-        Common.Stream.newBuilder().setDevice(FakeTransportService.FAKE_DEVICE)
-          .setType(Common.Stream.Type.DEVICE).setStreamId(FakeTransportService.FAKE_DEVICE.deviceId).build(),
-        FakeTransportService.FAKE_PROCESS
-      )
-    )
+    Truth.assertThat(model.getElementAt(0)).isEqualTo(connectionFuture.get())
 
     // Remove the fake process.
+    timer.currentTimeNs = 2
     transportService.addProcess(FakeTransportService.FAKE_DEVICE, DEAD_FAKE_PROCESS)
     removedLatch.await()
 
