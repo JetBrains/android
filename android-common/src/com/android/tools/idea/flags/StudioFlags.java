@@ -559,7 +559,7 @@ public final class StudioFlags {
     "resolve.using.repos",
     "Resolve references using resource repositories",
     "Use ResourceRepository to resolve references, not ResourceManager.",
-    false);
+    true);
 
   public static final Flag<Boolean> RUN_DOM_EXTENDER = Flag.create(
     EDITOR,
