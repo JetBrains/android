@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.project.sync.idea.computeSdkReloadingAsNeed
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL
 import com.android.tools.idea.gradle.project.sync.idea.data.service.ModuleModelDataService
 import com.android.tools.idea.gradle.project.sync.setup.Facets.removeAllFacets
+import com.android.tools.idea.gradle.project.sync.setup.post.ComposeInBetaChecker
 import com.android.tools.idea.gradle.project.sync.setup.post.MemorySettingsPostSyncChecker
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetup
 import com.android.tools.idea.gradle.project.sync.setup.post.ProjectStructureUsageTracker
@@ -144,6 +145,7 @@ internal constructor(private val myModuleValidatorFactory: AndroidModuleValidato
     }
 
     if (IdeInfo.getInstance().isAndroidStudio) {
+      ComposeInBetaChecker.checkIfComposeProject(project);
       MemorySettingsPostSyncChecker
         .checkSettings(project, TimeBasedReminder(project, "memory.settings.postsync", TimeUnit.DAYS.toMillis(1)))
     }
