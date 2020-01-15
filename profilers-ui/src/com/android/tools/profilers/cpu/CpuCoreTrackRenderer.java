@@ -76,12 +76,14 @@ public class CpuCoreTrackRenderer implements TrackRenderer<CpuCoreTrackModel, Pr
       if (value == CpuThreadSliceInfo.NULL_THREAD) {
         return AdtUiUtils.DEFAULT_FONT_COLOR;
       }
+      int nameHash = value.getProcessName().hashCode();
+      DataVisualizationColors dataColors = DataVisualizationColors.INSTANCE;
       // Return other process color.
       if (value.getProcessId() != myAppProcessId) {
-        return isMouseOver ? ProfilerColors.CPU_KERNEL_OTHER_TEXT_HOVER : ProfilerColors.CPU_KERNEL_OTHER_TEXT;
+        return dataColors.getFontColor(nameHash);
       }
       // Return app process color.
-      return isMouseOver ? ProfilerColors.CPU_KERNEL_APP_TEXT_HOVER : ProfilerColors.CPU_KERNEL_APP_TEXT;
+      return dataColors.getFontColor(PRIMARY_DATA_COLOR);
     }
   }
 }
