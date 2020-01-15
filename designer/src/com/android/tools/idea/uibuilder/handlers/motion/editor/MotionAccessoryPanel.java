@@ -535,6 +535,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     } else if (mSelectedStartConstraintId != null && mSelectedEndConstraintId != null) {
       myMotionHelper.setTransition(mSelectedStartConstraintId, mSelectedEndConstraintId);
       myMotionHelper.setProgress(mLastProgress);
+    } else {
+      myMotionHelper.setState(null);
+      mSelectedStartConstraintId = null;
     }
 
     // Ok, so to handle the "layout" mode, we need a few things.
