@@ -87,6 +87,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
       if (ResourceFolderType.VALUES == fileResType) {
         ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(tag);
         if (type != null) {
+          // TODO(lukeegan): Refactor this to accept other namespaces so that framework resources appear in FindUsages
           return new ResourceReferencePsiElement(new ResourceReference(ResourceNamespace.TODO(), type, s), context.getPsiManager(), false);
         }
       }
@@ -100,7 +101,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
                                @Nullable String resolveResult,
                                ConvertContext context) {
     if (StudioFlags.RESOLVE_USING_REPOS.get() && element instanceof ResourceReferencePsiElement) {
-      return element.isEquivalentTo(resolve(stringValue, context));
+      return ((ResourceReferencePsiElement)element).getPsiManager().areElementsEquivalent(element, resolve(stringValue, context));
     }
     return super.isReferenceTo(element, stringValue, resolveResult, context);
   }
