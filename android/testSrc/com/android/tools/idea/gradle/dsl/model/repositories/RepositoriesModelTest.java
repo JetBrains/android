@@ -71,6 +71,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.UrlBasedRepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.google.common.collect.ImmutableList;
 import java.io.IOException;
@@ -445,8 +446,8 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
   }
 
   private static void verifyJCenterDefaultRepositoryModel(RepositoryModel jcenter) {
-    assertThat(jcenter).isInstanceOf(JCenterDefaultRepositoryModel.class);
-    JCenterDefaultRepositoryModel jCenterRepository = (JCenterDefaultRepositoryModel)jcenter;
+    assertThat(jcenter).isInstanceOf(UrlBasedRepositoryModel.class);
+    UrlBasedRepositoryModel jCenterRepository = (UrlBasedRepositoryModel)jcenter;
     assertNull("name", jCenterRepository.name().getPsiElement());
     assertEquals("name", "BintrayJCenter2", jCenterRepository.name().toString());
     assertNull("url", jCenterRepository.url().getPsiElement());
@@ -614,7 +615,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     RepositoriesModel repositoriesModel = buildModel.repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(1);
-    assertThat(repositories.get(0)).isInstanceOf(JCenterDefaultRepositoryModel.class);
+    verifyJCenterDefaultRepositoryModel(repositories.get(0));
     repositories.get(0).name().setValue("hello");
 
     applyChangesAndReparse(buildModel);

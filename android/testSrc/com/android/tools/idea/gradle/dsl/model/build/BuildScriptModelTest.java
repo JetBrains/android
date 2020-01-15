@@ -41,6 +41,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.UrlBasedRepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.ExpectedArtifactDependency;
@@ -142,8 +143,8 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     List<RepositoryModel> repositories = repositoriesModel.repositories();
     assertThat(repositories).hasSize(2);
     RepositoryModel repositoryModel = repositories.get(0);
-    assertTrue(repositoryModel instanceof JCenterDefaultRepositoryModel);
-    JCenterDefaultRepositoryModel repository = (JCenterDefaultRepositoryModel)repositoryModel;
+    assertTrue(repositoryModel instanceof UrlBasedRepositoryModel);
+    UrlBasedRepositoryModel repository = (UrlBasedRepositoryModel)repositoryModel;
     assertEquals("name", "BintrayJCenter2", repository.name());
     assertEquals("url", "https://jcenter.bintray.com/", repository.url());
 
