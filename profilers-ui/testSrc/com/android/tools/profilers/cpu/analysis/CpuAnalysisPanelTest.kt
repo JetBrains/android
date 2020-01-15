@@ -21,10 +21,12 @@ import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuCapture
@@ -55,7 +57,8 @@ class CpuAnalysisPanelTest {
   fun setUp() {
     services.enablePerfetto(true)
     profilers = StudioProfilers(profilerClient, services, timer)
-    stage = CpuCaptureStage.create(profilers, "Test", TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH))
+    stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
+                                   TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_TRACE_PATH))
     panel = CpuAnalysisPanel(StudioProfilersView(profilers, FakeIdeProfilerComponents()), stage)
   }
 

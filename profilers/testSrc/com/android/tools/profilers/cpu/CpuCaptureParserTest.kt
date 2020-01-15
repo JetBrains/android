@@ -18,6 +18,7 @@ package com.android.tools.profilers.cpu
 import com.android.testutils.TestUtils
 import com.android.tools.profiler.proto.Cpu
 import com.android.tools.idea.protobuf.ByteString
+import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilersTestData
 import com.google.common.truth.Truth.assertThat
@@ -304,6 +305,44 @@ class CpuCaptureParserTest {
     fakeServices.setShouldParseLongTraces(true)
     val parser = CpuCaptureParser(fakeServices)
     assertThat(parser.parse(someFile)).isNotNull()
+  }
+
+  @Test
+  fun validateImportMetricsReportedForImport() {
+    val services = FakeIdeProfilerServices()
+    val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
+    val parser = CpuCaptureParser(services)
+    CpuCaptureParser.clearPreviouslyLoadedCaptures()
+    val futureCapture = parser.parse(CpuProfilerTestUtils.getTraceFile("valid_trace.trace"), true)
+    assertThat(fakeFeatureTracker.lastImportTraceStatus).isTrue()
+    assertThat(fakeFeatureTracker.lastCpuCaptureMetadata).isNull()
+  }
+
+  @Test
+  fun validateCaptureMetricsReportedForCapture() {
+    val services = FakeIdeProfilerServices()
+    val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
+    val parser = CpuCaptureParser(services)
+    CpuCaptureParser.clearPreviouslyLoadedCaptures()
+    val futureCapture = parser.parse(CpuProfilerTestUtils.getTraceFile("valid_trace.trace"), false)
+    assertThat(fakeFeatureTracker.lastImportTraceStatus).isNull()
+    assertThat(fakeFeatureTracker.lastCpuCaptureMetadata).isNotNull()
+  }
+
+  @Test
+  fun validateMetricsReportedOnceForCapture() {
+    val services = FakeIdeProfilerServices()
+    val fakeFeatureTracker = services.featureTracker as FakeFeatureTracker
+    val parser = CpuCaptureParser(services)
+    CpuCaptureParser.clearPreviouslyLoadedCaptures()
+    assertThat(fakeFeatureTracker.lastCpuCaptureMetadata).isNull()
+    val futureCapture = parser.parse(CpuProfilerTestUtils.getTraceFile("valid_trace.trace"), false)
+    assertThat(fakeFeatureTracker.lastImportTraceStatus).isNull()
+    assertThat(fakeFeatureTracker.lastCpuCaptureMetadata).isNotNull()
+    // Validate 2nd time parsing does not trigger metrics.
+    fakeFeatureTracker.resetLastCpuCaptureMetadata()
+    parser.parse(CpuProfilerTestUtils.getTraceFile("valid_trace.trace"), false)
+    assertThat(fakeFeatureTracker.lastCpuCaptureMetadata).isNull()
   }
 
   /**
