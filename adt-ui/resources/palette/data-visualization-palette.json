@@ -8,12 +8,26 @@
       "c6d4dd",
       "d6e0e6"
     ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
     "dark": [
       "97b1c0",
       "86a5b6",
       "7699ad",
       "668da3",
       "5a8096"
+    ],
+    "darkModeLightText": [
+      false,
+      false,
+      false,
+      false,
+      false
     ]
   },
   {
@@ -25,12 +39,26 @@
       "c2eafe",
       "cdeefe"
     ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
     "dark": [
       "74a1b8",
-      "6b9bb3",
-      "6194ae",
-      "578da8",
-      "51859e"
+      "6496af",
+      "558aa5",
+      "4c7c94",
+      "446e83"
+    ],
+    "darkModeLightText": [
+      false,
+      false,
+      false,
+      true,
+      true
     ]
   },
   {
@@ -42,12 +70,26 @@
       "fac3a8",
       "fbd1bb"
     ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
     "dark": [
       "ab6d4d",
       "9b6246",
       "89573e",
       "784c36",
       "66412e"
+    ],
+    "darkModeLightText": [
+      false,
+      true,
+      true,
+      true,
+      true
     ]
   },
   {
@@ -59,12 +101,26 @@
       "b3efbe",
       "c8f4d0"
     ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
     "dark": [
       "529d5f",
-      "4c9057",
-      "45824f",
-      "3e7547",
-      "37683f"
+      "4a8c55",
+      "417c4b",
+      "386b41",
+      "305a37"
+    ],
+    "darkModeLightText": [
+      false,
+      false,
+      true,
+      true,
+      true
     ]
   },
   {
@@ -76,12 +132,26 @@
       "cbbae9",
       "d6c9ee"
     ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
     "dark": [
       "746196",
       "675686",
       "5b4c76",
       "4f4267",
       "433857"
+    ],
+    "darkModeLightText": [
+      true,
+      true,
+      true,
+      true,
+      true
     ]
   },
   {
@@ -93,12 +163,26 @@
       "f1b1c9",
       "f5c7d8"
     ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
     "dark": [
       "a04e6c",
       "944763",
       "86415a",
       "783a51",
       "6b3348"
+    ],
+    "darkModeLightText": [
+      true,
+      true,
+      true,
+      true,
+      true
     ]
   },
   {
@@ -110,12 +194,26 @@
       "a2f1e5",
       "bcf5ed"
     ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
     "dark": [
       "3a9f90",
       "328b7d",
       "2a7469",
       "225e55",
       "1a4740"
+    ],
+    "darkModeLightText": [
+      false,
+      false,
+      true,
+      true,
+      true
     ]
   },
   {
@@ -127,12 +225,26 @@
       "ebdec2",
       "eee4cd"
     ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
     "dark": [
       "9b8e6f",
       "8d8062",
       "7e7358",
       "6f654d",
       "605743"
+    ],
+    "darkModeLightText": [
+      false,
+      false,
+      true,
+      true,
+      true
     ]
   },
   {
@@ -144,12 +256,26 @@
       "70d4ff",
       "a3e3ff"
     ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
     "dark": [
       "026793",
       "025c83",
       "025174",
       "024764",
       "013c55"
+    ],
+    "darkModeLightText": [
+      true,
+      true,
+      true,
+      true,
+      true
     ]
   },
   {
@@ -161,12 +287,26 @@
       "71eada",
       "a6f2e8"
     ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
     "dark": [
       "158F7F",
       "137c6e",
       "106a5e",
       "0d594f",
       "0b473f"
+    ],
+    "darkModeLightText": [
+      false,
+      true,
+      true,
+      true,
+      true
     ]
   },
   {
@@ -178,12 +318,26 @@
       "b697ed",
       "c9b1f1"
     ],
+    "lightModeDarkText": [
+      false,
+      true,
+      true,
+      true,
+      true
+    ],
     "dark": [
       "824bdf",
       "6e2fda",
       "5f23c7",
       "531fad",
       "471a93"
+    ],
+    "darkModeLightText": [
+      true,
+      true,
+      true,
+      true,
+      true
     ]
   },
   {
@@ -195,12 +349,26 @@
       "eda378",
       "f2bfa1"
     ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
     "dark": [
       "c1571a",
       "af4f18",
       "9d4715",
       "8b3f13",
       "793711"
+    ],
+    "darkModeLightText": [
+      true,
+      true,
+      true,
+      true,
+      true
     ]
   },
   {
@@ -212,12 +380,26 @@
       "a3b9dc",
       "c8d5ea"
     ],
+    "lightModeDarkText": [
+      false,
+      true,
+      true,
+      true,
+      true
+    ],
     "dark": [
       "3F67A6",
-      "3b609b",
-      "375990",
-      "325285",
-      "2e4b7a"
+      "385b94",
+      "315081",
+      "2a446f",
+      "23395c"
+    ],
+    "darkModeLightText": [
+      true,
+      true,
+      true,
+      true,
+      true
     ]
   },
   {
@@ -229,12 +411,26 @@
       "dcdb93",
       "e7e6b6"
     ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
     "dark": [
       "adac38",
       "a2a034",
       "969431",
       "8b892d",
       "7f7e29"
+    ],
+    "darkModeLightText": [
+      false,
+      false,
+      false,
+      false,
+      false
     ]
   },
   {
@@ -246,12 +442,26 @@
       "e09ac8",
       "ebbddb"
     ],
+    "lightModeDarkText": [
+      false,
+      true,
+      true,
+      true,
+      true
+    ],
     "dark": [
       "b8388e",
-      "b03687",
-      "a83481",
-      "a0317b",
-      "982f75"
+      "a4327e",
+      "902c6f",
+      "7d2660",
+      "692051"
+    ],
+    "darkModeLightText": [
+      true,
+      true,
+      true,
+      true,
+      true
     ]
   },
   {
@@ -263,12 +473,26 @@
       "85b8ff",
       "a8ccff"
     ],
+    "lightModeDarkText": [
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
     "dark": [
       "1a7aff",
-      "3d8eff",
-      "61a3ff",
-      "85b8ff",
-      "a8ccff"
+      "0068fa",
+      "005bdb",
+      "004fbd",
+      "00429e"
+    ],
+    "darkModeLightText": [
+      false,
+      true,
+      true,
+      true,
+      true
     ]
   }
 ]
