@@ -2,6 +2,7 @@
   <xi:include href="/META-INF/JavaIdePlugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <module value="com.intellij.modules.androidstudio"/>
   <module value="com.intellij.modules.java-capable"/>
+  <module value="com.intellij.modules.python-core-capable"/>
   <application-components>
     <component>
       <implementation-class>com.android.tools.idea.AndroidInitialConfigurator</implementation-class>
