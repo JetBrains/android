@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit
 
 class AppInspectionDiscoveryTest {
   private val timer = FakeTimer()
-  private val transportService = FakeTransportService(timer)
+  private val transportService = FakeTransportService(timer, false)
 
   private val FAKE_PROCESS = ProcessDescriptor(
     Common.Stream.newBuilder().setType(Common.Stream.Type.DEVICE).setStreamId(0).setDevice(FakeTransportService.FAKE_DEVICE).build(),
