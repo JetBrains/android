@@ -22,6 +22,8 @@ import com.android.projectmodel.ExternalLibrary
 import com.android.tools.idea.findAllLibrariesWithResources
 import com.android.tools.idea.findDependenciesWithResources
 import com.android.tools.idea.projectsystem.LightResourceClassService
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.ModuleRClass.SourceSet
 import com.android.tools.idea.res.ModuleRClass.Transitivity
@@ -34,6 +36,7 @@ import com.google.common.collect.Multimap
 import com.google.common.collect.Multimaps
 import com.intellij.ProjectTopics
 import com.intellij.facet.ProjectFacetManager
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
@@ -88,7 +91,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
   private val aarClassesCache: Cache<ExternalLibrary, ResourceClasses> = CacheBuilder.newBuilder().build()
 
   /** Cache of created classes for a given AAR. */
-  private val moduleClassesCache: Cache<AndroidFacet, ResourceClasses> = CacheBuilder.newBuilder().weakKeys().build()
+  private val moduleClassesCache: Cache<AndroidFacet, ResourceClasses> = CacheBuilder.newBuilder().build()
 
   /**
    * [Multimap] of all [ExternalLibrary] dependencies in the project, indexed by their package name (read from Manifest).
@@ -96,6 +99,16 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
   private var aarsByPackage: CachedValue<Multimap<String, ExternalLibrary>>
 
   init {
+    val connection = project.messageBus.connect()
+
+    // Sync can remove facets or change configuration of modules in a way that affects R classes, e.g. make them non-transitive.
+    connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : ProjectSystemSyncManager.SyncResultListener {
+      override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
+        moduleClassesCache.invalidateAll()
+        invokeAndWaitIfNeeded { PsiManager.getInstance(project).dropPsiCaches() }
+      }
+    })
+
     aarsByPackage = CachedValuesManager.getManager(project).createCachedValue({
       CachedValueProvider.Result<Multimap<String, ExternalLibrary>>(
         Multimaps.index(findAllLibrariesWithResources(project).values) { getAarPackageName(it!!) },
@@ -105,7 +118,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
 
     // Currently findAllLibrariesWithResources creates new (equal) instances of ExternalLibrary every time it's called, so we have to keep
     // hard references to ExternalLibrary keys, otherwise the entries will be collected.
-    project.messageBus.connect().subscribe(ProjectTopics.PROJECT_ROOTS, object: ModuleRootListener {
+    connection.subscribe(ProjectTopics.PROJECT_ROOTS, object: ModuleRootListener {
       override fun rootsChanged(event: ModuleRootEvent) {
         val aars = aarsByPackage.value.values()
         aarPackageNamesCache.retainAll(aars)
@@ -115,9 +128,14 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
     // Light classes for AARs store a reference to the Library in UserData. These Library instances can become stale during sync, which
     // confuses Kotlin (consumer of the information in UserData). Invalidate the AAR R classes cache when the library table changes.
     LibraryTablesRegistrar.getInstance().getLibraryTable(project).addListener(object : LibraryTable.Listener {
-      override fun afterLibraryAdded(newLibrary: Library) = aarClassesCache.invalidateAll()
-      override fun afterLibraryRenamed(library: Library) = aarClassesCache.invalidateAll()
-      override fun afterLibraryRemoved(library: Library) = aarClassesCache.invalidateAll()
+      override fun afterLibraryAdded(newLibrary: Library) = dropAarClassesCache()
+      override fun afterLibraryRenamed(library: Library) = dropAarClassesCache()
+      override fun afterLibraryRemoved(library: Library) = dropAarClassesCache()
+
+      private fun dropAarClassesCache() {
+        aarClassesCache.invalidateAll()
+        PsiManager.getInstance(project).dropPsiCaches()
+      }
     })
   }
 
