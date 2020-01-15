@@ -265,9 +265,6 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
   ) {
     val moduleState = projectState.moduleTemplateState
     val templateMetadata = activityState.template.metadata
-    val checkLib = "Activity" == templateMetadata?.category && "Mobile" == templateMetadata.formFactor &&
-                   activityCreationMode == ActivityCreationMode.WITHOUT_PROJECT && "default" in projectName &&
-                   activityState[COMPARE_NEW_RENDERING_CONTEXT] != true
     val language = Language.fromName(moduleState[ATTR_LANGUAGE] as String?, Language.JAVA)
     val projectChecker = ProjectChecker(CHECK_LINT, projectState, activityState, usageTracker, language, activityCreationMode)
 
@@ -282,6 +279,11 @@ abstract class TemplateTestBase : AndroidGradleTestCase() {
     enableAndroidX(moduleState, activityState)
     projectChecker.checkProject(projectName)
     // check that new Activities can be created on lib modules as well as app modules.
+    // only NavigationDrawerActivity and GoogleMapsActivity are being tested because it gives 100% coverage and saves time.
+    val checkLib = "Activity" == templateMetadata?.category && "Mobile" == templateMetadata.formFactor &&
+                   activityCreationMode == ActivityCreationMode.WITHOUT_PROJECT && "default" in projectName &&
+                   activityState[COMPARE_NEW_RENDERING_CONTEXT] != true &&
+                   ("NavigationDrawerActivity" in projectName || "GoogleMapsWearActivity" in projectName)
     if (checkLib) {
       moduleState.put(ATTR_IS_LIBRARY_MODULE, true)
       activityState.put(ATTR_IS_LIBRARY_MODULE, true)
