@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.appinspection.api
 
-import com.android.tools.idea.transport.DeployableFile
-
 /**
  * Defines the method through which an [AppInspectorJar] could be copied to device.
  */
@@ -43,15 +41,12 @@ data class AppInspectorJar(
    *
    * It should look like: plugins/android/resources/inspection
    */
-  val releaseDirectory: String,
+  val releaseDirectory: String? = null,
 
   /**
    * The development path of the jar relative to tools/idea.
    *
    * For example: ../../prebuilts/tools/common/m2/repository/androidx/inspection/inspection/1.0.0-SNAPSHOT
    */
-  val developmentDirectory: String
+  val developmentDirectory: String? = null
 )
-
-fun AppInspectorJar.toDeployableFile() =
-  DeployableFile.Builder(name).setReleaseDir(releaseDirectory).setDevDir(developmentDirectory).build()
