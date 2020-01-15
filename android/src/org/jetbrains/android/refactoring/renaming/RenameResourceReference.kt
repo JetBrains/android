@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ValueResourceNameValidator
 import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.RESOURCE_CONTEXT_ELEMENT
@@ -52,6 +53,7 @@ import com.intellij.refactoring.rename.RenamePsiElementProcessor
 import com.intellij.refactoring.rename.RenameUtil
 import com.intellij.ui.EditorTextField
 import com.intellij.usageView.UsageInfo
+import com.intellij.util.containers.MultiMap
 import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrFieldUrl
 import org.jetbrains.android.augment.StyleableAttrLightField
@@ -67,6 +69,26 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
   override fun canProcessElement(element: PsiElement): Boolean {
     return StudioFlags.RESOLVE_USING_REPOS.get() &&
            ResourceReferencePsiElement.create(element)?.toWritableResourceReferencePsiElement() != null
+  }
+
+  override fun findExistingNameConflicts(element: PsiElement, newName: String, conflicts: MultiMap<PsiElement, String>) {
+    if (element !is ResourceReferencePsiElement) {
+      return super.findExistingNameConflicts(element, newName, conflicts)
+    }
+    val contextElement = element.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT)
+                         ?: return super.findExistingNameConflicts(element, newName, conflicts)
+    val repository = ResourceRepositoryManager.getInstance(contextElement)?.allResources
+                     ?: return super.findExistingNameConflicts(element, newName, conflicts)
+    val oldResourceReference = element.resourceReference
+    if (repository.hasResources(oldResourceReference.namespace, oldResourceReference.resourceType, newName)) {
+      val newReference = ResourceReference(oldResourceReference.namespace, oldResourceReference.resourceType, newName)
+      // Find all of the existing resource declarations for which this new name clashes
+      val gotoDeclarationTargets = ResourceRepositoryToPsiResolver.getGotoDeclarationTargets(newReference, contextElement)
+      for (target in gotoDeclarationTargets) {
+        conflicts.put(target, mutableListOf("Resource ${newReference.resourceUrl} already exists"))
+      }
+    }
+    return super.findExistingNameConflicts(element, newName, conflicts)
   }
 
   override fun prepareRenaming(element: PsiElement, newName: String, allRenames: MutableMap<PsiElement, String>) {
