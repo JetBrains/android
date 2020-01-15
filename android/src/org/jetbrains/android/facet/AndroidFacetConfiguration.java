@@ -98,7 +98,7 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
 
   public void setFacet(@NotNull AndroidFacet facet) {
     myFacet = facet;
-    FacetManager.getInstance(facet.getModule()).facetConfigurationChanged(facet);
+    facet.getModule().getMessageBus().syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(facet);
   }
 
   @Override
@@ -180,7 +180,7 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   public void setModel(@Nullable AndroidModel model) {
     myAndroidModel = model;
     if (myFacet != null) {
-      FacetManager.getInstance(myFacet.getModule()).facetConfigurationChanged(myFacet);
+      myFacet.getModule().getMessageBus().syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(myFacet);
     }
   }
 
