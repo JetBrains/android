@@ -53,7 +53,7 @@ abstract class NavTestCase(private val projectDirectory: String = NAVIGATION_EDI
 
     for ((prebuilt, libName) in navEditorAarPaths.entries) {
       val tempDir = FileUtil.createTempDirectory("NavigationTest", null)
-      val aar = File(PathManager.getHomePath(), prebuilt)
+      val aar = File(prebuilt)
       ZipUtil.extract(aar, tempDir, null)
       val unzippedClasses = FileUtil.createTempDirectory("unzipClasses", null)
       ZipUtil.extract(File(tempDir, "classes.jar"), unzippedClasses, null)

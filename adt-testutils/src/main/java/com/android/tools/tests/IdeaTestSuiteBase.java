@@ -52,7 +52,9 @@ public class IdeaTestSuiteBase {
   }
 
   private static void setProperties() {
-    System.setProperty("idea.home", createTmpDir("tools/idea").toString());
+    System.setProperty("idea.home.path", TestUtils.getWorkspaceFile("tools/idea").getPath());
+    System.setProperty("idea.system.path", createTmpDir("idea/system").toString());
+    System.setProperty("idea.config.path", createTmpDir("idea/config").toString());
     System.setProperty("gradle.user.home", createTmpDir("home").toString());
 
     // Set roots for java.util.prefs API.
@@ -120,7 +122,7 @@ public class IdeaTestSuiteBase {
    * directories must first exist as test data for the test.
    */
   protected static void symlinkToIdeaHome(String... targets) {
-    symlinkToIdeaHome(false, targets);
+    // TODO: Remove all calls to this method, which now does nothing.
   }
 
   /**
@@ -130,46 +132,11 @@ public class IdeaTestSuiteBase {
    * does not exist it will be ignored.
    */
   protected static void optSymlinkToIdeaHome(String... targets) {
-    symlinkToIdeaHome(true, targets);
+    // TODO: Remove all calls to this method, which now does nothing.
   }
 
   protected static void symlinkToIdeaHome(boolean ignoreMissing, String... targets) {
-    try {
-      for (String target : targets) {
-        File file = new File(TestUtils.getWorkspaceRoot(), target);
-        if (!file.exists()) {
-          if (!ignoreMissing) {
-            throw new IllegalStateException("Cannot symlink to idea home: " + target);
-          }
-          else {
-            System.err.println("Ignoring missing directory to symlink to idea home: " + target);
-          }
-        }
-        Path targetPath = file.toPath();
-        Path linkPath = Paths.get(TMP_DIR, target);
-
-        // Note: On Windows, due to a known limitation with symbolic link in Docker environments,
-        //       we need to create a symbolic links with the target as a relative path. This works
-        //       on Linux too, so we apply the same logic to both platforms to avoid diverging
-        //       behavior between platforms.
-        Path targetRelativePath = linkPath.getParent().relativize(targetPath);
-        Files.createDirectories(linkPath.getParent());
-        Files.createSymbolicLink(linkPath, targetRelativePath);
-
-        // Ensure we have access to the link target, as a way to check we don't run into the issue
-        // mentioned above.
-        // Note: File may not exist if "ignoreMissing" is true
-        if (file.exists()) {
-          // For reference, the statement below throws an IOException with the message "The create operation
-          // failed because the name contained at least one mount point which resolves to a volume to which
-          // the specified device object is not attached." if there is a problem with the symlink target.
-          linkPath.getFileSystem().provider().checkAccess(linkPath);
-        }
-      }
-    }
-    catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    // TODO: Remove all calls to this method, which now does nothing.
   }
 
   /**
@@ -177,7 +144,10 @@ public class IdeaTestSuiteBase {
    */
   protected static void setUpSourceZip(@NotNull String sourceZip, @NotNull String outputPath, DiffSpec... diffSpecs) {
     File sourceZipFile = getWorkspaceFileAndEnsureExistence(sourceZip);
-    File outDir = createTmpDir(outputPath).toFile();
+    File outDir = new File(getWorkspaceRoot(), outputPath);
+    if (!outDir.isDirectory() && !outDir.mkdirs()) {
+      throw new RuntimeException("Failed to create output directory: " + outDir);
+    }
     unzip(sourceZipFile, outDir);
     for (DiffSpec diffSpec : diffSpecs) {
       try {
@@ -217,8 +187,9 @@ public class IdeaTestSuiteBase {
   }
 
   protected static void setUpOfflineRepo(@NotNull String repoZip, @NotNull String outputPath) {
+    // TODO: Remove the `outputPath` parameter, which is no longer used.
     File offlineRepoZip = getWorkspaceFileAndEnsureExistence(repoZip);
-    File outDir = createTmpDir(outputPath).toFile();
+    File outDir = TestUtils.getPrebuiltOfflineMavenRepo();
     unzip(offlineRepoZip, outDir);
   }
 
