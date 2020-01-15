@@ -1822,25 +1822,4 @@ public final class ConstraintComponentUtilities {
     }
     return false;
   }
-
-  /**
-   * This remaps the margin start and end strings when setting dimensions
-   *
-   * @param component
-   * @param attr
-   * @return
-   */
-  public static String mapStartEndStrings(NlComponent component, String attr) {
-    if (SdkConstants.ATTR_LAYOUT_MARGIN_START.equals(attr)) {
-      if (useLeftRight(component)) {
-        return SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
-      }
-    }
-    else if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attr)) {
-      if (useLeftRight(component)) {
-        return SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
-      }
-    }
-    return attr;
-  }
 }
