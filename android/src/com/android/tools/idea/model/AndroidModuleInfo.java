@@ -32,6 +32,7 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.IndexNotReadyException;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.concurrency.SameThreadExecutor;
+import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.android.sdk.AndroidPlatform;
@@ -109,7 +110,7 @@ public class AndroidModuleInfo extends AndroidFacetScopedService {
     }
 
     // Read from the manifest: Not overridden in the configuration
-    return MergedManifestManager.getSnapshot(facet).getApplicationId();
+    return AndroidManifestUtils.getPackageName(facet);
   }
 
   @NotNull
