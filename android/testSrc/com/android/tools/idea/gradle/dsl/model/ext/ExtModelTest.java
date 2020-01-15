@@ -488,7 +488,7 @@ public class ExtModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     ExtModel ext = buildModel.ext();
 
-    ext.findProperty("newProp").setValue(true);
+    ext.findProperty("ext.newProp").setValue(true);
 
     applyChangesAndReparse(buildModel);
 

@@ -151,7 +151,13 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       if (element.elementType == PropertyType.REGULAR) {
         if (element.parent is ExtDslElement) {
           // This is about a regular extra property and should have a dedicated syntax.
-          statementText = "extra[\"${statementText}\"] = \"abc\""
+          // TODO(b/141842964): For now, we need to be careful about psi to dsl translation in both ways and reflect the dsl logic back to
+          //  the psi elements.
+          if (element.fullName.startsWith("ext.")) statementText = "extra[\"${statementText}\"] = \"abc\""
+          else {
+            statementText = "val $statementText by extra(\"abc\")"
+            isVarOrProperty = true
+          }
         }
         else {
           statementText += " = \"abc\""
