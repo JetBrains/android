@@ -15,6 +15,10 @@ package com.android.tools.idea.gradle.dsl.model.ext
 
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_AND_REMOVE_FROM_NON_LITERAL_LIST
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PROPERTIES_FROM_SCRATCH_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PROPERTIES_FROM_SCRATCH
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PROPERTIES_FROM_SCRATCH_ARRAY_EXPRESSION
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PROPERTIES_FROM_SCRATCH_ARRAY_EXPRESSION_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_EXISTING_MAP_PROPERTY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_EXISTING_MAP_PROPERTY_FOR_KTS_ARRAY_EXPRESSION
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_ADD_MAP_VALUE_TO_STRING
@@ -178,6 +182,7 @@ import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
+import junit.framework.TestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
@@ -188,6 +193,39 @@ import java.io.File
 import java.math.BigDecimal
 
 class GradlePropertyModelTest : GradleFileModelTestCase() {
+  @Test
+  fun testPropertyFromScratch() {
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_PROPERTIES_FROM_SCRATCH)
+
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+
+    extModel.findProperty("newProp").setValue(123)
+    extModel.findProperty("prop1").setValue(ReferenceTo("newProp"))
+
+    applyChangesAndReparse(buildModel)
+
+    // We don't have to cast extra properties when declaring extra properties so the cast is not necessary.
+    //TODO(karimai): ugly, we shouldn't cast when the applyContext is an extra property.
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_PROPERTIES_FROM_SCRATCH_EXPECTED)
+  }
+
+  @Test
+  fun testPropertyFromScratchArrayExpression() {
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_PROPERTIES_FROM_SCRATCH_ARRAY_EXPRESSION)
+
+    val buildModel = gradleBuildModel
+    val extModel = buildModel.ext()
+
+    extModel.findProperty("ext.newProp").setValue(123)
+    extModel.findProperty("ext.prop1").setValue(ReferenceTo("newProp"))
+    extModel.findProperty("prop2").setValue(ReferenceTo("ext.newProp"))
+
+    applyChangesAndReparse(buildModel)
+
+    verifyFileContents(myBuildFile, GRADLE_PROPERTY_MODEL_PROPERTIES_FROM_SCRATCH_ARRAY_EXPRESSION_EXPECTED)
+  }
+
   @Test
   fun testProperties() {
     writeToBuildFile(GRADLE_PROPERTY_MODEL_PROPERTIES)
