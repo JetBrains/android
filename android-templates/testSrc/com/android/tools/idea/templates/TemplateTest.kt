@@ -567,6 +567,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareContentProvider() {
+    checkCreateTemplate("other", "ContentProvider", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareContentProviderWithKotlin() {
+    checkCreateTemplate("other", "ContentProvider", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewSliceProvider() {
     checkCreateTemplate("other", "SliceProvider", ActivityCreationMode.WITHOUT_PROJECT)
   }
