@@ -45,12 +45,12 @@ class BuildAttributionUiAnalytics(private val project: Project) {
   }
 
   /**
-   * Called when new build speed tab is created.
+   * Called when new "Build Analyzer" tab is created.
    */
   fun tabCreated() = doLog(newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.TAB_CREATED))
 
   /**
-   * Called when build speed tab becomes selected in Build toolwindow.
+   * Called when "Build Analyzer" tab becomes selected in Build toolwindow.
    * If [registerBuildOutputLinkClick] was called just before this call then this event will be reported as opened from build output link.
    */
   fun tabOpened() {
@@ -69,14 +69,14 @@ class BuildAttributionUiAnalytics(private val project: Project) {
   }
 
   /**
-   * Called when build speed tab is getting closed.
+   * Called when "Build Analyzer" tab is getting closed.
    */
   fun tabClosed() {
     doLog(newUiEventBuilderWithPage().setEventType(BuildAttributionUiEvent.EventType.TAB_CLOSED))
   }
 
   /**
-   * Called when report about new build replaces current one in the opened build speed tab.
+   * Called when report about new build replaces current one in the opened "Build Analyzer" tab.
    */
   fun buildReportReplaced() {
     doLog(newUiEventBuilder().setEventType(BuildAttributionUiEvent.EventType.CONTENT_REPLACED))

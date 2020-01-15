@@ -99,7 +99,7 @@ class BuildAttributionUiManager(
 
   private fun createNewTab() {
     buildAttributionTreeView?.let { view ->
-      buildContent = ContentImpl(BorderLayoutPanel(), "Build Speed", true).also { content ->
+      buildContent = ContentImpl(BorderLayoutPanel(), "Build Analyzer", true).also { content ->
         content.component.add(view.component, BorderLayout.CENTER)
         Disposer.register(project, content)
         Disposer.register(content, view)
