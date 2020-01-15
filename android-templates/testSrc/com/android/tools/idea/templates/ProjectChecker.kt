@@ -161,7 +161,8 @@ data class ProjectChecker(
   private fun Project.verify(language: Language) {
     val projectDir = getBaseDirPath(this)
     verifyLanguageFiles(projectDir, language)
-    if(basePath?.contains("compare") != true) {
+    if(basePath?.contains("compare") != true &&
+       basePath?.contains("Folder") != true) { // running Gradle for new folders doesn't make much sense and takes long time
       invokeGradleForProjectDir(projectDir)
     }
     lintIfNeeded(this)
