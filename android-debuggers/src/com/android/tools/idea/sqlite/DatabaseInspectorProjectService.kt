@@ -53,7 +53,6 @@ import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.util.concurrency.EdtExecutorService
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
@@ -238,7 +237,8 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
 
   private suspend fun openSqliteDatabaseInInspector(database: Deferred<SqliteDatabase>) = withContext(uiThread) {
     toolWindowManager.getToolWindow(DatabaseInspectorToolWindowFactory.TOOL_WINDOW_ID).show {
-      launch { controller.addSqliteDatabase(database) }
+      // TODO(147733447): check code coverage.
+      projectScope.launch(uiThread) { controller.addSqliteDatabase(database) }
     }
   }
 
