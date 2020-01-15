@@ -18,10 +18,13 @@ package com.android.tools.idea.flags;
 import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_NATIVE_PLUGIN;
 import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_STANDARD_PLUGIN;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
 import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.ui.LayoutInspectorSettingsKt;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.ide.plugins.PluginManagerConfigurable;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.ApplicationManager;
@@ -139,13 +142,21 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     LayoutInspectorSettingsKt.setEnableLiveLayoutInspector(myLayoutInspectorCheckbox.isSelected());
     if (myUseLayoutlibNative.isSelected() == PluginManagerCore.isDisabled(LAYOUTLIB_NATIVE_PLUGIN)) {
       myRestartCallback = () -> ApplicationManager.getApplication().invokeLater(() -> PluginManagerConfigurable.shutdownOrRestartApp());
+      LayoutEditorEvent.Builder eventBuilder = LayoutEditorEvent.newBuilder();
       if (myUseLayoutlibNative.isSelected()) {
+        eventBuilder.setType(LayoutEditorEvent.LayoutEditorEventType.ENABLE_LAYOUTLIB_NATIVE);
         PluginManagerCore.enablePlugin(LAYOUTLIB_NATIVE_PLUGIN);
       }
       else {
+        eventBuilder.setType(LayoutEditorEvent.LayoutEditorEventType.DISABLE_LAYOUTLIB_NATIVE);
         PluginManagerCore.disablePlugin(LAYOUTLIB_NATIVE_PLUGIN);
         PluginManagerCore.enablePlugin(LAYOUTLIB_STANDARD_PLUGIN);
       }
+      AndroidStudioEvent.Builder studioEvent = AndroidStudioEvent.newBuilder()
+        .setCategory(AndroidStudioEvent.EventCategory.LAYOUT_EDITOR)
+        .setKind(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT)
+        .setLayoutEditorEvent(eventBuilder.build());
+      UsageTracker.log(studioEvent);
     }
   }
 
