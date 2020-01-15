@@ -602,7 +602,6 @@ public class WidgetConstraintModel implements SelectionListener {
       return;
     }
 
-    attribute = ConstraintComponentUtilities.mapStartEndStrings(myComponent, attribute);
     boolean isCurrentValueReference = currentValue.startsWith("@");
     if (isCurrentValueReference) {
       setAttribute(ANDROID_URI, attribute, currentValue);
