@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
+import com.intellij.psi.PsiElement;
 import java.util.Map;
 import java.util.Objects;
 import kotlin.Pair;
@@ -37,6 +38,39 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanti
 public class GradleDslBlockElement extends GradlePropertiesDslElement {
   protected GradleDslBlockElement(@Nullable GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, null, name);
+  }
+
+  // hasBraces is a reflection of the surface condition of an underlying condition, which might be more accurately described as whether the
+  // PsiElement of this DslElement in a suitable condition to add properties to.  The primary (currently, as of 2020-Jan-15, only) way in
+  // which this can happen is for a Dsl block to be defined without braces, for example the `foo` configuration in:
+  //
+  // configurations {
+  //   foo
+  // }
+  //
+  // or the `jcenter()` repository in:
+  //
+  // repositories {
+  //   jcenter()
+  // }
+  //
+  // in both cases these are not syntactic "blocks" (in that they don't have a brace-delimited closure/action argument) but are represented
+  // by GradleDslBlockElements.
+  private boolean hasBraces = true;
+
+  public void setHasBraces(boolean newValue) {
+    this.hasBraces = newValue;
+  }
+
+  public boolean getHasBraces() {
+    return this.hasBraces;
+  }
+
+  @Nullable
+  @Override
+  public PsiElement create() {
+    if (!hasBraces) delete();
+    return super.create();
   }
 
   @Override
