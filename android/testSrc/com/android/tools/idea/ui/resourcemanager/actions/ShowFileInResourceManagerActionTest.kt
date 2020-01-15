@@ -16,21 +16,21 @@
 package com.android.tools.idea.ui.resourcemanager.actions
 
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
-import com.android.tools.idea.ui.resourcemanager.ResourceExplorer
-import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
-import com.android.tools.idea.ui.resourcemanager.widget.SectionList
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
+import com.android.tools.idea.ui.resourcemanager.ResourceExplorer
+import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerView
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.ui.resourcemanager.waitAndAssert
+import com.android.tools.idea.ui.resourcemanager.widget.SectionList
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.util.WaitFor
 import com.intellij.util.ui.UIUtil
 import org.junit.Before
 import org.junit.Rule
@@ -74,16 +74,13 @@ class ShowFileInResourceManagerActionTest {
   fun itemIsSelectedInResourceManager() {
     val newFile = rule.fixture.loadNewFile("res/drawable-hdpi/icon.xml", "<drawable></drawable>")
     val resourceExplorer = ResourceExplorer.createForToolWindow(rule.module.androidFacet!!)
+    val resourceExplorerView = UIUtil.findComponentOfType(resourceExplorer, ResourceExplorerView::class.java)!!
     Disposer.register(rule.project, resourceExplorer)
 
-    val wait = object : WaitFor(1000, 100) {
-      override fun condition(): Boolean {
-        val sectionLists = UIUtil.findComponentsOfType(resourceExplorer, SectionList::class.java)
-        if (sectionLists.size == 0) return false
-        return (sectionLists[0].getLists().getOrNull(0)?.model?.size ?: 0 ) > 0
-      }
+    waitAndAssert<SectionList>(resourceExplorerView) {
+      it != null  && (it.getLists().getOrNull(0)?.model?.size ?: 0) > 0
     }
-    wait.assertCompleted()
+
     val component = UIUtil.findComponentsOfType(resourceExplorer, SectionList::class.java)[0]
     resourceExplorer.selectAsset(rule.module.androidFacet!!, newFile.virtualFile)
     val designAsset = component.selectedValue as ResourceAssetSet
