@@ -774,7 +774,10 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
 
   @Override
   public boolean canZoomToFit() {
-    return Math.abs(getScale() - getFitScale(true)) > 0.01;
+    double minZoomLevel = myMinScale / getScreenScalingFactor();
+    double maxZoomLevel = myMaxScale / getScreenScalingFactor();
+    double zoomToFitLevel = Math.max(minZoomLevel, Math.min(getFitScale(true), maxZoomLevel));
+    return Math.abs(getScale() - zoomToFitLevel) > 0.01;
   }
 
   @Override
