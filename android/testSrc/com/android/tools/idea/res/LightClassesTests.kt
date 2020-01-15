@@ -23,7 +23,9 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.model.MergedManifestModificationListener
 import com.android.tools.idea.project.DefaultModuleSystem
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.projectsystem.getSyncManager
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.caret
@@ -40,9 +42,12 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
+import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.ElementPresentationUtil
 import com.intellij.psi.impl.light.LightElement
+import com.intellij.psi.impl.source.resolve.ResolveCache
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.VfsTestUtil.createFile
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
@@ -613,7 +618,7 @@ sealed class LightClassesTestBase : AndroidTestCase() {
     fun testNonTransitive() {
       (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
 
-      val activity = myFixture.addFileToProject(
+      myFixture.loadNewFile(
         "/src/p1/p2/MainActivity.java",
         // language=java
         """
@@ -633,7 +638,6 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       """.trimIndent()
       )
 
-      myFixture.configureFromExistingVirtualFile(activity.virtualFile)
       myFixture.checkHighlighting()
 
       myFixture.moveCaret("(R.string.|libString")
@@ -643,6 +647,36 @@ sealed class LightClassesTestBase : AndroidTestCase() {
       myFixture.moveCaret("mylib.R.string.|libString")
       myFixture.completeBasic()
       assertThat(myFixture.lookupElementStrings).containsExactly("libString", "anotherLibString", "class")
+    }
+
+    fun testNonTransitive_withoutRestart() {
+      myFixture.loadNewFile(
+        "/src/p1/p2/MainActivity.java",
+        // language=java
+        """
+      package p1.p2;
+
+      import android.app.Activity;
+      import android.os.Bundle;
+
+      public class MainActivity extends Activity {
+          @Override
+          protected void onCreate(Bundle savedInstanceState) {
+              super.onCreate(savedInstanceState);
+              getResources().getString(R.string.${caret});
+          }
+      }
+      """.trimIndent()
+      )
+
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsExactly("appString", "anotherAppString", "libString", "anotherLibString", "class")
+
+      (myModule.getModuleSystem() as DefaultModuleSystem).isRClassTransitive = false
+      project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.USER_REQUEST)
+
+      myFixture.completeBasic()
+      assertThat(myFixture.lookupElementStrings).containsExactly("appString", "anotherAppString", "class")
     }
   }
 
@@ -1488,7 +1522,6 @@ class NonTransitiveTestRClassesTest : TestRClassesTest() {
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactly("libTestResource", "anotherLibTestResource", "class")
   }
-
 }
 
 
