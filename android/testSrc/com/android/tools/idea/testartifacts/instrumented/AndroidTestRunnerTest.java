@@ -18,10 +18,12 @@ package com.android.tools.idea.testartifacts.instrumented;
 import static com.android.tools.idea.testartifacts.TestConfigurationTesting.createAndroidTestConfigurationFromClass;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRunner;
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner;
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.GradleApplicationIdProvider;
 import com.android.tools.idea.run.tasks.LaunchTask;
@@ -126,7 +128,9 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
     assertThat(task).isInstanceOf(AndroidTestApplicationLaunchTask.class);
 
     AndroidTestApplicationLaunchTask androidTestTask = (AndroidTestApplicationLaunchTask)task;
-    return androidTestTask.createRemoteAndroidTestRunner(mock(IDevice.class));
+    IDevice mockDevice = mock(IDevice.class);
+    when(mockDevice.getVersion()).thenReturn(new AndroidVersion(26));
+    return androidTestTask.createRemoteAndroidTestRunner(mockDevice);
   }
 
   private AndroidTestRunConfiguration createConfigFromClass(String className) {

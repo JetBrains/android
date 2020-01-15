@@ -19,6 +19,7 @@ import com.android.builder.model.TestOptions
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRunner
 import com.android.ddmlib.testrunner.RemoteAndroidTestRunner
+import com.android.ddmlib.testrunner.RemoteAndroidTestRunner.StatusReporterMode
 import com.android.ide.common.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.run.AndroidProcessHandler
 import com.android.tools.idea.run.ConsolePrinter
@@ -184,8 +185,19 @@ class AndroidTestApplicationLaunchTask private constructor(
                                                                                                          myInstrumentationTestRunner,
                                                                                                          device,
                                                                                                          true)
-      else -> RemoteAndroidTestRunner(
-        myTestApplicationId, myInstrumentationTestRunner, device, RemoteAndroidTestRunner.StatusReporterMode.PROTO_STD)
+      else -> {
+        val statusReporterMode =
+          if (device.version.apiLevel >= StatusReporterMode.PROTO_STD.minimumApiLevel) {
+            StatusReporterMode.PROTO_STD
+          }
+          else {
+            StatusReporterMode.RAW_TEXT
+          }
+        RemoteAndroidTestRunner(myTestApplicationId,
+                                myInstrumentationTestRunner,
+                                device,
+                                statusReporterMode)
+      }
     }.apply {
       setDebug(myWaitForDebugger)
       runOptions = myInstrumentationOptions
