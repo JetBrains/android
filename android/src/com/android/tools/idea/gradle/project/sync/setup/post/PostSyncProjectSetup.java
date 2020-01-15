@@ -166,6 +166,8 @@ public class PostSyncProjectSetup {
         return;
       }
 
+      ComposeInBetaChecker.checkIfComposeProject(myProject);
+
       myDependencySetupIssues.reportIssues();
 
       if (mySyncState.lastSyncFailed()) {
