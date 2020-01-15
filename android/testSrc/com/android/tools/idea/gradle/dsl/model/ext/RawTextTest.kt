@@ -74,10 +74,10 @@ class RawTextTest : GradleFileModelTestCase() {
     // This highlights that a RawText consumer will very likely want to use different text for KTS and Groovy.
     val expectedValueText = when {
       isGroovy -> "1 + (4 * 5)**2 - 7"
-      else -> "1 + (4 * 5)*2 - 7"
+      else -> "1 + (4 * 5) * 2 - 7"
     }
     set {
-      it.setValue(RawText("1 + (4 * 5)**2 - 7", "1 + (4 * 5)*2 - 7"))
+      it.setValue(RawText("1 + (4 * 5)**2 - 7", "1 + (4 * 5) * 2 - 7"))
     }.validate {
       verifyPropertyModel(it, STRING_TYPE, expectedValueText, UNKNOWN, REGULAR, 0, "newProp")
     }
