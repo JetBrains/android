@@ -69,17 +69,14 @@ public class ConfigurationDslElement extends GradleDslBlockElement implements Gr
     }
   }
 
-  private final boolean myHasBraces;
-
   public ConfigurationDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
-    myHasBraces = true;
   }
 
   public ConfigurationDslElement(@NotNull GradleDslElement parent, @NotNull PsiElement element, @NotNull GradleNameElement name, boolean hasBraces) {
     super(parent, name);
     setPsiElement(element);
-    myHasBraces = hasBraces;
+    setHasBraces(hasBraces);
   }
 
   private String methodName;
@@ -93,16 +90,6 @@ public class ConfigurationDslElement extends GradleDslBlockElement implements Gr
   @Override
   public void setMethodName(@Nullable String value) {
     methodName = value;
-  }
-
-  @Nullable
-  @Override
-  public PsiElement create() {
-    // Delete and re-create
-    if (!myHasBraces) {
-      delete();
-    }
-    return super.create();
   }
 
   @Override
