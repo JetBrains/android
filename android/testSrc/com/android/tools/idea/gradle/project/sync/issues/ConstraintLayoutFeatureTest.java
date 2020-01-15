@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.issues;
 
-import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.model.AndroidModel;
 import com.intellij.testFramework.PlatformTestCase;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,29 +29,25 @@ import org.jetbrains.annotations.NotNull;
 public class ConstraintLayoutFeatureTest extends PlatformTestCase {
   public void testIsSupportedInSdkManagerWithNoModel() {
     // The module does not have a model. This happens when this is a new project, and modules have not been set up yet.
-    assertTrue(ConstraintLayoutFeature.isSupportedInSdkManager(getModule()));
+    assertTrue(ConstraintLayoutFeature.isSupportedInSdkManager((AndroidModuleModel)null));
   }
 
   public void testIsSupportedInSdkManagerWithModelSupportingFeature() {
     AndroidModelFeatures features = mock(AndroidModelFeatures.class);
     when(features.isConstraintLayoutSdkLocationSupported()).thenReturn(true);
-    createAndAddModel(features);
-
-    assertTrue(ConstraintLayoutFeature.isSupportedInSdkManager(getModule()));
+    assertTrue(ConstraintLayoutFeature.isSupportedInSdkManager(createAndAddModel(features)));
   }
 
   public void testIsSupportedInSdkManagerWithModelNotSupportingFeature() {
     AndroidModelFeatures features = mock(AndroidModelFeatures.class);
     when(features.isConstraintLayoutSdkLocationSupported()).thenReturn(false);
-    createAndAddModel(features);
-
-    assertFalse(ConstraintLayoutFeature.isSupportedInSdkManager(getModule()));
+    assertFalse(ConstraintLayoutFeature.isSupportedInSdkManager(createAndAddModel(features)));
   }
 
-  private void createAndAddModel(@NotNull AndroidModelFeatures features) {
+  @NotNull
+  private static AndroidModuleModel createAndAddModel(@NotNull AndroidModelFeatures features) {
     AndroidModuleModel model = mock(AndroidModuleModel.class);
     when(model.getFeatures()).thenReturn(features);
-    AndroidFacet facet = createAndAddAndroidFacet(getModule());
-    AndroidModel.set(facet, model);
+    return model;
   }
 }

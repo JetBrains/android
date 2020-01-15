@@ -18,13 +18,17 @@ package com.android.tools.idea.gradle.project.sync.issues;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class ConstraintLayoutFeature {
   private ConstraintLayoutFeature() {
   }
 
   static boolean isSupportedInSdkManager(@NotNull Module module) {
-    AndroidModuleModel model = AndroidModuleModel.get(module);
+    return isSupportedInSdkManager(AndroidModuleModel.get(module));
+  }
+
+  static boolean isSupportedInSdkManager(@Nullable AndroidModuleModel model) {
     // see https://code.google.com/p/android/issues/detail?id=360563
     return model == null /* 'null' means this is a brand-new project */ || model.getFeatures().isConstraintLayoutSdkLocationSupported();
   }
