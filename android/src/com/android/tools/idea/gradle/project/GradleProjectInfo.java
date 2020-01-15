@@ -230,25 +230,7 @@ public class GradleProjectInfo {
   public AndroidModuleModel findAndroidModelInModule(@NotNull VirtualFile file, boolean honorExclusion) {
     Module module = findModuleForFile(file, honorExclusion);
     if (module == null) {
-      if (myProjectInfo.requiresAndroidModel()) {
-        // You've edited a file that does not correspond to a module in a Gradle project; you are most likely editing a file in an excluded
-        // folder under the build directory
-        VirtualFile rootFolder = myProject.getBaseDir();
-        if (rootFolder != null) {
-          VirtualFile parent = file.getParent();
-          while (parent != null && parent.equals(rootFolder)) {
-            module = findModuleForFile(file, honorExclusion);
-            if (module != null) {
-              break;
-            }
-            parent = parent.getParent();
-          }
-        }
-      }
-
-      if (module == null) {
-        return null;
-      }
+      return null;
     }
 
     if (module.isDisposed()) {
