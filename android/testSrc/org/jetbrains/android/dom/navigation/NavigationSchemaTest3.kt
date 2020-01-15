@@ -16,7 +16,6 @@
 package org.jetbrains.android.dom.navigation
 
 import com.android.tools.idea.naveditor.navEditorRuntimePaths
-import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PsiTestUtil
@@ -31,7 +30,7 @@ class NavigationSchemaTest3 : AndroidTestCase() {
     myFixture.copyDirectoryToProject("navschematest", "src")
 
     for (prebuiltPath in navEditorRuntimePaths.keys) {
-      val aar = File(PathManager.getHomePath(), prebuiltPath)
+      val aar = File(prebuiltPath)
       val tempDir = FileUtil.createTempDirectory("NavigationSchemaTest", null)
       ZipUtil.extract(aar, tempDir, null)
       val path = File(tempDir, "classes.jar").path

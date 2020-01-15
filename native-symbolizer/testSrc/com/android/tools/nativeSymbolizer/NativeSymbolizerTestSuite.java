@@ -19,48 +19,42 @@ import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.TestUtils;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.intellij.openapi.util.SystemInfo;
-import org.junit.runner.RunWith;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(NativeSymbolizerTestSuite.class)  // a suite mustn't contain itself
 public class NativeSymbolizerTestSuite extends IdeaTestSuiteBase {
-
   static {
-    symlinkToIdeaHome("tools/adt/idea/native-symbolizer/testData");
-    String lldbPrebuiltDir = "";
-
-    if (SystemInfo.isLinux) {
-      lldbPrebuiltDir = "prebuilts/tools/linux-x86_64/lldb";
-    }
-    else if (SystemInfo.isMac) {
-      lldbPrebuiltDir = "prebuilts/tools/darwin-x86_64/lldb";
-    }
-    else if (SystemInfo.isWindows) {
-      lldbPrebuiltDir = "prebuilts/tools/windows-x86_64/lldb";
-    }
-    symlinkToIdeaHome(lldbPrebuiltDir, "tools/idea/bin/lldb/");
-  }
-
-  private static void symlinkToIdeaHome(String fromPath, String toPath) {
     try {
-      File file = new File(TestUtils.getWorkspaceRoot(), fromPath);
-      if (!file.exists()) {
-        throw new FileNotFoundException("Link target directory is not found " + fromPath);
+      symlinkToIdeaHome("tools/adt/idea/native-symbolizer/testData");
+
+      String lldbPrebuiltDir;
+      if (SystemInfo.isLinux) {
+        lldbPrebuiltDir = "prebuilts/tools/linux-x86_64/lldb";
       }
-      Path targetPath = file.toPath();
-      Path linkName = Paths.get(TMP_DIR, toPath);
+      else if (SystemInfo.isMac) {
+        lldbPrebuiltDir = "prebuilts/tools/darwin-x86_64/lldb";
+      }
+      else if (SystemInfo.isWindows) {
+        lldbPrebuiltDir = "prebuilts/tools/windows-x86_64/lldb";
+      }
+      else {
+        throw new RuntimeException("Platform not recognized: " + SystemInfo.OS_NAME);
+      }
+
+      // Point to lldb with a symlink.
+      Path targetPath = TestUtils.getWorkspaceFile(lldbPrebuiltDir).toPath();
+      Path linkName = Paths.get("tools/idea/bin/lldb");
       Files.createDirectories(linkName.getParent());
       Files.createSymbolicLink(linkName, targetPath);
     }
-    catch (IOException e) {
-      throw new RuntimeException(e);
+    catch (Throwable e) {
+      // See b/143359533 for why we are handling errors here
+      System.err.println("ERROR: Error initializing test suite, tests will likely fail following this error");
+      e.printStackTrace();
     }
   }
 }

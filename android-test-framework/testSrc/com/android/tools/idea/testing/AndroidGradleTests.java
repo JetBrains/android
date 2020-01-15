@@ -278,26 +278,15 @@ public class AndroidGradleTests {
   @NotNull
   public static Collection<File> getLocalRepositoryDirectories() {
     List<File> repositories = new ArrayList<>();
-    String prebuiltsRepo = "prebuilts/tools/common/m2/repository";
-    String publishLocalRepo = "out/repo";
     if (TestUtils.runningFromBazel()) {
-      // Based on EmbeddedDistributionPaths#findAndroidStudioLocalMavenRepoPaths:
-      File tmp = new File(PathManager.getHomePath()).getParentFile().getParentFile();
-      File file = new File(tmp, prebuiltsRepo);
-      if (file.exists()) {
-        repositories.add(file);
-      }
-      else {
-        repositories.add(getWorkspaceFile(prebuiltsRepo));
-      }
-      // publish local should already be available inside prebuilts
+      repositories.add(TestUtils.getPrebuiltOfflineMavenRepo());
     }
     else if (System.getProperty("idea.gui.test.running.on.release") != null) {
       repositories.add(new File(PathManager.getHomePath(), "gradle"));
     }
     else {
-      repositories.add(getWorkspaceFile(prebuiltsRepo));
-      repositories.add(getWorkspaceFile(publishLocalRepo));
+      repositories.add(TestUtils.getPrebuiltOfflineMavenRepo());
+      repositories.add(getWorkspaceFile("out/repo"));
     }
     return repositories;
   }

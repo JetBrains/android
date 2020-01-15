@@ -194,7 +194,9 @@ object GuiTestLauncher {
       options += "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=${GuiTestOptions.getDebugPort()}"
     }
     if (TestUtils.runningFromBazel()) {
-      options += "-Didea.home=${IdeaTestSuiteBase.createTmpDir("tools/idea")}"
+      options += "-Didea.home.path=${TestUtils.getWorkspaceFile("tools/idea")}"
+      options += "-Didea.system.path=${IdeaTestSuiteBase.createTmpDir("idea/system")}"
+      options += "-Didea.config.path=${IdeaTestSuiteBase.createTmpDir("idea/config")}"
       options += "-Dgradle.user.home=${IdeaTestSuiteBase.createTmpDir("home")}"
       options += "-DANDROID_SDK_HOME=${IdeaTestSuiteBase.createTmpDir(".android")}"
       options += "-Dlayoutlib.thread.timeout=60000"

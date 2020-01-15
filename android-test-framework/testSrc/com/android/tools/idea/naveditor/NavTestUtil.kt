@@ -17,14 +17,15 @@
 
 package com.android.tools.idea.naveditor
 
+import com.android.testutils.TestUtils
 import com.android.tools.idea.templates.IdeGoogleMavenRepository
 
 private const val NAVIGATION_ID = "android.arch.navigation"
 private const val SUPPORT_ID = "com.android.support"
 
-private const val REPO = "../../prebuilts/tools/common/m2/repository"
-private const val NAVIGATION_PATH = "$REPO/android/arch/navigation"
-private const val SUPPORT_PATH = "$REPO/com/android/support"
+private val REPO = TestUtils.getPrebuiltOfflineMavenRepo().path
+private val NAVIGATION_PATH = "$REPO/android/arch/navigation"
+private val SUPPORT_PATH = "$REPO/com/android/support"
 
 private val RUNTIME_VERSION = IdeGoogleMavenRepository.findVersion(NAVIGATION_ID, "navigation-runtime", allowPreview = true)
 
