@@ -41,7 +41,7 @@ private val makeDistinctClassSet = setOf(MavenRepositoryDslElement::class.java, 
 /**
  * Get the block element that is given be repeat
  */
-fun GradleDslFile.getBlockElement(
+fun GradleDslFile.getPropertiesElement(
   nameParts: List<String>,
   converter: GradleDslNameConverter,
   parentElement: GradlePropertiesDslElement,

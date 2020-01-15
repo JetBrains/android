@@ -42,7 +42,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslUnknownElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
-import com.android.tools.idea.gradle.dsl.parser.getBlockElement
+import com.android.tools.idea.gradle.dsl.parser.getPropertiesElement
 import com.google.common.collect.Lists
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -239,10 +239,10 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     return findInjections(context, psiElement, true)
   }
 
-  override fun getBlockElement(nameParts: List<String>,
-                               parentElement: GradlePropertiesDslElement,
-                               nameElement: GradleNameElement?): GradlePropertiesDslElement? {
-    return dslFile.getBlockElement(nameParts, this, parentElement, nameElement)
+  override fun getPropertiesElement(nameParts: List<String>,
+                                    parentElement: GradlePropertiesDslElement,
+                                    nameElement: GradleNameElement?): GradlePropertiesDslElement? {
+    return dslFile.getPropertiesElement(nameParts, this, parentElement, nameElement)
   }
 
   // Check if this is a block with a methodCall as name, and get the block in such case. Ex: getByName("release") -> the release block.
@@ -251,12 +251,12 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     parent: GradlePropertiesDslElement,
     name: GradleNameElement? = null): GradlePropertiesDslElement? {
     val blockName = methodCallBlockName(expression) ?: return null
-    val blockElement = getBlockElement(listOf(blockName), parent, name) ?: return null
-    if (blockElement is GradleDslNamedDomainElement) {
+    val propertiesElement = getPropertiesElement(listOf(blockName), parent, name) ?: return null
+    if (propertiesElement is GradleDslNamedDomainElement) {
       // TODO(xof): this way of keeping track of how we got hold of the block (which method name) only works once
-      blockElement.methodName = blockElement.methodName ?: expression.name()
+      propertiesElement.methodName = propertiesElement.methodName ?: expression.name()
     }
-    return blockElement
+    return propertiesElement
   }
 
   //
@@ -292,11 +292,11 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         // Then the block should be applied to subprojects.
         referenceName = "subprojects"
       }
-      val blockElement = methodCallBlock(expression, parent, name) ?: getBlockElement(listOf(referenceName), parent, name) ?: return
+      val propertiesElement = methodCallBlock(expression, parent, name) ?: getPropertiesElement(listOf(referenceName), parent, name) ?: return
       val body = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
 
-      blockElement.setPsiElement(body ?: expression)
-      blockElements.add(blockElement)
+      propertiesElement.setPsiElement(body ?: expression)
+      blockElements.add(propertiesElement)
       blockElements.forEach { block ->
         // Visit the children of this element, with the current block set as parent.
         expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression?.statements?.requireNoNulls()?.forEach {
@@ -330,7 +330,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
         override fun visitReferenceExpression(expression: KtReferenceExpression) {
           when (expression) {
             is KtNameReferenceExpression -> {
-              current = getBlockElement(listOf(expression.text), current, null) ?: return
+              current = getPropertiesElement(listOf(expression.text), current, null) ?: return
             }
             else -> Unit
           }
@@ -396,7 +396,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     name = GradleNameElement.from(left, this)
     if (name.isEmpty) return
     if (name.isQualified) {
-      val nestedElement = getBlockElement(name.qualifyingParts(), parent, null) ?: return
+      val nestedElement = getPropertiesElement(name.qualifyingParts(), parent, null) ?: return
       parentBlock = nestedElement
     }
 
@@ -462,7 +462,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
 
       // If we've got this far, we have an extra property declaration/initialization of the form "val foo by extra(bar)".
 
-      val ext = getBlockElement(listOf("ext"), parent, null) ?: return
+      val ext = getPropertiesElement(listOf("ext"), parent, null) ?: return
       val name = GradleNameElement.from(identifier, this) // TODO(xof): error checking: empty/qualified/etc
       val propertyElement = createExpressionElement(ext, expression, name, initializer, true) ?: return
       // This Property is assigning a value to a property, so we need to set the UseAssignment to true.
