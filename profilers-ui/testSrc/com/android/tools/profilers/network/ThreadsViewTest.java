@@ -38,6 +38,8 @@ import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.util.EmptyRunnable;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.lang.reflect.InvocationTargetException;
@@ -53,6 +55,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+@RunsInEdt
 public class ThreadsViewTest {
   private static final ImmutableList<HttpData> FAKE_DATA =
     new ImmutableList.Builder<HttpData>()
@@ -70,6 +73,9 @@ public class ThreadsViewTest {
   @Rule public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("ThreadsViewTest", new FakeTransportService(myTimer, false), new FakeProfilerService(myTimer),
                         FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
+
+  @Rule public final EdtRule myEdtRule = new EdtRule();
+
   private NetworkProfilerStageView myStageView;
   private ThreadsView myThreadsView;
   private FakeUi myUi;
@@ -90,7 +96,6 @@ public class ThreadsViewTest {
     // already be in its final size.
     JTable table = getTable();
     table.setSize(myThreadsView.getComponent().getSize());
-    SwingUtilities.invokeAndWait(EmptyRunnable.getInstance()); // Allow table columns to resize
 
     myUi = new FakeUi(myThreadsView.getComponent());
   }

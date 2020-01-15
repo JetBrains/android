@@ -42,6 +42,8 @@ import com.android.tools.profilers.sessions.SessionsView;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.google.common.truth.Truth;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import icons.StudioIcons;
 import java.awt.Point;
 import java.util.ArrayList;
@@ -56,6 +58,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+@RunsInEdt
 public class StudioProfilersViewTest {
   private static final Common.Session SESSION_O = Common.Session.newBuilder().setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS)
     .setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).build();
@@ -65,8 +68,11 @@ public class StudioProfilersViewTest {
   private final FakeTimer myTimer = new FakeTimer();
   private final FakeTransportService myService = new FakeTransportService(myTimer);
   private final FakeProfilerService myProfilerService = new FakeProfilerService(myTimer);
+
   @Rule public FakeGrpcServer myGrpcChannel =
     FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", myService, myProfilerService);
+  @Rule public final EdtRule myEdtRule = new EdtRule();
+
   private StudioProfilers myProfilers;
   private FakeIdeProfilerServices myProfilerServices = new FakeIdeProfilerServices();
   private StudioProfilersView myView;

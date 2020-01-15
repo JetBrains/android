@@ -44,6 +44,8 @@ import com.android.tools.profilers.network.FakeNetworkService
 import com.android.tools.profilers.stacktrace.CodeLocation
 import com.android.tools.profilers.stacktrace.ContextMenuItem
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.JBSplitter
 import org.junit.Before
 import org.junit.Ignore
@@ -62,6 +64,7 @@ import javax.swing.SwingUtilities
 // Path to trace file. Used in test to build AtraceParser.
 private const val TOOLTIP_TRACE_DATA_FILE = "tools/adt/idea/profilers-ui/testData/cputraces/atrace.ctrace"
 
+@RunsInEdt
 @RunWith(Parameterized::class)
 class CpuProfilerStageViewTest(newPipeline: Boolean) {
 
@@ -90,6 +93,7 @@ class CpuProfilerStageViewTest(newPipeline: Boolean) {
     "CpuCaptureViewTestChannel", myCpuService, myTransportService, FakeProfilerService(myTimer),
     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
   )
+  @get:Rule val myEdtRule = EdtRule()
 
   private lateinit var myStage: CpuProfilerStage
 

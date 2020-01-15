@@ -34,6 +34,8 @@ import com.android.tools.profilers.cpu.CpuCaptureStage
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -41,12 +43,15 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import javax.swing.JLabel
 
+@RunsInEdt
 class CpuAnalysisPanelTest {
 
   private val timer = FakeTimer()
   @get:Rule
   var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", FakeCpuService(), FakeProfilerService(timer),
                                     FakeTransportService(timer, true))
+  @get:Rule val myEdtRule = EdtRule()
+
   private val profilerClient = ProfilerClient(grpcChannel.name)
   private lateinit var profilers: StudioProfilers
   private val services = FakeIdeProfilerServices()

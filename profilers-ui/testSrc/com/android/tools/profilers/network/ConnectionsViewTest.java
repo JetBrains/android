@@ -32,6 +32,8 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.google.common.collect.ImmutableList;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import java.awt.Color;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +43,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+@RunsInEdt
 public class ConnectionsViewTest {
   private static final ImmutableList<HttpData> FAKE_DATA =
     new ImmutableList.Builder<HttpData>()
@@ -58,6 +61,8 @@ public class ConnectionsViewTest {
   @Rule public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("ConnectionsViewTest", new FakeTransportService(myTimer, false), new FakeProfilerService(myTimer),
                         FakeNetworkService.newBuilder().setHttpDataList(FAKE_DATA).build());
+  @Rule public final EdtRule myEdtRule = new EdtRule();
+
   private NetworkProfilerStageView myStageView;
 
   @Before

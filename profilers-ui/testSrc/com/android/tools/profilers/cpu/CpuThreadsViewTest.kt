@@ -37,22 +37,25 @@ import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JLabel
 import javax.swing.ListSelectionModel
 
+@RunsInEdt
 class CpuThreadsViewTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
   private val cpuService = FakeCpuService()
 
-  @Rule
-  @JvmField
+  @get:Rule
   var grpcChannel = FakeGrpcChannel("CpuThreadsViewTest", cpuService,
                                     transportService, FakeProfilerService(timer),
                                     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build())
+  @get:Rule val myEdtRule = EdtRule()
 
   private lateinit var stage: CpuProfilerStage
   private lateinit var ideServices: FakeIdeProfilerServices
