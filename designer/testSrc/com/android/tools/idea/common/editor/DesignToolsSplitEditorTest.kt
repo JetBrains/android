@@ -53,7 +53,7 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
     `when`(textEditor.component).thenReturn(textEditorComponent)
     `when`(textEditor.file).thenReturn(mock(VirtualFile::class.java))
     val editor = mock(Editor::class.java)
-    `when`(editor.component).thenReturn(mock(JComponent::class.java))
+    `when`(editor.contentComponent).thenReturn(mock(JComponent::class.java))
     `when`(textEditor.editor).thenReturn(editor)
     val component = mock(JComponent::class.java)
     `when`(component.getActionForKeyStroke(any(KeyStroke::class.java))).thenCallRealMethod()
