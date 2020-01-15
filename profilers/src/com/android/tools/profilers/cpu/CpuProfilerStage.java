@@ -623,8 +623,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
     // will be wrong. While this behavior is a bug, it maps to what exists today as such will fix in
     // a follow up.
     CpuCaptureStage stage = CpuCaptureStage
-      .create(getStudioProfilers(), ProfilingTechnology.fromConfig(getProfilerConfigModel().getProfilingConfiguration()).getName(),
-              traceId);
+      .create(getStudioProfilers(), getProfilerConfigModel().getProfilingConfiguration(), traceId);
     if (stage != null) {
       getStudioProfilers().getIdeServices().getMainExecutor()
         .execute(() -> getStudioProfilers().setStage(stage));
@@ -645,7 +644,7 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
    */
   private void parseAndSelectImportedTrace(@NotNull File traceFile) {
     assert myIsImportTraceMode;
-    CompletableFuture<CpuCapture> capture = myCaptureParser.parse(traceFile);
+    CompletableFuture<CpuCapture> capture = myCaptureParser.parse(traceFile, true);
     if (capture == null) {
       // User aborted the capture, or the model received an invalid file (e.g. from tests) canceled. Log and return early.
       getLogger().info("Imported trace file was not parsed.");
@@ -703,9 +702,6 @@ public class CpuProfilerStage extends StreamingStage implements CodeNavigator.Li
                                                  .build());
           }
         }
-
-        // Track import trace success
-        getStudioProfilers().getIdeServices().getFeatureTracker().trackImportTrace(parsedCapture.getType(), true);
       }
       else if (capture.isCancelled()) {
         getStudioProfilers().getIdeServices().showNotification(CpuProfilerNotifications.IMPORT_TRACE_PARSING_ABORTED);
