@@ -320,7 +320,8 @@ data class ProjectChecker(
         "multipleScreens" to "Split settings hierarchy into separate sub-screens",
         "isThingsLauncher" to "Launch activity automatically on boot",
         "isEnabled" to "Enabled",
-        "isExported" to "Exported"
+        "isExported" to "Exported",
+        "includeHelper" to "Include helper start methods?"
       )
       overrideBooleanParameters.forEach {(id, name) ->
         activityState[id]?.let { value ->
