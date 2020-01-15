@@ -1032,6 +1032,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   @Test
   public void cpuMetadataSuccessfulCapture() throws InterruptedException, IOException {
+    CpuCaptureParser.clearPreviouslyLoadedCaptures();
     ProfilingConfiguration config = new ProfilingConfiguration("My Config",
                                                                Cpu.CpuTraceType.ART,
                                                                Cpu.CpuTraceMode.SAMPLED);
@@ -1451,7 +1452,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
   @Test
   public void captureIsSetWhenOpeningStageInImportTraceMode() {
     StudioProfilers profilers = myStage.getStudioProfilers();
-
+    CpuCaptureParser.clearPreviouslyLoadedCaptures();
     FakeFeatureTracker tracker = (FakeFeatureTracker)myServices.getFeatureTracker();
     // Sanity check to verify the last import trace status was not set yet
     assertThat(tracker.getLastImportTraceStatus()).isNull();
@@ -1735,6 +1736,14 @@ public final class CpuProfilerStageTest extends AspectObserver {
     @Nullable
     @Override
     public CompletableFuture<CpuCapture> parse(@NotNull File traceFile) {
+      CompletableFuture<CpuCapture> capture = new CompletableFuture<>();
+      capture.cancel(true);
+      return capture;
+    }
+
+    @Nullable
+    @Override
+    public CompletableFuture<CpuCapture> parse(@NotNull File traceFile, boolean reportImportMetrics) {
       CompletableFuture<CpuCapture> capture = new CompletableFuture<>();
       capture.cancel(true);
       return capture;
