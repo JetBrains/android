@@ -36,7 +36,6 @@ import com.android.tools.idea.gradle.util.DynamicAppUtils
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityStatus
@@ -69,6 +68,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.IndexNotReadyException
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -449,25 +449,40 @@ class GradleModuleSystem(
   }
 
   override fun getPackageName(): String? {
-    val facet = AndroidFacet.getInstance(module)!!
+    val facet = AndroidFacet.getInstance(module) ?: return null
+
     if (AndroidManifestIndex.indexEnabled()) {
-      try {
-        return DumbService.getInstance(module.project).runReadActionInSmartMode<String> {
-          facet.queryPackageNameFromManifestIndex()
-        }
-      }
-      catch (e: IndexNotReadyException) {
-        // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
-        //  We need to refactor the callers of this to require a *smart*
-        //  read action, at which point we can remove this try-catch.
-        logManifestIndexQueryError(e)
+      val packageNameFromIndex = DumbService.getInstance(module.project)
+        .runReadActionInSmartMode(Computable { getPackageNameFromIndex(facet) })
+
+      if (packageNameFromIndex != null) {
+        return packageNameFromIndex
       }
     }
+    return getPackageNameByParsingPrimaryManifest(facet)
+  }
 
+  private fun getPackageNameByParsingPrimaryManifest(facet: AndroidFacet): String? {
     val cachedValue = facet.cachedValueFromPrimaryManifest {
       packageName.nullize(true)
     }
     return facet.putUserDataIfAbsent(PACKAGE_NAME, cachedValue).value
+  }
+
+  private fun getPackageNameFromIndex(facet: AndroidFacet): String? {
+    if (DumbService.isDumb(module.project)) {
+      return null
+    }
+    return try {
+      facet.queryPackageNameFromManifestIndex()
+    }
+    catch (e: IndexNotReadyException) {
+      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+      //  We need to refactor the callers of this to require a *smart*
+      //  read action, at which point we can remove this try-catch.
+      LOG.debug(e)
+      null
+    }
   }
 
   override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
