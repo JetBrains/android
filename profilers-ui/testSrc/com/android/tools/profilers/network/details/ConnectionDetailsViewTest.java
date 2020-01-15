@@ -41,6 +41,8 @@ import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.StackTrace;
 import com.android.tools.profilers.stacktrace.StackTraceModel;
 import com.android.tools.profilers.stacktrace.StackTraceView;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import java.awt.Component;
 import java.util.Collections;
 import java.util.List;
@@ -55,6 +57,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+@RunsInEdt
 public class ConnectionDetailsViewTest {
   private static final String fakeTrace = "com.google.downloadUrlToStream(ImageFetcher.java:274)";
   private static final HttpData DEFAULT_DATA =
@@ -81,6 +84,8 @@ public class ConnectionDetailsViewTest {
   @Rule public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("StudioProfilerTestChannel", myTransportService, new FakeProfilerService(myTimer),
                         FakeNetworkService.newBuilder().setHttpDataList(Collections.singletonList(DEFAULT_DATA)).build());
+
+  @Rule public final EdtRule myEdtRule = new EdtRule();
 
   /**
    * Will throw an exception if no match is found.

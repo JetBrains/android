@@ -27,16 +27,23 @@ import com.android.tools.adtui.model.trackgroup.TrackGroupModel
 import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
 import org.junit.Test
 import java.awt.Point
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.SwingUtilities
 
+@RunsInEdt
 class TrackGroupListPanelTest {
   companion object {
     val TRACK_RENDERER_FACTORY = TestTrackRendererFactory()
   }
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   @Test
   fun loadTrackGroups() {

@@ -15,6 +15,8 @@
  */
 package com.android.tools.adtui
 
+import com.android.annotations.concurrency.UiThread
+import com.intellij.util.ui.EdtInvocationManager
 import com.intellij.util.ui.JBUI
 import java.awt.Component
 import java.awt.Container
@@ -22,6 +24,7 @@ import java.awt.Dimension
 import java.awt.GridBagLayout
 import java.awt.Insets
 import java.awt.LayoutManager2
+import javax.swing.SwingUtilities
 import kotlin.math.roundToInt
 
 /**
@@ -50,7 +53,13 @@ import kotlin.math.roundToInt
  * Columns are pre-allocated, so it is an error to specify a cell whose column index is out of bounds.
  * However, rows are unbounded - you can add a component at row 0 and then another at row 1000.
  * Still, if a row doesn't have any components inside of it, it will simply be skipped during layout (i.e. sparse layouts are collapsed).
+ *
+ * A note on thread safety: This class in NOT thread safe. It should be created and accessed only
+ * from the EDT. Attempts to do so otherwise will result in an assertion error, or, if assertions
+ * are stripped in production, the class will usually work fine but with a slight chance of hitting
+ * a [ConcurrentModificationException].
  */
+@UiThread
 class TabularLayout(colSizes: Array<out SizingRule>, initialRowSizes: Array<out SizingRule>) : LayoutManager2 {
   private val colSizes = listOf(*colSizes)
   private val rowSizes = hashMapOf<Int, SizingRule>()
@@ -243,34 +252,35 @@ class TabularLayout(colSizes: Array<out SizingRule>, initialRowSizes: Array<out 
   }
 
   override fun layoutContainer(parent: Container) {
-    synchronized(parent.treeLock) {
-      val result = LayoutResult(parent)
-      val colCalc = result.colCalculator
-      val rowCalc = result.rowCalculator
-      if (colCalc.length == 0 || rowCalc.length == 0) {
-        return
-      }
+    // Ensure parent.getComponent access is synchronous
+    assert (EdtInvocationManager.getInstance().isEventDispatchThread)
 
-      val insets = parent.insets
-      val rowBounds = rowCalc.getBounds(insets.top, parent.height - insets.bottom - insets.top)
-      val colBounds = colCalc.getBounds(insets.left, parent.width - insets.right - insets.left)
+    val result = LayoutResult(parent)
+    val colCalc = result.colCalculator
+    val rowCalc = result.rowCalculator
+    if (colCalc.length == 0 || rowCalc.length == 0) {
+      return
+    }
 
-      val visibleComponents = generateSequence(0) { it + 1 }
-        .take(parent.componentCount)
-        .map { parent.getComponent(it) }
-        .filter { it.isVisible }
+    val insets = parent.insets
+    val rowBounds = rowCalc.getBounds(insets.top, parent.height - insets.bottom - insets.top)
+    val colBounds = colCalc.getBounds(insets.left, parent.width - insets.right - insets.left)
 
-      visibleComponents.forEach { comp ->
-        val cons = constraints[comp]!!
+    val visibleComponents = generateSequence(0) { it + 1 }
+      .take(parent.componentCount)
+      .map { parent.getComponent(it) }
+      .filter { it.isVisible }
 
-        val totalWidth = (cons.col until cons.col + cons.colSpan).sumBy { colBounds[it].size }
-        val totalHeight = (cons.row until cons.row + cons.rowSpan).sumBy { rowBounds[it].size }
+    visibleComponents.forEach { comp ->
+      val cons = constraints[comp]!!
 
-        val c = colBounds[cons.col]
-        val r = rowBounds[cons.row]
+      val totalWidth = (cons.col until cons.col + cons.colSpan).sumBy { colBounds[it].size }
+      val totalHeight = (cons.row until cons.row + cons.rowSpan).sumBy { rowBounds[it].size }
 
-        comp.setBounds(c.pos, r.pos, totalWidth, totalHeight)
-      }
+      val c = colBounds[cons.col]
+      val r = rowBounds[cons.row]
+
+      comp.setBounds(c.pos, r.pos, totalWidth, totalHeight)
     }
   }
 
@@ -428,18 +438,20 @@ class TabularLayout(colSizes: Array<out SizingRule>, initialRowSizes: Array<out 
     val rowCalculator: SizeCalculator
 
     init {
+      // Ensure parent.getComponent access is synchronous
+      assert (EdtInvocationManager.getInstance().isEventDispatchThread)
+
       val components = mutableListOf<Component>()
 
       var numRows = 0
-      synchronized(container.treeLock) {
-        insets = container.insets
-        (0 until container.componentCount)
-          .map { container.getComponent(it) }
-          .forEach {
-            components.add(it)
-            numRows = numRows.coerceAtLeast(constraints[it]!!.row + 1)
-          }
-      }
+
+      insets = container.insets
+      (0 until container.componentCount)
+        .map { container.getComponent(it) }
+        .forEach {
+          components.add(it)
+          numRows = numRows.coerceAtLeast(constraints[it]!!.row + 1)
+        }
 
       rowCalculator = SizeCalculator(rowSizes, numRows, vGap)
 

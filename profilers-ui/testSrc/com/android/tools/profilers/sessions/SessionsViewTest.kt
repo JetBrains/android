@@ -48,6 +48,8 @@ import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject
 import com.android.tools.profilers.network.FakeNetworkService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import org.junit.Assume
 import org.junit.Before
 import org.junit.Ignore
@@ -59,6 +61,7 @@ import java.awt.event.ActionEvent
 import java.util.Arrays
 import java.util.concurrent.TimeUnit
 
+@RunsInEdt
 @RunWith(Parameterized::class)
 class SessionsViewTest(private val useUnifiedEvents: Boolean) {
 
@@ -91,6 +94,8 @@ class SessionsViewTest(private val useUnifiedEvents: Boolean) {
     FakeEventService(),
     FakeNetworkService.newBuilder().build()
   )
+  @get:Rule val myEdtRule = EdtRule()
+
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var mySessionsManager: SessionsManager

@@ -18,12 +18,19 @@ package com.android.tools.adtui
 import com.android.tools.adtui.stdui.CommonButton
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.containers.isEmpty
 import icons.StudioIcons
+import org.junit.Rule
 import org.junit.Test
 import javax.swing.JLabel
 
+@RunsInEdt
 class TabbedToolbarTest {
+  @get:Rule
+  val edtRule = EdtRule()
+
   @Test
   fun componentIsAddedElement() {
     val component = JLabel("Test")

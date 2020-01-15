@@ -45,6 +45,8 @@ import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.google.common.collect.ImmutableList;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -57,6 +59,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 @SuppressWarnings("OptionalGetWithoutIsPresent")
+@RunsInEdt
 public class NetworkProfilerStageViewTest {
 
   private static final List<NetworkProfilerData> NETWORK_PROFILER_DATA_LIST = ImmutableList.<NetworkProfilerData>builder()
@@ -86,6 +89,7 @@ public class NetworkProfilerStageViewTest {
     new FakeGrpcChannel("NetworkProfilerStageViewTestChannel", myTransportService, myNetworkService, new FakeProfilerService(myTimer),
                         new FakeEventService(), new FakeMemoryService(), new FakeCpuService());
 
+  @Rule public final EdtRule myEdtRule = new EdtRule();
 
   @Before
   public void setUp() {

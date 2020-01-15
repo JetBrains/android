@@ -36,6 +36,8 @@ import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
 import com.android.tools.profilers.cpu.atrace.CpuFrameTooltip
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.JBSplitter
 import org.junit.Before
 import org.junit.Rule
@@ -44,13 +46,15 @@ import java.awt.Point
 import javax.swing.JLabel
 import javax.swing.SwingUtilities
 
+@RunsInEdt
 class CpuCaptureStageViewTest {
   private val cpuService = FakeCpuService()
   private val timer = FakeTimer()
 
-  @Rule
-  @JvmField
+  @get:Rule
   val grpcChannel = FakeGrpcChannel("FramesTest", cpuService, FakeTransportService(timer), FakeProfilerService(timer))
+  @get:Rule val myEdtRule = EdtRule()
+
   private lateinit var stage: CpuCaptureStage
   private lateinit var profilersView: StudioProfilersView
   private val services = FakeIdeProfilerServices()
