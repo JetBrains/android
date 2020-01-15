@@ -310,11 +310,13 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   private void disposeRenderTask() {
+    RenderTask renderTask;
     synchronized (myRenderingTaskLock) {
-      if (myRenderTask != null) {
-        myRenderTask.dispose();
-        myRenderTask = null;
-      }
+      renderTask = myRenderTask;
+      myRenderTask = null;
+    }
+    if (renderTask != null) {
+      renderTask.dispose();
     }
     myRenderResultLock.writeLock().lock();
     try {
