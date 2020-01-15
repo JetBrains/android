@@ -31,6 +31,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.search.PsiShortNamesCache;
+import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,7 +75,9 @@ public class LayoutViewClassUtils {
       for (PsiClass aClass : classes) {
         final String qualifiedName = aClass.getQualifiedName();
 
-        if (qualifiedName != null && !IdeResourcesUtil.isClassPackageNeeded(qualifiedName, baseClass, apiLevel) && aClass.isInheritor(baseClass, true)) {
+        if (qualifiedName != null &&
+            !IdeResourcesUtil.isClassPackageNeeded(qualifiedName, baseClass, apiLevel) &&
+            InheritanceUtil.isInheritorOrSelf(aClass, baseClass, true)) {
           return aClass;
         }
       }
@@ -84,7 +87,7 @@ public class LayoutViewClassUtils {
         name, ProjectSystemUtil.getModuleSystem(module).getResolveScope(ScopeType.MAIN));
 
       for (PsiClass aClass : classes) {
-        if (aClass.isInheritor(baseClass, true)) {
+        if (InheritanceUtil.isInheritorOrSelf(aClass, baseClass, true)) {
           return aClass;
         }
       }
