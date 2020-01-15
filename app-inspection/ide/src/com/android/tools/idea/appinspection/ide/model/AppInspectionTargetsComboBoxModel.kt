@@ -17,13 +17,13 @@ package com.android.tools.idea.appinspection.ide.model
 
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.idea.appinspection.api.AppInspectionDiscovery
-import com.android.tools.idea.appinspection.api.AppInspectionProcessListener
-import com.android.tools.idea.appinspection.api.ProcessDescriptor
+import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.ide.AppInspectionClientsService
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.concurrency.AppExecutorUtil
+import org.jetbrains.ide.PooledThreadExecutor
 
-class AppInspectionTargetsComboBoxModel private constructor() : DefaultCommonComboBoxModel<ProcessDescriptor>("") {
+class AppInspectionTargetsComboBoxModel private constructor() : DefaultCommonComboBoxModel<AppInspectionTarget>("") {
   override var editable = false
 
   companion object {
@@ -32,15 +32,12 @@ class AppInspectionTargetsComboBoxModel private constructor() : DefaultCommonCom
     @VisibleForTesting
     fun newInstance(discovery: AppInspectionDiscovery): AppInspectionTargetsComboBoxModel {
       val model = AppInspectionTargetsComboBoxModel()
-      discovery.addProcessListener(object : AppInspectionProcessListener {
-        override fun onProcessConnect(processDescriptor: ProcessDescriptor) {
-          model.addElement(processDescriptor)
+      discovery.addTargetListener(PooledThreadExecutor.INSTANCE) { target ->
+        model.addElement(target)
+        target.addTargetTerminatedListener(AppExecutorUtil.getAppScheduledExecutorService()) {
+          model.removeElement(target)
         }
-
-        override fun onProcessDisconnect(processDescriptor: ProcessDescriptor) {
-          model.removeElement(processDescriptor)
-        }
-      }, AppExecutorUtil.getAppScheduledExecutorService())
+      }
       return model
     }
   }
