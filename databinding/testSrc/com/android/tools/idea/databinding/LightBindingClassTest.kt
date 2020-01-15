@@ -127,6 +127,21 @@ class LightBindingClassTest {
   }
 
   @Test
+  fun lightClassConstructorIsPrivate() {
+    val file = fixture.addFileToProject("res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout />
+      </layout>
+    """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
+
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    assertThat(binding.constructors).hasLength(1)
+    assertThat(binding.constructors.first().hasModifier(JvmModifier.PRIVATE))
+  }
+
+  @Test
   fun lightClassContainsFieldByIndex() {
     val file = fixture.addFileToProject("res/layout/activity_main.xml", """
       <?xml version="1.0" encoding="utf-8"?>
