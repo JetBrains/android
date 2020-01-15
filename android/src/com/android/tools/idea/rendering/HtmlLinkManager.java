@@ -34,6 +34,7 @@ import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_STANDARD_
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -46,6 +47,8 @@ import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.intellij.codeInsight.daemon.impl.quickfix.CreateClassKind;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
 import com.intellij.ide.browsers.BrowserLauncher;
@@ -1014,13 +1017,23 @@ public class HtmlLinkManager {
   }
 
   private static void handleEnableLayoutlibNative(boolean enable) {
+    LayoutEditorEvent.Builder eventBuilder = LayoutEditorEvent.newBuilder();
     if (enable) {
+      eventBuilder.setType(LayoutEditorEvent.LayoutEditorEventType.ENABLE_LAYOUTLIB_NATIVE);
       PluginManagerCore.enablePlugin(LAYOUTLIB_NATIVE_PLUGIN);
     }
     else {
+      eventBuilder.setType(LayoutEditorEvent.LayoutEditorEventType.DISABLE_LAYOUTLIB_NATIVE);
       PluginManagerCore.enablePlugin(LAYOUTLIB_STANDARD_PLUGIN);
       PluginManagerCore.disablePlugin(LAYOUTLIB_NATIVE_PLUGIN);
     }
+
+    AndroidStudioEvent.Builder studioEvent = AndroidStudioEvent.newBuilder()
+      .setCategory(AndroidStudioEvent.EventCategory.LAYOUT_EDITOR)
+      .setKind(AndroidStudioEvent.EventKind.LAYOUT_EDITOR_EVENT)
+      .setLayoutEditorEvent(eventBuilder.build());
+    UsageTracker.log(studioEvent);
+
     PluginManagerConfigurable.shutdownOrRestartApp();
   }
 }
