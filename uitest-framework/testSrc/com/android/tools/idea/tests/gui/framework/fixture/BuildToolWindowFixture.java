@@ -135,18 +135,18 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
   }
 
   public BuildAttributionViewFixture openBuildAttributionUsingTabHeaderClick() {
-    clickTab("Build Speed");
-    return waitTabOpened("Build Speed");
+    clickTab("Build Analyzer");
+    return waitTabOpened("Build Analyzer");
   }
 
   public BuildAttributionViewFixture openBuildAttributionUsingBuildOutputLink() {
-    findHyperlinkByTextAndClick(getGradleBuildConsoleView(), "Build Speed");
-    waitTabExist("Build Speed");
-    return waitTabOpened("Build Speed");
+    findHyperlinkByTextAndClick(getGradleBuildConsoleView(), "Build Analyzer");
+    waitTabExist("Build Analyzer");
+    return waitTabOpened("Build Analyzer");
   }
 
   public void closeBuildAttributionTab() {
-    clickCloseTab("Build Speed");
-    waitTabNotExist("Build Speed");
+    clickCloseTab("Build Analyzer");
+    waitTabNotExist("Build Analyzer");
   }
 }
