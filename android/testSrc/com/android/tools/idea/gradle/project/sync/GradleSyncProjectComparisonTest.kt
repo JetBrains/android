@@ -352,6 +352,10 @@ abstract class GradleSyncProjectComparisonTest(
       assertIsEqualToSnapshot(text)
     }
 
+    fun testApiDependency() {
+      val text = importSyncAndDumpProject(TestProjectPaths.API_DEPENDENCY) { projectRoot -> addPsdSampleRepo(projectRoot) }
+      assertIsEqualToSnapshot(text)
+    }
   }
 
   override val snapshotDirectoryName = "syncedProjectSnapshots"
