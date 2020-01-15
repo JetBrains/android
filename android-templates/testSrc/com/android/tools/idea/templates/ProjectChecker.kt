@@ -311,12 +311,15 @@ data class ProjectChecker(
     if (newTemplate != null) {
       WizardParameterData(packageName, false, "main", newTemplate.parameters)
       (newTemplate.parameters.find { it.name == "Package name" } as StringParameter?)?.value = packageName
+      (newTemplate.parameters.find { it.name == "Class Name" } as StringParameter?)?.value = activityState.getString(ATTR_CLASS_NAME)
       (newTemplate.parameters.find { it.name == "Generate a Layout File" } as BooleanParameter?)?.value = generateLayout!!
       (newTemplate.parameters.find { it.name == "Launcher Activity" } as BooleanParameter?)?.value = isLauncher!!
       // TODO: More generalized way of overriding the parameters
       val overrideBooleanParameters = listOf(
         "multipleScreens" to "Split settings hierarchy into separate sub-screens",
-        "isThingsLauncher" to "Launch activity automatically on boot"
+        "isThingsLauncher" to "Launch activity automatically on boot",
+        "isEnabled" to "Enabled",
+        "isExported" to "Exported"
       )
       overrideBooleanParameters.forEach {(id, name) ->
         activityState[id]?.let { value ->

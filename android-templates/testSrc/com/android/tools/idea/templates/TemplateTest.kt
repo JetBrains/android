@@ -547,6 +547,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareBroadcastReceiver() {
+    checkCreateTemplate("other", "BroadcastReceiver", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareBroadcastReceiverWithKotlin() {
+    checkCreateTemplate("other", "BroadcastReceiver", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewContentProvider() {
     checkCreateTemplate("other", "ContentProvider")
   }
