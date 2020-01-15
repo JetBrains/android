@@ -164,6 +164,11 @@ private class DefaultAppInspectionTarget(
       listener
     }
   }
+
+  override val processDescriptor: ProcessDescriptor
+    get() {
+      return ProcessDescriptor(transport.stream, transport.process)
+    }
 }
 
 private fun <T : AppInspectorClient> setupEventListener(creator: (AppInspectorConnection) -> T, connection: AppInspectorConnection): T {
