@@ -80,4 +80,10 @@ public class ConfigureNewAndroidProjectStepFixture<W extends AbstractWizardFixtu
     selectCheckBoxWithText("Pair with Empty Phone app", select);
     return this;
   }
+
+  @NotNull
+  public ConfigureNewAndroidProjectStepFixture<W> setUseKtsBuildFiles(boolean select) {
+    selectCheckBoxWithText("Use Kotlin script (.kts) for Gradle build files", select);
+    return this;
+  }
 }
