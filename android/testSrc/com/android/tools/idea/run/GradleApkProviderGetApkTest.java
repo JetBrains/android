@@ -82,7 +82,7 @@ public class GradleApkProviderGetApkTest extends AndroidTestCase {
 
     myConfiguration = new AndroidFacetConfiguration();
     myAndroidFacet = new AndroidFacet(myModule, AndroidFacet.NAME, myConfiguration);
-    myConfiguration.setModel(androidModel);
+    myAndroidFacet.setModel(androidModel);
 
     List<AndroidArtifactOutput> mainOutputs = Lists.newArrayList(mock(AndroidArtifactOutput.class));
     List<AndroidArtifactOutput> testOutputs = Lists.newArrayList(mock(AndroidArtifactOutput.class));

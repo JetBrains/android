@@ -280,7 +280,7 @@ public class AndroidSdkData {
       myFacet = facet;
       Disposer.register(facet, this);
 
-      AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
+      AndroidPlatform platform = facet.getAndroidPlatform();
       if (platform != null) {
         mySdkData = platform.getSdkData();
         mySdkHandler = mySdkData.getSdkHandler();

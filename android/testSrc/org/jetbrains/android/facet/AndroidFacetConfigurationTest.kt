@@ -26,7 +26,8 @@ class AndroidFacetConfigurationTest : AndroidTestCase() {
 
   fun testChangingModelFiresEvent() {
     val module = myFixture.module
-    val configuration = AndroidFacet.getInstance(module)!!.configuration
+    val androidFacet = AndroidFacet.getInstance(module)!!
+    val configuration = androidFacet.configuration
     val model = mock(AndroidModuleModel::class.java)
 
     val connection = module.messageBus.connect()
@@ -39,7 +40,7 @@ class AndroidFacetConfigurationTest : AndroidTestCase() {
       }
     })
 
-    configuration.model = model
+    androidFacet.model = model
     connection.deliverImmediately()
     connection.disconnect()
 

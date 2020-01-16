@@ -258,7 +258,7 @@ public class NewProjectModel extends WizardModel {
     if (isInstantApp) {
       Module baseFeatureModule = InstantApps.findBaseFeature(project);
       AndroidFacet androidFacet = baseFeatureModule == null ? null : AndroidFacet.getInstance(baseFeatureModule);
-      if (androidFacet != null && androidFacet.getConfiguration().getModel() != null) {
+      if (androidFacet != null && androidFacet.getModel() != null) {
         basePackage = AndroidPackageUtils.getPackageForApplication(androidFacet);
       }
     }

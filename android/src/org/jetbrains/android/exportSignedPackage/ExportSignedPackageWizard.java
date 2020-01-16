@@ -443,7 +443,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   }
 
   private void createAndAlignApk(final String apkPath) {
-    AndroidPlatform platform = getFacet().getConfiguration().getAndroidPlatform();
+    AndroidPlatform platform = getFacet().getAndroidPlatform();
     assert platform != null;
     String sdkPath = platform.getSdkData().getLocation().getPath();
     String zipAlignPath = AndroidCommonUtils.getZipAlign(sdkPath, platform.getTarget());

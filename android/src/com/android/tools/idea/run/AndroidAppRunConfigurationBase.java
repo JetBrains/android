@@ -183,7 +183,7 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
   protected ApkProvider getApkProvider(@NotNull AndroidFacet facet,
                                        @NotNull ApplicationIdProvider applicationIdProvider,
                                        @NotNull List<AndroidDevice> targetDevices) {
-    if (facet.getConfiguration().getModel() != null && facet.getConfiguration().getModel() instanceof AndroidModuleModel) {
+    if (facet.getModel() != null && facet.getModel() instanceof AndroidModuleModel) {
       return createGradleApkProvider(facet, applicationIdProvider, false, targetDevices);
     }
     ApkFacet apkFacet = ApkFacet.getInstance(facet.getModule());

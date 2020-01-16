@@ -480,7 +480,7 @@ public class AndroidAutogenerator {
             return null;
           }
 
-          final IAndroidTarget target = facet.getConfiguration().getAndroidTarget();
+          final IAndroidTarget target = facet.getAndroidTarget();
           if (target == null) {
             context.addMessage(CompilerMessageCategory.ERROR,
                                AndroidBundle.message("android.compilation.error.specify.platform", module.getName()), null, -1, -1);
@@ -592,7 +592,7 @@ public class AndroidAutogenerator {
           @Nullable
           @Override
           public RenderscriptAutogenerationItem compute() {
-            final AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
+            final AndroidPlatform platform = facet.getAndroidPlatform();
             if (platform == null) {
               context.addMessage(CompilerMessageCategory.ERROR,
                                  AndroidBundle.message("android.compilation.error.specify.platform", module.getName()), null, -1, -1);

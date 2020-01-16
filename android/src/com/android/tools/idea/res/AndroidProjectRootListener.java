@@ -81,7 +81,7 @@ public class AndroidProjectRootListener {
   private static void moduleRootsOrDependenciesChanged(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     if (facet != null) {
-      if (facet.requiresAndroidModel() && facet.getConfiguration().getModel() == null) {
+      if (facet.requiresAndroidModel() && facet.getModel() == null) {
         // Project not yet fully initialized. No need to do a sync now because our
         // GradleProjectAvailableListener will be called as soon as it is and do a proper sync.
         return;

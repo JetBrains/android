@@ -168,7 +168,7 @@ public class EmulatorTargetConfigurable implements DeployTargetConfigurable<Emul
         return null;
       }
 
-      AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
+      AndroidPlatform platform = facet.getAndroidPlatform();
       if (platform == null) {
         return null;
       }

@@ -44,7 +44,7 @@ public final class AndroidPackageUtils {
    */
   @NotNull
   public static String getPackageForApplication(@NotNull AndroidFacet androidFacet) {
-    AndroidModel androidModel = androidFacet.getConfiguration().getModel();
+    AndroidModel androidModel = androidFacet.getModel();
     assert androidModel != null;
     return androidModel.getApplicationId();
   }

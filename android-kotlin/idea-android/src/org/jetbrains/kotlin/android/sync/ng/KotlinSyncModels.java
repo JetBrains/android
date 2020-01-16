@@ -381,7 +381,7 @@ public class KotlinSyncModels {
     if (androidFacet == null) {
       return;
     }
-    AndroidModel androidModel = androidFacet.getConfiguration().getModel();
+    AndroidModel androidModel = androidFacet.getModel();
     if (!(androidModel instanceof AndroidModuleModel)) {
       return;
     }

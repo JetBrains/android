@@ -188,7 +188,7 @@ public class BuildBundleActionTest extends JavaProjectTestCase {
     when(androidModel.getFeatures()).thenReturn(androidModelFeatures);
 
     AndroidFacet androidFacet = Facets.createAndAddAndroidFacet(module);
-    androidFacet.getConfiguration().setModel(androidModel);
+    androidFacet.setModel(androidModel);
   }
 
   private static void setUpModuleAsGradleModule(@NotNull Module module) {

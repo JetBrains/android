@@ -59,7 +59,7 @@ public class ModuleDataBinding {
   private void syncWithConfiguration() {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     if (facet != null) {
-      AndroidModel androidModel = facet.getConfiguration().getModel();
+      AndroidModel androidModel = facet.getModel();
       if (androidModel != null) {
         setMode(androidModel.getDataBindingMode());
       }

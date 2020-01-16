@@ -247,8 +247,8 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
   }
 
   public void testFindSourceProvider() throws Exception {
-    assertNotNull(myAppFacet.getConfiguration().getModel());
-    VirtualFile moduleFile = myAppFacet.getConfiguration().getModel().getRootDir();
+    assertNotNull(myAppFacet.getModel());
+    VirtualFile moduleFile = myAppFacet.getModel().getRootDir();
     assertNotNull(moduleFile);
 
     // Try finding main flavor
@@ -406,13 +406,13 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
   }
 
   public void testSourceProviderContainsFile() throws Exception {
-    assertNotNull(myAppFacet.getConfiguration().getModel());
+    assertNotNull(myAppFacet.getModel());
     ProductFlavorContainer paidFlavor = AndroidModuleModel.get(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.create(paidFlavor.getSourceProvider());
     assertNotNull(paidFlavorSourceProvider);
 
-    VirtualFile moduleFile = myAppFacet.getConfiguration().getModel().getRootDir();
+    VirtualFile moduleFile = myAppFacet.getModel().getRootDir();
     assertNotNull(moduleFile);
     VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid");
     assertNotNull(javaSrcFile);
@@ -427,13 +427,13 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
 
   public void testSourceProviderIsContainedByFolder() throws Exception {
-    assertNotNull(myAppFacet.getConfiguration().getModel());
+    assertNotNull(myAppFacet.getModel());
     ProductFlavorContainer paidFlavor = AndroidModuleModel.get(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.create(paidFlavor.getSourceProvider());
     assertNotNull(paidFlavorSourceProvider);
 
-    VirtualFile moduleFile = myAppFacet.getConfiguration().getModel().getRootDir();
+    VirtualFile moduleFile = myAppFacet.getModel().getRootDir();
     assertNotNull(moduleFile);
     VirtualFile javaSrcFile = moduleFile.findFileByRelativePath("src/paid/java/com/example/projectwithappandlib/app/paid");
     assertNotNull(javaSrcFile);

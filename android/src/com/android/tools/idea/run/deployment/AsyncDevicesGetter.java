@@ -174,7 +174,7 @@ public class AsyncDevicesGetter {
       return;
     }
 
-    Object platform = facet.getConfiguration().getAndroidPlatform();
+    Object platform = facet.getAndroidPlatform();
 
     if (platform == null) {
       myChecker = null;

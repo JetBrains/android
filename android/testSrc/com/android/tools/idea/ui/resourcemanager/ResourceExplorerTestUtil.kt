@@ -26,8 +26,8 @@ import com.android.tools.idea.gradle.stubs.FileStructure
 import com.android.tools.idea.gradle.stubs.android.SourceProviderStub
 import com.android.tools.idea.model.TestAndroidModel
 import com.android.tools.idea.res.ResourceRepositoryManager
-import com.android.tools.idea.ui.resourcemanager.model.StaticStringMapper
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.ui.resourcemanager.model.StaticStringMapper
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.vfs.VfsUtil
@@ -104,6 +104,6 @@ fun createFakeResDirectory(androidFacet: AndroidFacet): File? {
   val defaultSourceProvider = SourceProviderStub(fileStructure)
   defaultSourceProvider.addResDirectory("res")
   val first = defaultSourceProvider.resDirectories.first()
-  androidFacet.configuration.model = TestAndroidModel(defaultSourceProvider = defaultSourceProvider)
+  androidFacet.model = TestAndroidModel(defaultSourceProvider = defaultSourceProvider)
   return first
 }

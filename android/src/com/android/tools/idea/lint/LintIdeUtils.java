@@ -246,7 +246,7 @@ public class LintIdeUtils {
   @NotNull
   public static List<File> getResourceDirectories(@NotNull AndroidFacet facet) {
     if (facet.requiresAndroidModel()) {
-      AndroidModel androidModel = facet.getConfiguration().getModel();
+      AndroidModel androidModel = facet.getModel();
       if (androidModel != null) {
         List<File> resDirectories = new ArrayList<>();
         List<SourceProvider> sourceProviders = androidModel.getActiveSourceProviders();

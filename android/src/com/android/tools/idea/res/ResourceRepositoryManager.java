@@ -650,7 +650,7 @@ public final class ResourceRepositoryManager implements Disposable {
   public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
     synchronized (myLibraryLock) {
       if (myResourceVisibilityProvider == null) {
-        if (!myFacet.requiresAndroidModel() || myFacet.getConfiguration().getModel() == null) {
+        if (!myFacet.requiresAndroidModel() || myFacet.getModel() == null) {
           return null;
         }
         myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();

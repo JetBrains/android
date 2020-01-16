@@ -360,7 +360,7 @@ public class ResourceHelperTest extends AndroidTestCase {
 
   private void setProjectNamespace(ResourceNamespace appNs) {
     CommandProcessor.getInstance().runUndoTransparentAction(() -> ApplicationManager.getApplication().runWriteAction(() -> {
-      myFacet.getConfiguration().setModel(TestAndroidModel.namespaced(myFacet));
+      myFacet.setModel(TestAndroidModel.namespaced(myFacet));
       myFacet.getManifest().getPackage().setValue(appNs.getPackageName());
     }));
   }

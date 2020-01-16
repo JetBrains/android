@@ -86,7 +86,7 @@ public class AndroidViewProjectNode extends ProjectViewNode<Project> {
 
       AndroidFacet androidFacet = AndroidFacet.getInstance(module);
       NdkFacet ndkFacet = NdkFacet.getInstance(module);
-      if (androidFacet != null && androidFacet.getConfiguration().getModel() != null) {
+      if (androidFacet != null && androidFacet.getModel() != null) {
         children.add(new AndroidModuleNode(myProject, module, settings, myProjectViewPane));
       }
       else if (androidFacet != null && apkFacet != null) {

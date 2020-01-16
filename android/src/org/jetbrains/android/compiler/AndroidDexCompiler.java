@@ -169,8 +169,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
             }
           }
 
-          final AndroidFacetConfiguration configuration = facet.getConfiguration();
-          final AndroidPlatform platform = configuration.getAndroidPlatform();
+          final AndroidPlatform platform = facet.getAndroidPlatform();
 
           if (platform == null) {
             myContext.addMessage(CompilerMessageCategory.ERROR,

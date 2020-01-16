@@ -116,4 +116,4 @@ fun findResFolder(jarFile: File): File? {
 /**
  * Checks namespacing of the module with the given [AndroidFacet].
  */
-val AndroidFacet.namespacing: AaptOptions.Namespacing get() = configuration.model?.namespacing ?: AaptOptions.Namespacing.DISABLED
+val AndroidFacet.namespacing: AaptOptions.Namespacing get() = model?.namespacing ?: AaptOptions.Namespacing.DISABLED

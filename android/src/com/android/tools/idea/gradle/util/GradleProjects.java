@@ -90,7 +90,7 @@ public final class GradleProjects {
   @Nullable
   public static AndroidModel getAndroidModel(@NotNull Module module) {
     AndroidFacet androidFacet = AndroidFacet.getInstance(module);
-    return androidFacet != null ? androidFacet.getConfiguration().getModel() : null;
+    return androidFacet != null ? androidFacet.getModel() : null;
   }
 
   /**
