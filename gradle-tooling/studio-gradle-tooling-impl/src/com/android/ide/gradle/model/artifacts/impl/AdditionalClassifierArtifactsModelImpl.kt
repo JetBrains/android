@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.ide.gradle.model.sources.impl
+package com.android.ide.gradle.model.artifacts.impl
 
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifact
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts
+import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifacts
+import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import java.io.Serializable
 
-data class SourcesAndJavadocArtifactsImpl(
-  private val artifacts: Collection<SourcesAndJavadocArtifact>,
+data class AdditionalClassifierArtifactsModelImpl(
+  private val artifacts: Collection<AdditionalClassifierArtifacts>,
   private val message: String?
-) : SourcesAndJavadocArtifacts, Serializable {
+) : AdditionalClassifierArtifactsModel, Serializable {
   override fun getArtifacts() = artifacts
   override fun getErrorMessage() = message
 }

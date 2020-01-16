@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.ide.gradle.model.sources.impl
+package com.android.ide.gradle.model.artifacts.impl
 
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
 import nl.jqno.equalsverifier.EqualsVerifier

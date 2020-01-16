@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.ide.gradle.model.sources.builder
+package com.android.ide.gradle.model.artifacts.builder
 
+import com.android.ide.gradle.model.AdditionalClassifierArtifactsModelParameter
 import com.android.ide.gradle.model.ArtifactIdentifierImpl
-import com.android.ide.gradle.model.ArtifactIdentifiersParameter
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifact
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts
-import com.android.ide.gradle.model.sources.impl.SourcesAndJavadocArtifactImpl
-import com.android.ide.gradle.model.sources.impl.SourcesAndJavadocArtifactsImpl
+import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifacts
+import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
+import com.android.ide.gradle.model.artifacts.impl.AdditionalClassifierArtifactsImpl
+import com.android.ide.gradle.model.artifacts.impl.AdditionalClassifierArtifactsModelImpl
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ModuleIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
@@ -37,25 +37,25 @@ import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder
 import java.io.File
 
 /**
- * Model Builder for [SourcesAndJavadocArtifacts].
+ * Model Builder for [AdditionalClassifierArtifactsModel].
  *
  * This model builder downloads sources and javadoc for components specifies in parameter, and returns model
- * [SourcesAndJavadocArtifacts], which contains the locations of downloaded jar files.
+ * [AdditionalClassifierArtifactsModel], which contains the locations of downloaded jar files.
  */
-class SourcesAndJavadocModelBuilder : ParameterizedToolingModelBuilder<ArtifactIdentifiersParameter> {
+class AdditionalClassifierArtifactsModelBuilder : ParameterizedToolingModelBuilder<AdditionalClassifierArtifactsModelParameter> {
   override fun canBuild(modelName: String): Boolean {
-    return modelName == SourcesAndJavadocArtifacts::class.java.name
+    return modelName == AdditionalClassifierArtifactsModel::class.java.name
   }
 
   override fun buildAll(modelName: String, project: Project): Any? {
-    throw RuntimeException("Please use parameterized tooling API to obtain SourcesAndJavadocArtifacts model.")
+    throw RuntimeException("Please use parameterized tooling API to obtain AdditionalArtifactsModelBuilder model.")
   }
 
-  override fun getParameterType(): Class<ArtifactIdentifiersParameter> {
-    return ArtifactIdentifiersParameter::class.java
+  override fun getParameterType(): Class<AdditionalClassifierArtifactsModelParameter> {
+    return AdditionalClassifierArtifactsModelParameter::class.java
   }
 
-  override fun buildAll(modelName: String, parameter: ArtifactIdentifiersParameter, project: Project): Any {
+  override fun buildAll(modelName: String, parameter: AdditionalClassifierArtifactsModelParameter, project: Project): Any {
     // Collect the components to download Sources and Javadoc for. DefaultModuleComponentIdentifier is the only supported type.
     // See DefaultArtifactResolutionQuery::validateComponentIdentifier.
     val ids = parameter.artifactIdentifiers.map {
@@ -67,11 +67,11 @@ class SourcesAndJavadocModelBuilder : ParameterizedToolingModelBuilder<ArtifactI
       )
     }
 
-    var artifacts = emptyList<SourcesAndJavadocArtifact>()
+    var artifacts = emptyList<AdditionalClassifierArtifacts>()
     var message: String? = null
 
     if (ids.isEmpty()) {
-      return SourcesAndJavadocArtifactsImpl(artifacts, message)
+      return AdditionalClassifierArtifactsModelImpl(artifacts, message)
     }
 
     try {
@@ -92,7 +92,7 @@ class SourcesAndJavadocModelBuilder : ParameterizedToolingModelBuilder<ArtifactI
 
       artifacts = docQuery.execute().resolvedComponents.filter { it.id is ModuleComponentIdentifier }.map {
         val id = it.id as ModuleComponentIdentifier
-        SourcesAndJavadocArtifactImpl(
+        AdditionalClassifierArtifactsImpl(
           ArtifactIdentifierImpl(id.group, id.module, id.version),
           getFile(it, SourcesArtifact::class.java),
           getFile(it, JavadocArtifact::class.java),
@@ -102,7 +102,7 @@ class SourcesAndJavadocModelBuilder : ParameterizedToolingModelBuilder<ArtifactI
     catch (t: Throwable) {
       message = "Unable to download sources/javadoc: " + t.message
     }
-    return SourcesAndJavadocArtifactsImpl(artifacts, message)
+    return AdditionalClassifierArtifactsModelImpl(artifacts, message)
   }
 
   private fun getFile(result: ComponentArtifactsResult, clazz: Class<out Artifact>): File? {
