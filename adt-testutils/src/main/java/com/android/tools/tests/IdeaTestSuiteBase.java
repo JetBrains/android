@@ -73,8 +73,6 @@ public class IdeaTestSuiteBase {
   }
 
   private static void setupKotlinPlugin() {
-    // Platform major version is needed to match the Kotlin plugin's compatibility range
-    symlinkToIdeaHome("tools/idea/build.txt");
     // Run Kotlin in-process for easier control over its JVM args.
     System.setProperty("kotlin.compiler.execution.strategy", "in-process");
     // As a side-effect, the following line initializes an initial application. Some tests create
@@ -113,30 +111,6 @@ public class IdeaTestSuiteBase {
     catch (IOException e) {
       // Ignore if we cannot resolve symlinks.
     }
-  }
-
-  /**
-   * An idea test is run in a temp writable directory. Idea home
-   * is set to $TMP/tools/idea. This method creates symlinks from
-   * the readonly runfiles to the home directory tree. These
-   * directories must first exist as test data for the test.
-   */
-  protected static void symlinkToIdeaHome(String... targets) {
-    // TODO: Remove all calls to this method, which now does nothing.
-  }
-
-  /**
-   * An idea test is run in a temp writable directory. Idea home
-   * is set to $TMP/tools/idea. This method creates symlinks from
-   * the readonly runfiles to the home directory tree. If a directory
-   * does not exist it will be ignored.
-   */
-  protected static void optSymlinkToIdeaHome(String... targets) {
-    // TODO: Remove all calls to this method, which now does nothing.
-  }
-
-  protected static void symlinkToIdeaHome(boolean ignoreMissing, String... targets) {
-    // TODO: Remove all calls to this method, which now does nothing.
   }
 
   /**

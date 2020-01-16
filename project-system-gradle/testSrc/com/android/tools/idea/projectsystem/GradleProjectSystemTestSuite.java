@@ -33,12 +33,6 @@ public class GradleProjectSystemTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
-    symlinkToIdeaHome("tools/adt/idea/android/annotations",
-                      "tools/adt/idea/android/testData",
-                      "tools/base/templates",
-                      "tools/idea/java",
-                      "prebuilts/studio/sdk");
-
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
     setUpOfflineRepo("tools/base/build-system/previous-versions/2.2.0.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");

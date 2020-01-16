@@ -32,15 +32,6 @@ public class SyncPerfTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
-    symlinkToIdeaHome(
-      "prebuilts/studio/jdk",
-      "prebuilts/studio/sdk",
-      "tools/adt/idea/android/annotations",
-      "tools/adt/idea/sync-perf-tests/testData",
-      "tools/base/templates",
-      "tools/idea/java"
-    );
-
     setUpSourceZip("prebuilts/studio/buildbenchmarks/dolphin.3627ef8a/src.zip",
                    // We unzip the source code into the same directory containing other test data.
                    "tools/adt/idea/sync-perf-tests/testData/" + TestProjectPaths.DOLPHIN_PROJECT_ROOT,

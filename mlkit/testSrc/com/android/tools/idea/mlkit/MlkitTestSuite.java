@@ -23,14 +23,4 @@ import org.junit.runner.RunWith;
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(MlkitTestSuite.class)  // a suite mustn't contain itself
 public class MlkitTestSuite extends IdeaTestSuiteBase {
-
-  static {
-    symlinkToIdeaHome(
-      "prebuilts/studio/sdk",
-      "tools/adt/idea/android/annotations",
-      "tools/adt/idea/android/testData",
-      "tools/base/templates",
-      "tools/idea/java"); // For the mock JDK.
-  }
 }
-

@@ -27,17 +27,6 @@ import org.junit.runner.RunWith;
 public class KotlinIntegrationTestSuite extends IdeaTestSuiteBase {
 
   static {
-    symlinkToIdeaHome(
-        "tools/adt/idea/android/annotations",
-        "tools/adt/idea/artwork/resources/device-art-resources",
-        "tools/adt/idea/android/lib",
-        "tools/adt/idea/android/testData",
-        "tools/adt/idea/kotlin-integration/testData",
-        "tools/base/templates",
-        "tools/idea/java",
-        "prebuilts/studio/jdk",
-        "prebuilts/studio/sdk");
-
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
     setUpOfflineRepo("tools/adt/idea/kotlin-integration/test_deps.zip", "prebuilts/tools/common/m2/repository");
   }

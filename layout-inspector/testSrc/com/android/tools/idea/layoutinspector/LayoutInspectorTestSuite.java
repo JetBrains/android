@@ -30,7 +30,5 @@ public class LayoutInspectorTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static final LeakCheckerRule checker = new LeakCheckerRule();
 
   static {
-    symlinkToIdeaHome("tools/adt/idea/layout-inspector/testData",
-                      "tools/idea/java");
   }
 }

@@ -26,11 +26,6 @@ import org.junit.runner.RunWith;
   com.android.tools.idea.debuggers.AndroidDebuggersTestSuite.class  // a suite mustn't contain itself
 })
 public class AndroidDebuggersTestSuite extends IdeaTestSuiteBase {
-
   @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();
-
-  static {
-    symlinkToIdeaHome("tools/idea/java");
-  }
 }
 

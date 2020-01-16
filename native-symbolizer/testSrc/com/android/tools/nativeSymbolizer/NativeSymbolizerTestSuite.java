@@ -29,8 +29,6 @@ import org.junit.runner.RunWith;
 public class NativeSymbolizerTestSuite extends IdeaTestSuiteBase {
   static {
     try {
-      symlinkToIdeaHome("tools/adt/idea/native-symbolizer/testData");
-
       String lldbPrebuiltDir;
       if (SystemInfo.isLinux) {
         lldbPrebuiltDir = "prebuilts/tools/linux-x86_64/lldb";

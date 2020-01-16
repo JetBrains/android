@@ -30,14 +30,6 @@ class IdeBenchmarkTestSuite : IdeaTestSuiteBase() {
 
     init {
       try {
-        symlinkToIdeaHome(
-          "prebuilts/studio/layoutlib",
-          "tools/adt/idea/android/annotations",
-          "tools/adt/idea/android/testData",
-          "tools/adt/idea/ide-perf-tests/testData",
-          "tools/base/templates",
-          "tools/idea/java")
-
         // SantaTracker.
         setUpSourceZip(
           "prebuilts/studio/buildbenchmarks/SantaTracker.181be75/src.zip",
