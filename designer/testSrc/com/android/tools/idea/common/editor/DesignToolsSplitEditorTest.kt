@@ -57,7 +57,7 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
     `when`(textEditor.editor).thenReturn(editor)
     val component = mock(JComponent::class.java)
     `when`(component.getActionForKeyStroke(any(KeyStroke::class.java))).thenCallRealMethod()
-    splitEditor = object : DesignToolsSplitEditor(textEditor, designerEditor, "testEditor", project) {
+    splitEditor = object : DesignToolsSplitEditor(textEditor, designerEditor, project) {
       // The fact that we have to call registerModeNavigationShortcuts here repeating the behavior in SplitEditor is incorrect
       // and should be fixed. However, we can not use the original getComponent method since it calls getComponent of
       // TextEditorWithPreview which fails with a NullPointerException in testing environment. This test, however, has a value

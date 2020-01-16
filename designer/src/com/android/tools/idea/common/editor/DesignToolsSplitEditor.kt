@@ -30,14 +30,13 @@ import javax.swing.JComponent
 
 private const val SPLIT_MODE_PROPERTY_PREFIX = "SPLIT_EDITOR_MODE"
 
+private const val EDITOR_NAME = "Design"
+
 /**
  * [SplitEditor] whose preview is a [DesignerEditor] and [getTextEditor] contains the corresponding XML file displayed in the preview.
  */
-open class DesignToolsSplitEditor(textEditor: TextEditor,
-                                  val designerEditor: DesignerEditor,
-                                  editorName: String,
-                                  private val project: Project)
-  : SplitEditor<DesignerEditor>(textEditor, designerEditor, editorName, defaultLayout(designerEditor)) {
+open class DesignToolsSplitEditor(textEditor: TextEditor, val designerEditor: DesignerEditor, private val project: Project)
+  : SplitEditor<DesignerEditor>(textEditor, designerEditor, EDITOR_NAME, defaultLayout(designerEditor)) {
 
   private val propertiesComponent = PropertiesComponent.getInstance()
 
@@ -56,6 +55,19 @@ open class DesignToolsSplitEditor(textEditor: TextEditor,
     }
 
   private var stateRestored = false
+
+  init {
+    clearLastModeProperty()
+  }
+
+  private fun clearLastModeProperty() {
+    // Clear the application-level "DesignLayout" property. This is done to prevent IntelliJ from storing the last selected mode and
+    // restoring it when opening new files. Instead, we want to open new files using the defaults set in the settings panel.
+    //
+    // Note: "${editorName}Layout" is the current format used by TextEditorWithPreview. Check TextEditorWithPreview#getLayoutPropertyName in
+    // the unlikely event this starts to fail, since the property name might have changed.
+    PropertiesComponent.getInstance().setValue("${EDITOR_NAME}Layout", null)
+  }
 
   override fun getComponent(): JComponent {
     val thisComponent = super.getComponent()
@@ -156,6 +168,7 @@ open class DesignToolsSplitEditor(textEditor: TextEditor,
       designerEditor.component.surface.state = surfaceState
       setModeProperty(surfaceState)
       super.setSelected(e, state, userExplicitlySelected)
+      clearLastModeProperty() // clear the property as it might have been set by TextEditorWithPreview selection.
     }
 
     override fun onUserSelectedAction() {
