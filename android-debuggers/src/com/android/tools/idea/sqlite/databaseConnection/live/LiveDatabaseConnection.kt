@@ -60,15 +60,17 @@ class LiveDatabaseConnection(
   }
 
   override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet?> {
-    // TODO(b/144336989) pass SqliteStatement object instead of String.
+    // TODO(blocked b/144336989) pass SqliteStatement object instead of String.
     val queryBuilder = SqliteInspection.QueryCommand.newBuilder().setQuery(sqliteStatement.assignValuesToParameters()).setDatabaseId(id)
-    // TODO: next CL. Figure out how to do this
+    // TODO(blocked) decide how the on-device inspector is going to notify the client about changes in the tables.
     //hints.forEach { queryBuilder.addAffectedTables(it) }
     val command = SqliteInspection.Commands.newBuilder().setQuery(queryBuilder).build()
     val responseFuture = messenger.sendRawCommand(command.toByteArray())
 
     return taskExecutor.transform(responseFuture) {
       val cursor = SqliteInspection.Cursor.parseFrom(it)
+      // TODO(blocked): we need a better way to differentiate between query and update statements.
+      //  This doesn't work if the result from the query is empty (eg. empty table or SELECT * FROM t where 1 = 2).
       if (cursor.rowsList.size == 0) {
         null
       } else {
