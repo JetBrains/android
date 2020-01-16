@@ -23,6 +23,7 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.project.Project;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.Icon;
@@ -83,10 +84,11 @@ public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetPro
       return myDevice.isRunning(packageName);
     }
 
-    @Nullable
+    @NotNull
     @Override
-    public IDevice getIDevice() {
-      return myDevice.getDdmlibDevice();
+    public Collection<IDevice> getDevices() {
+      // TODO Handle the Multiple Devices case
+      return Collections.singletonList(myDevice.getDdmlibDevice());
     }
 
     @NotNull
