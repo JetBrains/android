@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,28 +15,19 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.Bleak;
-import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-/**
- * UI test for the visualization tool window
- */
 @RunWith(GuiTestRemoteRunner.class)
-public class VisualizationTest {
+public class OpenCloseVisualizationToolTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
@@ -53,29 +44,27 @@ public class VisualizationTest {
     StudioFlags.NELE_SPLIT_EDITOR.clearOverride();
   }
 
+  /**
+   * Verifies that the Visualization Tool can be open and closed correctly.
+   * <p>
+   *   This is run to qualify releases. Please involve the test team in substantial changes.
+   * </p>
+   *
+   * TT ID: TODO
+   * <p>
+   *   <pre>
+   *   This feature is for Android Studio 3.2 and above.
+   *   Test Steps:
+   *   1. Import SimpleApplication project.
+   *   2. Open xml files and verify the files are opened in Visualization Tool window.
+   *   3. Open Java file, and verify the Visualization Tool window is closed.
+   *   4. Closed all opened xml files and java file.
+   *   </pre>
+   * </p>
+   */
   @Test
-  @UseBleak
-  @RunIn(TestGroup.PERFORMANCE)
-  public void openAndCloseVisualizationToolWithBleak() throws Exception {
-    EditorFixture editor = guiTest.importSimpleApplication().getEditor();
-    Bleak.runWithBleak(() -> openAndCloseVisualizationTool(editor));
+  public void visualizationToolAvailableForLayoutFile() throws Exception {
+    VisualizationTest.openAndCloseVisualizationTool(guiTest.importSimpleApplication().getEditor());
   }
 
-  static void openAndCloseVisualizationTool(@NotNull EditorFixture editor) {
-    final String file1 = "app/src/main/res/layout/frames.xml";
-    final String file2 = "app/src/main/res/layout/activity_my.xml";
-    final String file3 = "app/src/main/java/google/simpleapplication/MyActivity.java";
-
-    editor.open(file1);
-    assertThat(editor.getVisualizationTool().getCurrentFileName()).isEqualTo("frames.xml");
-
-    editor.open(file2);
-    assertThat(editor.getVisualizationTool().getCurrentFileName()).isEqualTo("activity_my.xml");
-
-    editor.open(file3).waitForVisualizationToolToHide();
-
-    // reset the state, i.e. hide the visualization tool window and close all the files.
-    editor.open(file1).getVisualizationTool().hide();
-    editor.closeFile(file1).closeFile(file2).closeFile(file3);
-  }
 }
