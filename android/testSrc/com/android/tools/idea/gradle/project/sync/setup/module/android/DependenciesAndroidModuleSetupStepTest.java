@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
 import static com.android.tools.idea.gradle.project.sync.setup.module.android.DependenciesAndroidModuleSetupStep.isSelfDependencyByTest;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.setupTestProjectFromAndroidModel;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static com.android.tools.idea.testing.Facets.createAndAddGradleFacet;
 import static com.google.common.truth.Truth.assertThat;
@@ -27,6 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.AndroidProjectTypes;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesImpl;
 import com.android.ide.common.gradle.model.stubs.SourceProviderStub;
@@ -38,6 +41,9 @@ import com.android.tools.idea.gradle.project.sync.setup.module.dependency.Depend
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency;
 import com.android.tools.idea.gradle.project.sync.setup.module.dependency.ModuleDependency;
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.testing.AndroidModuleDependency;
+import com.android.tools.idea.testing.AndroidModuleModelBuilder;
+import com.android.tools.idea.testing.AndroidProjectBuilder;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -169,24 +175,24 @@ public class DependenciesAndroidModuleSetupStepTest extends PlatformTestCase {
   }
 
   private void updateModuleDependency(@NotNull String modelVersion, boolean exported) {
-    String libModulePath = "mylib";
-    // Create a lib module.
-    Module libModule = createModule(libModulePath);
-    GradleFacet facet = createAndAddGradleFacet(libModule);
-    facet.getConfiguration().GRADLE_PROJECT_PATH = libModulePath;
-
-    // Create gradle facet and mock AndroidModuleModel.
-    AndroidModuleModel moduleModel = createAndroidFacetAndModuleModel(modelVersion);
-
-    // Create module dependency on lib module.
-    ModuleDependency dependency = new ModuleDependency(libModulePath, COMPILE, libModule);
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-
-    mySetupStep.updateModuleDependency(myModule, modelsProvider, dependency, moduleModel);
-    ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
+    setupTestProjectFromAndroidModel(
+      getProject(),
+      new File(getProject().getBasePath()),
+      new AndroidModuleModelBuilder(
+        ":app", null, modelVersion, "debug",
+        new AndroidProjectBuilder()
+          .withProjectType(it -> AndroidProjectTypes.PROJECT_TYPE_APP)
+          .withAndroidModuleDependencyList((stub, variant) -> ImmutableList.of(new AndroidModuleDependency(":mylib", variant)))
+      ),
+      new AndroidModuleModelBuilder(
+        ":mylib", null, modelVersion, "debug",
+        new AndroidProjectBuilder()
+          .withProjectType(it -> AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
+      )
+    );
 
     // Verify that there's only one module dependency.
-    List<ModuleOrderEntry> moduleOrderEntries = getModuleOrderEntries(myModule);
+    List<ModuleOrderEntry> moduleOrderEntries = getModuleOrderEntries(gradleModule(getProject(), ":app"));
     assertThat(moduleOrderEntries).hasSize(1);
 
     // Verify that module dependency is not exported. b/62265305.
