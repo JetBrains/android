@@ -17,6 +17,7 @@ package com.android.tools.idea.material.icons
 
 import com.android.tools.idea.material.icons.MaterialIconsUtils.MATERIAL_ICONS_PATH
 import com.android.tools.idea.material.icons.MaterialIconsUtils.METADATA_FILE_NAME
+import com.android.utils.SdkUtils
 import java.net.URL
 
 /**
@@ -32,4 +33,16 @@ interface MaterialIconsMetadataUrlProvider {
 internal class BundledMetadataUrlProvider : MaterialIconsMetadataUrlProvider {
   override fun getMetadataUrl(): URL? =
     javaClass.classLoader.getResource(MATERIAL_ICONS_PATH + METADATA_FILE_NAME)
+}
+
+/**
+ * Returns the [URL] for the metadata file located in the .../Android/Sdk directory.
+ *
+ * @see MaterialIconsUtils.getIconsSdkTargetPath
+ */
+internal class SdkMetadataUrlProvider: MaterialIconsMetadataUrlProvider {
+  override fun getMetadataUrl(): URL? {
+    val metadataFilePath = MaterialIconsUtils.getIconsSdkTargetPath()?.resolve(METADATA_FILE_NAME) ?: return null
+    return if (metadataFilePath.exists()) SdkUtils.fileToUrl(metadataFilePath) else null
+  }
 }
