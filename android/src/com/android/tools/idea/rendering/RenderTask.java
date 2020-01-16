@@ -74,6 +74,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -87,9 +88,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
@@ -140,14 +138,8 @@ public class RenderTask {
   /**
    * Executor to run the dispose tasks. The thread will run them sequentially.
    */
-  private static final ExecutorService ourDisposeService = new ThreadPoolExecutor(0, 1, 10, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
-                                                                                  new ThreadFactory() {
-                                                                                    @Override
-                                                                                    public Thread newThread(@NotNull Runnable runnable) {
-                                                                                      return new Thread(runnable,
-                                                                                                        "RenderTask dispose thread");
-                                                                                    }
-                                                                                  });
+  private static final ExecutorService ourDisposeService =
+    AppExecutorUtil.createBoundedApplicationPoolExecutor("RenderTask Dispose Thread", 1);
   public static final String GAP_WORKER_CLASS_NAME = "androidx.recyclerview.widget.GapWorker";
 
   @NotNull private final ImagePool myImagePool;
