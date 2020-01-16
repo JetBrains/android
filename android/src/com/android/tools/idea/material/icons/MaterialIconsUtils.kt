@@ -50,4 +50,14 @@ internal object MaterialIconsUtils {
     val iconsFolder = File(sdkHome, "icons")
     return File(iconsFolder, "material").apply { mkdirs() }
   }
+
+  /**
+   * Returns `true` if there's a file with the name [METADATA_FILE_NAME] in the .../Android/Sdk directory.
+   *
+   * Does not check if it's a valid file for [MaterialIconsMetadata].
+   */
+  fun hasMetadataFileInSdkPath(): Boolean {
+    val iconsSdkPath = getIconsSdkTargetPath()
+    return iconsSdkPath != null && iconsSdkPath.resolve(METADATA_FILE_NAME).exists()
+  }
 }

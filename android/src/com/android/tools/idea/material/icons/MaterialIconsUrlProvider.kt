@@ -18,6 +18,8 @@ package com.android.tools.idea.material.icons
 import com.android.ide.common.vectordrawable.VdIcon
 import com.android.tools.idea.material.icons.MaterialIconsUtils.MATERIAL_ICONS_PATH
 import com.android.tools.idea.material.icons.MaterialIconsUtils.toDirFormat
+import com.android.utils.SdkUtils.fileToUrl
+import java.io.File
 import java.net.URL
 
 /**
@@ -54,5 +56,30 @@ internal class BundledIconsUrlProvider : MaterialIconsUrlProvider {
 
   private fun getStyleDirectoryPath(style: String): String {
     return MATERIAL_ICONS_PATH + style.toDirFormat() + "/"
+  }
+}
+
+/**
+ * [MaterialIconsUrlProvider] for [VdIcon] files located in the .../Android/Sdk directory.
+ *
+ * @see MaterialIconsUtils.getIconsSdkTargetPath
+ */
+internal class SdkMaterialIconsUrlProvider: MaterialIconsUrlProvider {
+  private val iconsSdkPath = MaterialIconsUtils.getIconsSdkTargetPath()
+
+  override fun getStyleUrl(style: String): URL? {
+    return getStyleDirectoryFile(style)?.let(::fileToUrl)
+  }
+
+  override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? {
+    return getIconDirectoryFile(style, iconName)?.resolve(iconFileName)?.let(::fileToUrl)
+  }
+
+  private fun getIconDirectoryFile(style: String, name: String): File? {
+    return getStyleDirectoryFile(style)?.resolve(name)
+  }
+
+  private fun getStyleDirectoryFile(style: String): File? {
+    return iconsSdkPath?.resolve(style.toDirFormat())
   }
 }

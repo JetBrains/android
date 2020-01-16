@@ -23,8 +23,11 @@ import com.android.tools.idea.material.icons.MaterialIconsUrlProvider
 import com.android.tools.idea.material.icons.BundledIconsUrlProvider
 import com.android.tools.idea.material.icons.MaterialIconsCopyHandler
 import com.android.tools.idea.material.icons.MaterialIconsUtils.getIconsSdkTargetPath
+import com.android.tools.idea.material.icons.MaterialIconsUtils.hasMetadataFileInSdkPath
 import com.android.tools.idea.material.icons.MaterialVdIcons
 import com.android.tools.idea.material.icons.MaterialVdIconsLoader
+import com.android.tools.idea.material.icons.SdkMaterialIconsUrlProvider
+import com.android.tools.idea.material.icons.SdkMetadataUrlProvider
 import com.android.tools.idea.npw.assetstudio.MaterialVdIconsProvider.Status
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.diagnostic.Logger
@@ -73,7 +76,7 @@ class MaterialVdIconsProvider {
     fun loadMaterialVdIcons(refreshUiCallback: (MaterialVdIcons, Status) -> Unit,
                             metadataUrlProvider: MaterialIconsMetadataUrlProvider?,
                             iconsUrlProvider: MaterialIconsUrlProvider?) {
-      val metadata = getMetadata(metadataUrlProvider ?: BundledMetadataUrlProvider())
+      val metadata = getMetadata(metadataUrlProvider ?: getMetadataUrlProvider())
       when {
         metadata == null -> {
           LOG.warn("No metadata for material icons.")
@@ -85,7 +88,7 @@ class MaterialVdIconsProvider {
         }
         else -> {
           loadMaterialVdIcons(
-            metadata, iconsUrlProvider ?: BundledIconsUrlProvider(), StudioFlags.ASSET_COPY_MATERIAL_ICONS.get(), refreshUiCallback)
+            metadata, iconsUrlProvider ?: getIconsUrlProvider(), StudioFlags.ASSET_COPY_MATERIAL_ICONS.get(), refreshUiCallback)
         }
       }
     }
@@ -122,6 +125,23 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
         }
       }
     }, EdtExecutorService.getScheduledExecutorInstance())
+  }
+}
+
+
+private fun getMetadataUrlProvider(): MaterialIconsMetadataUrlProvider {
+  return if (hasMetadataFileInSdkPath()) {
+    SdkMetadataUrlProvider()
+  } else {
+    BundledMetadataUrlProvider()
+  }
+}
+
+private fun getIconsUrlProvider(): MaterialIconsUrlProvider {
+  return if (hasMetadataFileInSdkPath()) {
+    SdkMaterialIconsUrlProvider()
+  } else {
+    BundledIconsUrlProvider()
   }
 }
 
