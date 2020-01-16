@@ -24,8 +24,8 @@ import org.junit.runner.RunWith
 class AndroidBuildAttributionTestSuite : IdeaTestSuiteBase() {
   companion object {
     init {
-      IdeaTestSuiteBase.setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository")
-      IdeaTestSuiteBase.setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo")
+      unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip")
+      unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip")
     }
   }
 }

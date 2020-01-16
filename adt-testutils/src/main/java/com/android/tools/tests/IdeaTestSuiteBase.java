@@ -160,8 +160,7 @@ public class IdeaTestSuiteBase {
     }
   }
 
-  protected static void setUpOfflineRepo(@NotNull String repoZip, @NotNull String outputPath) {
-    // TODO: Remove the `outputPath` parameter, which is no longer used.
+  protected static void unzipIntoOfflineMavenRepo(@NotNull String repoZip) {
     File offlineRepoZip = getWorkspaceFileAndEnsureExistence(repoZip);
     File outDir = TestUtils.getPrebuiltOfflineMavenRepo();
     unzip(offlineRepoZip, outDir);

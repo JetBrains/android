@@ -33,14 +33,14 @@ public class OldAgpTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
-    setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("tools/base/build-system/previous-versions/1.5.0.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("tools/base/build-system/previous-versions/2.2.0.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("tools/base/build-system/previous-versions/3.0.0.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("tools/base/build-system/previous-versions/3.3.2.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("tools/base/build-system/previous-versions/3.5.0.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
-    setUpOfflineRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("tools/data-binding/data_binding_runtime.zip", "prebuilts/tools/common/m2/repository");
+    unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip");
+    unzipIntoOfflineMavenRepo("tools/base/build-system/previous-versions/1.5.0.zip");
+    unzipIntoOfflineMavenRepo("tools/base/build-system/previous-versions/2.2.0.zip");
+    unzipIntoOfflineMavenRepo("tools/base/build-system/previous-versions/3.0.0.zip");
+    unzipIntoOfflineMavenRepo("tools/base/build-system/previous-versions/3.3.2.zip");
+    unzipIntoOfflineMavenRepo("tools/base/build-system/previous-versions/3.5.0.zip");
+    unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip");
+    unzipIntoOfflineMavenRepo("tools/base/third_party/kotlin/kotlin-m2repository.zip");
+    unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip");
   }
 }
