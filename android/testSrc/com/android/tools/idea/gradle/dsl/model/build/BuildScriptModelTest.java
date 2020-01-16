@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.model.build;
 
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_ADD_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_ADD_DEPENDENCY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EDIT_DEPENDENCY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK_SUB;
@@ -89,6 +90,8 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, BUILD_SCRIPT_MODEL_ADD_DEPENDENCY_EXPECTED);
+
     assertFalse(buildModel.isModified());
 
     buildModel.reparse();
