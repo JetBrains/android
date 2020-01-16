@@ -20,7 +20,6 @@ import static com.android.SdkConstants.EXT_GRADLE_KTS;
 import static com.android.SdkConstants.FN_BUILD_GRADLE;
 import static com.android.SdkConstants.FN_BUILD_GRADLE_KTS;
 import static com.android.SdkConstants.FN_GRADLE_PROPERTIES;
-import static com.android.SdkConstants.FN_LOCAL_PROPERTIES;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE_KTS;
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
@@ -49,6 +48,8 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.PathManager;
@@ -98,25 +99,19 @@ public class AndroidGradleTests {
     updateToolingVersionsAndPaths(folderRootPath, null, null);
   }
 
-  public static void updateToolingVersionsAndPaths(@NotNull File folderRootPath,
-                                                   @Nullable String gradleVersion,
-                                                   @Nullable String gradlePluginVersion) throws IOException {
-    updateToolingVersionsAndPaths(folderRootPath, null, gradleVersion, gradlePluginVersion);
-  }
-
   public static void updateToolingVersionsAndPaths(@NotNull File path,
-                                                   @Nullable String repositories,
                                                    @Nullable String gradleVersion,
-                                                   @Nullable String gradlePluginVersion)
+                                                   @Nullable String gradlePluginVersion,
+                                                   File... localRepos)
     throws IOException {
-    updateToolingVersionsAndPaths(path, true, repositories, gradleVersion, gradlePluginVersion);
+    internalUpdateToolingVersionsAndPaths(path, true, gradleVersion, gradlePluginVersion, localRepos);
   }
 
-  private static void updateToolingVersionsAndPaths(@NotNull File path,
-                                                    boolean isRoot,
-                                                    @Nullable String localRepositories,
-                                                    @Nullable String gradleVersion,
-                                                    @Nullable String gradlePluginVersion)
+  private static void internalUpdateToolingVersionsAndPaths(@NotNull File path,
+                                                            boolean isRoot,
+                                                            @Nullable String gradleVersion,
+                                                            @Nullable String gradlePluginVersion,
+                                                            File... localRepos)
     throws IOException {
     if (path.isDirectory()) {
       if (isRoot || new File(path, FN_SETTINGS_GRADLE).exists() || new File(path, FN_SETTINGS_GRADLE_KTS).exists()) {
@@ -127,15 +122,13 @@ public class AndroidGradleTests {
         createGradleWrapper(path, gradleVersion != null ? gradleVersion : GRADLE_LATEST_VERSION);
       }
       for (File child : notNullize(path.listFiles())) {
-        updateToolingVersionsAndPaths(child, false, localRepositories, gradleVersion, gradlePluginVersion);
+        internalUpdateToolingVersionsAndPaths(child, false, gradleVersion, gradlePluginVersion, localRepos);
       }
     }
     else if (path.getPath().endsWith(DOT_GRADLE) && path.isFile()) {
       String contentsOrig = Files.toString(path, Charsets.UTF_8);
       String contents = contentsOrig;
-      if (localRepositories == null) {
-        localRepositories = getLocalRepositoriesForGroovy();
-      }
+      String localRepositories = getLocalRepositoriesForGroovy(localRepos);
 
       BuildEnvironment buildEnvironment = BuildEnvironment.getInstance();
 
@@ -166,9 +159,7 @@ public class AndroidGradleTests {
     else if (path.getPath().endsWith(EXT_GRADLE_KTS) && path.isFile()) {
       String contentsOrig = Files.toString(path, Charsets.UTF_8);
       String contents = contentsOrig;
-      if (localRepositories == null) {
-        localRepositories = getLocalRepositoriesForKotlin();
-      }
+      String localRepositories = getLocalRepositoriesForKotlin(localRepos);
 
       BuildEnvironment buildEnvironment = BuildEnvironment.getInstance();
 
@@ -254,32 +245,34 @@ public class AndroidGradleTests {
   }
 
   @NotNull
-  public static String getLocalRepositoriesForGroovy() {
+  public static String getLocalRepositoriesForGroovy(File... localRepos) {
     // Add metadataSources to work around http://b/144088459. Wrap it in try-catch because
     // we are also using older Gradle versions that do not have this method.
-    return StringUtil.join(getLocalRepositoryDirectories(),
-                           file -> "maven {\n" +
-                                   "  url \"" + file.toURI().toString() + "\"\n" +
-                                   "  try {\n" +
-                                   "    metadataSources() {\n" +
-                                   "      mavenPom()\n" +
-                                   "      artifact()\n" +
-                                   "    }\n" +
-                                   "  } catch (Throwable ignored) { /* In case this Gradle version does not support this. */}\n" +
-                                   "}", "\n");
+    return StringUtil.join(
+      Iterables.concat(getLocalRepositoryDirectories(), Lists.newArrayList(localRepos)),
+      file -> "maven {\n" +
+              "  url \"" + file.toURI().toString() + "\"\n" +
+              "  try {\n" +
+              "    metadataSources() {\n" +
+              "      mavenPom()\n" +
+              "      artifact()\n" +
+              "    }\n" +
+              "  } catch (Throwable ignored) { /* In case this Gradle version does not support this. */}\n" +
+              "}", "\n");
   }
 
   @NotNull
-  public static String getLocalRepositoriesForKotlin() {
+  public static String getLocalRepositoriesForKotlin(File... localRepos) {
     // Add metadataSources to work around http://b/144088459.
-    return StringUtil.join(getLocalRepositoryDirectories(),
-                           file -> "maven {\n" +
-                                   "  setUrl(\"" + file.toURI().toString() + "\")\n" +
-                                   "  metadataSources() {\n" +
-                                   "    mavenPom()\n" +
-                                   "    artifact()\n" +
-                                   "  }\n" +
-                                   "}", "\n");
+    return StringUtil.join(
+      Iterables.concat(getLocalRepositoryDirectories(), Lists.newArrayList(localRepos)),
+      file -> "maven {\n" +
+              "  setUrl(\"" + file.toURI().toString() + "\")\n" +
+              "  metadataSources() {\n" +
+              "    mavenPom()\n" +
+              "    artifact()\n" +
+              "  }\n" +
+              "}", "\n");
   }
 
   @NotNull
@@ -343,6 +336,7 @@ public class AndroidGradleTests {
 
   /**
    * Creates a gradle wrapper for use in tests under the {@code projectRoot}.
+   *
    * @throws IOException
    */
   public static void createGradleWrapper(@NotNull File projectRoot, @NotNull String gradleVersion) throws IOException {
@@ -470,7 +464,7 @@ public class AndroidGradleTests {
     File ktsSettings = new File(srcRoot, FN_SETTINGS_GRADLE_KTS);
     File ktsBuild = new File(srcRoot, FN_BUILD_GRADLE_KTS);
     TestCase.assertTrue("Couldn't find build.gradle(.kts) or settings.gradle(.kts) in " + srcRoot.getPath(),
-               settings.exists() || build.exists() || ktsSettings.exists() || ktsBuild.exists());
+                        settings.exists() || build.exists() || ktsSettings.exists() || ktsBuild.exists());
   }
 
   public static TestGradleSyncListener syncProject(@NotNull Project project,
@@ -494,11 +488,13 @@ public class AndroidGradleTests {
     return !syncListener.success || !Strings.isNullOrEmpty(syncListener.failureMessage) || syncListener.hasErrors;
   }
 
-  public static void defaultPatchPreparedProject(@NotNull File projectRoot, @Nullable String gradleVersion,
-                                                 @Nullable String gradlePluginVersion) throws IOException {
+  public static void defaultPatchPreparedProject(@NotNull File projectRoot,
+                                                 @Nullable String gradleVersion,
+                                                 @Nullable String gradlePluginVersion,
+                                                 File... localRepos) throws IOException {
     preCreateDotGradle(projectRoot);
     // Update dependencies to latest, and possibly repository URL too if android.mavenRepoUrl is set
-    updateToolingVersionsAndPaths(projectRoot, gradleVersion, gradlePluginVersion);
+    updateToolingVersionsAndPaths(projectRoot, gradleVersion, gradlePluginVersion, localRepos);
   }
 
   /**

@@ -37,6 +37,7 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResul
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.idea.IdeaTestApplication;
 import com.intellij.openapi.application.ApplicationManager;
@@ -67,6 +68,7 @@ import com.intellij.util.Consumer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.concurrent.CountDownLatch;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -234,18 +236,25 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
   }
 
   protected final void loadProject(@NotNull String relativePath,
-                             @Nullable String chosenModuleName) throws Exception {
+                                   @Nullable String chosenModuleName) throws Exception {
     loadProject(relativePath, chosenModuleName, null, null);
   }
 
   protected final void loadProject(@NotNull String relativePath,
-                             @Nullable String chosenModuleName,
-                             @Nullable String gradleVersion,
-                             @Nullable String gradlePluginVersion) throws Exception {
-    prepareProjectForImport(relativePath, gradleVersion,  gradlePluginVersion);
+                                   @Nullable String chosenModuleName,
+                                   @Nullable String gradleVersion,
+                                   @Nullable String gradlePluginVersion) throws Exception {
+    prepareProjectForImport(relativePath, gradleVersion, gradlePluginVersion, getAdditionalRepos().toArray(new File[0]));
     importProject();
 
     prepareProjectForTest(getProject(), chosenModuleName);
+  }
+
+  /**
+   * @return a collection of absolute paths to additional local repositories required by the test.
+   */
+  protected Collection<File> getAdditionalRepos() {
+    return ImmutableList.of();
   }
 
   protected void prepareProjectForTest(Project project, @Nullable String chosenModuleName) {
@@ -258,25 +267,28 @@ public abstract class AndroidGradleTestCase extends AndroidTestBase {
     myAndroidFacet = AndroidGradleTests.findAndroidFacetForTests(modules, chosenModuleName);
   }
 
-  protected void patchPreparedProject(@NotNull File projectRoot, @Nullable String gradleVersion, @Nullable String gradlePluginVersion)
+  protected void patchPreparedProject(@NotNull File projectRoot,
+                                      @Nullable String gradleVersion,
+                                      @Nullable String gradlePluginVersion,
+                                      File... localRepos)
     throws IOException {
-    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion);
+    AndroidGradleTests.defaultPatchPreparedProject(projectRoot, gradleVersion, gradlePluginVersion, localRepos);
   }
 
   @NotNull
   protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath) throws IOException {
-    return prepareProjectForImport(relativePath, null, null);
+    return prepareProjectForImport(relativePath, null, null, getAdditionalRepos().toArray(new File[0]));
   }
 
   @NotNull
   protected File prepareProjectForImport(@NotNull @SystemIndependent String relativePath, @Nullable String gradleVersion,
-                                         @Nullable String gradlePluginVersion) throws IOException {
+                                         @Nullable String gradlePluginVersion, File... localRepos) throws IOException {
     File projectSourceRoot = resolveTestDataPath(relativePath);
     File projectRoot = new File(toSystemDependentName(getProject().getBasePath()));
 
     AndroidGradleTests.validateGradleProjectSource(projectSourceRoot);
     AndroidGradleTests.prepareProjectForImportCore(projectSourceRoot, projectRoot, file ->
-      patchPreparedProject(file, gradleVersion, gradlePluginVersion)
+      patchPreparedProject(file, gradleVersion, gradlePluginVersion, localRepos)
     );
     return projectRoot;
   }

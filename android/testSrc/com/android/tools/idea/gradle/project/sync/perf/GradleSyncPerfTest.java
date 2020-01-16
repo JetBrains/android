@@ -99,7 +99,10 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
   }
 
   @Override
-  protected void patchPreparedProject(@NotNull File projectRoot, @Nullable String gradleVersion, @Nullable String gradlePluginVersion)
+  protected void patchPreparedProject(@NotNull File projectRoot,
+                                      @Nullable String gradleVersion,
+                                      @Nullable String gradlePluginVersion,
+                                      File... localRepos)
     throws IOException {
     // Override settings just for tests (e.g. sdk.dir)
     AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath());
@@ -281,7 +284,8 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
 
         UsageTracker.setWriterForTest(myUsageTracker); // Start logging data for performance dashboard
         requestSyncAndWait();
-      } catch(Exception e) {
+      }
+      catch (Exception e) {
         throw new RuntimeException(e);
       }
     });
