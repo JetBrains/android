@@ -15,11 +15,11 @@
  */
 package com.android.ide.gradle.model;
 
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifact;
+import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifacts;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The unique identifier of {@link SourcesAndJavadocArtifact}
+ * The unique identifier of {@link AdditionalClassifierArtifacts}
  */
 public interface ArtifactIdentifier {
   /**

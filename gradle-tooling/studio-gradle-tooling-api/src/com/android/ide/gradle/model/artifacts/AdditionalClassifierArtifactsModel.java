@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.ide.gradle.model.sources;
+package com.android.ide.gradle.model.artifacts;
 
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
@@ -23,12 +23,12 @@ import org.jetbrains.annotations.Nullable;
  * A model that downloads Sources and Javadoc for given MavenCoordinates, and returns the list of
  * resolved artifacts.
  */
-public interface SourcesAndJavadocArtifacts {
+public interface AdditionalClassifierArtifactsModel {
   /**
    * Returns the list of resolved artifacts.
    */
   @NotNull
-  Collection<SourcesAndJavadocArtifact> getArtifacts();
+  Collection<AdditionalClassifierArtifacts> getArtifacts();
 
   /**
    * Returns the error message if exception happened during download. Null if download is

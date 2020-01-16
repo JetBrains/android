@@ -20,19 +20,19 @@ import com.android.builder.model.BaseArtifact
 import com.android.builder.model.Library
 import com.android.builder.model.Variant
 import com.android.ide.common.repository.GradleVersion
+import com.android.ide.gradle.model.AdditionalClassifierArtifactsModelParameter
 import com.android.ide.gradle.model.ArtifactIdentifier
-import com.android.ide.gradle.model.ArtifactIdentifiersParameter
-import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts
+import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidModule
 import com.google.common.annotations.VisibleForTesting
 import org.gradle.tooling.BuildController
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 
 @UsedInBuildAction
-fun getSourcesAndJavadocArtifacts(
+fun getAdditionalClassifierArtifactsModel(
   controller: BuildController,
   inputModules: List<AndroidModule>,
-  cachedSourcesAndJavadoc: Collection<String>,
+  cachedLibraries: Collection<String>,
   consumer: ProjectImportModelProvider.BuildModelConsumer
 ) {
   inputModules.forEach { module ->
@@ -42,15 +42,15 @@ fun getSourcesAndJavadocArtifacts(
     // The first case indicates full-variants sync and the later single-variant sync.
     val variants = if (module.androidProject.variants.isNotEmpty()) module.androidProject.variants else module.variantGroup.variants
     // Collect the library identifiers to download sources and javadoc for, and filter the cached ones.
-    val identifiers = collectIdentifiers(variants).filter { !cachedSourcesAndJavadoc.contains(idToString(it)) }
+    val identifiers = collectIdentifiers(variants).filter { !cachedLibraries.contains(idToString(it)) }
 
-    // Query for SourcesAndJavadocArtifacts model.
+    // Query for AdditionalClassiferArtifactsModel model.
     if (identifiers.isNotEmpty()) {
-      controller.findModel(module.gradleProject, SourcesAndJavadocArtifacts::class.java,
-                           ArtifactIdentifiersParameter::class.java) { parameter ->
+      controller.findModel(module.gradleProject, AdditionalClassifierArtifactsModel::class.java,
+                           AdditionalClassifierArtifactsModelParameter::class.java) { parameter ->
         parameter.artifactIdentifiers = identifiers
       }?.also {
-        consumer.consumeProjectModel(module.gradleProject, it, SourcesAndJavadocArtifacts::class.java)
+        consumer.consumeProjectModel(module.gradleProject, it, AdditionalClassifierArtifactsModel::class.java)
       }
     }
   }

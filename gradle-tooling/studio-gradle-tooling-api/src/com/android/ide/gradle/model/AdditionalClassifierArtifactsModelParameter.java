@@ -19,9 +19,9 @@ import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * The parameter for [SourcesAndJavadocModelBuilder] and [SamplesModelBuilder] to build customized models.
+ * The parameter for [com.android.ide.gradle.model.artifacts.builder.AdditionalArtifactsModelBuilder]
  */
-public interface ArtifactIdentifiersParameter {
+public interface AdditionalClassifierArtifactsModelParameter {
   /**
    * Return a list of component ids to download sources and javadoc for.
    *

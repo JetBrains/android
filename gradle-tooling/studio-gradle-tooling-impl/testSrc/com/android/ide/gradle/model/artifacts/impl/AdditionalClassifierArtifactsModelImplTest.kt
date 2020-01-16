@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.ide.gradle.model.sources.impl
+package com.android.ide.gradle.model.artifacts.impl
 
 import nl.jqno.equalsverifier.EqualsVerifier
 import org.junit.Test
 
 /**
- * Test class for [SourcesAndJavadocArtifactImpl].
+ * Test class for [AdditionalClassifierArtifactsModelImpl].
  */
-class SourcesAndJavadocArtifactImplTest {
+class AdditionalClassifierArtifactsModelImplTest {
   @Test
   @Throws(Exception::class)
   fun equals() {
-    EqualsVerifier.forClass(SourcesAndJavadocArtifactImpl::class.java).verify()
+    EqualsVerifier.forClass(AdditionalClassifierArtifactsModelImpl::class.java).verify()
   }
 }
