@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.sdkmanager;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowing;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
@@ -24,8 +26,10 @@ import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.sdk.SdkProblemDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.sdk.SelectSdkDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.sdk.SyncAndroidSdkDialogFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import com.intellij.ui.components.JBLabel;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,7 +42,7 @@ public class IntegratedSdkManagerTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
 
   @Test
-  public void androidSdkManagerShowsFromWelcomeScreen() throws Exception {
+  public void androidSdkManagerShowsFromWelcomeScreen() {
     setInvalidSdk(guiTest.welcomeFrame())
       .createNewProjectWhenSdkIsInvalid()
       .openSDKManager()
@@ -69,7 +73,7 @@ public class IntegratedSdkManagerTest {
   private static IdeFrameFixture setInvalidSdk(IdeFrameFixture fixture) {
     setInvalidSdkPath();
     // Changing the SDK path triggers a gradle sync, and that will show a couple of dialogs to select/sync the SDK.
-    fixture.waitForGradleProjectSyncToFail();
+    waitUntilShowing(fixture.robot(), Matchers.byText(JBLabel.class, "Please provide the path to the Android SDK."));
     SelectSdkDialogFixture.find(fixture.robot())
       .clickCancel();
     SyncAndroidSdkDialogFixture.find(fixture.robot())
