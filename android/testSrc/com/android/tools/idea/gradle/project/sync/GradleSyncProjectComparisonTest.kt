@@ -50,7 +50,7 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.io.FileUtil.delete
 import com.intellij.openapi.util.io.FileUtil.join
 import com.intellij.openapi.util.io.FileUtil.writeToFile
-import com.intellij.util.PathUtil
+import com.intellij.util.PathUtil.toSystemDependentName
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings
@@ -72,12 +72,12 @@ import java.io.File
  *       update multiple snapshots used in one test.
  *
  *       Or with bazel:
-           bazel test //tools/adt/idea/android:intellij.android.core.tests_tests  --test_sharding_strategy=disabled  \
-                 --test_filter="GradleSyncProjectComparisonTestCase" --nocache_test_results --strategy=TestRunner=standalone \
-               --jvmopt='-DUPDATE_TEST_SNAPSHOTS' --test_output=streamed --runs_per_test=3
+bazel test //tools/adt/idea/android:intellij.android.core.tests_tests  --test_sharding_strategy=disabled  \
+--test_filter="GradleSyncProjectComparisonTestCase" --nocache_test_results --strategy=TestRunner=standalone \
+--jvmopt='-DUPDATE_TEST_SNAPSHOTS' --test_output=streamed --runs_per_test=3
  */
 abstract class GradleSyncProjectComparisonTest(
-    private val singleVariantSync: Boolean = false
+  private val singleVariantSync: Boolean = false
 ) : GradleSyncIntegrationTestCase(), SnapshotComparisonTest {
   override fun useSingleVariantSyncInfrastructure(): Boolean = singleVariantSync
 
@@ -165,7 +165,7 @@ abstract class GradleSyncProjectComparisonTest(
     }
 
     open fun testPsdDependency() {
-      val firstSync = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot -> addPsdSampleRepo(projectRoot) }
+      val firstSync = importSyncAndDumpProject(PSD_DEPENDENCY)
       val secondSync = syncAndDumpProject()
       // TODO(b/124677413): When fixed, [secondSync] should match the same snapshot. (Remove ".second_sync")
       assertAreEqualToSnapshots(
@@ -175,7 +175,7 @@ abstract class GradleSyncProjectComparisonTest(
     }
 
     open fun testPsdDependencyDeleteModule() {
-      val beforeDelete = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot -> addPsdSampleRepo(projectRoot) }
+      val beforeDelete = importSyncAndDumpProject(PSD_DEPENDENCY)
       PsProjectImpl(project).let { projectModel ->
         projectModel.removeModule(":moduleB")
         projectModel.applyChanges()
@@ -190,19 +190,7 @@ abstract class GradleSyncProjectComparisonTest(
 
     // TODO(b/128873247): Update snapshot files with the bug is fixed and Java-Gradle facet is removed.
     open fun testPsdDependencyAndroidToJavaModuleAndBack() {
-      val beforeAndroidToJava = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
-        val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
-        val testRepositoryPath =
-          File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath
-        val repositories = """
-      maven {
-        name "test"
-        url "file:$testRepositoryPath"
-      }
-      $localRepositories
-      """
-        AndroidGradleTests.updateToolingVersionsAndPaths(projectRoot, repositories, null, null)
-      }
+      val beforeAndroidToJava = importSyncAndDumpProject(PSD_DEPENDENCY)
       val oldModuleCContent = WriteAction.compute<ByteArray, Throwable> {
         val jModuleMFile = project.guessProjectDir()?.findFileByRelativePath("jModuleM/build.gradle")!!
         val moduleCFile = project.guessProjectDir()?.findFileByRelativePath("moduleC/build.gradle")!!
@@ -257,19 +245,7 @@ abstract class GradleSyncProjectComparisonTest(
     }
 
     open fun testPsdDependencyUpgradeLibraryModule() {
-      val beforeLibUpgrade = importSyncAndDumpProject(PSD_DEPENDENCY) { projectRoot ->
-        val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
-        val testRepositoryPath =
-          File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath
-        val repositories = """
-      maven {
-        name "test"
-        url "file:$testRepositoryPath"
-      }
-      $localRepositories
-      """
-        AndroidGradleTests.updateToolingVersionsAndPaths(projectRoot, repositories, null, null)
-      }
+      val beforeLibUpgrade = importSyncAndDumpProject(PSD_DEPENDENCY)
       PsProjectImpl(project).let { projectModel ->
         projectModel
           .findModuleByGradlePath(":modulePlus")!!
@@ -353,7 +329,7 @@ abstract class GradleSyncProjectComparisonTest(
     }
 
     fun testApiDependency() {
-      val text = importSyncAndDumpProject(TestProjectPaths.API_DEPENDENCY) { projectRoot -> addPsdSampleRepo(projectRoot) }
+      val text = importSyncAndDumpProject(TestProjectPaths.API_DEPENDENCY)
       assertIsEqualToSnapshot(text)
     }
   }
@@ -396,18 +372,7 @@ abstract class GradleSyncProjectComparisonTest(
     refreshProjectFiles()
   }
 
-  protected fun addPsdSampleRepo(projectRoot: File) {
-    val localRepositories = AndroidGradleTests.getLocalRepositoriesForGroovy()
-    val testRepositoryPath =
-      File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)).absolutePath
-    val repositories = """
-        maven {
-          name "test"
-          url "file:$testRepositoryPath"
-        }
-        $localRepositories
-        """
-    AndroidGradleTests.updateToolingVersionsAndPaths(projectRoot, repositories, null, null)
-  }
+  override fun getAdditionalRepos() =
+    listOf(File(AndroidTestBase.getTestDataPath(), toSystemDependentName(TestProjectPaths.PSD_SAMPLE_REPO)))
 }
 
