@@ -41,15 +41,17 @@ data class NamedConfiguration(val name: String, val config: Configuration)
 /**
  * The name with attributes which are used to create [Configuration].
  * Note that [name] never be null. If there is no given name then the name is treated as empty string.
+ *
+ * The initial values of properties are given for serializing and deserializing by [VisualizationToolSettings].
  */
-data class CustomConfigurationAttribute(var name: String,
-                                        var deviceId: String?,
-                                        var apiLevel: Int?,
-                                        var orientation: ScreenOrientation?,
-                                        var localeString: String?,
-                                        var theme: String?,
-                                        var uiMode: UiMode?,
-                                        var nightMode: NightMode?)
+data class CustomConfigurationAttribute(var name: String = "",
+                                        var deviceId: String? = null,
+                                        var apiLevel: Int? = null,
+                                        var orientation: ScreenOrientation? = null,
+                                        var localeString: String? = null,
+                                        var theme: String? = null,
+                                        var uiMode: UiMode? = null,
+                                        var nightMode: NightMode? = null)
 
 /**
  * This class provides the [NlModel]s with custom [Configuration] for [VisualizationForm].<br>
