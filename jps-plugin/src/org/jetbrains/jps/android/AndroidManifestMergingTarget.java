@@ -24,7 +24,7 @@ import java.util.*;
  * @author Eugene.Kudelevsky
  */
 public class AndroidManifestMergingTarget extends ModuleBasedTarget<AndroidManifestMergingTarget.MyRootDescriptor> {
-  public AndroidManifestMergingTarget(ModuleBasedBuildTargetType<?> targetType, @NotNull JpsModule module) {
+  public AndroidManifestMergingTarget(ModuleBasedBuildTargetType<? extends ModuleBasedTarget<AndroidManifestMergingTarget.MyRootDescriptor>> targetType, @NotNull JpsModule module) {
     super(targetType, module);
   }
 
