@@ -536,6 +536,7 @@ enum class TestFileName(val path: String) {
   ALL_PROJECTS_OVERRIDE_WITH_ALL_PROJECTS_SECTION("allProjects/overrideWithAllProjectsSection"),
   BUILD_SCRIPT_MODEL_PARSE_DEPENDENCIES("buildScriptModel/parseDependencies"),
   BUILD_SCRIPT_MODEL_ADD_DEPENDENCY("buildScriptModel/addDependency"),
+  BUILD_SCRIPT_MODEL_ADD_DEPENDENCY_EXPECTED("buildScriptModel/addDependencyExpected"),
   BUILD_SCRIPT_MODEL_EDIT_DEPENDENCY("buildScriptModel/editDependency"),
   BUILD_SCRIPT_MODEL_PARSE_REPOSITORIES("buildScriptModel/parseRepositories"),
   BUILD_SCRIPT_MODEL_REMOVE_REPOSITORIES_SINGLE_BLOCK("buildScriptModel/removeRepositoriesSingleBlock"),

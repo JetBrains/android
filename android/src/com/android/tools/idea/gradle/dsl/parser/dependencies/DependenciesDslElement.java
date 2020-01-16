@@ -29,15 +29,17 @@ public class DependenciesDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<DependenciesDslElement> DEPENDENCIES =
     new PropertiesElementDescription<>("dependencies", DependenciesDslElement.class, DependenciesDslElement::new);
 
-  // TODO(xof): I wonder if there's a way of introspecting this list for any given Gradle and AGP version?
-  //  (I made this list by looking in ~/.gradle/caches/6.1-milestone-2/kotlin-dsl-accessors/<>/cache/org/gradle/kotlin/dsl and running
-  //    for file in *ConfigurationAccessors.kt; do
-  //      printf \"%s%s\", $(echo ${file:0:1} | tr A-Z a-z) $(echo ${file:1} | sed s'/ConfigurationAccessors.kt//');
-  //      echo;
-  //    done
-  //  which is not my finest hour)
   public static final Set<String> KTS_KNOWN_CONFIGURATIONS = new HashSet<>(
     Arrays.asList(
+      "classpath", // extension function installed by ScriptHandlerScope
+
+      // TODO(xof): I wonder if there's a way of introspecting this list for any given Gradle and AGP version?
+      //  (I made this list by looking in ~/.gradle/caches/6.1-milestone-2/kotlin-dsl-accessors/<>/cache/org/gradle/kotlin/dsl and running
+      //    for file in *ConfigurationAccessors.kt; do
+      //      printf \"%s%s\", $(echo ${file:0:1} | tr A-Z a-z) $(echo ${file:1} | sed s'/ConfigurationAccessors.kt//');
+      //      echo;
+      //    done
+      //  which is not my finest hour)
       "androidApis",
       "androidTestAnnotationProcessor",
       "androidTestApi",
