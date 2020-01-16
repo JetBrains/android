@@ -27,7 +27,7 @@
 
     <!-- Proguard support -->
     <fileType name="ProGuard File" implementationClass="com.android.tools.idea.lang.proguard.ProguardFileType" language="PROGUARD"
-              patterns="*.pro;proguard-*.txt;proguard.cfg"/>
+              patterns="*.pro;proguard-*.txt;proguard.cfg"  fieldName="INSTANCE"/>
     <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition"/>
     <lang.syntaxHighlighter language="PROGUARD"
                                    implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighter"/>
