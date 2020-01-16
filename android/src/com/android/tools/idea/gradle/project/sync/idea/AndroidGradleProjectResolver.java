@@ -506,7 +506,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       if (artifacts == null) {
         return null;
       }
-      return new AdditionalArtifactsPaths(artifacts.getSources(), artifacts.getJavadoc());
+      return new AdditionalArtifactsPaths(artifacts.getSources(), artifacts.getJavadoc(), artifacts.getSampleSources());
     });
   }
 
