@@ -1,7 +1,6 @@
 MODULE: MyApplication
     by Facet:
          (IDEA)
-            ScopeType: MAIN
             ManifestFileUrls:
                 file://./AndroidManifest.xml
             ManifestFiles:
@@ -31,7 +30,6 @@ MODULE: MyApplication
             file://./AndroidManifest.xml
         Sources:
             Sources (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./AndroidManifest.xml
                 ManifestFiles:
@@ -58,13 +56,10 @@ MODULE: MyApplication
                     file://./res
         UnitTestSources:
             UnitTestSources (IDEA)
-                ScopeType: UNIT_TEST
         AndroidTestSources:
             AndroidTestSources (IDEA)
-                ScopeType: ANDROID_TEST
         AllIdeaSourceProviders:
              (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./AndroidManifest.xml
                 ManifestFiles:
@@ -91,7 +86,6 @@ MODULE: MyApplication
                     file://./res
         CurrentSourceProviders:
              (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./AndroidManifest.xml
                 ManifestFiles:
