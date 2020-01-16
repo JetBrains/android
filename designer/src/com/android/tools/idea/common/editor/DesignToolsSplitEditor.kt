@@ -26,7 +26,6 @@ import com.intellij.openapi.fileEditor.FileEditorStateLevel
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.project.Project
-import org.jetbrains.android.uipreview.AndroidEditorSettings
 import javax.swing.JComponent
 
 private const val SPLIT_MODE_PROPERTY_PREFIX = "SPLIT_EDITOR_MODE"
