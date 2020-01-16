@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
+import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME
+import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
@@ -28,7 +30,9 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainCon
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslNamedDomainElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSettableExpression
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
+import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
+import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
 import com.android.tools.idea.gradle.dsl.parser.findLastPsiElementIn
 import com.android.tools.idea.gradle.dsl.parser.getNextValidParent
@@ -80,9 +84,16 @@ import kotlin.reflect.KClass
 
 internal fun String.addQuotes(forExpression : Boolean) = if (forExpression) "\"$this\"" else "'$this'"
 
-internal fun KtCallExpression.isBlockElement() : Boolean {
-  return lambdaArguments.size < 2 && (valueArgumentList == null || (valueArgumentList as KtValueArgumentList).arguments.size < 2 &&
-                                      isValidBlockName(this.name()))
+internal fun KtCallExpression.isBlockElement(parent: GradlePropertiesDslElement): Boolean {
+  val zeroOrOneClosures = lambdaArguments.size < 2
+  val argumentsList = (valueArgumentList as? KtValueArgumentList)?.arguments
+  val namedDomainBlockReference = argumentsList?.let { it.size == 1 && isValidBlockName(this.name()) } ?: false
+  val zeroArguments = argumentsList == null || argumentsList.size == 0
+  val knownBlockForParent = zeroArguments &&
+                            (listOf("allprojects", APPLY_BLOCK_NAME, EXT.name).contains(this.name()) ||
+                             parent is ConfigurationDslElement || // see special-case in SharedParserUtils.getPropertiesElement
+                             parent.getChildPropertiesElementDescription(this.name()) != null)
+  return zeroOrOneClosures && (namedDomainBlockReference || knownBlockForParent)
 }
 
 internal fun convertToExternalTextValue(context: GradleDslSimpleExpression, applyContext: GradleDslFile, referenceText : String) : String {
@@ -635,7 +646,7 @@ internal fun createMapElement(expression : GradleDslSettableExpression) : PsiEle
   val argumentExpression = added?.getArgumentExpression() as? KtBinaryExpression // Map elements are KtBinaryExpression.
   val expressionRight = argumentExpression?.right
   if (argumentExpression == null || expressionRight == null) return null
-  
+
   expression.setExpression(expressionRight)
   expression.commit()
   expression.reset()
@@ -762,10 +773,12 @@ internal fun createAndAddClosure(closure : GradleDslClosure, element : GradleDsl
   // If element is a GradleDslMethodCall, then we should consider that this refers to a nested KtCallExpression psiElement in the KTS file
   // (ex: implementation(file())). In such case, element has as psiElement the part that corresponds to "file()" only, and we should not
   // add the block to it but rather to the parent element, which would result in implementation(file()) {}.
-  var psiElement =
-    (if (element is GradleDslMethodCall) getNextValidParentPsiElement(element.psiElement, KtCallExpression::class) else element.psiElement)
-    ?: return
-
+  var psiElement = element.psiElement
+  if (psiElement !is KtCallExpression || psiElement.name() != element.name) {
+    psiElement =
+      (if (element is GradleDslMethodCall) getNextValidParentPsiElement(psiElement, KtCallExpression::class) else element.psiElement)
+      ?: return
+  }
   if (psiElement is KtCallExpression && psiElement.name() != element.name) return
 
   val psiFactory = KtPsiFactory(psiElement.project)

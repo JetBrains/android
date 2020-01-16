@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.dsl.parser.GradleDslParser
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
 import com.android.tools.idea.gradle.dsl.parser.dependencies.FakeArtifactElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression
@@ -277,10 +278,11 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       if (referenceExpression != null) GradleNameElement.from(referenceExpression, this) else GradleNameElement.create(referenceName)
 
     // If expression is a pure block element and not an expression.
-    if (expression.isBlockElement()) {
+    if (expression.isBlockElement(parent)) {
       // If the block has a localMethodName, the nameElement should use the argument valueExpression psi. (ex: create("release") -> release)
-      if (expression.valueArgumentList != null) {
-        val argumentExpressionVal = expression.valueArgumentList?.arguments?.get(0)?.getArgumentExpression()
+      val argumentList = expression.valueArgumentList
+      if (argumentList != null && argumentList.arguments.size > 0) {
+        val argumentExpressionVal = argumentList.arguments[0].getArgumentExpression()
         name = if (argumentExpressionVal != null) GradleNameElement.from(argumentExpressionVal, this) else name
       }
       // We might need to apply the block to multiple DslElements.
@@ -296,6 +298,9 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
       val body = expression.lambdaArguments.getOrNull(0)?.getLambdaExpression()?.bodyExpression
 
       propertiesElement.setPsiElement(body ?: expression)
+      if (body == null && propertiesElement is GradleDslBlockElement) {
+        propertiesElement.hasBraces = false
+      }
       blockElements.add(propertiesElement)
       blockElements.forEach { block ->
         // Visit the children of this element, with the current block set as parent.
