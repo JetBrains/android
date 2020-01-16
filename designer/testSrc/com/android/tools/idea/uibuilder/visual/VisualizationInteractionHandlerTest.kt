@@ -17,8 +17,12 @@ package com.android.tools.idea.uibuilder.visual
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.common.fixtures.MouseEventBuilder
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
 import com.android.tools.idea.uibuilder.scene.SceneTest
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ex.ActionManagerEx
+import com.intellij.openapi.actionSystem.ex.ActionPopupMenuListener
 import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.intThat
 import org.mockito.Mockito
@@ -62,6 +66,28 @@ class VisualizationInteractionHandlerTest : SceneTest() {
     val view = myModel.surface.sceneManager?.sceneView!!
     handler.doubleClick(view.x + view.size.width, view.y + view.size.height, 0)
     Mockito.verify(navigationManager).pushFile(file, file)
+  }
+
+  fun testNoPopupMenuTriggerWhenNotHoveredOnSceneView() {
+    val surface = myModel.surface
+    val tooltips = surface.focusedSceneView!!.sceneManager.model.configuration.toTooltips()
+    val interactionHandler = VisualizationInteractionHandler(surface) { CustomModelsProvider(object : ConfigurationSetListener {
+      override fun onSelectedConfigurationSetChanged(newConfigurationSet: ConfigurationSet) = Unit
+
+      override fun onCurrentConfigurationSetUpdated() = Unit
+    }) }
+
+    val view = surface.sceneManager!!.sceneView
+    val mouseEvent = MouseEventBuilder(view.x + view.size.width * 2, view.y + view.size.height * 2).build()
+
+    val popupMenuListener = Mockito.mock(ActionPopupMenuListener::class.java)
+    (ActionManager.getInstance() as ActionManagerEx).addActionPopupMenuListener(popupMenuListener, testRootDisposable)
+
+    interactionHandler.popupMenuTrigger(mouseEvent)
+    Mockito.verifyZeroInteractions(popupMenuListener)
+
+    // TODO(b/147799910): Also test the case which popup menu is created.
+    //                    For now it is not testable in unit test because the create JComponent is invisible and an exception is thrown.
   }
 
   override fun createModel(): ModelBuilder {
