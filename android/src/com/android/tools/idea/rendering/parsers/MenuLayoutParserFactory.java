@@ -22,6 +22,7 @@ import com.android.tools.idea.rendering.ActionBarHandler;
 import com.android.tools.idea.rendering.LayoutlibCallbackImpl;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.intellij.psi.PsiFile;
 import org.intellij.lang.annotations.Language;
@@ -64,7 +65,8 @@ class MenuLayoutParserFactory {
       ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(psiFile);
       if (repositoryManager != null) {
         ResourceReference menuResource =
-            new ResourceReference(repositoryManager.getNamespace(), ResourceType.MENU, ResourceHelper.getResourceName(psiFile));
+            new ResourceReference(repositoryManager.getNamespace(), ResourceType.MENU,
+                                  SdkUtils.fileNameToResourceName(psiFile.getName()));
         actionBarHandler.setMenuIds(Collections.singletonList(menuResource));
       }
     }
@@ -78,7 +80,7 @@ class MenuLayoutParserFactory {
                  "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +
                  "    android:layout_width=\"wrap_content\"\n" +
                  "    android:layout_height=\"match_parent\"\n" +
-                 "    app:menu=\"@menu/" + ResourceHelper.getResourceName(file) + "\" />\n";
+                 "    app:menu=\"@menu/" + SdkUtils.fileNameToResourceName(file.getName()) + "\" />\n";
 
     Document document = XmlUtils.parseDocumentSilently(xml, true);
     return document == null ? createEmptyParser() : DomPullParser.createFromDocument(document);

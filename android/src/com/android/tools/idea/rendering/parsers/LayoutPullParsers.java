@@ -64,6 +64,7 @@ import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ResourceHelper;
+import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeInsight.template.emmet.generators.LoremGenerator;
 import com.intellij.openapi.application.Application;
@@ -333,7 +334,7 @@ public class LayoutPullParsers {
     ResourceFolderType type = ResourceHelper.getFolderType(file);
     assert type != null;
 
-    String fontRefName = PREFIX_RESOURCE_REF + type.getName() + "/" + ResourceHelper.getResourceName(file);
+    String fontRefName = PREFIX_RESOURCE_REF + type.getName() + "/" + SdkUtils.fileNameToResourceName(file.getName());
 
     XmlTag[] fontSubTags = rootTag.getSubTags();
     Stream<String[]> fontStream;

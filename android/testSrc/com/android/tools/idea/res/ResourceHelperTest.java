@@ -103,21 +103,6 @@ public class ResourceHelperTest extends AndroidTestCase {
     assertEquals("LocalTheme", ResourceHelper.styleToTheme("@foo.bar:style/LocalTheme"));
   }
 
-  public void testGetResourceNameAndUrl() {
-    PsiFile file1 = myFixture.addFileToProject("res/layout-land/foo1.xml", "<LinearLayout/>");
-    PsiFile file2 = myFixture.addFileToProject("res/menu-en-rUS/foo2.xml", "<menu/>");
-    // Not a proper PNG file, but we just need a .9.something path to verify basename handling is right
-    // and it has to be an XML file to get a PSI file out of the fixture
-    PsiFile file3 = myFixture.addFileToProject("res/drawable-hdpi/foo3.9.xml", "invalidImage");
-
-    assertEquals("foo1", ResourceHelper.getResourceName(file1));
-    assertEquals("foo2", ResourceHelper.getResourceName(file2));
-    assertEquals("foo3", ResourceHelper.getResourceName(file3));
-    assertEquals("foo1", ResourceHelper.getResourceName(file1.getVirtualFile()));
-    assertEquals("foo2", ResourceHelper.getResourceName(file2.getVirtualFile()));
-    assertEquals("foo3", ResourceHelper.getResourceName(file3.getVirtualFile()));
-  }
-
   public void testGetFolderConfiguration() {
     PsiFile file1 = myFixture.addFileToProject("res/layout-land/foo1.xml", "<LinearLayout/>");
     PsiFile file2 = myFixture.addFileToProject("res/menu-en-rUS/foo2.xml", "<menu/>");

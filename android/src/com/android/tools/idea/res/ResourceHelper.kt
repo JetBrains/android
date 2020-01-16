@@ -73,6 +73,7 @@ import com.android.tools.lint.detector.api.computeResourceName
 import com.android.tools.lint.detector.api.computeResourcePrefix
 import com.android.tools.lint.detector.api.getBaseName
 import com.android.tools.lint.detector.api.stripIdPrefix
+import com.android.utils.SdkUtils
 import com.google.common.base.Preconditions
 import com.google.common.collect.Iterables
 import com.google.common.collect.Sets
@@ -184,33 +185,6 @@ fun ResourceType.isFileBased(): Boolean {
   }
 
   return FolderTypeRelationship.getRelatedFolders(this).firstOrNull { it != ResourceFolderType.VALUES } != null
-}
-
-/**
- * Returns the resource name of the given file.
- *
- * @param file the file to compute a resource name for
- * @return the resource name
- */
-fun getResourceName(file: VirtualFile): String {
-  // Note that we use getBaseName here rather than {@link VirtualFile#getNameWithoutExtension}
-  // because that method uses lastIndexOf('.') rather than indexOf('.') -- which means that
-  // for a nine patch drawable it would include ".9" in the resource name
-  return getBaseName(file.name)
-}
-
-/**
- * Returns the resource name of the given file.
- *
- * @param file the file to compute a resource name for
- * @return the resource name
- */
-fun getResourceName(file: PsiFile): String {
-  // See getResourceName(VirtualFile)
-  // We're replicating that code here rather than just calling
-  // getResourceName(file.getVirtualFile());
-  // since file.getVirtualFile can return null
-  return getBaseName(file.name)
 }
 
 fun getFolderType(file: PsiFile?): ResourceFolderType? {

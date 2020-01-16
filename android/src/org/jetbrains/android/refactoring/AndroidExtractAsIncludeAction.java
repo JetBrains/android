@@ -5,9 +5,8 @@ package org.jetbrains.android.refactoring;
 import com.android.SdkConstants;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.IncludeReference;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.utils.SdkUtils;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
@@ -15,7 +14,12 @@ import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiDirectory;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.XmlElementFactory;
+import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
@@ -24,19 +28,17 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import org.jetbrains.android.actions.CreateResourceFileAction;
 import org.jetbrains.android.dom.layout.Include;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Eugene.Kudelevsky
@@ -231,10 +233,10 @@ public class AndroidExtractAsIncludeAction extends AndroidBaseLayoutRefactoringA
       }
     }
 
-    String includingLayout = SdkConstants.LAYOUT_RESOURCE_PREFIX + ResourceHelper.getResourceName(file);
+    String includingLayout = SdkConstants.LAYOUT_RESOURCE_PREFIX + SdkUtils.fileNameToResourceName(file.getName());
     IncludeReference.setIncludingLayout(project, newFile, includingLayout);
 
-    final String resourceName = AndroidBuildCommonUtils.getResourceName(ResourceType.LAYOUT.getName(), newFile.getName());
+    final String resourceName = SdkUtils.fileNameToResourceName(newFile.getName());
     final XmlTag includeTag = elementFactory.createTagFromText("<include layout=\"@layout/" + resourceName + "\"/>");
     parentTag.addAfter(includeTag, to);
     parentTag.deleteChildRange(from, to);

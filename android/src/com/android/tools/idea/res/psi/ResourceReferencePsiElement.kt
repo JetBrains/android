@@ -26,11 +26,11 @@ import com.android.resources.ResourceUrl
 import com.android.tools.idea.res.AndroidRClassBase
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getFolderType
-import com.android.tools.idea.res.getResourceName
 import com.android.tools.idea.res.isValueBased
 import com.android.tools.idea.res.resolve
 import com.android.tools.idea.res.resourceNamespace
 import com.android.tools.idea.util.androidFacet
+import com.android.utils.SdkUtils
 import com.android.utils.reflection.qualifiedName
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
 import com.intellij.find.findUsages.FindUsagesHandler
@@ -106,7 +106,7 @@ class ResourceReferencePsiElement(
       val resourceFolderType = getFolderType(element) ?: return null
       val resourceType = FolderTypeRelationship.getNonIdRelatedResourceType(resourceFolderType)
       val resourceNamespace = element.resourceNamespace ?: return null
-      val resourceName = getResourceName(element)
+      val resourceName = SdkUtils.fileNameToResourceName(element.name)
       return ResourceReferencePsiElement(ResourceReference(resourceNamespace, resourceType, resourceName), element.manager)
     }
 

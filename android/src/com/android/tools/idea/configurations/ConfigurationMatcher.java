@@ -50,6 +50,7 @@ import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.utils.SdkUtils;
 import com.android.utils.SparseIntArray;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -168,7 +169,8 @@ public class ConfigurationMatcher {
    */
   public boolean isCurrentFileBestMatchFor(@NotNull FolderConfiguration config) {
     if (myResources != null && myNamespace != null && myFile != null) {
-      ResourceReference reference = new ResourceReference(myNamespace, getResourceType(myFile), ResourceHelper.getResourceName(myFile));
+      ResourceReference reference = new ResourceReference(myNamespace, getResourceType(myFile),
+                                                          SdkUtils.fileNameToResourceName(myFile.getName()));
       List<VirtualFile> files = getMatchingFiles(myResources, reference, config, new HashSet<>(), true, 0);
       VirtualFile match = files.isEmpty() ? null : files.get(0);
       if (match != null) {
@@ -241,7 +243,7 @@ public class ConfigurationMatcher {
                                                    @NotNull ResourceNamespace namespace,
                                                    @NotNull ResourceType type,
                                                    @NotNull FolderConfiguration config) {
-    ResourceReference reference = new ResourceReference(namespace, type, ResourceHelper.getResourceName(file));
+    ResourceReference reference = new ResourceReference(namespace, type, SdkUtils.fileNameToResourceName(file.getName()));
     return getMatchingFiles(repository, reference, config, new HashSet<>(), false, 0);
   }
 

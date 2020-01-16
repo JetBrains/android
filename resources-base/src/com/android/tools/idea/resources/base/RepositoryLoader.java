@@ -593,7 +593,7 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
   @NotNull
   private BasicFileResourceItem createFileResourceItem(
       @NotNull PathString file, @NotNull ResourceType resourceType, @NotNull RepositoryConfiguration configuration) {
-    String resourceName = getResourceName(file);
+    String resourceName = SdkUtils.fileNameToResourceName(file.getFileName());
     ResourceVisibility visibility = getVisibility(resourceType, resourceName);
     Density density = null;
     if (DensityBasedResourceValue.isDensityBasedResourceType(resourceType)) {
@@ -616,14 +616,6 @@ public abstract class RepositoryLoader<T extends LoadableResourceRepository> imp
     return density == null ?
            new BasicFileResourceItem(type, name, configuration, visibility, relativePath) :
            new BasicDensityBasedFileResourceItem(type, name, configuration, visibility, relativePath, density);
-  }
-
-  /**
-   * Resource name is the part of the file name before the first dot, e.g. for "tab_press.9.png" it is "tab_press".
-   */
-  @NotNull
-  protected static String getResourceName(@NotNull PathString file) {
-    return SdkUtils.fileNameToResourceName(file.getFileName());
   }
 
   @NotNull

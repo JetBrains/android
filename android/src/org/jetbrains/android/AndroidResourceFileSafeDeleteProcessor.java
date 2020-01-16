@@ -1,9 +1,8 @@
 package org.jetbrains.android;
 
-import static org.jetbrains.android.util.AndroidBuildCommonUtils.getResourceName;
-
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
+import com.android.utils.SdkUtils;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -97,7 +96,8 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
     final String name = vFile.getName();
 
     LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
-    Collection<PsiFile> resourceFiles = resourceManager.findResourceFiles(ResourceNamespace.TODO(), folderType, getResourceName(type, name), true, false);
+    Collection<PsiFile> resourceFiles = resourceManager.findResourceFiles(ResourceNamespace.TODO(), folderType,
+                                                                          SdkUtils.fileNameToResourceName(name), true, false);
 
     final List<PsiElement> result = new ArrayList<>();
 

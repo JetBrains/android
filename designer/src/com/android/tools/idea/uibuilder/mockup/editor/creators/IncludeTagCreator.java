@@ -15,10 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor.creators;
 
+import static com.android.SdkConstants.ATTR_LAYOUT;
+import static com.android.SdkConstants.ATTR_LISTITEM;
+import static com.android.SdkConstants.ATTR_SHOW_IN;
+import static com.android.SdkConstants.CLASS_RECYCLER_VIEW_V7;
+import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+import static com.android.SdkConstants.VIEW_INCLUDE;
+
 import com.android.SdkConstants;
 import com.android.annotations.Nullable;
 import com.android.resources.ResourceFolderType;
-import com.android.resources.ResourceType;
 import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
@@ -30,16 +37,13 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.utils.SdkUtils;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.awt.Rectangle;
 import org.jetbrains.android.actions.CreateResourceFileAction;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
-
-import static com.android.SdkConstants.*;
 
 /**
  * Create a new layout and an include tag referencing this layout
@@ -152,20 +156,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
       });
     }
 
-    return getResourceName(newFile);
-  }
-
-  /**
-   * Call {@link AndroidBuildCommonUtils#getResourceName(String, String)} with {@link ResourceType#LAYOUT}.
-   *
-   * @param newFile file to get the resource name from
-   * @return the resource name
-   */
-  @NotNull
-  private static String getResourceName(@NotNull XmlFile newFile) {
-    return AndroidBuildCommonUtils.getResourceName(
-      ResourceType.LAYOUT.getName(),
-      newFile.getName());
+    return SdkUtils.fileNameToResourceName(newFile.getName());
   }
 
   /**
@@ -174,7 +165,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
    * @param transaction the transaction where the attributes will be added
    */
   private void addShowInAttribute(@NotNull AttributesTransaction transaction) {
-    final String showInName = getResourceName(getModel().getFile());
+    final String showInName = SdkUtils.fileNameToResourceName(getModel().getFile().getName());
     transaction.setAttribute(TOOLS_URI, ATTR_SHOW_IN, LAYOUT_RESOURCE_PREFIX + showInName);
   }
 }

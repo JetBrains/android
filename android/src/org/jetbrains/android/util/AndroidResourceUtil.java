@@ -86,6 +86,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.StateList;
 import com.android.tools.idea.res.StateListState;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
+import com.android.utils.SdkUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -374,7 +375,7 @@ public class AndroidResourceUtil {
       return PsiField.EMPTY_ARRAY;
     }
 
-    final String resourceName = AndroidBuildCommonUtils.getResourceName(resourceType, file.getName());
+    final String resourceName = SdkUtils.fileNameToResourceName(file.getName());
     return findResourceFields(facet, resourceType, resourceName, onlyInOwnPackages);
   }
 
