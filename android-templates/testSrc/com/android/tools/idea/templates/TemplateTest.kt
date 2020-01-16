@@ -587,6 +587,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareSliceProvider() {
+    checkCreateTemplate("other", "SliceProvider", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareSliceProviderWithKotlin() {
+    checkCreateTemplate("other", "SliceProvider", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewCustomView() {
     checkCreateTemplate("other", "CustomView")
   }
