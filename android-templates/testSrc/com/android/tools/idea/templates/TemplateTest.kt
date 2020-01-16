@@ -848,6 +848,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareService() {
+    checkCreateTemplate("other", "Service", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareServiceWithKotlin() {
+    checkCreateTemplate("other", "Service", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewAidlFile() {
     checkCreateTemplate("other", "AidlFile")
   }
