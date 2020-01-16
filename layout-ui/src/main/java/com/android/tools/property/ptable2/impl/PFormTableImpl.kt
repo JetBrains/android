@@ -52,6 +52,7 @@ open class PFormTableImpl(model: TableModel) : JBTable(model) {
     else {
       // If no cells are editable, accept focus in the table and select the first row.
       setRowSelectionInterval(0, 0)
+      scrollCellIntoView(0, 0)
     }
   }
 
@@ -59,11 +60,13 @@ open class PFormTableImpl(model: TableModel) : JBTable(model) {
     if (isEmpty || hasAnyEditableCells()) {
       // If this table is empty just move the focus to the next component before the table.
       // If there is an editable cell, use the PTableFocusTraversalPolicy to start editing the last editable cell.
-      transferFocusBackward()
+      val editor = focusTraversalPolicy.getLastComponent(this)
+      editor?.requestFocusInWindow() ?: transferFocusBackward()
     }
     else {
       // If no cells are editable, accept focus in the table and select the last row.
       setRowSelectionInterval(rowCount - 1, rowCount - 1)
+      scrollCellIntoView(rowCount - 1, rowCount - 1)
     }
   }
 
@@ -97,5 +100,9 @@ open class PFormTableImpl(model: TableModel) : JBTable(model) {
       KeyboardFocusManager.getCurrentKeyboardFocusManager().clearFocusOwner()
     }
     super.removeEditor()
+  }
+
+  fun scrollCellIntoView(row: Int, column: Int) {
+    scrollRectToVisible(getCellRect(row, column, true))
   }
 }

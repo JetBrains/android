@@ -471,6 +471,19 @@ class PTableImplTest {
 
   @RunWithTestFocusManager
   @Test
+  fun testNavigateForwardsIntoReadOnlyTable() {
+    model!!.readOnly = true
+    val panel = createPanel()
+    panel.components[0].transferFocus()
+    assertThat(table!!.isEditing).isFalse()
+    assertThat(table!!.selectedRow).isEqualTo(0)
+    assertThat(focusRule.focusOwner?.name).isEqualTo(TABLE_NAME)
+    focusRule.focusOwner?.transferFocus()
+    assertThat(focusRule.focusOwner?.name).isEqualTo(LAST_FIELD_EDITOR)
+  }
+
+  @RunWithTestFocusManager
+  @Test
   fun testNavigateForwardsThroughTable() {
     val panel = createPanel()
     panel.components[0].requestFocusInWindow()
@@ -537,6 +550,19 @@ class PTableImplTest {
     assertThat(table!!.editingRow).isEqualTo(5)
     assertThat(table!!.editingColumn).isEqualTo(0)
     assertThat(focusRule.focusOwner?.name).isEqualTo(ICON_CELL_EDITOR)
+  }
+
+  @RunWithTestFocusManager
+  @Test
+  fun testNavigateBackwardsIntoReadOnlyTable() {
+    model!!.readOnly = true
+    val panel = createPanel()
+    panel.components[2].transferFocusBackward()
+    assertThat(table!!.isEditing).isFalse()
+    assertThat(table!!.selectedRow).isEqualTo(5)
+    assertThat(focusRule.focusOwner?.name).isEqualTo(TABLE_NAME)
+    focusRule.focusOwner?.transferFocus()
+    assertThat(focusRule.focusOwner?.name).isEqualTo(LAST_FIELD_EDITOR)
   }
 
   @Test

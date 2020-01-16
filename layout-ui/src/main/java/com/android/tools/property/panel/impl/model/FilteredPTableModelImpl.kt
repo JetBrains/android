@@ -45,7 +45,8 @@ class FilteredPTableModelImpl<P : PropertyItem>(
   private val itemComparator: Comparator<PTableItem>,
   private val groups: List<GroupSpec<P>>,
   private val keepNewAfterFlyAway: Boolean,
-  private val allowEditing: Boolean
+  private val allowEditing: Boolean,
+  private val valueEditable: (P) -> Boolean
 ) : FilteredPTableModel<P>, PTableModel {
 
   private val listeners = mutableListOf<PTableModelUpdateListener>()
@@ -99,13 +100,13 @@ class FilteredPTableModelImpl<P : PropertyItem>(
     updateItems(newItems, null)
   }
 
-  override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean {
-    return allowEditing && when (item) {
+  @Suppress("UNCHECKED_CAST")
+  override fun isCellEditable(item: PTableItem, column: PTableColumn): Boolean =
+    allowEditing && when (item) {
       is NewPropertyItem -> column == PTableColumn.NAME || item.delegate != null
       is PTableGroupItem -> true
-      else -> column == PTableColumn.VALUE
+      else -> column == PTableColumn.VALUE && valueEditable(item as P)
     }
-  }
 
   override fun acceptMoveToNextEditor(item: PTableItem, column: PTableColumn): Boolean {
     // Accept any move to the next editor unless we know that that the current row
