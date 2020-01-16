@@ -71,7 +71,9 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
 
     // Find the element we need to replace.
     var e = element.psiElement ?: return null
-    while (!(e.parent is KtFile || (e.parent is KtCallExpression && (e.parent as KtCallExpression).isBlockElement()))) {
+    val dslParent = element.parent as? GradlePropertiesDslElement ?: return null
+
+    while (!(e.parent is KtFile || (e.parent is KtCallExpression && (e.parent as KtCallExpression).isBlockElement(dslParent)))) {
       if (e.parent == null) {
         e = element.psiElement as PsiElement
         break
