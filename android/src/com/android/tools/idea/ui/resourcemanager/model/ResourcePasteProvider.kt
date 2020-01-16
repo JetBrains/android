@@ -43,9 +43,10 @@ import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.util.ensureNamespaceImported
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
-import org.jetbrains.kotlin.psi.ValueArgument
-import org.jetbrains.kotlin.psi.psiUtil.getParentOfTypesAndPredicate
+import org.jetbrains.kotlin.psi.KtValueArgument
+import org.jetbrains.kotlin.psi.psiUtil.getParentOfTypes
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 
 /**
@@ -74,21 +75,15 @@ class ResourcePasteProvider : PasteProvider {
     val resourceUrl = getResourceUrl(dataContext) ?: return
     if (psiElement == null) return
     val resourceCodeReference = resourceUrl.resourceCodeReference
-    val argumentParent = psiElement.getParentOfTypesAndPredicate(false, PsiElement::class.java) { it is ValueArgument }
-    if (argumentParent != null) {
-      processForMethodValue(argumentParent, caret, resourceCodeReference)
+    val kotlinParentElement = psiElement.getParentOfTypes(false, *SupportedKotlinElement.getAllSupportedKotlinElementClasses())
+    val supportedKotlinElement = kotlinParentElement?.let(SupportedKotlinElement.Companion::toSupportedKotlinElement)
+    if (supportedKotlinElement != null) {
+      supportedKotlinElement.processElement(kotlinParentElement, caret, resourceCodeReference)
       // TODO(143899540): Update tracking, to differentiate when pasting on code files.
       ResourceManagerTracking.logPasteUrlText(resourceUrl.type)
-      return
+    } else {
+      pasteAtCaret(caret, resourceCodeReference, resourceUrl.type)
     }
-    val methodCallParent = psiElement.getParentOfTypesAndPredicate(false, PsiElement::class.java) { it is KtCallExpression }
-    if (methodCallParent != null) {
-      processForMethodCall(methodCallParent, caret, resourceCodeReference)
-      // TODO(143899540): Update tracking, to differentiate when pasting on code files.
-      ResourceManagerTracking.logPasteUrlText(resourceUrl.type)
-      return
-    }
-    pasteAtCaret(caret, resourceCodeReference, resourceUrl.type)
   }
 
   private fun performForJavaCode(dataContext: DataContext, caret: Caret) {
@@ -210,25 +205,6 @@ class ResourcePasteProvider : PasteProvider {
     return true
   }
 
-  private fun processForMethodCall(value: PsiElement, caret: Caret, resourceReference: String) {
-    val methodCallElement = value as KtCallExpression
-    val resourceReferenceArgument = KtPsiFactory(value.project).createArgument(resourceReference)
-    val resultingArgument = runWriteAction {
-      methodCallElement.valueArgumentList?.addArgument(resourceReferenceArgument)
-    }
-    (resultingArgument as? PsiElement)?.let {
-      caret.selectStringFromOffset(resourceReference, it.startOffset)
-    }
-  }
-
-  private fun processForMethodValue(value: PsiElement, caret: Caret, resourceReference: String) {
-    val rangeOffset = value.textRange
-    runWriteAction {
-      caret.editor.document.replaceString(rangeOffset.startOffset, rangeOffset.endOffset, resourceReference)
-    }
-    caret.selectStringFromOffset(resourceReference, rangeOffset.startOffset)
-  }
-
   private fun processForValue(xmlAttributeValue: XmlAttributeValue?,
                               caret: Caret,
                               resourceReference: String): Boolean {
@@ -253,11 +229,6 @@ class ResourcePasteProvider : PasteProvider {
     }
     caret.selectStringFromOffset(resourceReference, psiElement.textRange.startOffset)
     ResourceManagerTracking.logPasteUrlText(type)
-  }
-
-  private fun Caret.selectStringFromOffset(resourceReference: String, offset: Int) {
-    setSelection(offset, offset + resourceReference.length)
-    moveToOffset(offset + resourceReference.length)
   }
 
   /**
@@ -305,4 +276,78 @@ class ResourcePasteProvider : PasteProvider {
 
   /** The most common use case to use resources on code: 'namespace.R.type.name' or just 'R.type.name' for app resources. */
   private val ResourceUrl.resourceCodeReference get() = "${this.namespace?.let { "$it." } ?: ""}R.${this.type}.${this.name}"
+}
+
+/**
+ * Class that represents a supported Kotlin [PsiElement].
+ *
+ * @param kotlinElement The specific class of the supported Kotlin [PsiElement]
+ */
+@Suppress("unused")
+private enum class SupportedKotlinElement(val kotlinElement: Class<out PsiElement>,
+                                          val processElement: (PsiElement, Caret, String) -> Unit) {
+  /**
+   * Kotlin PsiElement that corresponds to an argument in a function, substitutes the element with the given resource reference.
+   *
+   * Eg: foo(bar1, bar2, **bar3**) -> foo(bar1, bar2, **resourceReference**)
+   */
+  ARGUMENT_VALUE(KtValueArgument::class.java, { psiElement: PsiElement, caret: Caret, resourceReference: String ->
+    val rangeOffset = psiElement.textRange
+    runWriteAction {
+      caret.editor.document.replaceString(rangeOffset.startOffset, rangeOffset.endOffset, resourceReference)
+    }
+    caret.selectStringFromOffset(resourceReference, rangeOffset.startOffset)
+  }),
+  /**
+   * Kotlin PsiElement that corresponds to an element executing a method call, adds the given resource reference to the arguments of the
+   * method call.
+   *
+   * Eg: **foo**(bar1, bar2) -> **foo**(bar1, bar2, **resourceReference**)
+   */
+  METHOD_CALL(KtCallExpression::class.java, { psiElement: PsiElement, caret: Caret, resourceReference: String ->
+    val methodCallElement = psiElement as KtCallExpression
+    val resourceReferenceArgument = KtPsiFactory(psiElement.project).createArgument(resourceReference)
+    val resultingArgument = runWriteAction {
+      methodCallElement.valueArgumentList?.addArgument(resourceReferenceArgument)
+    }
+    (resultingArgument as? PsiElement)?.let {
+      caret.selectStringFromOffset(resourceReference, it.startOffset)
+    }
+  }),
+  /**
+   * Kotlin PsiElement that corresponds to a property initialization, substitutes the value in the initialization with the given resource
+   * reference.
+   *
+   * Eg: val foo = **bar** -> val foo = **resourceReference**
+   */
+  PROPERTY_INIT(KtProperty::class.java, { psiElement: PsiElement, caret: Caret, resourceReference: String ->
+    val propertyElement = psiElement as KtProperty
+    runWriteAction {
+      propertyElement.initializer = KtPsiFactory(psiElement.project).createExpression(resourceReference)
+    }
+    (propertyElement.initializer as? PsiElement)?.let {
+      caret.selectStringFromOffset(resourceReference, it.startOffset)
+    }
+  });
+
+  companion object {
+    /**
+     * @return The array of all [PsiElement] classes supported for Kotlin
+     */
+    fun getAllSupportedKotlinElementClasses(): Array<Class<out PsiElement>> {
+      return values().map { it.kotlinElement }.toTypedArray()
+    }
+
+    /**
+     * @return The equivalent [SupportedKotlinElement] for the given [psiElement], null, if not supported.
+     */
+    fun toSupportedKotlinElement(psiElement: PsiElement): SupportedKotlinElement? {
+      return values().firstOrNull { psiElement.javaClass == it.kotlinElement }
+    }
+  }
+}
+
+private fun Caret.selectStringFromOffset(resourceReference: String, offset: Int) {
+  setSelection(offset, offset + resourceReference.length)
+  moveToOffset(offset + resourceReference.length)
 }
