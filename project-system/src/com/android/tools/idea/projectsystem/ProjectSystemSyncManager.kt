@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.projectsystem
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResultListener
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.util.messages.Topic
@@ -104,6 +105,7 @@ interface ProjectSystemSyncManager {
 
   /** Listener which provides a callback for when syncs complete */
   interface SyncResultListener {
+    @AnyThread
     fun syncEnded(result: SyncResult)
   }
 }
