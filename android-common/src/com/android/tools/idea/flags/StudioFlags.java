@@ -613,6 +613,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> SAMPLES_SUPPORT_ENABLED = Flag.create(
+    EDITOR, "samples.support.enabled",
+    "Enable supports of samples (tag inside KDoc) that are used in quick documentation",
+    "Enable supports of samples (tag inside KDoc) that are used in quick documentation",
+    false
+  );
+
   //endregion
 
   //region Analyzer
