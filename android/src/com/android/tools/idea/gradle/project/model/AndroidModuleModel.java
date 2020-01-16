@@ -257,6 +257,16 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return AndroidModelSourceProviderUtils.collectAllSourceProviders(this);
   }
 
+  @NotNull
+  public List<SourceProvider> getAllUnitTestSourceProviders() {
+    return AndroidModelSourceProviderUtils.collectAllUnitTestSourceProviders(this);
+  }
+
+  @NotNull
+  public List<SourceProvider> getAllAndroidTestSourceProviders() {
+    return AndroidModelSourceProviderUtils.collectAllAndroidTestSourceProviders(this);
+  }
+
   @Override
   @NotNull
   public String getApplicationId() {

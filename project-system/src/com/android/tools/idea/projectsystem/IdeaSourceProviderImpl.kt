@@ -26,6 +26,7 @@ import com.intellij.openapi.vfs.VirtualFileManager
 // TODO(solodkyy): Merge with (derive from) IdeaSourceProviderCoreImpl when virtual files are statically resolved from the urls.
 class NamedIdeaSourceProviderImpl(
   override val name: String,
+  override val scopeType: ScopeType,
   private val manifestFileUrl: String,
   override val javaDirectoryUrls: Collection<String> = emptyList(),
   override val resourcesDirectoryUrls: Collection<String> = emptyList(),
@@ -98,6 +99,7 @@ class NamedIdeaSourceProviderImpl(
  * resolving them dynamically so that changes to the set of files that exist at any given moment are picked up.
  */
 class IdeaSourceProviderImpl(
+  override val scopeType: ScopeType,
   override val manifestFileUrls: Collection<String> = emptyList(),
   override val manifestDirectoryUrls: Collection<String> = emptyList(),
   override val javaDirectoryUrls: Collection<String> = emptyList(),
@@ -145,6 +147,7 @@ class IdeaSourceProviderImpl(
  */
 interface NamedIdeaSourceProviderBuilder {
   fun withName(name: String): NamedIdeaSourceProviderBuilder
+  fun withScopeType(scopeType: ScopeType): NamedIdeaSourceProviderBuilder
   fun withManifestFileUrl(url: String): NamedIdeaSourceProviderBuilder
   fun withJavaDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
   fun withResourcesDirectoryUrls(urls: Collection<String>): NamedIdeaSourceProviderBuilder
@@ -159,11 +162,12 @@ interface NamedIdeaSourceProviderBuilder {
 
   companion object {
     @JvmStatic
-    fun create(name: String, manifestUrl: String): NamedIdeaSourceProviderBuilder = Builder(name, manifestUrl)
+    fun create(name: String, manifestUrl: String): NamedIdeaSourceProviderBuilder = Builder(name = name, manifestFileUrl = manifestUrl)
   }
 
   private data class Builder(
     val name: String,
+    val scopeType: ScopeType = ScopeType.MAIN,
     val manifestFileUrl: String,
     val javaDirectoryUrls: Collection<String> = emptyList(),
     val resourcesDirectoryUrls: Collection<String> = emptyList(),
@@ -176,6 +180,8 @@ interface NamedIdeaSourceProviderBuilder {
     val shadersDirectoryUrls: Collection<String> = emptyList()
   ) : NamedIdeaSourceProviderBuilder {
     override fun withName(name: String): NamedIdeaSourceProviderBuilder = copy(name = name)
+
+    override fun withScopeType(scopeType: ScopeType): NamedIdeaSourceProviderBuilder = copy(scopeType = scopeType)
 
     override fun withManifestFileUrl(url: String): NamedIdeaSourceProviderBuilder = copy(manifestFileUrl = url)
 
@@ -199,6 +205,7 @@ interface NamedIdeaSourceProviderBuilder {
 
     override fun build(): NamedIdeaSourceProvider = NamedIdeaSourceProviderImpl(
       name,
+      scopeType,
       manifestFileUrl,
       javaDirectoryUrls,
       resourcesDirectoryUrls,

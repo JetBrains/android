@@ -254,8 +254,10 @@ private class SourceProviderManagerComponent(val project: Project) : ProjectComp
   }
 }
 
-fun createMergedSourceProvider(providers: List<NamedIdeaSourceProvider>): IdeaSourceProvider =
-  IdeaSourceProviderImpl(
+fun createMergedSourceProvider(scopeType: ScopeType, providers: List<NamedIdeaSourceProvider>): IdeaSourceProvider {
+  assert(providers.all { it.scopeType == scopeType})
+  return IdeaSourceProviderImpl(
+    scopeType,
     manifestFileUrls = providers.flatMap { it.manifestFileUrls },
     manifestDirectoryUrls = providers.flatMap { it.manifestDirectoryUrls },
     javaDirectoryUrls = providers.flatMap { it.javaDirectoryUrls },
@@ -268,3 +270,4 @@ fun createMergedSourceProvider(providers: List<NamedIdeaSourceProvider>): IdeaSo
     assetsDirectoryUrls = providers.flatMap { it.assetsDirectoryUrls },
     shadersDirectoryUrls = providers.flatMap { it.shadersDirectoryUrls }
   )
+}
