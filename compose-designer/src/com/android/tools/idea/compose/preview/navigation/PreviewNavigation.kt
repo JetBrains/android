@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview
+package com.android.tools.idea.compose.preview.navigation
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.DefaultModelUpdater
-import com.intellij.psi.xml.XmlTag
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.compose.preview.dimensionToString
 import com.android.tools.idea.uibuilder.model.createChild
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.viewInfo
@@ -36,6 +36,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
+import com.intellij.psi.xml.XmlTag
 import com.intellij.util.ThrowableRunnable
 
 
@@ -122,10 +123,13 @@ class PreviewModelUpdater(val surface: NlDesignSurface) : DefaultModelUpdater() 
         val root = model.components[0]
         val viewInfo = root.viewInfo
         val viewObject = viewInfo!!.viewObject
-        val composeViewInfo = parseViewObject(
-          surface.navigationHandler!!, viewObject)
+        val composeViewInfo = parseViewInfo(viewObject,
+                                            isFileHandled = {
+                                              surface.navigationHandler?.isFileHandled(
+                                                it) ?: false
+                                            })
 
-        if (composeViewInfo == null || composeViewInfo.isEmpty()) {
+        if (composeViewInfo.isEmpty()) {
           return
         }
 
@@ -139,7 +143,7 @@ class PreviewModelUpdater(val surface: NlDesignSurface) : DefaultModelUpdater() 
   }
 }
 
-private fun createSceneGraph(list: List<ComposeBoundInfo>, parent: NlComponent, surface: NlDesignSurface) {
+private fun createSceneGraph(list: List<ComposeViewInfo>, parent: NlComponent, surface: NlDesignSurface) {
 
   if (!ApplicationManager.getApplication().isWriteAccessAllowed) {
     WriteAction.run(ThrowableRunnable<RuntimeException> {
@@ -151,7 +155,7 @@ private fun createSceneGraph(list: List<ComposeBoundInfo>, parent: NlComponent, 
   for (viewInfo in list) {
     // If the file is not found, it'll be goto the default location by handler. Skip.
     val navigationHandler = surface.navigationHandler as PreviewNavigationHandler
-    val file = navigationHandler.getVirtualFile(viewInfo.fileName) ?: continue
+    val file = navigationHandler.getVirtualFile(viewInfo.sourceLocation.fileName) ?: continue
 
     // TODO1: Apparently ALL views (View, FrameLayout etc) are draggable (resizable too) due to their singleton hnadlers.
     //        Might need to send custom info to disable adding targets.
@@ -164,12 +168,16 @@ private fun createSceneGraph(list: List<ComposeBoundInfo>, parent: NlComponent, 
       null,
       surface,
       null,
-      InsertType.CREATE)!!.apply{
+      InsertType.CREATE)!!.apply {
 
-      setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH, dimensionToString(bounds.width.toInt()))
-      setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT, dimensionToString(bounds.height.toInt()))
-      setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP, dimensionToString(bounds.top.toInt()))
-      setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT, dimensionToString(bounds.left.toInt()))
+      setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH,
+                   dimensionToString(bounds.width.toInt()))
+      setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT,
+                   dimensionToString(bounds.height.toInt()))
+      setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_TOP,
+                   dimensionToString(bounds.top.toInt()))
+      setAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_MARGIN_LEFT,
+                   dimensionToString(bounds.left.toInt()))
 
       x = bounds.left.toInt()
       y = bounds.top.toInt()
@@ -177,8 +185,8 @@ private fun createSceneGraph(list: List<ComposeBoundInfo>, parent: NlComponent, 
       h = bounds.height.toInt()
     }
 
-    val navigable: Navigatable = PsiNavigationSupport.getInstance().createNavigatable(
-      surface.project, file, viewInfo.lineNumber)
+    val navigable: Navigatable = PsiNavigationSupport.getInstance().createNavigatable(surface.project, file,
+                                                                                      viewInfo.sourceLocation.lineNumber)
     navigationHandler.addComponentLocation(child, navigable)
     parent.addChild(child)
   }
