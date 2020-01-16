@@ -17,14 +17,17 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
 import com.intellij.execution.ExecutionTarget;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class AndroidExecutionTarget extends ExecutionTarget {
   public abstract boolean isApplicationRunning(@NotNull String packageName);
 
-  @Nullable
-  public abstract IDevice getIDevice();
+  /**
+   * @return the collection of connected devices to run a configuration on, apply changes to, etc
+   */
+  @NotNull
+  public abstract Collection<IDevice> getDevices();
 
   @Override
   public boolean isExternallyManaged() {

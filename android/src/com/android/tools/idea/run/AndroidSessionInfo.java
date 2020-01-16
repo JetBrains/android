@@ -17,8 +17,8 @@
 package com.android.tools.idea.run;
 
 import com.android.ddmlib.Client;
-import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.android.tools.idea.run.deployment.AndroidExecutionTarget;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.ExecutionTarget;
@@ -174,19 +174,10 @@ public class AndroidSessionInfo {
   private static boolean checkIfIDeviceRunningInProcessHandler(@NotNull RunConfiguration runConfiguration,
                                                                @NotNull AndroidExecutionTarget executionTarget,
                                                                @NotNull ProcessHandler processHandler) {
-    IDevice iDevice = executionTarget.getIDevice();
-    if (processHandler instanceof AndroidProcessHandler) {
-      if (iDevice == null) {
-        return false;
-      }
-      if (((AndroidProcessHandler)processHandler).isAssociated(iDevice)) {
-        return true;
-      }
-      return false;
+    if (processHandler instanceof SwappableProcessHandler) {
+      return ((SwappableProcessHandler)processHandler).isRunningWith(runConfiguration, executionTarget);
     }
-    else if (processHandler instanceof AndroidRemoteDebugProcessHandler) {
-      return ((AndroidRemoteDebugProcessHandler)processHandler).isRunningWith(runConfiguration, executionTarget);
-    }
+
     return false;
   }
 }

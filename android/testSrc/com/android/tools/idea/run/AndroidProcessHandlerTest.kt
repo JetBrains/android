@@ -18,6 +18,7 @@ package com.android.tools.idea.run
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.run.deployable.SwappableProcessHandler
+import com.android.tools.idea.run.deployment.AndroidExecutionTarget
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.process.ProcessOutputTypes
@@ -163,6 +164,55 @@ class AndroidProcessHandlerTest {
     inOrder.verifyNoMoreInteractions()
 
     assertThat(handler.isProcessTerminated).isTrue()
+  }
+
+  @Test
+  fun areAnyDevicesAssociatedDevicesIsEmpty() {
+    // Arrange
+    val target = mock(AndroidExecutionTarget::class.java)
+
+    // Act
+    val associated = handler.areAnyDevicesAssociated(target)
+
+    // Assert
+    assertThat(associated).isFalse()
+  }
+
+  @Test
+  fun areAnyDevicesAssociatedDevicesContainsOneAssociated() {
+    // Arrange
+    val device = mock(IDevice::class.java)
+
+    val target = mock(AndroidExecutionTarget::class.java)
+    `when`(target.devices).thenReturn(listOf(device))
+
+    val monitor = mock(SingleDeviceAndroidProcessMonitor::class.java)
+    `when`(mockMonitorManager.getMonitor(device)).thenReturn(monitor)
+
+    // Act
+    val associated = handler.areAnyDevicesAssociated(target)
+
+    // Assert
+    assertThat(associated).isTrue()
+  }
+
+  @Test
+  fun areAnyDevicesAssociatedDevicesContainsOneAssociatedAndOneUnassociated() {
+    // Arrange
+    val device1 = mock(IDevice::class.java)
+    val device2 = mock(IDevice::class.java)
+
+    val target = mock(AndroidExecutionTarget::class.java)
+    `when`(target.devices).thenReturn(listOf(device1, device2))
+
+    val monitor = mock(SingleDeviceAndroidProcessMonitor::class.java)
+    `when`(mockMonitorManager.getMonitor(device1)).thenReturn(monitor)
+
+    // Act
+    val associated = handler.areAnyDevicesAssociated(target)
+
+    // Assert
+    assertThat(associated).isTrue()
   }
 
   private fun createMockDevice(apiVersion: Int): IDevice {
