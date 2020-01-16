@@ -20,10 +20,4 @@ import org.junit.runner.RunWith
 
 @RunWith(JarTestSuiteRunner::class)
 @JarTestSuiteRunner.ExcludeClasses(AppInspectionTestSuite::class)
-class AppInspectionTestSuite : IdeaTestSuiteBase() {
-  companion object {
-    init {
-      symlinkToIdeaHome("tools/idea/java") // For the mock JDK.
-    }
-  }
-}
+class AppInspectionTestSuite : IdeaTestSuiteBase()

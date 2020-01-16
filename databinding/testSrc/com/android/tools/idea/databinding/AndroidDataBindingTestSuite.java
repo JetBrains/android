@@ -29,15 +29,6 @@ public final class AndroidDataBindingTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
-    symlinkToIdeaHome(
-      "prebuilts/studio/jdk",
-      "prebuilts/studio/layoutlib",
-      "prebuilts/studio/sdk",
-      "tools/adt/idea/android/annotations",
-      "tools/adt/idea/databinding/testData",
-      "tools/base/templates",
-      "tools/idea/java"); // For the mock JDK.
-
     setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/adt/idea/databinding/testapp_deps.zip", "prebuilts/tools/common/m2/repository");
     setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
