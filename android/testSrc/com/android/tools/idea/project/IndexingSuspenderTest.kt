@@ -246,7 +246,7 @@ class IndexingSuspenderTest : JavaProjectTestCase() {
 
     // Perform "setup" by marking the module as namespaced:
     syncState.setupStarted()
-    module.androidFacet!!.configuration.model = TestAndroidModel.namespaced(module.androidFacet!!)
+    module.androidFacet!!.model = TestAndroidModel.namespaced(module.androidFacet!!)
 
     val buildContext = BuildContext(project, listOf(":app:something"), BuildMode.DEFAULT_BUILD_MODE)
     val buildState = GradleBuildState.getInstance(project)

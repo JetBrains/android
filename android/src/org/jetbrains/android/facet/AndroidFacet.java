@@ -20,6 +20,7 @@ import static org.jetbrains.android.util.AndroidUtils.loadDomElement;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.SourceProvider;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.util.GradleProjects;
 import com.android.tools.idea.model.AndroidModel;
@@ -37,6 +38,8 @@ import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
 import java.util.List;
 import org.jetbrains.android.dom.manifest.Manifest;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
@@ -50,6 +53,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   private SourceProvider myMainSourceSet;
   private IdeaSourceProvider myMainIdeaSourceSet;
+  @Nullable private AndroidModel myAndroidModel;
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
@@ -94,7 +98,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   public AndroidFacet(@NotNull Module module, @NotNull String name, @NotNull AndroidFacetConfiguration configuration) {
     super(getFacetType(), module, name, configuration, null);
-    configuration.setFacet(this);
+    configuration.setProject(module.getProject());
   }
 
   /**
@@ -113,7 +117,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
    */
   @NotNull
   public SourceProvider getMainSourceProvider() {
-    AndroidModel model = getConfiguration().getModel();
+    AndroidModel model = getModel();
     if (model != null) {
       //noinspection deprecation
       return model.getDefaultSourceProvider();
@@ -155,7 +159,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Override
   public void disposeFacet() {
-    getConfiguration().disposeFacet();
+    myAndroidModel = null;
   }
 
   /**
@@ -195,5 +199,32 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     JpsAndroidModuleProperties state = getConfiguration().getState();
     assert state != null;
     return state;
+  }
+
+  @Nullable
+  public AndroidPlatform getAndroidPlatform() {
+    return AndroidPlatform.getInstance(getModule());
+  }
+
+  @Nullable
+  public AndroidSdkData getAndroidSdk() {
+    AndroidPlatform platform = getAndroidPlatform();
+    return platform != null ? platform.getSdkData() : null;
+  }
+
+  @Nullable
+  public IAndroidTarget getAndroidTarget() {
+    AndroidPlatform platform = getAndroidPlatform();
+    return platform != null ? platform.getTarget() : null;
+  }
+
+  @Nullable
+  public AndroidModel getModel() {
+    return myAndroidModel;
+  }
+
+  public void setModel(@Nullable AndroidModel model) {
+    myAndroidModel = model;
+    FacetManager.getInstance(getModule()).facetConfigurationChanged(this);
   }
 }

@@ -132,7 +132,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @Nullable
   public static AndroidModuleModel get(@NotNull AndroidFacet androidFacet) {
-    AndroidModel androidModel = androidFacet.getConfiguration().getModel();
+    AndroidModel androidModel = androidFacet.getModel();
     return androidModel instanceof AndroidModuleModel ? (AndroidModuleModel)androidModel : null;
   }
 

@@ -370,7 +370,7 @@ public abstract class AndroidTestCase extends AndroidTestBase {
    * Enables namespacing in the given module and sets the app namespace according to the given package name.
    */
   protected void enableNamespacing(@NotNull AndroidFacet facet, @NotNull String appPackageName) {
-    facet.getConfiguration().setModel(TestAndroidModel.namespaced(facet));
+    facet.setModel(TestAndroidModel.namespaced(facet));
     runWriteCommandAction(getProject(), () -> facet.getManifest().getPackage().setValue(appPackageName));
     LocalResourceManager.getInstance(facet.getModule()).invalidateAttributeDefinitions();
   }

@@ -119,7 +119,7 @@ public class SdksCleanupStepTest extends JavaProjectTestCase {
     Module appModule = createModule("app");
     // Simulate this is an Android module.
     AndroidFacet androidFacet = createAndAddAndroidFacet(appModule);
-    androidFacet.getConfiguration().setModel(mock(AndroidModel.class));
+    androidFacet.setModel(mock(AndroidModel.class));
 
     cleanupStep.cleanUpSdk(appModule, fixedSdks, invalidSdks);
 
@@ -144,7 +144,7 @@ public class SdksCleanupStepTest extends JavaProjectTestCase {
     Module appModule = createModule("app");
     // Simulate this is an Android module.
     AndroidFacet androidFacet = createAndAddAndroidFacet(appModule);
-    androidFacet.getConfiguration().setModel(mock(AndroidModel.class));
+    androidFacet.setModel(mock(AndroidModel.class));
 
     cleanupStep.cleanUpSdk(appModule, fixedSdks, invalidSdks);
 
@@ -207,7 +207,7 @@ public class SdksCleanupStepTest extends JavaProjectTestCase {
 
   private static void setUpModuleAsAndroid(@NotNull Module module, @NotNull Sdk sdk) {
     AndroidFacet facet = createAndAddAndroidFacet(module);
-    facet.getConfiguration().setModel(mock(AndroidModel.class));
+    facet.setModel(mock(AndroidModel.class));
 
     ModifiableRootModel modifiableModel = ModuleRootManager.getInstance(module).getModifiableModel();
     modifiableModel.setSdk(sdk);

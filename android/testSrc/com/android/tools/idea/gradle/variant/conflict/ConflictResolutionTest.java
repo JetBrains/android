@@ -161,7 +161,7 @@ public class ConflictResolutionTest extends IdeaTestCase {
       File rootDirPath = getBaseDirPath(myProject);
       AndroidModuleModel model =
         new AndroidModuleModel(myModule.getName(), rootDirPath, myAppModel, appVariant.getName(), myDependenciesFactory);
-      facet.getConfiguration().setModel(model);
+      facet.setModel(model);
       facetModel.addFacet(facet);
     }
     finally {
@@ -179,7 +179,7 @@ public class ConflictResolutionTest extends IdeaTestCase {
       AndroidModuleModel model =
         new AndroidModuleModel(myModule.getName(), moduleFilePath.getParentFile(), myLibModel, libVariant.getName(),
                                myDependenciesFactory);
-      androidFacet.getConfiguration().setModel(model);
+      androidFacet.setModel(model);
 
       facetModel.addFacet(androidFacet);
 

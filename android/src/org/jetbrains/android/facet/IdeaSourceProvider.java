@@ -381,7 +381,7 @@ public abstract class IdeaSourceProvider {
     if (!facet.requiresAndroidModel()) {
       return Collections.singletonList(facet.getMainIdeaSourceProvider());
     }
-    AndroidModel androidModel = facet.getConfiguration().getModel();
+    AndroidModel androidModel = facet.getModel();
     if (androidModel != null) {
       return createAll(androidModel.getActiveSourceProviders());
     }
@@ -399,7 +399,7 @@ public abstract class IdeaSourceProvider {
     if (!facet.requiresAndroidModel()) {
       return Collections.emptyList();
     }
-    AndroidModel androidModel = facet.getConfiguration().getModel();
+    AndroidModel androidModel = facet.getModel();
     if (androidModel != null) {
       return createAll(androidModel.getTestSourceProviders());
     }
@@ -539,11 +539,11 @@ public abstract class IdeaSourceProvider {
    */
   @NotNull
   public static List<SourceProvider> getAllSourceProviders(@NotNull AndroidFacet facet) {
-    if (!facet.requiresAndroidModel() || facet.getConfiguration().getModel() == null) {
+    if (!facet.requiresAndroidModel() || facet.getModel() == null) {
       return Collections.singletonList(facet.getMainSourceProvider());
     }
 
-    return facet.getConfiguration().getModel().getAllSourceProviders();
+    return facet.getModel().getAllSourceProviders();
   }
 
   /**
@@ -559,7 +559,7 @@ public abstract class IdeaSourceProvider {
    */
   @NotNull
   public static List<IdeaSourceProvider> getAllIdeaSourceProviders(@NotNull AndroidFacet facet) {
-    if (!facet.requiresAndroidModel() || facet.getConfiguration().getModel() == null) {
+    if (!facet.requiresAndroidModel() || facet.getModel() == null) {
       return Collections.singletonList(facet.getMainIdeaSourceProvider());
     }
     return createAll(getAllSourceProviders(facet));

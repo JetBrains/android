@@ -283,7 +283,7 @@ public class PostSyncProjectSetupTest extends JavaProjectTestCase {
   private void createAndroidModuleWithLanguageLevel(@NotNull String moduleName, @NotNull LanguageLevel level) {
     AndroidFacet facet = createAndAddAndroidFacet(createModule(moduleName));
     AndroidModuleModel model = mock(AndroidModuleModel.class);
-    facet.getConfiguration().setModel(model);
+    facet.setModel(model);
     when(model.getJavaLanguageLevel()).thenReturn(level);
 
     // Setup the fields that are necessary to run mySetup.SetUpProject.

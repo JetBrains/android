@@ -209,7 +209,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
         AndroidFacet facet = AndroidFacet.getInstance(file);
         VirtualFile virtualFile = file.getVirtualFile();
         if (facet != null && facet.requiresAndroidModel() && virtualFile != null) {
-          AndroidModel androidModel = facet.getConfiguration().getModel();
+          AndroidModel androidModel = facet.getModel();
           if (androidModel != null && androidModel.isGenerated(virtualFile)) {
             return false;
           }

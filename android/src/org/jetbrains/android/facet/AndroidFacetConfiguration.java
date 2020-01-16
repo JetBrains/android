@@ -22,23 +22,23 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.model.AndroidModel;
 import com.intellij.facet.FacetConfiguration;
-import com.intellij.facet.FacetManager;
+import com.intellij.facet.ProjectFacetManager;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
 import com.intellij.facet.ui.FacetValidatorsManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.List;
 import org.jdom.Element;
 import org.jetbrains.android.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidNativeLibData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,12 +50,9 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
  */
 public class AndroidFacetConfiguration implements FacetConfiguration, PersistentStateComponent<JpsAndroidModuleProperties> {
   private static final FacetEditorTab[] NO_EDITOR_TABS = new FacetEditorTab[0];
-
-  private AndroidFacet myFacet = null;
+  private Project myProject;
 
   private JpsAndroidModuleProperties myProperties = new JpsAndroidModuleProperties();
-
-  @Nullable private AndroidModel myAndroidModel;
 
   public void init(@NotNull Module module, @NotNull VirtualFile contentRoot) {
     init(module, contentRoot.getPath());
@@ -79,26 +76,30 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
     }
   }
 
+  /**
+   * @deprecated use {@link AndroidFacet#getAndroidPlatform()} instead
+   */
+  @Deprecated
   @Nullable
   public AndroidPlatform getAndroidPlatform() {
-    return AndroidPlatform.getInstance(myFacet.getModule());
+    if (myProject == null) return null;
+    AndroidFacet androidFacet = ContainerUtil.find(ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID),
+                                                   facet -> facet.getConfiguration() == this);
+    return androidFacet != null ? androidFacet.getAndroidPlatform() : null;
   }
 
+  /**
+   * @deprecated use {@link AndroidFacet#getAndroidTarget()} instead
+   */
   @Nullable
-  public AndroidSdkData getAndroidSdk() {
-    AndroidPlatform platform = getAndroidPlatform();
-    return platform != null ? platform.getSdkData() : null;
-  }
-
-  @Nullable
+  @Deprecated
   public IAndroidTarget getAndroidTarget() {
     AndroidPlatform platform = getAndroidPlatform();
     return platform != null ? platform.getTarget() : null;
   }
 
-  public void setFacet(@NotNull AndroidFacet facet) {
-    myFacet = facet;
-    facet.getModule().getMessageBus().syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(facet);
+  void setProject(@NotNull Project project) {
+    myProject = project;
   }
 
   @Override
@@ -170,33 +171,6 @@ public class AndroidFacetConfiguration implements FacetConfiguration, Persistent
   public boolean canBeDependency() {
     int projectType = getState().PROJECT_TYPE;
     return projectType == PROJECT_TYPE_LIBRARY || projectType == PROJECT_TYPE_FEATURE;
-  }
-
-  /**
-   * Associates the given Android model to this facet.
-   *
-   * @param androidModel the new Android model.
-   */
-  public void setModel(@Nullable AndroidModel model) {
-    myAndroidModel = model;
-    if (myFacet != null) {
-      myFacet.getModule().getMessageBus().syncPublisher(FacetManager.FACETS_TOPIC).facetConfigurationChanged(myFacet);
-    }
-  }
-
-  /**
-   * @return the Android model associated to this facet.
-   */
-  @Nullable
-  public AndroidModel getModel() {
-    return myAndroidModel;
-  }
-
-  /**
-   * Invoked when the facet is disposed. Nulls out fields to facilitate garbage collection.
-   */
-  public void disposeFacet() {
-    myAndroidModel = null;
   }
 
   public boolean isLibraryProject() {

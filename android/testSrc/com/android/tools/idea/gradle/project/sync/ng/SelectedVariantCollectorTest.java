@@ -62,7 +62,7 @@ public class SelectedVariantCollectorTest extends JavaProjectTestCase {
     when(androidModel.getSelectedVariant()).thenReturn(variant);
 
     AndroidFacet androidFacet = createAndAddAndroidFacet(module);
-    androidFacet.getConfiguration().setModel(androidModel);
+    androidFacet.setModel(androidModel);
     androidFacet.getProperties().SELECTED_BUILD_VARIANT = "debug";
 
     SelectedVariant selectedVariant = myCollector.findSelectedVariant(module);

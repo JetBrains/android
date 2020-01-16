@@ -37,7 +37,7 @@ public class TestArtifactSearchScopeSetupStepTest extends JavaProjectTestCase {
 
   public void testSetUpModuleWithAndroidModule() {
     AndroidFacet facet = createAndAddAndroidFacet(myModule);
-    facet.getConfiguration().setModel(mock(AndroidModuleModel.class));
+    facet.setModel(mock(AndroidModuleModel.class));
 
     mySetupStep.setUpModule(myModule, null);
     assertNotNull(TestArtifactSearchScopes.get(myModule));

@@ -81,7 +81,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
   @NotNull
   public Collection<AbstractTreeNode<?>> getChildren() {
     AndroidFacet facet = AndroidFacet.getInstance(getModule());
-    if (facet == null || facet.getConfiguration().getModel() == null) {
+    if (facet == null || facet.getModel() == null) {
       return super.getChildren();
     }
     return getChildren(facet, getSettings(), myProjectViewPane, AndroidProjectViewPane.getSourceProviders(facet));
@@ -257,7 +257,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
 
       // If there is a native-containing module then check it for externally referenced header files
       AndroidFacet facet = AndroidFacet.getInstance(getModule());
-      if (facet == null || facet.getConfiguration().getModel() == null) {
+      if (facet == null || facet.getModel() == null) {
         return false;
       }
       NdkModuleModel ndkModuleModel = NdkModuleModel.get(facet.getModule());

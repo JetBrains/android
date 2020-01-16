@@ -138,7 +138,7 @@ public class ConflictSetTest extends JavaProjectTestCase {
       File rootDirPath = getBaseDirPath(myProject);
       AndroidModuleModel model =
         new AndroidModuleModel(myModule.getName(), rootDirPath, myAppModel, myAppDebugVariant.getName(), myDependenciesFactory);
-      facet.getConfiguration().setModel(model);
+      facet.setModel(model);
       facetModel.addFacet(facet);
     }
     finally {
@@ -156,7 +156,7 @@ public class ConflictSetTest extends JavaProjectTestCase {
       AndroidModuleModel model =
         new AndroidModuleModel(myModule.getName(), moduleFilePath.getParentFile(), myLibModel, myLibDebugVariant.getName(),
                                myDependenciesFactory);
-      androidFacet.getConfiguration().setModel(model);
+      androidFacet.setModel(model);
 
       facetModel.addFacet(androidFacet);
 

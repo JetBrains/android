@@ -80,7 +80,7 @@ public class AndroidModuleProcessorTest extends JavaProjectTestCase {
     module.putUserData(MODULE_GRADLE_MODELS_KEY, moduleModels);
 
     AndroidFacet facet = createAndAddAndroidFacet(module);
-    facet.getConfiguration().setModel(androidModel);
+    facet.setModel(androidModel);
 
     return module;
   }

@@ -370,7 +370,7 @@ class GradleModuleSystemTest : AndroidTestCase() {
     `when`(model.androidProject).thenReturn(project)
     `when`(model.selectedMainCompileLevel2Dependencies).thenReturn(ideDependencies)
     val facet = AndroidFacet.getInstance(module)!!
-    facet.configuration.model = model
+    facet.model = model
     return model
   }
 

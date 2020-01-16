@@ -175,7 +175,7 @@ public class VariantOnlyProjectModelsSetupTest extends JavaProjectTestCase {
   private Module createAppModuleWithFacet(@NotNull Module module) {
     FacetManager facetManager = FacetManager.getInstance(module);
     AndroidFacet facet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
-    facet.getConfiguration().setModel(myAndroidModuleModel);
+    facet.setModel(myAndroidModuleModel);
     ApplicationManager.getApplication().runWriteAction(() -> {
       ModifiableFacetModel model = facetManager.createModifiableModel();
       model.addFacet(facet);
@@ -191,7 +191,7 @@ public class VariantOnlyProjectModelsSetupTest extends JavaProjectTestCase {
     ndkFacet.setNdkModuleModel(myNdkModuleModel);
     // Ndk module also contains AndroidFacet.
     AndroidFacet androidFacet = facetManager.createFacet(AndroidFacet.getFacetType(), AndroidFacet.NAME, null);
-    androidFacet.getConfiguration().setModel(myAndroidModuleModel);
+    androidFacet.setModel(myAndroidModuleModel);
     ApplicationManager.getApplication().runWriteAction(() -> {
       ModifiableFacetModel model = facetManager.createModifiableModel();
       model.addFacet(ndkFacet);

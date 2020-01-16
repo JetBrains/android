@@ -203,7 +203,7 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
       AndroidRootUtil.readPropertyFile(module, SdkConstants.FN_LOCAL_PROPERTIES);
     final List<Runnable> changes = new ArrayList<>();
 
-    final IAndroidTarget androidTarget = facet.getConfiguration().getAndroidTarget();
+    final IAndroidTarget androidTarget = facet.getAndroidTarget();
     final String androidTargetHashString = androidTarget != null ? androidTarget.hashString() : null;
     final VirtualFile[] dependencies = collectDependencies(module);
     final String[] dependencyPaths = toSortedPaths(dependencies);
@@ -296,7 +296,7 @@ public final class AndroidPropertyFilesUpdater implements Disposable {
                                            @NotNull final PropertiesFile propertiesFile,
                                            @NotNull List<Runnable> changes) {
     final Project project = facet.getModule().getProject();
-    final IAndroidTarget androidTarget = facet.getConfiguration().getAndroidTarget();
+    final IAndroidTarget androidTarget = facet.getAndroidTarget();
 
     if (androidTarget != null) {
       final String targetPropertyValue = androidTarget.hashString();

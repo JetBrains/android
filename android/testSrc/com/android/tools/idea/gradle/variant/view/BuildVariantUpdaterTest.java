@@ -96,7 +96,7 @@ public class BuildVariantUpdaterTest extends JavaProjectTestCase {
     initMocks(this);
 
     AndroidFacet androidFacet = createAndAddAndroidFacet(getModule());
-    androidFacet.getConfiguration().setModel(myAndroidModel);
+    androidFacet.setModel(myAndroidModel);
 
     Project project = getProject();
     when(myModifiableModelsProviderFactory.create(project)).thenReturn(myModifiableModelsProvider);
@@ -405,7 +405,7 @@ public class BuildVariantUpdaterTest extends JavaProjectTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.getConfiguration().setModel(libraryAndroidModel);
+    libraryAndroidFacet.setModel(libraryAndroidModel);
 
     // Setup library.
 
@@ -493,7 +493,7 @@ public class BuildVariantUpdaterTest extends JavaProjectTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.getConfiguration().setModel(libraryAndroidModel);
+    libraryAndroidFacet.setModel(libraryAndroidModel);
 
     // Setup library.
 
@@ -582,7 +582,7 @@ public class BuildVariantUpdaterTest extends JavaProjectTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.getConfiguration().setModel(libraryAndroidModel);
+    libraryAndroidFacet.setModel(libraryAndroidModel);
 
     // Setup library.
 
@@ -700,7 +700,7 @@ public class BuildVariantUpdaterTest extends JavaProjectTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.getConfiguration().setModel(libraryAndroidModel);
+    libraryAndroidFacet.setModel(libraryAndroidModel);
 
     // Setup library.
 
@@ -823,7 +823,7 @@ public class BuildVariantUpdaterTest extends JavaProjectTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.getConfiguration().setModel(libraryAndroidModel);
+    libraryAndroidFacet.setModel(libraryAndroidModel);
 
     // Setup library.
 

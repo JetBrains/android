@@ -308,7 +308,7 @@ public final class GradleSyncState {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        facet.getConfiguration().setModel(null);
+        facet.setModel(null);
       }
     }
   }
@@ -775,7 +775,7 @@ public final class GradleSyncState {
       if (module.isDisposed()) continue;
       AndroidFacet facet = AndroidFacet.getInstance(module);
       if (facet != null) {
-        facet.getConfiguration().setModel(null);
+        facet.setModel(null);
       }
     }
     } catch (Throwable t) {

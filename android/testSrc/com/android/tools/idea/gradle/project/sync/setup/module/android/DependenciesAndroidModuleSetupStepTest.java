@@ -114,7 +114,7 @@ public class DependenciesAndroidModuleSetupStepTest extends JavaProjectTestCase 
     AndroidModuleModel moduleModel = mock(AndroidModuleModel.class);
     GradleVersion version = GradleVersion.parse(modelVersion);
     when(moduleModel.getFeatures()).thenReturn(new AndroidModelFeatures(version));
-    androidFacet.getConfiguration().setModel(moduleModel);
+    androidFacet.setModel(moduleModel);
     when(moduleModel.getAndroidProject()).thenReturn(androidProject);
     return moduleModel;
   }

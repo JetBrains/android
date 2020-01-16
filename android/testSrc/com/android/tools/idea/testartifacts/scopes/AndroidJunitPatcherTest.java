@@ -241,6 +241,6 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     assertNotNull(mySelectedVariant);
     AndroidModuleModel model = new AndroidModuleModel(myAndroidProject.getName(), myAndroidProject.getRootDir(), myAndroidProject,
                                                       mySelectedVariant.getName(), new IdeDependenciesFactory());
-    myFacet.getConfiguration().setModel(model);
+    myFacet.setModel(model);
   }
 }

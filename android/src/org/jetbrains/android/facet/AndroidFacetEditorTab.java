@@ -170,7 +170,7 @@ public class AndroidFacetEditorTab extends FacetEditorTab {
       @Override
       public void actionPerformed(ActionEvent e) {
         AndroidFacetConfiguration configuration = new AndroidFacetConfiguration();
-        configuration.setFacet((AndroidFacet)myContext.getFacet());
+        configuration.setProject(myContext.getProject());
         Module module = myContext.getModule();
         VirtualFile[] contentRoots = ModuleRootManager.getInstance(module).getContentRoots();
         if (contentRoots.length == 1) {
