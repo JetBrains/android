@@ -30,12 +30,12 @@ import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
-public final class SelectDeploymentTargetsDialogTableTest {
-  private SelectDeploymentTargetsDialogTable table;
+public final class ModifyDeviceSetDialogTableTest {
+  private ModifyDeviceSetDialogTable table;
 
   @Before
   public void initTable() {
-    table = new SelectDeploymentTargetsDialogTable();
+    table = new ModifyDeviceSetDialogTable();
   }
 
   @Test
@@ -47,7 +47,7 @@ public final class SelectDeploymentTargetsDialogTableTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    TableModel model = new SelectDeploymentTargetsDialogTableModel(Collections.singletonList(device), table);
+    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device), table);
 
     // Act
     table.setModel(model);
@@ -77,7 +77,7 @@ public final class SelectDeploymentTargetsDialogTableTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    TableModel model = new SelectDeploymentTargetsDialogTableModel(Arrays.asList(device1, device2), table);
+    TableModel model = new ModifyDeviceSetDialogTableModel(Arrays.asList(device1, device2), table);
 
     // Act
     table.setModel(model);
@@ -103,7 +103,7 @@ public final class SelectDeploymentTargetsDialogTableTest {
       .setSnapshot(Snapshot.quickboot(FileSystems.getDefault()))
       .build();
 
-    TableModel model = new SelectDeploymentTargetsDialogTableModel(Collections.singletonList(device), table);
+    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device), table);
 
     // Act
     table.setModel(model);
@@ -128,7 +128,7 @@ public final class SelectDeploymentTargetsDialogTableTest {
       .setSnapshot(new Snapshot(Paths.get("snap_2019-09-27_15-48-09"), "Snapshot"))
       .build();
 
-    TableModel model = new SelectDeploymentTargetsDialogTableModel(Collections.singletonList(device), table);
+    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device), table);
 
     // Act
     table.setModel(model);
@@ -153,7 +153,7 @@ public final class SelectDeploymentTargetsDialogTableTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    TableModel model = new SelectDeploymentTargetsDialogTableModel(Collections.singletonList(device), table);
+    TableModel model = new ModifyDeviceSetDialogTableModel(Collections.singletonList(device), table);
 
     // Act
     table.setModel(model);
