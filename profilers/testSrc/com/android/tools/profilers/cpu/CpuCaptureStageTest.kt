@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
@@ -120,10 +119,8 @@ class CpuCaptureStageTest {
 
     val displayTrackGroup = stage.trackGroupModels[0]
     assertThat(displayTrackGroup.title).isEqualTo("Display")
-    assertThat(displayTrackGroup.size).isEqualTo(3)
+    assertThat(displayTrackGroup.size).isEqualTo(1)
     assertThat(displayTrackGroup[0].title).isEqualTo("Frames")
-    assertThat(displayTrackGroup[1].title).isEqualTo("SurfaceFlinger")
-    assertThat(displayTrackGroup[2].title).isEqualTo("VSYNC")
 
     val coresTrackGroup = stage.trackGroupModels[1]
     assertThat(coresTrackGroup.title).isEqualTo("CPU cores (4)")
