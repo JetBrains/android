@@ -19,6 +19,7 @@ import com.android.SdkConstants;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.utils.SdkUtils;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
@@ -37,7 +38,6 @@ import java.util.ArrayList;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -102,7 +102,7 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
       ResourceFolderType folderType = FolderTypeRelationship.getNonValuesRelatedFolder(resType);
       if (folderType != null && newElementName.contains(".")) {
         // If it does, we need to chop off its extension when inserting the new value.
-        newResName = AndroidBuildCommonUtils.getResourceName(resType.getName(), newElementName);
+        newResName = SdkUtils.fileNameToResourceName(newElementName);
       }
       else {
         newResName = newElementName;

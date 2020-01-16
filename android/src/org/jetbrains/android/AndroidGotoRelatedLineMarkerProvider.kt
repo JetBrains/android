@@ -20,6 +20,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.util.androidFacet
+import com.android.utils.SdkUtils
 import com.intellij.codeHighlighting.Pass
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
@@ -46,7 +47,6 @@ import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
-import org.jetbrains.android.util.AndroidBuildCommonUtils
 import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
@@ -226,7 +226,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
     }
 
     private fun collectRelatedClasses(file: XmlFile, facet: AndroidFacet): List<GotoRelatedItem>? {
-      val resourceName = AndroidBuildCommonUtils.getResourceName(ResourceType.LAYOUT.getName(), file.name)
+      val resourceName = SdkUtils.fileNameToResourceName(file.name)
       val fields = AndroidResourceUtil.findResourceFields(facet, ResourceType.LAYOUT.getName(), resourceName, true)
       val field = fields.firstOrNull() ?: return null
       val module = facet.module

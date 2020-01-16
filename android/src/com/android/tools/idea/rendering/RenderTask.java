@@ -64,6 +64,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ReadAction;
@@ -713,7 +714,7 @@ public class RenderTask {
 
       // Get the name of the layout actually being edited, without the extension
       // as it's what IXmlPullParser.getParser(String) will receive.
-      String queryLayoutName = ResourceHelper.getResourceName(xmlFile);
+      String queryLayoutName = SdkUtils.fileNameToResourceName(xmlFile.getName());
       myLayoutlibCallback.setLayoutParser(queryLayoutName, modelParser);
 
       // Attempt to read from PSI.

@@ -39,21 +39,39 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.execution.ParametersListUtil;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableEntryException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
+import java.util.regex.Pattern;
 import org.jetbrains.android.AndroidCommonBundle;
 import org.jetbrains.android.sdk.MessageBuildingSdkLog;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.*;
-import java.security.*;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.*;
-import java.util.jar.JarEntry;
-import java.util.jar.JarOutputStream;
-import java.util.regex.Pattern;
 
 /**
  * @author Eugene.Kudelevsky
@@ -293,17 +311,6 @@ public class AndroidBuildCommonUtils {
       }
       jar.closeEntry();
     }
-  }
-
-  @NotNull
-  public static String getResourceName(@NotNull String resourceType, @NotNull String fileName) {
-    String s = FileUtil.getNameWithoutExtension(fileName);
-
-    return resourceType.equals("drawable") &&
-           s.endsWith(".9") &&
-           FileUtilRt.extensionEquals(fileName, PNG_EXTENSION)
-           ? s.substring(0, s.length() - 2)
-           : s;
   }
 
   @NotNull

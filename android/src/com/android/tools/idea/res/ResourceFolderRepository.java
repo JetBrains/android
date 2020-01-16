@@ -377,7 +377,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                                          boolean idGenerating,
                                          @NotNull PsiFile file) {
     // XML or image.
-    String resourceName = ResourceHelper.getResourceName(file);
+    String resourceName = SdkUtils.fileNameToResourceName(file.getName());
     if (!checkResourceFilename(file, folderType)) {
       return; // Not a valid file resource name.
     }
@@ -2217,7 +2217,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
                                                          @NotNull ResourceType resourceType,
                                                          @NotNull RepositoryConfiguration configuration,
                                                          boolean idGenerating) {
-      String resourceName = getResourceName(file);
+      String resourceName = SdkUtils.fileNameToResourceName(file.getFileName());
       ResourceVisibility visibility = getVisibility(resourceType, resourceName);
       Density density = null;
       if (DensityBasedResourceValue.isDensityBasedResourceType(resourceType)) {
