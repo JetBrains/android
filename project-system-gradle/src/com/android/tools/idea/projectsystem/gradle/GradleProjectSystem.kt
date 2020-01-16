@@ -26,7 +26,6 @@ import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
-import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.SourceProvidersFactory
 import com.android.tools.idea.projectsystem.SourceProvidersImpl
@@ -70,12 +69,12 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
 
   override fun getDefaultApkFile(): VirtualFile? {
     return ModuleManager.getInstance(project).modules.asSequence()
-      .mapNotNull { AndroidModuleModel.get(it) }
-      .filter { it.androidProject.projectType == PROJECT_TYPE_APP }
-      .flatMap { it.selectedVariant.mainArtifact.outputs.asSequence() }
-      .map { it.mainOutputFile.outputFile }
-      .find { it.exists() }
-      ?.let { VfsUtil.findFileByIoFile(it, true) }
+        .mapNotNull { AndroidModuleModel.get(it) }
+        .filter { it.androidProject.projectType == PROJECT_TYPE_APP }
+        .flatMap { it.selectedVariant.mainArtifact.outputs.asSequence() }
+        .map { it.mainOutputFile.outputFile }
+        .find { it.exists() }
+        ?.let { VfsUtil.findFileByIoFile(it, true) }
   }
 
   override fun buildProject() {
@@ -109,10 +108,15 @@ fun createSourceProvidersFromModel(model: AndroidModuleModel): SourceProviders {
   val all =
     @Suppress("DEPRECATION")
     (
-      model.allSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.MAIN) } +
-      model.allUnitTestSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.UNIT_TEST) } +
-      model.allAndroidTestSourceProviders.associateWith { createIdeaSourceProviderFromModelSourceProvider(it, ScopeType.ANDROID_TEST) }
+      model.allSourceProviders.asSequence() +
+      model.activeSourceProviders.asSequence() +
+      model.unitTestSourceProviders.asSequence() +
+      model.androidTestSourceProviders.asSequence() +
+      model.defaultSourceProvider +
+      (model as? AndroidModuleModel)?.flavorSourceProviders?.asSequence().orEmpty()
     )
+      .toSet()
+      .associateWith { createIdeaSourceProviderFromModelSourceProvider(it) }
 
   fun SourceProvider.toIdeaSourceProvider() = all.getValue(this)
 

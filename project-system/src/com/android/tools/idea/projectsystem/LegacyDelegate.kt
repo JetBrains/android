@@ -31,8 +31,6 @@ class LegacyDelegate constructor(private val facet: AndroidFacet) : NamedIdeaSou
 
   override val name: String = ""
 
-  override val scopeType: ScopeType = ScopeType.MAIN
-
   private val manifestFileUrl: String get() = manifestFile?.url ?: let {
     val moduleDirPath: String = File(facet.module.moduleFilePath).parent
     VfsUtilCore.pathToUrl(

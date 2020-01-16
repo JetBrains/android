@@ -183,7 +183,6 @@ class SourceProvidersSnapshotComparisonTest : AndroidGradleTestCase(), SnapshotC
       fun IdeaSourceProvider.dump(name: String) {
         out("${name} (IDEA)")
         nest {
-          out("ScopeType: $scopeType")
           dumpUrls("ManifestFileUrls") { it.manifestFileUrls }
           dumpPaths("ManifestFiles") { it.manifestFiles }
           dumpUrls("ManifestDirectoryUrls") { it.manifestDirectoryUrls }

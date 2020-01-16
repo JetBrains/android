@@ -2,7 +2,6 @@ MODULE: AS36
 MODULE: android_library
     by Facet:
         main (IDEA)
-            ScopeType: MAIN
             ManifestFileUrls:
                 file://./libs/android_library/src/main/AndroidManifest.xml
             ManifestFiles:
@@ -271,7 +270,6 @@ MODULE: android_library
             file://./libs/android_library/src/main/AndroidManifest.xml
         Sources:
             Sources (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./libs/android_library/src/main/AndroidManifest.xml
                     file://./libs/android_library/src/debug/AndroidManifest.xml
@@ -312,7 +310,6 @@ MODULE: android_library
                     file://./libs/android_library/src/debug/shaders
         UnitTestSources:
             UnitTestSources (IDEA)
-                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./libs/android_library/src/test/AndroidManifest.xml
                     file://./libs/android_library/src/testDebug/AndroidManifest.xml
@@ -349,7 +346,6 @@ MODULE: android_library
                     file://./libs/android_library/src/testDebug/shaders
         AndroidTestSources:
             AndroidTestSources (IDEA)
-                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./libs/android_library/src/androidTest/AndroidManifest.xml
                     file://./libs/android_library/src/androidTestDebug/AndroidManifest.xml
@@ -386,7 +382,6 @@ MODULE: android_library
                     file://./libs/android_library/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./libs/android_library/src/main/AndroidManifest.xml
                 ManifestFiles:
@@ -416,7 +411,6 @@ MODULE: android_library
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/main/shaders
             debug (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./libs/android_library/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -438,7 +432,6 @@ MODULE: android_library
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/debug/shaders
             release (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./libs/android_library/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -461,7 +454,6 @@ MODULE: android_library
                     file://./libs/android_library/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./libs/android_library/src/main/AndroidManifest.xml
                 ManifestFiles:
@@ -491,7 +483,6 @@ MODULE: android_library
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/main/shaders
             debug (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./libs/android_library/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -514,7 +505,6 @@ MODULE: android_library
                     file://./libs/android_library/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./libs/android_library/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -540,7 +530,6 @@ MODULE: android_library
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/test/shaders
             testDebug (IDEA)
-                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./libs/android_library/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -563,7 +552,6 @@ MODULE: android_library
                     file://./libs/android_library/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./libs/android_library/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -589,7 +577,6 @@ MODULE: android_library
                 ShadersDirectoryUrls:
                     file://./libs/android_library/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./libs/android_library/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -613,7 +600,6 @@ MODULE: android_library
 MODULE: app
     by Facet:
         main (IDEA)
-            ScopeType: MAIN
             ManifestFileUrls:
                 file://./app/src/main/AndroidManifest.xml
             ManifestFiles:
@@ -882,7 +868,6 @@ MODULE: app
             file://./app/src/main/AndroidManifest.xml
         Sources:
             Sources (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
                     file://./app/src/debug/AndroidManifest.xml
@@ -923,7 +908,6 @@ MODULE: app
                     file://./app/src/debug/shaders
         UnitTestSources:
             UnitTestSources (IDEA)
-                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./app/src/test/AndroidManifest.xml
                     file://./app/src/testDebug/AndroidManifest.xml
@@ -960,7 +944,6 @@ MODULE: app
                     file://./app/src/testDebug/shaders
         AndroidTestSources:
             AndroidTestSources (IDEA)
-                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./app/src/androidTest/AndroidManifest.xml
                     file://./app/src/androidTestDebug/AndroidManifest.xml
@@ -997,7 +980,6 @@ MODULE: app
                     file://./app/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
                 ManifestFiles:
@@ -1027,7 +1009,6 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
             debug (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./app/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1049,7 +1030,6 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
             release (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./app/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1072,7 +1052,6 @@ MODULE: app
                     file://./app/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
                 ManifestFiles:
@@ -1102,7 +1081,6 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
             debug (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./app/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1125,7 +1103,6 @@ MODULE: app
                     file://./app/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./app/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1151,7 +1128,6 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/test/shaders
             testDebug (IDEA)
-                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./app/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1174,7 +1150,6 @@ MODULE: app
                     file://./app/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./app/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1200,7 +1175,6 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./app/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1224,7 +1198,6 @@ MODULE: app
 MODULE: dynamicfeature
     by Facet:
         main (IDEA)
-            ScopeType: MAIN
             ManifestFileUrls:
                 file://./features/dynamicfeature/src/main/AndroidManifest.xml
             ManifestFiles:
@@ -1489,7 +1462,6 @@ MODULE: dynamicfeature
             file://./features/dynamicfeature/src/main/AndroidManifest.xml
         Sources:
             Sources (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./features/dynamicfeature/src/main/AndroidManifest.xml
                     file://./features/dynamicfeature/src/debug/AndroidManifest.xml
@@ -1526,7 +1498,6 @@ MODULE: dynamicfeature
                     file://./features/dynamicfeature/src/debug/shaders
         UnitTestSources:
             UnitTestSources (IDEA)
-                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./features/dynamicfeature/src/test/AndroidManifest.xml
                     file://./features/dynamicfeature/src/testDebug/AndroidManifest.xml
@@ -1559,7 +1530,6 @@ MODULE: dynamicfeature
                     file://./features/dynamicfeature/src/testDebug/shaders
         AndroidTestSources:
             AndroidTestSources (IDEA)
-                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./features/dynamicfeature/src/androidTest/AndroidManifest.xml
                     file://./features/dynamicfeature/src/androidTestDebug/AndroidManifest.xml
@@ -1592,7 +1562,6 @@ MODULE: dynamicfeature
                     file://./features/dynamicfeature/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./features/dynamicfeature/src/main/AndroidManifest.xml
                 ManifestFiles:
@@ -1618,7 +1587,6 @@ MODULE: dynamicfeature
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/main/shaders
             debug (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./features/dynamicfeature/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1640,7 +1608,6 @@ MODULE: dynamicfeature
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/debug/shaders
             release (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./features/dynamicfeature/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1663,7 +1630,6 @@ MODULE: dynamicfeature
                     file://./features/dynamicfeature/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./features/dynamicfeature/src/main/AndroidManifest.xml
                 ManifestFiles:
@@ -1689,7 +1655,6 @@ MODULE: dynamicfeature
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/main/shaders
             debug (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./features/dynamicfeature/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1712,7 +1677,6 @@ MODULE: dynamicfeature
                     file://./features/dynamicfeature/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./features/dynamicfeature/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1734,7 +1698,6 @@ MODULE: dynamicfeature
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/test/shaders
             testDebug (IDEA)
-                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./features/dynamicfeature/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1757,7 +1720,6 @@ MODULE: dynamicfeature
                     file://./features/dynamicfeature/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./features/dynamicfeature/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1779,7 +1741,6 @@ MODULE: dynamicfeature
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./features/dynamicfeature/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1803,7 +1764,6 @@ MODULE: dynamicfeature
 MODULE: dynamicfeature2
     by Facet:
         main (IDEA)
-            ScopeType: MAIN
             ManifestFileUrls:
                 file://./features/dynamicfeature2/src/main/AndroidManifest.xml
             ManifestFiles:
@@ -2068,7 +2028,6 @@ MODULE: dynamicfeature2
             file://./features/dynamicfeature2/src/main/AndroidManifest.xml
         Sources:
             Sources (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./features/dynamicfeature2/src/main/AndroidManifest.xml
                     file://./features/dynamicfeature2/src/debug/AndroidManifest.xml
@@ -2105,7 +2064,6 @@ MODULE: dynamicfeature2
                     file://./features/dynamicfeature2/src/debug/shaders
         UnitTestSources:
             UnitTestSources (IDEA)
-                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./features/dynamicfeature2/src/test/AndroidManifest.xml
                     file://./features/dynamicfeature2/src/testDebug/AndroidManifest.xml
@@ -2138,7 +2096,6 @@ MODULE: dynamicfeature2
                     file://./features/dynamicfeature2/src/testDebug/shaders
         AndroidTestSources:
             AndroidTestSources (IDEA)
-                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./features/dynamicfeature2/src/androidTest/AndroidManifest.xml
                     file://./features/dynamicfeature2/src/androidTestDebug/AndroidManifest.xml
@@ -2171,7 +2128,6 @@ MODULE: dynamicfeature2
                     file://./features/dynamicfeature2/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./features/dynamicfeature2/src/main/AndroidManifest.xml
                 ManifestFiles:
@@ -2197,7 +2153,6 @@ MODULE: dynamicfeature2
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/shaders
             debug (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./features/dynamicfeature2/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -2219,7 +2174,6 @@ MODULE: dynamicfeature2
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/debug/shaders
             release (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./features/dynamicfeature2/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -2242,7 +2196,6 @@ MODULE: dynamicfeature2
                     file://./features/dynamicfeature2/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./features/dynamicfeature2/src/main/AndroidManifest.xml
                 ManifestFiles:
@@ -2268,7 +2221,6 @@ MODULE: dynamicfeature2
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/main/shaders
             debug (IDEA)
-                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./features/dynamicfeature2/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -2291,7 +2243,6 @@ MODULE: dynamicfeature2
                     file://./features/dynamicfeature2/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
-                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./features/dynamicfeature2/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -2313,7 +2264,6 @@ MODULE: dynamicfeature2
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/test/shaders
             testDebug (IDEA)
-                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./features/dynamicfeature2/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -2336,7 +2286,6 @@ MODULE: dynamicfeature2
                     file://./features/dynamicfeature2/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
-                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./features/dynamicfeature2/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -2358,7 +2307,6 @@ MODULE: dynamicfeature2
                 ShadersDirectoryUrls:
                     file://./features/dynamicfeature2/src/androidTest/shaders
             androidTestDebug (IDEA)
-                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./features/dynamicfeature2/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
