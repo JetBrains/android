@@ -53,10 +53,12 @@ public class MotionConstraintPanel extends WidgetConstraintPanel {
   //////////////////////////////////////////////////////////////////////////////////////
   class MotionWidgetConstraintModel extends WidgetConstraintModel {
 
-    MTag.TagWriter mTagWriter;
+    private boolean mPendingLayoutChanges;
+    private MTag.TagWriter mTagWriter;
+
     private Timer myTimer = new Timer(DELAY_BEFORE_COMMIT, (c) -> {
       if (myComponent != null) {
-        TransactionGuard.getInstance().submitTransaction(myComponent.getModel(), () -> commit());
+        TransactionGuard.submitTransaction(myComponent.getModel(), () -> commit());
       }
     });
 
@@ -77,7 +79,7 @@ public class MotionConstraintPanel extends WidgetConstraintPanel {
       }
       MotionAttributes attr = MotionSceneUtils.getAttributes(component);
       if (attr == null) {
-        return null;
+        return super.getValue(component, namespace, attribute);
       }
       HashMap<String, MotionAttributes.DefinedAttribute> map = attr.getAttrMap();
       if (map == null) {
@@ -95,6 +97,15 @@ public class MotionConstraintPanel extends WidgetConstraintPanel {
       if (component == null) {
         return;
       }
+
+      MotionAttributes attr = MotionSceneUtils.getAttributes(component);
+      if (attr == null) {
+        super.setAttribute(component, namespace, attribute, value);
+        mPendingLayoutChanges = true;
+        mTagWriter = null;
+        return;
+      }
+
       mTagWriter = MotionSceneUtils.getTagWriter(component);
       mTagWriter.setAttribute(namespace, attribute, value);
       myTimer.setRepeats(false);
@@ -103,6 +114,11 @@ public class MotionConstraintPanel extends WidgetConstraintPanel {
 
     @Override
     public void commit() {
+      if (mPendingLayoutChanges) {
+        super.commit();
+        mPendingLayoutChanges = false;
+        return;
+      }
       if (mTagWriter == null) {
         return;
       }
