@@ -35,11 +35,10 @@ class IdeBenchmarkTestSuite : IdeaTestSuiteBase() {
           "prebuilts/studio/buildbenchmarks/SantaTracker.181be75/src.zip",
           "tools/adt/idea/ide-perf-tests/testData/SantaTracker",
           DiffSpec("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/setupForIdeTest.diff", 2))
-        setUpOfflineRepo("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/repo.zip",
-                         "prebuilts/tools/common/m2/repository")
+        unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/repo.zip")
 
-        setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo")
-        setUpOfflineRepo("tools/adt/idea/android/test_deps.zip", "prebuilts/tools/common/m2/repository")
+        unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip")
+        unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip")
       }
       catch (e: Throwable) {
         System.err.println("ERROR: Failed to initialize test suite, tests will likely fail following this error")
