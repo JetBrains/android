@@ -40,6 +40,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.PathUtilRt;
 import com.intellij.util.concurrency.EdtExecutorService;
 import java.io.IOException;
@@ -78,6 +79,7 @@ public class DeviceExplorerFileManagerImpl implements DeviceExplorerFileManager 
     );
   }
 
+  @NonInjectable
   @VisibleForTesting
   public DeviceExplorerFileManagerImpl(@NotNull Project project,
                                        @NotNull Executor edtExecutor,
