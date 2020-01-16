@@ -54,7 +54,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
@@ -76,6 +75,12 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private static final String SELECTION_TIME = "DeviceAndSnapshotComboBoxAction.selectionTime";
 
   /**
+   * This <a href="http://www.jetbrains.org/intellij/sdk/docs/basics/persisting_state_of_components.html">persisted value</a> is true when a
+   * developer selects Multiple Devices with the combo box and unset otherwise.
+   */
+  private static final String MULTIPLE_DEVICES_SELECTED = "DeviceAndSnapshotComboBoxAction.multipleDevicesSelected";
+
+  /**
    * Run configurations that aren't {@link AndroidRunConfiguration} or {@link AndroidTestRunConfiguration} can use this key
    * to express their applicability for DeviceAndSnapshotComboBoxAction by setting it to true in their user data.
    */
@@ -88,7 +93,12 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @NotNull
   private final Function<Project, PropertiesComponent> myGetProperties;
 
-  private final AnAction myRunOnMultipleDevicesAction;
+  @NotNull
+  private final AnAction myMultipleDevicesAction;
+
+  @NotNull
+  private final AnAction myModifyDeviceSetAction;
+
   private final Clock myClock;
 
   @SuppressWarnings("unused")
@@ -109,8 +119,15 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     myDevicesGetterGetter = devicesGetterGetter;
     myGetProperties = getProperties;
 
-    myRunOnMultipleDevicesAction = new RunOnMultipleDevicesAction();
+    myMultipleDevicesAction = new MultipleDevicesAction(this);
+    myModifyDeviceSetAction = new ModifyDeviceSetAction();
+
     myClock = clock;
+  }
+
+  @NotNull
+  static DeviceAndSnapshotComboBoxAction getInstance() {
+    return (DeviceAndSnapshotComboBoxAction)ActionManager.getInstance().getAction("DeviceAndSnapshotComboBox");
   }
 
   boolean areSnapshotsEnabled() {
@@ -119,8 +136,14 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @NotNull
   @VisibleForTesting
-  final AnAction getRunOnMultipleDevicesAction() {
-    return myRunOnMultipleDevicesAction;
+  final AnAction getMultipleDevicesAction() {
+    return myMultipleDevicesAction;
+  }
+
+  @NotNull
+  @VisibleForTesting
+  final AnAction getModifyDeviceSetAction() {
+    return myModifyDeviceSetAction;
   }
 
   @NotNull
@@ -132,6 +155,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @Nullable
+  @VisibleForTesting
   final Device getSelectedDevice(@NotNull Project project) {
     return getSelectedDevice(project, getDevices(project));
   }
@@ -189,19 +213,57 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     return Instant.parse(time);
   }
 
-  final void setSelectedDevice(@NotNull Project project, @Nullable Device selectedDevice) {
+  /**
+   * {@link SelectDeviceAction#actionPerformed} calls this when a developer selects a single device with the combo box. Unit tests also call
+   * this to simulate the same thing.
+   */
+  final void setSelectedDevice(@NotNull Project project, @NotNull Device selectedDevice) {
+    PropertiesComponent properties = myGetProperties.apply(project);
+    properties.unsetValue(MULTIPLE_DEVICES_SELECTED);
+
+    properties.setValue(SELECTED_DEVICE, selectedDevice.getKey().toString());
+    properties.setValue(SELECTION_TIME, myClock.instant().toString());
+
+    updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget(selectedDevice));
+  }
+
+  @NotNull
+  static List<Device> getSelectedDevices(@NotNull Project project) {
+    DeviceAndSnapshotComboBoxAction action = getInstance();
+
+    if (action.isMultipleDevicesSelected(project)) {
+      return ModifyDeviceSetDialog.getSelectedDevices(project);
+    }
+
+    Device device = action.getSelectedDevice(project);
+
+    if (device == null) {
+      return Collections.emptyList();
+    }
+
+    return Collections.singletonList(device);
+  }
+
+  final boolean isMultipleDevicesSelected(@NotNull Project project) {
+    return myGetProperties.apply(project).getBoolean(MULTIPLE_DEVICES_SELECTED);
+  }
+
+  final void setMultipleDevicesSelected(@NotNull Project project, @SuppressWarnings("SameParameterValue") boolean multipleDevicesSelected) {
+    setMultipleDevicesSelected(project, multipleDevicesSelected, ModifyDeviceSetDialog.getSelectedDevices(project));
+  }
+
+  @VisibleForTesting
+  final void setMultipleDevicesSelected(@NotNull Project project,
+                                        @SuppressWarnings("SameParameterValue") boolean multipleDevicesSelected,
+                                        @NotNull List<Device> selectedDevices) {
     PropertiesComponent properties = myGetProperties.apply(project);
 
-    if (selectedDevice == null) {
-      properties.unsetValue(SELECTED_DEVICE);
-      properties.unsetValue(SELECTION_TIME);
-    }
-    else {
-      properties.setValue(SELECTED_DEVICE, selectedDevice.getKey().toString());
-      properties.setValue(SELECTION_TIME, myClock.instant().toString());
-    }
+    properties.unsetValue(SELECTION_TIME);
+    properties.unsetValue(SELECTED_DEVICE);
 
-    updateExecutionTargetManager(project, selectedDevice);
+    properties.setValue(MULTIPLE_DEVICES_SELECTED, multipleDevicesSelected);
+
+    updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget(selectedDevices));
   }
 
   @NotNull
@@ -277,7 +339,8 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     ActionManager manager = ActionManager.getInstance();
 
-    group.add(myRunOnMultipleDevicesAction);
+    group.add(myMultipleDevicesAction);
+    group.add(myModifyDeviceSetAction);
     group.add(manager.getAction(RunAndroidAvdManagerAction.ID));
 
     AnAction action = manager.getAction("DeveloperServices.ConnectionAssistant");
@@ -384,25 +447,19 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     Presentation presentation = event.getPresentation();
     updatePresentation(presentation, RunManager.getInstance(project).getSelectedConfiguration());
 
-    List<Device> devices = getDevices(project);
-    Device device = getSelectedDevice(project, devices);
+    String place = event.getPlace();
 
-    if (event.getPlace().equals(ActionPlaces.MAIN_MENU)) {
-      presentation.setIcon(null);
-      presentation.setText("Select Device...");
+    switch (place) {
+      case ActionPlaces.MAIN_MENU:
+        updateInMainMenu(presentation);
+        break;
+      case ActionPlaces.MAIN_TOOLBAR:
+      case ActionPlaces.NAVIGATION_BAR_TOOLBAR:
+        updateInToolbar(presentation, project);
+        break;
+      default:
+        assert false : place;
     }
-    else if (devices.isEmpty()) {
-      presentation.setIcon(null);
-      presentation.setText("No Devices");
-    }
-    else {
-      assert device != null;
-
-      presentation.setIcon(device.getIcon());
-      presentation.setText(getText(device, devices, mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get()), false);
-    }
-
-    updateExecutionTargetManager(project, device);
   }
 
   @VisibleForTesting
@@ -438,6 +495,38 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     presentation.setEnabled(true);
   }
 
+  private static void updateInMainMenu(@NotNull Presentation presentation) {
+    presentation.setIcon(null);
+    presentation.setText("Select Device...");
+  }
+
+  private void updateInToolbar(@NotNull Presentation presentation, @NotNull Project project) {
+    if (isMultipleDevicesSelected(project)) {
+      presentation.setIcon(null);
+      presentation.setText("Multiple Devices");
+
+      return;
+    }
+
+    List<Device> devices = getDevices(project);
+
+    if (devices.isEmpty()) {
+      presentation.setIcon(null);
+      presentation.setText("No Devices");
+
+      updateExecutionTargetManager(project, DefaultExecutionTarget.INSTANCE);
+      return;
+    }
+
+    Device device = getSelectedDevice(project, devices);
+    assert device != null;
+
+    presentation.setIcon(device.getIcon());
+    presentation.setText(getText(device, devices, mySelectDeviceSnapshotComboBoxSnapshotsEnabled.get()), false);
+
+    updateExecutionTargetManager(project, new DeviceAndSnapshotComboBoxExecutionTarget(device));
+  }
+
   /**
    * Formats the selected device for display in the drop down button. If there's another device with the same name, the text will have the
    * selected device's key appended to it to disambiguate it from the other one. If the SNAPSHOTS_ENABLED flag is on and the device has a
@@ -457,13 +546,10 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     return Devices.getText(device, anotherDeviceHasSameName ? device.getKey() : null, snapshotsEnabled ? device.getSnapshot() : null);
   }
 
-  private static void updateExecutionTargetManager(@NotNull Project project, @Nullable Device device) {
-    ExecutionTarget target = ExecutionTargetManager.getInstance(project).getActiveTarget();
+  private static void updateExecutionTargetManager(@NotNull Project project, @NotNull ExecutionTarget activeTarget) {
+    ExecutionTargetManager executionTargetManager = ExecutionTargetManager.getInstance(project);
 
-    // Skip updating ExecutionTargetManager if the Device has not meaningfully changed.
-    if (device == null && target == DefaultExecutionTarget.INSTANCE ||
-        target instanceof DeviceAndSnapshotExecutionTargetProvider.Target &&
-        Objects.equals(device, ((DeviceAndSnapshotExecutionTargetProvider.Target)target).getDevice())) {
+    if (executionTargetManager.getActiveTarget().equals(activeTarget)) {
       return;
     }
 
@@ -481,14 +567,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
         return;
       }
 
-      ExecutionTargetManager manager = ExecutionTargetManager.getInstance(project);
-
-      for (ExecutionTarget availableTarget : manager.getTargetsFor(settings.getConfiguration())) {
-        if (availableTarget instanceof DeviceAndSnapshotExecutionTargetProvider.Target) {
-          manager.setActiveTarget(availableTarget);
-          break;
-        }
-      }
+      executionTargetManager.setActiveTarget(activeTarget);
     });
   }
 }

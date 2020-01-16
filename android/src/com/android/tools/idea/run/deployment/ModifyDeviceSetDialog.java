@@ -20,12 +20,13 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.containers.ContainerUtil;
 import java.awt.Component;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import javax.swing.Action;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
@@ -34,51 +35,32 @@ import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class SelectDeploymentTargetsDialog extends DialogWrapper {
+final class ModifyDeviceSetDialog extends DialogWrapper {
   private static final String SELECTED_DEVICES = "SelectDeploymentTargetsDialog.selectedDevices";
 
   @NotNull
   private final Project myProject;
 
   @Nullable
-  private SelectDeploymentTargetsDialogTable myTable;
+  private ModifyDeviceSetDialogTable myTable;
 
-  @Nullable
-  private Collection<Device> mySelectedDevices;
-
-  SelectDeploymentTargetsDialog(@NotNull Project project) {
+  ModifyDeviceSetDialog(@NotNull Project project) {
     super(project);
     myProject = project;
 
     initTable();
     init();
-    setTitle("Select Deployment Targets");
+    setTitle("Modify Device Set");
   }
 
   private void initTable() {
     List<Device> devices = ServiceManager.getService(myProject, AsyncDevicesGetter.class).get();
 
-    myTable = new SelectDeploymentTargetsDialogTable();
-    myTable.setModel(new SelectDeploymentTargetsDialogTableModel(devices, myTable));
+    myTable = new ModifyDeviceSetDialogTable();
+    myTable.setModel(new ModifyDeviceSetDialogTableModel(devices, myTable));
     myTable.getSelectionModel().addListSelectionListener(event -> getOKAction().setEnabled(myTable.getSelectedRowCount() != 0));
 
-    String[] array = PropertiesComponent.getInstance(myProject).getValues(SELECTED_DEVICES);
-
-    if (array == null) {
-      return;
-    }
-
-    Collection<Key> collection = Arrays.stream(array)
-      .map(Key::new)
-      .collect(Collectors.toSet());
-
-    myTable.setSelectedDevices(collection);
-  }
-
-  @NotNull
-  Collection<Device> getSelectedDevices() {
-    assert mySelectedDevices != null;
-    return mySelectedDevices;
+    myTable.setSelectedDevices(getSelectedKeys(myProject));
   }
 
   @NotNull
@@ -108,9 +90,7 @@ final class SelectDeploymentTargetsDialog extends DialogWrapper {
   @Override
   protected void createDefaultActions() {
     super.createDefaultActions();
-
     myOKAction.setEnabled(false);
-    myOKAction.putValue(Action.NAME, "Run");
   }
 
   @NotNull
@@ -123,15 +103,34 @@ final class SelectDeploymentTargetsDialog extends DialogWrapper {
   @Override
   protected void doOKAction() {
     super.doOKAction();
-
     assert myTable != null;
-    mySelectedDevices = myTable.getSelectedDevices();
 
-    String[] keys = mySelectedDevices.stream()
+    String[] keys = myTable.getSelectedDevices().stream()
       .map(Device::getKey)
       .map(Key::toString)
       .toArray(String[]::new);
 
     PropertiesComponent.getInstance(myProject).setValues(SELECTED_DEVICES, keys);
+  }
+
+  @NotNull
+  static List<Device> getSelectedDevices(@NotNull Project project) {
+    Collection<Device> devices = ServiceManager.getService(project, AsyncDevicesGetter.class).get();
+    Collection<Key> keys = getSelectedKeys(project);
+
+    return ContainerUtil.filter(devices, device -> keys.contains(device.getKey()));
+  }
+
+  @NotNull
+  private static Collection<Key> getSelectedKeys(@NotNull Project project) {
+    String[] keys = PropertiesComponent.getInstance(project).getValues(SELECTED_DEVICES);
+
+    if (keys == null) {
+      return Collections.emptySet();
+    }
+
+    return Arrays.stream(keys)
+      .map(Key::new)
+      .collect(Collectors.toSet());
   }
 }

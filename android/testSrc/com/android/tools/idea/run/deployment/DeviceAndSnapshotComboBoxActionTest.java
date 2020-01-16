@@ -277,14 +277,15 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       project -> myDevicesGetter,
-      project -> null,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.update(myEvent);
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
     Object expectedChildren = Arrays.asList(
-      action.getRunOnMultipleDevicesAction(),
+      action.getMultipleDevicesAction(),
+      action.getModifyDeviceSetAction(),
       ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
@@ -313,7 +314,8 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       new Heading("Available devices"),
       SelectDeviceAction.newSelectDeviceAction(action, myProject, builder.build()),
       Separator.getInstance(),
-      action.getRunOnMultipleDevicesAction(),
+      action.getMultipleDevicesAction(),
+      action.getModifyDeviceSetAction(),
       ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
@@ -343,7 +345,8 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       new Heading("Running devices"),
       SelectDeviceAction.newSelectDeviceAction(action, myProject, builder.build()),
       Separator.getInstance(),
-      action.getRunOnMultipleDevicesAction(),
+      action.getMultipleDevicesAction(),
+      action.getModifyDeviceSetAction(),
       ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
@@ -383,7 +386,8 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       new Heading("Available devices"),
       SelectDeviceAction.newSelectDeviceAction(action, myProject, virtualDeviceBuilder.build()),
       Separator.getInstance(),
-      action.getRunOnMultipleDevicesAction(),
+      action.getMultipleDevicesAction(),
+      action.getModifyDeviceSetAction(),
       ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
@@ -413,7 +417,8 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       new Heading("Available devices"),
       SelectDeviceAction.newSelectDeviceAction(action, myProject, builder.build()),
       Separator.getInstance(),
-      action.getRunOnMultipleDevicesAction(),
+      action.getMultipleDevicesAction(),
+      action.getModifyDeviceSetAction(),
       ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
@@ -445,7 +450,8 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       new Heading("Available devices"),
       SelectDeviceAction.newSelectDeviceAction(action, myProject, builder.build()),
       Separator.getInstance(),
-      action.getRunOnMultipleDevicesAction(),
+      action.getMultipleDevicesAction(),
+      action.getModifyDeviceSetAction(),
       ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
@@ -583,11 +589,36 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @Test
+  public void updateMultipleDevicesIsSelected() {
+    // Arrange
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
+      () -> false,
+      project -> null,
+      PropertiesComponent::getInstance,
+      myClock);
+
+    Device device = new VirtualDevice.Builder()
+      .setName("Pixel 2 API 29")
+      .setKey(new Key("Pixel_2_API_29"))
+      .setAndroidDevice(Mockito.mock(AndroidDevice.class))
+      .build();
+
+    action.setMultipleDevicesSelected(myProject, true, Collections.singletonList(device));
+
+    // Act
+    action.update(myEvent);
+
+    // Assert
+    assertNull(myPresentation.getIcon());
+    assertEquals("Multiple Devices", myPresentation.getText());
+  }
+
+  @Test
   public void updateDevicesIsEmpty() {
     DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(
       () -> true,
       project -> myDevicesGetter,
-      project -> null,
+      PropertiesComponent::getInstance,
       myClock);
 
     action.update(myEvent);
@@ -880,7 +911,11 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .thenReturn(Collections.emptyList())
       .thenReturn(Collections.singletonList(device));
 
-    AnAction action = new DeviceAndSnapshotComboBoxAction(() -> false, project -> myDevicesGetter, project -> null, myClock);
+    AnAction action = new DeviceAndSnapshotComboBoxAction(
+      () -> false,
+      project -> myDevicesGetter,
+      PropertiesComponent::getInstance,
+      myClock);
 
     // Act
     action.update(myEvent);

@@ -30,15 +30,25 @@ import java.util.Collections;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 import org.mockito.Mockito;
 
-public final class RunOnMultipleDevicesActionTest {
+@RunWith(JUnit4.class)
+public final class MultipleDevicesActionTest {
   @Rule
   public final AndroidProjectRule myRule = AndroidProjectRule.inMemory();
 
   private AnAction myAction;
+  private DeviceAndSnapshotComboBoxAction myComboBoxAction;
+
   private Presentation myPresentation;
   private AnActionEvent myEvent;
+
+  @Before
+  public void mockComboBoxAction() {
+    myComboBoxAction = Mockito.mock(DeviceAndSnapshotComboBoxAction.class);
+  }
 
   @Before
   public void mockEvent() {
@@ -51,7 +61,7 @@ public final class RunOnMultipleDevicesActionTest {
   @Test
   public void updateProjectIsNull() {
     // Arrange
-    myAction = new RunOnMultipleDevicesAction();
+    myAction = new MultipleDevicesAction(myComboBoxAction);
 
     // Act
     myAction.update(myEvent);
@@ -63,7 +73,7 @@ public final class RunOnMultipleDevicesActionTest {
   @Test
   public void updateSettingsAreNull() {
     // Arrange
-    myAction = new RunOnMultipleDevicesAction();
+    myAction = new MultipleDevicesAction(myComboBoxAction);
     Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
 
     // Act
@@ -79,7 +89,7 @@ public final class RunOnMultipleDevicesActionTest {
     RunnerAndConfigurationSettings settings = Mockito.mock(RunnerAndConfigurationSettings.class);
     Mockito.when(settings.getType()).thenReturn(Mockito.mock(ConfigurationType.class));
 
-    myAction = new RunOnMultipleDevicesAction(project -> settings, project -> Collections.emptyList());
+    myAction = new MultipleDevicesAction(myComboBoxAction, project -> settings, project -> Collections.emptyList());
     Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
 
     // Act
@@ -95,7 +105,7 @@ public final class RunOnMultipleDevicesActionTest {
     RunnerAndConfigurationSettings settings = Mockito.mock(RunnerAndConfigurationSettings.class);
     Mockito.when(settings.getType()).thenReturn(AndroidRunConfigurationType.getInstance());
 
-    myAction = new RunOnMultipleDevicesAction(project -> settings, project -> Collections.emptyList());
+    myAction = new MultipleDevicesAction(myComboBoxAction, project -> settings, project -> Collections.emptyList());
     Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
 
     // Act
@@ -117,7 +127,7 @@ public final class RunOnMultipleDevicesActionTest {
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    myAction = new RunOnMultipleDevicesAction(project -> settings, project -> Collections.singletonList(device));
+    myAction = new MultipleDevicesAction(myComboBoxAction, project -> settings, project -> Collections.singletonList(device));
     Mockito.when(myEvent.getProject()).thenReturn(myRule.getProject());
 
     // Act

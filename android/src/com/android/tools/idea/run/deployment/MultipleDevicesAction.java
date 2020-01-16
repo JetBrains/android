@@ -17,47 +17,47 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.AndroidRunConfigurationType;
-import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.execution.ExecutionManager;
-import com.intellij.execution.Executor;
-import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationType;
-import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-final class RunOnMultipleDevicesAction extends AnAction {
+/**
+ * The Multiple Devices item in the combo box. If this is selected the selected configuration is deployed on the last device set selected
+ * with the {@link ModifyDeviceSetDialog Modify Device Set dialog.}
+ */
+final class MultipleDevicesAction extends AnAction {
+  @NotNull
+  private final DeviceAndSnapshotComboBoxAction myComboBoxAction;
+
   @NotNull
   private final Function<Project, RunnerAndConfigurationSettings> myGetSelectedConfiguration;
 
   @NotNull
   private final Function<Project, Collection<Device>> myGetDevices;
 
-  RunOnMultipleDevicesAction() {
-    this(project -> RunManager.getInstance(project).getSelectedConfiguration(),
+  MultipleDevicesAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction) {
+    this(comboBoxAction,
+         project -> RunManager.getInstance(project).getSelectedConfiguration(),
          project -> ServiceManager.getService(project, AsyncDevicesGetter.class).get());
   }
 
   @VisibleForTesting
-  RunOnMultipleDevicesAction(@NotNull Function<Project, RunnerAndConfigurationSettings> getSelectedConfiguration,
-                             @NotNull Function<Project, Collection<Device>> getDevices) {
-    super("Run on Multiple Devices", null, AllIcons.Actions.Execute);
+  MultipleDevicesAction(@NotNull DeviceAndSnapshotComboBoxAction comboBoxAction,
+                        @NotNull Function<Project, RunnerAndConfigurationSettings> getSelectedConfiguration,
+                        @NotNull Function<Project, Collection<Device>> getDevices) {
+    super("Multiple Devices");
 
+    myComboBoxAction = comboBoxAction;
     myGetSelectedConfiguration = getSelectedConfiguration;
     myGetDevices = getDevices;
   }
@@ -100,54 +100,7 @@ final class RunOnMultipleDevicesAction extends AnAction {
       return;
     }
 
-    DeviceAndSnapshotComboBoxTargetProvider provider = findProvider();
-
-    if (provider == null) {
-      return;
-    }
-
-    provider.setProvidingMultipleTargets(true);
-    ExecutionEnvironmentBuilder builder = createBuilder(event.getDataContext());
-
-    if (builder == null) {
-      return;
-    }
-
-    ExecutionManager.getInstance(project).restartRunProfile(builder.build());
-  }
-
-  @Nullable
-  private static DeviceAndSnapshotComboBoxTargetProvider findProvider() {
-    Optional<DeployTargetProvider> optionalProvider = DeployTargetProvider.getProviders().stream()
-      .filter(DeviceAndSnapshotComboBoxTargetProvider.class::isInstance)
-      .findFirst();
-
-    return (DeviceAndSnapshotComboBoxTargetProvider)optionalProvider.orElse(null);
-  }
-
-  @Nullable
-  private static ExecutionEnvironmentBuilder createBuilder(@NotNull DataContext context) {
-    Executor executor = ExecutorRegistry.getInstance().getExecutorById("Run");
-    Project project = context.getData(CommonDataKeys.PROJECT);
-
-    if (project == null) {
-      return null;
-    }
-
-    RunnerAndConfigurationSettings settings = RunManager.getInstance(project).getSelectedConfiguration();
-
-    if (settings == null) {
-      return null;
-    }
-
-    ExecutionEnvironmentBuilder builder = ExecutionEnvironmentBuilder.createOrNull(executor, settings);
-
-    if (builder == null) {
-      return null;
-    }
-
-    builder.dataContext(context);
-    return builder;
+    myComboBoxAction.setMultipleDevicesSelected(project, true);
   }
 
   private static boolean isSupportedRunConfigurationType(@NotNull ConfigurationType type) {

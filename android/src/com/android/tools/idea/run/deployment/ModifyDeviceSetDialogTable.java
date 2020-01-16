@@ -31,8 +31,8 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 
-final class SelectDeploymentTargetsDialogTable extends JBTable {
-  SelectDeploymentTargetsDialogTable() {
+final class ModifyDeviceSetDialogTable extends JBTable {
+  ModifyDeviceSetDialogTable() {
     getTableHeader().setResizingAllowed(false);
     setDefaultEditor(Boolean.class, new BooleanTableCellEditor());
     setRowHeight(JBUI.scale(30));
@@ -40,7 +40,7 @@ final class SelectDeploymentTargetsDialogTable extends JBTable {
 
   @NotNull
   Collection<Device> getSelectedDevices() {
-    SelectDeploymentTargetsDialogTableModel model = (SelectDeploymentTargetsDialogTableModel)getModel();
+    ModifyDeviceSetDialogTableModel model = (ModifyDeviceSetDialogTableModel)getModel();
 
     return Arrays.stream(getSelectedRows())
       .map(this::convertRowIndexToModel)
@@ -49,7 +49,7 @@ final class SelectDeploymentTargetsDialogTable extends JBTable {
   }
 
   void setSelectedDevices(@NotNull Collection<Key> keys) {
-    SelectDeploymentTargetsDialogTableModel model = (SelectDeploymentTargetsDialogTableModel)getModel();
+    ModifyDeviceSetDialogTableModel model = (ModifyDeviceSetDialogTableModel)getModel();
 
     IntStream.range(0, getRowCount()).forEach(viewRowIndex -> {
       if (keys.contains(model.getDeviceAt(convertRowIndexToModel(viewRowIndex)).getKey())) {
@@ -95,8 +95,8 @@ final class SelectDeploymentTargetsDialogTable extends JBTable {
   }
 
   private void setSelectedAndIconColumnMaxWidthsToFit() {
-    setMaxWidthToFit(convertColumnIndexToView(SelectDeploymentTargetsDialogTableModel.SELECTED_MODEL_COLUMN_INDEX));
-    setMaxWidthToFit(convertColumnIndexToView(SelectDeploymentTargetsDialogTableModel.TYPE_MODEL_COLUMN_INDEX));
+    setMaxWidthToFit(convertColumnIndexToView(ModifyDeviceSetDialogTableModel.SELECTED_MODEL_COLUMN_INDEX));
+    setMaxWidthToFit(convertColumnIndexToView(ModifyDeviceSetDialogTableModel.TYPE_MODEL_COLUMN_INDEX));
   }
 
   private void setMaxWidthToFit(int viewColumnIndex) {

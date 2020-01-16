@@ -25,7 +25,7 @@ import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import org.jetbrains.annotations.NotNull;
 
-final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel {
+final class ModifyDeviceSetDialogTableModel extends AbstractTableModel {
   static final int SELECTED_MODEL_COLUMN_INDEX = 0;
   static final int TYPE_MODEL_COLUMN_INDEX = 1;
   private static final int DEVICE_MODEL_COLUMN_INDEX = 2;
@@ -42,7 +42,7 @@ final class SelectDeploymentTargetsDialogTableModel extends AbstractTableModel {
   @NotNull
   private final Multiset<String> myDeviceNameMultiset;
 
-  SelectDeploymentTargetsDialogTableModel(@NotNull List<Device> devices, @NotNull JTable table) {
+  ModifyDeviceSetDialogTableModel(@NotNull List<Device> devices, @NotNull JTable table) {
     myDevices = devices;
     myDevices.sort(new DeviceComparator());
 

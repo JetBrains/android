@@ -25,18 +25,12 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.project.Project;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 final class DeviceAndSnapshotComboBoxTarget implements DeployTarget<State> {
   @NotNull
   private final Collection<Device> myDevices;
-
-  DeviceAndSnapshotComboBoxTarget(@Nullable Device device) {
-    myDevices = device == null ? Collections.emptyList() : Collections.singletonList(device);
-  }
 
   DeviceAndSnapshotComboBoxTarget(@NotNull Collection<Device> devices) {
     myDevices = devices;
