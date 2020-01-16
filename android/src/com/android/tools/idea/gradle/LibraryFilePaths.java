@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle;
 
+import static com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel.SAMPLE_SOURCE_CLASSIFIER;
 import static com.android.tools.idea.gradle.project.sync.idea.AdditionalClassifierArtifactsModelCollectorKt.idToString;
 import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.NAME_PREFIX;
 import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
@@ -45,18 +46,19 @@ public class LibraryFilePaths {
     @Nullable final File myJavaDoc;
     @Nullable final File mySources;
     @Nullable final File myPom;
+    @Nullable final File mySampleSource;
 
-    private ArtifactPaths(@Nullable File javadoc, @Nullable File sources, @Nullable File pom) {
-      myJavaDoc = javadoc;
-      mySources = sources;
-      myPom = pom;
+    private ArtifactPaths(AdditionalClassifierArtifacts artifact) {
+      myJavaDoc = artifact.getJavadoc();
+      mySources = artifact.getSources();
+      myPom = artifact.getMavenPom();
+      mySampleSource = artifact.getSampleSources();
     }
   }
 
   public void populate(@NotNull AdditionalClassifierArtifactsModel artifacts) {
     for (AdditionalClassifierArtifacts artifact : artifacts.getArtifacts()) {
-      myPathsMap.computeIfAbsent(idToString(artifact.getId()),
-                                 k -> new ArtifactPaths(artifact.getJavadoc(), artifact.getSources(), artifact.getMavenPom()));
+      myPathsMap.computeIfAbsent(idToString(artifact.getId()), k -> new ArtifactPaths(artifact));
     }
   }
 
@@ -76,6 +78,15 @@ public class LibraryFilePaths {
       return myPathsMap.get(libraryId).mySources;
     }
     return findArtifactFilePathInRepository(libraryPath, "-sources.jar", true);
+  }
+
+  @Nullable
+  public File findSampleSourcesJarPath(@NotNull String libraryName, @NotNull File libraryPath) {
+    String libraryId = getLibraryId(libraryName);
+    if (myPathsMap.containsKey(libraryId)) {
+      return myPathsMap.get(libraryId).mySampleSource;
+    }
+    return findArtifactFilePathInRepository(libraryPath, SAMPLE_SOURCE_CLASSIFIER, true);
   }
 
   /**

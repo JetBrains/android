@@ -66,9 +66,11 @@ internal val RESOLVER_LOG = Logger.getInstance(AndroidGradleProjectResolver::cla
 
 typealias SourcesPath = File?
 typealias JavadocPath = File?
+typealias SampleSourcePath = File?
 typealias ArtifactId = String
 typealias ArtifactPath = File
-data class AdditionalArtifactsPaths(val sources: SourcesPath, val javadoc: JavadocPath)
+
+data class AdditionalArtifactsPaths(val sources: SourcesPath, val javadoc: JavadocPath, val sampleSources: SampleSourcePath)
 
 /**
  * Sets up the [LibraryDependencyData] and [ModuleDependencyData] on the receiving [ModuleData] node.
@@ -306,9 +308,10 @@ private fun setupAndroidDependenciesForArtifact(
     }
 
     // Add the JavaDoc and sources location if we have them.
-    additionalArtifactsMapper(stripExtension(libraryName), library.artifact)?.also { (sources, javadocs) ->
+    additionalArtifactsMapper(stripExtension(libraryName), library.artifact)?.also { (sources, javadocs, sampleSources) ->
       sources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
       javadocs?.also { libraryData.addPath(DOC, it.absolutePath) }
+      sampleSources?.also { libraryData.addPath(SOURCE, it.absolutePath) }
     }
 
     // It may be possible that we have local sources not obtained by Gradle. We look for those here.
