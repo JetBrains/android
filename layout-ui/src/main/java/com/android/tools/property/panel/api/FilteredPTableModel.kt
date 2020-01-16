@@ -60,6 +60,9 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
      * item will be included at the end of the table after setting its
      * name to null i.e. the new item line will be ready for the user
      * to add another item to the table.
+     * Use [allowEditing] to turn off editing completely in all cells.
+     * Use [valueEditable] to turn off editing for some values. Group item
+     * and items implementing [NewPropertyItem] will be editable regardless.
      * The [groups] specifies which item are grouped under a specified
      * group name. The items are sorted using [itemComparator].
      */
@@ -70,9 +73,11 @@ interface FilteredPTableModel<P : PropertyItem> : PTableModel {
       itemComparator: Comparator<PTableItem> = alphabeticalSortOrder,
       groups: List<GroupSpec<P>> = emptyList(),
       keepNewAfterFlyAway: Boolean = true,
-      allowEditing: Boolean = true
+      allowEditing: Boolean = true,
+      valueEditable: (P) -> Boolean = { true }
     ): FilteredPTableModel<P> {
-      return FilteredPTableModelImpl(model, itemFilter, deleteOperation, itemComparator, groups, keepNewAfterFlyAway, allowEditing)
+      return FilteredPTableModelImpl(
+        model, itemFilter, deleteOperation, itemComparator, groups, keepNewAfterFlyAway, allowEditing, valueEditable)
     }
   }
 }
