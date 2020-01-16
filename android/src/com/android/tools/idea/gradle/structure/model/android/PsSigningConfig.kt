@@ -49,7 +49,7 @@ class PsSigningConfig(
     this.parsedModel = parsedModel
   }
 
-  override val name get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
+  override val name get() = resolvedModel?.getName() ?: parsedModel?.name() ?: ""
 
   var storeFile by SigningConfigDescriptors.storeFile
   var storePassword by SigningConfigDescriptors.storePassword
