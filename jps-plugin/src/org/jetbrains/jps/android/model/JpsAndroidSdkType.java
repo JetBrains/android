@@ -21,9 +21,6 @@ import org.jetbrains.jps.model.JpsSimpleElement;
 import org.jetbrains.jps.model.java.JpsJavaSdkTypeWrapper;
 import org.jetbrains.jps.model.library.sdk.JpsSdkType;
 
-/**
- * @author nik
- */
 public class JpsAndroidSdkType extends JpsSdkType<JpsSimpleElement<JpsAndroidSdkProperties>> implements JpsJavaSdkTypeWrapper {
   public static final JpsAndroidSdkType INSTANCE = new JpsAndroidSdkType();
 
