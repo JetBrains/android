@@ -33,14 +33,14 @@ public class MavenCentralRepositoryModel extends UrlBasedRepositoryModelImpl {
 
   @NonNls private static final String ARTIFACT_URLS = "artifactUrls";
 
-  public MavenCentralRepositoryModel(@NotNull GradlePropertiesDslElement holder, @NotNull GradleDslElement dslElement) {
+  public MavenCentralRepositoryModel(@NotNull GradlePropertiesDslElement holder, @NotNull GradlePropertiesDslElement dslElement) {
     super(holder, dslElement, "MavenRepo", MAVEN_CENTRAL_DEFAULT_REPO_URL);
   }
 
   @NotNull
   public ResolvedPropertyModel artifactUrls() {
     if (isPropertiesElementOrMap(myDslElement)) {
-      return GradlePropertyModelBuilder.create((GradlePropertiesDslElement)myDslElement, ARTIFACT_URLS).asMethod(true).buildResolved();
+      return GradlePropertyModelBuilder.create(myDslElement, ARTIFACT_URLS).asMethod(true).buildResolved();
     }
     else {
       return GradlePropertyModelBuilder.create(myDslElement).asMethod(true).buildResolved();

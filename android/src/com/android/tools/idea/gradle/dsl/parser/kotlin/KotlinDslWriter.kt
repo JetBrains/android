@@ -30,6 +30,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement
 import com.android.tools.idea.gradle.dsl.parser.maybeTrimForParent
+import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
@@ -147,7 +148,12 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     }
 
     if (element.isBlockElement) {
-      statementText += " {\n}"  // Can't create expression with another new line after.
+      if (element is MavenRepositoryDslElement && element.getContainedElements(true).isEmpty()) {
+        statementText += "()"
+      }
+      else {
+        statementText += " {\n}"  // Can't create expression with another new line after.
+      }
     }
     else if (useAssignment) {
       if (element.elementType == PropertyType.REGULAR) {
