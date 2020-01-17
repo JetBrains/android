@@ -21,9 +21,6 @@ import com.intellij.conversion.ProjectConverter;
 import com.intellij.conversion.ConversionContext;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author nik
- */
 public class AndroidModuleConverterProvider extends ConverterProvider {
   public AndroidModuleConverterProvider() {
     super("android-sdk-library");

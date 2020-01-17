@@ -35,9 +35,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * @author nik
- */
 public class JpsAndroidModuleProperties {
   public String SELECTED_BUILD_VARIANT = "";
 
