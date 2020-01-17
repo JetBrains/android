@@ -125,11 +125,6 @@ public class MotionEditor extends JPanel {
     }
   }
 
-  public void setSelection(MotionEditorSelector.Type type, MTag[] tag, int flags) {
-    mSelectedTag = tag[0];
-    notifyListeners(type, tag, flags);
-  }
-
   /**
    * This will selected the views or ConstraintSets based on the ids
    *
@@ -169,6 +164,24 @@ public class MotionEditor extends JPanel {
 
   LayoutMode mLayoutMode = null;
 
+  /**
+   * The selected tag in the motion editor.
+   *
+   * This will be one of:
+   * <ul>
+   *   <li>ConstraintSet</li>
+   *   <li>Transition</li>
+   *   <li>MotionLayout</li>
+   * </ul>
+   *
+   * Constraints and KeyFrames are not stored as the selected tag here. Instead
+   * those selection is handles by sub selections:
+   * <ul>
+   *    <li>A constraint by the selected view id</li>
+   *    <li>A view by the selected view id</li>
+   *    <li>A key frame by the mSelectedKeyFrame in the TimeLine panel</li>
+   * </ul>
+   */
   private MTag mSelectedTag;
 
   public void dataChanged() {
