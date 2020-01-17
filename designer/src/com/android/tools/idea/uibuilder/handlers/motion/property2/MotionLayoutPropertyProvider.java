@@ -172,6 +172,8 @@ public class MotionLayoutPropertyProvider implements PropertiesProvider {
     else if (selection.getType() == MotionEditorSelector.Type.CONSTRAINT) {
       Table<String, String, NelePropertyItem> constraintProperties =
         loadFromStyleableName(MotionSceneAttrs.Tags.CONSTRAINT, localAttrDefs, model, selection);
+      NelePropertyItem id = createProperty(ANDROID_URI, ATTR_ID, null, model, selection, null);
+      constraintProperties.put(id.getNamespace(), id.getName(), id);
       allProperties.put(MotionSceneAttrs.Tags.CONSTRAINT, PropertiesTable.Companion.create(constraintProperties));
 
       loadCustomAttributes(model, allProperties, null, selection);
