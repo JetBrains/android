@@ -70,7 +70,7 @@
                      groupName="Shrinker"
                      language="SHRINKER_CONFIG"
                      enabledByDefault="true"
-                     level="WEAK WARNING"
+                     level="ERROR"
                      shortName="ShrinkerUnresolvedReference"
                      implementationClass="com.android.tools.idea.lang.proguardR8.ProguardR8ReferenceInspection"
                      displayName="Unresolved reference in Shrinker Config file"/>
