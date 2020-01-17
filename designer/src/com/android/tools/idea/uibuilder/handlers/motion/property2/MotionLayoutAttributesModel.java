@@ -153,6 +153,10 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     }
     MotionSceneTag motionTag = selection.getMotionSceneTag();
     if (motionTag == null) {
+      if (property.getNamespace().equals(ANDROID_URI) && property.getName().equals(ATTR_ID)) {
+        return selection.getComponentId();
+      }
+      // The rest of these attributes are given as default values...
       return null;
     }
     if (subTag != null && subTag.equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
