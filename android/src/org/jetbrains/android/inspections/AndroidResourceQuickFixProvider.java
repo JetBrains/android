@@ -12,6 +12,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReferenceExpression;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.android.util.ReferredResourceFieldInfo;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -35,7 +36,7 @@ public class AndroidResourceQuickFixProvider extends UnresolvedReferenceQuickFix
       return;
     }
 
-    AndroidResourceUtil.MyReferredResourceFieldInfo info = AndroidResourceUtil.getReferredResourceOrManifestField(facet, exp, true);
+    ReferredResourceFieldInfo info = AndroidResourceUtil.getReferredResourceOrManifestField(facet, exp, true);
     if (info == null) {
       final PsiElement parent = exp.getParent();
       if (parent instanceof PsiReferenceExpression) {

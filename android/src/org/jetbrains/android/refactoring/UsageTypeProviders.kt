@@ -35,7 +35,7 @@ import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.augment.ManifestClass
 import org.jetbrains.android.dom.AndroidDomElement
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription
-import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.android.util.isResourceDeclaration
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.plugins.groovy.GroovyLanguage
 
@@ -92,7 +92,7 @@ class AndroidNewXmlUsageProvider : UsageTypeProviderEx {
       null -> null
       is ManifestDomFileDescription -> ANDROID_MANIFEST_USAGE_TYPE
       else -> {
-        return if (resourceReferencePsiElement != null && AndroidResourceUtil.isResourceDeclaration(element, resourceReferencePsiElement)) {
+        return if (resourceReferencePsiElement != null && isResourceDeclaration(element, resourceReferencePsiElement)) {
           ANDROID_RESOURCES_XML_DECLARATION_TYPE
         } else {
           ANDROID_RESOURCES_XML_USAGE_TYPE

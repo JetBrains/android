@@ -29,7 +29,7 @@ import com.intellij.ui.components.dialog
 import com.intellij.ui.layout.panel
 import com.intellij.usageView.UsageInfo
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper
-import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.android.util.isIdDeclaration
 import org.jetbrains.annotations.TestOnly
 import java.awt.Component
 import java.awt.event.ActionEvent
@@ -79,7 +79,7 @@ class NeleIdRenameProcessor(
   }
 
   private fun getOtherIdDeclarations(): List<PsiElement> {
-    return myAllRenames.keys.filter { it is XmlAttributeValue && AndroidResourceUtil.isIdDeclaration(it) && it != attributeToChange }
+    return myAllRenames.keys.filter { it is XmlAttributeValue && isIdDeclaration(it) && it != attributeToChange }
   }
 
   companion object {

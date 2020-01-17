@@ -58,7 +58,9 @@ import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper
-import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.android.util.getResourceClassName
+import org.jetbrains.android.util.getResourceTypeForResourceTag
+import org.jetbrains.android.util.isInResourceSubdirectory
 import javax.swing.Icon
 
 /**
@@ -100,7 +102,7 @@ class ResourceReferencePsiElement(
     }
 
     private fun convertPsiFile(element: PsiFile): ResourceReferencePsiElement? {
-      if (!AndroidResourceUtil.isInResourceSubdirectory(element, null)) {
+      if (!isInResourceSubdirectory(element)) {
         return null
       }
       val resourceFolderType = getFolderType(element) ?: return null
@@ -112,7 +114,7 @@ class ResourceReferencePsiElement(
 
     private fun convertAndroidLightField(element: AndroidLightField) : ResourceReferencePsiElement? {
       val grandClass = element.containingClass.containingClass as? AndroidRClassBase ?: return null
-      val resourceClassName = AndroidResourceUtil.getResourceClassName(element) ?: return null
+      val resourceClassName = getResourceClassName(element) ?: return null
       val resourceType = ResourceType.fromClassName(resourceClassName) ?: return null
       val facet = element.androidFacet
       val namespacing = facet?.let { ResourceRepositoryManager.getInstance(it).namespacing }
@@ -159,7 +161,7 @@ class ResourceReferencePsiElement(
         // Instances of value resources
         val tag = element.parentOfType<XmlTag>() ?: return null
         if ((element.parent as XmlAttribute).name != ATTR_NAME) return null
-        val type = AndroidResourceUtil.getResourceTypeForResourceTag(tag) ?: return null
+        val type = getResourceTypeForResourceTag(tag) ?: return null
         val resourceReference = if (type == ResourceType.ATTR) {
           ResourceUrl.parseAttrReference(element.value)?.resolve(element) ?: return null
         } else {

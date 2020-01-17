@@ -21,7 +21,7 @@ import com.intellij.lang.findUsages.EmptyFindUsagesProvider
 import com.intellij.lang.findUsages.FindUsagesProvider
 import com.intellij.psi.PsiBinaryFile
 import com.intellij.psi.PsiElement
-import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.android.util.isResourceFile
 
 /**
  * [FindUsagesProvider] for resource images files and any other files that are special in Android projects.
@@ -35,7 +35,7 @@ class AndroidFallbackFindUsagesProvider : FindUsagesProvider {
 
     fun isBinaryResourceFile(element: PsiElement): Boolean {
       val facet = element.androidFacet ?: return false
-      return element is PsiBinaryFile && AndroidResourceUtil.isResourceFile(element.virtualFile, facet)
+      return element is PsiBinaryFile && isResourceFile(element.virtualFile, facet)
     }
   }
 

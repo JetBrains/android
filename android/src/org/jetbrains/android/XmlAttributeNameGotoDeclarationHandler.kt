@@ -22,7 +22,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlAttribute
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.android.util.isResourceFile
 
 /**
  * {@link GotoDeclarationHandler} which handles XML attribute names.
@@ -33,7 +33,7 @@ class XmlAttributeNameGotoDeclarationHandler : GotoDeclarationHandler {
       return PsiElement.EMPTY_ARRAY
     }
     val facet = AndroidFacet.getInstance(sourceElement) ?: return PsiElement.EMPTY_ARRAY
-    if (!AndroidResourceUtil.isResourceFile(sourceElement.containingFile.virtualFile, facet)) {
+    if (!isResourceFile(sourceElement.containingFile.virtualFile, facet)) {
       return PsiElement.EMPTY_ARRAY
     }
     val attribute = sourceElement.parent as? XmlAttribute ?: return PsiElement.EMPTY_ARRAY

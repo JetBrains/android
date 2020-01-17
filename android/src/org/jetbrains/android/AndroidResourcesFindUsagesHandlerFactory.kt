@@ -31,7 +31,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.Processor
-import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.android.util.findStyleableAttrFieldsForAttr
+import org.jetbrains.android.util.findStyleableAttrFieldsForStyleable
 
 /**
  * Provides a custom [FindUsagesHandler] that understands how to search for all relevant Android Resources.
@@ -80,8 +81,8 @@ class AndroidResourcesFindUsagesHandlerFactory : FindUsagesHandlerFactory() {
           if (androidFacet != null) {
             runReadAction {
               when (resourceReference.resourceType) {
-                ResourceType.ATTR -> AndroidResourceUtil.findStyleableAttrFieldsForAttr(androidFacet, resourceReference.name)
-                ResourceType.STYLEABLE -> AndroidResourceUtil.findStyleableAttrFieldsForStyleable(androidFacet, resourceReference.name)
+                ResourceType.ATTR -> findStyleableAttrFieldsForAttr(androidFacet, resourceReference.name)
+                ResourceType.STYLEABLE -> findStyleableAttrFieldsForStyleable(androidFacet, resourceReference.name)
                 else -> PsiField.EMPTY_ARRAY
               }.forEach { super.processElementUsages(it, processor, options) }
             }

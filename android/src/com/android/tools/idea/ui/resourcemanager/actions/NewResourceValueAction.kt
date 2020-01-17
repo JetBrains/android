@@ -22,8 +22,8 @@ import com.intellij.psi.PsiDocumentManager
 import org.jetbrains.android.actions.CreateXmlResourceDialog
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.android.util.createValueResource
 
 /**
  * [AnAction] wrapper that calls the [CreateXmlResourceDialog] to create new resources in a project.
@@ -55,7 +55,7 @@ class NewResourceValueAction(
     val dirNames = dialog.dirNames
     val resValue = dialog.value
     val resName = dialog.resourceName
-    if (!AndroidResourceUtil.createValueResource(project, resDir, resName, type, fileName, dirNames, resValue)) {
+    if (!createValueResource(project, resDir, resName, type, fileName, dirNames, resValue)) {
       return
     }
     PsiDocumentManager.getInstance(module.project).commitAllDocuments()

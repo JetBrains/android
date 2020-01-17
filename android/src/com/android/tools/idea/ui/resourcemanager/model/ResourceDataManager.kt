@@ -31,7 +31,8 @@ import com.intellij.usages.UsageTarget
 import com.intellij.usages.UsageView
 import com.intellij.util.containers.isNullOrEmpty
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.android.util.getItemPsiFile
+import org.jetbrains.android.util.getItemTag
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 
@@ -89,12 +90,12 @@ class ResourceDataManager(var facet: AndroidFacet) : CopyProvider {
     var psiElement: PsiElement? = null
     if (!resourceItem.isFileBased
         && ResourceFolderType.VALUES in FolderTypeRelationship.getRelatedFolders(resourceItem.type)) {
-      psiElement = AndroidResourceUtil.getItemTag(facet.module.project, resourceItem)
+      psiElement = getItemTag(facet.module.project, resourceItem)
         ?.getAttribute(SdkConstants.ATTR_NAME)?.valueElement
     }
 
     if (psiElement == null) {
-      psiElement = AndroidResourceUtil.getItemPsiFile(facet.module.project, resourceItem)
+      psiElement = getItemPsiFile(facet.module.project, resourceItem)
     }
     return psiElement
   }

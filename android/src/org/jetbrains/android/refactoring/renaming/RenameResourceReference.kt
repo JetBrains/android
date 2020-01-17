@@ -58,7 +58,10 @@ import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrFieldUrl
 import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.util.AndroidBuildCommonUtils.PNG_EXTENSION
-import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.android.util.findStyleableAttrFieldsForAttr
+import org.jetbrains.android.util.findStyleableAttrFieldsForStyleable
+import org.jetbrains.android.util.getResourceElementFromSurroundingValuesTag
+import org.jetbrains.android.util.scheduleNewResolutionAndHighlighting
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
 /**
@@ -175,10 +178,10 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
     val androidFacet = contextElement.androidFacet ?: return found
     when (resourceElement.resourceReference.resourceType) {
       ResourceType.ATTR -> {
-        val fields = AndroidResourceUtil.findStyleableAttrFieldsForAttr(androidFacet, resourceElement.resourceReference.name)
+        val fields = findStyleableAttrFieldsForAttr(androidFacet, resourceElement.resourceReference.name)
         found.addAll(fields.map { super.findReferences(it, searchScope, searchInCommentsAndStrings) }.flatten())}
       ResourceType.STYLEABLE -> {
-        val fields = AndroidResourceUtil.findStyleableAttrFieldsForStyleable(androidFacet, resourceElement.resourceReference.name)
+        val fields = findStyleableAttrFieldsForStyleable(androidFacet, resourceElement.resourceReference.name)
         found.addAll(fields.map { super.findReferences(it, searchScope, searchInCommentsAndStrings) }.flatten())}
       else -> { /* Fields for other types are found in the references search */}
     }
@@ -215,7 +218,7 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
   override fun getPostRenameCallback(element: PsiElement, newName: String, elementListener: RefactoringElementListener): Runnable? {
     val psiManager = (element as? ResourceReferencePsiElement)?.psiManager ?: return null
     return Runnable {
-      AndroidResourceUtil.scheduleNewResolutionAndHighlighting(psiManager)
+      scheduleNewResolutionAndHighlighting(psiManager)
     }
   }
 
@@ -260,7 +263,7 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
       val offset = CommonDataKeys.CARET.getData(dataContext)?.offset ?: return null
       val file = CommonDataKeys.PSI_FILE.getData(dataContext) ?: return null
       val elementInFile = file.findElementAt(offset) ?: return null
-      return AndroidResourceUtil.getResourceElementFromSurroundingValuesTag(elementInFile)?.toWritableResourceReferencePsiElement()
+      return getResourceElementFromSurroundingValuesTag(elementInFile)?.toWritableResourceReferencePsiElement()
     }
   }
 

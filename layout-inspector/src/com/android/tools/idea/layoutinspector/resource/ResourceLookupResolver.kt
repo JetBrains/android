@@ -68,7 +68,8 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.android.util.getItemPsiFile
+import org.jetbrains.android.util.getItemTag
 import javax.swing.Icon
 
 /**
@@ -362,16 +363,16 @@ class ResourceLookupResolver(
   private fun convertSimpleValueToXmlTag(value: ResourceValue): XmlTag? {
     val item = convertToResourceItem(value) ?: return null
     if (FolderTypeRelationship.getRelatedFolders(item.type).contains(ResourceFolderType.VALUES)) {
-      return AndroidResourceUtil.getItemTag(project, item)
+      return getItemTag(project, item)
     }
-    val xmlFile = AndroidResourceUtil.getItemPsiFile(project, item) as? XmlFile
+    val xmlFile = getItemPsiFile(project, item) as? XmlFile
     return xmlFile?.rootTag
   }
 
   private fun convertStyleItemValueToXmlTag(style: StyleResourceValue, item: StyleItemResourceValue): XmlTag? {
     // TODO: Unfortunately style items are not ResourceItems. For now lookup the item in the XmlTag of the style.
     val styleItem = convertToResourceItem(style) ?: return null
-    val styleTag = AndroidResourceUtil.getItemTag(project, styleItem) ?: return null
+    val styleTag = getItemTag(project, styleItem) ?: return null
     val itemTags = styleTag.findSubTags(TAG_ITEM)
     return itemTags.find { it.getAttributeValue(ATTR_NAME) == item.attrName }
   }

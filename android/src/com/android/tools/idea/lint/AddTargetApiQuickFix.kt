@@ -40,7 +40,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.android.util.ensureNamespaceImported
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.util.addAnnotation
 import org.jetbrains.kotlin.name.FqName
@@ -98,7 +98,7 @@ class AddTargetApiQuickFix(private val api: Int,
     val element = getAnnotationContainer(startElement) as? XmlTag ?: return
     val file = PsiTreeUtil.getParentOfType(element, XmlFile::class.java, false)
     if (file != null) {
-      AndroidResourceUtil.ensureNamespaceImported(file, TOOLS_URI, null)
+      ensureNamespaceImported(file, TOOLS_URI)
       val codeName = SdkVersionInfo.getBuildCode(api)?.toLowerCase(Locale.US) ?: api.toString()
       element.setAttribute(ATTR_TARGET_API, TOOLS_URI, codeName)
     }
