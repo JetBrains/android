@@ -27,6 +27,7 @@ import com.intellij.openapi.vfs.VirtualFile
  * Items in the collections are ordered in the overlay order. (The exact overlaying/merging rules are source type specific).
  */
 interface IdeaSourceProvider {
+  val scopeType: ScopeType
   val manifestFileUrls: Collection<String>
   val manifestFiles: Collection<VirtualFile>
 
