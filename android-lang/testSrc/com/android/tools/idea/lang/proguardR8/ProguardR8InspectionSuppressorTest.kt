@@ -35,7 +35,7 @@ class ProguardR8InspectionSuppressorTest : ProguardR8TestCase() {
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,
       """
-        -keep class <caret>${"not.existing.Class".highlightedAs(HighlightSeverity.WEAK_WARNING, "Unresolved class name")}
+        -keep class <caret>${"not.existing.Class".highlightedAs(HighlightSeverity.ERROR, "Unresolved class name")}
       """.trimIndent()
     )
     myFixture.checkHighlighting()
@@ -74,7 +74,7 @@ class ProguardR8InspectionSuppressorTest : ProguardR8TestCase() {
       ProguardR8FileType.INSTANCE,
       """
         -keep class java.lang.String {
-          ${"<caret>notExistingField".highlightedAs(HighlightSeverity.WEAK_WARNING, "The rule matches no class members")};
+          ${"<caret>notExistingField".highlightedAs(HighlightSeverity.ERROR, "The rule matches no class members")};
         }
       """.trimIndent()
     )

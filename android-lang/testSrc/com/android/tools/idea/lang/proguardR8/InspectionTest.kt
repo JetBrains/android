@@ -22,7 +22,6 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.highlightedAs
 import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.lang.annotation.HighlightSeverity.WARNING
-import com.intellij.lang.annotation.HighlightSeverity.WEAK_WARNING
 import org.jetbrains.android.AndroidTestCase
 
 class InspectionTest : ProguardR8TestCase() {
@@ -30,7 +29,7 @@ class InspectionTest : ProguardR8TestCase() {
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,
       """
-      -keep class ${"test.MyNotExistingClass".highlightedAs(WEAK_WARNING, "Unresolved class name")} {
+      -keep class ${"test.MyNotExistingClass".highlightedAs(ERROR, "Unresolved class name")} {
         long myBoolean;
       }
       """.trimIndent())
@@ -51,8 +50,8 @@ class InspectionTest : ProguardR8TestCase() {
       ProguardR8FileType.INSTANCE,
       """
       -keep class java.lang.String {
-        ${"test.MyNotExistingClass".highlightedAs(WEAK_WARNING, "Unresolved class name")} 
-        ${"myVal".highlightedAs(WEAK_WARNING, "The rule matches no class members")};
+        ${"test.MyNotExistingClass".highlightedAs(ERROR, "Unresolved class name")} 
+        ${"myVal".highlightedAs(ERROR, "The rule matches no class members")};
       }
       """.trimIndent())
 
@@ -71,19 +70,25 @@ class InspectionTest : ProguardR8TestCase() {
   }
 
   fun testSpacesInArrayType() {
+    myFixture.addClass("""
+      package test
+      class myClass {
+        int[] method() {};
+       }
+    """.trimIndent())
+
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,
       """
-      -keep class java.lang.String {
-        ${"int []".highlightedAs(ERROR, "White space between type and array annotation is not allowed, use 'type[]'")} method;
-        int${"[\n]".highlightedAs(ERROR, "White space is not allowed in array annotation, use 'type[]'")} method;
-        int ${"[  ]".highlightedAs(ERROR, "White space is not allowed in array annotation, use 'type[]'")} method;
-        int[] method;
+      -keep class test.myClass {
+        ${"int []".highlightedAs(ERROR, "White space between type and array annotation is not allowed, use 'type[]'")} method();
+        int${"[\n]".highlightedAs(ERROR, "White space is not allowed in array annotation, use 'type[]'")} method();
+        int ${"[  ]".highlightedAs(ERROR, "White space is not allowed in array annotation, use 'type[]'")} method();
+        int[] method();
       }
       """.trimIndent())
 
-    // checks only errors
-    myFixture.checkHighlighting(false, false, false)
+    myFixture.checkHighlighting()
   }
 
 }
