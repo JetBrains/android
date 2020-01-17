@@ -44,14 +44,14 @@ class ProguardR8ReferenceInspection : LocalInspectionTool() {
         if (classMember.isParentClassKnown() && reference.resolveReference().isEmpty()) {
           // We can't resolve reference and we highlight it with "unused" (gray colour)
           // because it's not an error in Proguard/R8 to specify class member that doesn't exist
-          holder.registerProblem(name.reference!!, "The rule matches no class members", ProblemHighlightType.LIKE_UNUSED_SYMBOL)
+          holder.registerProblem(name, "The rule matches no class members")
         }
       }
 
       override fun visitQualifiedName(name: ProguardR8QualifiedName) {
         super.visitQualifiedName(name)
         if (!name.containsWildcards() && name.resolveToPsiClass() == null) {
-          holder.registerProblem(name, "Unresolved class name", ProblemHighlightType.LIKE_UNUSED_SYMBOL)
+          holder.registerProblem(name, "Unresolved class name")
         }
       }
     }

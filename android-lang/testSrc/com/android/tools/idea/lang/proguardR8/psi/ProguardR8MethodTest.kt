@@ -22,7 +22,7 @@ import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
-import com.intellij.lang.annotation.HighlightSeverity.WEAK_WARNING
+import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.ResolveResult
@@ -517,7 +517,7 @@ class ProguardR8MethodTest : ProguardR8TestCase() {
       ProguardR8FileType.INSTANCE,
       """
       -keep class test.MyClass {
-        long ${"myBoolean" highlightedAs WEAK_WARNING};
+        long ${"myBoolean" highlightedAs ERROR};
       }
       """.trimIndent())
 

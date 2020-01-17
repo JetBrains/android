@@ -22,7 +22,7 @@ import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.highlightedAs
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
-import com.intellij.lang.annotation.HighlightSeverity.WEAK_WARNING
+import com.intellij.lang.annotation.HighlightSeverity.ERROR
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.ResolveResult
 import com.intellij.psi.util.parentOfType
@@ -374,7 +374,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
       ProguardR8FileType.INSTANCE,
       """
       -keep class test.MyClass {
-        long ${"myBoolean".highlightedAs(WEAK_WARNING, "The rule matches no class members")};
+        long ${"myBoolean".highlightedAs(ERROR, "The rule matches no class members")};
       }
       """.trimIndent())
 
@@ -385,7 +385,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
       ProguardR8FileType.INSTANCE,
       """
       -keep class test.MyClass {
-        boolean ${"myNotBoolean" highlightedAs WEAK_WARNING};
+        boolean ${"myNotBoolean" highlightedAs ERROR};
       }
       """.trimIndent())
 
@@ -415,7 +415,7 @@ class ProguardR8FieldsTest : ProguardR8TestCase() {
     myFixture.configureByText(
       ProguardR8FileType.INSTANCE,
       """
-      -keep class ${"test.MyNotExistingClass".highlightedAs(WEAK_WARNING, "Unresolved class name")} {
+      -keep class ${"test.MyNotExistingClass".highlightedAs(ERROR, "Unresolved class name")} {
         long myBoolean;
       }
       """.trimIndent())
