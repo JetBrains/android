@@ -81,6 +81,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.Key;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.SystemProperties;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -94,7 +95,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.serialization.PathMacroUtil;
 
-public class PostSyncProjectSetup {
+public final class PostSyncProjectSetup {
   @NotNull private final Project myProject;
   @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final ProjectStructure myProjectStructure;
@@ -115,22 +116,14 @@ public class PostSyncProjectSetup {
   }
 
   @SuppressWarnings("unused") // Instantiated by IDEA
-  public PostSyncProjectSetup(@NotNull Project project,
-                              @NotNull IdeInfo ideInfo,
-                              @NotNull ProjectStructure projectStructure,
-                              @NotNull GradleProjectInfo gradleProjectInfo,
-                              @NotNull GradleSyncInvoker syncInvoker,
-                              @NotNull GradleSyncState syncState,
-                              @NotNull GradleSyncMessages syncMessages,
-                              @NotNull DependencySetupIssues dependencySetupIssues,
-                              @NotNull PluginVersionUpgrade pluginVersionUpgrade,
-                              @NotNull VersionCompatibilityChecker versionCompatibilityChecker,
-                              @NotNull GradleProjectBuilder projectBuilder) {
-    this(project, ideInfo, projectStructure, gradleProjectInfo, syncInvoker, syncState, dependencySetupIssues, new ProjectSetup(project),
-         new ModuleSetup(project), pluginVersionUpgrade, versionCompatibilityChecker, projectBuilder, RunManagerEx.getInstanceEx(project));
+  public PostSyncProjectSetup(@NotNull Project project) {
+    this(project, IdeInfo.getInstance(), ProjectStructure.getInstance(project), GradleProjectInfo.getInstance(project), GradleSyncInvoker.getInstance(), GradleSyncState.getInstance(project), DependencySetupIssues.getInstance(project), new ProjectSetup(project),
+         new ModuleSetup(project), PluginVersionUpgrade.getInstance(project), VersionCompatibilityChecker.getInstance(), GradleProjectBuilder.getInstance(project),
+         RunManagerEx.getInstanceEx(project));
   }
 
   @VisibleForTesting
+  @NonInjectable
   PostSyncProjectSetup(@NotNull Project project,
                        @NotNull IdeInfo ideInfo,
                        @NotNull ProjectStructure projectStructure,
@@ -218,7 +211,7 @@ public class PostSyncProjectSetup {
         }
       }
 
-      if (StudioFlags.RECOMMENDATION_ENABLED.get()) {
+      if (IdeInfo.getInstance().isAndroidStudio() && StudioFlags.RECOMMENDATION_ENABLED.get()) {
         MemorySettingsPostSyncChecker.checkSettings(myProject, new TimeBasedMemorySettingsCheckerReminder());
       }
 
@@ -343,7 +336,7 @@ public class PostSyncProjectSetup {
       StringBuilder buffer = new StringBuilder();
       buffer.append("Sync issues found!").append('\n');
       myGradleProjectInfo.forEachAndroidModule(facet -> {
-        AndroidModel androidModel = facet.getConfiguration().getModel();
+        AndroidModel androidModel = facet.getModel();
         if (androidModel instanceof AndroidModuleModel) {
           Collection<SyncIssue> issues = ((AndroidModuleModel)androidModel).getSyncIssues();
           if (issues != null && !issues.isEmpty()) {

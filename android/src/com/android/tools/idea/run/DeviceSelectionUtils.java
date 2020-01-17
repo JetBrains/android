@@ -117,7 +117,7 @@ public class DeviceSelectionUtils {
     final Project project = facet.getModule().getProject();
     String value = PropertiesComponent.getInstance(project).getValue(ANDROID_TARGET_DEVICES_PROPERTY);
     String[] selectedSerials = value != null ? deserialize(value) : null;
-    AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
+    AndroidPlatform platform = facet.getAndroidPlatform();
     if (platform == null) {
       LOG.error("Android platform not set for module: " + facet.getModule().getName());
       return DeviceChooser.EMPTY_DEVICE_ARRAY;

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.property.editors;
 
+import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
+
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.idea.common.property.editors.BaseComponentEditor;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
@@ -24,22 +26,37 @@ import com.android.tools.idea.common.property.NlProperty;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder;
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextFieldUI;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.util.ui.JBUI;
+import java.awt.BorderLayout;
+import java.awt.Graphics;
+import java.awt.Point;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowFocusListener;
+import javax.swing.Action;
+import javax.swing.BoxLayout;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.plaf.TextUI;
+import javax.swing.text.JTextComponent;
 import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.plaf.TextUI;
-import javax.swing.text.JTextComponent;
-import java.awt.*;
-import java.awt.event.*;
-
-import static com.android.tools.idea.uibuilder.property.editors.NlEditingListener.DEFAULT_LISTENER;
 
 /**
  * The {@link NlFlagsEditor} is used to edit a {@link NlFlagPropertyItem} by displaying
@@ -114,7 +131,7 @@ public class NlFlagsEditor extends BaseComponentEditor implements NlComponentEdi
         }
         else {
           presentation.setIcon(null);
-          presentation.setText(null);
+          presentation.setText(Presentation.NULL_STRING);
           presentation.setEnabledAndVisible(false);
         }
       }

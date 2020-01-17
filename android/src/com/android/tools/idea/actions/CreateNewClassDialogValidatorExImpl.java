@@ -58,7 +58,7 @@ public class CreateNewClassDialogValidatorExImpl implements CreateNewClassDialog
 
   @Override
   public boolean checkPackage(@NotNull String inputString) {
-    return CharMatcher.WHITESPACE.matchesAllOf(inputString) || checkList(inputString, ".");
+    return CharMatcher.whitespace().matchesAllOf(inputString) || checkList(inputString, ".");
   }
 
   @Nullable
@@ -109,16 +109,16 @@ public class CreateNewClassDialogValidatorExImpl implements CreateNewClassDialog
   @Override
   public boolean checkInput(String inputString) {
     String name = inputString.trim();
-    return !CharMatcher.WHITESPACE.matchesAllOf(name) && getErrorText(name) == null;
+    return !CharMatcher.whitespace().matchesAllOf(name) && getErrorText(name) == null;
   }
 
   @Override
   public boolean canClose(String inputString) {
-    return !CharMatcher.WHITESPACE.matchesAllOf(inputString) && getErrorText(inputString) == null;
+    return !CharMatcher.whitespace().matchesAllOf(inputString) && getErrorText(inputString) == null;
   }
 
   private static boolean checkQualifiedName(@NotNull String qualifiedName) {
-    return CharMatcher.WHITESPACE.matchesAllOf(qualifiedName) || checkList(qualifiedName, ".");
+    return CharMatcher.whitespace().matchesAllOf(qualifiedName) || checkList(qualifiedName, ".");
   }
 
   private static boolean checkList(@NotNull String inputString, @NotNull String delimiter) {

@@ -18,7 +18,6 @@ package com.android.tools.adtui.model.axis;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
-import com.android.tools.adtui.model.updater.Updatable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

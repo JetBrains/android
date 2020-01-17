@@ -28,8 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
 
@@ -112,6 +110,6 @@ public class PluginVersionUpgradeTest extends PlatformTestCase {
     when(androidModel.getAndroidProject()).thenReturn(androidProject);
 
     AndroidFacet facet = createAndAddAndroidFacet(module);
-    facet.getConfiguration().setModel(androidModel);
+    facet.setModel(androidModel);
   }
 }

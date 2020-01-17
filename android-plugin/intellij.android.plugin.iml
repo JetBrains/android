@@ -7,6 +7,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="jetbrains-annotations-java5" level="project" />
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" />
     <orderEntry type="module" module-name="intellij.android.designer" />
@@ -18,7 +19,7 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
     <orderEntry type="module" module-name="intellij.android.transport" />
-    <orderEntry type="module" module-name="android-layout-inspector" />
+    <orderEntry type="module" module-name="intellij.android.android-layout-inspector" />
     <orderEntry type="module" module-name="assistant" />
     <orderEntry type="module" module-name="connection-assistant" />
     <orderEntry type="module" module-name="whats-new-assistant" />

@@ -1,18 +1,4 @@
-/*
- * Copyright 2000-2012 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.logcat;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -40,45 +26,37 @@ import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.ui.UIUtil;
-import java.awt.BorderLayout;
-import java.awt.Component;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.ListModel;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * A UI panel which wraps a console that prints output from Android's logging system.
  */
-public class AndroidLogcatView implements Disposable {
+public class AndroidLogcatView {
   public static final Key<AndroidLogcatView> ANDROID_LOGCAT_VIEW_KEY = Key.create("ANDROID_LOGCAT_VIEW_KEY");
-
-  static final String SELECTED_APP_FILTER = AndroidBundle.message("android.logcat.filters.selected");
-  static final String NO_FILTERS = AndroidBundle.message("android.logcat.filters.none");
-  static final String EDIT_FILTER_CONFIGURATION = AndroidBundle.message("android.logcat.filters.edit");
 
   /**
    * This is a fake version of the selected app filter that acts as a placeholder before a real one
    * is swapped in, which happens when the pulldown of processes is populated.
    */
-  static final AndroidLogcatFilter FAKE_SHOW_ONLY_SELECTED_APPLICATION_FILTER = new MatchAllFilter(SELECTED_APP_FILTER);
-  static final AndroidLogcatFilter NO_FILTERS_ITEM = new MatchAllFilter(NO_FILTERS);
+  static final AndroidLogcatFilter FAKE_SHOW_ONLY_SELECTED_APPLICATION_FILTER = new MatchAllFilter(getSelectedAppFilter());
+  static final AndroidLogcatFilter NO_FILTERS_ITEM = new MatchAllFilter(getNoFilters());
 
   // TODO Refactor all this filter combo box stuff to its own class
-  static final AndroidLogcatFilter EDIT_FILTER_CONFIGURATION_ITEM = new MatchAllFilter(EDIT_FILTER_CONFIGURATION);
+  static final AndroidLogcatFilter EDIT_FILTER_CONFIGURATION_ITEM = new MatchAllFilter(getEditFilterConfiguration());
 
   private final Project myProject;
+  final Disposable parentDisposable;
   private final FormattedLogcatReceiver myLogcatReceiver;
   private final AndroidLogConsole myLogConsole;
   private final DeviceContext myDeviceContext;
@@ -143,11 +121,10 @@ public class AndroidLogcatView implements Disposable {
   /**
    * Logcat view with device obtained from {@link DeviceContext}
    */
-  AndroidLogcatView(@NotNull Project project, @NotNull DeviceContext deviceContext) {
+  AndroidLogcatView(@NotNull Project project, @NotNull DeviceContext deviceContext, @NotNull Disposable parentDisposable) {
     myDeviceContext = deviceContext;
     myProject = project;
-
-    Disposer.register(myProject, this);
+    this.parentDisposable = parentDisposable;
 
     AndroidLogcatFormatter formatter = new AndroidLogcatFormatter(ZoneId.systemDefault(), AndroidLogcatPreferences.getInstance(project));
 
@@ -175,6 +152,12 @@ public class AndroidLogcatView implements Disposable {
 
     myLogConsole = new AndroidLogConsole(project, myLogFilterModel, formatter, this);
     myLogcatReceiver = new ViewListener(formatter, this);
+
+    Disposer.register(parentDisposable, () -> {
+      if (myDevice != null) {
+        AndroidLogcatService.getInstance().removeListener(myDevice, myLogcatReceiver);
+      }
+    });
 
     DeviceContext.DeviceSelectionListener deviceSelectionListener =
       new DeviceContext.DeviceSelectionListener() {
@@ -207,7 +190,7 @@ public class AndroidLogcatView implements Disposable {
           }
         }
       };
-    deviceContext.addListener(deviceSelectionListener, this);
+    deviceContext.addListener(deviceSelectionListener, parentDisposable);
 
     JComponent consoleComponent = myLogConsole.getComponent();
 
@@ -220,7 +203,7 @@ public class AndroidLogcatView implements Disposable {
     }
 
     myPanel.add(consoleComponent, BorderLayout.CENTER);
-    Disposer.register(this, myLogConsole);
+    Disposer.register(parentDisposable, myLogConsole);
 
     updateLogConsole();
   }
@@ -236,7 +219,7 @@ public class AndroidLogcatView implements Disposable {
     updateUserFilters();
     String selectName = AndroidLogcatPreferences.getInstance(myProject).TOOL_WINDOW_CONFIGURED_FILTER;
     if (StringUtil.isEmpty(selectName)) {
-      selectName = myDeviceContext != null ? SELECTED_APP_FILTER : NO_FILTERS;
+      selectName = myDeviceContext != null ? getSelectedAppFilter() : getNoFilters();
     }
     selectFilterByName(selectName);
 
@@ -408,13 +391,6 @@ public class AndroidLogcatView implements Disposable {
     return myPanel;
   }
 
-  @Override
-  public final void dispose() {
-    if (myDevice != null) {
-      AndroidLogcatService.getInstance().removeListener(myDevice, myLogcatReceiver);
-    }
-  }
-
   static final class MyRestartAction extends AnAction {
     private final AndroidLogcatView myView;
 
@@ -454,5 +430,17 @@ public class AndroidLogcatView implements Disposable {
         myView.myLogConsole.refresh();
       }
     }
+  }
+
+  static String getSelectedAppFilter() {
+    return AndroidBundle.message("android.logcat.filters.selected");
+  }
+
+  static String getNoFilters() {
+    return AndroidBundle.message("android.logcat.filters.none");
+  }
+
+  static String getEditFilterConfiguration() {
+    return AndroidBundle.message("android.logcat.filters.edit");
   }
 }

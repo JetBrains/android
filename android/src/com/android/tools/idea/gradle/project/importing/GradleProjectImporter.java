@@ -33,9 +33,10 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.java.LanguageLevel;
-import com.intellij.util.containers.ContainerUtilRt;
+import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +47,7 @@ import org.jetbrains.plugins.gradle.settings.GradleSettings;
 /**
  * Imports an Android-Gradle project without showing the "Import Project" Wizard UI.
  */
-public class GradleProjectImporter {
+public final class GradleProjectImporter {
   // A copy of a private constant from GradleJvmStartupActivity.
   @NonNls private static final String SHOW_UNLINKED_GRADLE_POPUP = "show.inlinked.gradle.project.popup";
   @NotNull private final SdkSync mySdkSync;
@@ -58,11 +59,12 @@ public class GradleProjectImporter {
     return ServiceManager.getService(GradleProjectImporter.class);
   }
 
-  public GradleProjectImporter(@NotNull SdkSync sdkSync) {
-    this(sdkSync, new NewProjectSetup(), new ProjectFolder.Factory());
+  public GradleProjectImporter() {
+    this(SdkSync.getInstance(), new NewProjectSetup(), new ProjectFolder.Factory());
   }
 
   @VisibleForTesting
+  @NonInjectable
   GradleProjectImporter(@NotNull SdkSync sdkSync,
                         @NotNull NewProjectSetup newProjectSetup,
                         @NotNull ProjectFolder.Factory projectFolderFactory) {
@@ -142,7 +144,8 @@ public class GradleProjectImporter {
     String externalProjectPath = toCanonicalPath(projectFolderPath.getPath());
     GradleProjectSettings projectSettings = gradleSettings.getLinkedProjectSettings(externalProjectPath);
     if (projectSettings == null) {
-      Set<GradleProjectSettings> projects = ContainerUtilRt.newHashSet(gradleSettings.getLinkedProjectsSettings());
+      Set<GradleProjectSettings> projects =
+          new HashSet<>(gradleSettings.getLinkedProjectsSettings());
       projectSettings = new GradleProjectSettings();
       projectSettings.setExternalProjectPath(externalProjectPath);
       projects.add(projectSettings);

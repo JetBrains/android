@@ -37,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -188,7 +189,7 @@ public class GradleSettingsFileTest extends PlatformTestCase {
   public void testAddModuleStringChecksInitialization() {
     GradleSettingsFile file = getBadGradleSettingsFile();
     try {
-      file.addModule("asdf", GradleUtil.getModuleDefaultPath(file.getFile(), ":asdf"));
+      file.addModule("asdf", GradleUtil.getModuleDefaultPath(Paths.get(file.getFile().getPath()), ":asdf").toFile());
       fail("expected IllegalStateException");
     } catch (IllegalStateException expected) {}
   }
@@ -263,7 +264,7 @@ public class GradleSettingsFileTest extends PlatformTestCase {
     WriteCommandAction.runWriteCommandAction(null, new Runnable() {
       @Override
       public void run() {
-        file.addModule(name, GradleUtil.getModuleDefaultPath(file.getFile().getParent(), name));
+        file.addModule(name, GradleUtil.getModuleDefaultPath(Paths.get(file.getFile().getParent().getPath()), name).toFile());
       }
     });
   }

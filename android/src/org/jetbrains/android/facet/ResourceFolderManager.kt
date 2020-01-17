@@ -177,7 +177,7 @@ class ResourceFolderManager(
     else {
       // Listen to root change events. Be notified when project is initialized so we can update the
       // resource set, if necessary.
-      if (facet.configuration.model == null) readFromFacetState(facet) else readFromModel(facet)
+      if (facet.model == null) readFromFacetState(facet) else readFromModel(facet)
     }
   }
 

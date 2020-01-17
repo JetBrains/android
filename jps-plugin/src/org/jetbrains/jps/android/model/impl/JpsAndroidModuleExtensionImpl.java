@@ -43,9 +43,6 @@ import java.util.List;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
-/**
- * @author nik
- */
 public class JpsAndroidModuleExtensionImpl extends JpsElementBase<JpsAndroidModuleExtensionImpl> implements JpsAndroidModuleExtension {
   public static final JpsElementChildRoleBase<JpsAndroidModuleExtension> KIND = JpsElementChildRoleBase.create("android extension");
   private final JpsAndroidModuleProperties myProperties;

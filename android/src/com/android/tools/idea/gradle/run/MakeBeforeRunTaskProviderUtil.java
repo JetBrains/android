@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.run;
 
-import static java.util.stream.Collectors.toList;
-
 import com.intellij.execution.BeforeRunTask;
 import com.intellij.execution.BeforeRunTaskProvider;
 import com.intellij.execution.RunManagerEx;
@@ -24,11 +22,11 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class MakeBeforeRunTaskProviderUtil {
   @NotNull
@@ -45,9 +43,8 @@ public class MakeBeforeRunTaskProviderUtil {
       return new ArrayList<>();
     }
 
-    return RunManagerEx.getInstanceEx(project).getAllConfigurationsList().stream()
-      .filter(config -> isBeforeRunTaskMissing(project, config))
-      .collect(Collectors.toList());
+    List<RunConfiguration> configurations = RunManagerEx.getInstanceEx(project).getAllConfigurationsList();
+    return ContainerUtil.filter(configurations, config -> isBeforeRunTaskMissing(project, config));
   }
 
   /**
@@ -107,7 +104,7 @@ public class MakeBeforeRunTaskProviderUtil {
       getLogger().warn(String.format("Skipping config \"%s\" because provider returned a null task", config.getName()));
       return false;
     }
-    List<BeforeRunTask> tasks = runManagerEx.getBeforeRunTasks(config).stream().collect(toList());
+    List<BeforeRunTask> tasks = new ArrayList<>(runManagerEx.getBeforeRunTasks(config));
     tasks.add(newTask);
     runManagerEx.setBeforeRunTasks(config, tasks);
     getLogger().info(String.format("Added missing task to config \"%s\"", config.getName()));

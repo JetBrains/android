@@ -21,7 +21,6 @@ import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.font.FontUtil;
 import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
 import com.android.tools.idea.ui.resourcechooser.ResourceChooserItem;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.DialogWrapper;

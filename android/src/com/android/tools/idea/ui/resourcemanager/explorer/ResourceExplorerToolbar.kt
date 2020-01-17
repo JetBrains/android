@@ -17,33 +17,16 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.Separator
-import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
-import com.intellij.ui.CollectionComboBoxModel
-import com.intellij.ui.ColoredListCellRenderer
-import com.intellij.ui.DocumentAdapter
-import com.intellij.ui.JBColor
-import com.intellij.ui.PopupMenuListenerAdapter
-import com.intellij.ui.SearchTextField
+import com.intellij.ui.*
 import com.intellij.util.ui.JBUI
 import java.awt.Component
 import java.awt.event.ItemEvent
 import java.awt.event.MouseEvent
-import javax.swing.GroupLayout
-import javax.swing.Icon
-import javax.swing.JComponent
-import javax.swing.JList
-import javax.swing.JPanel
+import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.PopupMenuEvent
 
@@ -149,7 +132,7 @@ private abstract class PopupAction internal constructor(val icon: Icon?, descrip
 
   private fun showAddPopup(component: Component, x: Int, y: Int) {
     ActionManager.getInstance()
-      .createActionPopupMenu(ToolWindowContentUi.POPUP_PLACE, createAddPopupGroup())
+      .createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, createAddPopupGroup())
       .component.show(component, x, y)
   }
 

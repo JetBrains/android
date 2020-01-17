@@ -22,7 +22,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindowAnchor
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
@@ -34,7 +34,6 @@ import org.junit.Before
 import org.junit.Test
 
 class ResourceExplorerToolWindowTest {
-
   lateinit var fixture: CodeInsightTestFixture
   lateinit var module: Module
   var facet: AndroidFacet? = null
@@ -80,18 +79,17 @@ class ResourceExplorerToolWindowTest {
 
   @Test
   fun createWithoutAndroidFacet() {
-    val windowManager = ToolWindowManagerEx.getInstance(module.project)
+    val windowManager = ToolWindowManager.getInstance(module.project)
     val toolWindow = windowManager.registerToolWindow("Resources Explorer", false, ToolWindowAnchor.LEFT)
     val resourceExplorerToolFactory = ResourceExplorerToolFactory()
     resourceExplorerToolFactory.createToolWindowContent(module.project, toolWindow)
     assertThat(toolWindow.contentManager.contents).isNotEmpty()
-    assertThat(toolWindow.contentManager.contents[0].component).isInstanceOf(
-      NoFacetView::class.java)
+    assertThat(toolWindow.contentManager.contents[0].component).isInstanceOf(NoFacetView::class.java)
   }
 
   @Test
   fun createWithAndroidFacet() {
-    val windowManager = ToolWindowManagerEx.getInstance(module.project)
+    val windowManager = ToolWindowManager.getInstance(module.project)
     val toolWindow = windowManager.registerToolWindow("Resources Explorer", false, ToolWindowAnchor.LEFT)
     initFacet()
     val resourceExplorerToolFactory = ResourceExplorerToolFactory()

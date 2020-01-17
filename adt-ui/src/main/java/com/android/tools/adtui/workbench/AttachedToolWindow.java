@@ -9,6 +9,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionPopupMenu;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -26,13 +27,13 @@ import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.impl.AnchoredButton;
 import com.intellij.openapi.wm.impl.InternalDecorator;
 import com.intellij.openapi.wm.impl.StripeButtonUI;
-import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.UIBundle;
 import com.intellij.ui.components.JBLabel;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBImageIcon;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -73,7 +74,7 @@ import org.jetbrains.annotations.Nullable;
  *
  * @param <T> the type of data that is being edited by the associated {@link WorkBench}
  */
-class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
+final class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
   static final String TOOL_WINDOW_PROPERTY_PREFIX = "ATTACHED_TOOL_WINDOW.";
   static final String TOOL_WINDOW_TOOLBAR_PLACE = "TOOL_WINDOW_TOOLBAR";
   static final String LABEL_HEADER = "LABEL";
@@ -434,7 +435,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     DefaultActionGroup group = new DefaultActionGroup();
     addGearPopupActions(group);
 
-    ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ToolWindowContentUi.POPUP_PLACE, group);
+    ActionPopupMenu popupMenu = ActionManager.getInstance().createActionPopupMenu(ActionPlaces.TOOLWINDOW_POPUP, group);
     popupMenu.getComponent().show(component, x, y);
   }
 
@@ -500,12 +501,12 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     myDragListener.buttonDropped(this, event);
   }
 
-  private static class MinimizedButton extends AnchoredButton {
-    private final AttachedToolWindow myToolWindow;
+  private static final class MinimizedButton extends AnchoredButton {
+    private final AttachedToolWindow<?> myToolWindow;
     private JLabel myDragImage;
     private Point myStartDragPosition;
 
-    private MinimizedButton(@NotNull String title, @NotNull Icon icon, @NotNull AttachedToolWindow toolWindow) {
+    private MinimizedButton(@NotNull String title, @NotNull Icon icon, @NotNull AttachedToolWindow<?> toolWindow) {
       super(title, icon);
       myToolWindow = toolWindow;
       setBorder(BorderFactory.createEmptyBorder(5, 5, 0, 5));
@@ -603,7 +604,7 @@ class AttachedToolWindow<T> implements ToolWindowCallback, Disposable {
     }
 
     private void startDragging(@NotNull MouseEvent event) {
-      BufferedImage image = UIUtil.createImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+      BufferedImage image = ImageUtil.createImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
       Graphics graphics = image.getGraphics();
       paint(graphics);
       graphics.dispose();

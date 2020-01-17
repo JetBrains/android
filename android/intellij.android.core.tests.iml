@@ -47,9 +47,9 @@
     <orderEntry type="module" module-name="intellij.java.execution.impl" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="jsr305" level="project" />
-    <orderEntry type="module" module-name="analytics-shared" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-shared" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
-    <orderEntry type="module" module-name="analytics-tracker" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-tracker" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.wizard.model" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="guava-testlib" level="project" />
@@ -84,7 +84,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="analytics-crash" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.analytics-crash" scope="TEST" />
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="library" name="aapt-proto" level="project" />
     <orderEntry type="module-library" scope="TEST">
@@ -103,10 +103,10 @@
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.kotlin.output.parser" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
-    <orderEntry type="module" module-name="perf-logger" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.databinding" scope="RUNTIME" />
     <orderEntry type="module" module-name="intellij.android.resources-base" scope="TEST" />
-    <orderEntry type="library" scope="TEST" name="kotlin-plugin" level="project" />
+    <orderEntry type="library" scope="TEST" name="kotlin-plugin-android-compile-deps" level="project" />
     <orderEntry type="library" scope="TEST" name="NanoXML" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.debuggers" />

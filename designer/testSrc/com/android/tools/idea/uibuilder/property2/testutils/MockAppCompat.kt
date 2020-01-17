@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableList
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.testFramework.registerExtension
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -159,8 +160,7 @@ object MockAppCompat {
     ))
     val appCompatCoordinate = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate(gradleVersion.toString())
     val projectSystem = TestProjectSystem(facet.module.project, ImmutableList.of(appCompatCoordinate))
-    PlatformTestUtil.registerExtension(
-      Extensions.getArea(facet.module.project), EP_NAME, projectSystem, fixture.testRootDisposable)
+    facet.module.project.registerExtension(EP_NAME, projectSystem, fixture.testRootDisposable)
 
     fixture.addFileToProject("src/android/support/v7/app/AppCompatImageView.java", APPCOMPAT_ACTIVITY)
     fixture.addFileToProject("src/android/support/v7/widget/AppCompatImageView.java", APPCOMPAT_IMAGE_VIEW_SOURCE)

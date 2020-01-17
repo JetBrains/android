@@ -19,30 +19,20 @@ import com.android.ddmlib.Client
 import com.android.layoutinspector.model.ClientWindow
 import com.android.layoutinspector.model.ViewNode
 import com.android.tools.idea.editors.layoutInspector.AndroidLayoutInspectorService
-import com.android.tools.idea.testing.IdeComponents
 import com.intellij.openapi.project.Project
+import com.intellij.testFramework.replaceService
 import java.io.File
 import java.util.concurrent.TimeUnit
 
 class LayoutInspectorDebugStubber {
-
-  private var layoutInspectorComp: IdeComponents? = null
-
-  fun mockOutDebugger(
-    project: Project,
-    layoutDumpFile: File,
-    layoutImageFile: File) {
-    layoutInspectorComp = IdeComponents(project)
-    layoutInspectorComp?.replaceProjectService(
-      AndroidLayoutInspectorService::class.java,
-      MockLayoutInspectorService(layoutDumpFile, layoutImageFile)
-    )
+  fun mockOutDebugger(project: Project, layoutDumpFile: File, layoutImageFile: File) {
+    project.replaceService(AndroidLayoutInspectorService::class.java, MockLayoutInspectorService(layoutDumpFile, layoutImageFile), project)
   }
 
   private class MockLayoutInspectorService(val layoutDump: File, val layoutImage: File) : AndroidLayoutInspectorService {
-
-    override fun getTask(project: Project?, client: Client): LayoutInspectorAction.GetClientWindowsTask =
-      LayoutInspectorAction.GetClientWindowsTask(project, client, MockWindowRetriever(layoutDump, layoutImage))
+    override fun getTask(project: Project?, client: Client): LayoutInspectorAction.GetClientWindowsTask {
+      return LayoutInspectorAction.GetClientWindowsTask(project, client, MockWindowRetriever(layoutDump, layoutImage))
+    }
   }
 
   private class MockWindowRetriever(val layoutDump: File, val layoutImage: File) : LayoutInspectorAction.ClientWindowRetriever {

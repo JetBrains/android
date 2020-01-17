@@ -113,7 +113,7 @@ fun createFakeResDirectory(androidFacet: AndroidFacet): File? {
   val defaultSourceProvider = SourceProviderStub(fileStructure)
   defaultSourceProvider.addResDirectory("res")
   val first = defaultSourceProvider.resDirectories.first()
-  androidFacet.configuration.model = TestAndroidModel(defaultSourceProvider = defaultSourceProvider)
+  androidFacet.model = TestAndroidModel(defaultSourceProvider = defaultSourceProvider)
   return first
 }
 private const val WAIT_TIMEOUT = 3000

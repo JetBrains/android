@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="library" exported="" name="kxml2" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.android-annotations" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.common" />
+    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="jetbrains-annotations" level="project" />
+    <orderEntry type="module-library" exported="">
+      <library name="precompiled-android.sdktools.layoutlib-api">
+        <CLASSES>
+          <root url="jar:///home/andrei/projects/aosp/studio-master-dev/bazel-bin/tools/base/layoutlib-api/studio.android.sdktools.layoutlib-api.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+  </component>
+</module>

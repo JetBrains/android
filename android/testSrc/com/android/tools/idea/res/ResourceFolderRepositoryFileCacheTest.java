@@ -33,6 +33,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +43,6 @@ import org.picocontainer.MutablePicoContainer;
  * Tests for {@link ResourceFolderRepositoryFileCacheImpl}.
  */
 public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
-  private ResourceFolderRepositoryFileCacheImpl myOldFileCacheService;
 
   @NotNull
   private static ResourceFolderRepositoryFileCacheImpl getCache() {
@@ -50,16 +50,10 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
   }
 
   @NotNull
-  private static ResourceFolderRepositoryFileCacheImpl overrideCacheService(ResourceFolderRepositoryFileCacheImpl newCache) {
-    MutablePicoContainer applicationContainer = (MutablePicoContainer)ApplicationManager.getApplication().getPicoContainer();
-
+  private void overrideCacheService(ResourceFolderRepositoryFileCacheImpl newCache) {
     // Use a file cache that has per-test root directories instead of sharing the system directory.
     // Swap out cache services. We have to be careful. All tests share the same Application and PicoContainer.
-    ResourceFolderRepositoryFileCacheImpl oldCache =
-        (ResourceFolderRepositoryFileCacheImpl)applicationContainer.getComponentInstance(ResourceFolderRepositoryFileCache.class.getName());
-    applicationContainer.unregisterComponent(ResourceFolderRepositoryFileCache.class.getName());
-    applicationContainer.registerComponentInstance(ResourceFolderRepositoryFileCache.class.getName(), newCache);
-    return oldCache;
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), ResourceFolderRepositoryFileCache.class, newCache, getTestRootDisposable());
   }
 
   @NotNull
@@ -74,17 +68,7 @@ public class ResourceFolderRepositoryFileCacheTest extends AndroidTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     ResourceFolderRepositoryFileCacheImpl cache = new ResourceFolderRepositoryFileCacheImpl(Paths.get(myFixture.getTempDirPath()));
-    myOldFileCacheService = overrideCacheService(cache);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      overrideCacheService(myOldFileCacheService);
-    }
-    finally {
-      super.tearDown();
-    }
+    overrideCacheService(cache);
   }
 
   public void testInvalidationBlocksDirectoryQuery() {

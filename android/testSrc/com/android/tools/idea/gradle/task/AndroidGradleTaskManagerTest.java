@@ -21,6 +21,7 @@ import org.picocontainer.PicoContainer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
@@ -29,7 +30,6 @@ import static org.mockito.Mockito.*;
  * @author Vladislav.Soroka
  */
 public class AndroidGradleTaskManagerTest {
-
   @Test
   public void executeTasks() {
     String projectPath = "projectPath";
@@ -58,15 +58,17 @@ b/137231583 */
     GradleProjectInfo gradleProjectInfo = mock(GradleProjectInfo.class);
     when(taskId.findProject()).thenReturn(project);
     when(project.getPicoContainer()).thenReturn(picoContainer);
-    when(picoContainer.getComponentInstance(GradleProjectInfo.class.getName())).thenReturn(gradleProjectInfo);
     when(gradleProjectInfo.isDirectGradleBuildEnabled()).thenReturn(true);
     AndroidGradleBuildConfiguration androidGradleBuildConfiguration = new AndroidGradleBuildConfiguration();
     androidGradleBuildConfiguration.USE_EXPERIMENTAL_FASTER_BUILD = true;
     when(picoContainer.getComponentInstance(AndroidGradleBuildConfiguration.class.getName())).thenReturn(androidGradleBuildConfiguration);
-    when(picoContainer.getComponentInstance(GradleBuildInvoker.class.getName())).thenReturn(gradleBuildInvoker);
     when(gradleBuildInvoker.getProject()).thenReturn(project);
     ModuleManager moduleManager = mock(ModuleManager.class);
+
     when(project.getComponent(ModuleManager.class)).thenReturn(moduleManager);
+    when(project.getService(GradleProjectInfo.class)).thenReturn(gradleProjectInfo);
+    when(project.getService(GradleBuildInvoker.class)).thenReturn(gradleBuildInvoker);
+
     Module module = mock(Module.class);
     when(moduleManager.getModules()).thenReturn(new Module[]{module});
     when(module.getPicoContainer()).thenReturn(picoContainer);
@@ -91,7 +93,9 @@ b/137231583 */
 
     @Override
     public boolean matches(GradleBuildInvoker.Request argument) {
-      return myRequest.toString().equals(argument.toString());
+      // skip generated init scripts args asserting
+      argument.setCommandLineArguments(Collections.emptyList());
+      return myRequest.toString().equals(argument.toString()) && myRequest.getTaskListener() == argument.getTaskListener();
     }
   }
 }

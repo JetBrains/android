@@ -35,8 +35,8 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
-import com.sun.java.swing.plaf.windows.WindowsComboBoxUI;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -104,7 +104,7 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
                        boolean comboEditable) {
     super(listener);
     myAddedValueIndex = -1; // nothing added
-    myPanel = new AdtSecondaryPanel(new BorderLayout(JBUI.scale(HORIZONTAL_COMPONENT_GAP), 0));
+    myPanel = new AdtSecondaryPanel(new BorderLayout(JBUIScale.scale(HORIZONTAL_COMPONENT_GAP), 0));
     myPanel.setFocusable(false);
     myBrowsePanel = browsePanel;
 
@@ -482,7 +482,7 @@ abstract public class EnumEditor extends BaseComponentEditor implements NlCompon
 
     @Override
     public void setUI(ComboBoxUI ui) {
-      myUseDarculaUI = !(ui instanceof WindowsComboBoxUI) && !ApplicationManager.getApplication().isUnitTestMode();
+      myUseDarculaUI = !ApplicationManager.getApplication().isUnitTestMode();
       if (myUseDarculaUI) {
         // There are multiple reasons for hardcoding the ComboBoxUI here:
         // 1) Some LAF will draw a beveled border which does not look good in the table grid.

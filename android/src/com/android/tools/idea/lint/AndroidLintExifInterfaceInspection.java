@@ -40,6 +40,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.util.concurrency.SameThreadExecutor;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
@@ -136,7 +137,7 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
         public void onFailure(@Nullable Throwable t) {
           throw new RuntimeException(t);
         }
-      });
+      }, SameThreadExecutor.INSTANCE);
     }
 
     private static String getExifLibraryCoordinate() {

@@ -44,6 +44,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.ThreeState;
 import java.io.File;
 import java.util.ArrayList;
@@ -54,7 +55,6 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidPluginVersionUpdater {
   @NotNull private final Project myProject;
   @NotNull private final GradleSyncState mySyncState;
-  @NotNull private final GradleSyncInvoker mySyncInvoker;
   @NotNull private final TextSearch myTextSearch;
 
   @NotNull
@@ -62,18 +62,17 @@ public class AndroidPluginVersionUpdater {
     return ServiceManager.getService(project, AndroidPluginVersionUpdater.class);
   }
 
-  public AndroidPluginVersionUpdater(@NotNull Project project, @NotNull GradleSyncState syncState) {
-    this(project, syncState, GradleSyncInvoker.getInstance(), new TextSearch(project));
+  public AndroidPluginVersionUpdater(@NotNull Project project) {
+    this(project, GradleSyncState.getInstance(project), new TextSearch(project));
   }
 
   @VisibleForTesting
+  @NonInjectable
   AndroidPluginVersionUpdater(@NotNull Project project,
                               @NotNull GradleSyncState syncState,
-                              @NotNull GradleSyncInvoker syncInvoker,
                               @NotNull TextSearch textSearch) {
     myProject = project;
     mySyncState = syncState;
-    mySyncInvoker = syncInvoker;
     myTextSearch = textSearch;
   }
 
@@ -152,8 +151,13 @@ public class AndroidPluginVersionUpdater {
 
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_AGP_VERSION_UPDATED);
       request.cleanProject = true;
-      mySyncInvoker.requestProjectSync(myProject, request);
+      getGradleSyncInvoker().requestProjectSync(myProject, request);
     }
+  }
+
+  @NotNull
+  protected GradleSyncInvoker getGradleSyncInvoker() {
+    return GradleSyncInvoker.getInstance();
   }
 
   private static void logUpdateError(@NotNull String msg, @NotNull Throwable error) {

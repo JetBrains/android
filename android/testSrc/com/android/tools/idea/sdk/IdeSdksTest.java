@@ -34,13 +34,14 @@ import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Computable;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -184,7 +185,7 @@ public class IdeSdksTest extends PlatformTestCase {
 
   public void testIsJavaSameVersionTrue() {
     Jdks spyJdks = spy(Jdks.getInstance());
-    new IdeComponents(myProject).replaceApplicationService(Jdks.class, spyJdks);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), Jdks.class, spyJdks, getTestRootDisposable());
     File fakeFile = new File(myProject.getBasePath());
     doReturn(JDK_1_8).when(spyJdks).findVersion(same(fakeFile));
     assertTrue(IdeSdks.isJdkSameVersion(fakeFile, JDK_1_8));
@@ -192,7 +193,7 @@ public class IdeSdksTest extends PlatformTestCase {
 
   public void testIsJavaSameVersionLower() {
     Jdks spyJdks = spy(Jdks.getInstance());
-    new IdeComponents(myProject).replaceApplicationService(Jdks.class, spyJdks);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), Jdks.class, spyJdks, getTestRootDisposable());
     File fakeFile = new File(myProject.getBasePath());
     doReturn(JDK_1_7).when(spyJdks).findVersion(same(fakeFile));
     assertFalse(IdeSdks.isJdkSameVersion(fakeFile, JDK_1_8));
@@ -200,7 +201,7 @@ public class IdeSdksTest extends PlatformTestCase {
 
   public void testIsJavaSameVersionHigher() {
     Jdks spyJdks = spy(Jdks.getInstance());
-    new IdeComponents(myProject).replaceApplicationService(Jdks.class, spyJdks);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), Jdks.class, spyJdks, getTestRootDisposable());
     File fakeFile = new File(myProject.getBasePath());
     doReturn(JDK_1_9).when(spyJdks).findVersion(same(fakeFile));
     assertFalse(IdeSdks.isJdkSameVersion(fakeFile, JDK_1_8));

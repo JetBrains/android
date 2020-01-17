@@ -49,8 +49,7 @@ import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.text.StringUtil.isEmptyOrSpaces;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static com.intellij.util.ArrayUtil.toStringArray;
+import static com.intellij.util.ArrayUtilRt.toStringArray;
 import static com.intellij.util.SystemProperties.getUserHome;
 import static com.intellij.util.containers.ContainerUtil.getFirstItem;
 import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
@@ -103,7 +102,7 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.impl.ApplicationImpl;
+import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ProjectSystemId;
 import com.intellij.openapi.module.Module;
@@ -115,6 +114,9 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -497,8 +499,8 @@ public final class GradleUtil {
   public static void stopAllGradleDaemonsAndRestart() {
     DefaultGradleConnector.close();
     Application application = ApplicationManager.getApplication();
-    if (application instanceof ApplicationImpl) {
-      ((ApplicationImpl)application).restart(true);
+    if (application instanceof ApplicationEx) {
+      ((ApplicationEx)application).restart(true);
     }
     else {
       application.restart();
@@ -563,10 +565,9 @@ public final class GradleUtil {
    * Obtains the default path for the module (Gradle sub-project) with the given name inside the given directory.
    */
   @NotNull
-  public static File getModuleDefaultPath(@NotNull VirtualFile parentDir, @NotNull String gradlePath) {
+  public static Path getModuleDefaultPath(@NotNull Path parentDir, @NotNull String gradlePath) {
     assert !gradlePath.isEmpty();
-    String relativePath = getDefaultPhysicalPathFromGradlePath(gradlePath);
-    return new File(virtualToIoFile(parentDir), relativePath);
+    return parentDir.resolve(getDefaultPhysicalPathFromGradlePath(gradlePath));
   }
 
   /**
@@ -588,12 +589,12 @@ public final class GradleUtil {
         return true;
       }
     }
-    File location = getModuleDefaultPath(project.getBaseDir(), gradlePath);
-    if (location.isFile()) {
+    Path location = getModuleDefaultPath(Paths.get(project.getBasePath()), gradlePath);
+    if (Files.isRegularFile(location)) {
       return true;
     }
-    if (location.isDirectory()) {
-      File[] children = location.listFiles();
+    if (Files.isDirectory(location)) {
+      File[] children = location.toFile().listFiles();
       return children == null || children.length > 0;
     }
     return false;

@@ -46,8 +46,8 @@ public class SdkBuildToolsTooLowErrorHandlerTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     Project project = getProject();
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(project);
-    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject(), getTestRootDisposable());
   }
 
   public void testGetInstance() {

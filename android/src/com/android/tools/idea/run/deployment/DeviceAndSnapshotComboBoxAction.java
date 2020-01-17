@@ -66,6 +66,7 @@ import javax.swing.GroupLayout.Group;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -380,12 +381,16 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @Override
   public final void update(@NotNull AnActionEvent event) {
     Project project = event.getProject();
-
     if (project == null) {
       return;
     }
 
     Presentation presentation = event.getPresentation();
+    if (!AndroidUtils.hasAndroidFacets(project)) {
+      presentation.setVisible(false);
+      return;
+    }
+
     updatePresentation(presentation, RunManager.getInstance(project).getSelectedConfiguration());
 
     List<Device> devices = getDevices(project);
@@ -424,7 +429,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     if (configuration instanceof UserDataHolder) {
       Boolean deploysToLocalDevice = ((UserDataHolder)configuration).getUserData(DEPLOYS_TO_LOCAL_DEVICE);
       if (deploysToLocalDevice != null && deploysToLocalDevice.booleanValue()) {
-        presentation.setDescription(null);
+        presentation.setDescription(Presentation.NULL_STRING);
         presentation.setEnabled(true);
 
         return;
@@ -438,7 +443,7 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return;
     }
 
-    presentation.setDescription(null);
+    presentation.setDescription(Presentation.NULL_STRING);
     presentation.setEnabled(true);
   }
 

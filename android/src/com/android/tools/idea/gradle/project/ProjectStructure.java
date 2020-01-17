@@ -28,6 +28,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.concurrency.JobLauncher;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -69,7 +70,7 @@ public class ProjectStructure {
 
   @NotNull
   public static ProjectStructure getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, ProjectStructure.class);
+    return project.getService(ProjectStructure.class);
   }
 
   public ProjectStructure(@NotNull Project project) {

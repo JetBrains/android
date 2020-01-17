@@ -36,6 +36,7 @@ import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.File
 
+// FIXME-ank2: don't use:
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 
 class DeviceViewContentPanelTest {
@@ -138,6 +139,9 @@ class DeviceViewContentPanelTest {
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testClip.png"), generatedImage, 0.1)
   }
+
+  // FIXME-ank2
+  private fun getTestFile(testFileName: String) = LayoutInspector::class.java.getResourceAsStream("/$testFileName")
 
   @Test
   fun testDrag() {

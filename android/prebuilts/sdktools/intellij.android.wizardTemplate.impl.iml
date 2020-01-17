@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
+    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
+    <orderEntry type="module-library" exported="">
+      <library name="precompiled-intellij.android.wizardTemplate.impl">
+        <CLASSES>
+          <root url="jar:///home/andrei/projects/aosp/studio-master-dev/bazel-bin/tools/base/wizard/template-impl/studio.intellij.android.wizardTemplate.impl.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+  </component>
+</module>

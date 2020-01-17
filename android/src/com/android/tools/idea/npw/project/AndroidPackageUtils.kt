@@ -31,7 +31,7 @@ import org.jetbrains.android.facet.AndroidFacet
 /**
  * Return the top-level package associated with this project.
  */
-fun AndroidFacet.getPackageForApplication(): String = configuration.model!!.applicationId
+fun AndroidFacet.getPackageForApplication(): String = model!!.applicationId
 
 /**
  * Return the package associated with the target directory.

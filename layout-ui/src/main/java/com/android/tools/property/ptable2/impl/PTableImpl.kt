@@ -35,6 +35,7 @@ import com.intellij.ui.TableCell
 import com.intellij.ui.TableExpandableItemsHandler
 import com.intellij.ui.TableUtil
 import com.intellij.util.ui.JBUI
+import sun.awt.CausedFocusEvent
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension

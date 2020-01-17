@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.profilers;
 
-import static com.android.tools.profilers.ProfilerFonts.H1_FONT;
-import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
-
 import com.android.ddmlib.IDevice;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.idea.model.AndroidModuleInfo;
@@ -25,14 +22,7 @@ import com.android.tools.idea.profilers.stacktrace.IntellijCodeNavigator;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.transport.TransportServiceProxy;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profilers.IdeProfilerComponents;
-import com.android.tools.profilers.Notification;
-import com.android.tools.profilers.ProfilerAspect;
-import com.android.tools.profilers.ProfilerClient;
-import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.ProfilerMode;
-import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.*;
 import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.execution.runners.ExecutionUtil;
@@ -51,19 +41,16 @@ import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import icons.StudioIcons;
 import icons.StudioIllustrations;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.io.File;
-import java.util.function.Predicate;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
+import java.io.File;
+import java.util.function.Predicate;
+
+import static com.android.tools.profilers.ProfilerFonts.H1_FONT;
+import static com.android.tools.profilers.ProfilerFonts.STANDARD_FONT;
 
 public class AndroidProfilerToolWindow implements Disposable {
 
@@ -388,9 +375,9 @@ public class AndroidProfilerToolWindow implements Disposable {
      * 2. If the window is minimized while a session is running, a balloon is shown informing users that the profilers is still running.
      */
     @Override
-    public void stateChanged() {
+    public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
       // We need to query the tool window again, because it might have been unregistered when closing the project.
-      ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(AndroidProfilerToolWindowFactory.ID);
+      ToolWindow window = toolWindowManager.getToolWindow(AndroidProfilerToolWindowFactory.ID);
       if (window == null) {
         return;
       }

@@ -31,6 +31,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -135,7 +136,7 @@ class MigrateDrawableToMipmapFix implements AndroidLintQuickFix {
             continue;
           }
 
-          if (file.getFileType() == StdFileTypes.XML && parent.getName().startsWith(FD_RES_VALUES)) {
+          if (FileTypeRegistry.getInstance().isFileOfType(file, StdFileTypes.XML) && parent.getName().startsWith(FD_RES_VALUES)) {
             // Resource alias rather than an actual drawable XML file: update the type reference instead
             XmlFile xmlFile = (XmlFile)bitmap;
             XmlTag root = xmlFile.getRootTag();

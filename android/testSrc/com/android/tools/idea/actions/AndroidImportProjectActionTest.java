@@ -23,6 +23,8 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,7 +40,7 @@ public class AndroidImportProjectActionTest extends PlatformTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myProjectRootDir = myProject.getBaseDir();
+    myProjectRootDir = PlatformTestUtil.getOrCreateProjectTestBaseDir(myProject);
   }
 
   public void testFindImportTargetWithDirectoryAndWithoutGradleOrEclipseFiles() {

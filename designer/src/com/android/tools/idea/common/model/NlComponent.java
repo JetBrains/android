@@ -702,9 +702,9 @@ public class NlComponent implements NlAttributesHolder {
     // in the R class
     NamesValidator validator = LanguageNamesValidation.INSTANCE.forLanguage(JavaLanguage.INSTANCE);
 
-    while (ids.contains(nextIdValue) || validator != null && validator.isKeyword(nextIdValue, project)) {
+    while (ids.contains(nextIdValue) || validator.isKeyword(nextIdValue, project)) {
       index++;
-      if (index == 1 && (validator == null || !validator.isKeyword(nextIdValue, project))) {
+      if (index == 1 && !validator.isKeyword(nextIdValue, project)) {
         nextIdValue = idValue;
       }
       else {

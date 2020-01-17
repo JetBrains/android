@@ -17,14 +17,10 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.intellij.ui.content.Content;
 import com.intellij.ui.treeStructure.Tree;
-import org.fest.swing.core.GenericTypeMatcher;
-import org.fest.swing.core.NameMatcher;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.tree.TreeModel;
-import java.awt.Component;
 
 public class RefactorToolWindowFixture extends ToolWindowFixture {
   public RefactorToolWindowFixture(@NotNull IdeFrameFixture ideFrame) {

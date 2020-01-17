@@ -40,10 +40,9 @@ import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.editor.actionSystem.LatencyListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.project.impl.ProjectLifecycleListener
+import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import java.io.File
@@ -123,9 +122,28 @@ object AndroidStudioUsageTracker {
   }
 
   private fun subscribeToEvents() {
-    val app = ApplicationManager.getApplication()
-    val connection = app.messageBus.connect()
-    connection.subscribe(ProjectLifecycleListener.TOPIC, ProjectLifecycleTracker())
+    val connection = ApplicationManager.getApplication().messageBus.connect()
+    /**
+     * Tracks use of projects (open, close, # of projects) in an instance of Android Studio.
+     */
+    connection.subscribe(ProjectManager.TOPIC, object : ProjectManagerListener {
+      override fun projectOpened(project: Project) {
+        val projectsOpen = ProjectManager.getInstance().openProjects.size
+        UsageTracker.log(AndroidStudioEvent.newBuilder()
+                           .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_OPENED)
+                           .setStudioProjectChange(StudioProjectChange.newBuilder()
+                                                     .setProjectsOpen(projectsOpen)))
+
+      }
+
+      override fun projectClosed(project: Project) {
+        val projectsOpen = ProjectManager.getInstance().openProjects.size
+        UsageTracker.log(AndroidStudioEvent.newBuilder()
+                           .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_CLOSED)
+                           .setStudioProjectChange(StudioProjectChange.newBuilder()
+                                                     .setProjectsOpen(projectsOpen)))
+      }
+    })
     connection.subscribe(LatencyListener.TOPIC, TypingLatencyTracker)
   }
 
@@ -138,7 +156,9 @@ object AndroidStudioUsageTracker {
     val pluginInfoProto = IdePluginInfo.newBuilder()
 
     for (plugin in plugins) {
-      if (!plugin.isEnabled) continue
+      if (!plugin.isEnabled) {
+        continue
+      }
       val id = plugin.pluginId?.idString ?: continue
 
       val pluginProto = IdePlugin.newBuilder()
@@ -280,36 +300,6 @@ object AndroidStudioUsageTracker {
       ChannelStatus.BETA -> SoftwareLifeCycleChannel.BETA
       ChannelStatus.RELEASE -> SoftwareLifeCycleChannel.STABLE
       else -> SoftwareLifeCycleChannel.UNKNOWN_LIFE_CYCLE_CHANNEL
-    }
-  }
-
-  /**
-   * Tracks use of projects (open, close, # of projects) in an instance of Android Studio.
-   */
-  private class ProjectLifecycleTracker : ProjectLifecycleListener {
-    override fun beforeProjectLoaded(project: Project) {
-      val projectsOpen = ProjectManager.getInstance().openProjects.size
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-                         .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_OPENED)
-                         .setStudioProjectChange(StudioProjectChange.newBuilder()
-                                                   .setProjectsOpen(projectsOpen)))
-
-
-    }
-
-    override fun afterProjectClosed(project: Project) {
-      val projectsOpen = ProjectManager.getInstance().openProjects.size
-      UsageTracker.log(AndroidStudioEvent.newBuilder()
-                         .setKind(AndroidStudioEvent.EventKind.STUDIO_PROJECT_CLOSED)
-                         .setStudioProjectChange(StudioProjectChange.newBuilder()
-                                                   .setProjectsOpen(projectsOpen)))
-
-    }
-
-    // Need to setup ToolWindowTrackerService here after project is initialized so service can be retrieved.
-    override fun projectComponentsInitialized(project: Project) {
-      val service = ToolWindowTrackerService.getInstance(project)
-      ToolWindowManagerEx.getInstanceEx(project).addToolWindowManagerListener(service, project)
     }
   }
 }

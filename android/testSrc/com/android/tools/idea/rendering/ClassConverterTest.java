@@ -40,6 +40,8 @@ public class ClassConverterTest extends TestCase {
     assertEquals("1.3", classVersionToJdk(47));
     assertEquals("1.2", classVersionToJdk(46));
     assertEquals("1.1", classVersionToJdk(45));
+    assertEquals("9", classVersionToJdk(53));
+    assertEquals("11", classVersionToJdk(55));
   }
 
   public void testJdkToClassVersion() {
@@ -52,6 +54,8 @@ public class ClassConverterTest extends TestCase {
     assertEquals(50, jdkToClassVersion("1.6.1"));
     assertEquals(51, jdkToClassVersion("1.7.0"));
     assertEquals(45, jdkToClassVersion("1.1"));
+    assertEquals(53, jdkToClassVersion("9"));
+    assertEquals(55, jdkToClassVersion("11"));
     assertEquals(55, jdkToClassVersion("11.0.2+9-b159.56"));
   }
 

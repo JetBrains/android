@@ -33,6 +33,13 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import com.intellij.util.ui.StartupUiUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -198,7 +205,7 @@ public class HTreeChart<N extends HNode<N>> extends AnimatedComponent {
     if (myCanvas == null || (ImageUtil.getUserWidth(myCanvas) < dim.width || ImageUtil.getUserHeight(myCanvas) < dim.height)) {
       // Note: We intentionally create an RGB image, not an ARGB image, because this allows nodes
       // to render their text clearly (ARGB prevents LCD rendering from working).
-      myCanvas = UIUtil.createImage(dim.width, dim.height, BufferedImage.TYPE_INT_RGB);
+      myCanvas = ImageUtil.createImage(dim.width, dim.height, BufferedImage.TYPE_INT_RGB);
     }
     final Graphics2D g = (Graphics2D)myCanvas.getGraphics();
     g.setColor(getBackground());

@@ -24,6 +24,7 @@ import com.intellij.ide.passwordSafe.impl.BasePasswordSafe
 import com.intellij.ide.wizard.CommitStepException
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.util.ThrowableRunnable
+import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidFacetConfiguration
@@ -229,7 +230,7 @@ class KeystoreStepTest : PlatformTestCase() {
     ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(myProject)
+    `when`(wizard.project).thenReturn(project)
     `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
@@ -278,7 +279,7 @@ class KeystoreStepTest : PlatformTestCase() {
     ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(myProject)
+    `when`(wizard.project).thenReturn(project)
     `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)

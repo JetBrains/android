@@ -48,11 +48,11 @@ import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
-import com.intellij.util.containers.HashMap;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -188,7 +188,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
           final List<VirtualFile> finalList = files;
           scope.accept(new PsiElementVisitor() {
             @Override
-            public void visitFile(PsiFile file) {
+            public void visitFile(@NotNull PsiFile file) {
               VirtualFile virtualFile = file.getVirtualFile();
               if (virtualFile != null) {
                 finalList.add(virtualFile);

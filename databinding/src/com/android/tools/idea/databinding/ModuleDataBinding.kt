@@ -68,7 +68,7 @@ class ModuleDataBinding private constructor(private val module: Module) {
 
   init {
     fun syncModeWithFacetConfiguration() {
-      dataBindingMode = AndroidFacet.getInstance(module)?.configuration?.model?.dataBindingMode ?: return
+      dataBindingMode = AndroidFacet.getInstance(module)?.model?.dataBindingMode ?: return
     }
 
     val connection = module.messageBus.connect(module)

@@ -15,36 +15,19 @@
  */
 package com.android.tools.idea.layoutlib;
 
-import com.intellij.CommonBundle;
+import com.intellij.DynamicBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
 
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
-import java.util.ResourceBundle;
+public class LayoutlibBundle extends DynamicBundle {
+  @NonNls private static final String BUNDLE = "messages.LayoutlibBundle";
+  private static final LayoutlibBundle INSTANCE = new LayoutlibBundle();
 
-/**
- * Messages bundle.
- */
-public final class LayoutlibBundle {
-  @NonNls
-  private static final String BUNDLE_NAME = "messages.LayoutlibBundle";
-  private static Reference<ResourceBundle> ourBundle;
+  private LayoutlibBundle() { super(BUNDLE); }
 
-  private static ResourceBundle getBundle() {
-    ResourceBundle bundle = com.intellij.reference.SoftReference.dereference(ourBundle);
-    if (bundle == null) {
-      bundle = ResourceBundle.getBundle(BUNDLE_NAME);
-      ourBundle = new SoftReference<>(bundle);
-    }
-    return bundle;
-  }
-
-  private LayoutlibBundle() {
-  }
-
-  public static String message(@NotNull @PropertyKey(resourceBundle = BUNDLE_NAME) String key, @NotNull Object... params) {
-    return CommonBundle.message(getBundle(), key, params);
+  @NotNull
+  public static String message(@NotNull @PropertyKey(resourceBundle = BUNDLE) String key, @NotNull Object... params) {
+    return INSTANCE.getMessage(key, params);
   }
 }

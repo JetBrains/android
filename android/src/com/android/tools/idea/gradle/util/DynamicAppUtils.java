@@ -186,7 +186,7 @@ public class DynamicAppUtils {
     int result = Messages.showDialog(project,
                                      builder.getHtml(),
                                      "Update the Android Gradle Plugin",
-                                     new String[]{Messages.CANCEL_BUTTON, "Update"},
+                                     new String[]{Messages.getCancelButton(), "Update"},
                                      UPDATE_BUTTON_INDEX /* Default button */,
                                      AllIcons.General.WarningDialog);
 

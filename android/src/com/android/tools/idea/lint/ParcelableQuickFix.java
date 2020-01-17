@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.lint;
 
-import com.intellij.codeInsight.FileModificationService;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
@@ -25,16 +24,12 @@ import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static com.android.SdkConstants.CLASS_PARCEL;
 import static com.android.SdkConstants.CLASS_PARCELABLE;
@@ -366,7 +361,11 @@ public class ParcelableQuickFix implements AndroidLintQuickFix {
 
     private static boolean isConstructorWithParcelParameter(@NotNull PsiMethod method) {
       PsiParameterList params = method.getParameterList();
-      return method.isConstructor() && params.getParametersCount() == 1 && params.getParameters()[0].getType().equalsToText(CLASS_PARCEL);
+      if (method.isConstructor()) {
+        PsiParameter parameter = params.getParameter(0);
+        return parameter != null && parameter.getType().equalsToText(CLASS_PARCEL);
+      }
+      return false;
     }
 
     private static boolean isWriteToParcelMethod(@NotNull PsiMethod method) {

@@ -53,10 +53,4 @@ public class GameToolsStarter implements ApplicationStarter {
   public boolean allowAnyModalityState() {
     return true;
   }
-
-  @NotNull
-  @Override
-  public Future<? extends CliResult> processExternalCommandLineAsync(@NotNull String[] args, @Nullable String currentDirectory) {
-    return new CompletableFuture<>();
-  }
 }

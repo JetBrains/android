@@ -17,7 +17,6 @@ package com.android.tools.idea.profilers;
 
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
@@ -33,7 +32,7 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFactory, Condition<Project> {
+public final class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFactory {
   public static final String ID = "Android Profiler";
   private static final String PROFILER_TOOL_WINDOW_TITLE = "Profiler";
   private static final Map<Content, AndroidProfilerToolWindow> PROJECT_PROFILER_MAP = new HashMap<>();
@@ -42,9 +41,9 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     project.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
       @Override
-      public void stateChanged() {
+      public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
         // We need to query the tool window again, because it might have been unregistered when closing the project.
-        ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ID);
+        ToolWindow window = toolWindowManager.getToolWindow(ID);
         if (window == null) {
           return;
         }
@@ -58,9 +57,8 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
   }
 
   @Override
-  public void init(ToolWindow toolWindow) {
+  public void init(@NotNull ToolWindow toolWindow) {
     toolWindow.setToHideOnEmptyContent(true);
-    toolWindow.hide(null);
     toolWindow.setShowStripeButton(false);
     toolWindow.setStripeTitle(PROFILER_TOOL_WINDOW_TITLE);
 
@@ -113,11 +111,6 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
       PROJECT_PROFILER_MAP.remove(content);
       toolWindow.getContentManager().removeAllContents(true);
     }
-  }
-
-  @Override
-  public boolean value(Project project) {
-    return true;
   }
 }
 

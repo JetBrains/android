@@ -45,6 +45,7 @@ import com.intellij.ui.components.JBPanel;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.text.CharArrayUtil;
 import com.intellij.util.ui.GridBag;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -285,7 +286,7 @@ public class ReferencedValuesGradleEditorComponent extends JBPanel {
 
     // Ask the editor to render target text.
     JScrollPane scrollPane = UIUtil.findComponentOfType(editor.getComponent(), JScrollPane.class);
-    BufferedImage image = UIUtil.createImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    BufferedImage image = ImageUtil.createImage(width, height, BufferedImage.TYPE_INT_ARGB);
     if (scrollPane != null) {
       Component editorComponent = scrollPane.getViewport().getView();
       editorComponent.setSize(Integer.MAX_VALUE, Integer.MAX_VALUE);

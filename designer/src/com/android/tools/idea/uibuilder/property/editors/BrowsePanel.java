@@ -25,7 +25,6 @@ import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
-import com.android.tools.property.ptable.PTable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.common.property.editors.NlComponentEditor;
@@ -36,6 +35,7 @@ import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.property.EmptyProperty;
+import com.android.tools.property.ptable.PTable;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
@@ -338,7 +338,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
             break;
           default:
             presentation.setIcon(null);
-            presentation.setText(null);
+            presentation.setText(Presentation.NULL_STRING);
             presentation.setEnabledAndVisible(false);
             break;
         }

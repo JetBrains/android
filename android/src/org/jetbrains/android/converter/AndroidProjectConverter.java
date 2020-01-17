@@ -20,9 +20,6 @@ import com.intellij.conversion.ProjectConverter;
 import com.intellij.conversion.ModuleSettings;
 import com.intellij.conversion.ConversionProcessor;
 
-/**
- * @author nik
- */
 public class AndroidProjectConverter extends ProjectConverter {
   @Override
   public ConversionProcessor<ModuleSettings> createModuleFileConverter() {

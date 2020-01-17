@@ -43,13 +43,13 @@ public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
    * @return module children except of its sub-modules.
    */
   @NotNull
-  protected abstract Collection<AbstractTreeNode> getModuleChildren();
+  protected abstract Collection<AbstractTreeNode<?>> getModuleChildren();
 
   /**
    * Provides access to the platform's {@link ProjectViewModuleNode#getChildren}.
    */
   @NotNull
-  protected final Collection<AbstractTreeNode> platformGetChildren() {
+  protected final Collection<AbstractTreeNode<?>> platformGetChildren() {
     return super.getChildren();
   }
 
@@ -59,7 +59,7 @@ public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
    */
   @NotNull
   @Override
-  public final Collection<AbstractTreeNode> getChildren() {
+  public final Collection<AbstractTreeNode<?>> getChildren() {
     return CollectionsKt.plus(
       ModuleNodeUtils.createChildModuleNodes(Objects.requireNonNull(getProject()), getValue(), myProjectViewPane, getSettings()),
       getModuleChildren());

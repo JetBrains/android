@@ -171,7 +171,7 @@ public class GradleProjectInfoTest extends PlatformTestCase {
     AndroidFacet facet = createAndAddAndroidFacet(module);
 
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
-    facet.getConfiguration().setModel(androidModel);
+    facet.setModel(androidModel);
 
     ProjectFileIndex projectFileIndex = mock(ProjectFileIndex.class);
     Project project = getProject();

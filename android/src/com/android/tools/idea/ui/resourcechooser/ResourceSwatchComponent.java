@@ -33,7 +33,7 @@ import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.RoundedLineBorder;
 import com.intellij.ui.TextFieldWithAutoCompletion;
-import com.intellij.util.ui.JBUI;
+import com.intellij.ui.scale.JBUIScale;
 import icons.AndroidIcons;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -75,11 +75,11 @@ public class ResourceSwatchComponent extends JPanel {
   private static final String API_ERROR_TEXT = "This resource requires at least an API level of %d";
 
   /** Padding used between the icon and the text field */
-  private static final int PADDING = JBUI.scale(3);
+  private static final int PADDING = JBUIScale.scale(3);
   /** Padding around the text in the text field */
-  private static final int TEXT_PADDING = JBUI.scale(8);
+  private static final int TEXT_PADDING = JBUIScale.scale(8);
   /** Size of rounded corners for the icon and the text field */
-  private static final int ARC_SIZE = JBUI.scale(2);
+  private static final int ARC_SIZE = JBUIScale.scale(2);
   private static final Color DEFAULT_BORDER_COLOR = Gray._170;
   private static final Color WARNING_BORDER_COLOR = JBColor.ORANGE;
 
@@ -87,8 +87,8 @@ public class ResourceSwatchComponent extends JPanel {
     @Override
     public void paintSwatch(@NotNull Component c, @NotNull Graphics g, int x, int y, int w, int h) {
       Icon QUESTION_ICON = AndroidIcons.GreyQuestionMark;
-      int horizontalMargin = (w + JBUI.scale(1) - QUESTION_ICON.getIconWidth()) / 2;
-      int verticalMargin = (h + JBUI.scale(3) - QUESTION_ICON.getIconHeight()) / 2;
+      int horizontalMargin = (w + JBUIScale.scale(1) - QUESTION_ICON.getIconWidth()) / 2;
+      int verticalMargin = (h + JBUIScale.scale(3) - QUESTION_ICON.getIconHeight()) / 2;
       QUESTION_ICON.paintIcon(c, g, x + horizontalMargin, y + verticalMargin);
     }
   };
@@ -358,8 +358,8 @@ public class ResourceSwatchComponent extends JPanel {
   }
 
   public abstract static class SwatchIcon implements Icon {
-    private static final int SPACING = JBUI.scale(3);
-    private static final int TRIANGLE_SIZE = JBUI.scale(13);
+    private static final int SPACING = JBUIScale.scale(3);
+    private static final int TRIANGLE_SIZE = JBUIScale.scale(13);
 
     private int mySize;
     private boolean myIsStack;

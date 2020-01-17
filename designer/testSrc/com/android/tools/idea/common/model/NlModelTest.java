@@ -64,7 +64,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.XmlElementFactory;
@@ -72,6 +71,7 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -387,8 +387,7 @@ public class NlModelTest extends LayoutTestCase {
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem projectSytem = new TestProjectSystem(getProject(), accessibleDependencies);
-    PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
-                                       projectSytem, getTestRootDisposable());
+    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(), projectSytem, getTestRootDisposable());
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
@@ -430,8 +429,7 @@ public class NlModelTest extends LayoutTestCase {
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem projectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
-    PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
-                                       projectSystem, getTestRootDisposable());
+    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(), projectSystem, getTestRootDisposable());
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)
@@ -480,8 +478,7 @@ public class NlModelTest extends LayoutTestCase {
       .addAll(PLATFORM_SUPPORT_LIBS)
       .build();
     TestProjectSystem projectSystem = new TestProjectSystem(getProject(), accessibleDependencies);
-    PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
-                                       projectSystem, getTestRootDisposable());
+    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(), projectSystem, getTestRootDisposable());
 
     SyncNlModel model = model("my_linear.xml", component(LINEAR_LAYOUT)
       .withBounds(0, 0, 1000, 1000)

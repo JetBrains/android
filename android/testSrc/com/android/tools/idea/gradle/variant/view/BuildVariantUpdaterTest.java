@@ -22,6 +22,7 @@ import com.android.ide.common.gradle.model.level2.IdeDependencies;
 import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkVariant;
 import com.android.tools.idea.flags.StudioFlags;
@@ -46,6 +47,8 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.HashSet;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -95,7 +98,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     initMocks(this);
 
     AndroidFacet androidFacet = createAndAddAndroidFacet(getModule());
-    androidFacet.getConfiguration().setModel(myAndroidModel);
+    androidFacet.setModel(myAndroidModel);
 
     Project project = getProject();
     when(myModifiableModelsProviderFactory.create(project)).thenReturn(myModifiableModelsProvider);
@@ -113,10 +116,9 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     when(myAndroidProject.getDynamicFeatures()).thenReturn(Collections.emptyList());
     when(myIdeDependencies.getModuleDependencies()).thenReturn(myModuleDependencies);
 
-    IdeComponents ideComponents = new IdeComponents(project);
-    ideComponents.replaceProjectService(PostSyncProjectSetup.class, myPostSyncProjectSetup);
+    ServiceContainerUtil.replaceService(project, PostSyncProjectSetup.class, myPostSyncProjectSetup, getTestRootDisposable());
     // Replace the GradleFiles service so no hashes are updated as this can cause a NPE since the mocked models don't return anything
-    ideComponents.replaceProjectService(GradleFiles.class, myGradleFiles);
+    ServiceContainerUtil.replaceService(project, GradleFiles.class, myGradleFiles, getTestRootDisposable());
 
     myVariantUpdater = new BuildVariantUpdater(myModuleSetupContextFactory, myModifiableModelsProviderFactory,
                                                new AndroidVariantChangeModuleSetup(mySetupStepToInvoke, mySetupStepToIgnore),
@@ -401,7 +403,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.getConfiguration().setModel(libraryAndroidModel);
+    libraryAndroidFacet.setModel(libraryAndroidModel);
 
     // Setup library.
 
@@ -489,7 +491,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.getConfiguration().setModel(libraryAndroidModel);
+    libraryAndroidFacet.setModel(libraryAndroidModel);
 
     // Setup library.
 
@@ -578,7 +580,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.getConfiguration().setModel(libraryAndroidModel);
+    libraryAndroidFacet.setModel(libraryAndroidModel);
 
     // Setup library.
 
@@ -696,7 +698,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.getConfiguration().setModel(libraryAndroidModel);
+    libraryAndroidFacet.setModel(libraryAndroidModel);
 
     // Setup library.
 
@@ -819,7 +821,7 @@ public class BuildVariantUpdaterTest extends PlatformTestCase {
     // Create library module with Android facet.
     Module libraryModule = createModule("library");
     AndroidFacet libraryAndroidFacet = createAndAddAndroidFacet(libraryModule);
-    libraryAndroidFacet.getConfiguration().setModel(libraryAndroidModel);
+    libraryAndroidFacet.setModel(libraryAndroidModel);
 
     // Setup library.
 

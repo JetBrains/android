@@ -94,7 +94,7 @@ public class CodeAnalysisMain {
     final ArrayList<PsiFile> retList = Lists.newArrayList();
     scope.accept(new PsiElementVisitor() {
       @Override
-      public void visitFile(PsiFile file) {
+      public void visitFile(@NotNull PsiFile file) {
         if (file instanceof PsiJavaFile) {
           retList.add(file);
         }

@@ -41,7 +41,6 @@ import com.intellij.history.LocalHistory;
 import com.intellij.history.LocalHistoryAction;
 import com.intellij.ide.scratch.ScratchFileService;
 import com.intellij.ide.scratch.ScratchRootType;
-import com.intellij.lang.StdLanguages;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.application.ApplicationManager;
@@ -50,6 +49,7 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -85,6 +85,7 @@ import com.intellij.util.ObjectUtils;
 import com.intellij.util.Processor;
 import com.intellij.util.SequentialModalProgressTask;
 import com.intellij.util.SequentialTask;
+import com.intellij.util.concurrency.SameThreadExecutor;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -191,7 +192,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       int myFileCount = 0;
 
       @Override
-      public void visitFile(PsiFile file) {
+      public void visitFile(@NotNull PsiFile file) {
         myFileCount++;
         VirtualFile virtualFile = file.getVirtualFile();
         FileViewProvider viewProvider = psiManager.findViewProvider(virtualFile);
@@ -347,7 +348,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       public void onFailure(@Nullable Throwable t) {
         throw new RuntimeException(t);
       }
-    });
+    }, SameThreadExecutor.INSTANCE);
   }
 
   private static Runnable applyRunnable(Project project, Computable<UsageInfo[]> computable) {
@@ -439,7 +440,7 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       }
 
       @Override
-      public void generate(@NotNull Processor<Usage> processor) {
+      public void generate(@NotNull Processor<? super Usage> processor) {
         processUsages(processor, project);
       }
     };
@@ -482,10 +483,6 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
     }
 
     @Override
-    public void prepare() {
-    }
-
-    @Override
     public boolean isDone() {
       return myCount > myTotal - 1;
     }
@@ -511,16 +508,12 @@ public class InferSupportAnnotationsAction extends BaseAnalysisAction {
       return done;
     }
 
-    @Override
-    public void stop() {
-    }
-
     public void showReport() {
       if (InferSupportAnnotations.CREATE_INFERENCE_REPORT) {
         String report = InferSupportAnnotations.generateReport(myInfos);
         String fileName = "Annotation Inference Report";
         ScratchFileService.Option option = ScratchFileService.Option.create_new_always;
-        VirtualFile f = ScratchRootType.getInstance().createScratchFile(myProject, fileName, StdLanguages.TEXT, report, option);
+        VirtualFile f = ScratchRootType.getInstance().createScratchFile(myProject, fileName, PlainTextLanguage.INSTANCE, report, option);
         if (f != null) {
           FileEditorManager.getInstance(myProject).openFile(f, true);
         }

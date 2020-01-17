@@ -46,6 +46,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.serviceContainer.NonInjectable;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
@@ -54,13 +55,10 @@ import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConf
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer;
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer;
 
-public class AndroidGradleProjectComponent implements ProjectComponent {
+public final class AndroidGradleProjectComponent implements ProjectComponent {
   // Copy of a private constant in GradleNotification.java.
   private static final String GRADLE_NOTIFICATION_GROUP_NAME = "Gradle Notification Group";
   @NotNull private final Project myProject;
-  @NotNull private final GradleProjectInfo myGradleProjectInfo;
-  @NotNull private final AndroidProjectInfo myAndroidProjectInfo;
-  @NotNull private final IdeInfo myIdeInfo;
   @NotNull private final LegacyAndroidProjects myLegacyAndroidProjects;
 
   @Nullable private Disposable myDisposable;
@@ -73,27 +71,14 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
   }
 
   @SuppressWarnings("unused") // Invoked by IDEA
-  public AndroidGradleProjectComponent(@NotNull Project project,
-                                       @NotNull GradleProjectInfo gradleProjectInfo,
-                                       @NotNull AndroidProjectInfo androidProjectInfo,
-                                       @NotNull GradleBuildInvoker gradleBuildInvoker,
-                                       @NotNull CompilerManager compilerManager,
-                                       @NotNull IdeInfo ideInfo) {
-    this(project, gradleProjectInfo, androidProjectInfo, gradleBuildInvoker, compilerManager, ideInfo, new LegacyAndroidProjects(project));
+  public AndroidGradleProjectComponent(@NotNull Project project) {
+    this(project, new LegacyAndroidProjects(project));
   }
 
   @VisibleForTesting
-  public AndroidGradleProjectComponent(@NotNull Project project,
-                                       @NotNull GradleProjectInfo gradleProjectInfo,
-                                       @NotNull AndroidProjectInfo androidProjectInfo,
-                                       @NotNull GradleBuildInvoker gradleBuildInvoker,
-                                       @NotNull CompilerManager compilerManager,
-                                       @NotNull IdeInfo ideInfo,
-                                       @NotNull LegacyAndroidProjects legacyAndroidProjects) {
+  @NonInjectable
+  public AndroidGradleProjectComponent(@NotNull Project project, @NotNull LegacyAndroidProjects legacyAndroidProjects) {
     myProject = project;
-    myGradleProjectInfo = gradleProjectInfo;
-    myAndroidProjectInfo = androidProjectInfo;
-    myIdeInfo = ideInfo;
     myLegacyAndroidProjects = legacyAndroidProjects;
 
     // Disable Gradle plugin notifications in Android Studio.
@@ -105,9 +90,9 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
 
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via JPS.
-    compilerManager.addAfterTask(context -> {
-      if (myGradleProjectInfo.isBuildWithGradle()) {
-        PostProjectBuildTasksExecutor.getInstance(project).onBuildCompletion(context);
+    CompilerManager.getInstance(myProject).addAfterTask(context -> {
+      if (GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
+        PostProjectBuildTasksExecutor.getInstance(myProject).onBuildCompletion(context);
 
         JpsBuildContext newContext = new JpsBuildContext(context);
         AndroidProjectBuildNotifications.getInstance(myProject).notifyBuildComplete(newContext);
@@ -116,7 +101,7 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
     });
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via direct Gradle invocation.
-    gradleBuildInvoker.add(result -> {
+    GradleBuildInvoker.getInstance(myProject).add(result -> {
       if (myProject.isDisposed()) return;
       PostProjectBuildTasksExecutor.getInstance(myProject).onBuildCompletion(result);
       GradleBuildContext newContext = new GradleBuildContext(result);
@@ -152,15 +137,16 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
    */
   @Override
   public void projectOpened() {
-    if (myIdeInfo.isAndroidStudio() && myAndroidProjectInfo.isLegacyIdeaAndroidProject() && !myAndroidProjectInfo.isApkProject()) {
+    if (IdeInfo.getInstance().isAndroidStudio() && AndroidProjectInfo.getInstance(myProject).isLegacyIdeaAndroidProject() && !AndroidProjectInfo.getInstance(myProject)
+      .isApkProject()) {
       myLegacyAndroidProjects.trackProject();
-      if (!myGradleProjectInfo.isBuildWithGradle()) {
+      if (!GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
         // Suggest that Android Studio users use Gradle instead of IDEA project builder.
         myLegacyAndroidProjects.showMigrateToGradleWarning();
       }
     }
     // Check if the Gradle JDK environment variable is valid
-    if (myIdeInfo.isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       IdeSdks ideSdks = IdeSdks.getInstance();
       if (ideSdks.isJdkEnvVariableDefined() && !ideSdks.isJdkEnvVariableValid()) {
         String msg = JDK_LOCATION_ENV_VARIABLE_NAME + " is being ignored since it is set to an invalid JDK Location:\n"
@@ -188,7 +174,7 @@ public class AndroidGradleProjectComponent implements ProjectComponent {
     runConfigurationProducerTypes.add(TestMethodGradleConfigurationProducer.class);
 
     RunConfigurationProducerService runConfigurationProducerManager = RunConfigurationProducerService.getInstance(myProject);
-    if (myIdeInfo.isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       // Make sure the gradle test configurations are ignored in this project. This will modify .idea/runConfigurations.xml
       for (Class<? extends RunConfigurationProducer<?>> type : runConfigurationProducerTypes) {
         runConfigurationProducerManager.getState().ignoredProducers.add(type.getName());

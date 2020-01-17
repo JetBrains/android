@@ -26,13 +26,13 @@ import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.android.tools.idea.run.deployable.SwappableProcessHandler;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.run.util.SwapInfo.SwapType;
+import com.android.tools.idea.util.CommonAndroidUtil;
 import com.intellij.debugger.DebuggerManagerEx;
 import com.intellij.debugger.engine.RemoteDebugProcessHandler;
 import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.Executor;
-import com.intellij.execution.ExecutorRegistry;
 import com.intellij.execution.ProgramRunnerUtil;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
@@ -47,15 +47,9 @@ import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.keymap.Keymap;
-import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import javax.swing.Icon;
@@ -78,41 +72,15 @@ public abstract class BaseAction extends AnAction {
   @NotNull
   private final String myDescription;
 
-  public BaseAction(@NotNull String id,
-                    @NotNull String name,
+  public BaseAction(@NotNull String name,
                     @NotNull SwapType swapType,
                     @NotNull Icon icon,
-                    @NotNull Shortcut shortcut,
                     @NotNull String description) {
     super(name, description, icon);
     myName = name;
     mySwapType = swapType;
     myIcon = icon;
     myDescription = description;
-
-    KeymapManager manager = KeymapManager.getInstance();
-    if (manager != null) {
-      final Keymap keymap = manager.getActiveKeymap();
-      if (keymap != null) {
-        List<Shortcut> shortcuts = Arrays.asList(keymap.getShortcuts(id));
-        if (shortcuts.isEmpty()) {
-          // Add the shortcut for the first time.
-          // TODO: figure out how to not add it back if the user deliberately removes the action hotkey.
-          keymap.addShortcut(id, shortcut);
-          shortcuts = Collections.singletonList(shortcut);
-        }
-
-        // Remove conflicting shortcuts stemming from UpdateRunningApplication only,
-        // and leave the remaining conflicts intact, since that's what the user intends.
-        final String updateRunningApplicationId = "UpdateRunningApplication";
-        Shortcut[] uraShortcuts = keymap.getShortcuts(updateRunningApplicationId);
-        for (Shortcut uraShortcut : uraShortcuts) {
-          if (shortcuts.contains(uraShortcut)) {
-            keymap.removeShortcut(updateRunningApplicationId, uraShortcut);
-          }
-        }
-      }
-    }
   }
 
   /**
@@ -125,7 +93,7 @@ public abstract class BaseAction extends AnAction {
   public void update(@NotNull AnActionEvent e) {
     Presentation presentation = e.getPresentation();
     Project project = e.getProject();
-    if (project == null) {
+    if (project == null || !CommonAndroidUtil.getInstance().isAndroidProject(project)) {
       presentation.setVisible(false);
       return;
     }
@@ -233,13 +201,12 @@ public abstract class BaseAction extends AnAction {
    */
   private static boolean isExecutorStarting(@NotNull Project project, @NotNull RunConfiguration runConfiguration) {
     // Check if any executors are starting up (e.g. if the user JUST clicked on an executor, and deployment hasn't finished).
-    Executor[] executors = ExecutorRegistry.getInstance().getRegisteredExecutors();
-    for (Executor executor : executors) {
-      ProgramRunner programRunner = ProgramRunner.getRunner(executor.getId(), runConfiguration);
+    for (Executor executor : Executor.EXECUTOR_EXTENSION_NAME.getExtensionList()) {
+      ProgramRunner<?> programRunner = ProgramRunner.getRunner(executor.getId(), runConfiguration);
       if (programRunner == null) {
         continue;
       }
-      if (ExecutorRegistry.getInstance().isStarting(project, executor.getId(), programRunner.getRunnerId())) {
+      if (ExecutionManager.getInstance(project).isStarting(executor.getId(), programRunner.getRunnerId())) {
         return true;
       }
     }
@@ -340,6 +307,7 @@ public abstract class BaseAction extends AnAction {
   }
 
   protected void disableAction(@NotNull Presentation presentation, @NotNull DisableMessage disableMessage) {
+    if (!presentation.isVisible()) return;
     presentation.setVisible(disableMessage.myDisableMode != DisableMessage.DisableMode.INVISIBLE);
     presentation.setEnabled(false);
     presentation.setText(String.format("%s (disabled: %s)", myName, disableMessage.myTooltip));

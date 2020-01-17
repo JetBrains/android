@@ -18,7 +18,16 @@ package com.android.tools.idea.sdk.install.patch;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.repository.Revision;
-import com.android.repository.api.*;
+import com.android.repository.api.Downloader;
+import com.android.repository.api.Installer;
+import com.android.repository.api.InstallerFactory;
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.RepoPackage;
+import com.android.repository.api.Repository;
+import com.android.repository.api.Uninstaller;
 import com.android.repository.impl.installer.AbstractInstaller;
 import com.android.repository.impl.installer.AbstractInstallerFactory;
 import com.android.repository.impl.installer.AbstractUninstaller;
@@ -31,11 +40,10 @@ import com.android.tools.idea.sdk.StudioDownloader;
 import com.android.tools.idea.sdk.install.StudioSdkInstallListenerFactory;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.intellij.openapi.ui.Messages;
+import java.io.File;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
 
 /**
  * Facility for processing SDK patches that require a restart of Studio.

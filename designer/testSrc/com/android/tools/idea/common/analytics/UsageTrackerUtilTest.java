@@ -69,6 +69,7 @@ package com.android.tools.idea.common.analytics;
  import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
  import org.jetbrains.android.resourceManagers.LocalResourceManager;
  import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
+ import org.jetbrains.android.resourceManagers.FrameworkResourceManager;
  import org.jetbrains.annotations.NotNull;
  import org.jetbrains.annotations.Nullable;
  import org.picocontainer.MutablePicoContainer;

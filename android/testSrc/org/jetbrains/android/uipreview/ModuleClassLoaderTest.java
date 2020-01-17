@@ -159,7 +159,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
   public void testIsSourceModified() throws IOException {
     File rootDirPath = Projects.getBaseDirPath(getProject());
     AndroidProjectStub androidProject = TestProjects.createBasicProject();
-    myFacet.getConfiguration()
+    myFacet
       .setModel(AndroidModuleModel.create(androidProject.getName(), rootDirPath, androidProject, "debug", new IdeDependenciesFactory()));
     myFacet.getProperties().ALLOW_USER_CONFIGURATION = false;
     assertThat(myFacet.requiresAndroidModel()).isTrue();
@@ -229,7 +229,7 @@ public class ModuleClassLoaderTest extends AndroidTestCase {
     AndroidProjectStub androidProject = TestProjects.createBasicProject();
     androidProject.setProjectType(AndroidProject.PROJECT_TYPE_LIBRARY);
     myFacet.getConfiguration().getState().PROJECT_TYPE = AndroidProject.PROJECT_TYPE_LIBRARY;
-    myFacet.getConfiguration().setModel(
+    myFacet.setModel(
       AndroidModuleModel.create(androidProject.getName(),
                                 Projects.getBaseDirPath(getProject()),
                                 androidProject,

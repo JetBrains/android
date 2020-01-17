@@ -76,7 +76,7 @@ public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     // all resource folders of a given folder type
     Multimap<String, PsiFile> multimap = HashMultimap.create();
     for (PsiDirectory resFolder : getResFolders()) {
@@ -87,7 +87,7 @@ public class AndroidResFolderTypeNode extends ProjectViewNode<List<PsiDirectory>
     }
 
     assert myProject != null;
-    List<AbstractTreeNode> children = new ArrayList<>(multimap.size());
+    List<AbstractTreeNode<?>> children = new ArrayList<>(multimap.size());
     for (String resName : multimap.keySet()) {
       List<PsiFile> files = new ArrayList<>(multimap.get(resName));
       if (files.size() > 1) {

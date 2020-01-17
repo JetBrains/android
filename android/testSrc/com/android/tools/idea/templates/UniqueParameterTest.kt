@@ -75,7 +75,7 @@ class UniqueParameterTest : AndroidGradleTestCase() {
 
     assertNotNull(AndroidPlatform.getInstance(myAppModule!!))
 
-    assertNotNull(myAppFacet!!.configuration.model)
+    assertNotNull(myAppFacet!!.model)
     // TODO: b/23032990
     val paidFlavor = AndroidModuleModel.get(myAppFacet!!)!!.findProductFlavor("paid")
     assertNotNull(paidFlavor)

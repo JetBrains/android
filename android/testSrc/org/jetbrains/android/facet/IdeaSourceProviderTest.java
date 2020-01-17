@@ -31,6 +31,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.PathUtil;
 import java.io.File;
 import java.util.Collection;
@@ -89,7 +90,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
    */
   public void testGetCurrentSourceProviders() throws Exception {
     StringBuilder sb = new StringBuilder();
-    VirtualFile baseDir = getProject().getBaseDir();
+    VirtualFile baseDir = PlatformTestUtil.getOrCreateProjectTestBaseDir(getProject());
     for (IdeaSourceProvider provider : IdeaSourceProvider.getCurrentSourceProviders(myAppFacet)) {
       sb.append(getStringRepresentation(provider, baseDir));
     }
@@ -246,7 +247,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
   }
 
   public void testFindSourceProvider() throws Exception {
-    assertNotNull(myAppFacet.getConfiguration().getModel());
+    assertNotNull(myAppFacet.getModel());
     VirtualFile moduleFile = findFileByIoFile(getProjectFolderPath(), true).findFileByRelativePath("app");
     assertNotNull(moduleFile);
 
@@ -405,7 +406,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
   }
 
   public void testSourceProviderContainsFile() throws Exception {
-    assertNotNull(myAppFacet.getConfiguration().getModel());
+    assertNotNull(myAppFacet.getModel());
     ProductFlavorContainer paidFlavor = AndroidModuleModel.get(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.toIdeaProvider(paidFlavor.getSourceProvider());
@@ -426,7 +427,7 @@ public class IdeaSourceProviderTest extends AndroidGradleTestCase {
 
 
   public void testSourceProviderIsContainedByFolder() throws Exception {
-    assertNotNull(myAppFacet.getConfiguration().getModel());
+    assertNotNull(myAppFacet.getModel());
     ProductFlavorContainer paidFlavor = AndroidModuleModel.get(myAppFacet).findProductFlavor("paid");
     assertNotNull(paidFlavor);
     IdeaSourceProvider paidFlavorSourceProvider = IdeaSourceProvider.toIdeaProvider(paidFlavor.getSourceProvider());

@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.rendering.multi;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.Set;
 
 /**
  * The {@linkplain RenderPreviewMode} records what type of configurations to

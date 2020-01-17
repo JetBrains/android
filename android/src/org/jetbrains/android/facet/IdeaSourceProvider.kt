@@ -117,7 +117,7 @@ interface IdeaSourceProvider {
       }
       else {
         @Suppress("DEPRECATION")
-        facet.configuration.model?.activeSourceProviders?.toIdeaProviders().orEmpty()
+        facet.model?.activeSourceProviders?.toIdeaProviders().orEmpty()
       }
     }
 
@@ -161,7 +161,7 @@ interface IdeaSourceProvider {
       }
       else {
         @Suppress("DEPRECATION")
-        facet.configuration.model?.testSourceProviders?.toIdeaProviders().orEmpty()
+        facet.model?.testSourceProviders?.toIdeaProviders().orEmpty()
       }
     }
 
@@ -242,12 +242,12 @@ interface IdeaSourceProvider {
      */
     @JvmStatic
     fun getAllSourceProviders(facet: AndroidFacet): List<SourceProvider> {
-      return if (!facet.requiresAndroidModel() || facet.configuration.model == null) {
+      return if (!facet.requiresAndroidModel() || facet.model == null) {
         listOf(SourceProviderManager.getInstance(facet).mainSourceProvider)
       }
       else {
         @Suppress("DEPRECATION")
-        facet.configuration.model!!.allSourceProviders
+        facet.model!!.allSourceProviders
       }
     }
 
@@ -266,7 +266,7 @@ interface IdeaSourceProvider {
      */
     @JvmStatic
     fun getAllIdeaSourceProviders(facet: AndroidFacet): List<IdeaSourceProvider> {
-      return if (!facet.requiresAndroidModel() || facet.configuration.model == null) {
+      return if (!facet.requiresAndroidModel() || facet.model == null) {
         listOf(SourceProviderManager.getInstance(facet).mainIdeaSourceProvider)
       }
       else {

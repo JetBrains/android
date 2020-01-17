@@ -22,7 +22,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
@@ -60,7 +59,7 @@ public class JdkModuleSetupStepTest extends AndroidGradleTestCase {
     when(myIdeSdks.getJdk()).thenReturn(jdk);
     when(myJdks.isApplicableJdk(jdk, JDK_1_7)).thenReturn(false);
 
-    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject());
+    GradleSyncMessagesStub syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
 
     mySetupStep.setUpInAndroidStudio(appModule, androidModel);
 

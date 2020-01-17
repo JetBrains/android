@@ -29,7 +29,6 @@ import com.android.tools.idea.res.ResourceFolderRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -237,7 +236,7 @@ AndroidModularizeProcessor extends BaseRefactoringProcessor {
   protected void previewRefactoring(@NotNull UsageInfo[] usages) {
     PreviewDialog previewDialog = new PreviewDialog(myProject, myReferenceGraph, usages, myShouldSelectAllReferences);
     if (previewDialog.showAndGet()) {
-      TransactionGuard.getInstance().submitTransactionAndWait(() -> execute(previewDialog.getSelectedUsages()));
+      execute(previewDialog.getSelectedUsages());
     }
   }
 

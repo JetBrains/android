@@ -28,7 +28,6 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Condition
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
@@ -36,33 +35,28 @@ import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.util.AndroidUtils
 
-const val RESOURCE_EXPLORER_TOOL_WINDOW_ID = "Resources Explorer"
+internal const val RESOURCE_EXPLORER_TOOL_WINDOW_ID = "Resources Explorer"
 
 private const val STRIPE_TITLE = "Resource Manager"
 
 /**
  * Provides the tool explorer panel
  */
-class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware, Condition<Any> {
-
-  override fun isDoNotActivateOnStart(): Boolean = true
-
-  override fun init(window: ToolWindow?) {
-    window?.stripeTitle = STRIPE_TITLE
+class ResourceExplorerToolFactory : ToolWindowFactory, DumbAware {
+  override fun init(window: ToolWindow) {
+    window.stripeTitle = STRIPE_TITLE
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     createContent(toolWindow, project)
-    project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, MyToolWindowManagerListener(project))
+    project.messageBus.connect().subscribe(ToolWindowManagerListener.TOPIC, MyToolWindowManagerListener(project))
   }
 
-  override fun shouldBeAvailable(project: Project) = StudioFlags.RESOURCE_MANAGER_ENABLED.get()
+  override fun shouldBeAvailable(project: Project) = StudioFlags.RESOURCE_MANAGER_ENABLED.get() && AndroidUtils.hasAndroidFacets(project)
 
-  /**
-   * Implementation of [Condition].
-   */
-  override fun value(o: Any) = StudioFlags.RESOURCE_MANAGER_ENABLED.get()
+  override fun isApplicable(project: Project) = shouldBeAvailable(project)
 }
 
 private fun connectListeners(toolWindow: ToolWindow,
@@ -161,9 +155,8 @@ private class MyFileEditorListener(val project: Project,
 }
 
 private class MyToolWindowManagerListener(private val project: Project) : ToolWindowManagerListener {
-
-  override fun stateChanged() {
-    val window: ToolWindow = ToolWindowManager.getInstance(project).getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID) ?: return
+  override fun stateChanged(toolWindowManager: ToolWindowManager) {
+    val window: ToolWindow = toolWindowManager.getToolWindow(RESOURCE_EXPLORER_TOOL_WINDOW_ID) ?: return
     val contentManager = window.contentManager
     val resourceExplorerIsPresent = contentManager.contents.any { it.component is ResourceExplorer }
     if (!window.isVisible) {

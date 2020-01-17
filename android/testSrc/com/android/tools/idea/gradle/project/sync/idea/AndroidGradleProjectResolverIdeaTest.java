@@ -66,10 +66,11 @@ import java.util.Collection;
 import java.util.List;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.gradle.model.LegacyIdeaProjectModelAdapter;
 import org.jetbrains.kotlin.kapt.idea.KaptGradleModel;
 import org.jetbrains.kotlin.kapt.idea.KaptSourceSetModel;
 import org.jetbrains.plugins.gradle.model.ProjectImportAction;
-import org.jetbrains.plugins.gradle.service.project.BaseGradleProjectResolverExtension;
+import org.jetbrains.plugins.gradle.service.project.CommonGradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.service.project.DefaultProjectResolverContext;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtension;
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
@@ -122,7 +123,12 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
     String projectPath = toSystemDependentName(myProjectModel.getBuildFile().getParent());
     ExternalSystemTaskNotificationListener notificationListener = new ExternalSystemTaskNotificationListenerAdapter() {
     };
-    myResolverCtx = new DefaultProjectResolverContext(id, projectPath, null, mock(ProjectConnection.class), notificationListener, true);
+    myResolverCtx = new DefaultProjectResolverContext(id, projectPath, null, mock(ProjectConnection.class), notificationListener, null,true) {
+      @Override
+      public boolean isResolveModulePerSourceSet() {
+        return false;
+      }
+    };
     myResolverCtx.setModels(allModels);
 
     myProjectResolver = new AndroidGradleProjectResolver(myCommandLineArgs, myErrorHandler, myProjectFinder, myVariantSelector,
@@ -130,7 +136,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
                                                          new IdeDependenciesFactory());
     myProjectResolver.setProjectResolverContext(myResolverCtx);
 
-    GradleProjectResolverExtension next = new BaseGradleProjectResolverExtension();
+    GradleProjectResolverExtension next = new CommonGradleProjectResolverExtension();
     next.setProjectResolverContext(myResolverCtx);
     myProjectResolver.setNext(next);
   }
@@ -154,8 +160,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
     myResolverCtx.setModels(allModels);
 
     when(androidProject.getModelVersion()).thenReturn("0.0.1");
-    ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectDataNode = new DataNode<>(PROJECT, project, null);
+    DataNode<ProjectData> projectDataNode = createProjectNode();
 
     try {
       myProjectResolver.createModule(myAndroidModuleModel, projectDataNode);
@@ -167,8 +172,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
   }
 
   public void testSyncIssuesPropagatedOnJavaModules() {
-    ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectNode = new DataNode<>(PROJECT, project, null);
+    DataNode<ProjectData> projectNode = createProjectNode();
     DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myAndroidModuleModel, projectNode);
 
     SyncIssue syncIssue = mock(SyncIssue.class);
@@ -195,8 +199,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
   }
 
   public void testPopulateModuleContentRootsWithNativeAndroidProject() {
-    ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectNode = new DataNode<>(PROJECT, project, null);
+    DataNode<ProjectData> projectNode = createProjectNode();
     DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myNativeAndroidModuleModel, projectNode);
     myProjectResolver.populateModuleContentRoots(myNativeAndroidModuleModel, moduleDataNode);
 
@@ -222,8 +225,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
   }
 
   public void testPopulateModuleContentRootsWithJavaProject() {
-    ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectNode = new DataNode<>(PROJECT, project, null);
+    DataNode<ProjectData> projectNode = createProjectNode();
     DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myJavaModuleModel, projectNode);
 
     myProjectResolver.populateModuleContentRoots(myJavaModuleModel, moduleDataNode);
@@ -256,13 +258,12 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
   }
 
   public void testPopulateModuleTasks() {
-    ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectNode = new DataNode<>(PROJECT, project, null);
+    DataNode<ProjectData> projectNode = createProjectNode();
     DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myJavaModuleModel, projectNode);
 
     IdeaProjectStub includedProject = new IdeaProjectStub("includedProject");
     IdeaModuleStub includedModule = includedProject.addModule("lib", "clean", "jar");
-    myResolverCtx.getModels().getIncludedBuilds().add(includedProject);
+    myResolverCtx.getModels().getIncludedBuilds().add(new LegacyIdeaProjectModelAdapter(includedProject));
 
     // Verify that task data for non-included module.
     Collection<TaskData> taskData = myProjectResolver.populateModuleTasks(includedModule, moduleDataNode, projectNode);
@@ -275,8 +276,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
   }
 
   public void testKaptSourcesAreAddedToAndroidModuleModel() {
-    ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectNode = new DataNode<>(PROJECT, project, null);
+    DataNode<ProjectData> projectNode = createProjectNode();
     DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myAndroidModuleModel, projectNode);
 
     File debugGeneratedSourceFile = new File("/gen/debug");
@@ -321,5 +321,13 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
     AndroidModuleModel androidModuleModel = androidModelNodes.iterator().next().getData();
     Variant variant = androidModuleModel.findVariantByName("debug");
     assertThat(variant.getMainArtifact().getGeneratedSourceFolders()).contains(debugGeneratedSourceFile);
+  }
+
+  @NotNull
+  private DataNode<ProjectData> createProjectNode() {
+    final String projectDirPath = myResolverCtx.getProjectPath();
+    String projectName = myProjectModel.getName();
+    ProjectData project = new ProjectData(SYSTEM_ID, projectName, projectDirPath, projectDirPath);
+    return new DataNode<>(PROJECT, project, null);
   }
 }

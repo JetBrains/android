@@ -27,7 +27,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import org.jetbrains.android.compiler.tools.AndroidDxWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
@@ -182,8 +182,7 @@ public class AndroidDexCompiler implements ClassPostProcessingCompiler {
             }
           }
 
-          final AndroidFacetConfiguration configuration = facet.getConfiguration();
-          final AndroidPlatform platform = configuration.getAndroidPlatform();
+          final AndroidPlatform platform = facet.getAndroidPlatform();
 
           if (platform == null) {
             myContext.addMessage(CompilerMessageCategory.ERROR,

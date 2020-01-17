@@ -32,6 +32,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
+import com.android.tools.idea.util.CommonAndroidUtil;
 import com.android.utils.TraceUtils;
 import com.intellij.CommonBundle;
 import com.intellij.codeInsight.hint.HintUtil;
@@ -57,6 +58,7 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -103,6 +105,7 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomFileElement;
 import com.intellij.util.xml.DomManager;
 import java.awt.BorderLayout;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -127,7 +130,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * @author yole, coyote
  */
-public class AndroidUtils {
+public class AndroidUtils extends CommonAndroidUtil {
   private static final Logger LOG = Logger.getInstance(AndroidUtils.class);
 
   @NonNls public static final String NAMESPACE_KEY = "android";
@@ -168,6 +171,11 @@ public class AndroidUtils {
   private static final Lexer JAVA_LEXER = JavaParserDefinition.createLexer(LanguageLevel.JDK_1_5);
 
   private AndroidUtils() {
+  }
+
+  @Override
+  public boolean isAndroidProject(@NotNull Project project) {
+    return hasAndroidFacets(project);
   }
 
   @Nullable
@@ -785,6 +793,11 @@ public class AndroidUtils {
       result.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(url)));
     }
     return result;
+  }
+
+  @NotNull // FIXME-ank2: was deleted. Move to safe place?
+  public static String getAndroidSystemDirectoryOsPath() {
+    return PathManager.getSystemPath() + File.separator + "android";
   }
 
   public static boolean isAndroidComponent(@NotNull PsiClass c) {

@@ -306,7 +306,10 @@ public class ResourceFolderRegistry implements Disposable {
         else if (event instanceof VFilePropertyChangeEvent &&
                  ((VFilePropertyChangeEvent)event).getPropertyName().equals(VirtualFile.PROP_NAME)) {
           VFilePropertyChangeEvent renameEvent = (VFilePropertyChangeEvent)event;
-          onFileOrDirectoryCreated(renameEvent.getFile().getParent(), (String)renameEvent.getNewValue());
+          VirtualFile parent = renameEvent.getFile().getParent();
+          if (parent != null) {
+            onFileOrDirectoryCreated(parent, (String)renameEvent.getNewValue());
+          }
         }
         else if (event instanceof VFileContentChangeEvent) {
           onFileContentChanged(((VFileContentChangeEvent)event).getFile());

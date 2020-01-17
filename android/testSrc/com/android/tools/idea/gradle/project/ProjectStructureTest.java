@@ -171,7 +171,7 @@ public class ProjectStructureTest extends PlatformTestCase {
     AndroidFacet androidFacet = createAndAddAndroidFacet(module);
 
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
-    androidFacet.getConfiguration().setModel(androidModel);
+    androidFacet.setModel(androidModel);
     androidFacet.getConfiguration().setProjectType(projectType);
 
     IdeAndroidProject androidProject = mock(IdeAndroidProject.class);

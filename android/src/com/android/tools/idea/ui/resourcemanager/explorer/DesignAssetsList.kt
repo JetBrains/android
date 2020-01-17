@@ -98,7 +98,7 @@ class DesignAssetsList(
         background = UIUtil.getListUnfocusedSelectionBackground()
         val emptyBorderWidth = itemMargin - ITEM_BORDER_WIDTH
         BorderFactory.createCompoundBorder(
-          BorderFactory.createLineBorder(UIUtil.getListSelectionBackground(), ITEM_BORDER_WIDTH, true),
+          BorderFactory.createLineBorder(UIUtil.getListSelectionBackground(true), ITEM_BORDER_WIDTH, true),
           BorderFactory.createEmptyBorder(emptyBorderWidth, emptyBorderWidth, emptyBorderWidth, emptyBorderWidth)
         )
       } else {

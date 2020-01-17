@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.common.surface;
 
-import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
 import static com.android.tools.adtui.PannableKt.PANNABLE_KEY;
+import static com.android.tools.adtui.ZoomableKt.ZOOMABLE_KEY;
 
 import com.android.tools.adtui.Pannable;
 import com.android.tools.adtui.Zoomable;
@@ -1235,7 +1235,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
 
     @Override
-    public boolean canBePreprocessed(MouseEvent e) {
+    public boolean canBePreprocessed(@NotNull MouseEvent e) {
       return JBScrollPane.canBePreprocessed(e, this);
     }
 

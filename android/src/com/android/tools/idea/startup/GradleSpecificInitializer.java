@@ -36,7 +36,6 @@ import com.android.tools.idea.actions.AndroidNewModuleInGroupAction;
 import com.android.tools.idea.actions.AndroidNewProjectAction;
 import com.android.tools.idea.actions.AndroidOpenFileAction;
 import com.android.tools.idea.actions.CreateLibraryFromFilesAction;
-import com.android.tools.idea.deploy.DeployActionsInitializer;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectSettingsGroup;
 import com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction;
 import com.android.tools.idea.npw.PathValidationResult;
@@ -62,7 +61,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.Constraints;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
@@ -99,7 +97,7 @@ public class GradleSpecificInitializer implements Runnable {
   @Override
   public void run() {
     setUpNewProjectActions();
-    DeployActionsInitializer.installActions();
+    //DeployActionsInitializer.installActions(); // FIXME-ank2
     setUpWelcomeScreenActions();
     replaceProjectPopupActions();
     // Replace "TemplateProjectSettingsGroup" to cause "Find Action" menu use AndroidTemplateProjectSettingsGroup (b/37141013)
@@ -112,7 +110,9 @@ public class GradleSpecificInitializer implements Runnable {
     // "Configure Plugins..." Not sure why it's called StartupWizard.
     AnAction pluginAction = actionManager.getAction("StartupWizard");
     // Never applicable in the context of android studio, so just set to invisible.
-    pluginAction.getTemplatePresentation().setVisible(false);
+    if (pluginAction != null) {
+      pluginAction.getTemplatePresentation().setVisible(false);
+    }
 b/137334921 */
 
     // If running in a GUI test we don't want the "Select SDK" dialog to show up when running GUI tests.
@@ -229,7 +229,6 @@ b/137334921 */
     replaceAction("CreateLibraryFromFile", new CreateLibraryFromFilesAction());
     replaceAction("ImportModule", new AndroidImportModuleAction());
 
-    hideAction(IdeActions.ACTION_GENERATE_ANT_BUILD);
     hideAction("AddFrameworkSupport");
     hideAction("BuildArtifact");
     hideAction("RunTargetAction");
@@ -246,13 +245,14 @@ b/137334921 */
     replaceAction("WelcomeScreen.Configure.ProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
     replaceAction("TemplateProjectStructure", new AndroidTemplateProjectStructureAction("Default Project Structure..."));
 
-    moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA",
-               "WelcomeScreen.QuickStart", new Constraints(AFTER, "WelcomeScreen.GetFromVcs"));
-
     ActionManager actionManager = ActionManager.getInstance();
-    AnAction getFromVcsAction = actionManager.getAction("WelcomeScreen.GetFromVcs");
+
+    moveAction("WelcomeScreen.ImportProject", "WelcomeScreen.QuickStart.IDEA",
+               "WelcomeScreen.QuickStart", new Constraints(AFTER, "Vcs.VcsClone"), actionManager);
+
+    AnAction getFromVcsAction = actionManager.getAction("Vcs.VcsClone");
     if (getFromVcsAction != null) {
-      getFromVcsAction.getTemplatePresentation().setText("Check out project from Version Control");
+      getFromVcsAction.getTemplatePresentation().setText("Get project from Version Control");
     }
   }
 

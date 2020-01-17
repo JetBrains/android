@@ -39,6 +39,7 @@ import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
@@ -134,7 +135,7 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
         return getFakeErrorCount();
       }
     };
-    new IdeComponents(getProject()).replaceProjectService(GradleSyncMessages.class, messagesStub);
+    ServiceContainerUtil.replaceService(getProject(), GradleSyncMessages.class, messagesStub, getTestRootDisposable());
 
 
     // Add a variant filter that will remove every variant.

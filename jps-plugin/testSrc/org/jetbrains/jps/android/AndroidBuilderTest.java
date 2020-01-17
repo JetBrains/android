@@ -538,7 +538,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
     final MyExecutor executor = new MyExecutor("com.example.simple") {
       @NotNull
       @Override
-      protected Process doCreateProcess(@NotNull String[] args, @NotNull Map<? extends String, ? extends String> environment)
+      protected Process doCreateProcess(@NotNull String[] args, @NotNull Map<String, String> environment)
         throws Exception {
         if (args[0].endsWith(SdkConstants.FN_AAPT) && "crunch".equals(args[1])) {
           final String outputDir = args[args.length - 1];
@@ -1450,7 +1450,7 @@ public class AndroidBuilderTest extends JpsBuildTestCase {
 
     @NotNull
     @Override
-    protected Process doCreateProcess(@NotNull String[] args, @NotNull Map<? extends String, ? extends String> environment)
+    protected Process doCreateProcess(@NotNull String[] args, @NotNull Map<String, String> environment)
       throws Exception {
       final int idx = ArrayUtilRt.find(args, "org.jetbrains.android.compiler.tools.AndroidDxRunner");
 

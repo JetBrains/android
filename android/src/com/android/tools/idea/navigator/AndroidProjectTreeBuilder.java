@@ -46,10 +46,10 @@ public class AndroidProjectTreeBuilder extends ProjectTreeBuilder {
                                    @NotNull JTree tree,
                                    @NotNull DefaultTreeModel treeModel,
                                    @NotNull ProjectAbstractTreeStructureBase treeStructure,
-                                   @Nullable Comparator<NodeDescriptor> comparator) {
+                                   @Nullable Comparator<NodeDescriptor<?>> comparator) {
     super(project, tree, treeModel, comparator, treeStructure);
 
-    MessageBusConnection connection = project.getMessageBus().connect(project);
+    MessageBusConnection connection = project.getMessageBus().connect();
     connection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
       @Override
       public void after(@NotNull List<? extends VFileEvent> events) {

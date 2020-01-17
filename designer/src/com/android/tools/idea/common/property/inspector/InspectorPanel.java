@@ -468,7 +468,7 @@ public abstract class InspectorPanel<PropMgr extends PropertiesManager<PropMgr>>
     private final List<ExpandableGroup> myChildren;
     private boolean myExpanded;
 
-    public ExpandableGroup(@NotNull JLabel label, @Nullable ExpandableGroup parent, boolean defaultValue) {
+    private ExpandableGroup(@NotNull JLabel label, @Nullable ExpandableGroup parent, boolean defaultValue) {
       myLabel = label;
       myParent = parent;
       myComponents = new ArrayList<>(4);

@@ -36,8 +36,7 @@ import java.util.List;
 /**
  * TODO
  */
-public class NavPropertiesPanel extends PropertiesPanel<NavPropertiesManager> {
-
+public class NavPropertiesPanel extends PropertiesPanel {
   private final NavPropertiesManager myPropertiesManager;
   private final InspectorPanel<NavPropertiesManager> myInspectorPanel;
 

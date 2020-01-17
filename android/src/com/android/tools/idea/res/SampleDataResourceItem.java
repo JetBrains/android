@@ -17,7 +17,6 @@ package com.android.tools.idea.res;
 
 import static com.android.SdkConstants.EXT_CSV;
 import static com.android.SdkConstants.EXT_JSON;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -31,6 +30,7 @@ import com.android.ide.common.resources.sampledata.SampleDataJsonParser;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.sampledata.datasource.HardcodedContent;
+import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -50,6 +50,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -149,7 +150,7 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
       }
 
       try {
-        output.write(sourceElement.getText().getBytes(UTF_8));
+        output.write(sourceElement.getText().getBytes(StandardCharsets.UTF_8));
       }
       catch (IOException e) {
         LOG.warn("Unable to load content from plain file " + fileName, e);
@@ -201,7 +202,8 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
       }
 
       try {
-        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(source.getText().getBytes(UTF_8)));
+        InputStreamReader input = new InputStreamReader(new ByteArrayInputStream(source.getText().getBytes(Charsets.UTF_8)),
+                                                        StandardCharsets.UTF_8);
         SampleDataJsonParser parser = SampleDataJsonParser.parse(input);
         if (parser != null) {
           output.write(parser.getContentFromPath(contentPath));
@@ -315,7 +317,7 @@ public class SampleDataResourceItem implements ResourceItem, ResolvableResourceI
   @Nullable
   public String getValueText() {
     byte[] content = getContent(null);
-    return content != null ? new String(content, UTF_8) : null;
+    return content != null ? new String(content, StandardCharsets.UTF_8) : null;
   }
 
   @Override

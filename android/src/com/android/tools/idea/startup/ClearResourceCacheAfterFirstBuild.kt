@@ -48,7 +48,7 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) : ProjectC
 
   override fun projectOpened() {
     // Listen for sync results until the first successful project sync.
-    messageBusConnection = project.messageBus.connect(project).apply {
+    messageBusConnection = project.messageBus.connect().apply {
       subscribe(PROJECT_SYSTEM_SYNC_TOPIC, object : SyncResultListener {
         override fun syncEnded(result: SyncResult) {
           if (result.isSuccessful) {

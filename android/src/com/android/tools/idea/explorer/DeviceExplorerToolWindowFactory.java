@@ -26,14 +26,18 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
 import com.intellij.util.concurrency.EdtExecutorService;
 import icons.StudioIcons;
+import java.util.concurrent.Executor;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.ide.PooledThreadExecutor;
 
-import java.util.concurrent.Executor;
-
-public class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFactory {
+public final class DeviceExplorerToolWindowFactory implements DumbAware, ToolWindowFactory {
   public static final String TOOL_WINDOW_ID = "Device File Explorer";
+
+  @Override
+  public boolean isApplicable(@NotNull Project project) {
+    return DeviceExplorer.isFeatureEnabled();
+  }
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {

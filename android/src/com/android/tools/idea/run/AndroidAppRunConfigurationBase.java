@@ -56,6 +56,7 @@ import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.RunContentDescriptor;
+import com.intellij.execution.ui.RunContentManager;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -180,7 +181,7 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
   protected ApkProvider getApkProvider(@NotNull AndroidFacet facet,
                                        @NotNull ApplicationIdProvider applicationIdProvider,
                                        @NotNull List<AndroidDevice> targetDevices) {
-    if (facet.getConfiguration().getModel() != null && facet.getConfiguration().getModel() instanceof AndroidModuleModel) {
+    if (facet.getModel() != null && facet.getModel() instanceof AndroidModuleModel) {
       return createGradleApkProvider(facet, applicationIdProvider, false, targetDevices);
     }
     ApkFacet apkFacet = ApkFacet.getInstance(facet.getModule());
@@ -362,7 +363,7 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
       executionManager.getRunningDescriptors(s -> s != null && s.getConfiguration() == configuration);
     runningDescriptors = runningDescriptors.stream().filter(descriptor -> {
       RunContentDescriptor contentDescriptor =
-        executionManager.getContentManager().findContentDescriptor(executor, descriptor.getProcessHandler());
+        RunContentManager.getInstance(project).findContentDescriptor(executor, descriptor.getProcessHandler());
       return contentDescriptor != null && executionManager.getExecutors(contentDescriptor).contains(executor);
     }).collect(Collectors.toList());
 

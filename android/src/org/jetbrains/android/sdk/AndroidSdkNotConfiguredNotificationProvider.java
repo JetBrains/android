@@ -68,7 +68,7 @@ public class AndroidSdkNotConfiguredNotificationProvider extends EditorNotificat
       createActionLabel("Open Project Structure", new Runnable() {
         @Override
         public void run() {
-          ModulesConfigurator.showDialog(module.getProject(), module.getName(), ClasspathEditor.NAME);
+          ModulesConfigurator.showDialog(module.getProject(), module.getName(), ClasspathEditor.getName());
           myNotifications.updateAllNotifications();
         }
       });

@@ -38,7 +38,7 @@ public interface AndroidModel {
   @Nullable
   static AndroidModel get(@NotNull Module module) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
-    return facet != null ? facet.getConfiguration().getModel() : null;
+    return facet != null ? facet.getModel() : null;
   }
   /**
    * @return the default source provider.

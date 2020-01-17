@@ -24,14 +24,11 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDirectory;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidSourceType;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.*;
 
 public class AndroidResFolderNode extends AndroidSourceTypeNode {
   AndroidResFolderNode(@NotNull Project project,
@@ -49,7 +46,7 @@ public class AndroidResFolderNode extends AndroidSourceTypeNode {
    */
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     // collect all res folders from all source providers
     List<PsiDirectory> resFolders = new ArrayList<>();
     for (PsiDirectory sourceFolder : getSourceFolders()) {
@@ -69,7 +66,7 @@ public class AndroidResFolderNode extends AndroidSourceTypeNode {
 
     // create a node for each res folder type that actually has some resources
     AndroidProjectTreeBuilder treeBuilder = (AndroidProjectTreeBuilder)myProjectViewPane.getTreeBuilder();
-    List<AbstractTreeNode> children = new ArrayList<>(foldersByResourceType.size());
+    List<AbstractTreeNode<?>> children = new ArrayList<>(foldersByResourceType.size());
 
     for (ResourceFolderType type : foldersByResourceType.keySet()) {
       Set<PsiDirectory> folders = foldersByResourceType.get(type);

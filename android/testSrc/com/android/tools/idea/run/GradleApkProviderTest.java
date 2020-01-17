@@ -26,7 +26,6 @@ import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
-import com.google.common.io.Files;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -188,7 +187,7 @@ public class GradleApkProviderTest extends AndroidGradleTestCase {
     GradleApkProvider provider = new GradleApkProvider(myAndroidFacet, new GradleApplicationIdProvider(myAndroidFacet), outputProvider, true);
 
     assertEquals(PROJECT_TYPE_TEST, myAndroidFacet.getConfiguration().getProjectType());
-    AndroidModel androidModel = myAndroidFacet.getConfiguration().getModel();
+    AndroidModel androidModel = myAndroidFacet.getModel();
     assertInstanceOf(androidModel, AndroidModuleModel.class);
     for (TestedTargetVariant testedTargetVariant : ((AndroidModuleModel)androidModel).getSelectedVariant().getTestedTargetVariants()) {
       Module targetModule = findModuleByGradlePath(getProject(), testedTargetVariant.getTargetProjectPath());

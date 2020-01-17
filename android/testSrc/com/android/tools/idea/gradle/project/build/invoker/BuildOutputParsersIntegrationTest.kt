@@ -52,9 +52,9 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
     myTracker = TestUsageTracker(scheduler)
     UsageTracker.setWriterForTest(myTracker)
 
-    myBuildInvoker = GradleBuildInvoker(myProject, myFileDocumentManager,
+    myBuildInvoker = GradleBuildInvoker(project, myFileDocumentManager,
                                         GradleBuildInvokerTest.GradleTasksExecutorFactoryStub(myTasksExecutor), myDebugSessionFinder)
-    myRequest = GradleBuildInvoker.Request(myProject, File(myProject.basePath), emptyList(), myTaskId)
+    myRequest = GradleBuildInvoker.Request(project, File(project.basePath), emptyList(), myTaskId)
   }
 
   override fun tearDown() {
@@ -78,7 +78,7 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
   @Test
   fun testAndroidGradlePluginErrors() {
     val buildListener = myBuildInvoker.createBuildTaskListener(myRequest, "")
-    val file = tempDir.createTempFile("styles.xml")
+    val file = createTempFile("styles.xml")
     val output = """Executing tasks: [clean, :app:assembleDebug]
                     > Task :clean UP-TO-DATE
                     > Task :app:clean
@@ -149,7 +149,7 @@ class BuildOutputParsersIntegrationTest: PlatformTestCase() {
   @Test
   fun testXmlParsingError() {
     val buildListener = myBuildInvoker.createBuildTaskListener(myRequest, "")
-    val file = tempDir.createTempFile("AndroidManifest.xml")
+    val file = createTempFile("AndroidManifest.xml")
     val output = """Executing tasks: [clean, :app:assembleDebug]
                     > Configure project :app
                     > Task :clean UP-TO-DATE

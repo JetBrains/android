@@ -10,7 +10,6 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.compiler.CompilerManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.module.Module;
@@ -184,7 +183,7 @@ public class AndroidProjectComponent implements ProjectComponent, Disposable {
   }
 
   private void generate(final Map<AndroidFacet, Collection<AndroidAutogeneratorMode>> facetsToProcess) {
-    TransactionGuard.getInstance().submitTransactionAndWait(
+    ApplicationManager.getApplication().invokeAndWait(
       () -> AndroidCompileUtil.createGenModulesAndSourceRoots(myProject, facetsToProcess.keySet()));
 
     for (Map.Entry<AndroidFacet, Collection<AndroidAutogeneratorMode>> entry : facetsToProcess.entrySet()) {

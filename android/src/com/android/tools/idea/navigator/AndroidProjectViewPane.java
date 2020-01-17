@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.navigator;
 
-import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.PSI_ELEMENT;
 import static com.intellij.openapi.actionSystem.CommonDataKeys.VIRTUAL_FILE;
@@ -25,15 +24,14 @@ import static com.intellij.openapi.actionSystem.PlatformDataKeys.DELETE_ELEMENT_
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.isAncestor;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 
 import com.android.tools.idea.Projects;
 import com.android.tools.idea.navigator.nodes.AndroidViewProjectNode;
 import com.android.tools.idea.navigator.nodes.FileGroupNode;
 import com.android.tools.idea.navigator.nodes.FolderGroupNode;
 import com.android.tools.idea.navigator.nodes.android.BuildScriptTreeStructureProvider;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.intellij.facet.Facet;
 import com.intellij.facet.ProjectWideFacetAdapter;
 import com.intellij.facet.ProjectWideFacetListenersRegistry;
@@ -67,15 +65,13 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import icons.AndroidIcons;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 import javax.swing.Icon;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
@@ -94,7 +90,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
 
   public static final DataKey<TreeNode[]> SELECTED_TREE_NODES = DataKey.create("selectedTreeNodes");
 
-  private AtomicBoolean isProcessingChanges = new AtomicBoolean(false);
+  private final AtomicBoolean isProcessingChanges = new AtomicBoolean(false);
 
   public AndroidProjectViewPane(Project project) {
     super(project);
@@ -201,7 +197,7 @@ public class AndroidProjectViewPane extends AbstractProjectViewPSIPane {
         if (providers == null) {
           return null;
         }
-        return providers.stream().map(provider ->  new BuildScriptTreeStructureProvider(provider)).collect(Collectors.toList());
+        return ContainerUtil.map(providers, provider -> new BuildScriptTreeStructureProvider(provider));
       }
 
       @Override

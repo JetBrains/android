@@ -15,24 +15,28 @@
  */
 package com.android.tools.idea.gradle.util;
 
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
+import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.toCanonicalPath;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.flags.StudioFlags;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static com.android.tools.idea.gradle.project.sync.common.CommandLineArgs.isInTestingMode;
-import static com.android.tools.idea.sdk.IdeSdks.MAC_JDK_CONTENT_PATH;
-import static com.intellij.openapi.util.io.FileUtil.*;
+import java.util.function.Predicate;
+import org.jetbrains.android.download.AndroidProfilerDownloader;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class EmbeddedDistributionPaths {
   @NotNull
@@ -50,11 +54,8 @@ public class EmbeddedDistributionPaths {
     // Add prebuilt offline repo
     String studioCustomRepo = System.getenv("STUDIO_CUSTOM_REPO");
     if (studioCustomRepo != null) {
-      File customRepoPath = new File(toCanonicalPath(toSystemDependentName(studioCustomRepo)));
-      if (!customRepoPath.isDirectory()) {
-        throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable");
-      }
-      repoPaths.add(customRepoPath);
+      List<File> pathsFromEnv = repoPathsFromString(studioCustomRepo, File::isDirectory);
+      repoPaths.addAll(pathsFromEnv);
     }
     else {
       File localGMaven = new File(PathManager.getHomePath() + toSystemDependentName("/../../out/repo"));
@@ -73,6 +74,21 @@ public class EmbeddedDistributionPaths {
   }
 
   @NotNull
+  @VisibleForTesting
+  List<File> repoPathsFromString(@NotNull String studioCustomRepo, @NotNull Predicate<File> isValid) {
+    String pathSeparator = System.getProperty("path.separator", ";");
+    List<File> paths = new ArrayList<>();
+    for (String customRepo : studioCustomRepo.split(pathSeparator)) {
+      File customRepoPath = new File(toCanonicalPath(toSystemDependentName(customRepo)));
+      if (!isValid.test(customRepoPath)) {
+        throw new IllegalArgumentException("Invalid path in STUDIO_CUSTOM_REPO environment variable: " + customRepoPath);
+      }
+      paths.add(customRepoPath);
+    }
+    return paths;
+  }
+
+  @NotNull
   public File findEmbeddedProfilerTransform(@NotNull AndroidVersion version) {
     File file = new File(PathManager.getHomePath(), "plugins/android/resources/profilers-transform.jar");
     if (file.exists()) {
@@ -82,6 +98,21 @@ public class EmbeddedDistributionPaths {
     // Development build
     String relativePath = toSystemDependentName("/../../bazel-genfiles/tools/base/profiler/transform/profilers-transform.jar");
     return new File(PathManager.getHomePath() + relativePath);
+  }
+
+  public String findEmbeddedInstaller() {
+    String path = "plugins/android/resources/installer";
+    File file = new File(PathManager.getHomePath(), path);
+    if (file.exists()) {
+      return file.getAbsolutePath();
+    }
+    AndroidProfilerDownloader.makeSureProfilerIsInPlace();
+    File dir = AndroidProfilerDownloader.getHostDir(path);
+    if (dir.exists()) {
+      return dir.getAbsolutePath();
+    }
+      // Development mode
+    return new File(PathManager.getHomePath(), "../../bazel-genfiles/tools/base/deploy/installer/android-installer").getAbsolutePath();
   }
 
   @Nullable

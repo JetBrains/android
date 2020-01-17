@@ -31,7 +31,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.search.PsiShortNamesCache;
-import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,7 +47,7 @@ public class LayoutViewClassUtils {
     return ApplicationManager.getApplication().runReadAction((Computable<String[]>)() -> {
       String name = c.getName();
       if (name == null || !isViewClassVisibleAsTag(c)) {
-        return ArrayUtil.EMPTY_STRING_ARRAY;
+        return ArrayUtilRt.EMPTY_STRING_ARRAY;
       }
 
       String qualifiedName = c.getQualifiedName();

@@ -125,7 +125,6 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
   private static final String DRAWABLE_ID_SCAN = "resourceRepository/drawable_for_id_scan.xml";
   private static final String COLOR_STATELIST = "resourceRepository/statelist.xml";
 
-  private ResourceFolderRepositoryFileCache myOldFileCacheService;
   private ResourceFolderRegistry myRegistry;
 
   @Override

@@ -15,7 +15,7 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <fileTypeFactory implementation="com.android.tools.idea.editors.SqliteFileTypeFactory"/>
+    <fileType name="SQLite" implementationClass="com.android.tools.idea.editors.sqlite.SqliteFileType"/>
     <fileTypeDetector implementation="com.android.tools.idea.editors.sqlite.SqliteFileTypeDetector" />
     <applicationService serviceImplementation="com.android.tools.idea.sqlite.ui.SqliteEditorViewFactoryImpl"/>
     <elementDescriptionProvider implementation="com.android.tools.idea.sqlite.sqlLanguage.AndroidSqlFakePsiElementDescriptionProvider"/>

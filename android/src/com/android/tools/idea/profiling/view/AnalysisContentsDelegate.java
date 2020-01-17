@@ -25,14 +25,11 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.ColoredTreeCellRenderer;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.containers.HashMap;
-import com.intellij.util.containers.HashSet;
 import com.intellij.util.ui.UIUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -45,10 +42,8 @@ import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Responsible for creating tree nodes and rendering them for the capture analysis results light tool window.
@@ -68,9 +63,8 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
 
   public AnalysisContentsDelegate(@NotNull CapturePanel capturePanel) {
     myCapturePanel = capturePanel;
-    mySplitter = new ThreeComponentsSplitter(true);
+    mySplitter = new ThreeComponentsSplitter(true, this);
     mySplitter.setDividerWidth(10);
-    Disposer.register(this, mySplitter);
 
     myTaskPanel = new JPanel(new LayoutManager() {
       @Override

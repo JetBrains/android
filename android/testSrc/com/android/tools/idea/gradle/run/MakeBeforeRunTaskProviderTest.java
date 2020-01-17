@@ -19,7 +19,6 @@ import com.android.ddmlib.*;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModelFeatures;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -27,7 +26,6 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
-import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.run.AndroidAppRunConfigurationBase;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.AndroidRunConfiguration;
@@ -39,6 +37,7 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.util.ThreeState;
 import org.apache.commons.io.FileUtils;
 import org.gradle.tooling.model.GradleProject;
@@ -231,7 +230,7 @@ public class MakeBeforeRunTaskProviderTest extends PlatformTestCase {
     state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet("afterSyncTask1", "afterSyncTask2");
     state.COMPILE_JAVA_TASK_NAME = "compileTask2";
 
-    androidFacet.getConfiguration().setModel(androidModel);
+    androidFacet.setModel(androidModel);
   }
 
   private void setUpModuleAsGradleModule(Module module) {

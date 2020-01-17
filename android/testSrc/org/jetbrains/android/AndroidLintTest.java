@@ -151,6 +151,7 @@ import com.intellij.codeInspection.reference.RefEntity;
 import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.ProjectViewPane;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
@@ -165,6 +166,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.ProjectViewTestUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.io.File;
@@ -587,7 +589,7 @@ public class AndroidLintTest extends AndroidTestCase {
     }
     TestProjectSystem testProjectSystem = new TestProjectSystem(getProject());
     testProjectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFixture.getModule(), GradleVersion.parse("+"));
-    PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
+    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(),
                                        testProjectSystem, getTestRootDisposable());
     myFixture.copyFileToProject(getGlobalTestDir() + "/ActionBarActivity.java.txt", "src/android/support/v7/app/ActionBarActivity.java");
     myFixture.copyFileToProject(getGlobalTestDir() + "/ActionMode.java.txt", "src/android/support/v7/view/ActionMode.java");
@@ -1345,7 +1347,7 @@ public class AndroidLintTest extends AndroidTestCase {
 
     TestProjectSystem testProjectSystem = new TestProjectSystem(getProject());
     testProjectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFixture.getModule(), GradleVersion.parse("+"));
-    PlatformTestUtil.registerExtension(Extensions.getArea(myModule.getProject()), ProjectSystemUtil.getEP_NAME(),
+    ServiceContainerUtil.registerExtension(myModule.getProject(), ProjectSystemUtil.getEP_NAME(),
                                        testProjectSystem, getTestRootDisposable());
 
     doTestWithFix(new AndroidLintAppCompatCustomViewInspection(),

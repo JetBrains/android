@@ -60,6 +60,7 @@ import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -225,9 +226,9 @@ public class CpuProfilingConfigurationsDialog extends SingleConfigurableEditor {
 
     @Nls
     @Override
-    public String getDisplayName() {
-      return "CPU Recording Configurations";
-    }
+  public String getDisplayName() {
+    return AndroidBundle.message("configurable.ProfilingConfigurable.display.name");
+  }
 
     @Nullable
     @Override

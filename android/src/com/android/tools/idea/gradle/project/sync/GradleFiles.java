@@ -34,6 +34,7 @@ import com.google.common.collect.Lists;
 import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -255,13 +256,15 @@ public class GradleFiles {
    */
   @Nullable
   private Integer computeHash(@NotNull VirtualFile file) {
-    PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
+    return ReadAction.compute(() -> {
+      PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
 
-    if (psiFile != null && psiFile.isValid()) {
-      return psiFile.getText().hashCode();
-    }
+      if (psiFile != null && psiFile.isValid()) {
+        return psiFile.getText().hashCode();
+      }
 
-    return null;
+      return null;
+    });
   }
 
   private boolean areHashesEqual(@NotNull VirtualFile file) {
@@ -492,31 +495,6 @@ public class GradleFiles {
 
     private GradleFileChangeListener(@NotNull GradleFiles gradleFiles) {
       myGradleFiles = gradleFiles;
-    }
-
-    @Override
-    public void beforeChildAddition(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getChild());
-    }
-
-    @Override
-    public void beforeChildRemoval(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getChild());
-    }
-
-    @Override
-    public void beforeChildReplacement(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getNewChild(), event.getOldChild());
-    }
-
-    @Override
-    public void beforeChildMovement(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getChild());
-    }
-
-    @Override
-    public void beforeChildrenChange(@NotNull PsiTreeChangeEvent event) {
-      processEvent(event, event.getOldChild(), event.getNewChild());
     }
 
     @Override

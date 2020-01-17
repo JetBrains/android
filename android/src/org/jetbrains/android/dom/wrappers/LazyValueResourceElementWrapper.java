@@ -132,4 +132,11 @@ public class LazyValueResourceElementWrapper extends RenameableFakePsiElement
   public int compareTo(@NotNull LazyValueResourceElementWrapper other) {
     return myResourceInfo.compareTo(other.myResourceInfo);
   }
+
+  @Override
+  public boolean isEquivalentTo(PsiElement another) {
+    return another instanceof LazyValueResourceElementWrapper &&
+           ((LazyValueResourceElementWrapper)another).myParent.isEquivalentTo(myParent) &&
+           compareTo((LazyValueResourceElementWrapper)another) == 0;
+  }
 }

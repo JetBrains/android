@@ -14,10 +14,10 @@
 package com.android.tools.adtui.workbench;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class WorkBenchTestCase extends PlatformTestCase {
+public abstract class WorkBenchTestCase extends HeavyPlatformTestCase {
   private ComponentStack myApplicationComponentStack;
   private ComponentStack myProjectComponentStack;
 

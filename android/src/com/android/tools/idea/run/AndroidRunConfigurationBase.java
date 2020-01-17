@@ -154,7 +154,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         errors.add(ValidationError.fatal(AndroidBundle.message("run.error.apk.not.valid")));
       }
     }
-    if (facet.getConfiguration().getAndroidPlatform() == null) {
+    if (facet.getAndroidPlatform() == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("select.platform.error")));
     }
     if (Manifest.getMainManifest(facet) == null && facet.getConfiguration().getProjectType() != PROJECT_TYPE_INSTANTAPP) {
@@ -382,7 +382,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
   @NotNull
   public ApplicationIdProvider getApplicationIdProvider(@NotNull AndroidFacet facet) {
-    if (facet.getConfiguration().getModel() != null && facet.getConfiguration().getModel() instanceof AndroidModuleModel) {
+    if (facet.getModel() != null && facet.getModel() instanceof AndroidModuleModel) {
       return new GradleApplicationIdProvider(facet, myOutputProvider);
     }
     return new NonGradleApplicationIdProvider(facet);

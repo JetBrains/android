@@ -29,22 +29,15 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.fileEditor.FileEditor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
-import com.intellij.openapi.fileEditor.FileEditorManagerListener;
-import com.intellij.openapi.fileEditor.TextEditor;
+import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.IdeFocusManager;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowAnchor;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ToolWindowType;
+import com.intellij.openapi.wm.*;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
+import com.intellij.openapi.wm.impl.commands.RequestFocusInToolWindowCommand;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -55,18 +48,17 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import icons.StudioIcons;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
-import java.util.Arrays;
-import javax.swing.JComponent;
-import javax.swing.LayoutFocusTraversalPolicy;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
+import java.util.Arrays;
 
 /**
  * Manages a shared UI Preview window on the right side of the source editor which shows a preview
@@ -96,7 +88,7 @@ public class NlPreviewManager implements ProjectComponent {
 
     myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.preview", 100, true, null, project);
 
-    final MessageBusConnection connection = project.getMessageBus().connect(project);
+    final MessageBusConnection connection = project.getMessageBus().connect();
     connection.subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new MyFileEditorManagerListener());
   }
 
@@ -137,12 +129,8 @@ public class NlPreviewManager implements ProjectComponent {
 
     myProject.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
       @Override
-      public void stateChanged() {
-        if (myProject.isDisposed()) {
-          return;
-        }
-
-        final ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(toolWindowId);
+      public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
+        final ToolWindow window = toolWindowManager.getToolWindow(toolWindowId);
         if (window != null && window.isAvailable()) {
           final boolean visible = window.isVisible();
           AndroidEditorSettings.getInstance().getGlobalState().setVisible(visible);
@@ -449,9 +437,10 @@ public class NlPreviewManager implements ProjectComponent {
       // Thus we have to handle this case here.
       // In other cases, do not respond to fileClosed events since this has led to problems
       // with the preview window in the past. See b/64199946 and b/64288544
-      if (source.getOpenFiles().length == 0) {
-        ApplicationManager.getApplication()
-          .invokeLater(() -> processFileEditorChange(null), myProject.getDisposed());
+      if (!source.hasOpenFiles()) {
+        ApplicationManager.getApplication().invokeLater(() -> {
+          processFileEditorChange(null);
+        }, myProject.getDisposed());
       }
     }
 
@@ -474,7 +463,7 @@ public class NlPreviewManager implements ProjectComponent {
    *
    * When a tool window is created a list of commands are supplied and executed.
    * One of these commands are
-   *   {@link com.intellij.openapi.wm.impl.commands.RequestFocusInToolWindowCmd}
+   *   {@link RequestFocusInToolWindowCommand}
    * which starts a timer and for the next 10 secs will attempt to set focus to
    * the component returned by {@link #getDefaultComponent}.
    *

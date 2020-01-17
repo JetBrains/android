@@ -15,6 +15,14 @@
  */
 package com.android.tools.idea.gradle.notification;
 
+import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
+import static com.android.tools.idea.testing.ProjectFiles.createFile;
+import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.notification.GeneratedFileNotificationProvider.MyEditorNotificationPanel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
@@ -23,17 +31,8 @@ import com.intellij.ide.GeneratedSourceFileChangeTracker;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
-import org.mockito.Mock;
-
 import java.io.IOException;
-
-import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
-import static com.android.tools.idea.testing.ProjectFiles.createFile;
-import static com.android.tools.idea.testing.ProjectFiles.createFolderInProjectRoot;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link GeneratedFileNotificationProvider}.

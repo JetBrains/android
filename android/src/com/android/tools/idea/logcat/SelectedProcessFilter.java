@@ -28,7 +28,7 @@ final class SelectedProcessFilter implements AndroidLogcatFilter {
   @NotNull
   @Override
   public String getName() {
-    return AndroidLogcatView.SELECTED_APP_FILTER;
+    return AndroidLogcatView.getSelectedAppFilter();
   }
 
   /**

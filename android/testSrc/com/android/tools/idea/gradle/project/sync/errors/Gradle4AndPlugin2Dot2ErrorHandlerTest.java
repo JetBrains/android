@@ -53,7 +53,7 @@ public class Gradle4AndPlugin2Dot2ErrorHandlerTest extends AndroidGradleTestCase
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncMessagesStub = replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = replaceSyncMessagesService(getProject(), getTestRootDisposable());
   }
 
 

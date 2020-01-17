@@ -97,7 +97,7 @@ class SqliteExplorerProjectServiceImpl(
 
   @AnyThread
   override fun openSqliteDatabase(file: VirtualFile) {
-    toolWindowManager.getToolWindow(SqliteExplorerToolWindowFactory.TOOL_WINDOW_ID).show { controller.openSqliteDatabase(file) }
+    toolWindowManager.getToolWindow(SqliteExplorerToolWindowFactory.TOOL_WINDOW_ID)?.show { controller.openSqliteDatabase(file) }
   }
 
   @UiThread

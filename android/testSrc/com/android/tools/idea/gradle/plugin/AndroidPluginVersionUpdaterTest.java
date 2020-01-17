@@ -29,6 +29,8 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 import org.mockito.verification.VerificationMode;
@@ -47,7 +49,13 @@ public class AndroidPluginVersionUpdaterTest extends PlatformTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    myVersionUpdater = new AndroidPluginVersionUpdater(getProject(), mySyncState, mySyncInvoker, myTextSearch);
+    myVersionUpdater = new AndroidPluginVersionUpdater(getProject(), mySyncState, myTextSearch) {
+      @NotNull
+      @Override
+      protected GradleSyncInvoker getGradleSyncInvoker() {
+        return mySyncInvoker;
+      }
+    };
   }
 
   @Override

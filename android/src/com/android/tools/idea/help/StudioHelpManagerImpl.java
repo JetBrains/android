@@ -16,10 +16,10 @@
 package com.android.tools.idea.help;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.idea.IdeInfo;
 import com.intellij.help.impl.HelpManagerImpl;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.application.ex.ApplicationInfoEx;
-import com.intellij.util.PlatformUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -75,7 +75,7 @@ public class StudioHelpManagerImpl extends HelpManagerImpl {
 
     // open to https://developer.android.com/r/studio-help/ for all other helpIds. Including Intellij ones so map the version and redirect
     // see b/63761943
-    if (PlatformUtils.isAndroidStudio()) {
+    if (IdeInfo.getInstance().isAndroidStudio()) {
       openStudioHelpPage(REDIRECT_URL_EXTENSION + getVersion() + "/?" + id);
     }
     else {

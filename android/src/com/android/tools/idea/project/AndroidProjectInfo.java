@@ -109,7 +109,7 @@ public class AndroidProjectInfo {
   public boolean requiredAndroidModelMissing() {
     for (Module module : ModuleManager.getInstance(myProject).getModules()) {
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      if (facet != null && facet.requiresAndroidModel() && facet.getConfiguration().getModel() == null) {
+      if (facet != null && facet.requiresAndroidModel() && facet.getModel() == null) {
         return true;
       }
     }

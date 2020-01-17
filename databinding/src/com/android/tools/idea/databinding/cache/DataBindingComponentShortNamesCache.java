@@ -29,10 +29,8 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.HashSet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
 /**
  * Cache that stores the DataBindingComponent instances associated with each module.
  *
@@ -64,19 +62,14 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
 
   private boolean check(String name, GlobalSearchScope scope) {
     return SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT.equals(name)
-           && scope.getProject() != null
-           && myComponent.getProject().equals(scope.getProject());
+            && scope.getProject() != null
+            && myComponent.getProject().equals(scope.getProject());
   }
 
   @NotNull
   @Override
   public String[] getAllClassNames() {
     return ourClassNames;
-  }
-
-  @Override
-  public void getAllClassNames(@NotNull HashSet<String> dest) {
-    dest.add(SdkConstants.CLASS_NAME_DATA_BINDING_COMPONENT);
   }
 
   @NotNull
@@ -99,8 +92,8 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
 
   @Override
   public boolean processMethodsWithName(@NonNls @NotNull String name,
-                                        @NotNull GlobalSearchScope scope,
-                                        @NotNull Processor<PsiMethod> processor) {
+          @NotNull GlobalSearchScope scope,
+          @NotNull Processor<? super PsiMethod> processor) {
     return true;
   }
 
@@ -108,11 +101,6 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
   @Override
   public String[] getAllMethodNames() {
     return ArrayUtil.EMPTY_STRING_ARRAY;
-  }
-
-  @Override
-  public void getAllMethodNames(@NotNull HashSet<String> set) {
-
   }
 
   @NotNull
@@ -125,10 +113,5 @@ final class DataBindingComponentShortNamesCache extends PsiShortNamesCache {
   @Override
   public String[] getAllFieldNames() {
     return ArrayUtil.EMPTY_STRING_ARRAY;
-  }
-
-  @Override
-  public void getAllFieldNames(@NotNull HashSet<String> set) {
-
   }
 }

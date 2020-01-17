@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.common.scene.target;
 
-import static com.intellij.util.ui.JBUI.scale;
-
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
@@ -30,13 +28,13 @@ import com.android.tools.idea.uibuilder.scene.decorator.DecoratorUtilities;
 import com.android.tools.idea.uibuilder.scene.target.Notch;
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.google.common.collect.ImmutableList;
+import com.intellij.ui.scale.JBUIScale;
 import java.awt.Color;
 import java.awt.Point;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Implements a target anchor for the ConstraintLayout.
@@ -45,8 +43,8 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
 
   private static final boolean DEBUG_RENDERER = false;
 
-  @SwingCoordinate public static final int ANCHOR_SIZE = scale(6);
-  @SwingCoordinate public static final int EXPANDED_SIZE = scale(400);
+  @SwingCoordinate public static final int ANCHOR_SIZE = JBUIScale.scale(6);
+  @SwingCoordinate public static final int EXPANDED_SIZE = JBUIScale.scale(400);
 
   @AndroidDpCoordinate private float myPositionX;
   @AndroidDpCoordinate private float myPositionY;

@@ -100,4 +100,5 @@ public final class TestProjectPaths {
   public static final String UNIT_TESTING = "projects/unitTesting";
   public static final String UNUSED_RESOURCES = "projects/unusedResources";
   public static final String VARIANT_SPECIFIC_DEPENDENCIES = "projects/variantSpecificDependencies";
+  public static final String CUSTOM_BUILD_SCRIPT_DEPS = "projects/customBuildScriptDeps";
 }

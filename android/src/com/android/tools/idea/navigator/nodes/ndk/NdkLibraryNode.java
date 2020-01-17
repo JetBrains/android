@@ -67,7 +67,7 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
   }
 
   @NotNull
-  static Collection<AbstractTreeNode> getSourceFolderNodes(@NotNull Project project,
+  static Collection<AbstractTreeNode<?>> getSourceFolderNodes(@NotNull Project project,
                                                            @NotNull Collection<NativeArtifact> artifacts,
                                                            @NotNull ViewSettings settings,
                                                            @NotNull Collection<String> sourceFileExtensions) {
@@ -92,7 +92,7 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
     fileExtensions.addAll(HEADER_FILE_EXTENSIONS);
 
     PsiManager psiManager = PsiManager.getInstance(project);
-    List<AbstractTreeNode> children = new ArrayList<>();
+    List<AbstractTreeNode<?>> children = new ArrayList<>();
     for (RootFolder rootFolder : rootFolders.values()) {
       PsiDirectory directory = psiManager.findDirectory(rootFolder.rootFolder);
       if (directory != null) {
@@ -235,8 +235,8 @@ public class NdkLibraryNode extends ProjectViewNode<Collection<NativeArtifact>> 
 
   @NotNull
   @Override
-  public Collection<? extends AbstractTreeNode> getChildren() {
-    Collection<AbstractTreeNode> sourceFolderNodes =
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
+    Collection<AbstractTreeNode<?>> sourceFolderNodes =
       getSourceFolderNodes(getNotNullProject(), getArtifacts(), getSettings(), mySourceFileExtensions);
     if (sourceFolderNodes.size() == 1) {
       AbstractTreeNode node = Iterables.getOnlyElement(sourceFolderNodes);

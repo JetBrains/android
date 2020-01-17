@@ -97,8 +97,6 @@ abstract class GradleSyncProjectComparisonTest(
     ""
   )
 
-  private lateinit var ideComponents: IdeComponents
-
   private fun importSyncAndDumpProject(projectDir: String, patch: ((projectRootPath: File) -> Unit)? = null): String {
     val projectRootPath = prepareProjectForImport(projectDir)
     patch?.invoke(projectRootPath)
@@ -114,7 +112,6 @@ abstract class GradleSyncProjectComparisonTest(
   override fun setUp() {
     super.setUp()
     val project = project
-    ideComponents = IdeComponents(project)
     val projectSettings = GradleProjectSettings()
     projectSettings.distributionType = DEFAULT_WRAPPED
     GradleSettings.getInstance(project).linkedProjectsSettings = listOf(projectSettings)

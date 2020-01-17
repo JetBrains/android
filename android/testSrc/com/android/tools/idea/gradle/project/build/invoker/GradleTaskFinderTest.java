@@ -26,13 +26,14 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
-import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.nio.file.Paths;
 import org.gradle.tooling.model.GradleProject;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -94,7 +95,8 @@ public class GradleTaskFinderTest extends PlatformTestCase {
 
   public void testFindTasksToExecuteWhenLastSyncFailed() {
     GradleSyncState syncState = mock(GradleSyncState.class);
-    new IdeComponents(getProject()).replaceProjectService(GradleSyncState.class, syncState);
+    ServiceContainerUtil
+      .replaceService(getProject(), GradleSyncState.class, syncState, getTestRootDisposable());
     when(syncState.lastSyncFailed()).thenReturn(true);
 
     File projectPath = getBaseDirPath(getProject());
@@ -269,7 +271,7 @@ public class GradleTaskFinderTest extends PlatformTestCase {
     state.AFTER_SYNC_TASK_NAMES = Sets.newHashSet("afterSyncTask1", "afterSyncTask2");
     state.COMPILE_JAVA_TASK_NAME = "compileTask2";
 
-    androidFacet.getConfiguration().setModel(androidModel);
+    androidFacet.setModel(androidModel);
   }
 
   public void testFindTasksToExecuteForAssemblingJavaModule() {

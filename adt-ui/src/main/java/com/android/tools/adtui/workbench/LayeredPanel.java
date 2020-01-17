@@ -20,7 +20,6 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLayeredPane;
@@ -66,12 +65,11 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
     myContainer = new JPanel();
     myContainer.setOpaque(false);
     myContainer.addComponentListener(createWidthUpdater());
-    mySplitter = new ThreeComponentsSplitter();
+    mySplitter = new ThreeComponentsSplitter(this);
     mySplitter.setOpaque(false);
     mySplitter.setInnerComponent(myContainer);
     mySplitter.setDividerWidth(JBUI.scale(0));
     mySide = Side.LEFT;
-    Disposer.register(this, mySplitter);
 
     add(defaultLayer, DEFAULT_LAYER);
     add(mySplitter, PALETTE_LAYER);

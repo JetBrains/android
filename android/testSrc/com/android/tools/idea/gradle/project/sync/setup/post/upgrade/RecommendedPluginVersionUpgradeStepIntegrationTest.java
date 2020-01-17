@@ -15,22 +15,28 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
-import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
-import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
-import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
-import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.PlatformTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.mockito.Mock;
-
 import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.android.ide.common.repository.GradleVersion;
+import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
+import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
+import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
+import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.ServiceContainerUtil;
+import org.jetbrains.annotations.NotNull;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link RecommendedPluginVersionUpgradeStep}.
@@ -52,7 +58,8 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends Platform
 
     Project project = getProject();
     myVersionUpdater = spy(AndroidPluginVersionUpdater.getInstance(project));
-    new IdeComponents(project).replaceProjectService(AndroidPluginVersionUpdater.class, myVersionUpdater);
+    ServiceContainerUtil
+      .replaceService(project, AndroidPluginVersionUpdater.class, myVersionUpdater, getTestRootDisposable());
 
     when(myUpgradeDialogFactory.create(same(project), any(), any())).thenReturn(myUpgradeDialog);
 

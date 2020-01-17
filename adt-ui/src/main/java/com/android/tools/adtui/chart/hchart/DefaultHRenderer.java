@@ -19,7 +19,6 @@ package com.android.tools.adtui.chart.hchart;
 
 import com.android.annotations.NonNull;
 import com.android.tools.adtui.model.DefaultHNode;
-import com.android.tools.adtui.model.HNode;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
 

@@ -73,6 +73,12 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.SdkConstants.DOT_GRADLE;
+import static com.android.SdkConstants.EXT_GRADLE_KTS;
+import static com.android.testutils.TestUtils.getWorkspaceFile;
+import static com.google.common.io.Files.write;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
+
 public class AndroidGradleTests {
   private static final Logger LOG = Logger.getInstance(AndroidGradleTests.class);
   private static final Pattern REPOSITORIES_PATTERN = Pattern.compile("repositories[ ]+\\{");
@@ -117,7 +123,7 @@ public class AndroidGradleTests {
       contents = replaceRegexGroup(contents, "classpath ['\"]com.android.tools.build:gradle:(.+)['\"]",
                                    pluginVersion);
 
-      String kotlinVersion = getKotlinVersionForTests().split("-")[0];
+      String kotlinVersion = getKotlinVersionForTests();
       contents = replaceRegexGroup(contents, "ext.kotlin_version ?= ?['\"](.+)['\"]", kotlinVersion);
 
       // App compat version needs to match compile SDK
@@ -158,6 +164,16 @@ public class AndroidGradleTests {
         write(contents, path, Charsets.UTF_8);
       }
     }
+  }
+
+  public static String getKotlinVersionForTests() {
+    String kotlinVersion = TestUtils.getKotlinVersionForTests();
+    if (kotlinVersion.contains("-release-")){
+      // RELEASE versions should be stripped. E.g. "1.3.50-release-128" should become "1.3.50"
+      // don't strip EAP versions, e.g. "1.3.60-eap-143" should remain "1.3.60-eap-143"
+      kotlinVersion = kotlinVersion.split("-")[0];
+    }
+    return kotlinVersion;
   }
 
   @NotNull
@@ -225,7 +241,7 @@ public class AndroidGradleTests {
     List<File> repositories = new ArrayList<>();
     String prebuiltsRepo = "prebuilts/tools/common/m2/repository";
     String publishLocalRepo = "out/repo";
-    if (TestUtils.runningFromBazel()) {
+    if (TestUtils.runningFromBazel() && false) { // FIXME-ank: env variables imply Bazel. This is not correct when running from IU.
       // Based on EmbeddedDistributionPaths#findAndroidStudioLocalMavenRepoPaths:
       File tmp = new File(PathManager.getHomePath()).getParentFile().getParentFile();
       File file = new File(tmp, prebuiltsRepo);

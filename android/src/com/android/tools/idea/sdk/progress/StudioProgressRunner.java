@@ -18,7 +18,6 @@ package com.android.tools.idea.sdk.progress;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.repository.api.ProgressRunner;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;

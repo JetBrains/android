@@ -35,8 +35,3 @@ object ANDROID_SQL_FILE_TYPE : LanguageFileType(AndroidSqlLanguage.INSTANCE) {
  */
 val ANDROID_SQL_ICON: Icon = AndroidIcons.DeviceExplorer.DatabaseFolder
 
-class AndroidSqlFileTypeFactory : FileTypeFactory() {
-  override fun createFileTypes(consumer: FileTypeConsumer) {
-    consumer.consume(ANDROID_SQL_FILE_TYPE)
-  }
-}

@@ -432,6 +432,7 @@ public final class ResourceRepositoryManager implements Disposable {
           }
           myModuleResources = ModuleResourceRepository.forMainResources(myFacet, getNamespace());
           registerIfDisposable(this, myModuleResources);
+            // catch (Throwable t) { FIXME-ank2
         }
         return myModuleResources;
       }
@@ -503,6 +504,7 @@ public final class ResourceRepositoryManager implements Disposable {
     }
 
     return TestAppResourceRepository.create(myFacet, moduleTestResources, model);
+    // catch (Throwable t) { FIXME-ank2
   }
 
   /**
@@ -714,7 +716,7 @@ public final class ResourceRepositoryManager implements Disposable {
   public ResourceVisibilityLookup.Provider getResourceVisibilityProvider() {
     synchronized (myLibraryLock) {
       if (myResourceVisibilityProvider == null) {
-        if (!myFacet.requiresAndroidModel() || myFacet.getConfiguration().getModel() == null) {
+        if (!myFacet.requiresAndroidModel() || myFacet.getModel() == null) {
           return null;
         }
         myResourceVisibilityProvider = new ResourceVisibilityLookup.Provider();

@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
-import com.android.repository.api.*;
+import com.android.repository.api.ConstantSourceProvider;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.Repository;
+import com.android.repository.api.SchemaModule;
 import com.android.repository.impl.meta.SchemaModuleUtil;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.MockFileOp;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.PathUtil;
-import java.awt.*;
+import java.awt.Component;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;

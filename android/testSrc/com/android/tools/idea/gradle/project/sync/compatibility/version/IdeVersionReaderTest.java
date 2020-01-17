@@ -35,7 +35,7 @@ public class IdeVersionReaderTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myVersionReader = new IdeVersionReader("Android Studio");
-    myIdeComponents = new IdeComponents(getProject());
+    myIdeComponents = new IdeComponents(getProject(), getTestRootDisposable());
   }
 
   public void testAppliesToWithAndroidStudio() {

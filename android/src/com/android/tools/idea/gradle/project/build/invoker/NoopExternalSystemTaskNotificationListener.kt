@@ -21,7 +21,6 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import java.lang.Exception
 
 class NoopExternalSystemTaskNotificationListener: ExternalSystemTaskNotificationListener {
-  override fun onQueued(id: ExternalSystemTaskId, workingDir: String?) = Unit
   override fun onStart(id: ExternalSystemTaskId) = Unit
   override fun onStatusChange(event: ExternalSystemTaskNotificationEvent) = Unit
   override fun onTaskOutput(id: ExternalSystemTaskId, text: String, stdOut: Boolean) = Unit

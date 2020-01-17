@@ -17,6 +17,7 @@ package com.android.tools.idea.sdk;
 
 import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -64,18 +65,25 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
    * Verify that {@link IdeSdks#isUsingJavaHomeJdk} and {@link IdeSdks#isUsingEmbeddedJdk} return correct values when using JAVA_HOME
    */
   public void testJavaHomeJdk() {
+    boolean studio = myIdeSdks.isAndroidStudio();
     ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setJdkPath(myJavaHomePath));
-    assertTrue(myIdeSdks.isUsingJavaHomeJdk(false /* do not assume it is uint test */));
-    assertEquals(myIdeSdks.isUsingEmbeddedJdk(), myEmbeddedIsJavaHome);
+    assertEquals("isUsingJavaHomeJdk returns true for AndroidStudio (setJdkPath:=myJavaHomePath), and false for IJ (hardcoded)",
+                 studio, myIdeSdks.isUsingJavaHomeJdk(false /* do not assume it is uint test */));
+    assertEquals(myEmbeddedIsJavaHome && studio, myIdeSdks.isUsingEmbeddedJdk());
   }
 
   /**
    * Verify that {@link IdeSdks#isUsingJavaHomeJdk} and {@link IdeSdks#isUsingEmbeddedJdk} return correct values when using embedded JDK
    */
   public void testEmbeddedJdk() {
-    ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setUseEmbeddedJdk());
-    assertTrue(myIdeSdks.isUsingEmbeddedJdk());
-    assertEquals(myIdeSdks.isUsingJavaHomeJdk(false /* do not assume it is uint test */), myEmbeddedIsJavaHome);
+    boolean studio = myIdeSdks.isAndroidStudio();
+    if (studio) {
+      // setUseEmbeddedJdk throws exception when myIdeSdks.isAndroidStudio == false
+      ApplicationManager.getApplication().runWriteAction(() -> myIdeSdks.setUseEmbeddedJdk());
+    }
+    assertEquals("isUsingJavaHomeJdk returns true for AndroidStudio (setUseEmbeddedJdk:=true), and false for IJ (hardcoded)",
+                 studio, myIdeSdks.isUsingEmbeddedJdk());
+    assertEquals(myEmbeddedIsJavaHome && studio, myIdeSdks.isUsingJavaHomeJdk(false /* do not assume it is uint test */));
   }
 
   /**
@@ -84,7 +92,13 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
   public void testIsUsingJavaHomeJdkCallsGetJdk() {
     IdeSdks spyIdeSdks = spy(myIdeSdks);
     spyIdeSdks.isUsingJavaHomeJdk(false /* do not assume it is uint test */);
-    verify(spyIdeSdks).getJdkPath();
+    if (myIdeSdks.isAndroidStudio()) {
+      verify(spyIdeSdks).getJdkPath();
+    }
+    else {
+      // isUsingJavaHomeJdk returns hardcoded value 'false' in IJ
+      verify(spyIdeSdks, never()).getJdkPath();
+    }
   }
 
   /**

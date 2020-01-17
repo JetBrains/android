@@ -247,7 +247,7 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
   protected ApkProvider getApkProvider(@NotNull AndroidFacet facet,
                                        @NotNull ApplicationIdProvider applicationIdProvider,
                                        @NotNull List<AndroidDevice> targetDevices) {
-    if (facet.getConfiguration().getModel() != null && facet.getConfiguration().getModel() instanceof AndroidModuleModel) {
+    if (facet.getModel() != null && facet.getModel() instanceof AndroidModuleModel) {
       return createGradleApkProvider(facet, applicationIdProvider, true, targetDevices);
     }
     return new NonGradleApkProvider(facet, applicationIdProvider, null);

@@ -29,6 +29,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.impl.ProjectImpl;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.NotNullLazyKey;
+import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.util.pico.DefaultPicoContainer;
 import java.lang.reflect.Field;
@@ -39,9 +40,9 @@ import org.jetbrains.annotations.Nullable;
 import org.mockito.stubbing.Answer;
 import org.picocontainer.ComponentAdapter;
 
-public final class IdeComponents implements Disposable {
+public final class IdeComponents {
   private Project myProject;
-  private final Queue<Runnable> myUndoQueue = new ArrayDeque<>();
+  private final Disposable myDisposable;
 
   public IdeComponents(@NotNull Project project) {
     this(project, project);
@@ -64,129 +65,33 @@ public final class IdeComponents implements Disposable {
       Disposer.register(project, () -> myProject = null);
     }
 
-    Disposer.register(disposable, this);
+    myDisposable = disposable;
   }
 
   @NotNull
   public <T> T mockApplicationService(@NotNull Class<T> serviceType) {
     T mock = mock(serviceType);
-    doReplaceService(ApplicationManager.getApplication(), serviceType, mock, myUndoQueue);
-    return mock;
-  }
-  @NotNull
-  public <T> T mockApplicationServiceWithAnswer(@NotNull Class<T> serviceType, Answer<Object> runtimeExceptionAnswer) {
-    T mock = mock(serviceType, runtimeExceptionAnswer);
-    doReplaceService(ApplicationManager.getApplication(), serviceType, mock, myUndoQueue);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), serviceType, mock, myDisposable);
     return mock;
   }
 
   public <T> void replaceApplicationService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
-    doReplaceService(ApplicationManager.getApplication(), serviceType, newServiceInstance, myUndoQueue);
+    ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), serviceType, newServiceInstance, myDisposable);
   }
 
   public <T> void replaceProjectService(@NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
-    doReplaceService(myProject, serviceType, newServiceInstance, myUndoQueue);
+    ServiceContainerUtil.replaceService(myProject, serviceType, newServiceInstance, myDisposable);
   }
 
   public <T> void replaceModuleService(@NotNull Module module, @NotNull Class<T> serviceType, @NotNull T newServiceInstance) {
-    doReplaceService(module, serviceType, newServiceInstance, myUndoQueue);
-  }
-
-  /**
-   * DumbService is a regular project service, however unlike other services it can't be mocked by directly replacing its
-   * instance in the ServiceManager. The reason is that ServiceManager is accessed only once to retrieve the project's DumbService
-   * instance (during the project initialisation). After that, the instance is saved into {@link DumbService#INSTANCE_KEY} and
-   * obtained from there as a result of each {@link DumbService#getInstance(Project)} call onwards.
-   * Therefore, a special method is required to deal with this situation by operating directly with
-   * {@link DumbService#INSTANCE_KEY} and placing the mock there.
-   *
-   * @see DumbService#INSTANCE_KEY
-   * @see DumbService#getInstance(Project)
-   */
-  public static void replaceProjectDumbService(@NotNull Project project, @NotNull DumbService newServiceInstance) {
-    doReplaceProjectDumbService(project, newServiceInstance, null);
-  }
-
-  private static void doReplaceProjectDumbService(@NotNull Project project,
-                                                  @NotNull DumbService newServiceInstance,
-                                                  @Nullable Queue<Runnable> undoQueue) {
-    DumbService oldInstance = SentinelDumbService.replaceInstance(project, newServiceInstance);
-    if (undoQueue != null) {
-      undoQueue.add(() -> doReplaceProjectDumbService(project, oldInstance, null));
-    }
+    ServiceContainerUtil.replaceService(module, serviceType, newServiceInstance, myDisposable);
   }
 
   @NotNull
   public <T> T mockProjectService(@NotNull Class<T> serviceType) {
     T mock = mock(serviceType);
     assertNotNull(myProject);
-    doReplaceService(myProject, serviceType, mock, myUndoQueue);
+    ServiceContainerUtil.replaceService(myProject, serviceType, mock, myDisposable);
     return mock;
-  }
-
-  @Override
-  public void dispose() {
-    restore();
-  }
-
-  private void restore() {
-    for (Runnable runnable : myUndoQueue) {
-      runnable.run();
-    }
-    myUndoQueue.clear();
-  }
-
-  private static <T> void doReplaceService(@NotNull ComponentManager componentManager,
-                                           @NotNull Class<T> serviceType,
-                                           @NotNull T newServiceInstance,
-                                           @Nullable Queue<Runnable> undoQueue) {
-    DefaultPicoContainer picoContainer = (DefaultPicoContainer)componentManager.getPicoContainer();
-
-    String componentKey = serviceType.getName();
-
-    Object componentInstance = picoContainer.getComponentInstance(componentKey);
-    assert componentInstance == null || serviceType.isAssignableFrom(componentInstance.getClass());
-    T oldServiceInstance = (T)componentInstance;
-
-    ComponentAdapter componentAdapter = picoContainer.unregisterComponent(componentKey);
-    assert componentAdapter != null : String.format("%s not registered in %s, are you using the right service scope (application vs project)?",
-                                                    componentKey, componentManager.getClass().getSimpleName());
-
-    picoContainer.registerComponentInstance(componentKey, newServiceInstance);
-    assertSame(newServiceInstance, picoContainer.getComponentInstance(componentKey));
-
-    if (undoQueue != null && oldServiceInstance != null) {
-      undoQueue.add(() -> doReplaceService(componentManager, serviceType, oldServiceInstance, null));
-    }
-  }
-
-  private static class SentinelDumbService extends MockDumbService {
-    /**
-     * This class is a sentinel to access DumbService.INSTANCE_KEY when replacing project-wide DumbService.
-     * So the constructor is private as we never need instances of this class, just need to make the compiler happy.
-     */
-    private SentinelDumbService(@NotNull Project project) {
-      super(project);
-    }
-
-    protected static DumbService replaceInstance(@NotNull Project project, @NotNull DumbService newInstance) {
-      try {
-        Field field = DumbService.class.getDeclaredField("INSTANCE_KEY");
-        field.setAccessible(true);
-        Object instance_key_object = field.get(null);
-        NotNullLazyKey<DumbService, Project> instance_key = (NotNullLazyKey<DumbService, Project>)instance_key_object;
-
-        // TODO: Replace the reflection above with a plain call to INSTANCE_KEY once it's widened from private to protected upstream.
-        // We need to use reflection in the mean time as tools/adt/idea must hold the guarantee of being compile-time
-        // compatible with the platform code.
-        // See also ag/3177871.
-        DumbService oldInstance = instance_key.getValue(project);
-        instance_key.set(project, newInstance);
-        return oldInstance;
-      }
-      catch (ReflectiveOperationException | ClassCastException e) {
-        throw new UnsupportedOperationException("Dumb service could not be mocked.", e);
-      }
-    }
   }
 }

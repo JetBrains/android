@@ -73,7 +73,7 @@ fun createChildModuleNodes(
     val androidFacet = AndroidFacet.getInstance(module)
     val ndkFacet = NdkFacet.getInstance(module)
     when {
-      androidFacet != null && androidFacet.configuration.model != null ->
+      androidFacet != null && androidFacet.model != null ->
         children.add(AndroidModuleNode(project, module, projectViewPane, settings))
       androidFacet != null && apkFacet != null -> {
         children.add(ApkModuleNode(project, module, androidFacet, apkFacet, settings))
