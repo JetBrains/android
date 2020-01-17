@@ -624,8 +624,6 @@ public class LayoutlibSceneManager extends SceneManager {
    * Asynchronously inflates the model and updates the view hierarchy
    */
   protected void requestModelUpdate() {
-    ApplicationManager.getApplication().assertIsDispatchThread();
-
     synchronized (myProgressLock) {
       if (myCurrentIndicator == null) {
         myCurrentIndicator = new AndroidPreviewProgressIndicator();
