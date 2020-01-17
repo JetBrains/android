@@ -35,6 +35,7 @@ import java.io.File;
 import java.util.*;
 import java.util.function.Consumer;
 
+import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static org.mockito.Mockito.mock;
 
 public class AndroidProjectStub implements AndroidProject {
@@ -43,6 +44,7 @@ public class AndroidProjectStub implements AndroidProject {
   @NotNull private final Map<String, BuildTypeContainer> myBuildTypes = Maps.newHashMap();
   @NotNull private final Map<String, ProductFlavorContainer> myProductFlavors = Maps.newHashMap();
   @NotNull private final Map<String, IdeVariant> myVariants = Maps.newHashMap();
+  @NotNull private final List<VariantBuildInformation> myVariantsBuiltInformation = new ArrayList<>();
   @NotNull private final List<SigningConfig> mySigningConfigs = new ArrayList<>();
   @NotNull private final List<String> myFlavorDimensions = new ArrayList<>();
   @NotNull private final List<String> myVariantNames = new ArrayList<>();
@@ -204,12 +206,64 @@ public class AndroidProjectStub implements AndroidProject {
       myFirstVariant = variant;
     }
     myVariants.put(variant.getName(), variant);
+
+    myVariantsBuiltInformation.add(new VariantBuildInformation() {
+      @NotNull
+      @Override
+      public String getVariantName() {
+        return variant.getName();
+      }
+
+      @NotNull
+      @Override
+      public String getAssembleTaskName() {
+        return "assemble" + capitalize(variant.getName());
+      }
+
+      @NonNull
+      @Override
+      public String getAssembleTaskOutputListingFile() {
+        return new File(myFileStructure.getRootFolderPath(), "build/output/apk/" + variant.getName() + "/output.json").getAbsolutePath();
+      }
+
+      @Nullable
+      @Override
+      public String getBundleTaskName() {
+        return null;
+      }
+
+      @Nullable
+      @Override
+      public String getBundleTaskOutputListingFile() {
+        return new File(myFileStructure.getRootFolderPath(),
+                        "build/intermediates/bundle_ide_model/" + variant.getName() + "/output.json").getAbsolutePath();
+      }
+
+      @Nullable
+      @Override
+      public String getApkFromBundleTaskName() {
+        return null;
+      }
+
+      @Nullable
+      @Override
+      public String getApkFromBundleTaskOutputListingFile() {
+        return new File(myFileStructure.getRootFolderPath(),
+                        "build/intermediates/apk_from_bundle_ide_model/" + variant.getName() + "/output.json").getAbsolutePath();
+      }
+    });
   }
 
   @Override
   @NotNull
   public Collection<Variant> getVariants() {
     return new ArrayList<>(myVariants.values());
+  }
+
+  @NonNull
+  @Override
+  public Collection<VariantBuildInformation> getVariantsBuildInformation() {
+    return new ArrayList<>(myVariantsBuiltInformation);
   }
 
   public void clearVariants() {

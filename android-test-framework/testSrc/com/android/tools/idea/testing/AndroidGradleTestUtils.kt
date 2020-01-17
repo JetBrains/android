@@ -49,6 +49,7 @@ import com.android.ide.common.gradle.model.stubs.ProductFlavorContainerStub
 import com.android.ide.common.gradle.model.stubs.ProductFlavorStub
 import com.android.ide.common.gradle.model.stubs.SourceProviderContainerStub
 import com.android.ide.common.gradle.model.stubs.SourceProviderStub
+import com.android.ide.common.gradle.model.stubs.VariantBuildInformationStub
 import com.android.ide.common.gradle.model.stubs.VariantStub
 import com.android.ide.common.gradle.model.stubs.VectorDrawablesOptionsStub
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
@@ -575,7 +576,19 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
     true,
     projectType,
     true,
-    AndroidGradlePluginProjectFlagsStub()
+    AndroidGradlePluginProjectFlagsStub(),
+    listOf("debug", "release")
+      .map { variantName ->
+        VariantBuildInformationStub(
+          variantName,
+          "assemble".appendCapitalized(variantName),
+          buildPath.resolve("output/apk/$variantName/output.json").absolutePath,
+          "bundle".takeIf { supportsBundleTask && projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variantName),
+          buildPath.resolve("intermediates/bundle_ide_model/$variantName/output.json").absolutePath,
+          "extractApksFor".takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variantName),
+          buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variantName/output.json").absolutePath
+        )
+      }
   )
 }
 
