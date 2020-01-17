@@ -34,7 +34,7 @@ public abstract class UrlBasedRepositoryModelImpl extends RepositoryModelImpl im
   @NotNull private final String myDefaultRepoUrl;
 
   protected UrlBasedRepositoryModelImpl(@NotNull GradlePropertiesDslElement holder,
-                                        @NotNull GradleDslElement dslElement,
+                                        @NotNull GradlePropertiesDslElement dslElement,
                                         @NotNull String defaultRepoName,
                                         @NotNull String defaultRepoUrl) {
     super(holder, dslElement, defaultRepoName);

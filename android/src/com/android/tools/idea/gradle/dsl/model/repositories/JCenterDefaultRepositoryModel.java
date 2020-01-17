@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model.repositories;
 
-import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -26,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 public class JCenterDefaultRepositoryModel extends UrlBasedRepositoryModelImpl {
   @NonNls public static final String JCENTER_METHOD_NAME = "jcenter";
 
-  public JCenterDefaultRepositoryModel(@NotNull GradlePropertiesDslElement holder, @NotNull GradleDslElement element) {
+  public JCenterDefaultRepositoryModel(@NotNull GradlePropertiesDslElement holder, @NotNull GradlePropertiesDslElement element) {
     super(holder, element, "BintrayJCenter2", "https://jcenter.bintray.com/");
   }
 }

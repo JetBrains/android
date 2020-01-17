@@ -1,5 +1,5 @@
 repositories {
   jcenter {
-    url 'good.url'
+    name = "hello"
   }
 }

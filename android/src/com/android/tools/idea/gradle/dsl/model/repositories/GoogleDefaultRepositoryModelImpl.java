@@ -27,7 +27,7 @@ import static com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
  */
 public class GoogleDefaultRepositoryModelImpl extends UrlBasedRepositoryModelImpl implements GoogleDefaultRepositoryModel {
 
-  public GoogleDefaultRepositoryModelImpl(@NotNull GradlePropertiesDslElement holder, @NotNull GradleDslElement element) {
+  public GoogleDefaultRepositoryModelImpl(@NotNull GradlePropertiesDslElement holder, @NotNull GradlePropertiesDslElement element) {
     super(holder, element, GOOGLE_DEFAULT_REPO_NAME, GOOGLE_DEFAULT_REPO_URL);
   }
 }

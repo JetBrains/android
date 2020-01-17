@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.groovy;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
+import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
@@ -130,7 +131,12 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
       useAssignment = !externalNameInfo.getSecond();
     }
     if (element.isBlockElement()) {
-      statementText += " {\n}\n";
+      if (element instanceof MavenRepositoryDslElement && element.getContainedElements(true).isEmpty()) {
+        statementText += "()";
+      }
+      else {
+        statementText += " {\n}\n";
+      }
     }
     else if (useAssignment) {
       if (element.getElementType() == PropertyType.REGULAR) {

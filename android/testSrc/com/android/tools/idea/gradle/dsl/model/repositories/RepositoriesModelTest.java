@@ -640,9 +640,9 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     repositoriesModel.addRepositoryByMethodName("jcenter");
     repositories = repositoriesModel.repositories();
     assertSize(1, repositories);
-    assertThat(repositories.get(0)).isInstanceOf(JCenterDefaultRepositoryModel.class);
+    verifyJCenterDefaultRepositoryModel(repositories.get(0));
 
-    ((JCenterDefaultRepositoryModel)repositories.get(0)).url().setValue("good.url");
+    ((UrlBasedRepositoryModel)repositories.get(0)).url().setValue("good.url");
 
     applyChangesAndReparse(buildModel);
     verifyFileContents(myBuildFile, REPOSITORIES_MODEL_SET_URL_FOR_METHOD_CALL_EXPECTED);
