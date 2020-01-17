@@ -93,7 +93,7 @@ public class FakeArtifactElement extends FakeElement {
     boolean shouldQuote = false;
     String strValue = null;
     if (value instanceof ReferenceTo) {
-      strValue = "${" + ((ReferenceTo)value).getText() + "}";
+      strValue = "${" + resolved.getDslFile().getParser().convertReferenceToExternalText(resolved, ((ReferenceTo)value).getText()) + "}";
       shouldQuote = true;
     }
     else if (value != null) {
