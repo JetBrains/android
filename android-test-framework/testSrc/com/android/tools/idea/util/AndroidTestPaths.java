@@ -71,6 +71,18 @@ public class AndroidTestPaths {
   }
 
   /**
+   * @return absolute path to "prebuilts/tools/common/m2/repository"
+   */
+  public static Path prebuiltsRepo() {
+    List<String> alternatives = Arrays.asList(
+      "../../prebuilts/tools/common/m2/repository", // AOSP
+      "community/build/dependencies/build/android-sdk/prebuilts/tools/common/m2/repository", // IU
+      "build/dependencies/build/android-sdk/prebuilts/tools/common/m2/repository" // IC
+    );
+    return selectExisting(alternatives, "Could not find path for prebuilts/tools/common/m2/repository");
+  }
+
+  /**
    * Resolve alternatives (relative to {@code PathManager.getHomePath()}) and return absolute path of the first one which resolves to
    * existing file or directory
    *
