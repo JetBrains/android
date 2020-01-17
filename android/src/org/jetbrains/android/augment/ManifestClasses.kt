@@ -38,7 +38,7 @@ import org.jetbrains.android.dom.manifest.getCustomPermissionGroups
 import org.jetbrains.android.dom.manifest.getCustomPermissions
 import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidResourceUtil.getFieldNameByResourceName
+import org.jetbrains.android.util.getFieldNameByResourceName
 
 private val LOG: Logger get() = logger(::LOG)
 

@@ -84,8 +84,8 @@ import org.jetbrains.android.dom.converters.AttrNameConverter
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
-import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.android.util.packageToRClass
 import javax.swing.Icon
 
 private val DataContext.module: Module? get() = LangDataKeys.MODULE.getData(this)
@@ -462,7 +462,7 @@ class MigrateToResourceNamespacesProcessor(
               findOrCreateClass(
                 myProject,
                 psiMigration,
-                AndroidResourceUtil.packageToRClass(inferredPackage),
+                packageToRClass(inferredPackage),
 
                 // We're dealing with light R classes, so need to pick the right scope here. This will be handled by
                 // AndroidResolveScopeEnlarger.

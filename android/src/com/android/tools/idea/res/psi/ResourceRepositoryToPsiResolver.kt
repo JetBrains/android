@@ -41,7 +41,7 @@ import com.intellij.psi.xml.XmlElement
 import com.intellij.util.containers.toArray
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.android.util.getDeclaringAttributeValue
 
 object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
   override fun getGotoDeclarationFileBasedTargets(resourceReference: ResourceReference, context: PsiElement): Array<PsiFile> {
@@ -60,7 +60,7 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
       resource.getSourceAsVirtualFile()?.let(PsiManager.getInstance(project)::findFile)
     }
     else {
-      AndroidResourceUtil.getDeclaringAttributeValue(project, resource)
+      getDeclaringAttributeValue(project, resource)
     }
   }
 

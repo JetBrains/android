@@ -29,9 +29,9 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
-import icons.StudioIcons
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.android.util.isResourceDirectory
+import org.jetbrains.android.util.isResourceSubdirectory
 
 /**
  * Opens the [ResourceExplorer] and select the current [VirtualFile] if available and is
@@ -84,9 +84,8 @@ class ShowFileInResourceManagerAction
       return false
     }
     val dir = getPsiDir(file, project) ?: return false
-    return AndroidResourceUtil.isResourceDirectory(dir)
-           || AndroidResourceUtil.isResourceSubdirectory(dir, null)
-           && isSupportedResource(dir.virtualFile)
+    return isResourceDirectory(dir)
+           || isResourceSubdirectory(dir) && isSupportedResource(dir.virtualFile)
   }
 
   private fun isSupportedResource(file: VirtualFile): Boolean {

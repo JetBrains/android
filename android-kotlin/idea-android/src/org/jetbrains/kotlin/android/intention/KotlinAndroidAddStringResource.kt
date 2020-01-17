@@ -18,8 +18,13 @@ package org.jetbrains.kotlin.android.intention
 
 import com.android.resources.ResourceType
 import com.intellij.CommonBundle
-import com.intellij.codeInsight.template.*
-import com.intellij.codeInsight.template.impl.*
+import com.intellij.codeInsight.template.Template
+import com.intellij.codeInsight.template.TemplateEditingAdapter
+import com.intellij.codeInsight.template.TemplateManager
+import com.intellij.codeInsight.template.impl.ConstantNode
+import com.intellij.codeInsight.template.impl.MacroCallNode
+import com.intellij.codeInsight.template.impl.TemplateImpl
+import com.intellij.codeInsight.template.impl.TemplateState
 import com.intellij.codeInsight.template.macro.VariableOfTypeMacro
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.undo.UndoUtil
@@ -27,33 +32,42 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.*
+import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.android.actions.CreateXmlResourceDialog
 import org.jetbrains.android.compose.isInsideComposableCode
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.android.util.createValueResource
+import org.jetbrains.android.util.getRJavaFieldName
 import org.jetbrains.kotlin.builtins.isExtensionFunctionType
-import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.caches.resolve.unsafeResolveToDescriptor
 import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.idea.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
-import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtLambdaExpression
+import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 
-class KotlinAndroidAddStringResource :
-  SelfTargetingIntention<KtLiteralStringTemplateEntry>(
-    KtLiteralStringTemplateEntry::class.java,
-    AndroidBundle.message("add.string.resource.intention.text")
-  ) {
+class KotlinAndroidAddStringResource : SelfTargetingIntention<KtLiteralStringTemplateEntry>(
+  KtLiteralStringTemplateEntry::class.java,
+  AndroidBundle.message("add.string.resource.intention.text")
+) {
     private companion object {
         private val CLASS_CONTEXT = "android.content.Context"
         private val CLASS_FRAGMENT = "android.app.Fragment"
@@ -101,7 +115,7 @@ class KotlinAndroidAddStringResource :
         val parameters = getCreateXmlResourceParameters(facet.module, element, file.virtualFile) ?: return
 
         runWriteAction {
-            if (!AndroidResourceUtil.createValueResource(project, parameters.resourceDirectory, parameters.name, ResourceType.STRING,
+            if (!createValueResource(project, parameters.resourceDirectory, parameters.name, ResourceType.STRING,
                                                          parameters.fileName, parameters.directoryNames, parameters.value)) {
                 return@runWriteAction
             }
@@ -146,7 +160,7 @@ class KotlinAndroidAddStringResource :
 
     private fun createResourceReference(module: Module, editor: Editor, file: KtFile, element: PsiElement, aPackage: String,
                                         resName: String, resType: ResourceType) {
-        val rFieldName = AndroidResourceUtil.getRJavaFieldName(resName)
+        val rFieldName = getRJavaFieldName(resName)
         val fieldName = "$aPackage.R.$resType.$rFieldName"
 
         val template: TemplateImpl

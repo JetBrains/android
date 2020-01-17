@@ -33,8 +33,8 @@ import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.ManifestElementWithRequiredName
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.android.util.requiresDynamicFeatureModuleResources
 import java.util.ArrayList
 
 /**
@@ -53,7 +53,7 @@ class AndroidGotoDeclarationHandler : GotoDeclarationHandler {
                                                                                        offset)) {
       is ResourceReferencePsiElement -> {
         // Depending on the context, we might need to check DynamicFeature modules.
-        if (AndroidResourceUtil.requiresDynamicFeatureModuleResources(sourceElement)) {
+        if (requiresDynamicFeatureModuleResources(sourceElement)) {
           AndroidResourceToPsiResolver.getInstance().getGotoDeclarationTargetsWithDynamicFeatureModules(
             targetElement.resourceReference,
             sourceElement.containingFile)

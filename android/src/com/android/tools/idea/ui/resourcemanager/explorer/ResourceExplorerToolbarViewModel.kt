@@ -56,7 +56,7 @@ import org.jetbrains.android.actions.CreateResourceFileAction
 import org.jetbrains.android.actions.CreateResourceFileActionGroup
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
-import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.android.util.getResourceSubdirs
 import kotlin.properties.Delegates
 
 /**
@@ -228,7 +228,7 @@ class ResourceExplorerToolbarViewModel(
   private fun getPsiDirForResourceType(): PsiDirectory? {
     val resDirs = SourceProviderManager.getInstance(facet).mainIdeaSourceProvider.resDirectories
     val subDir = FolderTypeRelationship.getRelatedFolders(resourceType).firstOrNull()?.let { resourceFolderType ->
-      AndroidResourceUtil.getResourceSubdirs(resourceFolderType, resDirs).firstOrNull()
+      getResourceSubdirs(resourceFolderType, resDirs).firstOrNull()
     }
     return (subDir ?: resDirs.firstOrNull())?.let { PsiManager.getInstance(facet.module.project).findDirectory(it) }
   }

@@ -33,6 +33,7 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.psi.JavaRecursiveElementWalkingVisitor
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethodCallExpression
 import com.intellij.psi.PsiReferenceExpression
@@ -47,8 +48,9 @@ import org.jetbrains.android.dom.AndroidAttributeValue
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
-import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.android.util.findResourceFields
+import org.jetbrains.android.util.getReferredResourceOrManifestField
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.KotlinIcons
@@ -188,7 +190,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
           super.visitReferenceExpression(expression)
 
           val resClassName = ResourceType.LAYOUT.getName()
-          val info = AndroidResourceUtil.getReferredResourceOrManifestField(facet, expression, resClassName, true) ?: return
+          val info = getReferredResourceOrManifestField(facet, expression, resClassName, true) ?: return
           if (info.isFromManifest) {
             return
           }
@@ -209,7 +211,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
           super.visitReferenceExpression(expression)
           val resClassName = ResourceType.LAYOUT.getName()
           val info = (expression as? KtSimpleNameExpression)?.let {
-            AndroidResourceUtil.getReferredResourceOrManifestField(facet, it, resClassName, true)
+            getReferredResourceOrManifestField(facet, it, resClassName, true)
           } ?: return
           if (info.isFromManifest) {
             return
@@ -227,7 +229,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
     private fun collectRelatedClasses(file: XmlFile, facet: AndroidFacet): List<GotoRelatedItem>? {
       val resourceName = SdkUtils.fileNameToResourceName(file.name)
-      val fields = AndroidResourceUtil.findResourceFields(facet, ResourceType.LAYOUT.getName(), resourceName, true)
+      val fields = findResourceFields(facet, ResourceType.LAYOUT.getName(), resourceName, true)
       val field = fields.firstOrNull() ?: return null
       val module = facet.module
       // Explicitly chosen in the layout/menu file with a tools:context attribute?

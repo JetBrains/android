@@ -41,7 +41,7 @@ import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.psi.xml.XmlElement
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
-import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.android.util.ensureNamespaceImported
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -277,7 +277,7 @@ class ResourcePasteProvider : PasteProvider {
   private fun setSrcAttribute(dependsOnAppCompat: Boolean, xmlTag: XmlTag, resourceReference: String) {
     if (dependsOnAppCompat) {
       (xmlTag.containingFile as? XmlFile)?.let {
-        AndroidResourceUtil.ensureNamespaceImported(it, SdkConstants.AUTO_URI, null)
+        ensureNamespaceImported(it, SdkConstants.AUTO_URI)
       }
       xmlTag.setAttribute(SdkConstants.ATTR_SRC_COMPAT, SdkConstants.AUTO_URI, resourceReference)
       xmlTag.setAttribute(SdkConstants.ATTR_SRC, SdkConstants.ANDROID_URI, null)

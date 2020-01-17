@@ -52,7 +52,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
-import org.jetbrains.android.util.AndroidResourceUtil
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.groovy.GroovyFileType
 import java.io.File
@@ -222,6 +221,6 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   }
 
   override fun ensureNamespaceImported(file: XmlFile, namespaceUri: String, suggestedPrefix: String?): String {
-    return AndroidResourceUtil.ensureNamespaceImported(file, namespaceUri, suggestedPrefix)
+    return org.jetbrains.android.util.ensureNamespaceImported(file, namespaceUri, suggestedPrefix)
   }
 }

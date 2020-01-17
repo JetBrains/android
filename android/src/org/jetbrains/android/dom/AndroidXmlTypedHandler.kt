@@ -27,7 +27,7 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlText
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.android.util.isResourceFile
 
 class AndroidXmlTypedHandler : TypedHandlerDelegate() {
   override fun charTyped(charTyped: Char, project: Project, editor: Editor, file: PsiFile): Result {
@@ -40,7 +40,7 @@ class AndroidXmlTypedHandler : TypedHandlerDelegate() {
 
         if(!isSupportedSymbol(lastElement.text[0])) return@autoPopupMemberLookup false
         if(psiFile !is XmlFile) return@autoPopupMemberLookup false
-        if(!ManifestDomFileDescription.isManifestFile(psiFile) && !AndroidResourceUtil.isResourceFile(psiFile.virtualFile, facet)) return@autoPopupMemberLookup false
+        if(!ManifestDomFileDescription.isManifestFile(psiFile) && !isResourceFile(psiFile.virtualFile, facet)) return@autoPopupMemberLookup false
         if(lastElement.parent !is XmlAttributeValue && lastElement.parent !is XmlText) return@autoPopupMemberLookup false
         if(lastElement.parent is XmlText && getFolderType(psiFile) != ResourceFolderType.VALUES) return@autoPopupMemberLookup false
         if(lastElement.text[0] == '?' && getFolderType(psiFile) != ResourceFolderType.LAYOUT) return@autoPopupMemberLookup false

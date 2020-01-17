@@ -25,7 +25,8 @@ import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix
-import org.jetbrains.android.util.AndroidResourceUtil
+import org.jetbrains.android.util.ALL_VALUE_RESOURCE_TYPES
+import org.jetbrains.android.util.getReferredResourceOrManifestField
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
 
 
@@ -39,14 +40,14 @@ class KotlinAndroidResourceQuickFixProvider : UnresolvedReferenceQuickFixProvide
         manifest.`package`.value ?: return
         val contextFile = expression.containingFile ?: return
 
-        val info = AndroidResourceUtil.getReferredResourceOrManifestField(facet, expression, null, true)
+        val info = getReferredResourceOrManifestField(facet, expression, null, true)
         if (info == null || info.isFromManifest) {
             return
         }
 
         val resourceType = ResourceType.fromClassName(info.className) ?: return
 
-        if (AndroidResourceUtil.ALL_VALUE_RESOURCE_TYPES.contains(resourceType)) {
+        if (ALL_VALUE_RESOURCE_TYPES.contains(resourceType)) {
             registrar.register(CreateValueResourceQuickFix(facet, resourceType, info.fieldName, contextFile, true))
         }
 
