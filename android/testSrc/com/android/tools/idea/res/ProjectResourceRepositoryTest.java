@@ -20,17 +20,10 @@ import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.res.ModuleResourceRepositoryTest.assertHasExactResourceTypes;
 import static com.android.tools.idea.res.ResourcesTestsUtil.getSingleItem;
 
-import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.gradle.stubs.android.AndroidLibraryStub;
-import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
-import com.android.tools.idea.gradle.stubs.android.VariantStub;
-import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.testing.Modules;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -52,18 +45,15 @@ import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.ui.UIUtil;
-import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -140,8 +130,6 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertEquals(2, libraries.size());
     ModuleRootModificationUtil.addDependency(libraries.get(0).getModule(), libraries.get(1).getModule());
 
-    addArchiveLibraries();
-
     ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
     assertEquals(3, repository.getChildren().size());
     Collection<String> items = repository.getResources(RES_AUTO, ResourceType.STRING).keySet();
@@ -162,7 +150,6 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
 
   public void testGetResourceDirsAndUpdateRoots() {
     myFixture.copyFileToProject(LAYOUT, "res/layout/layout1.xml");
-    addArchiveLibraries();
     List<VirtualFile> flavorDirs = Lists.newArrayList(ResourceFolderManager.getInstance(myFacet).getFolders());
     ProjectResourceRepository repository = ProjectResourceRepository.create(myFacet);
     List<LocalResourceRepository> originalChildren = repository.getLocalResources();
@@ -239,31 +226,6 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertNotNull(psiValues3);
     WriteCommandAction.runWriteCommandAction(null, psiValues3::delete);
     assertHasExactResourceTypes(resources, typesWithoutRes3);
-  }
-
-  private void addArchiveLibraries() {
-    // Add in some Android projects too.
-    myFacet.getProperties().ALLOW_USER_CONFIGURATION = false; // make it a Gradle project
-    AndroidProjectStub androidProject = TestProjects.createFlavorsProject();
-    VariantStub variant = androidProject.getFirstVariant();
-    assertNotNull(variant);
-    File rootDir = androidProject.getRootDir();
-    AndroidModuleModel androidModel =
-      AndroidModuleModel.create(androidProject.getName(), rootDir, androidProject, variant.getName(), new IdeDependenciesFactory());
-    AndroidModel.set(myFacet, androidModel);
-
-    File bundle = new File(rootDir, "bundle.aar");
-    File libJar = new File(rootDir, "bundle_aar" + File.separatorChar + "library.jar");
-    AndroidLibraryStub library = new AndroidLibraryStub(bundle, libJar);
-    variant.getMainArtifact().getDependencies().addLibrary(library);
-
-    // Refresh temporary resource directories created by the model, so that they are accessible as VirtualFiles.
-    Collection<String> resourceDirUrls =
-      SourceProviderManager.getInstance(myFacet).getAllSourceProviders()
-        .stream()
-        .flatMap(provider -> provider.getResDirectoryUrls().stream())
-        .collect(Collectors.toList());
-    refreshForVfs(resourceDirUrls);
   }
 
   private static void refreshForVfs(Collection<String> freshFileUrls) {
