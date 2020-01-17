@@ -42,8 +42,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * @author nik
- *
  * This is a copy of FileDownloaderImpl with a change in downloadFile to attempt
  * to download again without using compression when a download error happens.
  * This is a temporary fix until we found and fixed the problem with compressed
