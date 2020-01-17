@@ -45,7 +45,7 @@ public class MapMethodTransform extends PropertyTransform {
   }
 
   @Override
-  public boolean test(@Nullable GradleDslElement e) {
+  public boolean test(@Nullable GradleDslElement e, @NotNull GradleDslElement holder) {
     if (e == null) {
       return true;
     }

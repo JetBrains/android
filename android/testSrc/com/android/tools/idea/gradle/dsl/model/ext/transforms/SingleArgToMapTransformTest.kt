@@ -33,12 +33,12 @@ class SingleArgToMapTransformTest : TransformTestCase() {
 
   @Test
   fun testRejectOnNull() {
-    assertFalse(transform.test(createLiteral()))
+    assertFalse(transform.test(createLiteral(), gradleDslFile))
   }
 
   @Test
   fun testRejectOnEmptyMethodCall() {
-    assertFalse(transform.test(createMethodCall(methodName)))
+    assertFalse(transform.test(createMethodCall(methodName), gradleDslFile))
   }
 
   @Test
@@ -46,7 +46,7 @@ class SingleArgToMapTransformTest : TransformTestCase() {
     val inputElement = createMethodCall(methodName)
     val mapArg = createExpressionMap()
     inputElement.addParsedExpression(mapArg)
-    assertFalse(transform.test(inputElement))
+    assertFalse(transform.test(inputElement, gradleDslFile))
   }
 
   @Test
@@ -54,7 +54,7 @@ class SingleArgToMapTransformTest : TransformTestCase() {
     val inputElement = createMethodCall(methodName)
     val literalArg = createLiteral()
     inputElement.addParsedExpression(literalArg)
-    assertTrue(transform.test(inputElement))
+    assertTrue(transform.test(inputElement, gradleDslFile))
   }
 
   @Test

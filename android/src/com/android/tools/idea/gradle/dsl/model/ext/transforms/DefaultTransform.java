@@ -32,7 +32,7 @@ public class DefaultTransform extends PropertyTransform {
   public DefaultTransform() { }
 
   @Override
-  public boolean test(@Nullable GradleDslElement e) {
+  public boolean test(@Nullable GradleDslElement e, @NotNull GradleDslElement holder) {
     return true;
   }
 

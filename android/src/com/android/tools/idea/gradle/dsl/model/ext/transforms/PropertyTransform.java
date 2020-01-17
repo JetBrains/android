@@ -49,15 +49,17 @@ public abstract class PropertyTransform {
    * Function for testing the properties {@link GradleDslElement} to see whether this transform should be activated.
    *
    * @param e the element contained by a property, null if the property has no element.
+   * @param holder the Dsl element which will hold this property.
    * @return whether or not this transform should be activated
    */
-  public abstract boolean test(@Nullable GradleDslElement e);
+  public abstract boolean test(@Nullable GradleDslElement e, @NotNull GradleDslElement holder);
 
   /**
    * A function that transforms the properties {@link GradleDslElement} into one that should be used as the value.
    *
    * @param e the element contained by a property. When used in a {@link PropertyTransform} this argument is
-   *          guaranteed to have had a previous call to {@link PropertyTransform#test(GradleDslElement)} return {@code true}.
+   *          guaranteed to have had a previous call to {@link PropertyTransform#test(GradleDslElement, GradleDslElement)}
+   *          return {@code true}.
    * @return the element that should be used to represent the property's value if this transform is active,
    * if the transform can't correctly transform the element then {@code null} should be returned.
    */

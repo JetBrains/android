@@ -39,7 +39,7 @@ import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.*;
 public class GradlePropertyModelImpl implements GradlePropertyModel {
   @Nullable protected GradleDslElement myElement;
   @Nullable protected GradleDslElement myDefaultElement;
-  @NotNull private GradleDslElement myPropertyHolder;
+  @NotNull protected GradleDslElement myPropertyHolder;
   // Indicates whether this property represents a method call or an assignment. This is needed to remove the braces when creating
   // properties for example "android.defaultConfig.proguardFiles" requires "proguardFiles "file.txt", "file.pro"" whereas
   // assignments require "prop = ["file.txt", "file.pro"]". If the method syntax is required #markAsMethodCall should be used.
@@ -652,7 +652,7 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
   @NotNull
   protected PropertyTransform getTransform() {
     for (PropertyTransform transform : myTransforms) {
-      if (transform.test(myElement)) {
+      if (transform.test(myElement, myPropertyHolder)) {
         return transform;
       }
     }

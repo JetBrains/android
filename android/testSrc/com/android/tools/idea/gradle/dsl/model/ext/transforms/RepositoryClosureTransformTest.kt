@@ -36,12 +36,12 @@ class RepositoryClosureTransformTest : TransformTestCase() {
   @Test
   fun testTestNotNull() {
     val inputElement = createMethodCall("methodName")
-    assertTrue(transform.test(inputElement))
+    assertTrue(transform.test(inputElement, gradleDslFile))
   }
 
   @Test
   fun testTestNull() {
-    assertFalse(transform.test(null))
+    assertFalse(transform.test(null, gradleDslFile))
   }
 
   @Test
