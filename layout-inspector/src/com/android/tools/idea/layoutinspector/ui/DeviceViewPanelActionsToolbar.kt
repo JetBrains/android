@@ -33,7 +33,7 @@ import icons.StudioIcons.LayoutInspector.RESET_VIEW
 
 /** Creates the actions toolbar used on the [DeviceViewPanel] */
 class DeviceViewPanelActionsToolbar(
-  private val deviceViewPanel: DeviceViewPanel,
+  deviceViewPanel: DeviceViewPanel,
   parentDisposable: Disposable
 ) : EditorActionsFloatingToolbar(deviceViewPanel, parentDisposable) {
 
@@ -66,10 +66,12 @@ object Toggle3dAction : AnAction(MODE_3D) {
     else {
       event.presentation.isEnabled = false
       event.presentation.text =
-        if (model?.overlay != null) "Rotation not available when overlay is active"
-        else "Rotation not available for devices below API 29"
+        when {
+          model?.overlay != null -> "Rotation not available when overlay is active"
+          model?.isFallbackMode == true -> "Device image too large, rotation not available"
+          else -> "Rotation not available for devices below API 29"
+        }
     }
-
   }
 }
 
