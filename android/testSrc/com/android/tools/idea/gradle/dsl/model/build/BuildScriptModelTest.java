@@ -46,7 +46,6 @@ import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase;
 import com.android.tools.idea.gradle.dsl.model.android.ProductFlavorModelImpl;
 import com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.ExpectedArtifactDependency;
 import com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl;
-import com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaultRepositoryModel;
 import java.io.IOException;
 import java.util.List;
 import org.junit.Test;
