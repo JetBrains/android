@@ -251,7 +251,7 @@ abstract class GradleSyncProjectComparisonTest(
           .findModuleByGradlePath(":modulePlus")!!
           .dependencies
           .findLibraryDependencies("com.example.libs", "lib1")
-          .single().version = "1.0".asParsed()
+          .forEach { it.version = "1.0".asParsed() }
         projectModel
           .findModuleByGradlePath(":mainModule")!!
           .dependencies
