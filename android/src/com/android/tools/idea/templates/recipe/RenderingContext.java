@@ -307,12 +307,12 @@ public class RenderingContext {
       myProject = project;
       myCommandName = "Instantiate Template";
       myParams = Collections.emptyMap();
-      myOutputRoot = VfsUtilCore.virtualToIoFile(project.getBaseDir());
+      myOutputRoot = new File(project.getBasePath());
       myModuleRoot = myOutputRoot;
     }
 
     /**
-     * Create a {@link Builder} that uses the project base dir as the template output and module dir.
+     * Create a {@link Builder} that uses the project base path as the template output and module dir.
      * Recommended version.
      */
     public static Builder newContext(@NotNull Template template, @NotNull Project project) {
@@ -320,7 +320,7 @@ public class RenderingContext {
     }
 
     /**
-     * Create a {@link Builder} that uses the project base dir as the template output and module dir.
+     * Create a {@link Builder} that uses the project base path as the template output and module dir.
      * Use this version if there is no {@link Template} instance available.
      */
     public static Builder newContext(@NotNull File templateRootPath, @NotNull Project project) {
