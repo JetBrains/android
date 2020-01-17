@@ -40,11 +40,11 @@
       "cdeefe"
     ],
     "lightModeDarkText": [
-      true,
-      true,
-      true,
-      true,
-      true
+      false,
+      false,
+      false,
+      false,
+      false
     ],
     "dark": [
       "74a1b8",
@@ -55,8 +55,8 @@
     ],
     "darkModeLightText": [
       true,
-      false,
-      false,
+      true,
+      true,
       true,
       true
     ]
