@@ -45,7 +45,6 @@ import com.intellij.psi.PsiPolyVariantReference
 import com.intellij.psi.PsiReference
 import com.intellij.psi.impl.FakePsiElement
 import com.intellij.psi.impl.compiled.ClsFieldImpl
-import com.intellij.psi.search.SearchScope
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.xml.XmlAttribute
 import com.intellij.psi.xml.XmlAttributeValue
@@ -85,7 +84,6 @@ class ResourceReferencePsiElement(
   companion object {
 
     @JvmField val RESOURCE_ICON: Icon =  StudioIcons.Shell.ToolWindows.VISUAL_ASSETS
-    @JvmField val RESOURCE_CONTEXT_SCOPE: Key<SearchScope> = Key.create<SearchScope>(::RESOURCE_CONTEXT_SCOPE.qualifiedName)
     @JvmField val RESOURCE_CONTEXT_ELEMENT: Key<PsiElement> = Key.create<PsiElement>(::RESOURCE_CONTEXT_ELEMENT.qualifiedName)
 
     @JvmStatic

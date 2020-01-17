@@ -2,19 +2,17 @@ package org.jetbrains.android;
 
 import static com.android.SdkConstants.TAG_RESOURCES;
 import static com.android.tools.idea.res.psi.ResourceReferencePsiElement.RESOURCE_CONTEXT_ELEMENT;
-import static com.android.tools.idea.res.psi.ResourceReferencePsiElement.RESOURCE_CONTEXT_SCOPE;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.AnyThread;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
-import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -33,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class AndroidUsagesTargetProvider implements UsageTargetProvider {
 
+  @AnyThread
   @Override
   public UsageTarget[] getTargets(@NotNull Editor editor, @NotNull PsiFile file) {
     if (StudioFlags.RESOLVE_USING_REPOS.get()) {
@@ -56,8 +55,6 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
         return UsageTarget.EMPTY_ARRAY;
       }
       resourceReferencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_ELEMENT, contextElement);
-      SearchScope scope = ResourceRepositoryToPsiResolver.getResourceSearchScope(resourceReferencePsiElement.getResourceReference(), contextElement);
-      resourceReferencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_SCOPE, scope);
       return new UsageTarget[]{new PsiElement2UsageTargetAdapter(resourceReferencePsiElement)};
     } else {
       final XmlTag tag = findValueResourceTagInContext(editor, file, false);
@@ -67,6 +64,7 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
     }
   }
 
+  @AnyThread
   @Nullable
   @Override
   public UsageTarget[] getTargets(@NotNull PsiElement psiElement) {
@@ -79,8 +77,6 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
         return UsageTarget.EMPTY_ARRAY;
       }
       referencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_ELEMENT, psiElement);
-      SearchScope scope = ResourceRepositoryToPsiResolver.getResourceSearchScope(referencePsiElement.getResourceReference(), psiElement);
-      referencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_SCOPE, scope);
       return new UsageTarget[]{new PsiElement2UsageTargetAdapter(referencePsiElement)};
     }
     return UsageTarget.EMPTY_ARRAY;
