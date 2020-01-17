@@ -2683,16 +2683,16 @@ PROJECT             : testPsdDependencyUpgradeLibraryModule
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.libs:lib1:0.9.1@aar [=]
-            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib1-1.0/jars/classes.jar!/
-            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib1-1.0/res
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib1-0.9.1/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib1-0.9.1/res
         LIBRARY             : Gradle: com.example.libs:lib2:0.9.1@aar
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
             Name                : Gradle: com.example.libs:lib2:0.9.1@aar [=]
-            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/jars/classes.jar!/
-            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-1.0/res
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-0.9.1/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-0.9.1/res
         ORDER_ENTRY         : jModuleK
     MODULE              : nestedZ
         - ModuleGroupPath   : testPsdDependencyUpgradeLibraryModule
