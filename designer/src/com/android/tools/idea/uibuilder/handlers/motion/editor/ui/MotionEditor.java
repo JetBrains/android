@@ -27,6 +27,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScroll
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.METabbedPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs.Tags;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateConstraintSet;
@@ -319,18 +320,29 @@ public class MotionEditor extends JPanel {
 
   public void selectTag(MTag tag, int flags) {
     mFlags = flags;
-    if (tag != null && tag.equals(mSelectedTag)) {
+    String tagName = tag != null ? tag.getTagName() : null;
+    if (tag != null && tagName != null && tag.equals(mSelectedTag)) {
       mConstraintSetPanel.clearSelection();
       mLayoutPanel.clearSelection();
       mTransitionPanel.clearSelection();
       mMeModel.setSelectedViewIDs(new ArrayList<>()); // clear out selections because of double click
-      if ("Transition".equals(tag.getTagName())) {
-        notifyListeners(MotionEditorSelector.Type.TRANSITION, new MTag[]{tag}, flags);
-      }
+      notifyListeners(findSelectionType(tagName), new MTag[]{tag}, flags);
     }
     mSelectedTag = tag;
     if (tag != null) {
       mCombinedListPanel.selectTag(tag);
+    }
+  }
+
+  @NotNull
+  private MotionEditorSelector.Type findSelectionType(@NotNull String tagName) {
+    switch (tagName) {
+      case Tags.CONSTRAINTSET:
+        return MotionEditorSelector.Type.CONSTRAINT_SET;
+      case Tags.TRANSITION:
+        return MotionEditorSelector.Type.TRANSITION;
+      default:
+        return MotionEditorSelector.Type.LAYOUT;
     }
   }
 
