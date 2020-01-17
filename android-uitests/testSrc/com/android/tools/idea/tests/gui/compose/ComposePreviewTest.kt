@@ -22,16 +22,25 @@ import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.compose.getNotificationsFixture
+import com.android.tools.idea.tests.gui.framework.fixture.designer.SplitEditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.getSplitEditorFixture
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.UseBleak
 import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.runWithBleak
 import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import junit.framework.TestCase.assertFalse
+import org.fest.swing.core.GenericTypeMatcher
+import org.fest.swing.fixture.JPopupMenuFixture
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.awt.Toolkit
+import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.Transferable
+import java.awt.datatransfer.UnsupportedFlavorException
 import java.util.concurrent.TimeUnit
+import javax.swing.JMenuItem
 
 @RunWith(GuiTestRemoteRunner::class)
 class ComposePreviewTest {
@@ -42,10 +51,75 @@ class ComposePreviewTest {
   @JvmField
   val renderTaskLeakCheckRule = RenderTaskLeakCheckRule()
 
+  private fun openComposePreview(fixture: IdeFrameFixture): SplitEditorFixture {
+    // Open the main compose activity and check that the preview is present
+    val editor = fixture.editor
+    val file = "app/src/main/java/google/simpleapplication/MainActivity.kt"
+    editor.open(file)
+
+    fixture.invokeMenuPath("Build", "Make Project")
+      .waitForBuildToFinish(BuildMode.ASSEMBLE)
+    return editor.getSplitEditorFixture()
+  }
+
   @Test
   @Throws(Exception::class)
   fun testOpenAndClosePreview() {
     openAndClosePreview(guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication"))
+  }
+
+  @Test
+  @RunIn(TestGroup.UNRELIABLE) // b/148000568
+  @Throws(Exception::class)
+  fun testCopyPreviewImage() {
+    val fixture = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleComposeApplication")
+    val composePreview = openComposePreview(fixture)
+
+    composePreview
+      .waitForRenderToFinish()
+      .getNotificationsFixture()
+      .assertNoNotifications()
+
+    assertFalse(composePreview.hasRenderErrors())
+
+    clearClipboard()
+    assertFalse(Toolkit.getDefaultToolkit().systemClipboard.getContents(this).isDataFlavorSupported(DataFlavor.imageFlavor))
+
+    val designSurfaceTarget = composePreview.designSurface.target()
+    composePreview.robot.click(designSurfaceTarget)
+    JPopupMenuFixture(composePreview.robot(), composePreview.robot.showPopupMenu(designSurfaceTarget))
+      .menuItem(object : GenericTypeMatcher<JMenuItem>(JMenuItem::class.java) {
+        override fun isMatching(component: JMenuItem): Boolean {
+          return "Copy Image" == component.text
+        }
+      }).click()
+
+    assertTrue(getClipboardContents().isDataFlavorSupported(DataFlavor.imageFlavor))
+
+    fixture.editor.close()
+  }
+
+  /**
+   * Returns the current system clipboard contents.
+   */
+  private fun getClipboardContents(): Transferable = Toolkit.getDefaultToolkit().systemClipboard.getContents(this)
+
+  /**
+   * Clears the system clipboard by copying an "Empty" [Transferable]. This can be used to verify that copy operations of other elements
+   * do succeed.
+   */
+  private fun clearClipboard() {
+    Toolkit.getDefaultToolkit().systemClipboard.setContents(object : Transferable {
+      override fun getTransferData(flavor: DataFlavor?): Any = when (flavor) {
+        DataFlavor.stringFlavor -> "Empty"
+        else -> throw UnsupportedFlavorException(flavor)
+      }
+
+      override fun isDataFlavorSupported(flavor: DataFlavor?): Boolean = flavor == DataFlavor.stringFlavor
+
+      override fun getTransferDataFlavors(): Array<DataFlavor> = arrayOf(DataFlavor.stringFlavor)
+
+    }, null)
   }
 
   @Test
@@ -59,14 +133,7 @@ class ComposePreviewTest {
 
   @Throws(Exception::class)
   private fun openAndClosePreview(fixture: IdeFrameFixture) {
-    // Open the main compose activity and check that the preview is present
-    val editor = fixture.editor
-    val file = "app/src/main/java/google/simpleapplication/MainActivity.kt"
-    editor.open(file)
-
-    fixture.invokeMenuPath("Build", "Make Project")
-      .waitForBuildToFinish(BuildMode.ASSEMBLE)
-    val composePreview = editor.getSplitEditorFixture()
+    val composePreview = openComposePreview(fixture)
 
     composePreview
       .waitForRenderToFinish()
@@ -74,6 +141,8 @@ class ComposePreviewTest {
       .assertNoNotifications()
 
     assertFalse(composePreview.hasRenderErrors())
+
+    val editor = fixture.editor
 
     // Now let's make a change on the source code and check that the notification displays
     val modification = "Random modification"
@@ -88,6 +157,6 @@ class ComposePreviewTest {
     // Undo modifications and close editor to return to the initial state
     editor.select("(${modification})")
     editor.invokeAction(EditorFixture.EditorAction.BACK_SPACE)
-    editor.closeFile(file)
+    editor.close()
   }
 }
