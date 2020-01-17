@@ -21,6 +21,8 @@ import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.IdeComponents
 import com.google.common.truth.Truth.assertThat
+import org.gradle.tooling.model.build.BuildEnvironment
+import org.gradle.tooling.model.build.GradleEnvironment
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mockito.doReturn
@@ -93,6 +95,27 @@ class MissingNdkIssueCheckerTest : AndroidGradleTestCase() {
     IdeComponents(project).replaceApplicationService(IdeSdks::class.java, spyIdeSdks)
     doReturn(null).`when`(spyIdeSdks).getHighestLocalNdkPackage(anyBoolean())
     verifyWithInstall("NDK location not found.")
+  }
+
+  fun testOldAndroidGradlePluginDoesNotReturnAnything() {
+    val buildEnvironment = mock(BuildEnvironment::class.java)
+    val gradle = mock(GradleEnvironment::class.java)
+    doReturn(gradle).`when`(buildEnvironment).gradle
+    doReturn("6.2").`when`(gradle).gradleVersion
+
+    val issueData = GradleIssueData(projectFolderPath.path, Throwable("NDK not configured."), buildEnvironment, null)
+    val buildIssue = missingNdkIssueChecker.check(issueData)
+    assertThat(buildIssue).isNull()
+  }
+
+  fun testLessOldGradlePluginDoesReturnSomething() {
+    val buildEnvironment = mock(BuildEnvironment::class.java)
+    val gradle = mock(GradleEnvironment::class.java)
+    doReturn(gradle).`when`(buildEnvironment).gradle
+    doReturn("6.3").`when`(gradle).gradleVersion
+    val issueData = GradleIssueData(projectFolderPath.path, Throwable("NDK not configured."), null, null)
+    val buildIssue = missingNdkIssueChecker.check(issueData)
+    assertThat(buildIssue).isNotNull()
   }
 
   private fun verifyWithFixVersion(errMsg: String) {
