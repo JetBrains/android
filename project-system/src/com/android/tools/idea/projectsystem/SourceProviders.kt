@@ -254,8 +254,11 @@ private class SourceProviderManagerComponent(val project: Project) : ProjectComp
   }
 }
 
-fun createMergedSourceProvider(providers: List<NamedIdeaSourceProvider>): IdeaSourceProvider =
-  IdeaSourceProviderImpl(
+fun createMergedSourceProvider(scopeType: ScopeType, providers: List<NamedIdeaSourceProvider>): IdeaSourceProvider {
+  // Note: In non-Gradle project systems the list of merged source providers may consist of source providers of different types.
+  //       This is because they may be re-used between main and tests scopes.
+  return IdeaSourceProviderImpl(
+    scopeType,
     manifestFileUrls = providers.flatMap { it.manifestFileUrls },
     manifestDirectoryUrls = providers.flatMap { it.manifestDirectoryUrls },
     javaDirectoryUrls = providers.flatMap { it.javaDirectoryUrls },
@@ -268,3 +271,4 @@ fun createMergedSourceProvider(providers: List<NamedIdeaSourceProvider>): IdeaSo
     assetsDirectoryUrls = providers.flatMap { it.assetsDirectoryUrls },
     shadersDirectoryUrls = providers.flatMap { it.shadersDirectoryUrls }
   )
+}

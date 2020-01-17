@@ -1,6 +1,7 @@
 MODULE: app
     by Facet:
         main (IDEA)
+            ScopeType: MAIN
             ManifestFileUrls:
                 file://./app/src/main/AndroidManifest.xml
             ManifestFiles:
@@ -269,6 +270,7 @@ MODULE: app
             file://./app/src/main/AndroidManifest.xml
         Sources:
             Sources (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
                     file://./app/src/debug/AndroidManifest.xml
@@ -309,6 +311,7 @@ MODULE: app
                     file://./app/src/debug/shaders
         UnitTestSources:
             UnitTestSources (IDEA)
+                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./app/src/test/AndroidManifest.xml
                     file://./app/src/testDebug/AndroidManifest.xml
@@ -341,6 +344,7 @@ MODULE: app
                     file://./app/src/testDebug/shaders
         AndroidTestSources:
             AndroidTestSources (IDEA)
+                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./app/src/androidTest/AndroidManifest.xml
                     file://./app/src/androidTestDebug/AndroidManifest.xml
@@ -373,6 +377,7 @@ MODULE: app
                     file://./app/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
                 ManifestFiles:
@@ -402,6 +407,7 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
             debug (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./app/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -423,6 +429,7 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/debug/shaders
             release (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./app/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -445,6 +452,7 @@ MODULE: app
                     file://./app/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./app/src/main/AndroidManifest.xml
                 ManifestFiles:
@@ -474,6 +482,7 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/main/shaders
             debug (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./app/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -496,6 +505,7 @@ MODULE: app
                     file://./app/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
+                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./app/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -517,6 +527,7 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/test/shaders
             testDebug (IDEA)
+                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./app/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -539,6 +550,7 @@ MODULE: app
                     file://./app/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
+                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./app/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -560,6 +572,7 @@ MODULE: app
                 ShadersDirectoryUrls:
                     file://./app/src/androidTest/shaders
             androidTestDebug (IDEA)
+                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./app/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -583,6 +596,7 @@ MODULE: app
 MODULE: lib1
     by Facet:
         main (IDEA)
+            ScopeType: MAIN
             ManifestFileUrls:
                 file://./lib1/src/main/AndroidManifest.xml
             ManifestFiles:
@@ -849,6 +863,7 @@ MODULE: lib1
             file://./lib1/src/main/AndroidManifest.xml
         Sources:
             Sources (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./lib1/src/main/AndroidManifest.xml
                     file://./lib1/src/debug/AndroidManifest.xml
@@ -887,6 +902,7 @@ MODULE: lib1
                     file://./lib1/src/debug/shaders
         UnitTestSources:
             UnitTestSources (IDEA)
+                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./lib1/src/test/AndroidManifest.xml
                     file://./lib1/src/testDebug/AndroidManifest.xml
@@ -919,6 +935,7 @@ MODULE: lib1
                     file://./lib1/src/testDebug/shaders
         AndroidTestSources:
             AndroidTestSources (IDEA)
+                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./lib1/src/androidTest/AndroidManifest.xml
                     file://./lib1/src/androidTestDebug/AndroidManifest.xml
@@ -951,6 +968,7 @@ MODULE: lib1
                     file://./lib1/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./lib1/src/main/AndroidManifest.xml
                 ManifestFiles:
@@ -978,6 +996,7 @@ MODULE: lib1
                 ShadersDirectoryUrls:
                     file://./lib1/src/main/shaders
             debug (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./lib1/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -999,6 +1018,7 @@ MODULE: lib1
                 ShadersDirectoryUrls:
                     file://./lib1/src/debug/shaders
             release (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./lib1/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1021,6 +1041,7 @@ MODULE: lib1
                     file://./lib1/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./lib1/src/main/AndroidManifest.xml
                 ManifestFiles:
@@ -1048,6 +1069,7 @@ MODULE: lib1
                 ShadersDirectoryUrls:
                     file://./lib1/src/main/shaders
             debug (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./lib1/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1070,6 +1092,7 @@ MODULE: lib1
                     file://./lib1/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
+                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./lib1/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1091,6 +1114,7 @@ MODULE: lib1
                 ShadersDirectoryUrls:
                     file://./lib1/src/test/shaders
             testDebug (IDEA)
+                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./lib1/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1113,6 +1137,7 @@ MODULE: lib1
                     file://./lib1/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
+                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./lib1/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1134,6 +1159,7 @@ MODULE: lib1
                 ShadersDirectoryUrls:
                     file://./lib1/src/androidTest/shaders
             androidTestDebug (IDEA)
+                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./lib1/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1157,6 +1183,7 @@ MODULE: lib1
 MODULE: lib2
     by Facet:
         main (IDEA)
+            ScopeType: MAIN
             ManifestFileUrls:
                 file://./lib2/src/main/AndroidManifest.xml
             ManifestFiles:
@@ -1423,6 +1450,7 @@ MODULE: lib2
             file://./lib2/src/main/AndroidManifest.xml
         Sources:
             Sources (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./lib2/src/main/AndroidManifest.xml
                     file://./lib2/src/debug/AndroidManifest.xml
@@ -1461,6 +1489,7 @@ MODULE: lib2
                     file://./lib2/src/debug/shaders
         UnitTestSources:
             UnitTestSources (IDEA)
+                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./lib2/src/test/AndroidManifest.xml
                     file://./lib2/src/testDebug/AndroidManifest.xml
@@ -1493,6 +1522,7 @@ MODULE: lib2
                     file://./lib2/src/testDebug/shaders
         AndroidTestSources:
             AndroidTestSources (IDEA)
+                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./lib2/src/androidTest/AndroidManifest.xml
                     file://./lib2/src/androidTestDebug/AndroidManifest.xml
@@ -1525,6 +1555,7 @@ MODULE: lib2
                     file://./lib2/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./lib2/src/main/AndroidManifest.xml
                 ManifestFiles:
@@ -1552,6 +1583,7 @@ MODULE: lib2
                 ShadersDirectoryUrls:
                     file://./lib2/src/main/shaders
             debug (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./lib2/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1573,6 +1605,7 @@ MODULE: lib2
                 ShadersDirectoryUrls:
                     file://./lib2/src/debug/shaders
             release (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./lib2/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1595,6 +1628,7 @@ MODULE: lib2
                     file://./lib2/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./lib2/src/main/AndroidManifest.xml
                 ManifestFiles:
@@ -1622,6 +1656,7 @@ MODULE: lib2
                 ShadersDirectoryUrls:
                     file://./lib2/src/main/shaders
             debug (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./lib2/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1644,6 +1679,7 @@ MODULE: lib2
                     file://./lib2/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
+                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./lib2/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1665,6 +1701,7 @@ MODULE: lib2
                 ShadersDirectoryUrls:
                     file://./lib2/src/test/shaders
             testDebug (IDEA)
+                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./lib2/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1687,6 +1724,7 @@ MODULE: lib2
                     file://./lib2/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
+                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./lib2/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1708,6 +1746,7 @@ MODULE: lib2
                 ShadersDirectoryUrls:
                     file://./lib2/src/androidTest/shaders
             androidTestDebug (IDEA)
+                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./lib2/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -1731,6 +1770,7 @@ MODULE: lib2
 MODULE: lib3
     by Facet:
         main (IDEA)
+            ScopeType: MAIN
             ManifestFileUrls:
                 file://./lib3/src/main/AndroidManifest.xml
             ManifestFiles:
@@ -1997,6 +2037,7 @@ MODULE: lib3
             file://./lib3/src/main/AndroidManifest.xml
         Sources:
             Sources (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./lib3/src/main/AndroidManifest.xml
                     file://./lib3/src/debug/AndroidManifest.xml
@@ -2035,6 +2076,7 @@ MODULE: lib3
                     file://./lib3/src/debug/shaders
         UnitTestSources:
             UnitTestSources (IDEA)
+                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./lib3/src/test/AndroidManifest.xml
                     file://./lib3/src/testDebug/AndroidManifest.xml
@@ -2067,6 +2109,7 @@ MODULE: lib3
                     file://./lib3/src/testDebug/shaders
         AndroidTestSources:
             AndroidTestSources (IDEA)
+                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./lib3/src/androidTest/AndroidManifest.xml
                     file://./lib3/src/androidTestDebug/AndroidManifest.xml
@@ -2099,6 +2142,7 @@ MODULE: lib3
                     file://./lib3/src/androidTestDebug/shaders
         AllIdeaSourceProviders:
             main (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./lib3/src/main/AndroidManifest.xml
                 ManifestFiles:
@@ -2126,6 +2170,7 @@ MODULE: lib3
                 ShadersDirectoryUrls:
                     file://./lib3/src/main/shaders
             debug (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./lib3/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -2147,6 +2192,7 @@ MODULE: lib3
                 ShadersDirectoryUrls:
                     file://./lib3/src/debug/shaders
             release (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./lib3/src/release/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -2169,6 +2215,7 @@ MODULE: lib3
                     file://./lib3/src/release/shaders
         CurrentSourceProviders:
             main (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./lib3/src/main/AndroidManifest.xml
                 ManifestFiles:
@@ -2196,6 +2243,7 @@ MODULE: lib3
                 ShadersDirectoryUrls:
                     file://./lib3/src/main/shaders
             debug (IDEA)
+                ScopeType: MAIN
                 ManifestFileUrls:
                     file://./lib3/src/debug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -2218,6 +2266,7 @@ MODULE: lib3
                     file://./lib3/src/debug/shaders
         CurrentUnitTestSourceProviders:
             test (IDEA)
+                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./lib3/src/test/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -2239,6 +2288,7 @@ MODULE: lib3
                 ShadersDirectoryUrls:
                     file://./lib3/src/test/shaders
             testDebug (IDEA)
+                ScopeType: UNIT_TEST
                 ManifestFileUrls:
                     file://./lib3/src/testDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -2261,6 +2311,7 @@ MODULE: lib3
                     file://./lib3/src/testDebug/shaders
         CurrentAndroidTestSourceProviders:
             androidTest (IDEA)
+                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./lib3/src/androidTest/AndroidManifest.xml
                 ManifestDirectoryUrls:
@@ -2282,6 +2333,7 @@ MODULE: lib3
                 ShadersDirectoryUrls:
                     file://./lib3/src/androidTest/shaders
             androidTestDebug (IDEA)
+                ScopeType: ANDROID_TEST
                 ManifestFileUrls:
                     file://./lib3/src/androidTestDebug/AndroidManifest.xml
                 ManifestDirectoryUrls:
