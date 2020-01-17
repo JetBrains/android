@@ -15,13 +15,14 @@
  */
 package org.jetbrains.android
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.ide.common.resources.ResourceRepository
 import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.RESOURCE_CONTEXT_ELEMENT
-import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.RESOURCE_CONTEXT_SCOPE
+import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
 import com.android.tools.idea.util.androidFacet
 import com.intellij.find.findUsages.FindUsagesHandler
 import com.intellij.find.findUsages.FindUsagesHandlerFactory
@@ -53,19 +54,23 @@ class AndroidResourcesFindUsagesHandlerFactory : FindUsagesHandlerFactory() {
     val resourceReferencePsiElement = ResourceReferencePsiElement.create(originalElement) ?: return null
     return object : FindUsagesHandler(resourceReferencePsiElement) {
 
+      @WorkerThread
       override fun processElementUsages(element: PsiElement, processor: Processor<UsageInfo>, options: FindUsagesOptions): Boolean {
         if (element !is ResourceReferencePsiElement) {
           return true
         }
+        // When highlighting the current file, any possible resources to be highlighted will be found by the default [ReferencesSearch]
+        // on the ResourceReferencePsiElement.
         if (!forHighlightUsages) {
-          // When highlighting the current file, any possible resources to be highlighted will be found by the default [ReferencesSearch]
-          // on the ResourceReferencePsiElement.
-          val reducedScope = (psiElement as? ResourceReferencePsiElement)?.getCopyableUserData(RESOURCE_CONTEXT_SCOPE)
-          if (reducedScope != null) {
-            options.searchScope = options.searchScope.intersectWith(reducedScope)
-          }
-          val contextElement = originalElement.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT)
           val resourceReference = element.resourceReference
+          val contextElement = originalElement.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT)
+          if (contextElement != null) {
+            // Reduce the scope of the ReferencesSearch to prevent collecting resources of the same reference from unrelated modules.
+            runReadAction {
+              val reducedScope = ResourceRepositoryToPsiResolver.getResourceSearchScope(resourceReference, contextElement)
+              options.searchScope = options.searchScope.intersectWith(reducedScope)
+            }
+          }
 
           // Add any file based resources not found in a ReferencesSearch
           if (contextElement != null) {

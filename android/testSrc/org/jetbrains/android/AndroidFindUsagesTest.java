@@ -16,6 +16,7 @@
  */
 package org.jetbrains.android;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_LIBRARY;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.flags.StudioFlags;
@@ -24,7 +25,9 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.TreeTester;
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
+import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.usages.PsiElementUsageTarget;
 import com.intellij.usages.Usage;
@@ -36,6 +39,7 @@ import com.intellij.usages.UsageViewPresentation;
 import com.intellij.usages.impl.UsageViewImpl;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import one.util.streamex.StreamEx;
 import org.jetbrains.annotations.NotNull;
 
@@ -44,11 +48,23 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class AndroidFindUsagesTest extends AndroidTestCase {
   private static final String BASE_PATH = "/findUsages/";
+  private static String MODULE_WITHOUT_DEPENDENCY = "MODULE_WITHOUT_DEPENDENCY";
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myFixture.copyFileToProject(BASE_PATH + "picture3.gif", "res/drawable/picture3.gif");
+    myFixture.addFileToProject(getAdditionalModulePath(MODULE_WITHOUT_DEPENDENCY) + "/res/values/colors.xml",
+      "<resources>\n" +
+      "        <string name=\"hello\">Hello</string>\n" +
+      "    </resources>"
+    );
+  }
+
+  @Override
+  protected void configureAdditionalModules(@NotNull TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder,
+                                            @NotNull List<MyAdditionalModuleData> modules) {
+    addModuleWithAndroidFacet(projectBuilder, modules, MODULE_WITHOUT_DEPENDENCY, PROJECT_TYPE_LIBRARY, false);
   }
 
   /**
@@ -516,6 +532,33 @@ public abstract class AndroidFindUsagesTest extends AndroidTestCase {
       finally {
         super.tearDown();
       }
+    }
+
+    public void testDoNotFindResourceOutOfScope() {
+      myFixture.copyFileToProject(BASE_PATH + "strings.xml", "res/values/strings.xml");
+      myFixture.copyFileToProject(BASE_PATH + "Class.java", "src/p1/p2/Class.java");
+      VirtualFile file = myFixture.copyFileToProject(BASE_PATH + "fu2_layout.xml", "res/layout/fu2_layout.xml");
+      Collection<UsageInfo> references = findUsages(file, myFixture);
+      assertEquals("Usage (3 usages)\n" +
+                   " Targets\n" +
+                   "  @string/hello\n" +
+                   " Found usages (3 usages)\n" +
+                   "  Resource declaration in Android resources XML (1 usage)\n" +
+                   "   app (1 usage)\n" +
+                   "    res/values (1 usage)\n" +
+                   "     strings.xml (1 usage)\n" +
+                   "      2<string name=\"hello\">hello</string>\n" +
+                   "  Resource reference Android resources XML (1 usage)\n" +
+                   "   app (1 usage)\n" +
+                   "    res/layout (1 usage)\n" +
+                   "     fu2_layout.xml (1 usage)\n" +
+                   "      3<TextView android:text=\"@string/hello\"/>\n" +
+                   "  Resource reference in code (1 usage)\n" +
+                   "   app (1 usage)\n" +
+                   "    p1.p2 (1 usage)\n" +
+                   "     Class1 (1 usage)\n" +
+                   "      f() (1 usage)\n" +
+                   "       6int id2 = R.string.hello;\n", getUsageViewTreeTextRepresentation(references));
     }
 
     public void testFontResource() {
