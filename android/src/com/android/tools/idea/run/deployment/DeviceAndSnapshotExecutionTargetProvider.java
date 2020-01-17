@@ -18,7 +18,7 @@ package com.android.tools.idea.run.deployment;
 import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetProvider;
-import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.project.Project;
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetProvider {
   @NotNull
   @Override
-  public List<ExecutionTarget> getTargets(@NotNull Project project, @NotNull RunnerAndConfigurationSettings configuration) {
+  public List<ExecutionTarget> getTargets(@NotNull Project project, @NotNull RunConfiguration configuration) {
     List<Device> devices = DeviceAndSnapshotComboBoxAction.getSelectedDevices(project);
     ExecutionTarget target = devices.isEmpty() ? DefaultExecutionTarget.INSTANCE : new DeviceAndSnapshotComboBoxExecutionTarget(devices);
 
