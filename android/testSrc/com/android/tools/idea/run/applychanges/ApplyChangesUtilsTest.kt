@@ -46,7 +46,6 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
-import org.picocontainer.PicoContainer
 
 /**
  * Unit tests for utility functions of apply-changes run pipeline.
@@ -62,8 +61,6 @@ class ApplyChangesUtilsTest {
   @Mock
   lateinit var mockExecutionManager: ExecutionManager
   @Mock
-  lateinit var mockPicoContainer: PicoContainer
-  @Mock
   lateinit var mockRunProfile: AndroidRunConfigurationBase
   @Mock
   lateinit var mockExecutionTarget: ExecutionTarget
@@ -78,12 +75,11 @@ class ApplyChangesUtilsTest {
     `when`(mockEnv.project).thenReturn(mockProject)
     `when`(mockEnv.runProfile).thenReturn(mockRunProfile)
     `when`(mockEnv.executionTarget).thenReturn(mockExecutionTarget)
-    `when`(mockProject.picoContainer).thenReturn(mockPicoContainer)
-    `when`(mockPicoContainer.getComponentInstance(eq(ExecutionManager::class.java.name))).thenReturn(mockExecutionManager)
     `when`(mockExecutionManager.runningProcesses).thenReturn(arrayOf())
     `when`(mockProject.getComponent(eq(DebuggerManager::class.java))).thenReturn(mockDebugManager)
+    `when`(mockProject.getService(eq(ExecutionManager::class.java))).thenReturn(mockExecutionManager)
+    `when`(mockProject.getService(eq(RunContentManager::class.java))).thenReturn(mockRunContentManager)
     `when`(mockDebugManager.sessions).thenReturn(listOf())
-    `when`(mockPicoContainer.getComponentInstance(eq(RunContentManager::class.java.name))).thenReturn(mockRunContentManager)
   }
 
   @Test
