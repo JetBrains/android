@@ -157,7 +157,7 @@
     <orderEntry type="module" module-name="intellij.android.deploy" />
     <orderEntry type="module" module-name="android.sdktools.deployer" />
     <orderEntry type="library" name="HdrHistogram" level="project" />
-    <orderEntry type="library" name="kotlin-plugin-android-compile-deps" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="kotlin-plugin-android-compile-deps" level="project" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />
     <orderEntry type="library" name="Java Compatibility" level="project" />
     <orderEntry type="library" name="kotlin-gradle-plugin-model" level="project" />
@@ -169,9 +169,10 @@
     <orderEntry type="module" module-name="intellij.android.debuggers" />
     <orderEntry type="module" module-name="intellij.android.build-attribution" />
     <orderEntry type="module-library" scope="PROVIDED">
-      <library>
+      <library type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:layoutlib-jre11:26.6.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../aosp/studio-master-dev/prebuilts/studio/layoutlib/data/layoutlib.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layoutlib-jre11/26.6.0.0/layoutlib-jre11-26.6.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

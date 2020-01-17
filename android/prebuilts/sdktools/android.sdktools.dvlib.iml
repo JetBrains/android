@@ -7,9 +7,10 @@
     <orderEntry type="module" module-name="android.sdktools.common" exported="" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-android.sdktools.dvlib">
+      <library name="precompiled-android.sdktools.dvlib" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:dvlib:26.6.0.0" />
         <CLASSES>
-          <root url="jar:///home/andrei/projects/aosp/studio-master-dev/bazel-bin/tools/base/device_validator/studio.android.sdktools.dvlib.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/dvlib/26.6.0.0/dvlib-26.6.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
