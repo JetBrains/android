@@ -35,7 +35,6 @@ import java.util.List;
 
 import static com.android.tools.idea.gradle.dsl.model.repositories.FlatDirRepositoryModel.FLAT_DIR_ATTRIBUTE_NAME;
 import static com.android.tools.idea.gradle.dsl.model.repositories.GoogleDefaultRepositoryModelImpl.*;
-import static com.android.tools.idea.gradle.dsl.model.repositories.JCenterDefaultRepositoryModel.JCENTER_METHOD_NAME;
 import static com.android.tools.idea.gradle.dsl.model.repositories.MavenCentralRepositoryModel.MAVEN_CENTRAL_METHOD_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.FlatDirRepositoryDslElement.FLAT_DIR;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement.GOOGLE;
@@ -56,7 +55,7 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
     for (GradleDslElement element : myDslElement.getAllPropertyElements()) {
       if (element instanceof GradleDslMethodCall) {
         String methodName = ((GradleDslMethodCall)element).getMethodName();
-        assert !Arrays.asList(MAVEN_CENTRAL_METHOD_NAME, JCENTER_METHOD_NAME, GOOGLE_METHOD_NAME).contains(methodName);
+        assert !Arrays.asList(MAVEN_CENTRAL_METHOD_NAME, JCENTER.name, GOOGLE_METHOD_NAME).contains(methodName);
       }
       else if (element instanceof MavenRepositoryDslElement) {
         if (MAVEN.name.equals(element.getName())) {
