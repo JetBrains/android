@@ -76,7 +76,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   NlComponent myMotionLayoutNlComponent;
   MotionSceneTag myMotionScene;
   VirtualFile myMotionSceneFile;
-  HashSet<String> myLayoutSelectedId = new HashSet<>();
   ViewGroupHandler.AccessoryPanelVisibility mVisibility;
   MotionEditor mMotionEditor = new MotionEditor();
   public static final String TIMELINE = "Timeline";
@@ -390,47 +389,12 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     if (DEBUG) {
       Debug.log(" handleSelectionChanged ");
     }
-    if (selection.size() == myLayoutSelectedId.size()) {
-      int count = 0;
-      for (NlComponent component : selection) {
-        if (myLayoutSelectedId.contains(component.getId())) {
-          count++;
-        }
-      }
-      if (count == selection.size()) {
-        return;
-      }
-    }
-    myLayoutSelectedId.clear();
-    for (NlComponent component : selection) {
-      if (myLayoutSelectedId.add(component.getId())) ;
-    }
-
-    if (selection.size() > 0) {
-      for (NlComponent component : selection) {
-        String tagName = component.getTagName();
-        String id = component.getId();
-
-        MTag tag = null;
-        if (mMotionEditor != null && mMotionEditor.getMeModel() != null) {
-          tag = mMotionEditor.getMeModel().findTag(tagName, id);
-        }
-        if (tag != null) {
-          if (tag instanceof NlComponentTag) {
-            mMotionEditor.setSelection(MotionEditorSelector.Type.LAYOUT_VIEW, new MTag[]{tag}, 0);
-          } else {
-            mMotionEditor.setSelection(MotionEditorSelector.Type.CONSTRAINT, new MTag[]{tag}, 0);
-          }
-        }
-      }
-    }
     String[] ids = new String[selection.size()];
     int count = 0;
     for (NlComponent component : selection) {
       ids[count++] = Utils.stripID(component.getId());
     }
     mMotionEditor.selectById(ids);
-
 
     fireSelectionChanged(selection);
   }
