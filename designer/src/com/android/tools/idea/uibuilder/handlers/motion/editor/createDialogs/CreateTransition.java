@@ -156,6 +156,12 @@ public class CreateTransition extends BaseCreatePanel {
     if (tid.equals(ENTER_TID)){
       tid = "";
     }
+    if (tid.length() > 0) {
+      if (Character.isDigit(tid.charAt(0))) {
+        showErrorDialog("Transition ID cannot start with a number");
+        return null;
+      }
+    }
     if (sid.length() == 0 && eid.length() == 0) {
       showErrorDialog("Transition must have a start and end id");
       return null;
