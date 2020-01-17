@@ -45,6 +45,12 @@ object DataVisualizationColors {
   const val PRIMARY_DATA_COLOR = "Vivid Blue"
   const val BACKGROUND_DATA_COLOR = "Gray"
 
+  // To make text readable against data viz colors we create text colors from these predefined values independent of the current theme.
+  @JvmField
+  val DEFAULT_LIGHT_TEXT_COLOR: Color = Color.WHITE
+  @JvmField
+  val DEFAULT_DARK_TEXT_COLOR: Color = Color.BLACK
+
   val dataPalette = LinkedHashMap<String, List<JBColor>>()
   val fontPalette = LinkedHashMap<String, List<JBColor>>()
   var numberOfTonesPerColor = 0
@@ -168,8 +174,8 @@ object DataVisualizationColors {
       }
       val fontColors = mutableListOf<JBColor>()
       it.lightModeDarkText.forEachIndexed { idx, lightModeDarkText ->
-        val lightModeColor = if (lightModeDarkText) Color.BLACK else Color.WHITE
-        val darkModeColor = if (it.darkModeLightText[idx]) Color.WHITE else Color.WHITE
+        val lightModeColor = if (lightModeDarkText) DEFAULT_DARK_TEXT_COLOR else DEFAULT_LIGHT_TEXT_COLOR
+        val darkModeColor = if (it.darkModeLightText[idx]) DEFAULT_LIGHT_TEXT_COLOR else DEFAULT_DARK_TEXT_COLOR
         fontColors.add(JBColor(lightModeColor, darkModeColor))
       }
       fontPalette[it.name] = fontColors
