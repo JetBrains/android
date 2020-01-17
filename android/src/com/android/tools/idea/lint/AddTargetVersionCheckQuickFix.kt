@@ -42,6 +42,7 @@ import org.jetbrains.kotlin.idea.codeInsight.surroundWith.statement.KotlinIfSurr
 import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.idea.inspections.findExistingEditor
 import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtClassInitializer
 import org.jetbrains.kotlin.psi.KtContainerNode
 import org.jetbrains.kotlin.psi.KtDestructuringDeclaration
 import org.jetbrains.kotlin.psi.KtElement
@@ -182,7 +183,9 @@ class AddTargetVersionCheckQuickFix(private val api: Int) : LintIdeQuickFix {
            this is KtPropertyAccessor ||
            this is KtProperty ||
            this is KtReturnExpression ||
-           this is KtDestructuringDeclaration
+           this is KtDestructuringDeclaration ||
+           this is KtClassInitializer
+
   }
 
   companion object {
