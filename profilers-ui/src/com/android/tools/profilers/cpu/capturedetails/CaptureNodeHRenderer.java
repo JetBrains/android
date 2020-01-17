@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.capturedetails;
 
 import com.android.tools.adtui.chart.hchart.HRenderer;
 import com.android.tools.adtui.common.AdtUiUtils;
+import com.android.tools.adtui.common.DataVisualizationColors;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
@@ -96,6 +97,14 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     return getFillColor(node, isFocused, isDeselected);
   }
 
+  private Color getTextColor(CaptureNode node, boolean isDeselected) {
+    CaptureNodeModel nodeModel = node.getData();
+    if (nodeModel instanceof AtraceNodeModel) {
+      return AtraceNodeModelHChartColors.getTextColor(nodeModel, myType, isDeselected);
+    }
+    return DataVisualizationColors.DEFAULT_DARK_TEXT_COLOR;
+  }
+
   /**
    * @return the same color but with 20% opacity that is used to represent an unmatching node.
    */
@@ -145,14 +154,15 @@ public class CaptureNodeHRenderer implements HRenderer<CaptureNode> {
     // Draw text
     Font font = g.getFont();
     Font restoreFont = font;
+    Color textColor = getTextColor(node, isDeselected);
     if (captureNode.getFilterType() == CaptureNode.FilterType.MATCH) {
-      g.setPaint(Color.BLACK);
+      g.setPaint(textColor);
     }
     else if (captureNode.getFilterType() == CaptureNode.FilterType.UNMATCH) {
-      g.setPaint(toUnmatchColor(Color.BLACK));
+      g.setPaint(toUnmatchColor(textColor));
     }
     else {
-      g.setPaint(Color.BLACK);
+      g.setPaint(textColor);
       font = font.deriveFont(Font.BOLD);
       g.setFont(font);
     }

@@ -250,6 +250,14 @@ class CaptureNodeHRendererTest {
 
     color = AtraceNodeModelHChartColors.getIdleCpuColor(model, CaptureDetails.Type.CALL_CHART, false, false, true)
     assertThat(color).isEqualTo(DataVisualizationColors.getColor(DataVisualizationColors.BACKGROUND_DATA_COLOR, 1))
+
+    // Validate text colors using nodes that map to dark and light text colors respectively.
+    val darkTextNode = AtraceNodeModel(" ")
+    val lightTextNode = AtraceNodeModel("!")
+    val darkText = AtraceNodeModelHChartColors.getTextColor(darkTextNode, CaptureDetails.Type.CALL_CHART, false)
+    val lightText = AtraceNodeModelHChartColors.getTextColor(lightTextNode, CaptureDetails.Type.CALL_CHART, false)
+    assertThat(darkText).isEqualTo(DataVisualizationColors.DEFAULT_DARK_TEXT_COLOR)
+    assertThat(lightText).isEqualTo(DataVisualizationColors.DEFAULT_LIGHT_TEXT_COLOR)
   }
 
   @Test
