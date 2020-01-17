@@ -87,7 +87,7 @@ internal fun KtCallExpression.isBlockElement() : Boolean {
                                       isValidBlockName(this.name()))
 }
 
-internal fun convertToExternalTextValue(context: GradleDslSimpleExpression, applyContext: GradleDslFile, referenceText : String) : String {
+fun convertToExternalTextValue(context: GradleDslSimpleExpression, applyContext: GradleDslFile, referenceText : String) : String {
   val resolvedReference = context.resolveReference(referenceText, false) ?: return referenceText
   // Get the resolvedReference value type that might be used for the final cast.
   // TODO(karimai): what if the type need to be imported ?
