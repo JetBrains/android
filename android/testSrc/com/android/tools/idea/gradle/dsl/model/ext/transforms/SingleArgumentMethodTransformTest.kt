@@ -34,28 +34,28 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
 
   @Test
   fun testConditionOnNull() {
-    assertTrue(transform.test(null))
+    assertTrue(transform.test(null, gradleDslFile))
   }
 
   @Test
   fun testConditionOnNoneMethodCall() {
     val inputElement = createLiteral(name = "boo")
     gradleDslFile.setNewElement(inputElement)
-    assertFalse(transform.test(inputElement))
+    assertFalse(transform.test(inputElement, gradleDslFile))
   }
 
   @Test
   fun testConditionOnWrongMethodCall() {
     val inputElement = createMethodCall("wrongMethod")
     gradleDslFile.setNewElement(inputElement)
-    assertFalse(transform.test(inputElement))
+    assertFalse(transform.test(inputElement, gradleDslFile))
   }
 
   @Test
   fun testConditionOnCorrectMethodCallNoArguments() {
     val inputElement = createMethodCall(methodName)
     gradleDslFile.setNewElement(inputElement)
-    assertFalse(transform.test(inputElement))
+    assertFalse(transform.test(inputElement, gradleDslFile))
   }
 
   @Test
@@ -63,7 +63,7 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
     val inputElement = createMethodCall("wrongMethod")
     gradleDslFile.setNewElement(inputElement)
     inputElement.addParsedExpression(createLiteral())
-    assertFalse(transform.test(inputElement))
+    assertFalse(transform.test(inputElement, gradleDslFile))
   }
 
   @Test
@@ -71,7 +71,7 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
     val inputElement = createMethodCall(otherMethodName)
     gradleDslFile.setNewElement(inputElement)
     inputElement.addParsedExpression(createLiteral())
-    assertTrue(transform.test(inputElement))
+    assertTrue(transform.test(inputElement, gradleDslFile))
   }
 
   @Test
@@ -79,7 +79,7 @@ class SingleArgumentMethodTransformTest : TransformTestCase() {
     val inputElement = createMethodCall(methodName)
     gradleDslFile.setNewElement(inputElement)
     inputElement.addParsedExpression(createLiteral())
-    assertTrue(transform.test(inputElement))
+    assertTrue(transform.test(inputElement, gradleDslFile))
   }
 
   @Test

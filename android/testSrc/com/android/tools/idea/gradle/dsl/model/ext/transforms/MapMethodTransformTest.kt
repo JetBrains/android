@@ -38,17 +38,17 @@ class MapMethodTransformTest : TransformTestCase() {
 
   @Test
   fun testAcceptNull() {
-    assertTrue(transform.test(null))
+    assertTrue(transform.test(null, gradleDslFile))
   }
 
   @Test
   fun testRejectLiteral() {
-    assertFalse(transform.test(createLiteral()))
+    assertFalse(transform.test(createLiteral(), gradleDslFile))
   }
 
   @Test
   fun testAcceptNoArgMethodCall() {
-    assertTrue(transform.test(createMethodCall(methodName)))
+    assertTrue(transform.test(createMethodCall(methodName), gradleDslFile))
   }
 
   @Test
@@ -56,7 +56,7 @@ class MapMethodTransformTest : TransformTestCase() {
     val inputElement = createMethodCall(methodName)
     val literal = createLiteral(fieldName)
     inputElement.addParsedExpression(literal)
-    assertFalse(transform.test(inputElement))
+    assertFalse(transform.test(inputElement, gradleDslFile))
   }
 
   @Test
@@ -64,7 +64,7 @@ class MapMethodTransformTest : TransformTestCase() {
     val inputElement = createMethodCall(methodName)
     val mapElement = createExpressionMap()
     inputElement.addParsedExpression(mapElement)
-    assertTrue(transform.test(inputElement))
+    assertTrue(transform.test(inputElement, gradleDslFile))
   }
 
   @Test

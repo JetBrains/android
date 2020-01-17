@@ -65,7 +65,7 @@ public class SingleArgumentMethodTransform extends PropertyTransform {
   }
 
   @Override
-  public boolean test(@Nullable GradleDslElement e) {
+  public boolean test(@Nullable GradleDslElement e, @NotNull GradleDslElement holder) {
     // We can deal with a null element, we will just create one.
     if (e == null) {
       return true;

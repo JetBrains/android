@@ -28,12 +28,12 @@ class DefaultTransformTest : TransformTestCase() {
   @Test
   fun testConditionOnNoneNull() {
     val dslElement = createLiteral()
-    assertTrue(transform.test(dslElement))
+    assertTrue(transform.test(dslElement, gradleDslFile))
   }
 
   @Test
   fun testConditionOnNull() {
-    assertTrue(transform.test(null))
+    assertTrue(transform.test(null, gradleDslFile))
   }
 
   @Test

@@ -43,7 +43,7 @@ public class RepositoryClosureTransform extends DefaultTransform {
   }
 
   @Override
-  public boolean test(@Nullable GradleDslElement e) {
+  public boolean test(@Nullable GradleDslElement e, @NotNull GradleDslElement holder) {
     return e != null;
   }
 
