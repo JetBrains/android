@@ -38,6 +38,7 @@ import com.android.tools.idea.lint.AndroidLintApplySharedPrefInspection
 import com.android.tools.idea.lint.AndroidLintAuthLeakInspection
 import com.android.tools.idea.lint.AndroidLintButtonOrderInspection
 import com.android.tools.idea.lint.AndroidLintByteOrderMarkInspection
+import com.android.tools.idea.lint.AndroidLintClickableViewAccessibilityInspection
 import com.android.tools.idea.lint.AndroidLintContentDescriptionInspection
 import com.android.tools.idea.lint.AndroidLintDeprecatedInspection
 import com.android.tools.idea.lint.AndroidLintDisableBaselineAlignmentInspection
@@ -91,6 +92,7 @@ import com.android.tools.idea.lint.AndroidLintResourceTypeInspection
 import com.android.tools.idea.lint.AndroidLintRtlCompatInspection
 import com.android.tools.idea.lint.AndroidLintScrollViewCountInspection
 import com.android.tools.idea.lint.AndroidLintScrollViewSizeInspection
+import com.android.tools.idea.lint.AndroidLintSdCardPathInspection
 import com.android.tools.idea.lint.AndroidLintSelectableTextInspection
 import com.android.tools.idea.lint.AndroidLintSignatureOrSystemPermissionsInspection
 import com.android.tools.idea.lint.AndroidLintSourceLockedOrientationActivityInspection
@@ -257,17 +259,17 @@ class AndroidLintTest : AndroidTestCase() {
       val loggedLintSessions = usageTracker.usages.stream()
         .filter { usage: LoggedUsage -> usage.studioEvent.kind == AndroidStudioEvent.EventKind.LINT_SESSION }
         .collect(Collectors.toList())
-      Truth.assertThat(loggedLintSessions).hasSize(2)
+      assertThat(loggedLintSessions).hasSize(2)
       val session = loggedLintSessions[0]!!.studioEvent.lintSession
-      Truth.assertThat(session.analysisType).isEqualTo(AnalysisType.IDE_FILE)
+      assertThat(session.analysisType).isEqualTo(AnalysisType.IDE_FILE)
       val list = session.issueIdsList
-      Truth.assertThat(list).hasSize(1)
+      assertThat(list).hasSize(1)
       val issue1 = list[0]
-      Truth.assertThat(issue1!!.issueId).isEqualTo("ContentDescription")
-      Truth.assertThat(issue1.count).isEqualTo(1)
-      Truth.assertThat(issue1.severity).isEqualTo(LintSeverity.DEFAULT_SEVERITY)
+      assertThat(issue1!!.issueId).isEqualTo("ContentDescription")
+      assertThat(issue1.count).isEqualTo(1)
+      assertThat(issue1.severity).isEqualTo(LintSeverity.DEFAULT_SEVERITY)
       val performance = session.lintPerformance
-      Truth.assertThat(performance.fileCount).isEqualTo(1)
+      assertThat(performance.fileCount).isEqualTo(1)
     } finally {
       usageTracker.close()
       cleanAfterTesting()
@@ -391,6 +393,20 @@ class AndroidLintTest : AndroidTestCase() {
     doTestWithFix(AndroidLintUnusedAttributeInspection(),
                   "Suppress with tools:targetApi attribute",
                   "/res/layout/layout.xml", "xml")
+  }
+
+  fun testSuppressInitJava() {
+    // Regression test for https://issuetracker.google.com/151164628
+    doTestWithFix(AndroidLintSdCardPathInspection(),
+                  "Suppress: Add @SuppressLint(\"SdCardPath\") annotation",
+                  "/src/p1/p2/Foo.java", "java")
+  }
+
+  fun testSuppressInit() {
+    // Regression test for https://issuetracker.google.com/151164628 (Kotlin)
+    doTestWithFix(AndroidLintClickableViewAccessibilityInspection(),
+                  "Suppress: Add @SuppressLint(\"ClickableViewAccessibility\") annotation",
+                  "/src/p1/p2/suppressInit.kt", "kt")
   }
 
   fun testExportedService() {
@@ -918,21 +934,21 @@ class AndroidLintTest : AndroidTestCase() {
     // Take on a suppress test: attempt to suppress a binary file and verify that that works:
     // Regression test for https://code.google.com/p/android/issues/detail?id=225703
     val moduleDir = AndroidRootUtil.getMainContentRoot(myFacet)
-    Truth.assertThat(moduleDir).isNotNull()
+    assertThat(moduleDir).isNotNull()
 
     val iconFile = PsiManager.getInstance(project).findFile(file)
-    Truth.assertThat(iconFile).isNotNull()
+    assertThat(iconFile).isNotNull()
 
     var lintXml = moduleDir!!.findChild("lint.xml")
-    Truth.assertThat(lintXml).isNull()
+    assertThat(lintXml).isNull()
 
     val action = SuppressLintIntentionAction(IconDetector.DUPLICATES_NAMES, iconFile!!)
     action.invoke(project, null, iconFile)
     moduleDir.refresh(false, true)
 
     lintXml = moduleDir.findChild("lint.xml")
-    Truth.assertThat(lintXml).isNotNull()
-    Truth.assertThat(String(lintXml!!.contentsToByteArray(), StandardCharsets.UTF_8)).isEqualTo(
+    assertThat(lintXml).isNotNull()
+    assertThat(String(lintXml!!.contentsToByteArray(), StandardCharsets.UTF_8)).isEqualTo(
       "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
       "<lint>\n" +
       "    <issue id=\"IconDuplicates\">\n" +
@@ -1015,7 +1031,7 @@ class AndroidLintTest : AndroidTestCase() {
     val highlights = doTestHighlighting(AndroidLintNewApiInspection(), "src/com/example/test/TestActivity.java", "java", true)
     // All Java8 features should be flagged as errors
     val errors = highlights.filter { it.severity == HighlightSeverity.ERROR || it.severity == HighlightSeverity.WARNING }.toList()
-    Truth.assertThat(errors).hasSize(7)
+    assertThat(errors).hasSize(7)
 
     val errorDescriptions = errors.map { it.description }
     assertThat(
