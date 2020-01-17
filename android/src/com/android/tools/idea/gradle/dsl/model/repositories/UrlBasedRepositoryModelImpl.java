@@ -19,7 +19,9 @@ import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.GoogleDefaultRepositoryModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.UrlBasedRepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.KtsOnlyPropertyTransform;
 import com.android.tools.idea.gradle.dsl.model.ext.transforms.RepositoryClosureTransform;
+import com.android.tools.idea.gradle.dsl.model.ext.transforms.SingleArgumentMethodTransform;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
 import org.jetbrains.annotations.NonNls;
@@ -44,8 +46,8 @@ public abstract class UrlBasedRepositoryModelImpl extends RepositoryModelImpl im
   @Override
   @NotNull
   public ResolvedPropertyModel url() {
-    return GradlePropertyModelBuilder.create(myDslElement).asMethod(true).withDefault(myDefaultRepoUrl)
-      .addTransform(new RepositoryClosureTransform(URL)).buildResolved();
+    return GradlePropertyModelBuilder.create(myDslElement, URL).asMethod(true).withDefault(myDefaultRepoUrl)
+      .addTransform(new KtsOnlyPropertyTransform(new SingleArgumentMethodTransform("uri"))).buildResolved();
   }
 
   @NotNull
