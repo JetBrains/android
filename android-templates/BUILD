@@ -1,8 +1,10 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module")
+load("@exec_properties//:constants.bzl", "LARGE_MACHINE")
 
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.templates.tests",
+    exec_properties = LARGE_MACHINE,
     iml_files = ["intellij.android.templates.tests.iml"],
     test_class = "com.android.tools.idea.templates.TemplateTestSuite",
     test_coverage = True,
