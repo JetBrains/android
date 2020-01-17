@@ -153,10 +153,10 @@ public class RepositoriesModelImpl extends GradleDslBlockModel implements Reposi
     }
     GradleNameElement nameElement = GradleNameElement.fake(MAVEN.name);
     MavenRepositoryDslElement newElement = new MavenRepositoryDslElement(myDslElement, nameElement);
-    newElement.setNewLiteral("url", url);
-    // name is an optional property, it can be nullable but at this point only non null values are used.
-    newElement.setNewLiteral("name", name);
     myDslElement.setNewElement(newElement);
+    MavenRepositoryModelImpl model = new MavenRepositoryModelImpl(myDslElement, newElement);
+    model.url().setValue(url);
+    model.name().setValue(name);
   }
 
   /**

@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.repositories;
 
 import static com.android.tools.idea.gradle.dsl.model.repositories.RepositoryModelImpl.NAME;
+import static com.android.tools.idea.gradle.dsl.model.repositories.UrlBasedRepositoryModelImpl.URL;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.exactly;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.ArityHelper.property;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
@@ -50,12 +51,15 @@ public class MavenRepositoryDslElement extends GradleDslBlockElement {
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String, SemanticsDescription>> ktsToModelNameMap = Stream.of(new Object[][]{
     {"name", property, NAME, VAR},
+    {"url", property, URL, VAR}
   }).collect(toModelMap());
 
   @NotNull
   public static final ImmutableMap<Pair<String,Integer>, Pair<String,SemanticsDescription>> groovyToModelNameMap = Stream.of(new Object[][]{
     {"name", property, NAME, VAR},
     {"name", exactly(1), NAME, SET},
+    {"url", property, URL, VAR},
+    {"url", exactly(1), URL, SET},
   }).collect(toModelMap());
 
   @Override
