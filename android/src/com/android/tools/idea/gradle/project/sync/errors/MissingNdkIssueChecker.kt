@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.errors
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.repository.Revision
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallNdkHyperlink
 import com.android.tools.idea.gradle.project.sync.issues.processor.FixNdkVersionProcessor
@@ -41,6 +42,7 @@ private val PREFERRED_VERSION_PATTERNS = listOf(
 class MissingNdkIssueChecker: GradleIssueChecker {
   override fun check(issueData: GradleIssueData): BuildIssue? {
     val message = errorMessage(issueData) ?: return null
+
     val preferredVersion = tryExtractPreferredNdkDownloadVersion(message)
     val quickFixes = mutableListOf<BuildIssueQuickFix>()
     var description = "$message\n"
@@ -53,11 +55,21 @@ class MissingNdkIssueChecker: GradleIssueChecker {
     else if (matchesNdkNotConfigured(message) ||
           matchesKnownLocatorIssue(message) ||
           matchesTriedInstall(message)) {
+
       // Error message matches but it does not contain a preferred version, find highest version available locally.
       localRevision = (ideSdks.getHighestLocalNdkPackage( /* No previews first */false) ?:
                        ideSdks.getHighestLocalNdkPackage(true /* Then previews */))?.version?.toString()
     }
     else {
+      return null
+    }
+
+    val gradleVersion = issueData.buildEnvironment?.gradle?.gradleVersion;
+
+    if (gradleVersion != null && GradleVersion.parse(gradleVersion).compareIgnoringQualifiers("6.2") <= 0) {
+      // If the version of AGP is too old to support android.ndkVersion then don't offer to download an NDK.
+      // We can't know the AGP version when sync has failed so use older gradle version as a proxy.
+      // Older AGP don't support android.ndkVersion so don't offer a hyperlink to set that value.
       return null
     }
 
