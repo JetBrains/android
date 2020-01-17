@@ -154,6 +154,7 @@ class InspectorModel(val project: Project) {
       oldNode.x = newNode.x
       oldNode.y = newNode.y
       oldNode.layoutFlags = newNode.layoutFlags
+      oldNode.fallbackMode = newNode.fallbackMode
       oldNode.parent = parent
 
       oldNode.children.clear()
