@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.inspections;
 
-import com.intellij.codeInsight.daemon.JavaErrorMessages;
+import com.intellij.codeInsight.daemon.JavaErrorBundle;
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightMessageUtil;
 import com.intellij.codeInsight.daemon.impl.analysis.JavaHighlightUtil;
 import com.intellij.codeInspection.*;
@@ -44,7 +44,7 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
   @SuppressWarnings("InspectionDescriptionNotFoundInspection")
   @NonNls public static final String SHORT_NAME = DeprecationUtil.DEPRECATION_SHORT_NAME;
   @NonNls public static final String ID = DeprecationUtil.DEPRECATION_ID;
-  public static final String DISPLAY_NAME = DeprecationUtil.DEPRECATION_DISPLAY_NAME;
+  public static final String DISPLAY_NAME = DeprecationUtil.getDeprecationDisplayName();
   public static final String IGNORE_METHODS_OF_DEPRECATED_NAME = "IGNORE_METHODS_OF_DEPRECATED";
 
   public boolean IGNORE_INSIDE_DEPRECATED;
@@ -246,8 +246,8 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
       // do not show deprecated warning for class implementing deprecated methods
       if (ignoreAbstractDeprecatedOverrides && !aClass.isDeprecated() && superMethod.hasModifierProperty(PsiModifier.ABSTRACT)) continue;
       if (superMethod.isDeprecated()) {
-        String description = JavaErrorMessages.message("overrides.deprecated.method",
-                                                       HighlightMessageUtil.getSymbolName(aClass, PsiSubstitutor.EMPTY));
+        String description = JavaErrorBundle.message("overrides.deprecated.method",
+                                                     HighlightMessageUtil.getSymbolName(aClass, PsiSubstitutor.EMPTY));
 
         List<LocalQuickFix> fixes = new ArrayList<LocalQuickFix>(4);
         String symbolName = HighlightMessageUtil.getSymbolName(methodName, PsiSubstitutor.EMPTY);
@@ -301,7 +301,7 @@ public class AndroidDeprecationInspection extends BaseJavaBatchLocalInspectionTo
     }
 
     String symbolName = HighlightMessageUtil.getSymbolName(refElement, PsiSubstitutor.EMPTY);
-    String description = JavaErrorMessages.message("deprecated.symbol", symbolName);
+    String description = JavaErrorBundle.message("deprecated.symbol", symbolName);
 
     List<LocalQuickFix> fixes = new ArrayList<LocalQuickFix>(4);
     for (DeprecationFilter filter : getExtensions()) {

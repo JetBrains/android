@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.stubs.android;
 
 import com.android.annotations.NonNull;
 import com.android.builder.model.AndroidLibrary;
-import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaLibrary;
 import com.android.ide.common.gradle.model.IdeAndroidLibrary;
 import com.android.ide.common.gradle.model.IdeDependencies;

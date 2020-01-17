@@ -331,8 +331,9 @@ public class MigrateToAppCompatProcessor extends BaseRefactoringProcessor {
         switch (entry.getType()) {
           case CHANGE_CLASS: {
             ClassMigrationEntry classMigrationEntry = (ClassMigrationEntry)entry;
-            List<UsageInfo> usages =
-              MigrateToAppCompatUtil.findClassUsages(myProject, classMigrationEntry.myOldName);
+            List<UsageInfo> usages = MigrateToAppCompatUtil.findClassUsages(myProject, classMigrationEntry.myOldName);
+            // ReferencesSearch.search (internally used by findClassUsages) does not return results is any particular order. Sort them.
+            usages.sort(Comparator.comparingInt(u -> u.getSmartPointer().getRange() == null ? 0 : u.getSmartPointer().getRange().getStartOffset()));
             boolean isActivity = classMigrationEntry.myOldName.equals(CLASS_ACTIVITY);
             boolean isFragmentActivity = classMigrationEntry.myOldName.equals(CLASS_SUPPORT_FRAGMENT_ACTIVITY);
 

@@ -20,7 +20,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Invoke
 import com.android.tools.idea.experimental.codeanalysis.datastructs.value.Value;
 import com.google.common.collect.Lists;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiType;
 
 import java.util.ArrayList;

@@ -155,6 +155,8 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.model.GradleFileModelTestCase
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.instanceOf
@@ -2945,7 +2947,7 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     }
 
     applyChangesAndReparse(buildModel)
-    ApplicationManager.getApplication().runWriteAction { myProject.baseDir.fileSystem.refresh(false) }
+    ApplicationManager.getApplication().runWriteAction { PlatformTestUtil.getOrCreateProjectTestBaseDir(myProject).fileSystem.refresh(false) }
 
     run {
       val propertyModel = buildModel.ext().findProperty("prop4")

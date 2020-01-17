@@ -21,9 +21,6 @@ import org.jetbrains.jps.model.serialization.facet.JpsFacetConfigurationSerializ
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author nik
- */
 public class JpsAndroidModelSerializerExtension extends JpsModelSerializerExtension {
 
   private static final List<? extends JpsFacetConfigurationSerializer<JpsAndroidModuleExtension>> FACET_PROPERTIES_LOADERS =

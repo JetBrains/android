@@ -24,12 +24,19 @@ import static java.lang.Boolean.TRUE;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.gradle.project.GradleProjectInfo;
+import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
+import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.idea.project.AndroidProjectInfo;
+import com.intellij.ide.impl.OpenProjectTask;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -37,11 +44,23 @@ import com.intellij.openapi.wm.IdeFocusManager;
 import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.IdeFrameEx;
+import com.intellij.platform.PlatformProjectOpenProcessor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
+
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Objects;
+
+import static com.android.tools.idea.gradle.project.ProjectImportUtil.findImportTarget;
+import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
+import static com.intellij.ide.impl.ProjectUtil.updateLastProjectLocation;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
+import static com.intellij.openapi.util.io.FileUtil.pathsEqual;
 
 /**
  * Utility methods for {@link Project}s.
@@ -73,17 +92,9 @@ public final class GradleProjects {
    */
   public static void open(@NotNull Project project) {
     updateLastProjectLocation(project.getBasePath());
-    if (WindowManager.getInstance().isFullScreenSupportedInCurrentOS()) {
-      IdeFocusManager instance = IdeFocusManager.findInstance();
-      IdeFrame lastFocusedFrame = instance.getLastFocusedFrame();
-      if (lastFocusedFrame instanceof IdeFrameEx) {
-        boolean fullScreen = ((IdeFrameEx)lastFocusedFrame).isInFullScreen();
-        if (fullScreen) {
-          project.putUserData(SHOULD_OPEN_IN_FULL_SCREEN, TRUE);
-        }
-      }
-    }
-    ProjectManagerEx.getInstanceEx().openProject(project);
+
+    Path projectDir = Paths.get(Objects.requireNonNull(project.getBasePath()));
+    PlatformProjectOpenProcessor.openExistingProject(projectDir, projectDir, new OpenProjectTask(project));
   }
 
   public static boolean isOfflineBuildModeEnabled(@NotNull Project project) {

@@ -28,10 +28,10 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.project.impl.ProjectManagerImpl;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory;
 import com.intellij.testFramework.fixtures.JavaTestFixtureFactory;
@@ -121,7 +121,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
   }
 
   private static void assertModuleImported(@NotNull Project project, @NotNull String relativePath, @NotNull VirtualFile moduleRoot) {
-    assertNotNull("Module sources were not copied", project.getBaseDir().findFileByRelativePath(relativePath));
+    assertNotNull("Module sources were not copied", PlatformTestUtil.getOrCreateProjectTestBaseDir(project).findFileByRelativePath(relativePath));
     final VirtualFile[] moduleChildren = moduleRoot.getChildren();
     assertNoFilesAdded(moduleChildren);
     assertEquals(SdkConstants.FN_BUILD_GRADLE, moduleChildren[0].getName());
@@ -371,15 +371,15 @@ public final class GradleModuleImportTest extends AndroidTestBase {
         ApplicationManager.getApplication().runWriteAction(new Runnable() {
           @Override
           public void run() {
-            Disposer.dispose(project);
             ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
+            projectManager.forceCloseProject(project);
             if (projectManager instanceof ProjectManagerImpl) {
-              Collection<Project> projectsStillOpen = projectManager.closeTestProject(project);
+              Collection<Project> projectsStillOpen = Arrays.asList(projectManager.getOpenProjects());
               if (!projectsStillOpen.isEmpty()) {
                 Project project = projectsStillOpen.iterator().next();
                 projectsStillOpen.clear();
                 throw new AssertionError("Test project is not disposed: " + project + ";\n created in: " +
-                                         PlatformTestCase.getCreationPlace(project));
+                                         HeavyPlatformTestCase.getCreationPlace(project));
               }
             }
           }
@@ -397,6 +397,9 @@ public final class GradleModuleImportTest extends AndroidTestBase {
           }
         });
       }
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();

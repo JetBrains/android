@@ -74,7 +74,7 @@ public class AndroidFacetModuleSetupStep extends AndroidModuleSetupStep {
     facetProperties.ASSETS_FOLDER_RELATIVE_PATH = relativePath(modulePath, sourceProvider.getAssetsDirectories());
 
     syncSelectedVariant(facetProperties, androidModel);
-    facet.getConfiguration().setModel(androidModel);
+    facet.setModel(androidModel);
     androidModel.syncSelectedVariantAndTestArtifact(facet);
   }
 

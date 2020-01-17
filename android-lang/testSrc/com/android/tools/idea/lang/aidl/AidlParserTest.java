@@ -16,11 +16,7 @@
 package com.android.tools.idea.lang.aidl;
 
 import com.android.tools.idea.lang.LangTestDataKt;
-import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.application.ex.PathManagerEx;
 import com.intellij.testFramework.ParsingTestCase;
-
-import java.io.File;
 
 public class AidlParserTest extends ParsingTestCase {
   public AidlParserTest() {

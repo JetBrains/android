@@ -25,6 +25,12 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import java.util.Collections;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
+import java.util.List;
+
+import static com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent.convertCategory;
 
 public class AndroidSyncIssueEventResult implements MessageEventResult, FailureResult {
 

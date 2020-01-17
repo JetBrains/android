@@ -81,6 +81,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.ToolTipManager;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -659,11 +664,6 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
     // We never want to collapse the root
     boolean isRoot = getRowForPath(path) == 0;
     super.setExpandedState(path, isRoot || state);
-  }
-
-  @Override
-  protected boolean isCustomUI() {
-    return true;
   }
 
   private static class MyUI extends DarculaTreeUI {

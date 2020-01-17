@@ -20,7 +20,6 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.tools.adtui.workbench.ToolContent;
 import com.android.tools.adtui.workbench.ToolWindowCallback;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -29,6 +28,7 @@ import com.android.tools.idea.common.property.inspector.InspectorProviders;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.uibuilder.property.NlProperties;
 import com.android.tools.idea.uibuilder.property.NlPropertyItem;
 import com.google.common.collect.ImmutableList;
@@ -69,14 +69,13 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
   private final PropertyEditors myEditors;
   protected boolean myLoading;
   private JBLoadingPanel myLoadingPanel;
-  private PropertiesPanel<Self> myPropertiesPanel;
+  private PropertiesPanel myPropertiesPanel;
   @Nullable private DesignSurface mySurface;
   @Nullable protected SceneView mySceneView;
   private MergingUpdateQueue myUpdateQueue;
   private boolean myFirstLoad = true;
   private int myUpdateCount;
   private JBSplitter mySplitter;
-  private ToolWindowCallback myToolWindow;
 
   public PropertiesManager(@NotNull AndroidFacet facet, @Nullable DesignSurface designSurface, @NotNull PropertyEditors editors,
                            @NotNull Disposable parentDisposable) {
@@ -98,7 +97,6 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
 
   @Override
   public void registerCallbacks(@NotNull ToolWindowCallback toolWindow) {
-    myToolWindow = toolWindow;
   }
 
   @NotNull
@@ -112,7 +110,7 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
   }
 
   @NotNull
-  protected PropertiesPanel<Self> getPropertiesPanel() {
+  protected PropertiesPanel getPropertiesPanel() {
     if (myPropertiesPanel == null) {
       myPropertiesPanel = createPropertiesPanel();
     }
@@ -120,7 +118,7 @@ public abstract class PropertiesManager<Self extends PropertiesManager<Self>>
   }
 
   @NotNull
-  protected abstract PropertiesPanel<Self> createPropertiesPanel();
+  protected abstract PropertiesPanel createPropertiesPanel();
 
   @NotNull
   protected JBSplitter getContentPanel() {

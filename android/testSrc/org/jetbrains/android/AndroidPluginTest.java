@@ -16,13 +16,13 @@
 package org.jetbrains.android;
 
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManager;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.impl.ApplicationInfoImpl;
 import com.intellij.openapi.extensions.PluginId;
 
 public class AndroidPluginTest extends AndroidTestCase {
   public void testPluginIsEssential() {
-    IdeaPluginDescriptor plugin = PluginManager.getPlugin(PluginId.getId("org.jetbrains.android"));
+    IdeaPluginDescriptor plugin = PluginManagerCore.getPlugin(PluginId.getId("org.jetbrains.android"));
     assertNotNull(plugin);
 
     assertTrue(ApplicationInfoImpl.getShadowInstance().isEssentialPlugin("org.jetbrains.android"));

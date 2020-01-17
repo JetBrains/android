@@ -33,7 +33,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.actionSystem.LatencyListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.analytics.toProto
+//import com.intellij.util.analytics.toProto // FIXME-ank: move from AOSP's platform sources to android-plugin sources (see code below)
 import org.HdrHistogram.SingleWriterRecorder
 import java.util.concurrent.ConcurrentHashMap
 
@@ -74,7 +74,9 @@ object TypingLatencyTracker : LatencyListener {
         it.totalKeysTyped = histogram.totalCount
         it.totalLatencyMs = (histogram.totalCount * histogram.mean).toLong()
         it.maxLatencyMs = histogram.maxValue
-        it.histogram = histogram.toProto()
+        // FIXME-ank: in AOSP this function is declared here: /tools/idea/platform/util/src/com/intellij/util/analytics/HistogramUtil.kt
+        //  In IC/IU this function does not exist
+        //it.histogram = histogram.toProto()
       }
       allStats.addLatencyRecords(record.build())
     }

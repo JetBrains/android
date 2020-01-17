@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.experimental.codeanalysis.datastructs.graph.node;
 
-import com.android.tools.idea.experimental.codeanalysis.datastructs.graph.MethodGraph;
-
 /**
  * Reserved for invocation that does not record the return value.
  */

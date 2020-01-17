@@ -18,7 +18,6 @@ package com.android.tools.idea.actions;
 import com.android.SdkConstants;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.facet.java.JavaFacet;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
@@ -45,17 +44,14 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
-import com.intellij.util.io.ZipUtil;
+import com.intellij.util.io.Compressor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
-import java.io.FileFilter;
-import java.io.FileOutputStream;
-import java.util.AbstractSet;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
-import java.util.zip.ZipOutputStream;
+import java.util.function.BiPredicate;
 
 /**
  * Exports an entire project into a zip file containing everything that is needed to run the project.
@@ -95,7 +91,7 @@ public class ExportProjectZip extends AnAction implements DumbAware {
     excludes.add(zipFile);
 
     assert project.getBasePath() != null;
-    File basePath = VfsUtilCore.virtualToIoFile(project.getBaseDir());
+    File basePath = new File(FileUtil.toSystemDependentName(project.getBasePath()));
     allRoots.add(basePath);
 
     excludes.add(new File(basePath, SdkConstants.FN_LOCAL_PROPERTIES));
@@ -149,44 +145,41 @@ public class ExportProjectZip extends AnAction implements DumbAware {
     assert commonRoot != null;
 
     FileTypeManager fileTypeManager = FileTypeManager.getInstance();
-    FileFilter fileFilter = file -> {
+    BiPredicate<String, File> filter = (entryName, file) -> {
       if (fileTypeManager.isFileIgnored(file.getName()) || excludes.stream().anyMatch(root -> FileUtil.isAncestor(root, file, false))) {
         return false;
       }
+
       if (!file.exists()) {
         Logger.getInstance(ExportProjectZip.class).info("Skipping broken symlink: " + file);
         return false;
       }
-      // if it's a folder and an ancestor of any of the roots we must allow it (to allow its content) or if a root is an ancestor.
-      return allRoots.stream().anyMatch(
-        root -> (file.isDirectory() && FileUtil.isAncestor(file, root, false)) || FileUtil.isAncestor(root, file, false));
+
+      // if it's a folder and an ancestor of any of the roots we must allow it (to allow its content) or if a root is an ancestor
+      boolean isDir = file.isDirectory();
+      if (allRoots.stream().noneMatch(root -> (isDir && FileUtil.isAncestor(file, root, false)) || FileUtil.isAncestor(root, file, false))) {
+        return false;
+      }
+
+      if (indicator != null) {
+        indicator.setText(entryName);
+      }
+
+      return true;
     };
 
-    Set<String> writtenItems = indicator == null ? null : new AbstractSet<String>() {
-      @Override
-      public boolean add(String s) {
-        indicator.setText(s);
-        return true;
-      }
+    try (Compressor zip = new Compressor.Zip(zipFile)) {
+      zip.filter(filter);
 
-      @Override
-      public Iterator<String> iterator() {
-        throw new UnsupportedOperationException();
-      }
-
-      @Override
-      public int size() {
-        throw new UnsupportedOperationException();
-      }
-    };
-
-    try (ZipOutputStream outputStream = new ZipOutputStream(new FileOutputStream(zipFile))) {
-      final File[] children = commonRoot.listFiles();
+      File[] children = commonRoot.listFiles();
       if (children != null) {
         for (File child : children) {
-          if (fileFilter.accept(child)) { // check child dirs here or it can take a very long time checking each possible descendant file.
-            final String childRelativePath = (FileUtil.filesEqual(commonRoot, basePath) ? commonRoot.getName() + "/" : "") + child.getName();
-            ZipUtil.addFileOrDirRecursively(outputStream, null, child, childRelativePath, fileFilter, writtenItems);
+          String childRelativePath = (FileUtil.filesEqual(commonRoot, basePath) ? commonRoot.getName() + '/' : "") + child.getName();
+          if (child.isDirectory()) {
+            zip.addDirectory(childRelativePath, child);
+          }
+          else {
+            zip.addFile(childRelativePath, child);
           }
         }
       }

@@ -16,16 +16,9 @@
 package com.android.tools.idea.ui.resourcechooser.icons;
 
 import com.android.tools.idea.ui.resourcechooser.util.CheckerboardPaint;
-import sun.awt.image.IntegerComponentRaster;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
-import java.awt.image.ColorModel;
-import java.awt.image.Raster;
-import java.awt.image.WritableRaster;
-import java.util.Arrays;
 
 class ResourceChooserImageIcon implements Icon {
   private final int mySize;

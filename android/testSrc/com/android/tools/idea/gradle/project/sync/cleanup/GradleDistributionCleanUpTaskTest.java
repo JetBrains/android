@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.project.sync.cleanup;
 import com.android.annotations.Nullable;
 import com.android.tools.idea.gradle.project.sync.GradleSyncIntegrationTestCase;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestMessagesDialog;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.util.SystemProperties;

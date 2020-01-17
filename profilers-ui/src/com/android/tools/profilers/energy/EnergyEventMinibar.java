@@ -31,6 +31,14 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 
+import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.awt.*;
+
+import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.MONITOR_LABEL_PADDING;
+
 public final class EnergyEventMinibar {
   @NotNull private final JComponent myComponent;
 

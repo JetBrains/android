@@ -53,6 +53,22 @@ import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess;
+import com.intellij.testFramework.JavaProjectTestCase;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+import java.util.*;
+
+import static com.android.testutils.TestUtils.getSdk;
+import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
+import static com.android.tools.idea.testing.Sdks.findLatestAndroidTarget;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.roots.OrderRootType.SOURCES;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests for {@link SdksCleanupStep}.
@@ -140,7 +156,7 @@ public class SdksCleanupStepTest extends PlatformTestCase {
     Module appModule = createModule("app");
     // Simulate this is an Android module.
     AndroidFacet androidFacet = createAndAddAndroidFacet(appModule);
-    androidFacet.getConfiguration().setModel(mock(AndroidModel.class));
+    androidFacet.setModel(mock(AndroidModel.class));
 
     cleanupStep.cleanUpSdk(appModule, fixedSdks, invalidSdks);
 
@@ -165,7 +181,7 @@ public class SdksCleanupStepTest extends PlatformTestCase {
     Module appModule = createModule("app");
     // Simulate this is an Android module.
     AndroidFacet androidFacet = createAndAddAndroidFacet(appModule);
-    androidFacet.getConfiguration().setModel(mock(AndroidModel.class));
+    androidFacet.setModel(mock(AndroidModel.class));
 
     cleanupStep.cleanUpSdk(appModule, fixedSdks, invalidSdks);
 
@@ -219,7 +235,7 @@ public class SdksCleanupStepTest extends PlatformTestCase {
 
   private static void setUpModuleAsAndroid(@NotNull Module module, @NotNull Sdk sdk) {
     AndroidFacet facet = createAndAddAndroidFacet(module);
-    facet.getConfiguration().setModel(mock(AndroidModel.class));
+    facet.setModel(mock(AndroidModel.class));
 
     ModifiableRootModel modifiableModel = ModuleRootManager.getInstance(module).getModifiableModel();
     modifiableModel.setSdk(sdk);

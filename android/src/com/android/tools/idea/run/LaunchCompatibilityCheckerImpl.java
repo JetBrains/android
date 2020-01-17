@@ -122,12 +122,12 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
     ListenableFuture<AndroidVersion> minSdkVersionFuture = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
     AndroidVersion minSdkVersion = minSdkVersionFuture.isDone() ? Futures.getUnchecked(minSdkVersionFuture) : AndroidVersion.DEFAULT;
 
-    AndroidPlatform platform = facet.getConfiguration().getAndroidPlatform();
+    AndroidPlatform platform = facet.getAndroidPlatform();
     if (platform == null) {
       throw new IllegalStateException("Android platform not set for module: " + facet.getModule().getName());
     }
-    Set<String> supportedAbis = facet.getConfiguration().getModel() instanceof AndroidModuleModel ?
-                                ((AndroidModuleModel)facet.getConfiguration().getModel()).getSelectedVariant().getMainArtifact()
+    Set<String> supportedAbis = facet.getModel() instanceof AndroidModuleModel ?
+                                ((AndroidModuleModel)facet.getModel()).getSelectedVariant().getMainArtifact()
                                   .getAbiFilters() :
                                 null;
     return new LaunchCompatibilityCheckerImpl(minSdkVersion, platform.getTarget(), facet, env, androidRunConfigurationBase, supportedAbis);

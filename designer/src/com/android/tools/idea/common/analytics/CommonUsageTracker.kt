@@ -77,6 +77,6 @@ fun AndroidStudioEvent.Builder.setApplicationId(facet: AndroidFacet): AndroidStu
 private fun getApplicationId(facet: AndroidFacet): String  = getApplicationIdProvider(facet).packageName
 
 private fun getApplicationIdProvider(facet: AndroidFacet): ApplicationIdProvider =
-  if (facet.configuration.model is AndroidModuleModel)
+  if (facet.model is AndroidModuleModel)
     GradleApplicationIdProvider(facet)
   else NonGradleApplicationIdProvider(facet)

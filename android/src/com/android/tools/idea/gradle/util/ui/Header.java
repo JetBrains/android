@@ -29,8 +29,9 @@ import com.intellij.ui.InplaceButton;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.panels.Wrapper;
 import com.intellij.util.EventDispatcher;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -44,7 +45,8 @@ import static com.intellij.ide.ui.UISettings.setupAntialiasing;
 import static com.intellij.openapi.actionSystem.ActionPlaces.UNKNOWN;
 import static com.intellij.openapi.keymap.KeymapUtil.createTooltipText;
 import static com.intellij.ui.tabs.TabsUtil.getTabsHeight;
-import static com.intellij.util.ui.UIUtil.*;
+import static com.intellij.util.ui.UIUtil.drawHeader;
+import static com.intellij.util.ui.UIUtil.drawImage;
 
 /**
  * Adapted from {@link com.intellij.openapi.wm.impl.ToolWindowHeader}.
@@ -119,7 +121,7 @@ public class Header extends JPanel {
   @NotNull
   private static BufferedImage drawToBuffer(boolean active, int height) {
     int width = 150;
-    BufferedImage image = UIUtil.createImage(width, height, BufferedImage.TYPE_INT_ARGB);
+    BufferedImage image = ImageUtil.createImage(width, height, BufferedImage.TYPE_INT_ARGB);
     Graphics2D g = image.createGraphics();
     drawHeader(g, 0, width, height, active, true, false, true);
     g.dispose();
@@ -134,7 +136,7 @@ public class Header extends JPanel {
     super.paintChildren(graphics);
 
     Rectangle r = getBounds();
-    if (!isActive() && !isUnderDarcula()) {
+    if (!isActive() && !StartupUiUtil.isUnderDarcula()) {
       //noinspection UseJBColor
       graphics.setColor(new Color(255, 255, 255, 30));
       graphics.fill(r);

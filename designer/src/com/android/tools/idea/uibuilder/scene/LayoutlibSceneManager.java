@@ -79,6 +79,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Alarm;
 import com.intellij.util.concurrency.EdtExecutorService;
+import com.intellij.util.ui.TimerUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
@@ -1079,7 +1080,7 @@ public class LayoutlibSceneManager extends SceneManager {
     public void start() {
       super.start();
       UIUtil.invokeLaterIfNeeded(() -> {
-        final Timer timer = UIUtil.createNamedTimer("Android rendering progress timer", 0, event -> {
+        final Timer timer = TimerUtil.createNamedTimer("Android rendering progress timer", 0, event -> {
           synchronized (myLock) {
             if (isRunning()) {
               getDesignSurface().registerIndicator(this);

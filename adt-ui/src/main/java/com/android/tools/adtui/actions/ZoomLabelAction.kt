@@ -54,7 +54,7 @@ object ZoomLabelAction : AnAction(), CustomComponentAction {
 
   override fun createCustomComponent(presentation: Presentation): JComponent {
     val label = object : JBLabel() {
-      private val presentationSyncer: PropertyChangeListener? = PropertyChangeListener { evt ->
+      private val presentationSyncer: PropertyChangeListener = PropertyChangeListener { evt ->
         val propertyName = evt.propertyName
         if (Presentation.PROP_TEXT == propertyName) {
           text = evt.newValue as String

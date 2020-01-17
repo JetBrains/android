@@ -31,8 +31,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 /**
  * All {@link WorkBench}es of a specified name will use the same {@link DetachedToolWindow}
@@ -90,20 +90,6 @@ public class DetachedToolWindowManager implements ProjectComponent {
     if (fileEditor != null) {
       myWorkBenchMap.remove(fileEditor);
     }
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return DetachedToolWindowManager.class.getSimpleName();
-  }
-
-  @Override
-  public void initComponent() {
-  }
-
-  @Override
-  public void disposeComponent() {
   }
 
   @Override

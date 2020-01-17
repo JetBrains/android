@@ -33,8 +33,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-import static com.google.common.truth.Truth.assertThat;
-
 public class FileFixture {
   @NotNull private final Project myProject;
   @NotNull private final VirtualFile myVirtualFile;

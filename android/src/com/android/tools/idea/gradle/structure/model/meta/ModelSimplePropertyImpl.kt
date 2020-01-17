@@ -118,7 +118,7 @@ fun <ModelT, PropertyT : Any> ModelListProperty<ModelT, PropertyT>.withFileSelec
 private fun List<String>.toPredicate(): (File) -> Boolean =
   map { PatternUtil.fromMask(it) }
     .let { patterns ->
-      fun(probe: File) = patterns.any { pattern -> pattern.matcher(probe.name).matches() }
+      { probe: File -> patterns.any { pattern -> pattern.matcher(probe.name).matches() } }
     }
 
 class ModelSimplePropertyImpl<in ModelT, ResolvedT, ParsedT, PropertyT : Any>(

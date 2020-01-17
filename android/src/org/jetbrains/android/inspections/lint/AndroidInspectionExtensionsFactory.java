@@ -41,9 +41,4 @@ public class AndroidInspectionExtensionsFactory extends InspectionExtensionsFact
   public String getSuppressedInspectionIdsIn(@NotNull PsiElement element) {
     return null;
   }
-
-  @Override
-  public boolean isProjectConfiguredToRunInspections(@NotNull Project project, boolean online) {
-    return true;
-  }
 }

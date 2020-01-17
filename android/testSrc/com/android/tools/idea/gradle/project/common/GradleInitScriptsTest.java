@@ -15,15 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.common;
 
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
-import com.intellij.testFramework.PlatformTestCase;
-import org.mockito.Mock;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -31,6 +22,14 @@ import static com.intellij.openapi.util.io.FileUtil.loadFile;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.intellij.testFramework.PlatformTestCase;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link GradleInitScripts}.

@@ -39,7 +39,6 @@ import com.android.tools.idea.experimental.codeanalysis.datastructs.value.impl.*
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.ResolveScopeManager;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

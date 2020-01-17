@@ -36,6 +36,7 @@ import com.intellij.openapi.extensions.Extensions;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.testFramework.PlatformTestUtil;
 import java.util.function.Function;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -106,10 +107,10 @@ public class ViewHandlerManagerTest extends LayoutTestCase {
     ViewHandlerManager viewManager = getProject().getComponent(ViewHandlerManager.class);
     assertNull(viewManager.getHandler("TestTag"));
     viewManager.clearCache();
-    PlatformTestUtil.registerExtension(Extensions.getArea(getProject()),
-                                       ViewHandlerManager.EP_NAME,
-                                       provider,
-                                       getTestRootDisposable());
+    ServiceContainerUtil.registerExtension(getProject(),
+                                           ViewHandlerManager.EP_NAME,
+                                           provider,
+                                           getTestRootDisposable());
     assertTrue(viewManager.getHandler("TestTag") instanceof ViewStubHandler);
     assertNotNull(viewManager.getHandler(BOTTOM_APP_BAR));
   }

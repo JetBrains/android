@@ -62,10 +62,12 @@ class ProjectDumper(
   private val androidSdk: File = IdeSdks.getInstance().androidSdkPath!!
 ) {
   private val devBuildHome: File = getStudioSourcesLocation()
+  private val adtHome: File = getAdtLocation()
   private val gradleCache: File = getGradleCacheLocation()
 
   init {
     println("<DEV>         <== ${devBuildHome.absolutePath}")
+    println("<DEV_ADT>     <== ${adtHome.absolutePath}")
     println("<GRADLE>      <== ${gradleCache.absolutePath}")
     println("<ANDROID_SDK> <== ${androidSdk.absolutePath}")
     println("<M2>          <==")
@@ -114,6 +116,7 @@ class ProjectDumper(
           .replace(currentRootDirectory.absolutePath, "<$currentRootDirectoryName>", ignoreCase = false)
           .replace(gradleCache.absolutePath, "<GRADLE>", ignoreCase = false)
           .replace(androidSdk.absolutePath, "<ANDROID_SDK>", ignoreCase = false)
+          .replace(adtHome.absolutePath, "<DEV_ADT>", ignoreCase = false)
           .replace(devBuildHome.absolutePath, "<DEV>", ignoreCase = false)
           .replace(gradleLongHashPattern, gradleLongHashStub)
           .replace(gradleHashPattern, gradleHashStub)
@@ -429,7 +432,26 @@ private fun ProjectDumper.dump(compilerSettings: CompilerSettings) {
   }
 }
 
-private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home") ?: (System.getProperty("user.home") + "/.gradle"))
+private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home") ?:
+                                            System.getenv("GRADLE_USER_HOME") ?:
+                                            (System.getProperty("user.home") + "/.gradle"))
+
+private fun getAdtLocation() : File {
+  val alternatives = listOf(
+    "../../tools/adt/idea", // AOSP
+    "community/android", // IU
+    "android" // IC
+  )
+  val home = File(PathManager.getHomePath())
+  for (alternative in alternatives) {
+    val altPath = File(home, alternative)
+    if (altPath.isDirectory){
+      return altPath
+    }
+  }
+  assert(false) {"Could not find path for ADT sources"}
+  return home
+}
 
 private fun getStudioSourcesLocation() = File(PathManager.getHomePath()).parentFile.parentFile!!
 
@@ -464,7 +486,7 @@ private fun String.removeAndroidVersionsFromPath(): String =
       this.replace(it.value, "<VERSION>")
     } ?: this
 
-private fun String.replaceJdkVersion(): String? = replace(Regex("1\\.8\\.0_[0-9]+"), "<JDK_VERSION>")
+private fun String.replaceJdkVersion(): String? = replace(Regex("(1\\.8\\.0_[0-9]+)|(11\\.0\\.[0-9]+)"), "<JDK_VERSION>")
 private fun String.replaceMatchingVersion(version: String?): String =
   if (version != null) this.replace("-$version", "-<VERSION>") else this
 

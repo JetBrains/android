@@ -80,6 +80,9 @@ public class GradleBuildInvokerTest extends PlatformTestCase {
     try {
       Messages.setTestDialog(TestDialog.DEFAULT);
     }
+    catch (Throwable e) {
+      addSuppressedException(e);
+    }
     finally {
       super.tearDown();
       myBuildSettings = null;

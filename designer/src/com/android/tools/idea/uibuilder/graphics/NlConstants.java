@@ -69,5 +69,6 @@ public class NlConstants {
   public static final BasicStroke THICK_SOLID_STROKE = new BasicStroke(2.0f);
   public static final BasicStroke DASHED_STROKE = new BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_MITER, 10.0f,
                                                                    new float[] { 4, 4 }, 0.0f);
-  
+
+
 }

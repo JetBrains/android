@@ -21,26 +21,22 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
-import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
-public class CapturesToolWindowFactory implements ToolWindowFactory, DumbAware {
-
+final class CapturesToolWindowFactory implements ToolWindowFactory, DumbAware {
   // TODO(b/112073094): This ToolWindow displays only Layout Inspector Captures, so it can be moved to the corresponding package.
   private static final String WINDOW_TITLE = "Layout Captures";
 
   @Override
   public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
     CapturesToolWindow view = new CapturesToolWindow(project);
-
     ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
     Content content = contentFactory.createContent(view.getComponent(), "", false);
     toolWindow.getContentManager().addContent(content);
   }
 
   @Override
-  public void init(ToolWindow toolWindow) {
+  public void init(@NotNull ToolWindow toolWindow) {
     toolWindow.setStripeTitle(WINDOW_TITLE);
-    toolWindow.setSplitMode(true, null);
   }
 }

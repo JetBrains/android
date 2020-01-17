@@ -39,12 +39,12 @@ import static org.mockito.Mockito.mock;
 
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade;
 import com.android.tools.idea.testing.AndroidGradleTests;
-import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -66,7 +66,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     Project project = getProject();
 
     // We don't want the IDE to offer a plugin version upgrade.
-    new IdeComponents(project).replaceProjectService(PluginVersionUpgrade.class, mock(PluginVersionUpgrade.class));
+    ServiceContainerUtil.replaceService(project, PluginVersionUpgrade.class, mock(PluginVersionUpgrade.class), getTestRootDisposable());
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);

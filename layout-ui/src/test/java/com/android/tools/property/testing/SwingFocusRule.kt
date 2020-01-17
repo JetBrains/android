@@ -48,6 +48,7 @@ import java.awt.peer.ComponentPeer
 class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalResource() {
   private var afterCleanUp = false
   private var focusManager: MyKeyboardFocusManager? = null
+  private var oldFocusManager : KeyboardFocusManager? = null
   private val answer = Answer<Boolean> { invocation ->
     val componentToGainFocus = invocation.getArgument<Component>(0)
     val temporary = invocation.getArgument<Boolean>(1)
@@ -109,8 +110,19 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
     val accessor = AWTAccessor.getComponentAccessor()
     if (accessor.getPeer(component) == null) {
       val peer = Mockito.mock(ComponentPeer::class.java)
-      Mockito.`when`(peer.requestFocus(ArgumentMatchers.any(), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
-                                       ArgumentMatchers.anyLong(), ArgumentMatchers.any())).then(answer)
+
+      if (SystemInfo.IS_AT_LEAST_JAVA9) {
+        val causeClass = Class.forName("java.awt.event.FocusEvent\$Cause")
+        val methodCall = ComponentPeer::class.java.getMethod("requestFocus", Component::class.java,
+                                            Boolean::class.javaPrimitiveType, Boolean::class.javaPrimitiveType,
+                                            Long::class.javaPrimitiveType, causeClass)
+
+        Mockito.`when`(methodCall.invoke(peer, ArgumentMatchers.any(), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
+                                         ArgumentMatchers.anyLong(), ArgumentMatchers.any())).then(answer)
+      } else {
+        Mockito.`when`(peer.requestFocus(ArgumentMatchers.any(), ArgumentMatchers.anyBoolean(), ArgumentMatchers.anyBoolean(),
+                                         ArgumentMatchers.anyLong(), ArgumentMatchers.any())).then(answer)
+      }
       accessor.setPeer(component, peer)
     }
   }
@@ -129,6 +141,7 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
     focusManager = MyKeyboardFocusManager()
     ideFocusManager = MyIdeFocusManager(focusManager!!)
     appRule!!.testApplication.registerService(IdeFocusManager::class.java, ideFocusManager!!)
+    oldFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
     KeyboardFocusManager.setCurrentKeyboardFocusManager(focusManager)
   }
 
@@ -143,8 +156,9 @@ class SwingFocusRule(private var appRule: ApplicationRule? = null) : ExternalRes
     focusManager = null
     ideFocusManager = null
     appRule = null
-    KeyboardFocusManager.setCurrentKeyboardFocusManager(null)
+    KeyboardFocusManager.setCurrentKeyboardFocusManager(oldFocusManager)
     overrideGraphicsEnvironment(null)
+    oldFocusManager = null
   }
 
   private fun skipIfLinux(description: Description): Statement = object : Statement() {

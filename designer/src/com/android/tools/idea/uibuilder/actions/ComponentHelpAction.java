@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.actions;
 
-import com.android.tools.idea.uibuilder.util.JavaDocViewer;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.ide.actions.ExternalJavaDocAction;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CustomShortcutSet;
@@ -68,7 +68,7 @@ public class ComponentHelpAction extends AnAction {
     if (psiClass == null) {
       return;
     }
-    JavaDocViewer.getInstance().showExternalJavaDoc(psiClass, event.getDataContext());
+    ExternalJavaDocAction.showExternalJavadoc(psiClass, null, null, event.getDataContext());
   }
 
   @Nullable

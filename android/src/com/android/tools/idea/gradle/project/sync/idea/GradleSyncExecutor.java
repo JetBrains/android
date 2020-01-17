@@ -49,10 +49,12 @@ import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil;
 import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode;
 import com.intellij.openapi.externalSystem.settings.ExternalProjectSettings;
 import com.intellij.openapi.module.Module;
@@ -155,8 +157,10 @@ public class GradleSyncExecutor {
     for (String rootPath : androidProjectCandidatesPaths) {
       ProjectSetUpTask setUpTask = new ProjectSetUpTask(myProject, setupRequest, listener);
       ProgressExecutionMode executionMode = request.getProgressExecutionMode();
-      refreshProject(myProject, GRADLE_SYSTEM_ID, rootPath, setUpTask, false /* resolve dependencies */,
-                     executionMode, true /* always report import errors */);
+      refreshProject(rootPath,
+                     new ImportSpecBuilder(myProject, GRADLE_SYSTEM_ID)
+                       .callback(setUpTask)
+                       .use(executionMode));
     }
   }
 
@@ -164,8 +168,11 @@ public class GradleSyncExecutor {
     GradleSettings gradleSettings = GradleSettings.getInstance(project);
     Collection<GradleProjectSettings> projectsSettings = gradleSettings.getLinkedProjectsSettings();
     if (projectsSettings.isEmpty()) {
-      if (project.getBasePath() != null && GradleProjectImportUtil.canImportProjectFrom(project.getBaseDir())) {
+      if (project.getBasePath() != null && GradleProjectImportUtil.canOpenGradleProject(project.getBaseDir())) {
         GradleProjectSettings projectSettings = new GradleProjectSettings();
+        // As of now, mismatch between IDE JDK and Gradle JDK will result in StreamCorruptedException => use the same JDK in Idea and Gradle
+        // (see https://github.com/gradle/gradle/issues/8285)
+        projectSettings.setGradleJvm(ExternalSystemJdkUtil.USE_INTERNAL_JAVA);
         String externalProjectPath = toCanonicalPath(project.getBasePath());
         projectSettings.setExternalProjectPath(externalProjectPath);
         gradleSettings.setLinkedProjectsSettings(Collections.singletonList(projectSettings));

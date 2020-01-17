@@ -17,9 +17,9 @@ package com.android.tools.idea.gradle.project.sync.compatibility.version;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.sync.hyperlink.FixAndroidGradlePluginVersionHyperlink;
-import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenUrlHyperlink;
 import com.android.tools.idea.gradle.util.GradleVersions;
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.BuildEnvironment;
 import com.android.tools.idea.testing.IdeComponents;
@@ -45,7 +45,7 @@ public class GradleVersionReaderTest extends AndroidGradleTestCase {
   public void setUp() throws Exception {
     super.setUp();
     myVersionReader = new GradleVersionReader();
-    myIdeComponents = new IdeComponents(getProject());
+    myIdeComponents = new IdeComponents(getProject(), getTestRootDisposable());
   }
 
   public void testAppliesToWithGradleModule() throws Exception {

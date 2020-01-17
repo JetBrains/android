@@ -53,6 +53,7 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.Computable
 import com.intellij.ui.ListCellRendererWrapper
+import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_DESTINATION
 import org.jetbrains.android.dom.navigation.NavigationSchema.ATTR_ENTER_ANIM
@@ -339,14 +340,9 @@ open class AddActionDialog(
 
 
   private fun setUpComponents(model: NlModel) {
-    val sourceRenderer = object : ListCellRendererWrapper<NlComponent>() {
-      override fun customize(list: JList<*>, value: NlComponent?, index: Int, selected: Boolean, hasFocus: Boolean) {
-        if (value == null) {
-          setText("None")
-        }
-        else {
-          setText(value.uiName)
-        }
+    val sourceRenderer = object : SimpleListCellRenderer<NlComponent>() {
+      override fun customize(list: JList<out NlComponent>, value: NlComponent?, index: Int, selected: Boolean, hasFocus: Boolean) {
+        text = value?.uiName ?: "None"
       }
     }
 

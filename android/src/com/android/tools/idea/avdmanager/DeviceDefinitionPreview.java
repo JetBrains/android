@@ -15,30 +15,38 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.FIGURE_FONT;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.STANDARD_FONT;
+import static com.android.tools.idea.avdmanager.AvdWizardUtils.TITLE_FONT;
+
 import com.android.resources.Density;
 import com.android.resources.ScreenOrientation;
 import com.android.resources.ScreenRatio;
 import com.android.resources.ScreenSize;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.observable.InvalidationListener;
-import com.android.tools.idea.observable.ObservableValue;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.GraphicsUtil;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.RoundRectangle2D;
 import java.text.DecimalFormat;
 import java.util.List;
-
-import static com.android.tools.idea.avdmanager.AvdWizardUtils.*;
+import javax.swing.Icon;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A preview component for displaying information about
@@ -149,7 +157,7 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
         screenSize.width = 1;
       }
       RoundRectangle2D roundRect =
-        new RoundRectangle2D.Double(PADDING, JBUI.scale(100), screenSize.width, screenSize.height, JBUI.scale(10), JBUI.scale(10));
+        new RoundRectangle2D.Double(PADDING, JBUIScale.scale(100), screenSize.width, screenSize.height, JBUIScale.scale(10), JBUIScale.scale(10));
       Stroke normalStroke = new BasicStroke(DIMENSION_LINE_WIDTH);
       g2d.setStroke(normalStroke);
       g2d.setColor(OUR_GRAY);

@@ -18,7 +18,9 @@ package org.jetbrains.android.facet;
 import static com.android.tools.idea.AndroidPsiUtils.getModuleSafely;
 
 import com.android.builder.model.AndroidProject;
+import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.apk.ApkFacet;
+import com.android.tools.idea.model.AndroidModel;
 import com.intellij.facet.Facet;
 import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetTypeId;
@@ -31,6 +33,8 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.DomElement;
+import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
@@ -41,6 +45,8 @@ import org.jetbrains.jps.android.model.impl.JpsAndroidModuleProperties;
 public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
   public static final FacetTypeId<AndroidFacet> ID = new FacetTypeId<>("android");
   public static final String NAME = "Android";
+
+  @Nullable private AndroidModel myAndroidModel;
 
   @Nullable
   public static AndroidFacet getInstance(@NotNull Module module, @NotNull IdeModifiableModelsProvider modelsProvider) {
@@ -85,7 +91,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   public AndroidFacet(@NotNull Module module, @NotNull String name, @NotNull AndroidFacetConfiguration configuration) {
     super(getFacetType(), module, name, configuration, null);
-    configuration.setFacet(this);
+    configuration.setProject(module.getProject());
   }
 
   /**
@@ -100,7 +106,7 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
 
   @Override
   public void disposeFacet() {
-    getConfiguration().disposeFacet();
+    myAndroidModel = null;
   }
 
   @NotNull
@@ -113,5 +119,32 @@ public class AndroidFacet extends Facet<AndroidFacetConfiguration> {
     JpsAndroidModuleProperties state = getConfiguration().getState();
     assert state != null;
     return state;
+  }
+
+  @Nullable
+  public AndroidPlatform getAndroidPlatform() {
+    return AndroidPlatform.getInstance(getModule());
+  }
+
+  @Nullable
+  public AndroidSdkData getAndroidSdk() {
+    AndroidPlatform platform = getAndroidPlatform();
+    return platform != null ? platform.getSdkData() : null;
+  }
+
+  @Nullable
+  public IAndroidTarget getAndroidTarget() {
+    AndroidPlatform platform = getAndroidPlatform();
+    return platform != null ? platform.getTarget() : null;
+  }
+
+  @Nullable
+  public AndroidModel getModel() {
+    return myAndroidModel;
+  }
+
+  public void setModel(@Nullable AndroidModel model) {
+    myAndroidModel = model;
+    FacetManager.getInstance(getModule()).facetConfigurationChanged(this);
   }
 }

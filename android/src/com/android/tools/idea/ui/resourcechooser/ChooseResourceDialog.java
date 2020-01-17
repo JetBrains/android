@@ -23,7 +23,6 @@ import com.android.tools.adtui.treegrid.TreeGridSpeedSearch;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ColorUtils;
-import com.android.tools.idea.editors.theme.MaterialColorUtils;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
@@ -38,7 +37,6 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.SampleDataResourceItem;
 import com.android.tools.idea.res.StateList;
-import com.android.tools.idea.ui.MaterialColors;
 import com.android.tools.idea.ui.resourcechooser.groups.ResourceChooserGroup;
 import com.android.tools.idea.ui.resourcechooser.groups.ResourceChooserGroups;
 import com.android.tools.idea.ui.resourcechooser.icons.IconFactory;
@@ -202,7 +200,7 @@ public class ChooseResourceDialog extends ResourcePickerDialog {
                                                                                                SimpleTextAttributes.STYLE_SEARCH_MATCH);
   private static final Action[] EMPTY_ACTIONS = new Action[0];
   private static final ResourceChooserGroup[] EMPTY_RESOURCE_CHOOSER_GROUPS = new ResourceChooserGroup[0];
-  private static final Border GRID_SELECTION_BORDER = BorderFactory.createLineBorder(UIUtil.getListSelectionBackground());
+  private static final Border GRID_SELECTION_BORDER = BorderFactory.createLineBorder(UIUtil.getListSelectionBackground(true));
 
   @NotNull private final Module myModule;
   @NotNull private final AndroidFacet myFacet;

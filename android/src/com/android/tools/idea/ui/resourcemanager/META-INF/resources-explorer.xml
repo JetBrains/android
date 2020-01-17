@@ -41,9 +41,8 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.android.tools.idea.ui.resourcemanager.importer.ImportConfigurationManager"/>
-    <toolWindow anchor="left" icon="StudioIcons.Shell.ToolWindows.VISUAL_ASSETS" id="Resources Explorer"
-                factoryClass="com.android.tools.idea.ui.resourcemanager.ResourceExplorerToolFactory"
-                conditionClass="com.android.tools.idea.ui.resourcemanager.ResourceExplorerToolFactory"/>
+    <toolWindow anchor="left" icon="StudioIcons.Shell.ToolWindows.VISUAL_ASSETS" id="Resources Explorer" doNotActivateOnStart="true"
+                factoryClass="com.android.tools.idea.ui.resourcemanager.ResourceExplorerToolFactory"/>
   </extensions>
 
   <actions>

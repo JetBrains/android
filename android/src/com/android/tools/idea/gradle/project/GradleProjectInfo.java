@@ -28,7 +28,6 @@ import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -52,7 +51,7 @@ import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE;
 import static com.intellij.openapi.actionSystem.LangDataKeys.MODULE_CONTEXT_ARRAY;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 
-public class GradleProjectInfo {
+public final class GradleProjectInfo {
   @NotNull private final Project myProject;
   @NotNull private final AndroidProjectInfo myProjectInfo;
   @NotNull private final ProjectFileIndex myProjectFileIndex;
@@ -64,12 +63,16 @@ public class GradleProjectInfo {
 
   @NotNull
   public static GradleProjectInfo getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, GradleProjectInfo.class);
+    return project.getService(GradleProjectInfo.class);
+  }
+
+  public GradleProjectInfo(@NotNull Project project) {
+    this(project, AndroidProjectInfo.getInstance(project), ProjectFileIndex.getInstance(project));
   }
 
   public GradleProjectInfo(@NotNull Project project, @NotNull AndroidProjectInfo projectInfo, @NotNull ProjectFileIndex projectFileIndex) {
     myProject = project;
-    myProjectInfo = projectInfo;
+    myProjectInfo = AndroidProjectInfo.getInstance(project);
     myProjectFileIndex = projectFileIndex;
     myFacetManager = ProjectFacetManager.getInstance(myProject);
   }

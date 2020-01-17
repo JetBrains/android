@@ -24,8 +24,6 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_TOP_BORDER;
-
 /**
  * Base class for all tabs shown in the {@link ConnectionDetailsView}. To use, construct
  * subclass instances and add their title, icon, and component content to a target

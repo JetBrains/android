@@ -19,7 +19,7 @@ import com.android.utils.HtmlBuilder;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.colors.EditorColorsScheme;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -76,7 +76,7 @@ public class HtmlBuilderHelper {
   public static String getHeaderFontColor() {
     // See com.intellij.codeInspection.HtmlComposer.appendHeading
     // (which operates on StringBuffers)
-    return UIUtil.isUnderDarcula() ? "#A5C25C" : "#005555";
+    return StartupUiUtil.isUnderDarcula() ? "#A5C25C" : "#005555";
   }
 
   /**

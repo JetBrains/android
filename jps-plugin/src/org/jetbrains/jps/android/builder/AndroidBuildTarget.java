@@ -33,9 +33,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * @author nik
- */
 public abstract class AndroidBuildTarget extends BuildTarget<BuildRootDescriptor> {
   private final AndroidBuildTargetType myTargetType;
   protected final JpsModule myModule;

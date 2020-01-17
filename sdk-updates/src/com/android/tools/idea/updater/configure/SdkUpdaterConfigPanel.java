@@ -327,7 +327,7 @@ public class SdkUpdaterConfigPanel implements Disposable {
       List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
 
       for (AndroidFacet facet : facets) {
-        AndroidSdkData sdkData = facet.getConfiguration().getAndroidSdk();
+        AndroidSdkData sdkData = facet.getAndroidSdk();
         if (sdkData != null) {
           locations.add(sdkData.getLocation());
         }

@@ -325,7 +325,7 @@ final class MergedManifestInfo {
     ManifestMerger2.MergeType mergeType =
       facet.getConfiguration().isAppOrFeature() ? ManifestMerger2.MergeType.APPLICATION : ManifestMerger2.MergeType.LIBRARY;
 
-    AndroidModel androidModel = facet.getConfiguration().getModel();
+    AndroidModel androidModel = facet.getModel();
     AndroidModuleModel gradleModel = AndroidModuleModel.get(facet);
 
     ManifestMerger2.Invoker manifestMergerInvoker = ManifestMerger2.newMerger(mainManifestFile, logger, mergeType);

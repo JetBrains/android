@@ -20,7 +20,6 @@ import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.intellij.find.FindManager;
 import com.intellij.find.FindModel;
 import com.intellij.find.FindSettings;
-import com.intellij.find.impl.FindInProjectUtil.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Factory;
 import com.intellij.usageView.UsageInfo;
@@ -79,7 +78,7 @@ public class SearchInBuildFilesHyperlink extends NotificationHyperlink {
       public UsageSearcher create() {
         return new UsageSearcher() {
           @Override
-          public void generate(@NotNull final Processor<Usage> processor) {
+          public void generate(@NotNull final Processor<? super Usage> processor) {
             AdapterProcessor<UsageInfo, Usage> consumer =
               new AdapterProcessor<UsageInfo, Usage>(processor, UsageInfo2UsageAdapter.CONVERTER);
             findUsages(findModelCopy, project, consumer, processPresentation);

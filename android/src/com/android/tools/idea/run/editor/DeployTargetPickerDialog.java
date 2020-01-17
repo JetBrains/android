@@ -57,6 +57,7 @@ import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.util.Alarm;
 import com.intellij.util.concurrency.EdtExecutorService;
+import com.intellij.util.concurrency.SameThreadExecutor;
 import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -215,7 +216,7 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
         Logger.getInstance(DeployTargetPickerDialog.class).info("Unable to obtain list of AVDs", tt);
         thePanel.stopLoading();
       }
-    });
+    }, SameThreadExecutor.INSTANCE);
   }
 
   @Nullable
@@ -301,7 +302,7 @@ public class DeployTargetPickerDialog extends DialogWrapper implements HelpHandl
       action.actionPerformed(AnActionEvent.createFromDataContext(ActionPlaces.UNKNOWN, null, new DataContext() {
         @Nullable
         @Override
-        public Object getData(String dataId) {
+        public Object getData(@NotNull String dataId) {
           if (dataId.equalsIgnoreCase(CommonDataKeys.PROJECT.getName())) {
             return myFacet.getModule().getProject();
           }

@@ -79,6 +79,11 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import java.awt.*;
+import java.awt.event.*;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * Renders a single step inside of a tutorial.

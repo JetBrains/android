@@ -36,7 +36,7 @@ class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
   override fun setUp() {
     super.setUp()
 
-    syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project)
+    syncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, testRootDisposable)
     reporter = OutOfDateThirdPartyPluginIssueReporter()
     usageReporter = TestSyncIssueUsageReporter()
   }

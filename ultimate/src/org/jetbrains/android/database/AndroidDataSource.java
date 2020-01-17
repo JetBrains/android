@@ -13,7 +13,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.ui.classpath.SimpleClasspathElement;
 import com.intellij.util.ui.classpath.SimpleClasspathElementFactory;
 import com.intellij.util.xmlb.annotations.Tag;
-import icons.AndroidArtworkIcons;
+import icons.AndroidIcons;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 
@@ -150,7 +150,7 @@ class AndroidDataSource extends LocalDataSource implements ModificationTracker {
 
   @Override
   public Icon getBaseIcon() {
-    return AndroidArtworkIcons.Icons.Android;
+    return AndroidIcons.Android;
   }
 
   @Override

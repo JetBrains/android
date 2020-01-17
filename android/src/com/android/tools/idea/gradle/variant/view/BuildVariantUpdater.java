@@ -58,6 +58,7 @@ import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,7 +70,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Updates the contents/settings of a module when a build variant changes.
  */
-public class BuildVariantUpdater {
+public final class BuildVariantUpdater {
   @NotNull public static final Key<String> MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI =
     new Key<>("module.with.build.variant.switched.from.ui");
   @NotNull private final ModuleSetupContext.Factory myModuleSetupContextFactory;
@@ -92,6 +93,7 @@ public class BuildVariantUpdater {
   }
 
   @VisibleForTesting
+  @NonInjectable
   BuildVariantUpdater(@NotNull ModuleSetupContext.Factory moduleSetupContextFactory,
                       @NotNull IdeModifiableModelsProviderFactory modifiableModelsProviderFactory,
                       @NotNull AndroidVariantChangeModuleSetup androidModuleSetup,

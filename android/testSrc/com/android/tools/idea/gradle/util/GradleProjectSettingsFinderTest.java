@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
-import junit.framework.TestCase;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
 /**

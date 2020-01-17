@@ -48,8 +48,8 @@ public class ClassLoadingErrorHandlerTest extends AndroidGradleTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    mySyncMessagesStub = replaceSyncMessagesService(getProject());
-    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject());
+    mySyncMessagesStub = replaceSyncMessagesService(getProject(), getTestRootDisposable());
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(getProject(), getTestRootDisposable());
   }
 
   public void testHandleErrorWhenClassNotLoaded() throws Exception {

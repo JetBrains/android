@@ -23,11 +23,9 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.ColoredListCellRenderer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import javax.swing.JList;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -99,12 +97,5 @@ public abstract class DeployTargetProvider<S extends DeployTargetState> {
   @NotNull
   public DeployTarget<S> getDeployTarget(@NotNull Project project) {
     return getDeployTarget();
-  }
-
-  public static class Renderer extends ColoredListCellRenderer<DeployTargetProvider> {
-    @Override
-    protected void customizeCellRenderer(@NotNull JList list, DeployTargetProvider value, int index, boolean selected, boolean hasFocus) {
-      append(value.getDisplayName());
-    }
   }
 }

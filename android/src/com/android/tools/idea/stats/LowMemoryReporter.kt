@@ -20,17 +20,17 @@ import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.diagnostics.AndroidStudioSystemHealthMonitor
 import com.android.tools.idea.diagnostics.report.MemoryReportReason
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
-import com.intellij.openapi.components.ApplicationComponent
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.LowMemoryWatcher
 import java.util.concurrent.TimeUnit
 
-class LowMemoryReporter : ApplicationComponent {
+internal class LowMemoryReporter : Disposable {
   private var lowMemoryWatcherAll: LowMemoryWatcher? = null
   private var lowMemoryWatcherAfterGc: LowMemoryWatcher? = null
 
   private val limiter = EventsLimiter(3, TimeUnit.MINUTES.toMillis(1), singleShotOnly = true)
 
-  override fun initComponent() {
+  init {
     lowMemoryWatcherAll = LowMemoryWatcher.register {
       // According to https://docs.oracle.com/javase/7/docs/api/java/lang/management/MemoryNotificationInfo.html#MEMORY_THRESHOLD_EXCEEDED,
       // the notification is emitted once when the threshold is exceeded, and is not emitted again until the VM goes below the threshold.
@@ -50,7 +50,7 @@ class LowMemoryReporter : ApplicationComponent {
     }, LowMemoryWatcher.LowMemoryWatcherType.ONLY_AFTER_GC)
   }
 
-  override fun disposeComponent() {
+  override fun dispose() {
     lowMemoryWatcherAll?.stop()
     lowMemoryWatcherAll = null
     lowMemoryWatcherAfterGc?.stop()

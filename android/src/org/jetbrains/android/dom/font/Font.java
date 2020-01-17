@@ -19,9 +19,6 @@ package org.jetbrains.android.dom.font;
 import com.intellij.util.xml.DefinesXml;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.Styleable;
-import org.jetbrains.android.dom.menu.MenuElement;
-
-import java.util.List;
 
 @DefinesXml
 @Styleable("FontFamilyFont")

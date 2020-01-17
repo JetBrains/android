@@ -1,13 +1,10 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.dom.inspections;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.ResourceHelper;
-import com.intellij.codeInsight.daemon.XmlErrorMessages;
-import com.intellij.codeInspection.InspectionManager;
-import com.intellij.codeInspection.LocalInspectionTool;
-import com.intellij.codeInspection.LocalQuickFix;
-import com.intellij.codeInspection.ProblemDescriptor;
-import com.intellij.codeInspection.ProblemHighlightType;
+import com.intellij.codeInsight.daemon.XmlErrorBundle;
+import com.intellij.codeInspection.*;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.xml.XmlFile;
@@ -15,13 +12,14 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlToken;
 import com.intellij.xml.XmlElementDescriptor;
 import com.intellij.xml.util.XmlTagUtil;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.android.dom.AndroidAnyTagDescriptor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Eugene.Kudelevsky
@@ -68,7 +66,7 @@ public class AndroidElementNotAllowedInspection extends LocalInspectionTool {
   private static class MyVisitor extends XmlRecursiveElementVisitor {
     private final InspectionManager myInspectionManager;
     private final boolean myOnTheFly;
-    final List<ProblemDescriptor> myResult = new ArrayList<ProblemDescriptor>();
+    final List<ProblemDescriptor> myResult = new ArrayList<>();
 
     private MyVisitor(InspectionManager inspectionManager, boolean onTheFly) {
       myInspectionManager = inspectionManager;
@@ -85,14 +83,14 @@ public class AndroidElementNotAllowedInspection extends LocalInspectionTool {
         if (descriptor instanceof AndroidAnyTagDescriptor) {
           final XmlToken startTagNameElement = XmlTagUtil.getStartTagNameElement(tag);
           if (startTagNameElement != null && !isUnknownCustomView(tag)) {
-            myResult.add(myInspectionManager.createProblemDescriptor(startTagNameElement, XmlErrorMessages.message(
+            myResult.add(myInspectionManager.createProblemDescriptor(startTagNameElement, XmlErrorBundle.message(
               "element.is.not.allowed.here", tag.getName()), myOnTheFly, LocalQuickFix.EMPTY_ARRAY,
                                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
           }
 
           final XmlToken endTagNameElement = XmlTagUtil.getEndTagNameElement(tag);
           if (endTagNameElement != null && !isUnknownCustomView(tag)) {
-            myResult.add(myInspectionManager.createProblemDescriptor(endTagNameElement, XmlErrorMessages.message(
+            myResult.add(myInspectionManager.createProblemDescriptor(endTagNameElement, XmlErrorBundle.message(
               "element.is.not.allowed.here", tag.getName()), myOnTheFly, LocalQuickFix.EMPTY_ARRAY,
                                                                      ProblemHighlightType.GENERIC_ERROR_OR_WARNING));
           }

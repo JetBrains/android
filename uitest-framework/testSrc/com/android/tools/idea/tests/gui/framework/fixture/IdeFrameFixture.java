@@ -66,6 +66,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
+import com.intellij.openapi.wm.impl.ProjectFrameHelper;
 import com.intellij.openapi.wm.impl.StripeButton;
 import com.intellij.util.ThreeState;
 import java.awt.Component;
@@ -125,7 +126,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public File getProjectPath() {
-    return new File(target().getProject().getBasePath());
+    return new File(ProjectFrameHelper.getFrameHelper(target()).getProject().getBasePath());
   }
 
   @NotNull
@@ -651,7 +652,7 @@ public class IdeFrameFixture extends ComponentFixture<IdeFrameFixture, IdeFrameI
 
   @NotNull
   public Project getProject() {
-    return target().getProject();
+    return ProjectFrameHelper.getFrameHelper(target()).getProject();
   }
 
   public WelcomeFrameFixture closeProject() {

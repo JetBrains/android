@@ -69,7 +69,7 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
     gradleBuildState = GradleBuildState.getInstance(myProject)
     gradleSyncState = GradleSyncState.getInstance(myProject)
 
-    syncTopicConnection = project.messageBus.connect(project)
+    syncTopicConnection = project.messageBus.connect()
     syncTopicListener = mock(SyncResultListener::class.java)
     syncTopicConnection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, syncTopicListener)
   }
@@ -77,7 +77,7 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
   private fun emulateSync(syncSuccessful: Boolean, buildResult: BuildStatus?):
       ListenableFuture<SyncResult> {
 
-    doAnswer({ invocation ->
+    doAnswer { invocation ->
       val request = invocation.getArgument<GradleSyncInvoker.Request>(1)
 
       ApplicationManager.getApplication().invokeAndWait {
@@ -90,7 +90,7 @@ class GradleProjectSystemSyncManagerTest : PlatformTestCase() {
           gradleSyncState.syncFailed("", null, null)
         }
       }
-    }).`when`(syncInvoker).requestProjectSync(any(), any<GradleSyncInvoker.Request>())
+    }.`when`(syncInvoker).requestProjectSync(any(), any<GradleSyncInvoker.Request>())
 
     val listenableFuture = syncManager.syncProject(SyncReason.PROJECT_MODIFIED)
     if (buildResult != null) {

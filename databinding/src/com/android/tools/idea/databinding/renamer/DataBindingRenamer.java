@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.databinding.renamer;
 
+import static com.android.SdkConstants.NEW_ID_PREFIX;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.databinding.psiclass.LightBindingClass.LightDataBindingField;
 import com.intellij.psi.PsiElement;
@@ -65,7 +67,7 @@ public class DataBindingRenamer extends AutomaticRenamer {
       return null;
     }
     String id = valueElement.getValue();
-    if (!id.startsWith(SdkConstants.NEW_ID_PREFIX)) {
+    if (!id.startsWith(NEW_ID_PREFIX)) {
       return null;
     }
 

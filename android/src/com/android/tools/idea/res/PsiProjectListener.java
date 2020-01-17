@@ -62,7 +62,7 @@ import org.jetbrains.kotlin.idea.KotlinFileType;
  *
  * <p>PsiProjectListener also notifies {@link EditorNotifications} when it detects that a Gradle file has been modified.
  */
-public class PsiProjectListener implements PsiTreeChangeListener {
+public final class PsiProjectListener implements PsiTreeChangeListener {
   private final ResourceFolderRegistry myRegistry;
   private SampleDataListener mySampleDataListener;
   @NotNull private final Project myProject;
@@ -109,7 +109,7 @@ public class PsiProjectListener implements PsiTreeChangeListener {
     // TODO: ensure that only android compatible images are recognized.
     if (fileType.isBinary()) {
       return fileType == ImageFileTypeManager.getInstance().getImageFileType() ||
-             fileType == FontFileType.INSTANCE;
+              fileType == FontFileType.INSTANCE;
     }
 
     return false;
@@ -194,7 +194,7 @@ public class PsiProjectListener implements PsiTreeChangeListener {
   }
 
   private void dispatchToRegistry(@NotNull VirtualFile file,
-                                  @NotNull Consumer<PsiTreeChangeListener> invokeCallback) {
+          @NotNull Consumer<PsiTreeChangeListener> invokeCallback) {
     while (file != null) {
       ResourceFolderRegistry.CachedRepositories cached = myRegistry.getCached(file);
       if (cached != null) {

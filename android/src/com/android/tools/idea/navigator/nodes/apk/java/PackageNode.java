@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.navigator.nodes.apk.java;
 
-import com.android.tools.idea.apk.debugging.*;
+import com.android.tools.idea.apk.debugging.ApkClass;
+import com.android.tools.idea.apk.debugging.ApkPackage;
+import com.android.tools.idea.apk.debugging.DexSourceFiles;
 import com.intellij.ide.projectView.PresentationData;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.ViewSettings;
@@ -50,10 +52,10 @@ class PackageNode extends ProjectViewNode<ApkPackage> {
 
   @Override
   @NotNull
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     assert myProject != null;
 
-    Collection<AbstractTreeNode> children = new ArrayList<>();
+    Collection<AbstractTreeNode<?>> children = new ArrayList<>();
     ViewSettings settings = getSettings();
     if (!settings.isFlattenPackages()) {
       addSubpackagesAsTree(myPackage.getSubpackages(), children);
@@ -64,7 +66,7 @@ class PackageNode extends ProjectViewNode<ApkPackage> {
     return children;
   }
 
-  private void addSubpackagesAsTree(@NotNull Collection<ApkPackage> subpackages, @NotNull Collection<AbstractTreeNode> children) {
+  private void addSubpackagesAsTree(@NotNull Collection<ApkPackage> subpackages, @NotNull Collection<AbstractTreeNode<?>> children) {
     if (getSettings().isHideEmptyMiddlePackages()) {
       for (ApkPackage subpackage : subpackages) {
         if (!subpackage.getClasses().isEmpty() || subpackage.doSubpackagesHaveClasses()) {

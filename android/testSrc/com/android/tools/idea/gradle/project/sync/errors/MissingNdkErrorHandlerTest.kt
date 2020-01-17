@@ -47,8 +47,8 @@ class MissingNdkErrorHandlerTest : AndroidGradleTestCase() {
 
   override fun setUp() {
     super.setUp()
-    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(project)
-    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(project)
+    mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(project, testRootDisposable)
+    myUsageReporter = TestSyncIssueUsageReporter.replaceSyncMessagesService(project, testRootDisposable)
   }
 
   fun testNullErrorMessage() {

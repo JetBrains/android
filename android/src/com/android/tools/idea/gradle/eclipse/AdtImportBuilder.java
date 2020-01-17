@@ -26,6 +26,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.templates.TemplateManager;
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -37,7 +38,6 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packaging.artifacts.ModifiableArtifactModel;
 import com.intellij.projectImport.ProjectImportBuilder;
-import icons.EclipseIcons;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -103,7 +103,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
   @Override
   public Icon getIcon() {
     // TODO: Can we get the ADT bundle icon?
-    return EclipseIcons.Eclipse;
+    return AllIcons.Providers.Eclipse;
   }
 
   @Override
@@ -188,12 +188,6 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
 
   public void readProjects() {
     myImporter.importProjects(Collections.singletonList(mySelectedProject));
-  }
-
-  @SuppressWarnings("ConstantConditions")
-  @Override
-  public boolean validate(@Nullable Project current, Project dest) {
-    return super.validate(current, dest);
   }
 
   private static void openSummary(Project project) {

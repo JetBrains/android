@@ -61,6 +61,9 @@
 
   <actions>
     <action id="HelpTopics" class="com.android.tools.idea.actions.MeetAndroidStudioHelpAction" overrides="true"/>
+    <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="AndroidArtworkIcons.Icons.Android" popup="false" keep-content="true" overrides="true">
+      <add-to-group group-id="ToolsMenu" anchor="first"/>
+    </group>
 
     <action class="com.intellij.ide.actions.HelpTopicsAction" id="IntelliJ.HelpTopics" text="IntelliJ IDEA Help">
       <add-to-group group-id="HelpMenu" anchor="after" relative-to-action="HelpTopics" />
@@ -143,6 +146,12 @@
                      implementationClass="org.jetbrains.android.inspections.AndroidDeprecationInspection"/>
     <langCodeStyleSettingsProvider implementation="org.jetbrains.android.formatter.AndroidXmlLanguageCodeStyleSettingsProvider" order="first"/>
 
+    <applicationInitializedListener implementation="com.android.tools.idea.stats.UserSentimentProjectComponent"/>
+    <applicationConfigurable parentId="preferences.general"
+                             bundle="messages.AndroidBundle"
+                             key="configurable.MemorySettingsConfigurable.display.name"
+                             provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
+                             id="memory.settings"/>
   </extensions>
 
 </idea-plugin>

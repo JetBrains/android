@@ -24,10 +24,12 @@ import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.builder.model.level2.Library;
 import com.android.tools.idea.gradle.project.sync.Modules;
+import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
@@ -161,6 +163,10 @@ public class ModuleFinder {
       if (myIncludedProjectFolderByModuleFolder.containsKey(canonicalPath)) {
         return myIncludedProjectFolderByModuleFolder.get(canonicalPath).toPath();
       }
+    }
+    String rootPath = ExternalSystemApiUtil.getExternalRootProjectPath(module);
+    if (rootPath != null) {
+      return Paths.get(rootPath);
     }
     return getBaseDirPath(module.getProject()).toPath();
   }

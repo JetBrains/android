@@ -101,8 +101,14 @@ public class JdksTest extends PlatformTestCase {
   private void verifyGetWrongJdkQuickFixes(@NotNull Class<? extends NotificationHyperlink> hyperlinkClass) {
     Jdks jdks = Jdks.getInstance();
     List<NotificationHyperlink> quickFixes = jdks.getWrongJdkQuickFixes(myProject);
-    assertThat(quickFixes).hasSize(2);
-    assertThat(quickFixes.get(0)).isInstanceOf(hyperlinkClass);
-    assertThat(quickFixes.get(1)).isInstanceOf(DownloadJdk8Hyperlink.class);
+    if (IdeSdks.getInstance().isAndroidStudio()) {
+      assertThat(quickFixes).hasSize(2);
+      assertThat(quickFixes.get(0)).isInstanceOf(hyperlinkClass);
+      assertThat(quickFixes.get(1)).isInstanceOf(DownloadJdk8Hyperlink.class);
+    } else {
+      // In Idea some quickfixes (e.g. DownloadAndroidStudioHyperlink) are not offered
+      assertThat(quickFixes).hasSize(1);
+      assertThat(quickFixes.get(0)).isInstanceOf(DownloadJdk8Hyperlink.class);
+    }
   }
 }

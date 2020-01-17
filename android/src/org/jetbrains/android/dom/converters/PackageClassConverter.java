@@ -45,6 +45,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.util.ArrayUtil;
+import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Consumer;
 import com.intellij.util.FilteredQuery;
 import com.intellij.util.IncorrectOperationException;
@@ -531,13 +532,8 @@ public class PackageClassConverter extends Converter<PsiClass> implements Custom
 
         assert newName != null;
 
-        final ElementManipulator<PsiElement> manipulator = ElementManipulators.getManipulator(myElement);
         final TextRange range = new TextRange(myStart, getRangeInElement().getEndOffset());
-
-        if (manipulator != null) {
-          return manipulator.handleContentChange(myElement, range, newName);
-        }
-        return element;
+        return ElementManipulators.handleContentChange(myElement, range, newName);
       }
       LOG.error("PackageClassConverter resolved to " + element.getClass());
       return super.bindToElement(element);

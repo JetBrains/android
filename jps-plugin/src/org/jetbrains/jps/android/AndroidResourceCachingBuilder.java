@@ -4,7 +4,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.util.Processor;
-import com.intellij.util.containers.HashMap;
 import org.jetbrains.android.compiler.tools.AndroidApt;
 import org.jetbrains.android.util.AndroidCompilerMessageKind;
 import org.jetbrains.annotations.NonNls;
@@ -23,10 +22,7 @@ import org.jetbrains.jps.model.module.JpsModule;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky

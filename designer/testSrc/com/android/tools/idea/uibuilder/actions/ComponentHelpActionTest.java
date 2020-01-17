@@ -23,8 +23,6 @@ import org.jetbrains.android.AndroidTestCase;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 public class ComponentHelpActionTest extends AndroidTestCase {

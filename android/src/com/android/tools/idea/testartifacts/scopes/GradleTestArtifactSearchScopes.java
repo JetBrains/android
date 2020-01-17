@@ -72,7 +72,7 @@ public final class GradleTestArtifactSearchScopes implements TestArtifactSearchS
 
   @Nullable
   public static GradleTestArtifactSearchScopes getInstance(@NotNull Module module) {
-    if (GradleSyncState.getInstance(module.getProject()).lastSyncFailed()) {
+    if (module.getProject().isDefault() || GradleSyncState.getInstance(module.getProject()).lastSyncFailed()) {
       return null;
     }
 

@@ -17,7 +17,6 @@ package com.android.tools.idea.uibuilder.palette;
 
 import static com.android.tools.idea.uibuilder.api.PaletteComponentHandler.NO_PREVIEW;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.resources.ResourceFolderType;
@@ -35,6 +34,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
@@ -52,6 +52,7 @@ import com.intellij.ui.scale.ScaleContext;
 import com.intellij.util.IconUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.ui.ImageUtil;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.Image;
@@ -122,7 +123,7 @@ public class PreviewProvider implements Disposable {
     size = new Dimension(width, height);
 
     // Workaround for https://youtrack.jetbrains.com/issue/JRE-224
-    boolean inUserScale = !SystemInfo.isWindows || !UIUtil.isJreHiDPI(component);
+    boolean inUserScale = !SystemInfo.isWindows || !StartupUiUtil.isJreHiDPI(component);
     BufferedImage bufferedImage = ImageUtil.toBufferedImage(image, inUserScale);
 
     return new ImageAndDimension(bufferedImage, size);

@@ -18,7 +18,6 @@ package com.android.tools.idea.apk.viewer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.io.Writer;
 
 /**
  * Handle XML content stored as the proto format defined in android/frameworks/base/tools/aapt2/Resources.proto.

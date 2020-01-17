@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.mockup.editor;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.util.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -27,40 +28,38 @@ import javax.swing.*;
  */
 @SuppressWarnings("unused")
 public class AnimatedComponentSplitter extends ThreeComponentsSplitter {
-
   private static final int DEFAULT_ANIMATION_DURATION = 150;
 
   private boolean myIsFirstShowing;
   private boolean myIsLastShowing;
   private int myFirstClosedSize = 0;
   private int myLastClosedSize = 0;
-  private int myAnimationDuration = DEFAULT_ANIMATION_DURATION;
 
   /**
    * {@inheritDoc}
    */
-  public AnimatedComponentSplitter() {
-    super();
+  public AnimatedComponentSplitter(@NotNull Disposable disposable) {
+    super(disposable);
   }
 
   /**
    * {@inheritDoc}
    */
-  public AnimatedComponentSplitter(boolean vertical) {
-    super(vertical);
+  public AnimatedComponentSplitter(boolean vertical, @NotNull Disposable disposable) {
+    super(vertical, disposable);
   }
 
   /**
    * {@inheritDoc}
    */
-  public AnimatedComponentSplitter(boolean vertical, boolean onePixelDividers) {
-    super(vertical, onePixelDividers);
+  public AnimatedComponentSplitter(boolean vertical, boolean onePixelDividers, @NotNull Disposable disposable) {
+    super(vertical, onePixelDividers, disposable);
   }
 
   /**
    * Is the first component is shown (its size > myFirstClosedSize)
    *
-   * @return true if first component size > myFirtstClosedSize
+   * @return true if first component size > myFirstClosedSize
    * @see AnimatedComponentSplitter#setFirstClosedSize(int)
    */
   public boolean isFirstShowing() {
@@ -70,7 +69,7 @@ public class AnimatedComponentSplitter extends ThreeComponentsSplitter {
   /**
    * Is the first component is shown (its size > myLastClosedSize)
    *
-   * @return true if first component size > myFirtstClosedSize
+   * @return true if first component size > myFirstClosedSize
    * @see AnimatedComponentSplitter#setLastClosedSize(int)
    */
   public boolean isLastShowing() {
@@ -115,12 +114,12 @@ public class AnimatedComponentSplitter extends ThreeComponentsSplitter {
    * @param targetSize    the final size of the component after the animation
    * @param startSize     the initial size of the component before the animation
    */
-  private void showAnimate(@NotNull Consumer<Integer> setSizeMethod, int targetSize, int startSize) {
+  private static void showAnimate(@NotNull Consumer<Integer> setSizeMethod, int targetSize, int startSize) {
     final long startTime = System.currentTimeMillis();
 
     final Timer timer = new Timer(20, e -> {
       final int size;
-      float t = (System.currentTimeMillis() - startTime) / (float)myAnimationDuration;
+      float t = (System.currentTimeMillis() - startTime) / (float)DEFAULT_ANIMATION_DURATION;
       if (t >= 1) {
         t = 1;
         ((Timer)e.getSource()).stop();

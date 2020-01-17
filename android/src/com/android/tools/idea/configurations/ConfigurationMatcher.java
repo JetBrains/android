@@ -58,6 +58,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl;
+import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -664,7 +665,7 @@ public class ConfigurationMatcher {
       if (activeEditor != null) {
         FileDocumentManager documentManager = FileDocumentManager.getInstance();
         VirtualFile file = documentManager.getFile(activeEditor.getDocument());
-        if (file != null && !file.equals(myFile) && file.getFileType() == StdFileTypes.XML
+        if (file != null && !file.equals(myFile) && FileTypeRegistry.getInstance().isFileOfType(file, StdFileTypes.XML)
             && ResourceHelper.getFolderType(myFile) == ResourceHelper.getFolderType(file)) {
           Configuration configuration = myManager.getConfiguration(file);
           FolderConfiguration fullConfig = configuration.getFullConfig();

@@ -16,8 +16,8 @@
 package com.android.tools.idea.lint;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.resources.ResourceUrl;
 import com.android.resources.ResourceType;
+import com.android.resources.ResourceUrl;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.templates.TemplateUtils;
@@ -30,9 +30,9 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.source.xml.XmlTagImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlAttributeValue;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlTagValue;
 import com.intellij.refactoring.psi.SearchUtils;
 import com.intellij.util.containers.SmartHashSet;
@@ -180,7 +180,7 @@ class GenerateBackupDescriptorFix implements AndroidLintQuickFix {
                 for (PsiElement resElement : resources) {
                   if (resElement instanceof XmlAttributeValue) {
                     // get the parent XmlTag and drill down to it's text.
-                    XmlTagValue value = ((XmlTagImpl)resElement.getParent().getParent()).getValue();
+                    XmlTagValue value = ((XmlTag)resElement.getParent().getParent()).getValue();
                     prefFiles.add(value.getText());
                     break;
                   }

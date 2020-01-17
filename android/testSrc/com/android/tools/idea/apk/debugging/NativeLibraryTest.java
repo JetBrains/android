@@ -21,6 +21,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -116,7 +118,7 @@ public class NativeLibraryTest extends PlatformTestCase {
 
   @NotNull
   private List<VirtualFile> doCreateSharedObjectFiles(@NotNull Abi... abis) throws IOException {
-    return createSharedObjectFiles(myProject.getBaseDir(), myLibrary.name, abis);
+    return createSharedObjectFiles(PlatformTestUtil.getOrCreateProjectTestBaseDir(myProject), myLibrary.name, abis);
   }
 
   @NotNull
@@ -153,7 +155,7 @@ public class NativeLibraryTest extends PlatformTestCase {
     VirtualFile debuggableFile = ApplicationManager.getApplication().runWriteAction(new ThrowableComputable<VirtualFile, IOException>() {
       @Override
       public VirtualFile compute() throws IOException {
-        return getProject().getBaseDir().createChildData(this, "debuggable.so");
+        return PlatformTestUtil.getOrCreateProjectTestBaseDir(getProject()).createChildData(this, "debuggable.so");
       }
     });
 

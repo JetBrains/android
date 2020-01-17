@@ -52,7 +52,7 @@ class NewAndroidFragmentAction
     val dataContext = e.dataContext
     val module = LangDataKeys.MODULE.getData(dataContext) ?: return
     val facet = AndroidFacet.getInstance(module)
-    if (facet == null || facet.configuration.model == null) {
+    if (facet == null || facet.model == null) {
       return
     }
 

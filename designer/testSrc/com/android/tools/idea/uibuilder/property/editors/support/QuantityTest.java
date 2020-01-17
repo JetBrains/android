@@ -31,8 +31,6 @@ import java.util.EnumSet;
 import static com.android.SdkConstants.*;
 import static com.google.common.truth.Truth.assertThat;
 import static com.android.ide.common.rendering.api.AttributeFormat.*;
-import static com.android.ide.common.rendering.api.AttributeFormat.INTEGER;
-import static com.android.ide.common.rendering.api.AttributeFormat.STRING;
 
 @RunWith(JUnit4.class)
 public class QuantityTest {

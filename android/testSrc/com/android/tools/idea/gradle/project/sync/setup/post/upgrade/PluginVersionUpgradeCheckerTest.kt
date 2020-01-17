@@ -62,7 +62,7 @@ class PluginVersionUpgradeCheckerTest : PlatformTestCase() {
 
     replaceUpgradeService(upgradable = false)
 
-    checkUpgrade(myProject, upgradeReminder)
+    checkUpgrade(project, upgradeReminder)
 
     val notifications = NotificationsManager
       .getNotificationsManager()
@@ -76,7 +76,7 @@ class PluginVersionUpgradeCheckerTest : PlatformTestCase() {
 
     replaceUpgradeService(upgradable = true)
 
-    checkUpgrade(myProject, upgradeReminder)
+    checkUpgrade(project, upgradeReminder)
 
     val notifications = NotificationsManager
       .getNotificationsManager()
@@ -90,7 +90,7 @@ class PluginVersionUpgradeCheckerTest : PlatformTestCase() {
     @Suppress("UsePropertyAccessSyntax")
     Mockito.`when`<Boolean>(upgrade.isRecommendedUpgradable()).thenReturn(upgradable)
 
-    val ideComponents = IdeComponents(myProject)
+    val ideComponents = IdeComponents(project)
     ideComponents.replaceProjectService(PluginVersionUpgrade::class.java, upgrade)
   }
 }

@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
+
 import com.android.tools.idea.editors.strings.MultilineStringEditorDialog;
+import com.android.tools.idea.tests.gui.framework.fixture.theme.EditorTextFieldFixture;
 import org.fest.swing.core.Robot;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickOkButton;
 
 public class MultilineStringEditorDialogFixture extends IdeaDialogFixture<MultilineStringEditorDialog> {
 

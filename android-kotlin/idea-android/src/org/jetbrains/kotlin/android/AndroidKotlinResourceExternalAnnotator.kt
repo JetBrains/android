@@ -37,7 +37,7 @@ class AndroidKotlinResourceExternalAnnotator : AndroidResourceExternalAnnotatorB
     val facet = file.androidFacet ?: return null
     val annotationInfo = FileAnnotationInfo(facet, file, editor)
     file.accept(object: PsiRecursiveElementWalkingVisitor() {
-      override fun visitElement(element: PsiElement?) {
+      override fun visitElement(element: PsiElement) {
         super.visitElement(element)
         val reference = element as? KtNameReferenceExpression ?: return
         val referenceTarget = reference.resolveToCall()?.resultingDescriptor as? JavaPropertyDescriptor?: return

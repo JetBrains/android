@@ -26,6 +26,7 @@ import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.android.AndroidTestCase;
 
 import java.io.IOException;
@@ -65,7 +66,7 @@ public final class ModulesListModelTest extends AndroidTestCase {
         myModule1 = new ModuleToImport(module1vf.getName(), module1vf, NO_DEPS);
         myModule2 =
           new ModuleToImport(module2vf.getName(), module2vf, Suppliers.ofInstance(ImmutableSet.of(module1vf.getName())));
-        VirtualFile existingModule = VfsUtil.createDirectoryIfMissing(getProject().getBaseDir(), EXISTING_MODULE);
+        VirtualFile existingModule = VfsUtil.createDirectoryIfMissing(PlatformTestUtil.getOrCreateProjectTestBaseDir(getProject()), EXISTING_MODULE);
         if (existingModule == null) {
           throw new IOException("Unable to create fake module directory");
         }

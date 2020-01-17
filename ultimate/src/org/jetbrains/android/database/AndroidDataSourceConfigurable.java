@@ -122,7 +122,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     myExternalStorageRadioButton.addActionListener(l);
     myInternalStorageRadioButton.addActionListener(l);
 
-    new UiNotifyConnector.Once(myPanel, new Activatable.Adapter() {
+    new UiNotifyConnector.Once(myPanel, new Activatable() {
       @Override
       public void showNotify() {
         loadDevices();
@@ -270,7 +270,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     final Set<String> packages = new HashSet<>();
 
     for (AndroidFacet facet : ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID)) {
-      final Manifest manifest = facet.getManifest();
+      final Manifest manifest = Manifest.getMainManifest(facet);
 
       if (manifest != null) {
         final String aPackage = manifest.getPackage().getStringValue();

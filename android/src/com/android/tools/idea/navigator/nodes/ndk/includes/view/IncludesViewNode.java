@@ -126,7 +126,7 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
 
   @NotNull
   @Override
-  public Collection<? extends AbstractTreeNode> getChildren() {
+  public Collection<? extends AbstractTreeNode<?>> getChildren() {
     Long startTime = System.currentTimeMillis();
     try {
       return getChildrenImpl();
@@ -143,8 +143,8 @@ public class IncludesViewNode extends ProjectViewNode<NativeIncludes> implements
   }
 
   @NotNull
-  private Collection<? extends AbstractTreeNode> getChildrenImpl() {
-    List<AbstractTreeNode> result = new ArrayList<>();
+  private Collection<? extends AbstractTreeNode<?>> getChildrenImpl() {
+    List<AbstractTreeNode<?>> result = new ArrayList<>();
     Project project = getProject();
     if (project == null || GradleSyncState.getInstance(project).isSyncInProgress()) {
       return result;

@@ -44,7 +44,7 @@ import com.intellij.psi.xml.XmlElement;
 import com.intellij.ui.*;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -418,7 +418,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
           collectProcessNames(xmlElement, result);
         }
       }
-      final AndroidModel androidModel = facet.getConfiguration().getModel();
+      final AndroidModel androidModel = facet.getModel();
       if (androidModel != null) {
         result.addAll(androidModel.getAllApplicationIds());
       }

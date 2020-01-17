@@ -27,6 +27,7 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.checks.IconDetector;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.RowIcon;
+import com.intellij.ui.IconManager;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;

@@ -41,7 +41,7 @@ public class AndroidGradleProjectStartupActivityTest extends PlatformTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    IdeComponents ideComponents = new IdeComponents(myProject);
+    IdeComponents ideComponents = new IdeComponents(getProject(), getTestRootDisposable());
     mySyncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker.class);
     myGradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo.class);
     myStartupActivity = new AndroidGradleProjectStartupActivity();
@@ -51,6 +51,9 @@ public class AndroidGradleProjectStartupActivityTest extends PlatformTestCase {
   protected void tearDown() throws Exception {
     try {
       myGradleProjectInfo = null;
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();

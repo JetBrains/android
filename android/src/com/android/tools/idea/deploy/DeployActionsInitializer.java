@@ -15,111 +15,31 @@
  */
 package com.android.tools.idea.deploy;
 
-import static com.intellij.openapi.actionSystem.Anchor.AFTER;
-
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.deployable.DeployableProvider;
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxDeployableProvider;
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider;
-import com.android.tools.idea.run.ui.ApplyChangesAction;
-import com.android.tools.idea.run.ui.CodeSwapAction;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunManagerListener;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.facet.Facet;
-import com.intellij.facet.FacetManager;
 import com.intellij.facet.FacetManagerAdapter;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.Constraints;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.project.ProjectManagerListener;
-import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.openapi.startup.StartupActivity;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DeployActionsInitializer {
-  public static void installActions() {
-    ActionManager actionManager = ActionManager.getInstance();
-    AnAction runnerActions = actionManager.getAction(IdeActions.GROUP_RUNNER_ACTIONS);
-    DefaultActionGroup ag = (DefaultActionGroup)runnerActions;
-    PluginId androidPluginId = PluginId.findId("org.jetbrains.android");
-
-    AnAction applyChanges = new ApplyChangesAction();
-    actionManager.registerAction(ApplyChangesAction.ID, applyChanges, androidPluginId);
-    ag.add(applyChanges, new Constraints(AFTER, IdeActions.ACTION_DEFAULT_RUNNER));
-
-    AnAction codeSwap = new CodeSwapAction();
-    actionManager.registerAction(CodeSwapAction.ID, codeSwap, androidPluginId);
-    ag.add(codeSwap, new Constraints(AFTER, ApplyChangesAction.ID));
-
-    ApplicationManager
-      .getApplication()
-      .getMessageBus()
-      .connect(ApplicationManager.getApplication())
-      .subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
-        @Override
-        public void projectOpened(@NotNull Project project) {
-          MessageBusConnection projectConnection = project.getMessageBus().connect(project);
-          projectConnection.subscribe(RunManagerListener.TOPIC, new RunManagerListener() {
-            @Override
-            public void runConfigurationSelected() {
-              updateDeployableProvider(project, RunManager.getInstance(project).getSelectedConfiguration());
-            }
-
-            @Override
-            public void runConfigurationChanged(@NotNull RunnerAndConfigurationSettings settings, @Nullable String existingId) {
-              runConfigurationChanged(settings);
-            }
-
-            @Override
-            public void runConfigurationChanged(@NotNull RunnerAndConfigurationSettings settings) {
-              if (settings.getConfiguration() == RunManager.getInstance(project).getSelectedConfiguration()) {
-                updateDeployableProvider(project, settings);
-              }
-            }
-
-            @Override
-            public void runConfigurationRemoved(@NotNull RunnerAndConfigurationSettings settings) {
-              if (settings.getConfiguration() == RunManager.getInstance(project).getSelectedConfiguration()) {
-                updateDeployableProvider(project, null);
-              }
-            }
-          });
-
-          projectConnection.subscribe(FacetManager.FACETS_TOPIC, new FacetManagerAdapter() {
-            @Override
-            public void beforeFacetRemoved(@NotNull Facet facet) {
-              RunnerAndConfigurationSettings selectedConfiguration = RunManager.getInstance(project).getSelectedConfiguration();
-              if (facet instanceof AndroidFacet && facet.getModule() == getModule(getAndroidRunConfigurationbase(selectedConfiguration))) {
-                updateDeployableProvider(project, null);
-              }
-            }
-
-            @Override
-            public void facetAdded(@NotNull Facet facet) {
-              RunnerAndConfigurationSettings selectedConfiguration = RunManager.getInstance(project).getSelectedConfiguration();
-              if (facet instanceof AndroidFacet && facet.getModule() == getModule(getAndroidRunConfigurationbase(selectedConfiguration))) {
-                updateDeployableProvider(project, selectedConfiguration);
-              }
-            }
-          });
-
-          updateDeployableProvider(project, RunManager.getInstance(project).getSelectedConfiguration());
-        }
-      });
+public class DeployActionsInitializer implements StartupActivity {
+  @Override
+  public void runActivity(@NotNull Project project) {
+    updateDeployableProvider(project, RunManager.getInstance(project).getSelectedConfiguration());
   }
 
   @Contract("null -> null")
@@ -175,6 +95,64 @@ public class DeployActionsInitializer {
     DeploymentService deploymentService = DeploymentService.getInstance(project);
     if (canOverrideDeployableProvider(deploymentService.getDeployableProvider())) {
       deploymentService.setDeployableProvider(getDeployTargetProvider(configSettings));
+    }
+  }
+
+  public static class MyRunManagerListener implements RunManagerListener {
+
+    @NotNull private final Project myProject;
+
+    public MyRunManagerListener(@NotNull Project project) {
+      myProject = project;
+    }
+
+    @Override
+    public void runConfigurationSelected(@Nullable RunnerAndConfigurationSettings settings) {
+      updateDeployableProvider(myProject, settings);
+    }
+
+    @Override
+    public void runConfigurationChanged(@NotNull RunnerAndConfigurationSettings settings, @Nullable String existingId) {
+      runConfigurationChanged(settings);
+    }
+
+    @Override
+    public void runConfigurationChanged(@NotNull RunnerAndConfigurationSettings settings) {
+      if (settings.getConfiguration() == RunManager.getInstance(myProject).getSelectedConfiguration()) {
+        updateDeployableProvider(myProject, settings);
+      }
+    }
+
+    @Override
+    public void runConfigurationRemoved(@NotNull RunnerAndConfigurationSettings settings) {
+      if (settings.getConfiguration() == RunManager.getInstance(myProject).getSelectedConfiguration()) {
+        updateDeployableProvider(myProject, null);
+      }
+    }
+  }
+
+  public static class MyFacetManagerAdapter extends FacetManagerAdapter {
+
+    @NotNull private final Project myProject;
+
+    public MyFacetManagerAdapter(@NotNull Project project) {
+      myProject = project;
+    }
+
+    @Override
+    public void beforeFacetRemoved(@NotNull Facet facet) {
+      RunnerAndConfigurationSettings selectedConfiguration = RunManager.getInstance(myProject).getSelectedConfiguration();
+      if (facet instanceof AndroidFacet && facet.getModule() == getModule(getAndroidRunConfigurationbase(selectedConfiguration))) {
+        updateDeployableProvider(myProject, null);
+      }
+    }
+
+    @Override
+    public void facetAdded(@NotNull Facet facet) {
+      RunnerAndConfigurationSettings selectedConfiguration = RunManager.getInstance(myProject).getSelectedConfiguration();
+      if (facet instanceof AndroidFacet && facet.getModule() == getModule(getAndroidRunConfigurationbase(selectedConfiguration))) {
+        updateDeployableProvider(myProject, selectedConfiguration);
+      }
     }
   }
 }

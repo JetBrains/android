@@ -40,7 +40,7 @@ public class MeasureSpec {
     int mode = getMode(measureSpec);
     int size = getSize(measureSpec);
 
-    StringBuilder sb = new StringBuilder("");
+    StringBuilder sb = new StringBuilder();
 
     if (mode == UNSPECIFIED) {
       sb.append("UNSPECIFIED ");

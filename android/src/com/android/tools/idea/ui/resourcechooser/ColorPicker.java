@@ -1,10 +1,10 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.ui.resourcechooser;
 
-import com.android.tools.idea.editors.theme.ColorUtils;
-import com.android.tools.idea.editors.theme.MaterialColorUtils;
 import com.android.tools.adtui.ui.ClickableLabel;
 import com.android.tools.adtui.util.GraphicsUtil;
+import com.android.tools.idea.editors.theme.ColorUtils;
+import com.android.tools.idea.editors.theme.MaterialColorUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -27,21 +27,48 @@ import com.intellij.util.Alarm;
 import com.intellij.util.Consumer;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.ColorIcon;
+import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
-import java.util.Locale;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.plaf.basic.BasicButtonUI;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.PlainDocument;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.AWTException;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Insets;
+import java.awt.KeyboardFocusManager;
+import java.awt.LinearGradientPaint;
+import java.awt.MouseInfo;
+import java.awt.Point;
+import java.awt.PointerInfo;
+import java.awt.Polygon;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Robot;
+import java.awt.Toolkit;
+import java.awt.Transparency;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -50,6 +77,32 @@ import java.awt.image.MemoryImageSource;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JRootPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.plaf.basic.BasicButtonUI;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.PlainDocument;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Color picker with support for Material suggestions and ARGB.
@@ -101,8 +154,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
   }
 
   private ColorPicker(Disposable parent,
-                      @Nullable Color color, boolean enableOpacity,
-                      ColorPickerListener[] listeners, boolean opacityInPercent) {
+          @Nullable Color color, boolean enableOpacity,
+          ColorPickerListener[] listeners, boolean opacityInPercent) {
     myUpdateQueue = new Alarm(Alarm.ThreadToUse.SWING_THREAD, parent);
     myAlpha = createColorField(false);
     myRed = createColorField(false);
@@ -253,8 +306,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
   }
 
   public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithDescription,
-                                    boolean isBackground,
-                                    boolean displayWarning) {
+          boolean isBackground,
+          boolean displayWarning) {
     myPreviewComponent.setContrastParameters(contrastColorsWithDescription, isBackground, displayWarning);
   }
 
@@ -442,11 +495,11 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
   @Nullable
   public static Color showDialog(Component parent,
-                                 String caption,
-                                 @Nullable Color preselectedColor,
-                                 boolean enableOpacity,
-                                 @Nullable ColorPickerListener[] listeners,
-                                 boolean opacityInPercent) {
+          String caption,
+          @Nullable Color preselectedColor,
+          boolean enableOpacity,
+          @Nullable ColorPickerListener[] listeners,
+          boolean opacityInPercent) {
     final ColorPickerDialog dialog = new ColorPickerDialog(parent, caption, preselectedColor, enableOpacity, listeners, opacityInPercent);
     dialog.show();
     if (dialog.getExitCode() == DialogWrapper.OK_EXIT_CODE) {
@@ -778,8 +831,8 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
      * @param displayWarning whether or not to display a warning for contrast issues
      */
     public void setContrastParameters(@NotNull ImmutableMap<String, Color> contrastColorsWithDescription,
-                                      boolean isBackgroundColor,
-                                      boolean displayWarning) {
+            boolean isBackgroundColor,
+            boolean displayWarning) {
       myIsContrastPreview = true;
       myContrastColorsWithDescription = contrastColorsWithDescription;
       myContrastColorSet = ImmutableSet.copyOf(contrastColorsWithDescription.values());
@@ -1027,11 +1080,11 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     private final boolean myOpacityInPercent;
 
     public ColorPickerDialog(Component parent,
-                             String caption,
-                             @Nullable Color preselectedColor,
-                             boolean enableOpacity,
-                             @Nullable ColorPickerListener[] listeners,
-                             boolean opacityInPercent) {
+            String caption,
+            @Nullable Color preselectedColor,
+            boolean enableOpacity,
+            @Nullable ColorPickerListener[] listeners,
+            boolean opacityInPercent) {
       super(parent, true);
       myListeners = listeners;
       setTitle(caption);
@@ -1236,7 +1289,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
 
         myZoomRect = new Rectangle(0, 0, 32, 32);
 
-        myMaskImage = UIUtil.createImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        myMaskImage = ImageUtil.createImage(32, 32, BufferedImage.TYPE_INT_ARGB);
         Graphics2D maskG = myMaskImage.createGraphics();
         maskG.setColor(Color.BLUE);
         maskG.fillRect(0, 0, 32, 32);
@@ -1246,7 +1299,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         maskG.fillRect(0, 0, 32, 32);
         maskG.dispose();
 
-        myMagnifierImage = UIUtil.createImage(32, 32, BufferedImage.TYPE_INT_ARGB);
+        myMagnifierImage = ImageUtil.createImage(32, 32, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = myMagnifierImage.createGraphics();
 
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -1259,7 +1312,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         graphics.dispose();
 
         myImage = myParent.getGraphicsConfiguration().createCompatibleImage(myMagnifierImage.getWidth(), myMagnifierImage.getHeight(),
-                                                                            Transparency.TRANSLUCENT);
+                Transparency.TRANSLUCENT);
 
         myGraphics = (Graphics2D)myImage.getGraphics();
         myGraphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
@@ -1457,7 +1510,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         @Override
         public void mouseWheelMoved(MouseWheelEvent e) {
           final int amount = e.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL ? e.getUnitsToScroll() * e.getScrollAmount() :
-                             e.getWheelRotation() < 0 ? -e.getScrollAmount() : e.getScrollAmount();
+                  e.getWheelRotation() < 0 ? -e.getScrollAmount() : e.getScrollAmount();
           int pointerValue = myPointerValue + amount;
           pointerValue = pointerValue < MARGIN ? MARGIN : pointerValue;
           int size = getWidth();
@@ -1502,12 +1555,12 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
         myTooltipHint.setCancelOnOtherWindowOpen(false);
 
         final HintHint hint = new HintHint(this, point)
-          .setPreferredPosition(Balloon.Position.above)
-          .setBorderColor(Color.BLACK)
-          .setAwtTooltip(true)
-          .setFont(UIUtil.getLabelFont().deriveFont(Font.BOLD))
-          .setTextBg(HintUtil.getInformationColor())
-          .setShowImmediately(true);
+                .setPreferredPosition(Balloon.Position.above)
+                .setBorderColor(Color.BLACK)
+                .setAwtTooltip(true)
+                .setFont(StartupUiUtil.getLabelFont().deriveFont(Font.BOLD))
+                .setTextBg(HintUtil.getInformationColor())
+                .setShowImmediately(true);
 
         final Component owner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
         myTooltipHint.show(this, point.x, point.y, owner instanceof JComponent ? (JComponent)owner : null, hint);
@@ -1651,7 +1704,7 @@ public class ColorPicker extends JPanel implements ColorListener, DocumentListen
     }
 
     @Override
-     protected int valueToPointerValue(int value) {
+    protected int valueToPointerValue(int value) {
       float proportion = (getWidth() - 2 * MARGIN) / 360f;
       return MARGIN + (int)(value * proportion);
     }

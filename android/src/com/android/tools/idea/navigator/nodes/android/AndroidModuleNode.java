@@ -80,21 +80,21 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
 
   @Override
   @NotNull
-  protected Collection<AbstractTreeNode> getModuleChildren() {
+  protected Collection<AbstractTreeNode<?>> getModuleChildren() {
     AndroidFacet facet = AndroidFacet.getInstance(getModule());
-    if (facet == null || facet.getConfiguration().getModel() == null) {
+    if (facet == null || facet.getModel() == null) {
       return platformGetChildren();
     }
     return getChildren(facet, getSettings(), myProjectViewPane, AndroidProjectViewPane.getSourceProviders(facet));
   }
 
   @NotNull
-  static Collection<AbstractTreeNode> getChildren(@NotNull AndroidFacet facet,
+  static Collection<AbstractTreeNode<?>> getChildren(@NotNull AndroidFacet facet,
                                                   @NotNull ViewSettings settings,
                                                   @NotNull AndroidProjectViewPane projectViewPane,
                                                   @NotNull Iterable<IdeaSourceProvider> providers) {
     Project project = facet.getModule().getProject();
-    List<AbstractTreeNode> result = new ArrayList<>();
+    List<AbstractTreeNode<?>> result = new ArrayList<>();
 
     AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
     HashMultimap<AndroidSourceType, VirtualFile> sourcesByType = getSourcesBySourceType(providers, androidModuleModel);
@@ -258,7 +258,7 @@ public class AndroidModuleNode extends AndroidViewModuleNode {
 
       // If there is a native-containing module then check it for externally referenced header files
       AndroidFacet facet = AndroidFacet.getInstance(getModule());
-      if (facet == null || facet.getConfiguration().getModel() == null) {
+      if (facet == null || facet.getModel() == null) {
         return false;
       }
       NdkModuleModel ndkModuleModel = NdkModuleModel.get(facet.getModule());

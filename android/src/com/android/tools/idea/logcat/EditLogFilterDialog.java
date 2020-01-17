@@ -21,7 +21,7 @@ import com.intellij.ui.*;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
 import com.intellij.util.IconUtil;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -339,9 +339,9 @@ final class EditLogFilterDialog extends DialogWrapper {
                                 myFilterNameField);
     }
 
-    if (name.equals(AndroidLogcatView.NO_FILTERS)
-        || name.equals(AndroidLogcatView.SELECTED_APP_FILTER)
-        || name.equals(AndroidLogcatView.EDIT_FILTER_CONFIGURATION)) {
+    if (name.equals(AndroidLogcatView.getNoFilters())
+        || name.equals(AndroidLogcatView.getSelectedAppFilter())
+        || name.equals(AndroidLogcatView.getEditFilterConfiguration())) {
       return new ValidationInfo(AndroidBundle.message("android.logcat.new.filter.dialog.name.busy.error", name));
     }
 

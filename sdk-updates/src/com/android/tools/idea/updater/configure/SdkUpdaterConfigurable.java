@@ -49,6 +49,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.AncestorListenerAdapter;
 import com.intellij.ui.JBColor;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,7 +87,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   @Nls
   @Override
   public String getDisplayName() {
-    return "Android SDK Updater";
+    return AndroidBundle.message("configurable.SdkUpdaterConfigurable.display.name");
   }
 
   @Nullable
@@ -398,7 +399,7 @@ public class SdkUpdaterConfigurable implements SearchableConfigurable {
   }
 
   static boolean confirmChange(HtmlBuilder message) {
-    String[] options = {Messages.OK_BUTTON, Messages.CANCEL_BUTTON};
+    String[] options = {Messages.getOkButton(), Messages.getCancelButton()};
     Icon icon = AllIcons.General.Warning;
 
     // I would use showOkCancelDialog but Mac sheet panels do not gracefully handle long messages and their buttons can display offscreen

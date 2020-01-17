@@ -27,6 +27,7 @@ import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.serviceContainer.NonInjectable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -69,6 +70,7 @@ public class AsyncDevicesGetter {
   }
 
   @VisibleForTesting
+  @NonInjectable
   AsyncDevicesGetter(@NotNull Project project,
                      @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabled,
                      @NotNull KeyToConnectionTimeMap map) {
@@ -191,7 +193,7 @@ public class AsyncDevicesGetter {
       return;
     }
 
-    Object platform = facet.getConfiguration().getAndroidPlatform();
+    Object platform = facet.getAndroidPlatform();
 
     if (platform == null) {
       myChecker = null;

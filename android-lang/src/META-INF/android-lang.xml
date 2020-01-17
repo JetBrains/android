@@ -25,15 +25,16 @@
   <extensions defaultExtensionNs="com.intellij">
     <!-- Android IDL support -->
     <lang.parserDefinition language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.AidlParserDefinition"/>
-    <lang.syntaxHighlighterFactory language="AIDL"
-                                   implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighter language="AIDL"
+                                   implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlSyntaxHighlighter"/>
     <annotator language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.highlight.AidlClassNameAnnotator" order="first"/>
     <lang.commenter language="AIDL" implementationClass="com.intellij.lang.java.JavaCommenter"/>
     <lang.findUsagesProvider language="AIDL" implementationClass="com.android.tools.idea.lang.aidl.findUsages.AidlFindUsageProvider"/>
     <findUsagesHandlerFactory implementation="com.android.tools.idea.lang.aidl.findUsages.AidlFindUsageHandlerFactory"/>
 
     <!-- Proguard support -->
-    <fileTypeFactory implementation="com.android.tools.idea.lang.proguard.ProguardFileTypeFactory"/>
+    <fileType name="ProGuard File" implementationClass="com.android.tools.idea.lang.proguard.ProguardFileType" language="PROGUARD"
+              patterns="*.pro;proguard-*.txt;proguard.cfg" fieldName="INSTANCE"/>
     <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition"/>
 
     <lang.parserDefinition language="PROGUARD_R8"
@@ -44,19 +45,20 @@
     <typedHandler implementation="com.android.tools.idea.lang.proguardR8.ProguardR8TypedHandler" id="proguardR8CompletionAutoPopup"/>
     <lang.elementManipulator forClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedName"
                              implementationClass="com.android.tools.idea.lang.proguardR8.psi.ProguardR8QualifiedNameManipulator"/>
-    <lang.syntaxHighlighterFactory language="PROGUARD"
-                                   implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighter language="PROGUARD"
+                                   implementationClass="com.android.tools.idea.lang.proguard.ProguardSyntaxHighlighter"/>
     <lang.commenter language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCommenter"/>
     <completion.contributor language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardCompletionContributor"/>
 
     <!-- Renderscript -->
     <lang.parserDefinition language="Renderscript"
                            implementationClass="com.android.tools.idea.lang.rs.RenderscriptParserDefinition"/>
-    <lang.syntaxHighlighterFactory language="Renderscript"
-                                   implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighterFactory"/>
+    <lang.syntaxHighlighter language="Renderscript"
+                                   implementationClass="com.android.tools.idea.lang.rs.RenderscriptSyntaxHighlighter"/>
 
     <!-- SQL support -->
-    <fileTypeFactory implementation="com.android.tools.idea.lang.androidSql.AndroidSqlFileTypeFactory"/>
+    <fileType name="Android Room SQL" implementationClass="com.android.tools.idea.lang.androidSql.ANDROID_SQL_FILE_TYPE"
+              fieldName="INSTANCE" language="RoomSql"/>
     <lang.parserDefinition language="RoomSql"
                            implementationClass="com.android.tools.idea.lang.androidSql.parser.AndroidSqlParserDefinition"/>
     <lang.syntaxHighlighterFactory language="RoomSql"

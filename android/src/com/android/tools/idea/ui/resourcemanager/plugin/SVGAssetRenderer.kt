@@ -20,6 +20,8 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.UIUtil
 import org.apache.batik.anim.dom.SAXSVGDocumentFactory
+import com.intellij.ui.svg.SaxSvgDocumentFactory
+import com.intellij.util.ui.ImageUtil
 import org.apache.batik.transcoder.TranscoderException
 import org.apache.batik.transcoder.TranscoderInput
 import org.apache.batik.transcoder.TranscoderOutput
@@ -73,7 +75,7 @@ class SVGAssetRenderer : DesignAssetRenderer {
 
     private inner class MyTranscoder : ImageTranscoder() {
       override fun createImage(w: Int, h: Int): BufferedImage {
-        return UIUtil.createImage(w, h, BufferedImage.TYPE_INT_ARGB)
+        return ImageUtil.createImage(w, h, BufferedImage.TYPE_INT_ARGB)
       }
 
       @Throws(TranscoderException::class)

@@ -30,7 +30,6 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.ArrayUtil
 import com.intellij.util.Processor
-import com.intellij.util.containers.HashSet
 import org.jetbrains.android.facet.AndroidFacet
 
 /**
@@ -115,7 +114,7 @@ class LayoutBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
 
   override fun processMethodsWithName(name: String,
                                       scope: GlobalSearchScope,
-                                      processor: Processor<PsiMethod>): Boolean {
+                                      processor: Processor<in PsiMethod>): Boolean {
     for (method in getMethodsByName(name, scope)) {
       if (!processor.process(method)) {
         return false

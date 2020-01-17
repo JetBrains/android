@@ -1,3 +1,4 @@
+// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.converter;
 
 import com.intellij.conversion.ProjectConversionTestUtil;
@@ -6,7 +7,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileFilter;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.HeavyPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import org.jetbrains.android.AndroidTestBase;
 
@@ -16,13 +17,13 @@ import java.io.IOException;
 /**
  * @author Eugene.Kudelevsky
  */
-public class AndroidConversionTest extends PlatformTestCase {
+public class AndroidConversionTest extends HeavyPlatformTestCase {
   public void testConvert() throws IOException {
     final String testDataPath = AndroidTestBase.getTestDataPath() + "/conversion/proguardOptions";
     final File testData = new File(testDataPath, "before");
     final File tempDir = FileUtil.createTempDirectory("project", null);
     FileUtil.copyDir(testData, tempDir);
-    ProjectConversionTestUtil.convert(tempDir.getAbsolutePath());
+    ProjectConversionTestUtil.convert(tempDir.toPath().toAbsolutePath());
     final File expectedDataDir = new File(testDataPath, "after");
     PlatformTestUtil.assertDirectoriesEqual(
       LocalFileSystem.getInstance().refreshAndFindFileByIoFile(expectedDataDir),

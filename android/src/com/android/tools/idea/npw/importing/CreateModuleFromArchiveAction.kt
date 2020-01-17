@@ -36,6 +36,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import java.io.File
 import java.io.IOException
+import java.nio.file.Paths
 
 private val log: Logger get() = logger(::log)
 
@@ -75,9 +76,9 @@ fun createModuleFromArchive(
     .withName("create module $gradlePath")
     .withGlobalUndo()
     .withUndoConfirmationPolicy(UndoConfirmationPolicy.REQUEST_CONFIRMATION).run<Throwable> {
-      val moduleLocation = GradleUtil.getModuleDefaultPath(project.baseDir, gradlePath)
+      val moduleLocation = GradleUtil.getModuleDefaultPath(Paths.get(project.basePath), gradlePath)
       try {
-        val moduleRoot = VfsUtil.createDirectoryIfMissing(moduleLocation.absolutePath)
+        val moduleRoot = VfsUtil.createDirectoryIfMissing(moduleLocation.toAbsolutePath().toString())
         val sourceFile = VfsUtil.findFileByIoFile(archivePath, true)
         if (sourceFile != null && moduleRoot != null) {
           val requestor = object : LargeFileWriteRequestor {}

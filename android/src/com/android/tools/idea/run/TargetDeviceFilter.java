@@ -56,14 +56,14 @@ public abstract class TargetDeviceFilter implements Predicate<IDevice> {
         return myPreferredAvd.equals(avdName);
       }
 
-      AndroidPlatform androidPlatform = myFacet.getConfiguration().getAndroidPlatform();
+      AndroidPlatform androidPlatform = myFacet.getAndroidPlatform();
       if (androidPlatform == null) {
         Logger.getInstance(EmulatorFilter.class).warn("Target Android platform not set for module: " + myFacet.getModule().getName());
         return false;
       } else {
         AndroidDevice connectedDevice = new ConnectedAndroidDevice(device, null);
-        Set<String> supportedAbis = myFacet.getConfiguration().getModel() instanceof AndroidModuleModel ?
-                                    ((AndroidModuleModel)myFacet.getConfiguration().getModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
+        Set<String> supportedAbis = myFacet.getModel() instanceof AndroidModuleModel ?
+                                    ((AndroidModuleModel)myFacet.getModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
                                     null;
 
         LaunchCompatibility compatibility = connectedDevice.canRun(AndroidModuleInfo.getInstance(myFacet).getRuntimeMinSdkVersionSynchronously(),

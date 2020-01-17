@@ -16,12 +16,13 @@
 package com.android.tools.idea.common.property.inspector;
 
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.common.property.NlProperty;
+import com.android.tools.idea.common.property.PropertiesManager;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.ui.LafManager;
 import com.intellij.ide.ui.LafManagerListener;
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,7 +36,7 @@ public abstract class InspectorProviders<PropMgr extends PropertiesManager<PropM
   public InspectorProviders(PropMgr propertiesManager, Disposable parentDisposable) {
     myPropertiesManager = propertiesManager;
     Disposer.register(parentDisposable, this);
-    LafManager.getInstance().addLafManagerListener(this);
+    ApplicationManager.getApplication().getMessageBus().connect(this).subscribe(LafManagerListener.TOPIC, this);
   }
 
   @NotNull
@@ -75,7 +76,6 @@ public abstract class InspectorProviders<PropMgr extends PropertiesManager<PropM
 
   @Override
   public void dispose() {
-    LafManager.getInstance().removeLafManagerListener(this);
   }
 
   protected abstract List<InspectorProvider<PropMgr>> getProviders();

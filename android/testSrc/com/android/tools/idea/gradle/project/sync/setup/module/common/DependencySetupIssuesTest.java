@@ -41,7 +41,7 @@ public class DependencySetupIssuesTest extends PlatformTestCase {
     initMocks(this);
 
     Project project = getProject();
-    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project);
+    mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
     myIssues = new DependencySetupIssues(mySyncMessages);
   }
 

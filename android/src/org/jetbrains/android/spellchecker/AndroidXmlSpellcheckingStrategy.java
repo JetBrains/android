@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.spellchecker;
 
-import com.android.SdkConstants;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.lint.client.api.DefaultConfiguration;
 import com.android.tools.lint.detector.api.Lint;
@@ -87,31 +86,22 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
     // check which language the dictionary/dictionaries correspond to,
     // and english.dic is included by default.
 
-    boolean isAndroid = AndroidFacet.getInstance(element) != null;
-    if (isAndroid) {
-      return true;
-    }
+    PsiFile file = element.getContainingFile();
+    if (!(file instanceof XmlFile)) return false;
 
-    if (isLintConfigElement(element)) {
-      return true;
-    }
-
-    return false;
+    return AndroidFacet.getInstance(file) != null || isLintConfig((XmlFile)file);
   }
 
-  private static boolean isLintConfigElement(@NotNull PsiElement element) {
+  private static boolean isLintConfig(@NotNull XmlFile file) {
     // Skip baseline files and lint.xml files
-    XmlFile file = PsiTreeUtil.getParentOfType(element, XmlFile.class);
-    if (file != null) {
-      if (file.getName().equals(DefaultConfiguration.CONFIG_FILE_NAME)) {
+    if (file.getName().equals(DefaultConfiguration.CONFIG_FILE_NAME)) {
+      return true;
+    }
+    XmlTag tag = file.getRootTag();
+    if (tag != null) {
+      String tagName = tag.getName();
+      if (DefaultConfiguration.TAG_LINT.equals(tagName) || TAG_ISSUES.equals(tagName)) {
         return true;
-      }
-      XmlTag tag = file.getRootTag();
-      if (tag != null) {
-        String tagName = tag.getName();
-        if (DefaultConfiguration.TAG_LINT.equals(tagName) || SdkConstants.TAG_ISSUES.equals(tagName)) {
-          return true;
-        }
       }
     }
     return false;
@@ -219,13 +209,13 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
         AndroidFacet facet = AndroidFacet.getInstance(file);
         VirtualFile virtualFile = file.getVirtualFile();
         if (facet != null && facet.requiresAndroidModel() && virtualFile != null) {
-          AndroidModel androidModel = facet.getConfiguration().getModel();
+          AndroidModel androidModel = facet.getModel();
           if (androidModel != null && androidModel.isGenerated(virtualFile)) {
             return false;
           }
         }
       }
-      else if (isLintConfigElement(element)) {
+      else if (isLintConfig(file)) {
         // lint config file: should not be spell checked
         return false;
       }

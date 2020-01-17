@@ -624,11 +624,11 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(dependencies).hasSize(4);
 
     ArtifactDependencyModel guiceGuava = dependencies.get(1);
-    assertThat(guiceGuava.compactNotation().toString()).isEqualTo("com.google.code.guice:guava:1.0");
+    assertThat(guiceGuava.compactNotation()).isEqualTo("com.google.code.guice:guava:1.0");
     dependenciesModel.remove(guiceGuava);
 
     ArtifactDependencyModel guava = dependencies.get(2);
-    assertThat(guava.compactNotation().toString()).isEqualTo("com.google.guava:guava:18.0");
+    assertThat(guava.compactNotation()).isEqualTo("com.google.guava:guava:18.0");
     dependenciesModel.remove(guava);
 
     assertTrue(buildModel.isModified());

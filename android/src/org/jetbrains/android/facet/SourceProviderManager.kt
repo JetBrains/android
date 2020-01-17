@@ -64,7 +64,7 @@ private class SourceProviderManagerImpl(val facet: AndroidFacet) : SourceProvide
    */
   override val mainSourceProvider: SourceProvider
     get() {
-      return facet.configuration.model?.defaultSourceProvider
+      return facet.model?.defaultSourceProvider
              ?: mainSourceSet
              ?: LegacySourceProvider(facet).also { mainSourceSet = it }
     }

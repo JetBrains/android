@@ -33,13 +33,16 @@ import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.*
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
+import com.intellij.testFramework.registerExtension
 import com.intellij.testFramework.runInEdtAndWait
+import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.AndroidTestCase.applyAndroidCodeStyleSettings
 import org.jetbrains.android.AndroidTestCase.initializeModuleFixtureBuilderWithSrcAndGen
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.runner.Description
 import java.io.File
+import java.nio.file.Path
 
 /**
  * Rule that provides access to a [Project] containing one module configured
@@ -47,7 +50,7 @@ import java.io.File
  *
  * The defaults settings are using a [LightTempDirTestFixtureImpl] which means
  * that it does not create any file on disk,
- * but instead relly on  a [com.intellij.openapi.vfs.ex.temp.TempFileSystem]].
+ * but instead rely on  a [com.intellij.openapi.vfs.ex.temp.TempFileSystem]].
  *
  * For tests that rely on file on disk, use the [AndroidProjectRule.Factory.onDisk()]
  * factory method to use a full on disk fixture with a single module, otherwise use
@@ -101,7 +104,7 @@ class AndroidProjectRule private constructor(
   companion object {
     /**
      * Returns an [AndroidProjectRule] that uses a fixture which create the
-     * project in an in memeroy TempFileSystem
+     * project in an in memory TempFileSystem
      *
      * @see IdeaTestFixtureFactory.createLightFixtureBuilder()
      */
@@ -150,8 +153,8 @@ class AndroidProjectRule private constructor(
 
   fun <T> mockProjectService(serviceType: Class<T>): T = mocks.mockProjectService(serviceType)
 
-  fun <T> registerExtension(epName: ExtensionPointName<T>, extension: T) =
-    PlatformTestUtil.registerExtension<T>(Extensions.getArea(project), epName, extension, fixture.projectDisposable)
+  fun <T : Any> registerExtension(epName: ExtensionPointName<T>, extension: T) =
+    project.registerExtension(epName, extension, fixture.projectDisposable)
 
   fun <T: CodeInsightTestFixture> getFixture(type: Class<T>): T? {
     return if (type.isInstance(fixture)) fixture as T else null
@@ -216,7 +219,7 @@ class AndroidProjectRule private constructor(
             // Projects set up to match the provided AndroidModel require content files to be located under the project directory.
             // Otherwise adding a new directory may require re-(fake)syncing to make it visible to the project.
             object : TempDirTestFixtureImpl() {
-                override fun getTempHome(): File = toSystemDependentPath(projectBuilder.fixture.project.basePath)!!
+                override fun getTempHome(): Path? = toSystemDependentPath(projectBuilder.fixture.project.basePath)?.toPath()
             }
         }
 
@@ -259,6 +262,7 @@ class AndroidProjectRule private constructor(
       ApplicationManager.getApplication().runWriteAction { facetModel.commit() }
       facets.clear()
       CodeStyleSettingsManager.getInstance(project).dropTemporarySettings()
+      AndroidTestBase.cleanupMockitoThreadLocals()
     }
     fixture.tearDown()
   }

@@ -33,9 +33,8 @@ import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.PlatformTestUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -109,7 +108,7 @@ public class ThemeResolverTest extends AndroidTestCase {
   public void testRequiredBaseThemesWithDesignLibraryPresent() {
     TestProjectSystem projectSystem = new TestProjectSystem(getProject(), TestRepositories.PLATFORM_SUPPORT_LIBS);
     ExtensionPointName<AndroidProjectSystemProvider> epName = new ExtensionPointName<>("com.android.project.projectsystem");
-    PlatformTestUtil.registerExtension(Extensions.getArea(getProject()), epName, projectSystem, getTestRootDisposable());
+    ServiceContainerUtil.registerExtension(getProject(), epName, projectSystem, getTestRootDisposable());
     projectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myModule, new GradleVersion(1337, 600613));
     projectSystem.addDependency(GoogleMavenArtifactId.DESIGN, myModule, new GradleVersion(1338, 600614));
 
@@ -147,7 +146,7 @@ public class ThemeResolverTest extends AndroidTestCase {
   private void doTestRecommendedThemesAppcompat() {
     TestProjectSystem projectSystem = new TestProjectSystem(getProject(), TestRepositories.PLATFORM_SUPPORT_LIBS);
     ExtensionPointName<AndroidProjectSystemProvider> epName = new ExtensionPointName<>("com.android.project.projectsystem");
-    PlatformTestUtil.registerExtension(Extensions.getArea(getProject()), epName, projectSystem, getTestRootDisposable());
+    ServiceContainerUtil.registerExtension(getProject(), epName, projectSystem, getTestRootDisposable());
     projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, myModule, new GradleVersion(1337, 600613));
 
     ResourceNamespace appcompatNamespace =

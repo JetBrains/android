@@ -17,12 +17,7 @@
 package com.android.tools.idea.run.tasks;
 
 import com.android.ddmlib.IDevice;
-import com.android.tools.deployer.AdbClient;
-import com.android.tools.deployer.AdbInstaller;
-import com.android.tools.deployer.DeployMetric;
-import com.android.tools.deployer.Deployer;
-import com.android.tools.deployer.DeployerException;
-import com.android.tools.deployer.Installer;
+import com.android.tools.deployer.*;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.DeploymentService;
@@ -43,13 +38,16 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.playback.commands.ActionCommand;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowId;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.event.HyperlinkEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,9 +55,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import javax.swing.event.HyperlinkEvent;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractDeployTask implements LaunchTask {
 
@@ -70,14 +65,16 @@ public abstract class AbstractDeployTask implements LaunchTask {
   @NotNull private final Map<String, List<File>> myPackages;
   @NotNull protected List<LaunchTaskDetail> mySubTaskDetails;
   private final boolean myFallback;
+  private final Computable<String> myInstallPathProvider;
 
   public static final Logger LOG = Logger.getInstance(AbstractDeployTask.class);
 
-  public AbstractDeployTask(
-    @NotNull Project project, @NotNull Map<String, List<File>> packages, boolean fallback) {
+  public AbstractDeployTask(@NotNull Project project, @NotNull Map<String, List<File>> packages, boolean fallback,
+                            Computable<String> installPathProvider) {
     myProject = project;
     myPackages = packages;
     myFallback = fallback;
+    myInstallPathProvider = installPathProvider;
     mySubTaskDetails = new ArrayList<>();
   }
 
@@ -143,12 +140,7 @@ public abstract class AbstractDeployTask implements LaunchTask {
     IDevice device, Deployer deployer, String applicationId, List<File> files) throws DeployerException;
 
   private String getLocalInstaller() {
-    File path = new File(PathManager.getHomePath(), "plugins/android/resources/installer");
-    if (!path.exists()) {
-      // Development mode
-      path = new File(PathManager.getHomePath(), "../../bazel-genfiles/tools/base/deploy/installer/android-installer");
-    }
-    return path.getAbsolutePath();
+    return myInstallPathProvider.compute();
   }
 
   protected static List<String> getPathsToInstall(@NotNull List<File> apkFiles) {

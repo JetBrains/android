@@ -56,12 +56,8 @@ public abstract class NlAbstractWindowManager extends LightToolWindowManager {
     myPreviousWindowAnchor = getEditorMode();
     myProject.getMessageBus().connect(this).subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
       @Override
-      public void stateChanged() {
-        if (myProject.isDisposed()) {
-          return;
-        }
-
-        final ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(id);
+      public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
+        final ToolWindow window = toolWindowManager.getToolWindow(id);
         ToolWindowType newWindowType = window.getType();
         ToolWindowAnchor newWindowAnchor = getEditorMode();
 

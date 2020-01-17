@@ -249,7 +249,7 @@ public class MemoryLiveAllocationTable extends DataStoreTable<MemoryLiveAllocati
       javaName = jniName.substring(classNameIndex + 1, jniName.length() - 1).replace('/', '.');
     }
     else {
-      javaName = jniName.substring(classNameIndex, jniName.length());
+      javaName = jniName.substring(classNameIndex);
       switch (javaName) {
         case "Z":
           javaName = "boolean";

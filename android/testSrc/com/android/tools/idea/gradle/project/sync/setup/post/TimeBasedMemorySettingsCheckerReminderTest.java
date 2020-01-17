@@ -32,24 +32,24 @@ public class TimeBasedMemorySettingsCheckerReminderTest extends PlatformTestCase
 
   public void testShouldNotCheckWhenDoNotAskForAppIsSet() {
     myReminder.setDoNotAskForApplication();
-    assertFalse(myReminder.shouldCheck(myProject));
+    assertFalse(myReminder.shouldCheck(getProject()));
   }
 
   public void testShouldNotCheckWhenDoNotAskForProjectIsSet() {
-    myReminder.setDoNotAsk(myProject);
-    assertFalse(myReminder.shouldCheck(myProject));
+    myReminder.setDoNotAsk(getProject());
+    assertFalse(myReminder.shouldCheck(getProject()));
   }
 
   public void testShouldNotCheckWhenTimePassedIsLessThanOneDay() {
     myReminder.storeLastCheckTimestamp(myCalendar.getTimeInMillis());
     myCalendar.add(Calendar.HOUR, 10);
-    assertFalse(myReminder.shouldCheck(myProject, myCalendar.getTimeInMillis()));
+    assertFalse(myReminder.shouldCheck(getProject(), myCalendar.getTimeInMillis()));
   }
 
   public void testShouldCheckAfterOneDay() {
     myReminder.storeLastCheckTimestamp(myCalendar.getTimeInMillis());
     myCalendar.add(Calendar.DATE, 1);
-    assertTrue(myReminder.shouldCheck(myProject, myCalendar.getTimeInMillis()));
+    assertTrue(myReminder.shouldCheck(getProject(), myCalendar.getTimeInMillis()));
   }
 
   public void testStoreLastCheckTimeStamp() {

@@ -44,7 +44,7 @@ import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ThreeState;
 import com.intellij.util.containers.ContainerUtil;
-import com.intellij.util.containers.HashSet;
+import java.util.HashSet;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -102,8 +102,8 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
     myFilter = filter;
     myMinSdkVersion = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersionSynchronously();
     myProjectTarget = projectTarget;
-    mySupportedAbis = facet.getConfiguration().getModel() instanceof AndroidModuleModel ?
-                      ((AndroidModuleModel)facet.getConfiguration().getModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
+    mySupportedAbis = facet.getModel() instanceof AndroidModuleModel ?
+                      ((AndroidModuleModel)facet.getModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :
                       null;
 
     // Currently, we only look at whether the device supports the watch feature.

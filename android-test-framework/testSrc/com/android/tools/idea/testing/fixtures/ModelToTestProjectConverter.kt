@@ -15,17 +15,9 @@
  */
 package com.android.tools.idea.testing.fixtures
 
-import com.android.projectmodel.ARTIFACT_NAME_MAIN
-import com.android.projectmodel.AndroidModel
-import com.android.projectmodel.AndroidPathType
-import com.android.projectmodel.AndroidSubmodule
-import com.android.projectmodel.Artifact
-import com.android.projectmodel.ProjectLibrary
-import com.android.projectmodel.submodulePathOf
-import com.android.projectmodel.visitEach
+import com.android.projectmodel.*
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.ide.highlighter.ModuleFileType
-import com.intellij.idea.IdeaTestApplication
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleTypeId
@@ -37,11 +29,8 @@ import com.intellij.openapi.roots.ModifiableRootModel
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.testFramework.LightProjectDescriptor
-import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
-import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
-import com.intellij.testFramework.fixtures.JavaTestFixtureFactory
-import com.intellij.testFramework.fixtures.TempDirTestFixture
+import com.intellij.testFramework.TestApplicationManager
+import com.intellij.testFramework.fixtures.*
 import com.intellij.testFramework.fixtures.impl.LightTempDirTestFixtureImpl
 import com.intellij.testFramework.fixtures.impl.TempDirTestFixtureImpl
 import org.jetbrains.android.AndroidTestCase
@@ -72,7 +61,7 @@ object ModelToTestProjectConverter {
       Mode.DISK -> TempDirTestFixtureImpl()
     }
 
-    IdeaTestApplication.getInstance() // Initialize the application, so that tempDirFixture can run.
+    TestApplicationManager.getInstance() // Initialize the application, so that tempDirFixture can run.
     val model = runWriteAction {
       modelFactory(tempDirFixture)
     }

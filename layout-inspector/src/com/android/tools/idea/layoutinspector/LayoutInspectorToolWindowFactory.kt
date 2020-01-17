@@ -37,7 +37,7 @@ fun lookupDeviceWindow(toolWindow: ToolWindow): DeviceViewPanel? =
 /**
  * ToolWindowFactory: For creating a layout inspector tool window for the project.
  */
-class LayoutInspectorToolWindowFactory : ToolWindowFactory {
+internal class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val contentManager = toolWindow.contentManager

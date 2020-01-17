@@ -21,14 +21,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.xml.XmlName;
-import java.lang.reflect.Type;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Predicate;
 import org.jetbrains.android.dom.layout.LayoutElement;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.dom.navigation.NavElement;
@@ -40,6 +33,13 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.lang.reflect.Type;
+import java.util.*;
+import java.util.function.Predicate;
+
+import static com.android.SdkConstants.CLASS_PREFERENCE_GROUP;
+import static com.android.SdkConstants.CLASS_PREFERENCE_GROUP_ANDROIDX;
 
 /**
  * Utility functions for enumerating available children tag types in the context of a given XML tag.
