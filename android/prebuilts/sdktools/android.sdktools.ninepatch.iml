@@ -7,9 +7,10 @@
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-android.sdktools.ninepatch">
+      <library name="precompiled-android.sdktools.ninepatch" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:ninepatch:26.6.0.0" />
         <CLASSES>
-          <root url="jar:///home/andrei/projects/aosp/studio-master-dev/bazel-bin/tools/base/ninepatch/studio.android.sdktools.ninepatch.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/ninepatch/26.6.0.0/ninepatch-26.6.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

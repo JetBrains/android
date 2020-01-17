@@ -7,9 +7,10 @@
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-android.sdktools.pixelprobe">
+      <library name="precompiled-android.sdktools.pixelprobe" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:pixelprobe:26.6.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../aosp/studio-master-dev/bazel-bin/tools/base/pixelprobe/studio.android.sdktools.pixelprobe.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/pixelprobe/26.6.0.0/pixelprobe-26.6.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

@@ -5,9 +5,10 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-android.sdktools.tracer">
+      <library name="precompiled-android.sdktools.tracer" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:tracer:26.6.0.0" />
         <CLASSES>
-          <root url="jar:///home/andrei/projects/aosp/studio-master-dev/bazel-bin/tools/base/tracer/studio.android.sdktools.tracer.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/tracer/26.6.0.0/tracer-26.6.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

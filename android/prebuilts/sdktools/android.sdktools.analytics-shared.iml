@@ -15,18 +15,20 @@
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-analytics-shared">
+      <library name="precompiled-analytics-shared" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:analytics-shared:26.6.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../aosp/studio-master-dev/bazel-bin/tools/analytics-library/shared/analytics-shared.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/analytics-shared/26.6.0.0/analytics-shared-26.6.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
     <orderEntry type="module-library" exported="" scope="TEST">
-      <library name="analytics-shared_test">
+      <library name="analytics-shared_test" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:analytics-shared_test:26.6.0.0" />
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../aosp/studio-master-dev/bazel-bin/tools/analytics-library/shared/analytics-shared_test.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/analytics-shared_test/26.6.0.0/analytics-shared_test-26.6.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

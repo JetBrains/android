@@ -11,9 +11,10 @@
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-android.sdktools.layoutlib-api">
+      <library name="precompiled-android.sdktools.layoutlib-api" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:layoutlib-api:26.6.0.0" />
         <CLASSES>
-          <root url="jar:///home/andrei/projects/aosp/studio-master-dev/bazel-bin/tools/base/layoutlib-api/studio.android.sdktools.layoutlib-api.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layoutlib-api/26.6.0.0/layoutlib-api-26.6.0.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
