@@ -37,10 +37,10 @@ import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListVi
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
-import com.android.tools.idea.ui.resourcemanager.model.TypeFilter
-import com.android.tools.idea.ui.resourcemanager.model.TypeFilterKind
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManager
+import com.android.tools.idea.ui.resourcemanager.model.TypeFilter
+import com.android.tools.idea.ui.resourcemanager.model.TypeFilterKind
 import com.android.tools.idea.ui.resourcemanager.model.resolveValue
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerImpl
@@ -229,24 +229,33 @@ class ResourceExplorerListViewModelImpl(
    * However, this approach means that it might not display some attributes that are expected to be used in a layout if the configuration is
    * not set up correctly.
    */
-  private fun getThemeAttributes(forFacet: AndroidFacet, type: ResourceType): ResourceSection? {
+  private fun getThemeAttributes(forFacet: AndroidFacet, type: ResourceType, typeFilters: List<TypeFilter>): ResourceSection? {
     if (configuration == null) return null
 
     val projectThemeAttributes =
       ResourceRepositoryManager.getInstance(forFacet).projectResources.let { resourceRepository ->
-        resourceRepository.getNonPrivateAttributeResources(resourceRepository.namespaces.toList(), resourceResolver, configuration, type)
+        resourceRepository.getNonPrivateAttributeResources(resourceRepository.namespaces.toList(),
+                                                           resourceResolver,
+                                                           configuration,
+                                                           type,
+                                                           typeFilters)
       }
     val libraryThemeAttributes = hashMapOf<String, ResourceItem>()
     ResourceRepositoryManager.getInstance(forFacet).libraryResources.forEach { resourceRepository ->
       resourceRepository.getNonPrivateAttributeResources(resourceRepository.namespaces.toList(),
                                                          resourceResolver,
                                                          configuration,
-                                                         type).let { libraryThemeAttributes.putAll(it) }
+                                                         type,
+                                                         typeFilters).let { libraryThemeAttributes.putAll(it) }
     }
     // Framework resources should have visibility properly defined. So we only get the public ones.
     val frameworkResources = configuration.frameworkResources
     val androidThemeAttributes = frameworkResources?.let {
-      frameworkResources.getPublicOnlyAttributeResources(listOf(ResourceNamespace.ANDROID), resourceResolver, configuration, type)
+      frameworkResources.getPublicOnlyAttributeResources(listOf(ResourceNamespace.ANDROID),
+                                                         resourceResolver,
+                                                         configuration,
+                                                         type,
+                                                         typeFilters)
     } ?: hashMapOf()
 
     // If any attributes are repeated, override them.
@@ -317,10 +326,7 @@ class ResourceExplorerListViewModelImpl(
       getAndroidResources(forFacet, resourceType, typeFilters)?.let { resources.add(it) }
     }
     if (showThemeAttributes) {
-      // TODO: Consider supporting filterTypeOptions in Theme attributes. Theme attributes are weird, in the sense that it could represent
-      //  different resources depending on the context, so applying (or not) these filters might be confusing. Might even be best to not
-      //  show theme attributes when these filters are in use.
-      getThemeAttributes(forFacet, resourceType)?.let { resources.add(it) }
+      getThemeAttributes(forFacet, resourceType, typeFilters)?.let { resources.add(it) }
     }
     return resources
   }
@@ -458,6 +464,70 @@ class ResourceExplorerListViewModelImpl(
     }
   }
 
+  /** Returns only the attributes in a [ResourceRepository] that are explicitly [ResourceVisibility.PUBLIC]. */
+  private fun ResourceRepository.getPublicOnlyAttributeResources(namespaces: List<ResourceNamespace>,
+                                                                 resourceResolver: ResourceResolver,
+                                                                 configuration: Configuration,
+                                                                 targetType: ResourceType,
+                                                                 typeFilters: List<TypeFilter>): HashMap<String, ResourceItem> {
+    return getAttributeResources(namespaces, resourceResolver, configuration, targetType, typeFilters) {
+      return@getAttributeResources (it as ResourceItemWithVisibility).visibility == ResourceVisibility.PUBLIC
+    }
+  }
+
+  /**
+   * Returns the attributes in a [ResourceRepository] that are not explicitly [ResourceVisibility.PRIVATE]. So it's assumed that if they are
+   * not [ResourceVisibility.PRIVATE] they're as good as public since visibility is not always specified.
+   */
+  private fun ResourceRepository.getNonPrivateAttributeResources(namespaces: List<ResourceNamespace>,
+                                                                 resourceResolver: ResourceResolver,
+                                                                 configuration: Configuration,
+                                                                 targetType: ResourceType,
+                                                                 typeFilters: List<TypeFilter>): HashMap<String, ResourceItem> {
+    return getAttributeResources(namespaces, resourceResolver, configuration, targetType, typeFilters) {
+      return@getAttributeResources if (it is ResourceItemWithVisibility) {
+        it.visibility != ResourceVisibility.PRIVATE
+      }
+      else true
+    }
+  }
+
+  /**
+   * Common function to extract theme attributes resources. Returns a map of the resource name and the actual [ResourceItem].
+   *
+   * Returns a map since it's expected for some of these attributes to be overridden from different [ResourceRepository]s. The map
+   * simplifies that process.
+   */
+  private fun ResourceRepository.getAttributeResources(namespaces: List<ResourceNamespace>,
+                                                       resourceResolver: ResourceResolver,
+                                                       configuration: Configuration,
+                                                       targetType: ResourceType,
+                                                       typeFilters: List<TypeFilter>,
+                                                       visibilityFilter: (ResourceItem) -> Boolean): HashMap<String, ResourceItem> {
+
+    val attributesMap = hashMapOf<String, ResourceItem>()
+    accept { resourceItem ->
+      if (resourceItem.type == ResourceType.ATTR && namespaces.contains(resourceItem.namespace) && visibilityFilter(resourceItem)) {
+        resourceResolver.findItemInTheme(resourceItem.referenceToSelf)?.let { attributeValue ->
+          if (attributeValue is StyleItemResourceValue && (ResolutionUtils.getAttrType(attributeValue, configuration) == targetType)) {
+            if (typeFilters.isNotEmpty()) {
+              // Should be filtered
+              val resolvedThemeAttribute = resourceResolver.resolveResValue(attributeValue)
+              if (resolvedThemeAttribute is ResourceItem && resolvedThemeAttribute.isValidForFilters(typeFilters)) {
+                attributesMap[resourceItem.name] = resourceItem
+              }
+            }
+            else {
+              attributesMap[resourceItem.name] = resourceItem
+            }
+          }
+        }
+      }
+      return@accept ResourceVisitor.VisitResult.CONTINUE
+    }
+    return attributesMap
+  }
+
   private val FilterOptions.currentResourceTypeActiveOptions get () = typeFiltersModel.getActiveFilters(currentResourceType)
 }
 
@@ -544,56 +614,4 @@ private fun getResourceDataType(asset: Asset, psiElement: PsiElement): String {
     resourceType == ResourceType.DRAWABLE || resourceType == ResourceType.MIPMAP -> resourceType.displayName + " File"
     else -> ""
   }
-}
-
-/** Returns only the attributes in a [ResourceRepository] that are explicitly [ResourceVisibility.PUBLIC]. */
-private fun ResourceRepository.getPublicOnlyAttributeResources(namespaces: List<ResourceNamespace>,
-                                                               resourceResolver: ResourceResolver,
-                                                               configuration: Configuration,
-                                                               targetType: ResourceType): HashMap<String, ResourceItem> {
-  return getAttributeResources(namespaces, resourceResolver, configuration, targetType) {
-    return@getAttributeResources (it as ResourceItemWithVisibility).visibility == ResourceVisibility.PUBLIC
-  }
-}
-
-/**
- * Returns the attributes in a [ResourceRepository] that are not explicitly [ResourceVisibility.PRIVATE]. So it's assumed that if they are
- * not [ResourceVisibility.PRIVATE] they're as good as public since visibility is not always specified.
- */
-private fun ResourceRepository.getNonPrivateAttributeResources(namespaces: List<ResourceNamespace>,
-                                                               resourceResolver: ResourceResolver,
-                                                               configuration: Configuration,
-                                                               targetType: ResourceType): HashMap<String, ResourceItem> {
-  return getAttributeResources(namespaces, resourceResolver, configuration, targetType) {
-    return@getAttributeResources if (it is ResourceItemWithVisibility) {
-      it.visibility != ResourceVisibility.PRIVATE
-    }
-    else true
-  }
-}
-
-/**
- * Common function to extract theme attributes resources. Returns a map of the resource name and the actual [ResourceItem].
- *
- * Returns a map since it's expected for some of these attributes to be overridden from different [ResourceRepository]s. The map simplifies
- * that process.
- */
-private fun ResourceRepository.getAttributeResources(namespaces: List<ResourceNamespace>,
-                                                     resourceResolver: ResourceResolver,
-                                                     configuration: Configuration,
-                                                     targetType: ResourceType,
-                                                     visibilityFilter: (ResourceItem) -> Boolean): HashMap<String, ResourceItem> {
-
-  val attributesMap = hashMapOf<String, ResourceItem>()
-  accept { resourceItem ->
-    if (resourceItem.type == ResourceType.ATTR && namespaces.contains(resourceItem.namespace) && visibilityFilter(resourceItem)) {
-      resourceResolver.findItemInTheme(resourceItem.referenceToSelf)?.let { resolvedValue ->
-        if (resolvedValue is StyleItemResourceValue && (ResolutionUtils.getAttrType(resolvedValue, configuration) == targetType)) {
-          attributesMap[resourceItem.name] = resourceItem
-        }
-      }
-    }
-    return@accept ResourceVisitor.VisitResult.CONTINUE
-  }
-  return attributesMap
 }
