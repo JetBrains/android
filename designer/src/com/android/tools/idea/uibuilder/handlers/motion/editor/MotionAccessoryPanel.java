@@ -72,8 +72,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   private static final boolean TEMP_HACK_FORCE_APPLY = false;
   private final Project myProject;
   private final NlDesignSurface myDesignSurface;
-  NlComponentTag myMotionLayoutTag;
-  NlComponent myMotionLayoutNlComponent;
+  private final ResourceNotificationManager.ResourceChangeListener myResourceListener;
+  private final NlComponentTag myMotionLayoutTag;
+  private final NlComponent myMotionLayoutNlComponent;
   MotionSceneTag myMotionScene;
   VirtualFile myMotionSceneFile;
   ViewGroupHandler.AccessoryPanelVisibility mVisibility;
@@ -115,7 +116,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
                               @NotNull NlComponent parent,
                               @NotNull ViewGroupHandler.AccessoryPanelVisibility visibility) {
     if (DEBUG) {
-      Debug.log("MotionAccessoryPanel created " + parent);
+      Debug.log("MotionAccessoryPanel created: " + this + "  parent: " + parent);
     }
     myDesignSurface = surface;
     myProject = surface.getProject();
@@ -125,6 +126,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     MotionLayoutComponentHelper.clearCache();
     myMotionHelper = MotionLayoutComponentHelper.create(myMotionLayoutNlComponent);
     myListeners = new ArrayList<>();
+    myResourceListener = createResourceChangeListener();
 
     Track.init(myDesignSurface);
     SelectionModel designSurfaceSelection = myDesignSurface.getSelectionModel();
@@ -274,7 +276,13 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       Debug.log("harness " + parent);
     }
     AndroidFacet facet = parent.getModel().getFacet();
-    ResourceNotificationManager.getInstance(myProject).addListener(new ResourceNotificationManager.ResourceChangeListener() {
+    ResourceNotificationManager.getInstance(myProject).addListener(myResourceListener, facet, null, null);
+    handleSelectionChanged(designSurfaceSelection, dsSelection);
+  }
+
+  @NotNull
+  private ResourceNotificationManager.ResourceChangeListener createResourceChangeListener() {
+    return new ResourceNotificationManager.ResourceChangeListener() {
       @Override
       public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
         boolean hasMotionSelection = myLastSelectedTags != null && mLastSelection != null;
@@ -297,8 +305,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
           LayoutPullParsers.saveFileIfNecessary(motionScene.mXmlFile);
         }
       }
-    }, facet, myMotionSceneFile, null);
-    handleSelectionChanged(designSurfaceSelection, dsSelection);
+    };
   }
 
   private void updateSelectionInLayoutEditor(@NotNull NlComponentTag tag) {
@@ -474,6 +481,8 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     mMotionEditor.stopAnimation();
     myMotionLayout = null;
     MotionLayoutComponentHelper.clearCache();
+    AndroidFacet facet = myMotionLayoutNlComponent.getModel().getFacet();
+    ResourceNotificationManager.getInstance(myProject).removeListener(myResourceListener, facet, null, null);
   }
 
   @Override
