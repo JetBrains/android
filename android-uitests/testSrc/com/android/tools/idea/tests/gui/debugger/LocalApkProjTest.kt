@@ -194,8 +194,8 @@ class LocalApkProjTest {
     ideFrame.editor
       .open(smaliFile)
       .awaitNotification(
-        "Disassembled classes.dex file. To set up breakpoints for debugging, please attach Java source files.")
-      .performActionWithoutWaitingForDisappearance("Attach Java Sources...")
+        "Disassembled classes.dex file. To set up breakpoints for debugging, please attach Kotlin/Java source files.")
+      .performActionWithoutWaitingForDisappearance("Attach Kotlin/Java Sources...")
 
     // b/70731570 investigates the long amount of
     // time the IDE takes to show the file tree in the file picker. Unfortunately,
