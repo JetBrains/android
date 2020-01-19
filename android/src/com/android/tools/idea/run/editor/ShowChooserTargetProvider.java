@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -197,7 +198,7 @@ public class ShowChooserTargetProvider extends DeployTargetProvider<ShowChooserT
     private final JBCheckBox myCheckbox;
 
     public ShowChooserConfigurable() {
-      myCheckbox = new JBCheckBox("Use same device for future launches");
+      myCheckbox = new JBCheckBox(AndroidBundle.message("checkbox.use.same.device.for.future.launches"));
     }
 
     @Nullable
