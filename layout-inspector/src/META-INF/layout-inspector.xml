@@ -19,7 +19,6 @@
                       facetIdList="android"
                       anchor="bottom"
                       secondary="true"
-                      conditionClass="com.android.tools.idea.layoutinspector.LayoutInspectorToolWindowCondition"
                       icon="StudioIcons.Shell.ToolWindows.CAPTURES"
                       factoryClass="com.android.tools.idea.layoutinspector.LayoutInspectorToolWindowFactory"/>
   </extensions>
