@@ -30,14 +30,10 @@ import org.jetbrains.plugins.groovy.util.removeUserData
  * It is intended to be used to populate the project's directory with content while the project hasn't been yet completely loaded
  * and Android and other plugins haven't yet seen the project.
  */
-class AndroidNewProjectInitializationStartupActivity : DumbAware, StartupActivity {
+class AndroidNewProjectInitializationStartupActivity : StartupActivity {
   override fun runActivity(project: Project) {
     val initializationRunnable = project.getUserData(INITIALIZER_KEY)
     if (initializationRunnable != null) {
-      log.info("New project initialization requested.")
-      // NOTE: The activity must remain DumbAware to be able to run first.
-      DumbService.getInstance(project).waitForSmartMode()
-      log.info("Scheduling new project initialization.")
       initializationRunnable()
       project.removeUserData(INITIALIZER_KEY)
     }
