@@ -36,6 +36,7 @@
     <fileType name="ProGuard File" implementationClass="com.android.tools.idea.lang.proguard.ProguardFileType" language="PROGUARD"
               patterns="*.pro;proguard-*.txt;proguard.cfg" fieldName="INSTANCE"/>
     <lang.parserDefinition language="PROGUARD" implementationClass="com.android.tools.idea.lang.proguard.ProguardParserDefinition"/>
+    <!--FIXME-ank2: fileType for proguard/r8, drop ProguardFileTypeFactory-->
 
     <lang.parserDefinition language="PROGUARD_R8"
                            implementationClass="com.android.tools.idea.lang.proguardR8.parser.ProguardR8ParserDefinition"/>
