@@ -57,4 +57,9 @@ interface ComposePreviewManager {
    * Group name from [availableGroups] currently selected or null if we do not want to do group filtering.
    */
   var groupNameFilter: String?
+
+  /**
+   * Enables (and indicates) the interactive mode of the preview.
+   */
+  var isInteractive: Boolean
 }
