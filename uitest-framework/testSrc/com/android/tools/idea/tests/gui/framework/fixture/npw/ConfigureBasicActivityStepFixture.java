@@ -26,7 +26,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
-import java.awt.Rectangle;
 
 
 public class ConfigureBasicActivityStepFixture<W extends AbstractWizardFixture> extends AbstractWizardStepFixture<ConfigureBasicActivityStepFixture, W> {
@@ -61,13 +60,6 @@ public class ConfigureBasicActivityStepFixture<W extends AbstractWizardFixture> 
   @NotNull
   public ConfigureBasicActivityStepFixture<W> selectLauncherActivity() {
     JCheckBox checkBox = robot().finder().find(target(), Matchers.byText(JCheckBox.class, "Launcher Activity"));
-    Rectangle checkBoxRect = new Rectangle(
-      checkBox.getX(),
-      checkBox.getY(),
-      checkBox.getWidth(),
-      checkBox.getHeight()
-    );
-    checkBox.scrollRectToVisible(checkBoxRect);
     new JCheckBoxFixture(robot(), checkBox).select();
     return this;
   }
