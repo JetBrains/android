@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.mlkit;
 
+import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import org.jetbrains.annotations.NotNull;
 
 /**

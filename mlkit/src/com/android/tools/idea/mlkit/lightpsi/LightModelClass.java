@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.mlkit;
+package com.android.tools.idea.mlkit.lightpsi;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.mlkit.LightModelClassConfig;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
