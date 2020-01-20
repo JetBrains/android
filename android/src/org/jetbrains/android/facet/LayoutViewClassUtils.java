@@ -93,6 +93,13 @@ public class LayoutViewClassUtils {
   }
 
   @Nullable
+  public static PsiClass findVisibleClassByTagName(@NotNull AndroidFacet facet, @NotNull String name, @NotNull String baseClassQName) {
+    PsiClass aClass = findClassByTagName(facet, name, baseClassQName);
+    if (aClass != null && isViewClassVisibleAsTag(aClass)) return aClass;
+    return null;
+  }
+
+  @Nullable
   public static PsiClass findClassByTagName(@NotNull AndroidFacet facet, @NotNull String name, @NotNull String baseClassQName) {
     final PsiClass baseClass = JavaPsiFacade.getInstance(facet.getModule().getProject()).findClass(
       baseClassQName, facet.getModule().getModuleWithLibrariesScope());
@@ -105,8 +112,8 @@ public class LayoutViewClassUtils {
       return false; // not public
     }
     boolean isPublic = modifierList.hasModifierProperty(PsiModifier.PUBLIC);
-    boolean isRestricted = modifierList.findAnnotation(RESTRICT_TO_ANNOTATION.oldName()) != null ||
-                           modifierList.findAnnotation(RESTRICT_TO_ANNOTATION.newName()) != null;
+    boolean isRestricted = modifierList.hasAnnotation(RESTRICT_TO_ANNOTATION.oldName()) ||
+                           modifierList.hasAnnotation(RESTRICT_TO_ANNOTATION.newName());
     return isPublic && !isRestricted;
   }
 }
