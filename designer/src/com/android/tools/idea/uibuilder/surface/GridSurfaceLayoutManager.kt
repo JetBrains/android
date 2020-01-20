@@ -210,9 +210,7 @@ class GridSurfaceLayoutManager(private val horizontalPadding: Int,
       (rightSceneView.left + targetSceneView.right) / 2
     }
 
-    rectangle.setLocation(leftBound, topBound)
-    rectangle.setSize(rightBound - leftBound, bottomBound - topBound)
-    rectangle.setFrame(leftBound.toDouble(), topBound.toDouble(), rightBound.toDouble(), bottomBound.toDouble())
+    rectangle.setBounds(leftBound, topBound, rightBound - leftBound, bottomBound - topBound)
     return rectangle
   }
 }
