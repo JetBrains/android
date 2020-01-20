@@ -32,8 +32,7 @@ import org.junit.runner.RunWith
 
 @RunWith(GuiTestRemoteRunner::class)
 class AddComposeTest {
-  @Rule
-  @JvmField
+  @get:Rule
   val guiTest = GuiTestRule()
 
   @Before
@@ -120,7 +119,7 @@ class AddComposeTest {
         .waitForGradleProjectSyncToFinish()
         .projectView
         .selectAndroidPane()
-        .clickPath("app");
+        .clickPath("app")
     }
 
     val activityTitle = "ComposeActivity"
