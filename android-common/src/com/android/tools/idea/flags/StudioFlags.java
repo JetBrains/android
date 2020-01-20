@@ -582,7 +582,10 @@ public final class StudioFlags {
 
   public enum LayoutXmlMode {
     DEFAULT,
-    NO_DOM_EXTENDER
+    /** Don't run AndroidDomExtender at all, to see how other parts of the XML stack work. */
+    NO_DOM_EXTENDER,
+    /** Don't use TagToClassMapper when computing tag attributes in AttributeProcessingUtil. */
+    ATTRIBUTES_FROM_STYLEABLES,
   }
 
   public static final Flag<LayoutXmlMode> LAYOUT_XML_MODE = Flag.create(
