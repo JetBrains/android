@@ -30,8 +30,7 @@ import java.util.concurrent.TimeUnit
 
 @RunWith(GuiTestRemoteRunner::class)
 class NewComposeProjectTest {
-  @Rule
-  @JvmField
+  @get:Rule
   val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
 
   @Before

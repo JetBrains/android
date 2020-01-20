@@ -44,11 +44,9 @@ import javax.swing.JMenuItem
 
 @RunWith(GuiTestRemoteRunner::class)
 class ComposePreviewTest {
-  @Rule
-  @JvmField
+  @get:Rule
   val guiTest = GuiTestRule().withTimeout(5, TimeUnit.MINUTES)
-  @Rule
-  @JvmField
+  @get:Rule
   val renderTaskLeakCheckRule = RenderTaskLeakCheckRule()
 
   private fun openComposePreview(fixture: IdeFrameFixture): SplitEditorFixture {
