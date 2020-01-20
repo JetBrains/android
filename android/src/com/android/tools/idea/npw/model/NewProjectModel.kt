@@ -44,6 +44,7 @@ import com.android.tools.idea.templates.recipe.RenderingContext
 import com.android.tools.idea.wizard.WizardConstants
 import com.android.tools.idea.wizard.model.WizardModel
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ide.impl.OpenProjectTask
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
@@ -60,11 +61,13 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.platform.PlatformProjectOpenProcessor
 import com.intellij.pom.java.LanguageLevel
 import org.jetbrains.android.util.AndroidBundle.message
 import org.jetbrains.android.util.AndroidUtils
 import java.io.File
 import java.io.IOException
+import java.nio.file.Paths
 import java.util.Locale
 import java.util.Optional
 import java.util.regex.Pattern
@@ -111,7 +114,10 @@ class NewProjectModel : WizardModel(), ProjectModelData {
           renderer(newProject)
         }
       }
-      ProjectManagerEx.getInstanceEx().openProject(newProject)
+
+      val path = Paths.get(projectLocation)
+      PlatformProjectOpenProcessor.openExistingProject(path, path, OpenProjectTask(forceOpenInNewFrame = true, project = newProject))
+
     }
   }
 
