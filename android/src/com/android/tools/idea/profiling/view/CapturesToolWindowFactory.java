@@ -38,5 +38,6 @@ final class CapturesToolWindowFactory implements ToolWindowFactory, DumbAware {
   @Override
   public void init(@NotNull ToolWindow toolWindow) {
     toolWindow.setStripeTitle(WINDOW_TITLE);
+    // toolWindow.setSplitMode(true, null); FIXME-ank2: use plugin.xml to put the window to the bottom-left corner
   }
 }

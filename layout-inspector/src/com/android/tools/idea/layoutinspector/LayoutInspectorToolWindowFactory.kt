@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorPanel
 import com.intellij.openapi.project.Project
@@ -47,6 +48,8 @@ internal class LayoutInspectorToolWindowFactory : ToolWindowFactory {
     contentManager.addContent(content)
     project.messageBus.connect(project).subscribe(ToolWindowManagerListener.TOPIC, LayoutInspectorToolWindowManagerListener(project))
   }
+
+  override fun shouldBeAvailable(project: Project): Boolean = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED.get()
 }
 
 /**
