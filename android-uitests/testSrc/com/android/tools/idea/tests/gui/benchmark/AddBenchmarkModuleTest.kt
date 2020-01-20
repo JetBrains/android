@@ -27,8 +27,7 @@ import org.junit.runner.RunWith
 
 @RunWith(GuiTestRemoteRunner::class)
 class AddBenchmarkModuleTest {
-  @Rule
-  @JvmField
+  @get:Rule
   val guiTest = GuiTestRule()
 
   /**

@@ -30,7 +30,7 @@ import org.junit.runner.RunWith
  */
 @RunWith(GuiTestRemoteRunner::class)
 class NewWearProjectTest {
-  @JvmField @Rule
+  @get:Rule
   val guiTest = GuiTestRule()
 
   @Test

@@ -27,8 +27,7 @@ import java.io.File
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 
 class TemplateRecipeTest {
-  @Rule
-  @JvmField
+  @get:Rule
   val projectRule = AndroidProjectRule.inMemory()
 
   @Rule
