@@ -22,9 +22,10 @@ import com.google.common.base.Strings;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.testFramework.LightPlatformTestCase;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.Headers;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,7 +35,7 @@ import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.List;
 
-public class StudioDownloaderTest extends PlatformTestCase {
+public class StudioDownloaderTest extends LightPlatformTestCase {
   private static final String LOCALHOST = "127.0.0.1";
   private static final String EXPECTED_NO_CACHE_HEADERS = "Pragma: no-cache\nCache-control: no-cache\n";
   private static final String EXPECTED_HEADERS_IF_CACHING_ALLOWED = ""; // none
@@ -55,6 +56,9 @@ public class StudioDownloaderTest extends PlatformTestCase {
   public void tearDown() throws Exception {
     try {
       myServer.stop(0);
+    }
+    catch (Throwable e) {
+      addSuppressedException(e);
     }
     finally {
       super.tearDown();
@@ -77,7 +81,7 @@ public class StudioDownloaderTest extends PlatformTestCase {
         response.append(Joiner.on(';').join(cacheControlHeader));
         response.append("\n");
       }
-      byte[] responseBody = response.toString().getBytes();
+      byte[] responseBody = response.toString().getBytes(StandardCharsets.UTF_8);
       ex.sendResponseHeaders(200, responseBody.length);
       ex.getResponseBody().write(responseBody);
       ex.close();
@@ -113,7 +117,7 @@ public class StudioDownloaderTest extends PlatformTestCase {
       }
 
       response.append(contentToReturn);
-      byte[] responseBody = response.toString().getBytes();
+      byte[] responseBody = response.toString().getBytes(StandardCharsets.UTF_8);
       ex.sendResponseHeaders(httpResponseCode, responseBody.length);
       ex.getResponseBody().write(responseBody);
       ex.close();
