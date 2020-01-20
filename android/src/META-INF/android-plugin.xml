@@ -273,12 +273,13 @@
     <action id="InferAnnotations" class="com.android.tools.idea.actions.annotations.InferSupportAnnotationsAction">
       <add-to-group group-id="InspectCodeGroup" anchor="after" relative-to-action="InferNullity"/>
     </action>
-    <action
-        id="SendFeedback"
-        class="com.android.tools.idea.actions.SendFeedbackAction"
-        overrides="true"
-        text="Submit _Feedback"
-        description="Submit feedback to the Android Studio team"/>
+    <!-- FIXME-ank2: custom feedback action (move to android menu?)-->
+    <!--<action-->
+    <!--    id="SendFeedback"-->
+    <!--    class="com.android.tools.idea.actions.SendFeedbackAction"-->
+    <!--    overrides="true"-->
+    <!--    text="Submit _Feedback"-->
+    <!--    description="Submit feedback to the Android Studio team"/>-->
     <action id="StoreDefaultLayout" class="com.android.tools.idea.common.actions.StoreDefaultWindowLayoutAction" overrides="true"/>
     <action id="RestoreDefaultLayout" class="com.android.tools.idea.common.actions.RestoreDefaultWindowLayoutAction" overrides="true"/>
     <action class="com.android.tools.idea.rendering.webp.ConvertToWebpAction" id="ConvertToWebp">
