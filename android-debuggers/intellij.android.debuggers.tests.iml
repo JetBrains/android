@@ -25,6 +25,6 @@
     <orderEntry type="library" name="studio-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.app-inspection.api" />
     <orderEntry type="module" module-name="intellij.android.transport" />
-    <orderEntry type="library" name="live-sql-proto" level="project" />
+    <orderEntry type="library" name="sqlite-inspector-proto" level="project" />
   </component>
 </module>

@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.sqlite.databaseConnection.live
 
+import androidx.sqlite.inspection.SqliteInspectorProtocol
+import androidx.sqlite.inspection.SqliteInspectorProtocol.GetSchemaResponse
+import androidx.sqlite.inspection.SqliteInspectorProtocol.QueryResponse
+import androidx.sqlite.inspection.SqliteInspectorProtocol.Response
 import com.android.testutils.MockitoKt.any
 import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
@@ -26,7 +30,6 @@ import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnectionListen
 import com.android.tools.idea.sqlite.model.RowIdName
 import com.android.tools.idea.sqlite.model.SqliteAffinity
 import com.android.tools.idea.sqlite.model.SqliteStatement
-import com.android.tools.sql.protocol.SqliteInspection
 import com.google.common.util.concurrent.Futures
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.PlatformTestCase
@@ -40,39 +43,39 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
 
   fun testReadSchema() {
     // Prepare
-    val column1 = SqliteInspection.Column.newBuilder()
+    val column1 = SqliteInspectorProtocol.Column.newBuilder()
       .setName("column1")
       .setType("TEXT")
       .build()
 
-    val column2 = SqliteInspection.Column.newBuilder()
+    val column2 = SqliteInspectorProtocol.Column.newBuilder()
       .setName("column2")
       .setType("INTEGER")
       .build()
 
-    val column3 = SqliteInspection.Column.newBuilder()
+    val column3 = SqliteInspectorProtocol.Column.newBuilder()
       .setName("column3")
       .setType("FLOAT")
       .build()
 
-    val column4 = SqliteInspection.Column.newBuilder()
+    val column4 = SqliteInspectorProtocol.Column.newBuilder()
       .setName("column4")
       .setType("BLOB")
       .build()
 
-    val table = SqliteInspection.Table.newBuilder()
+    val table = SqliteInspectorProtocol.Table.newBuilder()
       .addColumns(column1)
       .addColumns(column2)
       .addColumns(column3)
       .addColumns(column4)
       .build()
 
-    val schema = SqliteInspection.Schema.newBuilder()
+    val schema = GetSchemaResponse.newBuilder()
       .addTables(table)
       .build()
 
-    val schemaResponse = SqliteInspection.SchemaResponse.newBuilder()
-      .setSchema(schema)
+    val schemaResponse = Response.newBuilder()
+      .setGetSchema(schema)
       .build()
 
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)
@@ -99,31 +102,31 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
 
   fun testExecuteQuery() {
     // Prepare
-    val cellValueString = SqliteInspection.CellValue.newBuilder()
+    val cellValueString = SqliteInspectorProtocol.CellValue.newBuilder()
       .setColumnName("column1")
       .setStringValue("a string")
       .build()
 
-    val cellValueFloat = SqliteInspection.CellValue.newBuilder()
+    val cellValueFloat = SqliteInspectorProtocol.CellValue.newBuilder()
       .setColumnName("column2")
       .setFloatValue(1f)
       .build()
 
-    val cellValueBlob = SqliteInspection.CellValue.newBuilder()
+    val cellValueBlob = SqliteInspectorProtocol.CellValue.newBuilder()
       .setColumnName("column3")
       .setBlobValue(ByteString.copyFrom("a blob".toByteArray()))
       .build()
 
-    val cellValueInt = SqliteInspection.CellValue.newBuilder()
+    val cellValueInt = SqliteInspectorProtocol.CellValue.newBuilder()
       .setColumnName("column4")
       .setIntValue(1)
       .build()
 
-    val cellValueNull = SqliteInspection.CellValue.newBuilder()
+    val cellValueNull = SqliteInspectorProtocol.CellValue.newBuilder()
       .setColumnName("column5")
       .build()
 
-    val rows = SqliteInspection.Row.newBuilder()
+    val rows = SqliteInspectorProtocol.Row.newBuilder()
       .addValues(cellValueString)
       .addValues(cellValueFloat)
       .addValues(cellValueBlob)
@@ -131,8 +134,8 @@ class LiveDatabaseConnectionTest : PlatformTestCase() {
       .addValues(cellValueNull)
       .build()
 
-    val cursor = SqliteInspection.Cursor.newBuilder()
-      .addRows(rows)
+    val cursor = Response.newBuilder()
+      .setQuery(QueryResponse.newBuilder().addRows(rows))
       .build()
 
     val mockMessenger = mock(AppInspectorClient.CommandMessenger::class.java)

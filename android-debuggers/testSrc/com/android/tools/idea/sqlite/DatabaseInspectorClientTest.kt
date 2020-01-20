@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.sqlite
 
+import androidx.sqlite.inspection.SqliteInspectorProtocol
 import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.appinspection.api.AppInspectorJar
 import com.android.tools.idea.appinspection.api.TargetTerminatedListener
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
-import com.android.tools.sql.protocol.SqliteInspection
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.intellij.testFramework.PlatformTestCase
@@ -67,8 +67,8 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
 
     }
 
-    val trackDatabasesCommand = SqliteInspection.Commands.newBuilder()
-      .setTrackDatabases(SqliteInspection.TrackDatabasesCommand.getDefaultInstance())
+    val trackDatabasesCommand = SqliteInspectorProtocol.Command.newBuilder()
+      .setTrackDatabases(SqliteInspectorProtocol.TrackDatabasesCommand.getDefaultInstance())
       .build()
       .toByteArray()
 
@@ -83,8 +83,8 @@ class DatabaseInspectorClientTest : PlatformTestCase() {
 
   fun testOnDatabaseOpenedEventOpensDatabase() {
     // Prepare
-    val databaseOpenEvent = SqliteInspection.DatabaseOpenedEvent.newBuilder().setId(1).setName("name").build()
-    val event = SqliteInspection.Events.newBuilder().setDatabaseOpen(databaseOpenEvent).build()
+    val databaseOpenEvent = SqliteInspectorProtocol.DatabaseOpenedEvent.newBuilder().setDatabaseId(1).setName("name").build()
+    val event = SqliteInspectorProtocol.Event.newBuilder().setDatabaseOpened(databaseOpenEvent).build()
 
     // Act
     databaseInspectorClient.eventListener.onRawEvent(event.toByteArray())

@@ -411,16 +411,10 @@ filegroup(
 )
 
 filegroup(
-    name = "experimental-sqlite-inspector-artifacts",
-    srcs = select({
-        "//tools/base/app-inspection:app_inspection_experimental": [
-            "//tools/base/experimental/live-sql-inspector:live_sql_viewer_dex.jar",
-        ],
-        "//conditions:default": [
-            # building just a proto, so we can compile code behind the flag in studio
-            "//tools/base/experimental/live-sql-inspector:live_sql_java_proto",
-        ],
-    }),
+    name = "sqlite-inspector-artifacts",
+    srcs = [
+        "//prebuilts/tools/common/app-inspection/androidx/sqlite:sqlite_inspector_proto",
+    ],
     visibility = ["//visibility:public"],
 )
 
@@ -434,7 +428,7 @@ filegroup(
         ":layout-inspector-artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",
-        ":experimental-sqlite-inspector-artifacts",
+        ":sqlite-inspector-artifacts",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
         "//tools/base/bazel:studio-grpc",
