@@ -16,6 +16,7 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.android.tools.idea.res.AndroidLightPackage;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;

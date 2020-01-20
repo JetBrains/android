@@ -18,6 +18,7 @@ package com.android.tools.idea.mlkit;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
