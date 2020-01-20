@@ -24,6 +24,9 @@ import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.updateFileContentBlocking
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.InteractionHandler
+import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
+import com.android.tools.idea.common.surface.SwitchingInteractionHandler
 import com.android.tools.idea.common.util.BuildListener
 import com.android.tools.idea.common.util.setupBuildListener
 import com.android.tools.idea.common.util.setupChangeListener
@@ -44,6 +47,7 @@ import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
 import com.android.utils.concurrency.EvictingExecutor
@@ -76,6 +80,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import org.jetbrains.kotlin.backend.common.pop
 import java.awt.BorderLayout
+import java.util.EnumMap
 import java.util.function.Consumer
 import java.util.function.Supplier
 import javax.swing.JComponent
@@ -154,8 +159,14 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   private val refreshExecutor = EvictingExecutor(
     AppExecutorUtil.createBoundedApplicationPoolExecutor(
       "Compose Preview thread", AppExecutorUtil.getAppExecutorService(), 1, this), 1)
+  private enum class InteractionMode {
+    DEFAULT,
+    INTERACTIVE,
+  }
 
   private val navigationHandler = PreviewNavigationHandler()
+  private var interactionHandler: SwitchingInteractionHandler<InteractionMode>? = null
+
   private val surface = NlDesignSurface.builder(project, this)
     .setIsPreview(true)
     .showModelNames()
@@ -176,11 +187,28 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                                      fullDeviceSize = currentRenderSettings.showDecorations)
     }
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }
+    .setInteractionHandlerProvider { surface ->
+      val interactionHandlers = EnumMap<InteractionMode, InteractionHandler>(InteractionMode::class.java)
+      interactionHandlers[InteractionMode.DEFAULT] = NlInteractionHandler(surface)
+      interactionHandlers[InteractionMode.INTERACTIVE] = LayoutlibInteractionHandler(surface)
+      interactionHandler = SwitchingInteractionHandler(interactionHandlers, InteractionMode.DEFAULT)
+      interactionHandler
+    }
     .setEditable(true)
     .build()
     .apply {
       setScreenMode(SceneMode.COMPOSE, false)
       setMaxFitIntoScale(2f) // Set fit into limit to 200%
+    }
+
+  override var isInteractive: Boolean
+    set(value) {
+      interactionHandler?.let {
+        it.selected = if (value) InteractionMode.INTERACTIVE else InteractionMode.DEFAULT
+      }
+    }
+    get() {
+      return interactionHandler?.selected == InteractionMode.INTERACTIVE
     }
 
   private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
