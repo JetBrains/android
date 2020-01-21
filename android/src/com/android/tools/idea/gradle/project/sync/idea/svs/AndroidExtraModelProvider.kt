@@ -110,7 +110,7 @@ class AndroidExtraModelProvider(private val syncActionOptions: SyncActionOptions
       androidModules,
       syncActionOptions.cachedLibraries,
       consumer,
-      false
+      syncActionOptions.downloadAndroidxUISamplesSources
     )
   }
 

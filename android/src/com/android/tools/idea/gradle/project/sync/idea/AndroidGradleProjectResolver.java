@@ -40,6 +40,7 @@ import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isI
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.PathUtil.getJarPathForClass;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 
 import com.android.builder.model.AndroidArtifact;
 import com.android.builder.model.AndroidLibrary;
@@ -61,6 +62,7 @@ import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
 import com.android.repository.Revision;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.LibraryFilePaths;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -754,7 +756,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
     SelectedVariants selectedVariants = null;
     boolean isSingleVariantSync = false;
     boolean shouldGenerateSources = false;
-    Collection<String> cachedLibraries = null;
+    Collection<String> cachedLibraries = emptySet();
     String moduleWithVariantSwitched = null;
 
     if (project != null) {
@@ -768,11 +770,13 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       cachedLibraries = LibraryFilePaths.getInstance(project).retrieveCachedLibs();
     }
 
-    SyncActionOptions options = new SyncActionOptions();
-    options.setModuleIdWithVariantSwitched(moduleWithVariantSwitched);
-    options.setSingleVariantSyncEnabled(isSingleVariantSync);
-    options.setSelectedVariants(selectedVariants);
-    options.setCachedLibraries(cachedLibraries);
+    SyncActionOptions options = new SyncActionOptions(
+      selectedVariants,
+      moduleWithVariantSwitched,
+      isSingleVariantSync,
+      cachedLibraries,
+      StudioFlags.SAMPLES_SUPPORT_ENABLED.get()
+    );
     return new AndroidExtraModelProvider(options);
   }
 
