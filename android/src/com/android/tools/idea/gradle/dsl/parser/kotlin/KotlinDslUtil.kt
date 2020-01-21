@@ -300,10 +300,10 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
       var valueText : String?
       if (StringUtil.isQuotedString(value)) {
         val unquoted = StringUtil.unquoteString(value)
-        valueText = StringUtil.escapeStringCharacters(unquoted).addQuotes(true)
+        valueText = StringUtil.escapeCharCharacters(unquoted).addQuotes(true)
       }
       else {
-        valueText = StringUtil.escapeStringCharacters(value).addQuotes(true)
+        valueText = StringUtil.escapeCharCharacters(value).addQuotes(true)
       }
       return KtPsiFactory(applyContext.dslFile.project).createExpression(valueText)
     }

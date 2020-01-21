@@ -100,6 +100,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_MAP_NOTATION;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_ON_DEPENDENCY_WITH_MAP_NOTATION_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_REFERENCE;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_VERSION_REFERENCE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_COMPILE;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.CLASSPATH;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
@@ -1616,7 +1617,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     GradleBuildModel model = getGradleBuildModel();
     DependenciesModel depModel = model.dependencies();
 
-    depModel.addArtifact("implementation", "junit:junit:${jUnitVersion}");
+    String compactNotation = isGroovy() ? "junit:junit:${jUnitVersion}" : "junit:junit:${extra[\"jUnitVersion\"]}";
+    depModel.addArtifact("implementation", compactNotation);
     ArtifactDependencyModel artModel = depModel.artifacts().get(0);
     verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "junit:junit:2", STRING, REGULAR, 1);
     verifyPropertyModel(artModel.version().getResultModel(), INTEGER_TYPE, 2, INTEGER, REGULAR, 0);
@@ -1626,6 +1628,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     artModel = depModel.artifacts().get(0);
     verifyPropertyModel(artModel.completeModel().resolve(), STRING_TYPE, "junit:junit:2", STRING, REGULAR, 1);
     verifyPropertyModel(artModel.version().getResultModel(), INTEGER_TYPE, 2, INTEGER, REGULAR, 0);
+
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_SET_VERSION_REFERENCE_EXPECTED);
   }
 
   @Test
