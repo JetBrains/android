@@ -35,7 +35,6 @@ import com.intellij.lang.properties.PropertiesFileType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -306,7 +305,7 @@ public class GradleFiles {
    * Schedules an update to the currently stored hashes for each of the gradle build files.
    */
   private void scheduleUpdateFileHashes() {
-    TransactionGuard.getInstance().submitTransactionLater(myProject, () -> {
+    ApplicationManager.getApplication().invokeLater(() -> {
       // We need to ensure that all of the pending PSI element actions have been processed before computing and storing
       // the hashes for the files. Otherwise it is possible to have syncStarted clear the hashes and then a pending PSI
       // event immediately run the GradleFileChangeListener and be marked as changed again.
@@ -399,7 +398,7 @@ public class GradleFiles {
       }
 
       storeHashesForFiles(fileHashes);
-    });
+    }, myProject.getDisposed());
   }
 
   /**
