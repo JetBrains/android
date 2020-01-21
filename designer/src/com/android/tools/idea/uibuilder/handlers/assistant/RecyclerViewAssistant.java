@@ -15,8 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.handlers.assistant;
 
+import static com.android.SdkConstants.ATTR_ITEM_COUNT;
+import static com.android.SdkConstants.ATTR_LAYOUT_MANAGER;
+import static com.android.SdkConstants.ATTR_LISTITEM;
+import static com.android.SdkConstants.ATTR_SPAN_COUNT;
+import static com.android.SdkConstants.FD_RES_LAYOUT;
+import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.TOOLS_URI;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.resources.FileResourceNameValidator;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
@@ -43,22 +52,22 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.ui.JBIntSpinner;
 import com.intellij.ui.components.JBList;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-
-import static com.android.SdkConstants.*;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.SwingConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidResourceUtil;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class RecyclerViewAssistant extends AssistantPopupPanel {
   private static final int ITEM_COUNT_DEFAULT = 10;
@@ -250,7 +259,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
   @NotNull
   private static String getTemplateName(@NotNull AndroidFacet facet, @NotNull String templateRootName) {
     LocalResourceRepository LocalResourceRepository = ResourceRepositoryManager.getAppResources(facet);
-    String resourceNameRoot = AndroidResourceUtil.getValidResourceFileName(templateRootName);
+    String resourceNameRoot = FileResourceNameValidator.getValidResourceFileName(templateRootName);
 
     String resourceName;
     int index = 0;

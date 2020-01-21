@@ -510,16 +510,6 @@ fun findIdFields(attribute: XmlAttribute): Array<PsiField> {
   return PsiField.EMPTY_ARRAY
 }
 
-/**
- * Generate an extension-less file name based on a passed string, that should pass
- * validation as a resource file name by Gradle plugin.
- *
- * For names validation in the Gradle plugin, see [FileResourceNameValidator]
- */
-fun getValidResourceFileName(base: String): String {
-  return StringUtil.toLowerCase(base.replace('-', '_').replace(' ', '_'))
-}
-
 fun getResourceNameByReferenceText(text: String): String? {
   val i = text.indexOf('/')
   return if (i < text.length - 1) {
