@@ -71,7 +71,7 @@ open class PsProductFlavor(
     this.parsedModel = parsedModel
   }
 
-  override val name: String get() = resolvedModel?.name ?: parsedModel?.name() ?: ""
+  override val name: String get() = resolvedModel?.getName() ?: parsedModel?.name() ?: ""
   override val path: PsProductFlavorNavigationPath get() = PsProductFlavorNavigationPath(parent.path.productFlavorsPath, name)
 
   /**
