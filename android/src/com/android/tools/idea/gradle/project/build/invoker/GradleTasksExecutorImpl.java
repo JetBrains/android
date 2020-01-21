@@ -31,7 +31,6 @@ import static com.intellij.openapi.ui.MessageType.INFO;
 import static com.intellij.openapi.util.text.StringUtil.formatDuration;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
-import static com.intellij.util.ArrayUtil.toStringArray;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -76,7 +75,7 @@ import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import com.intellij.ui.AppIcon;
-import com.intellij.ui.content.ContentManagerAdapter;
+import com.intellij.ui.content.ContentManagerListener;
 import com.intellij.util.ArrayUtilRt;
 import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
@@ -537,7 +536,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     }
   }
 
-  private class CloseListener extends ContentManagerAdapter implements VetoableProjectManagerListener {
+  private class CloseListener implements VetoableProjectManagerListener, ContentManagerListener {
     private boolean myIsApplicationExitingOrProjectClosing;
     private boolean myUserAcceptedCancel;
 
