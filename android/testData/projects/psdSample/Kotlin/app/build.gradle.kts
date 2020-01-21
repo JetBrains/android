@@ -39,7 +39,7 @@ android {
         versionCode = 1
         versionName = "1.0"
         versionNameSuffix = "vns"
-        manifestPlaceholders = mapOf("aa" to "aaa", "bb" to "bbb", "cc" to true)
+        manifestPlaceholders = mutableMapOf("aa" to "aaa", "bb" to "bbb", "cc" to true)
         setTestFunctionalTest(false)
     }
     buildTypes {
@@ -74,7 +74,7 @@ android {
             versionCode = 2
             versionName = "2.0"
             versionNameSuffix = "vnsFoo"
-            testInstrumentationRunnerArguments = mapOf("a" to "AAA", "b" to "BBB", "c" to "CCC")
+            testInstrumentationRunnerArguments = mutableMapOf("a" to "AAA", "b" to "BBB", "c" to "CCC")
             setTestHandleProfiling(varBool)
             setTestFunctionalTest(rootProject.extra["rootBool"] as Boolean)
         }

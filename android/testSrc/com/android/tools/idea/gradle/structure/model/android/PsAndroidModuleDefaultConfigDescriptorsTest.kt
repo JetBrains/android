@@ -164,7 +164,7 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
 
       assertThat(versionCode.resolved.asTestValue(), equalTo(1))
       assertThat(versionCode.parsedValue.value,
-                 equalTo<ParsedValue<Int>>(ParsedValue.Set.Parsed(null, DslText.OtherUnparsedDslText("1.1"))))
+                 equalTo<ParsedValue<Int>>(ParsedValue.Set.Parsed(1, DslText.Literal)))
       // TODO(b/111779356): Uncommented when fixed.
       // assertThat(resConfigs.parsedValue.asTestValue()?.toSet(), equalTo(setOf("en", "fr")))
     }

@@ -1246,6 +1246,8 @@ public class BuildTypeModelTest extends GradleFileModelTestCase {
 
   @Test
   public void testAddAndApplyMapElements() throws Exception {
+    // TODO(b/148375441): Disabled until we figure out the kotlin map story
+    assumeTrue(isGroovy());
     writeToBuildFile(BUILD_TYPE_MODEL_ADD_AND_APPLY_MAP_ELEMENTS);
 
     GradleBuildModel buildModel = getGradleBuildModel();
