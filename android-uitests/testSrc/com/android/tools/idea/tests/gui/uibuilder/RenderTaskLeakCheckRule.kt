@@ -17,14 +17,14 @@ package com.android.tools.idea.tests.gui.uibuilder
 
 import com.android.tools.idea.rendering.clearTrackedAllocations
 import com.android.tools.idea.rendering.notDisposedRenderTasks
+import org.fest.swing.timing.Wait
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
-import java.util.concurrent.TimeUnit
 import java.util.stream.Collectors
 
 /**
- * [TestRule] that verifies that all [RenderTask] have been properly de-allocated
+ * [TestRule] that verifies that all [com.android.tools.idea.rendering.RenderTask] have been properly de-allocated
  */
 class RenderTaskLeakCheckRule : TestRule {
   override fun apply(base: Statement,
@@ -37,9 +37,9 @@ class RenderTaskLeakCheckRule : TestRule {
           base.evaluate()
         }
         finally {
-          if (notDisposedRenderTasks().count() != 0) {
-            // Give tasks the opportunity to complete the dispose
-            Thread.sleep(TimeUnit.SECONDS.toMillis(1))
+          // Give tasks the opportunity to complete the dispose
+          Wait.seconds(5).expecting("Render Tasks to finish dispose").until {
+            notDisposedRenderTasks().count() == 0
           }
 
           notDisposedRenderTasks()
