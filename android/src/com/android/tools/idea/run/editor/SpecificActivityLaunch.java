@@ -24,6 +24,7 @@ import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.SpecificActivityLaunchTask;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.search.GlobalSearchScope;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,6 +36,7 @@ public class SpecificActivityLaunch extends LaunchOption<SpecificActivityLaunch.
 
   public static final class State extends LaunchOptionState {
     public String ACTIVITY_CLASS = "";
+    public boolean SEARCH_ACTIVITY_IN_GLOBAL_SCOPE = false;
 
     @Nullable
     @Override
@@ -60,7 +62,10 @@ public class SpecificActivityLaunch extends LaunchOption<SpecificActivityLaunch.
 
     @NotNull
     private SpecificActivityLocator getActivityLocator(@NotNull AndroidFacet facet) {
-      return new SpecificActivityLocator(facet, ACTIVITY_CLASS);
+      Project project = facet.getModule().getProject();
+      GlobalSearchScope scope = SEARCH_ACTIVITY_IN_GLOBAL_SCOPE ? GlobalSearchScope.allScope(project)
+                                                                : GlobalSearchScope.projectScope(project);
+      return new SpecificActivityLocator(facet, ACTIVITY_CLASS, scope);
     }
   }
 

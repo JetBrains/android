@@ -291,14 +291,28 @@ public abstract class AndroidAppRunConfigurationBase extends AndroidRunConfigura
     }
   }
 
-  public void setLaunchActivity(@NotNull String activityName) {
+  /**
+   * Configures the {@link SpecificActivityLaunch.State} and sets the {@link #MODE} to {@link #LAUNCH_SPECIFIC_ACTIVITY}.
+   *
+   * @param activityName Name of the activity to be launched.
+   * @param searchActivityInGlobalScope Whether the activity should be searched in the global scope, as opposed to the project scope. Please
+   *                                    note that setting it to {@code true} might result in a slower search, so prefer using {@code false}
+   *                                    if the activity is located inside the project.
+   */
+  public void setLaunchActivity(@NotNull String activityName, boolean searchActivityInGlobalScope) {
     MODE = LAUNCH_SPECIFIC_ACTIVITY;
 
     // TODO: we probably need a better way to do this rather than peeking into the option state
     // Possibly something like setLaunch(LAUNCH_SPECIFIC_ACTIVITY, SpecificLaunchActivity.state(className))
     LaunchOptionState state = getLaunchOptionState(LAUNCH_SPECIFIC_ACTIVITY);
     assert state instanceof SpecificActivityLaunch.State;
-    ((SpecificActivityLaunch.State)state).ACTIVITY_CLASS = activityName;
+    SpecificActivityLaunch.State specificActivityLaunchState = ((SpecificActivityLaunch.State)state);
+    specificActivityLaunchState.ACTIVITY_CLASS = activityName;
+    specificActivityLaunchState.SEARCH_ACTIVITY_IN_GLOBAL_SCOPE = searchActivityInGlobalScope;
+  }
+
+  public void setLaunchActivity(@NotNull String activityName) {
+    setLaunchActivity(activityName, false);
   }
 
   public void setLaunchUrl(@NotNull String url) {
