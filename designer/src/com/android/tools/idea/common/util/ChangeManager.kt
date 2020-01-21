@@ -40,15 +40,15 @@ import java.util.function.Consumer
 import kotlin.concurrent.withLock
 
 /**
- * Sets up a change listener for the given [psiFile]. When the file changes, [refreshPreview] will be called. The listener might be called
- * in any thread.
+ * Sets up a change listener for the given [psiFile]. When the file changes, [onDocumentUpdated] will be called. The listener might be
+ * called in any thread.
  *
  * The given [parentDisposable] will be used to set the life cycle of the listener. When disposed, the listener will be disposed too.
  */
 fun setupChangeListener(
   project: Project,
   psiFile: PsiFile,
-  refreshPreview: () -> Unit,
+  onDocumentUpdated: (Long) -> Unit,
   parentDisposable: Disposable,
   mergeQueue: MergingUpdateQueue = MergingUpdateQueue("Document change queue",
                                                       TimeUnit.SECONDS.toMillis(1).toInt(),
@@ -56,20 +56,25 @@ fun setupChangeListener(
                                                       null,
                                                       parentDisposable,
                                                       null,
-                                                      false).setRestartTimerOnAdd(true)) {
+                                                      false).setRestartTimerOnAdd(true),
+  timeNanosProvider: () -> Long = { System.nanoTime() }) {
   val documentManager = PsiDocumentManager.getInstance(project)
   documentManager.getDocument(psiFile)!!.addDocumentListener(object : DocumentListener {
     val aggregatedEventsLock = ReentrantLock()
     val aggregatedEvents = mutableSetOf<DocumentEvent>()
+    var lastUpdatedNanos = 0L
 
-    private fun onDocumentChanged(event: Set<DocumentEvent>) {
-      refreshPreview()
+    private fun onDocumentChanged(events: Set<DocumentEvent>) {
+      aggregatedEventsLock.withLock {
+        onDocumentUpdated(lastUpdatedNanos)
+      }
     }
 
     override fun documentChanged(event: DocumentEvent) {
       // On documentChange, we simply save the event to be processed later when onDocumentChanged is called.
       aggregatedEventsLock.withLock {
         aggregatedEvents.add(event)
+        lastUpdatedNanos = timeNanosProvider()
       }
 
       // We use the merge queue to avoid triggering unnecessary updates. All the changes are aggregated. We wait for the documents to be
