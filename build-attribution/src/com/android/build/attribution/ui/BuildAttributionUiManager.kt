@@ -38,8 +38,8 @@ import com.intellij.openapi.wm.ToolWindowId
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManager
-import com.intellij.ui.content.ContentManagerAdapter
 import com.intellij.ui.content.ContentManagerEvent
+import com.intellij.ui.content.ContentManagerListener
 import com.intellij.ui.content.impl.ContentImpl
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
@@ -79,7 +79,7 @@ class BuildAttributionUiManagerImpl(
 
   private var openRequest: OpenRequest = OpenRequest.NO_REQUEST
 
-  private val contentManagerListener = object : ContentManagerAdapter() {
+  private val contentManagerListener = object : ContentManagerListener {
     override fun selectionChanged(event: ContentManagerEvent) {
       if (event.content !== buildContent) {
         return
