@@ -253,11 +253,12 @@ class CustomViewPreviewRepresentation(
           return
         }
 
-        // Clean-up the class loading cache for all the possibly affected modules.
-        val module = ModuleUtil.findModuleForFile(file)!!
-        val modules = mutableSetOf<Module>()
-        ModuleUtil.collectModulesDependsOn(module, modules)
-        modules.forEach { ModuleClassLoaderManager.get().clearCache(it) }
+        // Clean-up the class loading cache for all the possibly affected modules. Source files from 3rd party libs have no module.
+        ModuleUtil.findModuleForFile(file)?.let { module ->
+          val modules = mutableSetOf<Module>()
+          ModuleUtil.collectModulesDependsOn(module, modules)
+          modules.forEach { ModuleClassLoaderManager.get().clearCache(it) }
+        }
 
         stateTracker.setBuildState(CustomViewVisualStateTracker.BuildState.SUCCESSFUL)
         refresh()
@@ -324,7 +325,11 @@ class CustomViewPreviewRepresentation(
     val selectedClass = classes.firstOrNull { fqcn2name(it) == currentView }
     selectedClass?.let {
       val fileContent = getXmlLayout(selectedClass, shrinkWidth, shrinkHeight)
-      val facet = AndroidFacet.getInstance(psiFile)!!
+      val facet = AndroidFacet.getInstance(psiFile)
+      if (facet == null) {
+        LOG.warn("No facet for PsiFile $psiFile")
+        return
+      }
       val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
       val className = fqcn2name(selectedClass)
 
