@@ -1037,6 +1037,8 @@ enum class TestFileName(val path: String) {
   REPOSITORIES_MODEL_ADD_TO_EXISTING_FLAT_REPOSITORY_EXPECTED("repositoriesModel/addToExistingFlatRepositoryExpected"),
   REPOSITORIES_MODEL_ADD_DUPLICATE_TO_EXISTING_FLAT_REPOSITORY("repositoriesModel/addDuplicateToExistingFlatRepository"),
   REPOSITORIES_MODEL_ADD_DUPLICATE_TO_EXISTING_FLAT_REPOSITORY_EXPECTED("repositoriesModel/addDuplicateToExistingFlatRepositoryExpected"),
+  REPOSITORIES_MODEL_SET_ARTIFACT_URLS_FOR_METHOD_CALL("repositoriesModel/setArtifactUrlsForMethodCall"),
+  REPOSITORIES_MODEL_SET_ARTIFACT_URLS_FOR_METHOD_CALL_EXPECTED("repositoriesModel/setArtifactUrlsForMethodCallExpected"),
   REPOSITORIES_MODEL_SET_NAME_FOR_METHOD_CALL("repositoriesModel/setNameForMethodCall"),
   REPOSITORIES_MODEL_SET_NAME_FOR_METHOD_CALL_EXPECTED("repositoriesModel/setNameForMethodCallExpected"),
   REPOSITORIES_MODEL_SET_URL_FOR_METHOD_CALL("repositoriesModel/setUrlForMethodCall"),
