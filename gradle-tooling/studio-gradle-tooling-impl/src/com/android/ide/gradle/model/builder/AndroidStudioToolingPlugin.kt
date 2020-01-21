@@ -17,6 +17,7 @@
 package com.android.ide.gradle.model.builder
 
 import com.android.ide.gradle.model.artifacts.builder.AdditionalClassifierArtifactsModelBuilder
+import com.android.ide.gradle.model.artifacts.samples.SamplesVariantRule
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -30,6 +31,10 @@ internal constructor(private val registry: ToolingModelBuilderRegistry) : Plugin
     registry.register(GradlePluginModelBuilder())
     // AdditionalArtifactsModelBuilder extends ParameterizedToolingModelBuilder, which is available since Gradle 4.4.
     if (isGradleAtLeast(project.gradle.gradleVersion, "4.4")) {
+      // SamplesVariantRule requires Gradle 6.0+ because it uses VariantMetadata.withFiles.
+      if (isGradleAtLeast(project.gradle.gradleVersion, "6.0")) {
+        project.dependencies.components.all(SamplesVariantRule::class.java)
+      }
       registry.register(AdditionalClassifierArtifactsModelBuilder())
     }
   }

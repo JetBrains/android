@@ -43,6 +43,12 @@ public interface AdditionalClassifierArtifacts {
   File getJavadoc();
 
   /**
+   * Returns the location of downloaded sources of samples file, null if samples sources is not available.
+   */
+  @Nullable
+  File getSampleSources();
+
+  /**
    * Returns the location of downloaded pom file, null if pom file is not available.
    */
   @Nullable

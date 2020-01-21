@@ -24,10 +24,12 @@ data class AdditionalClassifierArtifactsImpl(
   private val id: ArtifactIdentifier,
   private val sources: File?,
   private val javadoc: File?,
-  private val mavenPom: File?
+  private val mavenPom: File?,
+  private val sampleSources: File?
 ) : AdditionalClassifierArtifacts, Serializable {
   override fun getId() = id
   override fun getSources() = sources
   override fun getJavadoc() = javadoc
+  override fun getSampleSources() = sampleSources
   override fun getMavenPom() = mavenPom
 }
