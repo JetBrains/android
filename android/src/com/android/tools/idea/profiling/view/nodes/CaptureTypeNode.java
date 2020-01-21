@@ -39,7 +39,7 @@ public class CaptureTypeNode extends SimpleNode {
     });
 
     getTemplatePresentation().addText(type.getName(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES);
-    setIcon(AllIcons.Modules.SourceFolder);
+    setIcon(AllIcons.Nodes.Package);
   }
 
   @NotNull
