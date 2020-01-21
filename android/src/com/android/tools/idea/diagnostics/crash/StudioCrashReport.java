@@ -35,6 +35,7 @@ public class StudioCrashReport extends BaseStudioReport {
   private final String errorSignal;
   private final String errorFrame;
   private final String errorThread;
+  private final String nativeStack;
 
   private StudioCrashReport(@Nullable String version,
                             @NonNull List<String> descriptions,
@@ -43,7 +44,8 @@ public class StudioCrashReport extends BaseStudioReport {
                             long uptimeInMs,
                             @NonNull String errorSignal,
                             @NonNull String errorFrame,
-                            @NonNull String errorThread) {
+                            @NonNull String errorThread,
+                            @NonNull String nativeStack) {
     super(version, productData, "Crash");
     this.descriptions = descriptions;
     this.isJvmCrash = isJvmCrash;
@@ -51,6 +53,7 @@ public class StudioCrashReport extends BaseStudioReport {
     this.errorSignal = errorSignal;
     this.errorFrame = errorFrame;
     this.errorThread = errorThread;
+    this.nativeStack = nativeStack;
   }
 
   @Override
@@ -71,6 +74,7 @@ public class StudioCrashReport extends BaseStudioReport {
       builder.addTextBody("errorSignal", errorSignal);
       builder.addTextBody("errorFrame", errorFrame);
       builder.addTextBody("errorThread", errorThread);
+      builder.addTextBody("nativeStack", nativeStack);
     }
   }
 
@@ -88,6 +92,7 @@ public class StudioCrashReport extends BaseStudioReport {
     private String errorSignal = "";
     private String errorFrame = "";
     private String errorThread = "";
+    private String nativeStack = "";
 
     @Override
     protected Builder getThis() {
@@ -130,10 +135,16 @@ public class StudioCrashReport extends BaseStudioReport {
       return this;
     }
 
+    @NonNull
+    public Builder setNativeStack(String nativeStack) {
+      this.nativeStack = nativeStack;
+      return this;
+    }
+
     @Override
     public StudioCrashReport build() {
       return new StudioCrashReport(getVersion(), descriptions, getProductData(), isJvmCrash, uptimeInMs, errorSignal, errorFrame,
-                                   errorThread);
+                                   errorThread, nativeStack);
     }
   }
 }
