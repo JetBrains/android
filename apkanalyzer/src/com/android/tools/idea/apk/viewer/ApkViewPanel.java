@@ -446,7 +446,7 @@ public class ApkViewPanel implements TreeSelectionListener {
         if (fileName.equals(SdkConstants.FD_RES)) {
           return AllIcons.Modules.ResourcesRoot;
         }
-        return AllIcons.Modules.SourceFolder;
+        return AllIcons.Nodes.Package;
       }
     }
   }
