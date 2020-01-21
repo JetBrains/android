@@ -56,7 +56,6 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ErrorReporter extends ErrorReportSubmitter {
   private static final String FEEDBACK_TASK_TITLE = "Submitting error report";
@@ -187,6 +186,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
           reportBuilder.setErrorSignal(jvmCrash.getErrorSignal());
           reportBuilder.setErrorFrame(jvmCrash.getErrorFrame());
           reportBuilder.setErrorThread(jvmCrash.getErrorThread());
+          reportBuilder.setNativeStack(jvmCrash.getNativeStack());
         }
       }
 
