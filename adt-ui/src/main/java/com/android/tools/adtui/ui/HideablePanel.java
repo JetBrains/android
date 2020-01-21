@@ -142,10 +142,10 @@ public class HideablePanel extends JPanel {
       myExpanded = expanded;
       myChild.setVisible(expanded);
       if (expanded) {
-        myLabel.setIcon(AllIcons.General.SplitDown);
+        myLabel.setIcon(AllIcons.General.ArrowDown);
       }
       else {
-        myLabel.setIcon(AllIcons.General.SplitRight);
+        myLabel.setIcon(AllIcons.General.ArrowRight);
       }
       if (getParent() != null) {
         getParent().revalidate();
