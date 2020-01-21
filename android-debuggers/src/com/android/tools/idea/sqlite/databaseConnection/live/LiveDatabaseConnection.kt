@@ -98,22 +98,25 @@ class LiveDatabaseConnection(
 
   // TODO(blocked): properly handle supported data types. See https://www.sqlite.org/datatype3.html
   private fun SqliteInspection.Column.toSqliteColumn(): SqliteColumn {
-    return SqliteColumn(name, SqliteAffinity.fromTypename(type), false)
+    // TODO(blocked): add support for primary keys
+    // TODO(blocked): add support for NOT NULL
+    return SqliteColumn(name, SqliteAffinity.fromTypename(type), false, false)
   }
 
   private fun SqliteInspection.CellValue.toSqliteColumn(): SqliteColumnValue {
     // TODO(blocked): add support for primary keys
+    // TODO(blocked): add support for NOT NULL
     // TODO(blocked): we need to get affinity info from the on device inspector.
     return when (unionCase) {
       SqliteInspection.CellValue.UnionCase.STRING_VALUE ->
-        SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false), stringValue)
+        SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false, false), stringValue)
       SqliteInspection.CellValue.UnionCase.FLOAT_VALUE ->
-        SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false), floatValue)
+        SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false, false), floatValue)
       SqliteInspection.CellValue.UnionCase.BLOB_VALUE ->
-        SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false), blobValue)
+        SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false, false), blobValue)
       SqliteInspection.CellValue.UnionCase.INT_VALUE ->
-        SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false), intValue)
-      else -> SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false), "null")
+        SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false, false), intValue)
+      else -> SqliteColumnValue(SqliteColumn(columnName, SqliteAffinity.TEXT, false, false), "null")
     }
   }
 }

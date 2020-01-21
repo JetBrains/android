@@ -51,8 +51,8 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
 
   fun testConvertSqliteTableToAndroidSqlTable() {
     val columns: List<SqliteColumn> = listOf(
-      SqliteColumn("col1", SqliteAffinity.TEXT, false),
-      SqliteColumn("col2", SqliteAffinity.INTEGER, false)
+      SqliteColumn("col1", SqliteAffinity.TEXT, true, false),
+      SqliteColumn("col2", SqliteAffinity.INTEGER, true, false)
     )
     val table = SqliteTable("table", columns, null, false)
 
@@ -83,7 +83,7 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testGetContextFromFileDuringCompletion() {
-    val schema = SqliteSchema(listOf(SqliteTable("User", listOf(SqliteColumn("name", SqliteAffinity.TEXT, false)), null, false)))
+    val schema = SqliteSchema(listOf(SqliteTable("User", listOf(SqliteColumn("name", SqliteAffinity.TEXT, true, false)), null, false)))
     val sqlFile = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT <caret> FROM User").virtualFile
     sqlFile.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
 
@@ -94,7 +94,7 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testProvideCorrectDescription() {
-    val schema = SqliteSchema(listOf(SqliteTable("User", listOf(SqliteColumn("name", SqliteAffinity.TEXT, false)), null, false)))
+    val schema = SqliteSchema(listOf(SqliteTable("User", listOf(SqliteColumn("name", SqliteAffinity.TEXT, true, false)), null, false)))
     val sqlFile = myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT n<caret>ame FROM User").virtualFile
     sqlFile.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
 

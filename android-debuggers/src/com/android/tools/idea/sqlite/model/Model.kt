@@ -65,7 +65,7 @@ data class SqliteRow(val values: List<SqliteColumnValue>)
 data class SqliteColumnValue(val column: SqliteColumn, val value: Any?)
 
 /** Representation of a Sqlite table column */
-data class SqliteColumn(val name: String, val affinity: SqliteAffinity, val inPrimaryKey: Boolean)
+data class SqliteColumn(val name: String, val affinity: SqliteAffinity, val isNullable: Boolean, val inPrimaryKey: Boolean)
 
 /**
  *  Representation of a SQLite statement that may contain positional parameters.

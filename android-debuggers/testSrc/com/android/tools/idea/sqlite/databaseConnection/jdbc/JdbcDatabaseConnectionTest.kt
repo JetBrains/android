@@ -292,6 +292,23 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     assertEquals(SqliteAffinity.REAL, columns.first { it.name == "column4" }.affinity)
   }
 
+  fun testNotNull() {
+    // Prepare
+    customSqliteFile = sqliteUtil.createTestSqliteDatabase("rowidDb", "testTable", listOf("col1"), listOf("pk"), true)
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile!!, FutureCallbackExecutor.wrap(PooledThreadExecutor.INSTANCE))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    val pk = schema.tables.first().columns.find { it.name == "pk" }
+    val col1 = schema.tables.first().columns.find { it.name == "col1" }
+    assertFalse(pk!!.isNullable)
+    assertTrue(col1!!.isNullable)
+  }
+
   private fun SqliteResultSet.hasColumn(name: String, affinity: SqliteAffinity) : Boolean {
     return pumpEventsAndWaitForFuture(this.columns).find { it.name == name }?.affinity?.equals(affinity) ?: false
   }

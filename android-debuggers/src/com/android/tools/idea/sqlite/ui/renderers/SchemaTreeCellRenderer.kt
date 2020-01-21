@@ -60,6 +60,7 @@ class SchemaTreeCellRenderer : TreeCellRenderer {
           component.append(userObject.name)
           component.append(" : ")
           component.append(userObject.affinity.name.toLowerCase(Locale.US))
+          component.append(if (userObject.isNullable) "" else ", not null")
         }
 
         // String (e.g. "Tables" node)
