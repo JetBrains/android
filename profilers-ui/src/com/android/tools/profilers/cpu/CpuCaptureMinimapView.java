@@ -22,6 +22,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.chart.linechart.OverlayComponent;
+import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.event.DelegateMouseEventHandler;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangeSelectionModel;
@@ -46,6 +47,8 @@ public class CpuCaptureMinimapView {
 
   public CpuCaptureMinimapView(@NotNull CpuCaptureMinimapModel model) {
     myInnerPanel = new JPanel(new TabularLayout("*", "*"));
+    myInnerPanel.setBackground(StudioColorsKt.getPrimaryContentBackground());
+    myInnerPanel.setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 1));
     // Order is important
     RangeSelectionComponent rangeSelectionComponent = createRangeSelectionComponent(model.getRangeSelectionModel());
     myInnerPanel.add(createOverlayComponent(rangeSelectionComponent), new TabularLayout.Constraint(0, 0));
@@ -55,7 +58,7 @@ public class CpuCaptureMinimapView {
 
     myPanel = new JPanel(new TabularLayout("*", "60px"));
     myPanel.setBorder(JBUI.Borders.empty(4, 8));
-    myPanel.setBackground(ProfilerColors.DEFAULT_BACKGROUND);
+    myPanel.setBackground(StudioColorsKt.getPrimaryPanelBackground());
     myPanel.add(myInnerPanel, new TabularLayout.Constraint(0, 0));
   }
 
@@ -97,6 +100,8 @@ public class CpuCaptureMinimapView {
       new ClampedAxisComponentModel.Builder(cpuUsageRange, TimeAxisFormatter.DEFAULT).build(), AxisComponent.AxisOrientation.TOP);
     timeAxis.setMinimumSize(new Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT));
     timeAxis.setPreferredSize(new Dimension(Integer.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT));
+    // Hide the axis line so it doesn't stack with panel border.
+    timeAxis.setShowAxisLine(false);
     return timeAxis;
   }
 }
