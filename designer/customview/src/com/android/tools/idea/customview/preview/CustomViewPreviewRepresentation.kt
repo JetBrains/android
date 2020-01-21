@@ -215,6 +215,9 @@ class CustomViewPreviewRepresentation(
     init(issuePanelSplitter, surface, listOf(), false)
   }
 
+  @Volatile
+  private var lastBuildStartedNanos = 0L
+
   init {
     val buildState = buildStateProvider(project)
     val fileState = if (FileDocumentManager.getInstance().isFileModified(psiFile.virtualFile))
@@ -280,13 +283,16 @@ class CustomViewPreviewRepresentation(
       }
 
       override fun buildStarted() {
+        lastBuildStartedNanos = System.nanoTime()
         stateTracker.setFileState(CustomViewVisualStateTracker.FileState.UP_TO_DATE)
         stateTracker.setBuildState(CustomViewVisualStateTracker.BuildState.IN_PROGRESS)
       }
     }, this)
 
-    setupChangeListener(project, psiFile, {
-      stateTracker.setFileState(CustomViewVisualStateTracker.FileState.MODIFIED)
+    setupChangeListener(project, psiFile, { lastUpdatedNanos ->
+      if (lastUpdatedNanos > lastBuildStartedNanos) {
+        stateTracker.setFileState(CustomViewVisualStateTracker.FileState.MODIFIED)
+      }
     }, this)
 
     project.runWhenSmartAndSyncedOnEdt(this, Consumer { refresh() })
