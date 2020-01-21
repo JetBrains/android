@@ -20,7 +20,7 @@ import com.android.tools.adtui.common.StudioColorsKt;
 import com.android.tools.adtui.model.trackgroup.TrackModel;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.icons.AllIcons;
-import com.intellij.util.ui.JBEmptyBorder;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.MouseEventHandler;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -29,6 +29,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
+import javax.swing.border.Border;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -43,12 +44,15 @@ public class Track {
 
   private static final Icon COLLAPSE_ICON = AllIcons.General.ArrowRight;
   private static final Icon EXPAND_ICON = AllIcons.General.ArrowDown;
+  private static final Border CONTENT_BORDER_DEFAULT = JBUI.Borders.customLine(StudioColorsKt.getPrimaryContentBackground(), 2, 0, 2, 0);
+  private static final Border CONTENT_BORDER_SELECTED = JBUI.Borders.customLine(StudioColorsKt.getSelectionBackground(), 2, 0, 2, 0);
 
-  @NotNull
-  private final JPanel myComponent;
+  @NotNull private final JPanel myComponent;
   @NotNull private final JLabel myTitleLabel;
+  @NotNull private final JComponent myTrackContent;
 
   private Track(@NotNull TrackModel trackModel, @NotNull JComponent trackContent) {
+    myTrackContent = trackContent;
     myTitleLabel = new JLabel(trackModel.getTitle());
     myTitleLabel.setVerticalAlignment(SwingConstants.TOP);
     myTitleLabel.setToolTipText(trackModel.getTitleTooltip());
@@ -66,9 +70,9 @@ public class Track {
     }
 
     int iconOffset = myTitleLabel.getIcon() == null ? 0 : myTitleLabel.getIcon().getIconWidth() + myTitleLabel.getIconTextGap();
-    myTitleLabel.setBorder(new JBEmptyBorder(4, 36 - iconOffset, 4, 0));
-    trackContent.setBorder(new JBEmptyBorder(4, 0, 4, 0));
-
+    myTitleLabel.setBorder(JBUI.Borders.merge(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 0, 0, 0, 1),
+                                              JBUI.Borders.empty(2, 36 - iconOffset, 2, 0),
+                                              false));
     myComponent = new JPanel(new TabularLayout(COL_SIZES, "Fit"));
     if (trackModel.getHideHeader()) {
       myComponent.add(trackContent, new TabularLayout.Constraint(0, 0, 2));
@@ -113,6 +117,7 @@ public class Track {
   public Track updateSelected(boolean selected) {
     myComponent.setBackground(selected ? StudioColorsKt.getSelectionBackground() : null);
     myTitleLabel.setForeground(selected ? StudioColorsKt.getSelectionForeground() : null);
+    myTrackContent.setBorder(selected ? CONTENT_BORDER_SELECTED : CONTENT_BORDER_DEFAULT);
     return this;
   }
 
