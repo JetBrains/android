@@ -22,12 +22,12 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-import static com.intellij.icons.AllIcons.General.ExpandAll;
+import static com.intellij.icons.AllIcons.Actions.Expandall;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_EXPAND_ALL;
 
 public abstract class AbstractBaseExpandAllAction extends DumbAwareAction {
   protected AbstractBaseExpandAllAction(@NotNull Tree tree) {
-    this(tree, ExpandAll);
+    this(tree, Expandall);
   }
 
   protected AbstractBaseExpandAllAction(@NotNull Tree tree, @NotNull Icon icon) {
