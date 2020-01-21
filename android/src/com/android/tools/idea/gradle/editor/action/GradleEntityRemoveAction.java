@@ -27,7 +27,7 @@ public class GradleEntityRemoveAction extends AbstractGradleEntityAction {
 
   public GradleEntityRemoveAction() {
     Presentation presentation = getTemplatePresentation();
-    presentation.setIcon(AllIcons.Actions.Delete);
+    presentation.setIcon(AllIcons.Actions.Cancel);
   }
 
   @Override
