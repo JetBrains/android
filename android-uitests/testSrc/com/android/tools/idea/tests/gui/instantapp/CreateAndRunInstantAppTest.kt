@@ -129,6 +129,9 @@ class CreateAndRunInstantAppTest {
     EnableInstantAppSupportDialogFixture.find(ideFrame)
       .clickOk()
 
+    // Wait for Gradle sync to finish, then the Run -> Edit Configurations... will be enabled.
+    ideFrame.waitForGradleProjectSyncToFinish()
+
     // The project is not deployed as an instant app by default anymore. Enable
     // deploying the project as an instant app:
     ideFrame.invokeMenuPath("Run", "Edit Configurations...")
@@ -142,7 +145,7 @@ class CreateAndRunInstantAppTest {
     runWindow.activate()
     val runWindowContent = runWindow.findContent(runConfigName)
 
-    val runOutputPattern = Pattern.compile(".*Connected to process.*", Pattern.DOTALL)
+    val runOutputPattern = Pattern.compile(".*Instant app started.*", Pattern.DOTALL)
     runWindowContent.waitForOutput(PatternTextMatcher(runOutputPattern), EmulatorTestRule.DEFAULT_EMULATOR_WAIT_SECONDS)
 
     runWindowContent.waitForStopClick()

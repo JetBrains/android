@@ -934,8 +934,6 @@ java_test(
         "no_windows",
         "qa_sanity",
         "qa_sanity_emu",
-        "qa_sanity_unreliable_emu",  # b/79937083
-        "qa_unreliable",  # b/79937083
         "requires-fakeroot",
         "requires_emulator",
     ],
