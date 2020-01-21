@@ -212,11 +212,6 @@ public class AndroidResourceUtilTest extends AndroidTestCase {
     assertTrue(AndroidResourceUtil.isRJavaClass(libRClass));
   }
 
-  public void testValidResourceFileName() {
-    assertEquals("ic_my_icon", AndroidResourceUtil.getValidResourceFileName("ic_My-icon"));
-    assertEquals("my_file_name.png", AndroidResourceUtil.getValidResourceFileName("My File-Name.png"));
-  }
-
   public void testEnsureNamespaceImportedAddAuto() {
     XmlFile xmlFile = ensureNamespaceImported("<LinearLayout/>", AUTO_URI, null);
     assertThat(xmlFile.getText()).isEqualTo("<LinearLayout xmlns:app=\"http://schemas.android.com/apk/res-auto\" />");

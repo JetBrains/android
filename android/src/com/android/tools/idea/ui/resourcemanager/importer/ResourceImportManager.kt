@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.importer
 
-import com.android.ide.common.resources.ValueResourceNameValidator
+import com.android.ide.common.resources.FileResourceNameValidator
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.util.toIoFile
@@ -24,7 +24,6 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor
 import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.android.util.getValidResourceFileName
 import java.io.File
 import java.nio.file.FileVisitOption
 import java.nio.file.Files
@@ -79,7 +78,7 @@ fun Sequence<File>.findAllDesignAssets(importersProvider: ImportersProvider): Se
 fun Sequence<DesignAsset>.groupIntoDesignAssetSet(): List<ResourceAssetSet> =
   groupBy { it.name }
     .map { (name, assets) ->
-      ResourceAssetSet(ValueResourceNameValidator.normalizeName(getValidResourceFileName(name)), assets)
+      ResourceAssetSet(FileResourceNameValidator.getValidResourceFileName(name), assets)
     }
 
 /**
