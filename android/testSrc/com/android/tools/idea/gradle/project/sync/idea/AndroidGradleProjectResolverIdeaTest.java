@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync.idea;
 
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.externalSystem.model.ProjectKeys.PROJECT;
@@ -34,7 +33,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
-import com.android.builder.model.SyncIssue;
 import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
@@ -42,7 +40,6 @@ import com.android.tools.idea.gradle.TestProjects;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
-import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
@@ -171,34 +168,6 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
     }
   }
 
-  public void testSyncIssuesPropagatedOnJavaModules() {
-    ProjectData project = myProjectResolver.createProject();
-    DataNode<ProjectData> projectNode = new DataNode<>(PROJECT, project, null);
-    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myAndroidModuleModel, projectNode);
-
-    SyncIssue syncIssue = mock(SyncIssue.class);
-    myAndroidProjectStub.setSyncIssues(syncIssue);
-
-    ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
-    allModels.addModel(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
-    myResolverCtx.setModels(allModels);
-
-    myProjectResolver.populateModuleContentRoots(myAndroidModuleModel, moduleDataNode);
-
-    Collection<DataNode<AndroidModuleModel>> androidModelNodes = getChildren(moduleDataNode, ANDROID_MODEL);
-    assertThat(androidModelNodes).isEmpty();
-
-    Collection<DataNode<JavaModuleModel>> javaModelNodes = getChildren(moduleDataNode, JAVA_MODULE_MODEL);
-    assertSize(1, javaModelNodes);
-    JavaModuleModel javaModuleModel = javaModelNodes.iterator().next().getData();
-    SyncIssue issue = javaModuleModel.getSyncIssues().iterator().next();
-    assertThat(issue.getMessage()).isEqualTo(syncIssue.getMessage());
-    assertThat(issue.getData()).isEqualTo(syncIssue.getData());
-    assertThat(issue.getSeverity()).isEqualTo(syncIssue.getSeverity());
-    assertThat(issue.getType()).isEqualTo(syncIssue.getType());
-    assertThat(issue.getMultiLineMessage()).isEqualTo(syncIssue.getMultiLineMessage());
-  }
-
   public void testPopulateModuleContentRootsWithNativeAndroidProject() {
     ProjectData project = myProjectResolver.createProject();
     DataNode<ProjectData> projectNode = new DataNode<>(PROJECT, project, null);
@@ -282,7 +251,6 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
   public void testKaptSourcesAreAddedToAndroidModuleModel() {
     ProjectData project = myProjectResolver.createProject();
     DataNode<ProjectData> projectNode = new DataNode<>(PROJECT, project, null);
-    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myAndroidModuleModel, projectNode);
 
     File debugGeneratedSourceFile = new File("/gen/debug");
     File releaseGeneratedSourceFile = new File("/gen/release");
@@ -319,7 +287,7 @@ public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
     allModels.addModel(mockKaptModel, KaptGradleModel.class, myAndroidModuleModel);
     myResolverCtx.setModels(allModels);
 
-    myProjectResolver.populateModuleContentRoots(myAndroidModuleModel, moduleDataNode);
+    DataNode<ModuleData> moduleDataNode = myProjectResolver.createModule(myAndroidModuleModel, projectNode);
 
     Collection<DataNode<AndroidModuleModel>> androidModelNodes = getChildren(moduleDataNode, ANDROID_MODEL);
     assertThat(androidModelNodes).hasSize(1);
