@@ -52,7 +52,6 @@ import org.mockito.Mockito.spy
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.sql.DriverManager
-import java.sql.JDBCType
 
 class TableControllerTest : PlatformTestCase() {
   private lateinit var tableView: MockTableView
@@ -92,9 +91,9 @@ class TableControllerTest : PlatformTestCase() {
       getSqliteJdbcService(sqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
 
-    authorIdColumn = SqliteColumn("author_id", SqliteAffinity.INTEGER, true)
-    val authorNameColumn = SqliteColumn("first_name", SqliteAffinity.TEXT, false)
-    val authorLastColumn = SqliteColumn("last_name", SqliteAffinity.TEXT, false)
+    authorIdColumn = SqliteColumn("author_id", SqliteAffinity.INTEGER, false, true)
+    val authorNameColumn = SqliteColumn("first_name", SqliteAffinity.TEXT, true, false)
+    val authorLastColumn = SqliteColumn("last_name", SqliteAffinity.TEXT, true, false)
 
     authorsRow1 = SqliteRow(
       listOf(
@@ -946,8 +945,8 @@ class TableControllerTest : PlatformTestCase() {
     val customSqliteTable = SqliteTable(
       "tableName",
       listOf(
-        SqliteColumn("rowid", SqliteAffinity.INTEGER, false),
-        SqliteColumn("c1", SqliteAffinity.TEXT, false)
+        SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false),
+        SqliteColumn("c1", SqliteAffinity.TEXT, true, false)
       ),
       RowIdName.ROWID,
       false

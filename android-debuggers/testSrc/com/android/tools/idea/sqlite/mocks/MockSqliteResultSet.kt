@@ -25,7 +25,10 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 
 class MockSqliteResultSet(size: Int = 100) : SqliteResultSet {
-  val _columns = listOf(SqliteColumn("id", SqliteAffinity.INTEGER, false), SqliteColumn(RowIdName.ROWID.stringName, SqliteAffinity.INTEGER, false))
+  val _columns = listOf(
+    SqliteColumn("id", SqliteAffinity.INTEGER, true, false),
+    SqliteColumn(RowIdName.ROWID.stringName, SqliteAffinity.INTEGER, true, false)
+  )
   private val rows = mutableListOf<SqliteRow>()
 
   val invocations = mutableListOf<List<SqliteRow>>()

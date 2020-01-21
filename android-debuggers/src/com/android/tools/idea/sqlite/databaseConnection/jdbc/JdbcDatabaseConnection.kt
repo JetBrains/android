@@ -84,6 +84,7 @@ class JdbcDatabaseConnection(
       SqliteColumn(
         columnName,
         SqliteAffinity.fromJDBCType(JDBCType.valueOf(columnsSet.getInt("DATA_TYPE"))),
+        columnsSet.getString("IS_NULLABLE") == "YES",
         keyColumnsNames.contains(columnName)
       )
     }.toList()

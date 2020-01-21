@@ -51,6 +51,7 @@ class JdbcSqliteResultSet(
       SqliteColumn(
         metaData.getColumnName(i),
         SqliteAffinity.fromJDBCType(JDBCType.valueOf(metaData.getColumnType(i))),
+        metaData.isNullable(i) == 1,
         keyColumnsNames.contains(columnName)
       )
     }
