@@ -66,7 +66,7 @@ public class LibraryPropertiesDialog extends DialogWrapper {
   @Nullable
   @Override
   protected JComponent createCenterPanel() {
-    myIconLabel.setIcon(AllIcons.Modules.Library);
+    myIconLabel.setIcon(AllIcons.Nodes.PpLib);
     myNameLabel.setText(myLibrary.getName());
 
     myEditor = new SourcesAndDocsOnlyEditor(myLibrary);
