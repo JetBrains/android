@@ -78,7 +78,7 @@ import com.intellij.openapi.ui.MessageType;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
 import com.intellij.ui.AppIcon;
-import com.intellij.ui.content.ContentManagerAdapter;
+import com.intellij.ui.content.ContentManagerListener;
 import com.intellij.util.Function;
 import com.intellij.util.SystemProperties;
 import java.io.File;
@@ -564,7 +564,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     }
   }
 
-  private class CloseListener extends ContentManagerAdapter implements VetoableProjectManagerListener {
+  private class CloseListener implements ContentManagerListener, VetoableProjectManagerListener {
     private boolean myIsApplicationExitingOrProjectClosing;
     private boolean myUserAcceptedCancel;
 
