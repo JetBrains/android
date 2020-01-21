@@ -75,6 +75,7 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
+import com.google.common.collect.ImmutableList
 import com.google.common.truth.TruthJUnit.assume
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -786,7 +787,7 @@ private fun createAndroidModuleDataNode(
           androidProjectStub,
           IdeDependenciesFactory(),
           null,
-          null),
+          ImmutableList.of()),
         selectedVariantName
       ),
       null

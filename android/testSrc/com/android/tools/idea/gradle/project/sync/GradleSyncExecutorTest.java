@@ -145,24 +145,8 @@ public class GradleSyncExecutorTest extends GradleSyncIntegrationTestCase {
       }
     });
 
-    try {
-      String failure = requestSyncAndGetExpectedFailure(request -> request.skipPreSyncChecks = true);
-      // New sync path
-      assertThat(failure).contains("Sync issues found!");
-    }
-    catch (AssertionError e) {
-      // Old sync path
-      // Since this error is thrown in set-up it does not get caught in Old Sync, this means that even though
-      // requestSyncAndGetExpectedFailure is called we still get an exception thrown.
-      assertThat(e.getMessage()).contains("Sync issues found!");
-    }
-
-    SyncMessage message = messagesStub.getFirstReportedMessage();
-    assertThat(message).isNotNull();
-    assertThat(message.getType()).isEqualTo(ERROR);
-    assertThat(message.getText()[0]).isEqualTo("The module 'app' is an Android project without build variants, and cannot be built.");
-    assertThat(message.getText()[1])
-      .isEqualTo("Please fix the module's configuration in the build.gradle file and sync the project again.");
+    String failure = requestSyncAndGetExpectedFailure(request -> request.skipPreSyncChecks = true);
+    assertThat(failure).contains("No variants found for 'app'. Check build files to ensure at least one variant exists.");
   }
 
   @NotNull
