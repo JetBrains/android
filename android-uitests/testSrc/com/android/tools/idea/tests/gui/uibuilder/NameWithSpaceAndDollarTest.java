@@ -49,15 +49,16 @@ public class NameWithSpaceAndDollarTest {
    *   4. Wait for build to finish.
    *   5. Project is created successfully.
    *   Verify:
-   *   Successfully created new project with name containing a space a dollar sign.
+   *   Successfully created new project with name containing a space, a "'" and a dollar sign.
    *   </pre>
    */
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void createNewProjectNameWithSpaceAndDollar() {
-    new NewProjectDescriptor("Test Application$").withMinSdk(23).create(guiTest);
+    new NewProjectDescriptor("'Test' Application$").withMinSdk(23).create(guiTest);
 
-    assertThat(guiTest.getProjectFileText("app/src/main/res/values/strings.xml")).contains("Test Application$");
-    assertThat(guiTest.getProjectFileText(FN_SETTINGS_GRADLE)).contains("\"Test Application\\$\"");
+    // Note@ "'" should be escaped in xml, but not in settings.gradle
+    assertThat(guiTest.getProjectFileText("app/src/main/res/values/strings.xml")).contains("\\'Test\\' Application$");
+    assertThat(guiTest.getProjectFileText(FN_SETTINGS_GRADLE)).contains("\"'Test' Application\\$\"");
   }
 }
