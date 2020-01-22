@@ -33,16 +33,8 @@ import com.intellij.openapi.application.ApplicationManager
  * value may be something else.
  */
 sealed class EnumValueImpl : EnumValue {
-  override fun withHeader(header: String): EnumValue {
-    return GenericEnumValue(value, display, header, indented, separator)
-  }
-
-  override fun withSeparator(): EnumValue {
-    return GenericEnumValue(value, display, header, indented, true)
-  }
-
   override fun withIndentation(): EnumValue {
-    return GenericEnumValue(value, display, header, true, separator)
+    return GenericEnumValue(value, display, true)
   }
 }
 
@@ -68,8 +60,11 @@ data class IndentedItemWithDisplayEnumValue(override val value: String, override
   override fun toString() = value
 }
 
-internal data class GenericEnumValue(override val value: String?, override val display: String, override val header: String,
-                                     override val indented: Boolean, override val separator: Boolean) : EnumValueImpl() {
+internal data class GenericEnumValue(
+  override val value: String?,
+  override val display: String,
+  override val indented: Boolean
+) : EnumValueImpl() {
   override fun toString() = value ?: ""
 }
 
@@ -88,9 +83,7 @@ sealed class BaseActionEnumValue(override val action: AnAction) : ActionEnumValu
     val otherActionValue = other as? BaseActionEnumValue ?: return false
     return action.javaClass == otherActionValue.action.javaClass
         && display == otherActionValue.display
-        && header == otherActionValue.header
         && indented == otherActionValue.indented
-        && separator == otherActionValue.separator
   }
 
   override fun select(property: PropertyItem): Boolean {
@@ -102,20 +95,11 @@ sealed class BaseActionEnumValue(override val action: AnAction) : ActionEnumValu
     return false
   }
 
-  override fun withHeader(header: String): EnumValue {
-    return GenericActionEnumValue(action, header, indented, separator)
-  }
-
-  override fun withSeparator(): EnumValue {
-    return GenericActionEnumValue(action, header, indented, true)
-  }
-
   override fun withIndentation(): EnumValue {
-    return GenericActionEnumValue(action, header, true, separator)
+    return GenericActionEnumValue(action, true)
   }
 }
 
 class AnActionEnumValue(action: AnAction) : BaseActionEnumValue(action)
 
-internal class GenericActionEnumValue(action: AnAction, override val header: String,
-                                      override val indented: Boolean, override val separator: Boolean) : BaseActionEnumValue(action)
+internal class GenericActionEnumValue(action: AnAction, override val indented: Boolean) : BaseActionEnumValue(action)
