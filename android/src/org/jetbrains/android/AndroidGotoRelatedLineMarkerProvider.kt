@@ -26,14 +26,13 @@ import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.icons.AllIcons
-import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.psi.JavaRecursiveElementWalkingVisitor
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethodCallExpression
 import com.intellij.psi.PsiReferenceExpression
@@ -81,12 +80,12 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
       is PsiClass -> {
         val gotoList = getItemsForClass(element, facet) ?: return
         val nameIdentifier = element.nameIdentifier ?: return
-        result.add(createRelatedItemLineMarkerInfo(nameIdentifier, gotoList, XmlFileType.INSTANCE.icon!!, "Related XML file"))
+        result.add(createRelatedItemLineMarkerInfo(nameIdentifier, gotoList, StdFileTypes.XML.icon!!, "Related XML file"))
       }
       is KtClass -> {
         val gotoList = element.toLightClass()?.let { getItemsForClass(it, facet) } ?: return
         val nameIdentifier = element.nameIdentifier ?: return
-        result.add(createRelatedItemLineMarkerInfo(nameIdentifier, gotoList, XmlFileType.INSTANCE.icon!!,
+        result.add(createRelatedItemLineMarkerInfo(nameIdentifier, gotoList, StdFileTypes.XML.icon!!,
                                                    "Related XML file"))
       }
       is XmlFile -> {
@@ -318,7 +317,7 @@ class AndroidGotoRelatedLineMarkerProvider : RelatedItemLineMarkerProvider() {
     }
 
     override fun getCustomIcon(): Icon? {
-      return XmlFileType.INSTANCE.icon
+      return StdFileTypes.XML.icon
     }
   }
 }

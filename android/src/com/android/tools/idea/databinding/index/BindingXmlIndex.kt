@@ -16,13 +16,12 @@
 package com.android.tools.idea.databinding.index
 
 import com.android.SdkConstants
-import com.android.SdkConstants.FD_RES
 import com.android.SdkConstants.TAG_LAYOUT
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.databinding.index.BindingLayoutType.DATA_BINDING_LAYOUT
 import com.android.tools.idea.databinding.index.BindingLayoutType.PLAIN_LAYOUT
-import com.intellij.ide.highlighter.XmlFileType
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
@@ -280,11 +279,11 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
   }
 
   override fun getInputFilter(): FileBasedIndex.InputFilter {
-    return object : DefaultFileTypeSpecificInputFilter(XmlFileType.INSTANCE) {
+    return object : DefaultFileTypeSpecificInputFilter(StdFileTypes.XML) {
       override fun acceptInput(file: VirtualFile): Boolean {
         return "xml" == file.extension
                && ResourceFolderType.getFolderType(file.parent?.name.orEmpty()) == ResourceFolderType.LAYOUT
-               && XmlFileType.INSTANCE == file.fileType
+               && StdFileTypes.XML == file.fileType
       }
     }
   }

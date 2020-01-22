@@ -18,10 +18,9 @@ package com.android.tools.idea.benchmarks
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
-import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.ProjectScope
@@ -60,7 +59,7 @@ class FullProjectHighlightingBenchmark(private val projectName: String, private 
     @get:Parameterized.Parameters(name = "{0}")
     @Suppress("unused")
     val projects = listOf(
-      arrayOf("SantaTracker", listOf(JavaFileType.INSTANCE, XmlFileType.INSTANCE))
+      arrayOf("SantaTracker", listOf(StdFileTypes.JAVA, StdFileTypes.XML))
     )
 
     /** The Perfgate dashboard summarizing the results of this test. */

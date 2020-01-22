@@ -36,10 +36,10 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.google.common.util.concurrent.Futures;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.SystemInfo;
@@ -210,7 +210,7 @@ public class PreviewProvider implements Disposable {
     }
     PsiFile file = PsiFileFactory
       .getInstance(renderTask.getContext().getModule().getProject())
-      .createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml);
+      .createFileFromText(PREVIEW_PLACEHOLDER_FILE, StdFileTypes.XML, xml);
 
     assert file instanceof XmlFile;
     renderTask.setXmlFile((XmlFile)file);

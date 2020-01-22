@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.android.synthetic.idea
 
-import com.intellij.ide.highlighter.XmlFileType
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
@@ -138,7 +138,7 @@ class AndroidPsiTreeChangePreprocessor : PsiTreeChangePreprocessor, SimpleModifi
         }
 
         private fun PsiFile.isLayoutXmlFile(): Boolean {
-            if (fileType != XmlFileType.INSTANCE) return false
+            if (fileType != StdFileTypes.XML) return false
             return parent?.name?.startsWith("layout") ?: false
         }
     }
