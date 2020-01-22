@@ -19,6 +19,7 @@ import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCRE
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.DEFAULT_SCREEN_OFFSET_Y;
 import static com.android.tools.idea.uibuilder.graphics.NlConstants.SCREEN_DELTA;
 
+import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.actions.LayoutPreviewHandler;
 import com.android.tools.idea.actions.LayoutPreviewHandlerKt;
@@ -104,6 +105,7 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     @NotNull private State myDefaultSurfaceState = State.FULL;
     private double myMinScale = DEFAULT_MIN_SCALE;
     private double myMaxScale = DEFAULT_MAX_SCALE;
+    @NotNull private ZoomType myOnChangeZoom = ZoomType.FIT_INTO;
 
     /**
      * Factory to create an action manager for the NlDesignSurface
@@ -250,6 +252,16 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
       return this;
     }
 
+    /**
+     * Set zoom type to apply to surface on configuration changes.
+     * @param onChangeZoom {@link ZoomType} to be applied on configuration change
+     * @return this {@link Builder}
+     */
+    public Builder setOnConfigurationChangedZoom(@NotNull ZoomType onChangeZoom) {
+      myOnChangeZoom = onChangeZoom;
+      return this;
+    }
+
     @NotNull
     public NlDesignSurface build() {
       SurfaceLayoutManager layoutManager = myLayoutManager != null ? myLayoutManager : createDefaultSurfaceLayoutManager();
@@ -268,7 +280,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                                  myDefaultSurfaceState,
                                  myNavigationHandler,
                                  myMinScale,
-                                 myMaxScale);
+                                 myMaxScale,
+                                 myOnChangeZoom);
     }
   }
 
@@ -330,8 +343,9 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
                           @NotNull State defaultSurfaceState,
                           @Nullable NavigationHandler navigationHandler,
                           double minScale,
-                          double maxScale) {
-    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, defaultSurfaceState, isEditable);
+                          double maxScale,
+                          @NotNull ZoomType onChangeZoom) {
+    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider, defaultSurfaceState, isEditable, onChangeZoom);
     myAnalyticsManager = new NlAnalyticsManager(this);
     myAccessoryPanel.setSurface(this);
     myIsInPreview = isInPreview;
