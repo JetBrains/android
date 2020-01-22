@@ -71,6 +71,9 @@ class BuildAttributionTreeView(
   private val tree: Tree
   private val handler: InfoViewHandler
 
+  val isDisposed: Boolean
+    get() = disposed.get()
+
   init {
     val treeStructure = SimpleTreeStructure.Impl(rootNode)
     treeModel = StructureTreeModel(treeStructure, this)
