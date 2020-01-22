@@ -11,7 +11,7 @@
     <orderEntry type="module" module-name="android.sdktools.binary-resources" />
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module-library" exported="">
-      <library type="repository">
+      <library name="deploy-java-proto" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:deploy_java_proto:26.6.0.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/deploy_java_proto/26.6.0.0/deploy_java_proto-26.6.0.0.jar!/" />
@@ -32,7 +32,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="libjava_version" type="repository">
+      <library name="deploy-java-version" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:libjava_version:26.6.0.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/libjava_version/26.6.0.0/libjava_version-26.6.0.0.jar!/" />
@@ -49,7 +49,7 @@
     <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="studio-grpc" level="project" />
     <orderEntry type="module-library" exported="">
-      <library name="precompiled-android.sdktools.deployer" type="repository">
+      <library name="precompiled-deployer" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:deployer:26.6.0.0" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/deployer/26.6.0.0/deployer-26.6.0.0.jar!/" />
