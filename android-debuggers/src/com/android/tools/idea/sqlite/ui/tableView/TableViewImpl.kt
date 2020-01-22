@@ -39,6 +39,10 @@ import javax.swing.table.TableCellRenderer
  * Abstraction on the UI component used to display tables.
  */
 class TableViewImpl : TableView {
+  companion object {
+    private const val tableIsEmptyText = "Table is empty"
+    private const val loadingText = "Loading data..."
+  }
   private val listeners = mutableListOf<TableView.Listener>()
   private val pageSizeDefaultValues = listOf(5, 10, 20, 25, 50)
   private var isLoading = false
@@ -87,7 +91,7 @@ class TableViewImpl : TableView {
     refreshButton.addActionListener{ listeners.forEach { it.refreshDataInvoked() } }
 
     table.tableHeader.defaultRenderer = MyTableHeaderRenderer()
-    table.emptyText.text = "Table is empty"
+    table.emptyText.text = tableIsEmptyText
     panel.root.add(JBScrollPane(table))
 
     table.tableHeader.addMouseListener(object : MouseAdapter() {
@@ -114,6 +118,7 @@ class TableViewImpl : TableView {
   }
 
   override fun startTableLoading() {
+    table.emptyText.text = loadingText
     isLoading = true
   }
 
@@ -127,6 +132,8 @@ class TableViewImpl : TableView {
   }
 
   override fun stopTableLoading() {
+    table.emptyText.text = tableIsEmptyText
+
     table.setPaintBusy(false)
 
     isLoading = false
