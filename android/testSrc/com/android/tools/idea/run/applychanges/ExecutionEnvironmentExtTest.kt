@@ -72,7 +72,6 @@ class ExecutionEnvironmentExtTest {
     `when`(mockEnv.executionTarget).thenReturn(mockExecutionTarget)
 
     `when`(mockProject.getService(eq(ExecutionManager::class.java))).thenReturn(mockExecutionManager)
-    `when`(mockExecutionManager.runningProcesses).thenReturn(arrayOf())
 
     `when`(mockProject.getComponent(eq(DebuggerManager::class.java))).thenReturn(mockDebugManager)
     `when`(mockDebugManager.sessions).thenReturn(listOf())
@@ -81,7 +80,6 @@ class ExecutionEnvironmentExtTest {
   @Test
   fun findExistingProcessHandler_sessionExists() {
     val mockProcessHandler = mock(ProcessHandler::class.java)
-    `when`(mockExecutionManager.runningProcesses).thenReturn(arrayOf(mockProcessHandler))
     val mockSessionInfo = mock(AndroidSessionInfo::class.java)
     `when`(mockProcessHandler.getUserData(eq(AndroidSessionInfo.KEY))).thenReturn(mockSessionInfo)
     `when`(mockSessionInfo.runConfiguration).thenReturn(mockRunProfile)
