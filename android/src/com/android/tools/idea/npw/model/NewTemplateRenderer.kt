@@ -61,8 +61,7 @@ fun Recipe.render(c: RenderingContext2, e: RecipeExecutor, loggingEvent: Templat
   }
 
   if (!c.dryRun) {
-    StartupManager.getInstance(c.project)
-      .runWhenProjectIsInitialized { TemplateUtils.reformatAndRearrange(c.project, c.targetFiles) }
+    TemplateUtils.reformatAndRearrange(c.project, c.targetFiles)
   }
 
   ApplicationManager.getApplication().invokeAndWait { PsiDocumentManager.getInstance(c.project).commitAllDocuments() }
