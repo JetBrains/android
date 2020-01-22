@@ -26,7 +26,7 @@ import java.util.List;
 public class AndroidProfilerDownloader {
 
   private static final Logger LOG = Logger.getInstance(AndroidProfilerDownloader.class);
-  private static final String VERSION = "26.5.0.1";
+  private static final String VERSION = "26.6.0.0";
 
   public static boolean makeSureProfilerIsInPlace() {
     if (ApplicationManager.getApplication() == null) return false; // to support regular junit tests with no Application initialized
@@ -37,7 +37,7 @@ public class AndroidProfilerDownloader {
     DownloadableFileService service = DownloadableFileService.getInstance();
     String fileName = "android-plugin-resources-" + VERSION + ".zip";
     DownloadableFileDescription
-      description = service.createFileDescription("https://dl.bintray.com/jetbrains/intellij-third-party-dependencies/org/jetbrains/intellij/deps/android/tools/android-plugin-resources/" + VERSION + "/" + fileName, fileName);
+      description = service.createFileDescription("https://dl.bintray.com/jetbrains/intellij-third-party-dependencies/org/jetbrains/intellij/deps/android/tools/base/android-plugin-resources/" + VERSION + "/" + fileName, fileName);
     FileDownloader downloader = service.createDownloader(Collections.singletonList(description), "Download Android Profiler");
     try {
       Path tempDir = Files.createTempDirectory("android-profiler-download");
