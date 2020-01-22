@@ -17,30 +17,28 @@ package com.android.tools.idea.gradle.dsl.model.repositories;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenCredentialsModel;
-import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
+import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-public class MavenCredentialsModelImpl implements MavenCredentialsModel {
-  @NonNls private static final String USERNAME = "username";
-  @NonNls private static final String PASSWORD = "password";
-
-  @NotNull private final MavenCredentialsDslElement myDslElement;
+public class MavenCredentialsModelImpl extends GradleDslBlockModel implements MavenCredentialsModel {
+  @NonNls public static final String USERNAME = "mUsername";
+  @NonNls public static final String PASSWORD = "mPassword";
 
   public MavenCredentialsModelImpl(@NotNull MavenCredentialsDslElement dslElement) {
-    myDslElement = dslElement;
+    super(dslElement);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel username() {
-    return GradlePropertyModelBuilder.create(myDslElement, USERNAME).asMethod(true).buildResolved();
+    return getModelForProperty(USERNAME);
   }
 
   @Override
   @NotNull
   public ResolvedPropertyModel password() {
-    return GradlePropertyModelBuilder.create(myDslElement, PASSWORD).asMethod(true).buildResolved();
+    return getModelForProperty(PASSWORD);
   }
 }

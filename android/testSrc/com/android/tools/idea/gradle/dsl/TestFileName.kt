@@ -1052,6 +1052,8 @@ enum class TestFileName(val path: String) {
   REPOSITORIES_MODEL_SET_URL_FOR_METHOD_CALL_EXPECTED("repositoriesModel/setUrlForMethodCallExpected"),
   REPOSITORIES_MODEL_SET_ARTIFACT_URLS_IN_MAVEN("repositoriesModel/setArtifactUrlsInMaven"),
   REPOSITORIES_MODEL_SET_ARTIFACT_URLS_IN_MAVEN_EXPECTED("repositoriesModel/setArtifactUrlsInMavenExpected"),
+  REPOSITORIES_MODEL_SET_CREDENTIALS_IN_MAVEN("repositoriesModel/setCredentialsInMaven"),
+  REPOSITORIES_MODEL_SET_CREDENTIALS_IN_MAVEN_EXPECTED("repositoriesModel/setCredentialsInMavenExpected"),
   REPOSITORIES_MODEL_MULTIPLE_LOCAL_REPOS("repositoriesModel/multipleLocalRepos"),
   GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_EMPTY("googleMavenRepository/hasGoogleMavenRepositoryEmpty"),
   GOOGLE_MAVEN_REPOSITORY_HAS_GOOGLE_MAVEN_REPOSITORY_NAME3DOT5("googleMavenRepository/hasGoogleMavenRepositoryName3dot5"),
