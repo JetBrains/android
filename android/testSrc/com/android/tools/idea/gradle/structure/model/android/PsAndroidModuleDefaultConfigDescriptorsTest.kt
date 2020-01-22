@@ -472,8 +472,8 @@ class PsAndroidModuleDefaultConfigDescriptorsTest : AndroidGradleTestCase() {
   fun testSetReferencesKotlin() {
     loadProject(PSD_SAMPLE_KOTLIN)
     val expectedValues =
-      listOf("localMap[\"KTSApp\"]","(rootProject.extra[\"mapProp\"] as Map<*, *>)[\"key1\"] as String", "extra[\"valVersion\"] as Int",
-             "variable1", "rootProject.extra[\"boolRoot\"] as Boolean")
+      listOf("localMap[\"KTSApp\"]","(rootProject.extra[\"mapProp\"] as Map<*, *>)[\"key1\"] as String",
+             "project.extra[\"valVersion\"] as Int", "variable1", "rootProject.extra[\"boolRoot\"] as Boolean")
     doTestSetReferences(expectedValues)
   }
 }

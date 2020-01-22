@@ -20,6 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
 import com.android.tools.idea.gradle.dsl.parser.apply.ApplyDslElement.APPLY_BLOCK_NAME
 import com.android.tools.idea.gradle.dsl.parser.configurations.ConfigurationDslElement
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
@@ -96,14 +97,20 @@ internal fun KtCallExpression.isBlockElement(parent: GradlePropertiesDslElement)
   return zeroOrOneClosures && (namedDomainBlockReference || knownBlockForParent)
 }
 
-fun convertToExternalTextValue(context: GradleDslSimpleExpression, applyContext: GradleDslFile, referenceText : String) : String {
+fun convertToExternalTextValue(
+  context: GradleDslSimpleExpression,
+  applyContext: GradleDslFile,
+  referenceText : String,
+  forInjection: Boolean
+) : String {
   val resolvedReference = context.resolveReference(referenceText, false) ?: return referenceText
   // Get the resolvedReference value type that might be used for the final cast.
-  // TODO(karimai): what if the type need to be imported ?
+  // TODO(karimai): what if the type needs to be imported ?
   val className = if (resolvedReference is GradleDslLiteral) resolvedReference.value?.javaClass?.kotlin?.simpleName else null
   var externalName = StringBuilder()
   var lastArray = false
   var currentParent = resolvedReference.parent
+  var useProjectPrefix = false
 
   // Trace parents to be used for reference resolution.
   val resolutionElements = ArrayList<GradleDslElement>()
@@ -129,6 +136,13 @@ fun convertToExternalTextValue(context: GradleDslSimpleExpression, applyContext:
         currentContextParent = currentContextParent.parentModuleDslFile ?: break
       } while (currentContextParent != currentParent)
     }
+  } else {
+    // This is specific for extra properties: If we are trying to use the reference from a scope that has a dedicated extra block, we need
+    // to use a "project" prefix so that we look for the property in the build file extra scope instead of the current one.
+    // TODO(karimai): this is dangerous as we parse properties declared within a different scope that the build script,
+    //  so we might break the project if we use the following assumption for such properties.
+    //  Limit extra properties parsing to the build file scope only for now.
+    useProjectPrefix = true
   }
 
   // Now we can start appending names from the resolved reference file context.
@@ -161,6 +175,7 @@ fun convertToExternalTextValue(context: GradleDslSimpleExpression, applyContext:
         }
       }
       is GradleDslLiteral -> {
+        val useTypeCast = !forInjection && currentParent != context.dslFile && className != null
         if (lastArray) {
           if (currentElement.parent is GradleDslExpressionList) {
             var i = 0
@@ -169,13 +184,13 @@ fun convertToExternalTextValue(context: GradleDslSimpleExpression, applyContext:
               i++
             }
             // Type cast is needed only if we are applying from a parent module context.
-            externalName.append("$i]" + if (currentParent != context.dslFile && className != null) " as $className" else "")
+            externalName.append("$i]" + if (useTypeCast) " as $className" else "")
             lastArray = false
           }
           else {
             // Type cast is needed only if we are applying from a parent module context.
             externalName.append(
-              "${elementExternalName}\"]" + if (currentParent != context.dslFile && className != null) " as $className" else "")
+              "${elementExternalName}\"]" + if (useTypeCast) " as $className" else "")
             lastArray = false
           }
         }
@@ -184,7 +199,12 @@ fun convertToExternalTextValue(context: GradleDslSimpleExpression, applyContext:
           if (currentElement.name == currentElement.fullName) externalName.append(elementExternalName)
           else if (currentElement.parent is ExtDslElement) {
             // This is for extra properties declared using array access expressions
-            externalName.append("extra[\"${elementExternalName}\"] as $className")
+            // TODO(karimai): this workaround assumes we don't currently support properties defined within extensionAware containers.
+            //  Decide for a better support to these properties and update this code accordingly.
+            if (useProjectPrefix && context.getBlockParent() !is GradleDslFile) externalName.append("project.")
+            externalName.append("extra[\"${elementExternalName}\"]")
+            // If we are using the reference for an assignment, then we should use the type cast.
+            if (!forInjection && className != null) externalName.append(" as $className")
           }
         }
       }
@@ -228,6 +248,14 @@ internal fun getParentPsi(dslElement : GradleDslElement) : PsiElement? {
   // For extra block, we don't have a psiElement for the dslElement because in Kotlin we don't use the extra block, so we need to add
   // elements straight to the ExtDslElement' parent.
   return if (dslElement.parent is ExtDslElement) dslElement.parent?.parent?.create() else dslElement.parent?.create()
+}
+
+internal fun GradleDslElement.getBlockParent() : GradleDslElement? {
+  when (val parent = this.parent ?: return null) {
+    is ExtDslElement -> return parent.getBlockParent()
+    is GradleDslBlockElement, is GradleDslFile -> return parent
+    else -> return parent.getBlockParent()
+  }
 }
 
 internal fun getPsiElementForAnchor(parent : PsiElement, dslAnchor : GradleDslElement?) : PsiElement? {
@@ -310,7 +338,7 @@ internal fun createLiteral(context: GradleDslSimpleExpression, applyContext : Gr
     is Int, is Boolean, is BigDecimal -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.toString())
     // References are canonicals and need to be resolved first before converted to KTS psiElement.
     is ReferenceTo -> {
-      val externalTextValue = convertToExternalTextValue(context, applyContext, value.text)
+      val externalTextValue = convertToExternalTextValue(context, applyContext, value.text, false)
       return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(externalTextValue)
     }
     is RawText -> return KtPsiFactory(applyContext.dslFile.project).createExpressionIfPossible(value.ktsText)

@@ -254,6 +254,53 @@ PROJECT             : testPsdSampleRenamingModule
             Name                : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/res [-]
+        LIBRARY             : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>@jar [=]
+            *CLASSES            : jar://<M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar!/
+        LIBRARY             : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-<VERSION>/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-<VERSION>/res
+        LIBRARY             : Gradle: com.android.support.test.espresso:espresso-core:<VERSION>@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.android.support.test.espresso:espresso-core:<VERSION>@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-<VERSION>/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-<VERSION>/res [-]
+        LIBRARY             : Gradle: com.android.support.test.espresso:espresso-idling-resource:<VERSION>@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.android.support.test.espresso:espresso-idling-resource:<VERSION>@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-<VERSION>/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-<VERSION>/res [-]
+        LIBRARY             : Gradle: com.android.support.test:monitor:<VERSION>@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.android.support.test:monitor:<VERSION>@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-<VERSION>/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-<VERSION>/res [-]
+        LIBRARY             : Gradle: com.android.support.test:runner:<VERSION>@aar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.android.support.test:runner:<VERSION>@aar [=]
+            *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-<VERSION>/jars/classes.jar!/
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-<VERSION>/res [-]
         LIBRARY             : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -443,6 +490,62 @@ PROJECT             : testPsdSampleRenamingModule
             Name                : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
+        LIBRARY             : Gradle: com.google.code.findbugs:jsr305:2.0.1@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.google.code.findbugs:jsr305:2.0.1@jar [=]
+            *CLASSES            : jar://<M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar!/
+        LIBRARY             : Gradle: com.squareup:javawriter:2.1.1@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: com.squareup:javawriter:2.1.1@jar [=]
+            *CLASSES            : jar://<M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar!/
+        LIBRARY             : Gradle: javax.inject:javax.inject:1@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: javax.inject:javax.inject:1@jar [=]
+            *CLASSES            : jar://<M2>/javax/inject/javax.inject/1/javax.inject-1.jar!/
+        LIBRARY             : Gradle: junit:junit:4.12@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: junit:junit:4.12@jar [=]
+            *CLASSES            : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
+        LIBRARY             : Gradle: net.sf.kxml:kxml2:2.3.0@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: net.sf.kxml:kxml2:2.3.0@jar [=]
+            *CLASSES            : jar://<M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar!/
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: org.hamcrest:hamcrest-core:1.3@jar [=]
+            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-integration:1.3@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: org.hamcrest:hamcrest-integration:1.3@jar [=]
+            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar!/
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-library:1.3@jar
+            LibraryLevel        : project
+            IsModuleLevel       : false
+            Scope               : Compile
+            IsExported          : false
+            Name                : Gradle: org.hamcrest:hamcrest-library:1.3@jar [=]
+            *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
     MODULE              : deep2
         - ModuleGroupPath   : testPsdSampleRenamingModule
         - ModuleGroupPath   : nested2
