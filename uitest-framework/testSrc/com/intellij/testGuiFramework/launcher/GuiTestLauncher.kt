@@ -155,6 +155,7 @@ object GuiTestLauncher {
       "-Didea.platform.prefix=AndroidStudio",
       "-Didea.jre.check=true",
       /* testing-specific options */
+      "-Djava.io.tmpdir=${System.getProperty("java.io.tmpdir")}",
       "-Didea.config.path=${GuiTests.getConfigDirPath()}",
       "-Didea.system.path=${GuiTests.getSystemDirPath()}",
       "-Dplugin.path=${GuiTestOptions.getPluginPath()}",
