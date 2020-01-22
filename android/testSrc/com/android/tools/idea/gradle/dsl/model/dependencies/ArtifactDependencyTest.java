@@ -83,6 +83,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_METHOD_DEPENDENCY_WITH_CLOSURE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_METHOD_DEPENDENCY_WITH_CLOSURE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_RESET;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_EMPTY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_EXCLUDES_BLOCK_TO_REFERENCES;
@@ -1985,6 +1986,20 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     assertThat(artifacts.get(1).configurationName()).isEqualTo("api");
     assertThat(artifacts.get(2).configurationName()).isEqualTo("implementation");
     assertThat(artifacts.get(3).configurationName()).isEqualTo("testCompile");
+  }
+
+  @Test
+  public void testSetConfigurationToEmpty() throws IOException {
+    writeToBuildFile(ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_EMPTY);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    assertThat(buildModel.dependencies().artifacts()).hasSize(1);
+    buildModel.dependencies().artifacts().get(0).setConfigurationName("");
+
+    applyChangesAndReparse(buildModel);
+    // the change to an empty configuration name should cause the writer to refuse to change the
+    // identifier, without throwing an exception.
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_EMPTY);
   }
 
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {
