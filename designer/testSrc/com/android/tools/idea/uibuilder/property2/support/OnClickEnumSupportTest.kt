@@ -17,6 +17,8 @@ package com.android.tools.idea.uibuilder.property2.support
 
 import com.android.SdkConstants.*
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
+import com.android.tools.property.panel.api.EnumValue
+import com.android.tools.property.panel.api.HeaderEnumValue
 import com.google.common.truth.Truth.assertThat
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestCase
@@ -78,15 +80,19 @@ class OnClickEnumSupportTest: AndroidTestCase() {
   }
 
   fun testWithFullyQualifiedActivityName() {
-    val support = findEnumSupportFor("p1.p2.MainActivity")
-    assertThat(support.values.map { it.display }).containsExactly("onClick", "help")
-    assertThat(support.values.map { it.value }).containsExactly("onClick", "help")
+    val support = findEnumSupportFor("p1.p2.MainActivity").values
+    assertThat((support[0] as HeaderEnumValue).header).isEqualTo("MainActivity")
+    val values = support.subList(1, support.size)
+    assertThat(values.map { it.display }).containsExactly("onClick", "help")
+    assertThat(values.map { it.value }).containsExactly("onClick", "help")
   }
 
   fun testWithDotInActivityName() {
-    val support = findEnumSupportFor(".MainActivity")
-    assertThat(support.values.map { it.display }).containsExactly("onClick", "help")
-    assertThat(support.values.map { it.value }).containsExactly("onClick", "help")
+    val support = findEnumSupportFor(".MainActivity").values
+    assertThat((support[0] as HeaderEnumValue).header).isEqualTo("MainActivity")
+    val values = support.subList(1, support.size)
+    assertThat(values.map { it.display }).containsExactly("onClick", "help")
+    assertThat(values.map { it.value }).containsExactly("onClick", "help")
   }
 
   fun testWithNoActivityName() {

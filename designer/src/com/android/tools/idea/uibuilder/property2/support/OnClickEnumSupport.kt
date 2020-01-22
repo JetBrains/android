@@ -66,6 +66,7 @@ class OnClickEnumSupport(val model: NlModel) : EnumSupport {
       for (psiClass in classes) {
         found.clear()
         val index = values.size
+        values.add(EnumValue.header(psiClass.name ?: "class"))
         for (method in psiClass.methods) {
           if (psiClass == method.containingClass &&
             OnClickConverter.CONVERTER_FOR_LAYOUT.checkSignature(method) &&
@@ -73,8 +74,8 @@ class OnClickEnumSupport(val model: NlModel) : EnumSupport {
             values.add(EnumValue.indented(method.name))
           }
         }
-        if (values.size > index) {
-          values[index] = values[index].withHeader(psiClass.name ?: "class")
+        if (values.size == index + 1) {
+          values.removeAt(index)
         }
       }
       return values

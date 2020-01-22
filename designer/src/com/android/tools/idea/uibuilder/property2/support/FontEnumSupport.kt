@@ -41,20 +41,23 @@ class FontEnumSupport(private val facet: AndroidFacet, private val resolver: Res
       // TODO: Need to investigate support for fonts defined in libraries.
       val fonts = mutableListOf<EnumValue>()
 
+      fonts.add(EnumValue.header(PROJECT_HEADER))
       projectFonts.fonts.mapTo(fonts) { EnumValue.indented(value = FONT_PREFIX + it.name, display = it.name) }
-      if (fonts.isNotEmpty()) {
-        fonts[0] = fonts[0].withHeader(PROJECT_HEADER)
+      if (fonts.size == 1) {
+        fonts.removeAt(0)
       }
 
       val index = fonts.size
+      fonts.add(EnumValue.header(ANDROID_HEADER))
       AndroidDomUtil.AVAILABLE_FAMILIES.mapTo(fonts) { EnumValue.indented(it) }
-      if (fonts.size > index) {
-        fonts[index] = fonts[index].withHeader(ANDROID_HEADER)
+      if (fonts.size == index + 1) {
+        fonts.removeAt(index)
       }
 
       if (resolver != null) {
         val action = SelectFontAction(facet)
-        fonts.add(EnumValue.action(action).withSeparator())
+        fonts.add(EnumValue.SEPARATOR)
+        fonts.add(EnumValue.action(action))
       }
 
       return fonts
