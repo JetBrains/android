@@ -32,6 +32,7 @@ import com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI
 import com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL
 import com.android.tools.idea.testing.TestProjectPaths.NESTED_MODULE
 import com.android.tools.idea.testing.TestProjectPaths.NEW_SYNC_KOTLIN_TEST
+import com.android.tools.idea.testing.TestProjectPaths.NON_STANDARD_SOURCE_SETS
 import com.android.tools.idea.testing.TestProjectPaths.PSD_DEPENDENCY
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_GROOVY
 import com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT
@@ -139,6 +140,17 @@ abstract class GradleSyncProjectComparisonTest(
 
     fun testMultiFlavor() {
       val text = importSyncAndDumpProject(TestProjectPaths.MULTI_FLAVOR)
+      assertIsEqualToSnapshot(text)
+    }
+
+    fun testExternalSourceSets() {
+      val projectRootPath = prepareProjectForImport(NON_STANDARD_SOURCE_SETS)
+      AndroidGradleTests.importProject(project, GradleSyncInvoker.Request.testRequest())
+
+      val text = project.saveAndDump(
+        mapOf("EXTERNAL_SOURCE_SET" to File(projectRootPath.parentFile, "externalRoot"),
+              "EXTERNAL_MANIFEST" to File(projectRootPath.parentFile, "externalManifest"))
+      )
       assertIsEqualToSnapshot(text)
     }
 
