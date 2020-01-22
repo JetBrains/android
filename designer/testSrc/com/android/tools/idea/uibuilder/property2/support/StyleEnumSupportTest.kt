@@ -82,8 +82,8 @@ class StyleEnumSupportTest {
       "Widget.Button.Small",
       "Widget.Button.Toggle")
     var index = 0
-    index = checkSection(values, index, PROJECT_HEADER, 2, expectedProjectValues, expectedProjectDisplayValues)
-    index = checkSection(values, index, APPCOMPAT_HEADER, 6, expectedAppCompatValues, expectedAppCompatDisplayValues)
+    index = checkSection(values, index, PROJECT_HEADER, 3, expectedProjectValues, expectedProjectDisplayValues)
+    index = checkSection(values, index, APPCOMPAT_HEADER, 7, expectedAppCompatValues, expectedAppCompatDisplayValues)
     index = checkSection(values, index, ANDROID_HEADER, -40, expectedAndroidValues, expectedAndroidDisplayValues)
     assertThat(index).isEqualTo(-1)
   }

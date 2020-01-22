@@ -16,13 +16,16 @@
 package com.android.tools.adtui.stdui
 
 import com.android.tools.adtui.model.stdui.CommonComboBoxModel
+import com.android.tools.adtui.model.stdui.CommonElementSelectability
 import com.android.tools.adtui.model.stdui.CommonTextFieldModel
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.util.ui.JBUI
 import java.awt.event.MouseEvent
+import javax.swing.DefaultListSelectionModel
 import javax.swing.JComponent
 import javax.swing.JTextField
+import javax.swing.ListModel
 import javax.swing.plaf.UIResource
 import javax.swing.plaf.basic.BasicComboBoxEditor
 
@@ -128,6 +131,7 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
 
   override fun updateUI() {
     super.updateUI()
+    popup?.list?.selectionModel = MyPopupListSelectionModel(model)
     installDefaultRenderer()
   }
 
@@ -165,6 +169,34 @@ open class CommonComboBox<E, out M : CommonComboBoxModel<E>>(model: M) : ComboBo
 
     override fun getToolTipText(event: MouseEvent?): String? {
       return comboBox.getToolTipText(event)
+    }
+  }
+
+  /**
+   * A list selection model that prevent the selection of non selectable elements.
+   */
+  private class MyPopupListSelectionModel<E>(private val model: ListModel<E>) : DefaultListSelectionModel() {
+
+    override fun setSelectionInterval(index0: Int, index1: Int) {
+      val index = findFirstSelectableIndex(index0)
+      super.setSelectionInterval(index, index)
+    }
+
+    private fun findFirstSelectableIndex(start: Int): Int {
+      var index = start
+      if (index < 0) {
+        return -1
+      }
+
+      while (index < model.size) {
+        val element = model.getElementAt(index)
+        val selectable = element as? CommonElementSelectability ?: return index
+        if (selectable.isSelectable) {
+          return index
+        }
+        index++
+      }
+      return -1
     }
   }
 }

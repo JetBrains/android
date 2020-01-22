@@ -16,7 +16,8 @@
 package com.android.tools.idea.uibuilder.property2.testutils
 
 import com.android.tools.property.panel.api.EnumValue
-import com.google.common.truth.Truth
+import com.android.tools.property.panel.api.HeaderEnumValue
+import com.google.common.truth.Truth.assertThat
 import kotlin.math.abs
 
 object EnumValueUtil {
@@ -30,33 +31,42 @@ object EnumValueUtil {
    * @param expectedValues the expected values (may be a subset of the complete section)
    * @param expectedDisplayValues the expected display values (may be a subset of the complete section)
    */
-  fun checkSection(values: List<EnumValue>, startIndex: Int,
-                   expectedHeader: String, expectedCount: Int, expectedValues: List<String>, expectedDisplayValues: List<String>): Int {
-    Truth.assertThat(startIndex).isAtLeast(0)
-    Truth.assertThat(startIndex).isAtMost(values.lastIndex)
+  fun checkSection(
+    values: List<EnumValue>,
+    startIndex: Int,
+    expectedHeader: String,
+    expectedCount: Int,
+    expectedValues: List<String>,
+    expectedDisplayValues: List<String>
+  ): Int {
+    assertThat(startIndex).isAtLeast(0)
+    assertThat(startIndex).isAtMost(values.lastIndex)
     var nextSectionIndex = values.size
     for (index in startIndex..values.lastIndex) {
       val enum = values[index]
+      val header = enum as? HeaderEnumValue
       if (index == startIndex) {
-        Truth.assertThat(enum.header).isEqualTo(expectedHeader)
+        assertThat(header).isNotNull()
+        assertThat(header!!.header).isEqualTo(expectedHeader)
+        continue
       }
-      else if (enum.header.isNotEmpty()) {
+      else if (header != null) {
         nextSectionIndex = index
         break
       }
-      val valueIndex = index - startIndex
+      val valueIndex = index - startIndex - 1
       if (expectedValues.size > valueIndex) {
-        Truth.assertThat(enum.value).isEqualTo(expectedValues[valueIndex])
+        assertThat(enum.value).isEqualTo(expectedValues[valueIndex])
       }
       if (expectedDisplayValues.size > valueIndex) {
-        Truth.assertThat(enum.display).isEqualTo(expectedDisplayValues[valueIndex])
+        assertThat(enum.display).isEqualTo(expectedDisplayValues[valueIndex])
       }
     }
     if (expectedCount >= 0) {
-      Truth.assertThat(nextSectionIndex - startIndex).named("Expected Style Count").isEqualTo(expectedCount)
+      assertThat(nextSectionIndex - startIndex).named("Expected Style Count").isEqualTo(expectedCount)
     }
     else {
-      Truth.assertThat(nextSectionIndex - startIndex).named("Expected Style Count").isAtLeast(abs(expectedCount))
+      assertThat(nextSectionIndex - startIndex).named("Expected Style Count").isAtLeast(abs(expectedCount))
     }
     return if (nextSectionIndex < values.size) nextSectionIndex else -1
   }
