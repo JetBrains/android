@@ -50,7 +50,7 @@ class NavComponentTreeTest : NavTestCase() {
       }
     }
 
-    surface = NavDesignSurface(project, project)
+    surface = NavDesignSurface(project, myRootDisposable)
     surface.model = model
 
     panel = TreePanel()
