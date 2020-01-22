@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.swing.JComponent;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -281,27 +282,52 @@ public class TrackGroupListPanel implements TrackGroupMover {
   private class TrackGroupMouseEventHandler extends MouseEventHandler {
     @NotNull private final TrackGroup myTrackGroup;
 
+    // Track index for the current mouse event.
+    private int myTrackIndex = -1;
+
     private TrackGroupMouseEventHandler(@NotNull TrackGroup trackGroup) {
       myTrackGroup = trackGroup;
     }
 
     @Override
     protected void handle(MouseEvent event) {
-      int trackIndex = myTrackGroup.getTrackList().locationToIndex(event.getPoint());
+      JList<?> trackList = myTrackGroup.getTrackList();
+      int oldTrackIndex = myTrackIndex;
+      myTrackIndex = trackList.locationToIndex(event.getPoint());
+      TrackModel<?, ?> trackModel = myTrackGroup.getTrackModelAt(myTrackIndex);
+      JComponent trackComponent = getTrackComponent(trackModel);
 
-      TrackModel trackModel = myTrackGroup.getTrackModelAt(trackIndex);
-      assert myTrackGroup.getTrackMap().containsKey(trackModel.getId());
       // Find the origin location of the track (i.e. JList cell).
-      Point trackOrigin = myTrackGroup.getTrackList().indexToLocation(trackIndex);
+      Point trackOrigin = trackList.indexToLocation(myTrackIndex);
       // Manually translate the mouse point relative of the track origin.
       Point newPoint = event.getPoint();
       newPoint.translate(-trackOrigin.x, -trackOrigin.y);
-      // Forward the mouse event to a specific track because the cell renderer doesn't construct a component hierarchy tree for the mouse
+      // Create a new mouse event with the translated location for the tooltip panel to show up at the correct location.
+      // We may create another event based on this event to reuse the new location.
+      MouseEvent newEvent = SwingUtil.convertMouseEventPoint(event, newPoint);
+      // Forward the mouse event to the current track because the cell renderer doesn't construct a component hierarchy tree for the mouse
       // event to propagate.
-      // We create a new mouse event so that the tooltip panel can still show up at the correct location.
-      myTrackGroup.getTrackMap().get(trackModel.getId()).getComponent().dispatchEvent(SwingUtil.convertMouseEventPoint(event, newPoint));
+      trackComponent.dispatchEvent(newEvent);
 
-      setTooltip(trackIndex == -1 ? null : trackModel.getActiveTooltipModel());
+      if (event.getID() == MouseEvent.MOUSE_MOVED) {
+        // If mouse moved between tracks, dispatch an additional MOUSE_EXITED event to the old track so that it can update its hover state.
+        if (myTrackIndex != oldTrackIndex && oldTrackIndex >= 0) {
+          trackList.repaint(trackList.getCellBounds(oldTrackIndex, oldTrackIndex));
+          JComponent oldTrackComponent = getTrackComponent(myTrackGroup.getTrackModelAt(oldTrackIndex));
+          oldTrackComponent.dispatchEvent(SwingUtil.convertMouseEventID(newEvent, MouseEvent.MOUSE_EXITED));
+        }
+      }
+      else if (event.getID() == MouseEvent.MOUSE_EXITED) {
+        // Reset track index so we know the next time mouse enters. Also ensure tooltip disappears when mouse exits.
+        myTrackIndex = -1;
+      }
+
+      setTooltip(myTrackIndex == -1 ? null : trackModel.getActiveTooltipModel());
+    }
+
+    private JComponent getTrackComponent(TrackModel<?, ?> trackModel) {
+      assert myTrackGroup.getTrackMap().containsKey(trackModel.getId());
+      return myTrackGroup.getTrackMap().get(trackModel.getId()).getComponent();
     }
   }
 }

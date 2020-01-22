@@ -20,6 +20,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.ui.popup.Balloon;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.registry.Registry;
 import com.intellij.ui.JBColor;
 import com.intellij.util.IconUtil;
@@ -195,34 +196,49 @@ public class MEUI {
   }
 
   public static Popup createPopup(JComponent component, JComponent local) {
-    Balloon balloon = JBPopupFactory.getInstance().createBalloonBuilder(component)
-      .setFillColor(ourSecondaryPanelBackground)
-      .setBorderColor(JBColor.border())
-      .setBorderInsets(JBUI.insets(1))
-      .setAnimationCycle(Registry.intValue("ide.tooltip.animationCycle"))
-      .setShowCallout(true)
-      .setPositionChangeYShift(2)
-      .setHideOnKeyOutside(false)
-      .setHideOnAction(false)
-      .setBlockClicksThroughBalloon(true)
-      .setRequestFocus(true)
-      .setDialogMode(false)
-      .createBalloon();
-    balloon.showInCenterOf(local);
     return new Popup() {
+      private final JComponent myComponent = component;
+      private final JComponent myLocal = local;
+      private Balloon myBalloon = create();
+
       @Override
       public void dismiss() {
-        balloon.dispose();
+        hide();
       }
 
       @Override
       public void hide() {
-        balloon.hide();
+        if (myBalloon != null) {
+          myBalloon.hide();
+          myBalloon = null;
+        }
       }
 
       @Override
       public void show() {
-        balloon.showInCenterOf(local);
+        if (myBalloon == null) {
+          myBalloon = create();
+        } else {
+          myBalloon.showInCenterOf(myLocal);
+        }
+      }
+
+      private Balloon create() {
+        Balloon balloon = JBPopupFactory.getInstance().createBalloonBuilder(myComponent)
+          .setFillColor(ourSecondaryPanelBackground)
+          .setBorderColor(JBColor.border())
+          .setBorderInsets(JBUI.insets(1))
+          .setAnimationCycle(Registry.intValue("ide.tooltip.animationCycle"))
+          .setShowCallout(true)
+          .setPositionChangeYShift(2)
+          .setHideOnKeyOutside(false)
+          .setHideOnAction(false)
+          .setBlockClicksThroughBalloon(true)
+          .setRequestFocus(true)
+          .setDialogMode(false)
+          .createBalloon();
+        balloon.showInCenterOf(myLocal);
+        return balloon;
       }
     };
   }

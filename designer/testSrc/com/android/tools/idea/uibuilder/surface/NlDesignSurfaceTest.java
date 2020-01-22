@@ -577,6 +577,57 @@ public class NlDesignSurfaceTest extends LayoutTestCase {
     assertFalse(mySurface.canZoomOut());
   }
 
+  public void testCannotZoomToFit() {
+    final NlModel model = model("absolute.xml",
+                          component(ABSOLUTE_LAYOUT)
+                            .withBounds(0, 0, 1000, 1000)
+                            .matchParentWidth()
+                            .matchParentHeight())
+      .build();
+
+    final int surfaceWidth = 500;
+    final int surfaceHeight = 500;
+
+    // First use an empty surface to measure the zoom-to-fit scale.
+    NlDesignSurface surface = NlDesignSurface.builder(getProject(), getTestRootDisposable())
+      .setDefaultSurfaceState(DesignSurface.State.SPLIT)
+      .build();
+    surface.addModel(model);
+    surface.setSize(surfaceWidth, surfaceHeight);
+    surface.doLayout();
+    surface.zoomToFit();
+    double fitScale = surface.getScale();
+    surface.removeModel(model);
+
+    // Create another surface which the minimum scale is larger than fitScale.
+    surface = NlDesignSurface.builder(getProject(), getTestRootDisposable())
+      .setDefaultSurfaceState(DesignSurface.State.SPLIT)
+      .setMinScale(fitScale * 2)
+      .build();
+    surface.addModel(model);
+    surface.setSize(surfaceWidth, surfaceHeight);
+    surface.doLayout();
+    // Cannot zoom lower than min scale.
+    surface.zoomToFit();
+    assertEquals(fitScale * 2, surface.getScale(), 0.01);
+    assertFalse(surface.canZoomToFit());
+    surface.removeModel(model);
+
+    // Create another surface which the maximum scale is lower than fitScale.
+    surface = NlDesignSurface.builder(getProject(), getTestRootDisposable())
+      .setDefaultSurfaceState(DesignSurface.State.SPLIT)
+      .setMaxScale(fitScale / 2)
+      .build();
+    surface.addModel(model);
+    surface.setSize(surfaceWidth, surfaceHeight);
+    surface.doLayout();
+    // Cannot zoom larger than max scale.
+    surface.zoomToFit();
+    assertEquals(fitScale / 2 , surface.getScale(), 0.01);
+    assertFalse(surface.canZoomToFit());
+    surface.removeModel(model);
+  }
+
   /**
    * Test that we don't have any negative scale in case the windows size becomes too small
    */

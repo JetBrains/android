@@ -159,12 +159,12 @@ public class MotionSceneTag implements MTag {
   public String getTreeId() {
     switch (getTagName()) {
       case Tags.CONSTRAINTSET:
-        return getAttributeValue(ATTR_ANDROID_ID);
+        return Utils.stripID(getAttributeValue(ATTR_ANDROID_ID));
       case Tags.TRANSITION:
         return String.format("%1$s|%2$s|%3$s",
-                             getAttributeValue(ATTR_ANDROID_ID),
-                             getAttributeValue(ATTR_CONSTRAINTSET_START),
-                             getAttributeValue(ATTR_CONSTRAINTSET_END));
+                             Utils.stripID(getAttributeValue(ATTR_ANDROID_ID)),
+                             Utils.stripID(getAttributeValue(ATTR_CONSTRAINTSET_START)),
+                             Utils.stripID(getAttributeValue(ATTR_CONSTRAINTSET_END)));
       case Tags.KEY_ATTRIBUTE:
       case Tags.KEY_POSITION:
       case Tags.KEY_CYCLE:
@@ -326,7 +326,7 @@ public class MotionSceneTag implements MTag {
     return new MotionSceneTagWriter(this);
   }
 
-  static class Root extends MotionSceneTag {
+  public static class Root extends MotionSceneTag {
     Project mProject;
     VirtualFile mVirtualFile;
     XmlFile mXmlFile;

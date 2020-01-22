@@ -20,9 +20,7 @@ import com.android.tools.adtui.model.DefaultTimeline;
 import com.android.tools.adtui.model.MultiSelectionModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.Timeline;
-import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
 import com.android.tools.adtui.model.event.LifecycleEventModel;
 import com.android.tools.adtui.model.event.UserEvent;
@@ -332,16 +330,6 @@ public class CpuCaptureStage extends Stage<Timeline> {
     mainFrameTooltip.setFrameSeries(mainFrames.getSeries());
     display.addTrackModel(
       TrackModel.newBuilder(mainFrames, ProfilerTrackRendererType.FRAMES, "Frames").setDefaultTooltipModel(mainFrameTooltip));
-    display.addTrackModel(
-      TrackModel.newBuilder(
-        new StateChartModel<EventAction>(),
-        ProfilerTrackRendererType.SURFACEFLINGER,
-        "SurfaceFlinger"));
-    display.addTrackModel(
-      TrackModel.newBuilder(
-        new StateChartModel<EventAction>(),
-        ProfilerTrackRendererType.VSYNC,
-        "VSYNC"));
     return display;
   }
 

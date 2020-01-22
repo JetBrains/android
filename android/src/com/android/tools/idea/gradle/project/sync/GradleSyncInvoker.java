@@ -175,7 +175,7 @@ public class GradleSyncInvoker {
 
   private boolean prepareProject(@NotNull Project project, @Nullable GradleSyncListener listener) {
     GradleProjectInfo projectInfo = GradleProjectInfo.getInstance(project);
-    if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() || projectInfo.hasTopLevelGradleBuildFile()) {
+    if (AndroidProjectInfo.getInstance(project).requiresAndroidModel() || projectInfo.hasTopLevelGradleFile()) {
       boolean isImportedProject = projectInfo.isImportedProject();
       if (!isImportedProject) {
         myFileDocumentManager.saveAllDocuments();

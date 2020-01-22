@@ -95,7 +95,7 @@ open class NeleIdPropertyItem(
    *
    * @return true if the rename refactoring made the requred changes, false if the value must be set
    */
-  private fun renameRefactoring(value: XmlAttributeValue?, oldId: String, newId: String, newValue: String?): Boolean {
+  protected open fun renameRefactoring(value: XmlAttributeValue?, oldId: String, newId: String, newValue: String?): Boolean {
     if (oldId.isEmpty() || newId.isEmpty() || newValue == null || value == null || !value.isValid) {
       return false
     }

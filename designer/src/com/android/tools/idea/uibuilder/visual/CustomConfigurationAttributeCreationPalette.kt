@@ -148,7 +148,7 @@ class CustomConfigurationAttributeCreationPalette(private val file: PsiFile,
     val editTextField = JBTextField(configurationName)
     editTextField.document.addDocumentListener(object : DocumentAdapter() {
       override fun textChanged(e: DocumentEvent) {
-        configurationName = e.document.getText(0, e.document.length)
+        configurationName = e.document.getText(0, e.document.length) ?: ""
       }
     })
 

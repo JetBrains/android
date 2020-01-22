@@ -505,7 +505,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
       return false;
     }
 
-    Collection<GradleDslElement> children = getChildren();
+    Collection<GradleDslElement> children = getContainedElements(true);
     if (children.isEmpty()) {
       return true;
     }

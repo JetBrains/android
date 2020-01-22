@@ -24,14 +24,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class BuildAttributionOutputLinkFilter implements Filter {
 
-  public static final String LINK_TEXT = "Build Speed";
-  public static final String INSIGHTS_AVAILABLE_LINE = "Build Speed insights available";
-  public static final String CONFIGURATION_ISSUES_LINE = "Project configuration might be decreasing your Build Speed";
+  public static final String LINK_TEXT = "Build Analyzer";
+  public static final String INSIGHTS_AVAILABLE_LINE = "Build Analyzer results available";
 
   @Override
   public Result applyFilter(@NotNull String line, int entireLength) {
     int lineStart = entireLength - line.length();
-    if (line.contains(INSIGHTS_AVAILABLE_LINE) || line.contains(CONFIGURATION_ISSUES_LINE)) {
+    if (line.contains(INSIGHTS_AVAILABLE_LINE)) {
       int index = line.indexOf(LINK_TEXT);
       if (index != -1) {
         return new Result(Collections.singletonList(createLink(lineStart + index, lineStart + index + LINK_TEXT.length())));

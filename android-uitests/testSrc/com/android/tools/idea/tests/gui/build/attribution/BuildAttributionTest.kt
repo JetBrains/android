@@ -68,7 +68,7 @@ class BuildAttributionTest {
     val result = ideFrame.invokeProjectMake()
     assertTrue(result.isBuildSuccessful)
 
-    buildToolWindow.waitTabExist("Build Speed")
+    buildToolWindow.waitTabExist("Build Analyzer")
 
     buildToolWindow.openBuildAttributionUsingTabHeaderClick().run {
       checkInitState()

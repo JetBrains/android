@@ -59,11 +59,12 @@ open class DesignToolsSplitEditor(textEditor: TextEditor,
   private var stateRestored = false
 
   override fun getComponent(): JComponent {
+    val thisComponent = super.getComponent()
     if (!stateRestored) {
       stateRestored = true
       restoreSurfaceState()
     }
-    return super.getComponent()
+    return thisComponent
   }
 
   private fun restoreSurfaceState() {
@@ -128,6 +129,9 @@ open class DesignToolsSplitEditor(textEditor: TextEditor,
   }
 
   override fun setState(state: FileEditorState) {
+    // Restore the editor state, which includes, for instance, cursor position.
+    myEditor.setState(state)
+
     // Restore the surface mode persisted.
     val propertyName = modePropertyName
     var propertyValue: String? = null

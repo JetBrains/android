@@ -30,7 +30,7 @@ enum class ConfigurationSet(val title: String,
                             val modelsProviderCreator: (ConfigurationSetListener) -> VisualizationModelsProvider,
                             val visible: Boolean = true) {
   PIXEL_DEVICES("Pixel Devices", { PixelDeviceModelsProvider }),
-  PROJECT_LOCALES("Project Locales", { LocaleModelsProvider }),
+  PROJECT_LOCALES("Project Locales", { LocaleModelsProvider }, visible = false),
   CUSTOM("Custom", { CustomModelsProvider(it) }),
   COLOR_BLIND_MODE("Color Blind", { ColorBlindModeModelsProvider }, StudioFlags.NELE_COLOR_BLIND_MODE.get()),
   LARGE_FONT("Font Sizes", { LargeFontModelsProvider }, StudioFlags.NELE_LARGE_FONT_MODE.get())
@@ -62,7 +62,9 @@ class ConfigurationSetMenuAction(private val listener: ConfigurationSetListener,
 
   init {
     add(SetConfigurationSetAction(ConfigurationSet.PIXEL_DEVICES))
-    add(SetConfigurationSetAction(ConfigurationSet.PROJECT_LOCALES))
+    if (ConfigurationSet.PROJECT_LOCALES.visible) {
+      add(SetConfigurationSetAction(ConfigurationSet.PROJECT_LOCALES))
+    }
     addSeparator()
     add(SetConfigurationSetAction(ConfigurationSet.CUSTOM))
     if (ConfigurationSet.COLOR_BLIND_MODE.visible || ConfigurationSet.LARGE_FONT.visible) {

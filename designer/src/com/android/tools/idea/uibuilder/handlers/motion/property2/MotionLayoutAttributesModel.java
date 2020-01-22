@@ -41,7 +41,6 @@ import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -154,6 +153,10 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
     }
     MotionSceneTag motionTag = selection.getMotionSceneTag();
     if (motionTag == null) {
+      if (property.getNamespace().equals(ANDROID_URI) && property.getName().equals(ATTR_ID)) {
+        return selection.getComponentId();
+      }
+      // The rest of these attributes are given as default values...
       return null;
     }
     if (subTag != null && subTag.equals(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)) {
@@ -361,23 +364,6 @@ public class MotionLayoutAttributesModel extends NelePropertiesModel {
       tagWriter.setAttribute(attr.getNamespace(), attr.getName(), attr.getValue());
     }
     return tagWriter;
-  }
-
-  public void deleteTag(@NotNull XmlTag tag, @NotNull Runnable operation) {
-    PsiFile file = tag.getContainingFile();
-    Runnable transaction = () -> {
-      tag.delete();
-      operation.run();
-    };
-
-    ApplicationManager.getApplication().assertIsDispatchThread();
-    TransactionGuard.submitTransaction(this, () ->
-      WriteCommandAction.runWriteCommandAction(
-        getFacet().getModule().getProject(),
-        "Delete " + tag.getLocalName(),
-        null,
-        transaction,
-        file));
   }
 
   @Override

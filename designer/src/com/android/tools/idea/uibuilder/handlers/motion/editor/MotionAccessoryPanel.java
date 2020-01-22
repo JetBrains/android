@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor;
 
-import static com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel.stripID;
-
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.resources.ResourceFolderType;
@@ -74,11 +72,11 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
   private static final boolean TEMP_HACK_FORCE_APPLY = false;
   private final Project myProject;
   private final NlDesignSurface myDesignSurface;
-  NlComponentTag myMotionLayoutTag;
-  NlComponent myMotionLayoutNlComponent;
+  private final ResourceNotificationManager.ResourceChangeListener myResourceListener;
+  private final NlComponentTag myMotionLayoutTag;
+  private final NlComponent myMotionLayoutNlComponent;
   MotionSceneTag myMotionScene;
   VirtualFile myMotionSceneFile;
-  HashSet<String> myLayoutSelectedId = new HashSet<>();
   ViewGroupHandler.AccessoryPanelVisibility mVisibility;
   MotionEditor mMotionEditor = new MotionEditor();
   public static final String TIMELINE = "Timeline";
@@ -118,7 +116,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
                               @NotNull NlComponent parent,
                               @NotNull ViewGroupHandler.AccessoryPanelVisibility visibility) {
     if (DEBUG) {
-      Debug.log("MotionAccessoryPanel created " + parent);
+      Debug.log("MotionAccessoryPanel created: " + this + "  parent: " + parent);
     }
     myDesignSurface = surface;
     myProject = surface.getProject();
@@ -128,6 +126,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     MotionLayoutComponentHelper.clearCache();
     myMotionHelper = MotionLayoutComponentHelper.create(myMotionLayoutNlComponent);
     myListeners = new ArrayList<>();
+    myResourceListener = createResourceChangeListener();
 
     Track.init(myDesignSurface);
     SelectionModel designSurfaceSelection = myDesignSurface.getSelectionModel();
@@ -168,7 +167,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
               Debug.log("id of constraint set " + id);
             }
             if (id != null) {
-              mSelectedStartConstraintId = stripID(id);
+              mSelectedStartConstraintId = Utils.stripID(id);
               mSelectedEndConstraintId = null;
               myMotionHelper.setState(mSelectedStartConstraintId);
             }
@@ -177,8 +176,8 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             }
             break;
           case TRANSITION:
-            mSelectedStartConstraintId = stripID(tag[0].getAttributeValue("constraintSetStart"));
-            mSelectedEndConstraintId = stripID(tag[0].getAttributeValue("constraintSetEnd"));
+            mSelectedStartConstraintId = Utils.stripID(tag[0].getAttributeValue("constraintSetStart"));
+            mSelectedEndConstraintId = Utils.stripID(tag[0].getAttributeValue("constraintSetEnd"));
             myMotionHelper.setTransition(mSelectedStartConstraintId, mSelectedEndConstraintId);
             myMotionHelper.setProgress(mLastProgress);
             if (flags == MotionEditorSelector.Listener.CONTROL_FLAG) {
@@ -220,10 +219,6 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
             if (tag.length > 0 && tag[0] instanceof NlComponentTag) {
               updateSelectionInLayoutEditor((NlComponentTag)tag[0]);
             }
-            if (DEBUG) {
-              Debug.log("LAYOUT_VIEW myMotionHelper.setState(null); ");
-            }
-            myMotionHelper.setState(null);
             break;
           case KEY_FRAME_GROUP:
             // The NelePropertiesModel should be handling the properties in these cases...
@@ -281,7 +276,13 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       Debug.log("harness " + parent);
     }
     AndroidFacet facet = parent.getModel().getFacet();
-    ResourceNotificationManager.getInstance(myProject).addListener(new ResourceNotificationManager.ResourceChangeListener() {
+    ResourceNotificationManager.getInstance(myProject).addListener(myResourceListener, facet, null, null);
+    handleSelectionChanged(designSurfaceSelection, dsSelection);
+  }
+
+  @NotNull
+  private ResourceNotificationManager.ResourceChangeListener createResourceChangeListener() {
+    return new ResourceNotificationManager.ResourceChangeListener() {
       @Override
       public void resourcesChanged(@NotNull Set<ResourceNotificationManager.Reason> reason) {
         boolean hasMotionSelection = myLastSelectedTags != null && mLastSelection != null;
@@ -304,8 +305,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
           LayoutPullParsers.saveFileIfNecessary(motionScene.mXmlFile);
         }
       }
-    }, facet, myMotionSceneFile, null);
-    handleSelectionChanged(designSurfaceSelection, dsSelection);
+    };
   }
 
   private void updateSelectionInLayoutEditor(@NotNull NlComponentTag tag) {
@@ -396,47 +396,12 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     if (DEBUG) {
       Debug.log(" handleSelectionChanged ");
     }
-    if (selection.size() == myLayoutSelectedId.size()) {
-      int count = 0;
-      for (NlComponent component : selection) {
-        if (myLayoutSelectedId.contains(component.getId())) {
-          count++;
-        }
-      }
-      if (count == selection.size()) {
-        return;
-      }
-    }
-    myLayoutSelectedId.clear();
-    for (NlComponent component : selection) {
-      if (myLayoutSelectedId.add(component.getId())) ;
-    }
-
-    if (selection.size() > 0) {
-      for (NlComponent component : selection) {
-        String tagName = component.getTagName();
-        String id = component.getId();
-
-        MTag tag = null;
-        if (mMotionEditor != null && mMotionEditor.getMeModel() != null) {
-          tag = mMotionEditor.getMeModel().findTag(tagName, id);
-        }
-        if (tag != null) {
-          if (tag instanceof NlComponentTag) {
-            mMotionEditor.setSelection(MotionEditorSelector.Type.LAYOUT_VIEW, new MTag[]{tag}, 0);
-          } else {
-            mMotionEditor.setSelection(MotionEditorSelector.Type.CONSTRAINT, new MTag[]{tag}, 0);
-          }
-        }
-      }
-    }
     String[] ids = new String[selection.size()];
     int count = 0;
     for (NlComponent component : selection) {
       ids[count++] = Utils.stripID(component.getId());
     }
     mMotionEditor.selectById(ids);
-
 
     fireSelectionChanged(selection);
   }
@@ -516,6 +481,8 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     mMotionEditor.stopAnimation();
     myMotionLayout = null;
     MotionLayoutComponentHelper.clearCache();
+    AndroidFacet facet = myMotionLayoutNlComponent.getModel().getFacet();
+    ResourceNotificationManager.getInstance(myProject).removeListener(myResourceListener, facet, null, null);
   }
 
   @Override
@@ -531,8 +498,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     // So everything was correctly working, updating the layoutparams of the concerned view,
     // but nothing was moving as what we will need to do here is to change the constraintset *live*
     // Additionally we need to correctly reset the state of the motionhelper if we recreate it.
-    if (mLastSelection == MotionEditorSelector.Type.LAYOUT
-        || mLastSelection == MotionEditorSelector.Type.LAYOUT_VIEW) {
+    if (mLastSelection == MotionEditorSelector.Type.LAYOUT) {
       myMotionHelper.setState(null);
       mSelectedStartConstraintId = null;
     } else if (mLastSelection == MotionEditorSelector.Type.CONSTRAINT_SET) {
@@ -542,6 +508,9 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     } else if (mSelectedStartConstraintId != null && mSelectedEndConstraintId != null) {
       myMotionHelper.setTransition(mSelectedStartConstraintId, mSelectedEndConstraintId);
       myMotionHelper.setProgress(mLastProgress);
+    } else {
+      myMotionHelper.setState(null);
+      mSelectedStartConstraintId = null;
     }
 
     // Ok, so to handle the "layout" mode, we need a few things.
@@ -672,7 +641,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     for (int i = 0; i < children.length; i++) {
       XmlAttribute attribute = children[i].getAttribute("android:id");
       if (attribute != null) {
-        String childId = stripID(attribute.getValue());
+        String childId = Utils.stripID(attribute.getValue());
         if (childId.equalsIgnoreCase(constraintSetId)) {
           return children[i];
         }
