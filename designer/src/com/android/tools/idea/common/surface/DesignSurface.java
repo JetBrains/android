@@ -585,6 +585,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       model.getConfiguration().removeListener(myConfigurationListener);
       model.removeListener(myModelListener);
     }
+
+    if (myRepaintTimer.isRunning()) {
+      myRepaintTimer.stop();
+    }
   }
 
   /**
