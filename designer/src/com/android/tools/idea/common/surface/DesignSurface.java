@@ -187,13 +187,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
    */
   private boolean mySkipResizeContentOnce;
 
-  private final ConfigurationListener myConfigurationListener = flags -> {
-    if ((flags & (ConfigurationListener.CFG_DEVICE | ConfigurationListener.CFG_DEVICE_STATE)) != 0 && !isLayoutDisabled()) {
-      zoom(ZoomType.FIT_INTO, -1, -1);
-    }
-
-    return true;
-  };
+  private final ConfigurationListener myConfigurationListener;
   private ZoomType myCurrentZoomType;
 
   /**
@@ -220,7 +214,25 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
     @NotNull State defaultSurfaceState,
     boolean isEditable) {
+    this(project, parentDisposable, actionManagerProvider, interactionProviderCreator, defaultSurfaceState, isEditable, ZoomType.FIT_INTO);
+  }
+
+  public DesignSurface(
+    @NotNull Project project,
+    @NotNull Disposable parentDisposable,
+    @NotNull Function<DesignSurface, ActionManager<? extends DesignSurface>> actionManagerProvider,
+    @NotNull Function<DesignSurface, InteractionHandler> interactionProviderCreator,
+    @NotNull State defaultSurfaceState,
+    boolean isEditable,
+    @NotNull ZoomType onChangedZoom) {
     super(new BorderLayout());
+    myConfigurationListener = flags -> {
+      if ((flags & (ConfigurationListener.CFG_DEVICE | ConfigurationListener.CFG_DEVICE_STATE)) != 0 && !isLayoutDisabled()) {
+        zoom(onChangedZoom, -1, -1);
+      }
+
+      return true;
+    };
     Disposer.register(parentDisposable, this);
     myProject = project;
     myIsEditable = isEditable;

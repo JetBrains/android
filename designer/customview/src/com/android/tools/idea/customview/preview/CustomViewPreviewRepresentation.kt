@@ -16,6 +16,7 @@
 package com.android.tools.idea.customview.preview
 
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.common.editor.ActionsToolbar
@@ -176,6 +177,7 @@ class CustomViewPreviewRepresentation(
 
   private val surface = NlDesignSurface.builder(project, this)
     .setDefaultSurfaceState(DesignSurface.State.SPLIT)
+    .setOnConfigurationChangedZoom(ZoomType.FIT)
     .setSceneManagerProvider { surface, model ->
       NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
         setShrinkRendering(true)
