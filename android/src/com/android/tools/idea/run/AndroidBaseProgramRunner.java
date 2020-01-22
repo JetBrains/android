@@ -21,15 +21,17 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigura
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.intellij.execution.ExecutionException;
+import com.intellij.execution.ExecutionManager;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.configurations.RunnerSettings;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.DefaultProgramRunnerKt;
 import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.runners.GenericProgramRunner;
+import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ExecutionConsole;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.execution.ui.RunContentDescriptorReusePolicy;
@@ -46,8 +48,14 @@ import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AndroidBaseProgramRunner extends GenericProgramRunner {
+public abstract class AndroidBaseProgramRunner implements ProgramRunner<RunnerSettings> {
   @Override
+  public final void execute(@NotNull ExecutionEnvironment environment, @Nullable Callback callback) throws ExecutionException {
+    ExecutionManager.getInstance(environment.getProject()).startRunProfile(environment, callback, state -> {
+      return doExecute(state, environment);
+    });
+  }
+
   @Nullable
   protected RunContentDescriptor doExecute(@NotNull RunProfileState state, @NotNull ExecutionEnvironment env)
     throws ExecutionException {
@@ -66,7 +74,7 @@ public abstract class AndroidBaseProgramRunner extends GenericProgramRunner {
 
     RunContentDescriptor descriptor = null;
     if (isSwap && result != null) {
-      // If we're hotswapping, we want to use the currently-running ContentDescriptor,
+      // If we're hot-swapping, we want to use the currently-running ContentDescriptor,
       // instead of making a new one (which "show"RunContent actually does).
       RunContentManager manager = RunContentManager.getInstance(env.getProject());
       // Note we may still end up with a null descriptor since the user could close the tool tab after starting a hotswap.
@@ -95,7 +103,7 @@ public abstract class AndroidBaseProgramRunner extends GenericProgramRunner {
       assert processHandler != null;
 
       RunProfile runProfile = env.getRunProfile();
-      int uniqueId = runProfile instanceof RunConfigurationBase ? ((RunConfigurationBase)runProfile).getUniqueID() : -1;
+      int uniqueId = runProfile instanceof RunConfigurationBase ? ((RunConfigurationBase<?>)runProfile).getUniqueID() : -1;
       AndroidSessionInfo sessionInfo = new AndroidSessionInfo(processHandler, descriptor, uniqueId, env.getExecutor().getId(),
                                                               env.getExecutor().getActionName(), env.getExecutionTarget()
       );
