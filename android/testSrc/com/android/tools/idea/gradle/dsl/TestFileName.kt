@@ -639,6 +639,7 @@ enum class TestFileName(val path: String) {
   ARTIFACT_DEPENDENCY_CONFIGURE_CLOSURE_PARENS("artifactDependency/configureClosureParens"),
   ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE("artifactDependency/setConfigurationWhenSingle"),
   ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE("artifactDependency/setConfigurationWhenMultiple"),
+  ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_EMPTY("artifactDependency/setConfigurationToEmpty"),
   ARTIFACT_DEPENDENCY_SET_VERSION_REFERENCE("artifactDependency/setVersionReference"),
   ARTIFACT_DEPENDENCY_SET_EXCLUDES_BLOCK_TO_REFERENCES("artifactDependency/setExcludesBlockToReferences"),
   ARTIFACT_DEPENDENCY_SET_EXCLUDES_BLOCK_TO_REFERENCES_EXPECTED("artifactDependency/setExcludesBlockToReferencesExpected"),
