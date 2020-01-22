@@ -49,7 +49,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class AndroidBaseProgramRunner extends GenericProgramRunner {
   @Override
   @Nullable
-  protected RunContentDescriptor doExecute(@NotNull final RunProfileState state, @NotNull final ExecutionEnvironment env)
+  protected RunContentDescriptor doExecute(@NotNull RunProfileState state, @NotNull ExecutionEnvironment env)
     throws ExecutionException {
     boolean showRunContent = env.getRunProfile() instanceof AndroidTestRunConfiguration;
     RunnerAndConfigurationSettings runnerAndConfigurationSettings = env.getRunnerAndConfigurationSettings();
