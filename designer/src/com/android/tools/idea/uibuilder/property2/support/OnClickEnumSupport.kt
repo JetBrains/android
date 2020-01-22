@@ -26,7 +26,6 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import org.jetbrains.android.dom.converters.OnClickConverter
-import java.util.HashSet
 
 /**
  * [EnumSupport] for the "onClick" attribute.
@@ -61,21 +60,16 @@ class OnClickEnumSupport(val model: NlModel) : EnumSupport {
           classes = emptyList()
         }
       }
+      val sortedClasses = classes.sortedBy { it.name }
       val values = mutableListOf<EnumValue>()
-      val found = HashSet<String>()
-      for (psiClass in classes) {
-        found.clear()
-        val index = values.size
-        values.add(EnumValue.header(psiClass.name ?: "class"))
-        for (method in psiClass.methods) {
-          if (psiClass == method.containingClass &&
-            OnClickConverter.CONVERTER_FOR_LAYOUT.checkSignature(method) &&
-            found.add(method.name)) {
-            values.add(EnumValue.indented(method.name))
-          }
-        }
-        if (values.size == index + 1) {
-          values.removeAt(index)
+      for (psiClass in sortedClasses) {
+        val methodNames = psiClass.methods
+          .filter { psiClass == it.containingClass && OnClickConverter.CONVERTER_FOR_LAYOUT.checkSignature(it) }
+          .map { it.name }
+          .sorted()
+        if (methodNames.isNotEmpty()) {
+          values.add(EnumValue.header(psiClass.name ?: "class"))
+          methodNames.forEach { values.add(EnumValue.indented(it)) }
         }
       }
       return values
