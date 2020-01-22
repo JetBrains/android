@@ -556,6 +556,7 @@
     <facet.toolWindow id="Captures"
                       facetIdList="android"
                       anchor="left"
+                      side="true"
                       secondary="true"
                       icon="StudioIcons.Shell.ToolWindows.CAPTURES"
                       factoryClass="com.android.tools.idea.profiling.view.CapturesToolWindowFactory"/>
@@ -596,7 +597,7 @@
     <projectService serviceImplementation="com.android.tools.idea.stats.RunStatsService" />
     <projectService serviceImplementation="com.android.tools.idea.run.DeploymentService" />
     <postStartupActivity implementation="com.android.tools.idea.deploy.DeployActionsInitializer"/>
-    
+
 
     <projectService serviceImplementation="com.android.tools.idea.run.profiler.CpuProfilerConfigsState" />
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration"/>
