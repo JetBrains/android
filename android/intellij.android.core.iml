@@ -181,5 +181,7 @@
     <orderEntry type="module" module-name="intellij.platform.objectSerializer.annotations" />
     <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
     <orderEntry type="module" module-name="intellij.terminal" />
+    <orderEntry type="library" scope="PROVIDED" name="org.jetbrains.intellij.deps.android.tools.base:templates" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="org.jetbrains.intellij.deps.android.tools.base:layoutlib-resources" level="project" />
   </component>
 </module>

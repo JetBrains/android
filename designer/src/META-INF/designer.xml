@@ -80,15 +80,16 @@
     </component>
   </module-components>
 
-  <actions>
-    <action
-        id="LayoutEditor.HelpAssistant"
-        class="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction"
-        icon="StudioIcons.Common.HELP"
-        text="Show Help Panel"
-        description="Show Help Panel for Design Editor">
-    </action>
-  </actions>
+  <!--FIXME-ank2: removed, because it has transitive deps on missing (in Idea) assistant module-->
+  <!--<actions>-->
+  <!--  <action-->
+  <!--      id="LayoutEditor.HelpAssistant"-->
+  <!--      class="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction"-->
+  <!--      icon="StudioIcons.Common.HELP"-->
+  <!--      text="Show Help Panel"-->
+  <!--      description="Show Help Panel for Design Editor">-->
+  <!--  </action>-->
+  <!--</actions>-->
 
   <extensions defaultExtensionNs="com.android.tools.idea.assistant">
     <assistantBundleCreator implementation="com.android.tools.idea.uibuilder.actions.LayoutEditorHelpPanelAssistantBundleCreator"/>
