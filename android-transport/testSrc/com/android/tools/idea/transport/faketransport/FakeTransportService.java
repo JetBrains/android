@@ -74,6 +74,8 @@ public class FakeTransportService extends TransportServiceGrpc.TransportServiceI
     .setState(Common.Process.State.ALIVE)
     .setName(FAKE_PROCESS_NAME)
     .build();
+  public static final Common.Device FAKE_OFFLINE_DEVICE = FAKE_DEVICE.toBuilder().setState(Common.Device.State.OFFLINE).build();
+  public static final Common.Process FAKE_OFFLINE_PROCESS = FAKE_PROCESS.toBuilder().setState(Common.Process.State.DEAD).build();
 
   private final Map<Long, Common.Device> myDevices;
   private final MultiMap<Common.Device, Common.Process> myProcesses;

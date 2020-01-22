@@ -16,15 +16,16 @@
 package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.tools.adtui.stdui.CommonComboBox
-import com.android.tools.idea.appinspection.api.AppInspectionTarget
-import com.android.tools.idea.appinspection.ide.model.AppInspectionTargetsComboBoxModel
+import com.android.tools.idea.appinspection.api.TransportProcessDescriptor
+import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessesComboBoxModel
 import java.awt.Component
 import java.awt.Dimension
 import javax.swing.DefaultListCellRenderer
 import javax.swing.JList
 
-class AppInspectionTargetsComboBox(model: AppInspectionTargetsComboBoxModel)
-  : CommonComboBox<AppInspectionTarget, AppInspectionTargetsComboBoxModel>(model) {
+//TODO(b/148546243): separate view and model code into independent modules.
+class AppInspectionProcessesComboBox(model: AppInspectionProcessesComboBoxModel)
+  : CommonComboBox<TransportProcessDescriptor, AppInspectionProcessesComboBoxModel>(model) {
   init {
     // Initial size chosen for a reasonable amount width to fit many longish target names
     // as well as a height so text fits comfortable.
@@ -35,11 +36,10 @@ class AppInspectionTargetsComboBox(model: AppInspectionTargetsComboBoxModel)
                                                 index: Int,
                                                 isSelected: Boolean,
                                                 cellHasFocus: Boolean): Component {
-        if (value is AppInspectionTarget) {
-          val descriptor = value.processDescriptor
-          var text = descriptor.stream.device.model.replace('_', ' ');
-          if (descriptor.process.name != null) {
-            text += " -> " + descriptor.process.name
+        if (value is TransportProcessDescriptor) {
+          var text = value.stream.device.model.replace('_', ' ');
+          if (value.process.name != null) {
+            text += " -> " + value.process.name
           }
           return super.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus)
         }

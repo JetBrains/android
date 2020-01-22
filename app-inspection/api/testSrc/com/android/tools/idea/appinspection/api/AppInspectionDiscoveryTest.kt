@@ -18,27 +18,30 @@ package com.android.tools.idea.appinspection.api
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
 import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
-import com.android.tools.idea.transport.TransportClient
+import com.android.tools.idea.appinspection.test.AppInspectionTestUtils
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
-import com.google.common.util.concurrent.MoreExecutors
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.junit.rules.Timeout
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 class AppInspectionDiscoveryTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
-  private val FAKE_PROCESS = ProcessDescriptor(
-    Common.Stream.newBuilder().setType(Common.Stream.Type.DEVICE).setStreamId(0).setDevice(FakeTransportService.FAKE_DEVICE).build(),
+  private val FAKE_PROCESS = TransportProcessDescriptor(
+    Common.Stream.newBuilder()
+      .setType(Common.Stream.Type.DEVICE)
+      .setStreamId(FakeTransportService.FAKE_DEVICE_ID)
+      .setDevice(FakeTransportService.FAKE_DEVICE)
+      .build(),
     FakeTransportService.FAKE_PROCESS
   )
 
@@ -54,103 +57,118 @@ class AppInspectionDiscoveryTest {
     }
   }
 
+  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService, transportService)!!
+  private val appInspectionServiceRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
+
   @get:Rule
-  val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionDiscoveryTest", transportService, transportService)!!
+  val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!
 
   @get:Rule
   val timeoutRule = Timeout(ASYNC_TIMEOUT_MS, TimeUnit.MILLISECONDS)
 
   init {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, ATTACH_HANDLER)
-  }
-
-  @Test
-  fun makeNewConnectionFiresListener() {
-    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
-
-    val latch = CountDownLatch(1)
-    discoveryHost.discovery.addTargetListener(executor) { latch.countDown() }
-
-    discoveryHost.connect(AppInspectionServiceRule.TestTransportFileCopier(), FAKE_PROCESS).get()
-
-    latch.await()
-  }
-
-  @Test
-  fun connectionIsCached() {
-    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
-
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
-
-    // Attach to the process.
-    val connection1 = discoveryHost.connect(AppInspectionServiceRule.TestTransportFileCopier(), FAKE_PROCESS).get()
-
-    // Attach to the same process again.
-    val connection2 = discoveryHost.connect(AppInspectionServiceRule.TestTransportFileCopier(), FAKE_PROCESS).get()
-
-    assertThat(connection1).isSameAs(connection2)
   }
 
   @Test
-  fun addListenerReceivesExistingConnections() {
-    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+  fun attachToProcessNotifiesListener() {
+    val discovery =
+      AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client, appInspectionServiceRule.poller)
 
-    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
-
-    // Attach to a new process.
-    val connectionFuture = discoveryHost.connect(AppInspectionServiceRule.TestTransportFileCopier(), FAKE_PROCESS)
-    connectionFuture.get()
-
-    val latch = CountDownLatch(1)
-    val connectionsList = mutableListOf<AppInspectionTarget>()
-    discoveryHost.discovery.addTargetListener(executor) {
-      connectionsList.add(it)
-      latch.countDown()
+    val targetReadyLatch = CountDownLatch(1)
+    discovery.addTargetListener(appInspectionServiceRule.executorService) {
+      targetReadyLatch.countDown()
     }
 
-    // Wait for discovery to notify us of existing connections
-    latch.await()
-
-    // Verify
-    assertThat(connectionsList).containsExactly(connectionFuture.get())
+    discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier)
   }
 
   @Test
-  fun removeConnectionFromCacheWhenProcessEnds() {
-    val executor = MoreExecutors.listeningDecorator(Executors.newScheduledThreadPool(1))
-    val discoveryHost = AppInspectionDiscoveryHost(executor, TransportClient(grpcServerRule.name))
+  fun targetIsCached() {
+    val discovery =
+      AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client, appInspectionServiceRule.poller)
 
-    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
-
-    discoveryHost.discovery.addTargetListener(executor) {}
-
-    val latch = CountDownLatch(1)
+    var target: AppInspectionTarget? = null
+    val targetReadyLatch = CountDownLatch(1)
+    discovery.addTargetListener(appInspectionServiceRule.executorService) {
+      target = it
+      targetReadyLatch.countDown()
+    }
 
     // Attach to the process.
-    val connectionFuture = discoveryHost.connect(AppInspectionServiceRule.TestTransportFileCopier(), FAKE_PROCESS)
-    connectionFuture.get().addTargetTerminatedListener(executor) { latch.countDown() }
+    val target2 = discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier).get()
 
-    // Generate a fake process ended event.
+    // Attach to the same process again.
+    val target3 = discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier).get()
+
+    targetReadyLatch.await()
+
+    assertThat(target).isSameAs(target2)
+    assertThat(target).isSameAs(target3)
+  }
+
+  @Test
+  fun newListenerReceivesExistingTargets() {
+    val discovery =
+      AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client, appInspectionServiceRule.poller)
+
+    val targetReadyLatch = CountDownLatch(1)
+    discovery.addTargetListener(appInspectionServiceRule.executorService) {
+      targetReadyLatch.countDown()
+    }
+
+    discovery.attachToProcess(FAKE_PROCESS, AppInspectionTestUtils.TestTransportJarCopier)
+
+    targetReadyLatch.await()
+
+    val secondListenerLatch = CountDownLatch(1)
+    discovery.addTargetListener(appInspectionServiceRule.executorService) {
+      secondListenerLatch.countDown()
+    }
+
+    secondListenerLatch.await()
+  }
+
+  @Test
+  fun terminatedTargetIsRemovedFromCache() {
+    // Setup
+    val discovery =
+      AppInspectionDiscovery(appInspectionServiceRule.executorService, appInspectionServiceRule.client, appInspectionServiceRule.poller)
+
+    // Wait for 1st target to be ready
+    val targetTerminatedLatch = CountDownLatch(1)
+    discovery.addTargetListener(appInspectionServiceRule.executorService) {
+      it.addTargetTerminatedListener(appInspectionServiceRule.executorService) {
+        targetTerminatedLatch.countDown()
+      }
+    }
+    val firstTarget = discovery.attachToProcess(
+      FAKE_PROCESS,
+      AppInspectionTestUtils.TestTransportJarCopier
+    )
+
+    // Fake process ended event
     transportService.addEventToStream(
       FakeTransportService.FAKE_DEVICE_ID,
       Common.Event.newBuilder()
-        .setPid(FakeTransportService.FAKE_PROCESS.pid)
+        .setTimestamp(timer.currentTimeNs)
         .setKind(Common.Event.Kind.PROCESS)
         .setGroupId(FakeTransportService.FAKE_PROCESS.pid.toLong())
+        .setPid(FakeTransportService.FAKE_PROCESS.pid)
         .setIsEnded(true)
         .build()
     )
 
-    // Wait for connection to be removed from cache.
-    latch.await()
+    // Wait
+    targetTerminatedLatch.await()
 
-    // Connect to the same process again.
-    val connectionFuture2 = discoveryHost.connect(AppInspectionServiceRule.TestTransportFileCopier(), FAKE_PROCESS)
+    val secondTarget = discovery.attachToProcess(
+      FAKE_PROCESS,
+      AppInspectionTestUtils.TestTransportJarCopier
+    ).get()
 
-    // Verify the two connection futures are not the same.
-    assertThat(connectionFuture2).isNotSameAs(connectionFuture)
+    // Verify first target was removed from discovery's internal cache, therefore the second target is newly created.
+    assertThat(firstTarget).isNotSameAs(secondTarget)
   }
 }

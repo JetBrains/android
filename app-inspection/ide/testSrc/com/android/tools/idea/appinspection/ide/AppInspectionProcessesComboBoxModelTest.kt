@@ -17,18 +17,19 @@ package com.android.tools.idea.appinspection.ide
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.appinspection.api.AppInspectionDiscoveryHost
-import com.android.tools.idea.appinspection.api.ProcessDescriptor
+import com.android.tools.idea.appinspection.api.LaunchedProcessDescriptor
+import com.android.tools.idea.appinspection.api.TransportProcessDescriptor
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
-import com.android.tools.idea.appinspection.ide.model.AppInspectionTargetsComboBoxModel
+import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessesComboBoxModel
 import com.android.tools.idea.appinspection.test.ASYNC_TIMEOUT_MS
-import com.android.tools.idea.appinspection.test.AppInspectionServiceRule
+import com.android.tools.idea.appinspection.test.AppInspectionTestUtils
 import com.android.tools.idea.transport.TransportClient
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.commands.CommandHandler
 import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import org.junit.Rule
 import org.junit.Test
@@ -39,18 +40,7 @@ import java.util.concurrent.TimeUnit
 import javax.swing.event.ListDataEvent
 import javax.swing.event.ListDataListener
 
-class AppInspectionTargetsComboBoxModelTest {
-
-  companion object {
-    private val FAKE_PROCESS_DESCRIPTOR = ProcessDescriptor(
-      Common.Stream.newBuilder().setDevice(FakeTransportService.FAKE_DEVICE)
-        .setType(Common.Stream.Type.DEVICE).setStreamId(0).build(),
-      FakeTransportService.FAKE_PROCESS
-    )
-
-    private val DEAD_FAKE_PROCESS = FakeTransportService.FAKE_PROCESS.toBuilder().setState(Common.Process.State.DEAD).build()
-  }
-
+class AppInspectionProcessesComboBoxModelTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer)
 
@@ -84,7 +74,7 @@ class AppInspectionTargetsComboBoxModelTest {
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestInspectorCommandHandler(timer))
     val addedLatch = CountDownLatch(1)
     val removedLatch = CountDownLatch(1)
-    val model = AppInspectionTargetsComboBoxModel.newInstance(discoveryHost.discovery)
+    val model = AppInspectionProcessesComboBoxModel.newInstance(discoveryHost)
     model.addListDataListener(object : ListDataListener {
       override fun contentsChanged(e: ListDataEvent?) {}
 
@@ -98,21 +88,32 @@ class AppInspectionTargetsComboBoxModelTest {
     })
 
     // Attach to a fake process.
-    timer.currentTimeNs = 1
-    val connectionFuture = discoveryHost.connect(AppInspectionServiceRule.TestTransportFileCopier(), FAKE_PROCESS_DESCRIPTOR)
-    connectionFuture.get()
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_PROCESS)
+    discoveryHost.addLaunchedProcess(
+      LaunchedProcessDescriptor(
+        FakeTransportService.FAKE_DEVICE.manufacturer,
+        FakeTransportService.FAKE_DEVICE.model,
+        FakeTransportService.FAKE_PROCESS.name
+      ),
+      AppInspectionTestUtils.TestTransportJarCopier
+    )
     addedLatch.await()
 
     // Verify the added target.
-    Truth.assertThat(model.size).isEqualTo(1)
-    Truth.assertThat(model.getElementAt(0)).isEqualTo(connectionFuture.get())
+    assertThat(model.size).isEqualTo(1)
+    assertThat(model.getElementAt(0)).isEqualTo(
+      TransportProcessDescriptor(
+        Common.Stream.newBuilder().setDevice(FakeTransportService.FAKE_DEVICE)
+          .setType(Common.Stream.Type.DEVICE).setStreamId(FakeTransportService.FAKE_DEVICE.deviceId).build(),
+        FakeTransportService.FAKE_PROCESS
+      )
+    )
 
     // Remove the fake process.
-    timer.currentTimeNs = 2
-    transportService.addProcess(FakeTransportService.FAKE_DEVICE, DEAD_FAKE_PROCESS)
+    transportService.addProcess(FakeTransportService.FAKE_DEVICE, FakeTransportService.FAKE_OFFLINE_PROCESS)
     removedLatch.await()
 
     // Verify the empty model list.
-    Truth.assertThat(model.size).isEqualTo(0)
+    assertThat(model.size).isEqualTo(0)
   }
 }

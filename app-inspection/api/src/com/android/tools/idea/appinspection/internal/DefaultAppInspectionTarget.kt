@@ -23,7 +23,6 @@ import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.appinspection.api.AppInspectorJar
-import com.android.tools.idea.appinspection.api.ProcessDescriptor
 import com.android.tools.idea.appinspection.api.TargetTerminatedListener
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.transport.TransportFileManager
@@ -165,10 +164,6 @@ private class DefaultAppInspectionTarget(
     }
   }
 
-  override val processDescriptor: ProcessDescriptor
-    get() {
-      return ProcessDescriptor(transport.stream, transport.process)
-    }
 }
 
 private fun <T : AppInspectorClient> setupEventListener(creator: (AppInspectorConnection) -> T, connection: AppInspectorConnection): T {

@@ -17,13 +17,13 @@ package com.android.tools.idea.appinspection.test
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.app.inspection.AppInspection
-import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
 import com.android.tools.idea.appinspection.api.AppInspectionTarget
 import com.android.tools.idea.appinspection.api.AppInspectorClient
 import com.android.tools.idea.appinspection.api.AppInspectorJar
 import com.android.tools.idea.appinspection.api.TestInspectorClient
 import com.android.tools.idea.appinspection.api.TestInspectorCommandHandler
 import com.android.tools.idea.appinspection.internal.AppInspectionTransport
+import com.android.tools.idea.appinspection.internal.attachAppInspectionTarget
 import com.android.tools.idea.appinspection.internal.launchInspectorForTest
 import com.android.tools.idea.testing.NamedExternalResource
 import com.android.tools.idea.transport.TransportClient
@@ -55,7 +55,7 @@ class AppInspectionServiceRule(
   lateinit var poller: TransportEventPoller
   lateinit var executorService: ThreadPoolExecutor
   lateinit var transport: AppInspectionTransport
-  lateinit var jarCopier: TestTransportFileCopier
+  lateinit var jarCopier: AppInspectionTestUtils.TestTransportJarCopier
 
   val stream = Common.Stream.getDefaultInstance()!!
   val process = Common.Process.getDefaultInstance()!!
@@ -76,7 +76,7 @@ class AppInspectionServiceRule(
     poller = TransportEventPoller.createPoller(client.transportStub, TimeUnit.MILLISECONDS.toNanos(100))
     executorService = ThreadPoolExecutor(0, 1, 1L, TimeUnit.SECONDS, LinkedBlockingQueue())
     transport = AppInspectionTransport(client, stream, process, executorService, poller)
-    jarCopier = TestTransportFileCopier()
+    jarCopier = AppInspectionTestUtils.TestTransportJarCopier
   }
 
   override fun after(description: Description) {
@@ -92,7 +92,7 @@ class AppInspectionServiceRule(
   ): ListenableFuture<AppInspectionTarget> {
     transportService.setCommandHandler(Commands.Command.CommandType.ATTACH_AGENT, defaultAttachHandler)
     transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, commandHandler)
-    return AppInspectionTarget.attach(transport, jarCopier)
+    return attachAppInspectionTarget(transport, jarCopier)
   }
 
   /**
@@ -169,19 +169,6 @@ class AppInspectionServiceRule(
 
     override fun onDispose() {
       isDisposed = true
-    }
-  }
-
-  /**
-   * Keeps track of the copied jar so tests could verify the operation happened.
-   */
-  class TestTransportFileCopier : AppInspectionJarCopier {
-    private val deviceBasePath = "/test/"
-    lateinit var copiedJar: AppInspectorJar
-
-    override fun copyFileToDevice(jar: AppInspectorJar): List<String> {
-      copiedJar = jar
-      return listOf(deviceBasePath + jar.name)
     }
   }
 }

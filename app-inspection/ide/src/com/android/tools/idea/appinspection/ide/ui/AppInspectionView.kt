@@ -16,16 +16,16 @@
 package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.tools.adtui.common.AdtUiUtils
-import com.android.tools.idea.appinspection.ide.model.AppInspectionTargetsComboBoxModel
+import com.android.tools.idea.appinspection.ide.model.AppInspectionProcessesComboBoxModel
 import com.intellij.ide.plugins.newui.VerticalLayout
 import javax.swing.JPanel
 
 class AppInspectionView {
   val component = JPanel(VerticalLayout(0))
-  private val comboBoxModel = AppInspectionTargetsComboBoxModel.newInstance()
+  private val comboBoxModel = AppInspectionProcessesComboBoxModel.newInstance()
 
   init {
     component.border = AdtUiUtils.DEFAULT_RIGHT_BORDER
-    component.add(AppInspectionTargetsComboBox(comboBoxModel))
+    component.add(AppInspectionProcessesComboBox(comboBoxModel))
   }
 }
