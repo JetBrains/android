@@ -351,6 +351,12 @@ public class AndroidProjectStub implements AndroidProject {
     return mock(LintOptions.class);
   }
 
+  @NonNull
+  @Override
+  public List<File> getLintRuleJars() {
+    return Collections.emptyList();
+  }
+
   @Override
   @NotNull
   public Collection<String> getUnresolvedDependencies() {
