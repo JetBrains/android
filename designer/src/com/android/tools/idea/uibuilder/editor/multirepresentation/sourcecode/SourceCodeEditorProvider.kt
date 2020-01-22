@@ -16,7 +16,6 @@
 package com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode
 
 import com.android.tools.idea.flags.StudioFlags.NELE_SOURCE_CODE_EDITOR
-import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorPolicy
@@ -27,7 +26,6 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
-import org.jetbrains.kotlin.idea.KotlinFileType
 
 /**
  * [FileEditorProvider] intended to be used with all source code files universally and therefore accepts all source code files. Creates

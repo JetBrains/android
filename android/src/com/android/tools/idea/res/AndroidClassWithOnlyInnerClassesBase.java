@@ -17,8 +17,8 @@ package com.android.tools.idea.res;
 
 import com.android.ide.common.resources.ResourceRepository;
 import com.google.common.base.Verify;
-import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.TextRange;
@@ -73,7 +73,7 @@ public abstract class AndroidClassWithOnlyInnerClassesBase extends AndroidLightC
       });
 
     PsiFileFactory factory = PsiFileFactory.getInstance(project);
-    myFile = (PsiJavaFile)factory.createFileFromText(shortName + ".java", JavaFileType.INSTANCE,
+    myFile = (PsiJavaFile)factory.createFileFromText(shortName + ".java", StdFileTypes.JAVA,
                                                      "// This class is generated on-the-fly by the IDE.");
 
     // We need to set the package name of the file, otherwise Util#checkReference will highlight all references to the class. This name is

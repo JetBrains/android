@@ -70,7 +70,6 @@ iml_module(
         "//tools/idea/uast/uast-common:intellij.platform.uast[module, test]",
         "//tools/idea/java/openapi:intellij.java[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
-        "//tools/idea/java/java-psi-impl:intellij.java.psi.impl[module, test]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
         "//tools/adt/idea/android-plugin:intellij.android.plugin[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",

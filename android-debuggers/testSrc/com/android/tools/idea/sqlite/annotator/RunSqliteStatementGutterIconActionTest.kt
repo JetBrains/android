@@ -26,9 +26,9 @@ import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
-import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
@@ -335,7 +335,7 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
 
   private fun buildAction(sqlStatement: String) {
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       // language=java
       """
         package com.example;

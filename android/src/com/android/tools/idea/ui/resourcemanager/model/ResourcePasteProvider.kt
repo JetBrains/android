@@ -24,7 +24,6 @@ import com.android.tools.idea.templates.TemplateUtils
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
 import com.android.tools.idea.util.dependsOnAppCompat
 import com.intellij.ide.PasteProvider
-import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.runReadAction
@@ -64,7 +63,7 @@ class ResourcePasteProvider : PasteProvider {
 
     when (psiFile.fileType) {
       StdFileTypes.XML -> performForXml(psiElement, dataContext, caret)
-      JavaFileType.INSTANCE -> performForJavaCode(dataContext, caret)
+      StdFileTypes.JAVA -> performForJavaCode(dataContext, caret)
       KotlinFileType.INSTANCE -> performForKotlinCode(psiElement, dataContext, caret)
     }
   }

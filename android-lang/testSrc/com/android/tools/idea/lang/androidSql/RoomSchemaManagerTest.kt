@@ -30,8 +30,8 @@ import com.android.tools.idea.lang.androidSql.room.RoomTable.Type.VIEW
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.intention.impl.QuickEditAction
-import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.impl.ProjectImpl
 import com.intellij.psi.PsiDocumentManager
@@ -595,7 +595,7 @@ class RoomSchemaManagerTest : JavaCodeInsightFixtureTestCase() {
   fun testEditFragmentFindsCorrectSchema() {
     myFixture.addRoomEntity("com.example.User", "name" ofType "String", "age" ofType "int")
 
-    myFixture.configureByText(JavaFileType.INSTANCE, """
+    myFixture.configureByText(StdFileTypes.JAVA, """
         package com.example;
 
         import androidx.room.Dao;
