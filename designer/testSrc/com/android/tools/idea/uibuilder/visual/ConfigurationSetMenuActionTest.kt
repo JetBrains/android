@@ -48,7 +48,9 @@ class ConfigurationSetMenuActionTest : AndroidTestCase() {
     val builder = StringBuilder("Pixel Devices\n") // The current selection of dropdown action
     // The options in dropdown menu have 4 spaces as indent
     builder.append("    ${ConfigurationSet.PIXEL_DEVICES.title}\n")
-    builder.append("    ${ConfigurationSet.PROJECT_LOCALES.title}\n")
+    if (ConfigurationSet.PROJECT_LOCALES.visible) {
+      builder.append("    ${ConfigurationSet.PROJECT_LOCALES.title}\n")
+    }
     builder.append("    $SEPARATOR_TEXT\n")
     builder.append("    ${ConfigurationSet.CUSTOM.title}\n")
     if (ConfigurationSet.COLOR_BLIND_MODE.visible || ConfigurationSet.LARGE_FONT.visible) {

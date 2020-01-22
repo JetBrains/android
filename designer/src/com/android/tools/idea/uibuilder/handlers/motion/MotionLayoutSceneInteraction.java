@@ -22,8 +22,9 @@ import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintSceneInteraction;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionAccessoryPanel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
-import com.android.tools.idea.uibuilder.handlers.motion.timeline.MotionSceneModel;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import java.text.DecimalFormat;
@@ -226,8 +227,8 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
               MTag transition = transitions[i];
               String transitionStart = transition.getAttributeValue("constraintSetStart");
               String transitionEnd = transition.getAttributeValue("constraintSetEnd");
-              if (startState.equals(MotionSceneModel.stripID(transitionStart))
-                  && endState.equals(MotionSceneModel.stripID(transitionEnd))) {
+              if (startState.equals(Utils.stripID(transitionStart))
+                  && endState.equals(Utils.stripID(transitionEnd))) {
                 // we found the correct transition
                 MTag[] keyframesSet = transition.getChildTags("KeyFrameSet");
                 if (keyframesSet != null && keyframesSet.length > 0) {
@@ -243,7 +244,7 @@ class MotionLayoutSceneInteraction extends ConstraintSceneInteraction {
                 int framePosition = framePositionValue != null ? Integer.parseInt(framePositionValue) : -1;
                 if (framePosition == myKeyframeCandidate.position) {
                   String motionTarget = keyframe.getAttributeValue("motionTarget");
-                  if (motionTarget != null && selectedId.equals(MotionSceneModel.stripID(motionTarget))) {
+                  if (motionTarget != null && selectedId.equals(Utils.stripID(motionTarget))) {
                     // we are on the correct keyframe
                     MTag.TagWriter keyframeModification = keyframe.getTagWriter();
                     keyframeModification.setAttribute(SdkConstants.SHERPA_URI,

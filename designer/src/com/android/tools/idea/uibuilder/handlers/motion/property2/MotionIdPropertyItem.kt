@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.motion.property2
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.property2.NeleIdPropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
+import com.intellij.psi.xml.XmlAttributeValue
 import org.jetbrains.android.dom.attrs.AttributeDefinition
 
 /**
@@ -37,4 +38,32 @@ class MotionIdPropertyItem(
    */
   override val rawValue: String?
     get() = model.getPropertyValue(this)
+
+  override fun renameRefactoring(value: XmlAttributeValue?, oldId: String, newId: String, newValue: String?): Boolean {
+    if (!super.renameRefactoring(value, oldId, newId, newValue)) {
+      return false
+    }
+    updateMTagAttribute(newValue)
+    return true
+  }
+
+  /**
+   * Update the attribute values in the selected motion scene tag.
+   *
+   * This is a special case where the rename processor is updating the XmlTag directly.
+   * The MTag layer is not used for writing which causes the cached values to be out of sync,
+   * which later can cause selection problems.
+   * see https://issuetracker.google.com/issues/147511820
+   *
+   * Update the in memory MTag attribute here to reflect the value just written to the PSI.
+   * A subsequent MTag rebuild will then be able to keep the current selection.
+   */
+  private fun updateMTagAttribute(newValue: String?) {
+    val selection = MotionLayoutAttributesModel.getMotionSelection(this)
+    val tag = selection?.motionSceneTag ?: return
+    val writer = tag.tagWriter
+    writer.setAttribute(namespace, name, newValue)
+    writer.attrList.forEach { (key, value) -> tag.attrList[key] = value }
+    // Do NOT commit the writer, as the PSI was already updated
+  }
 }

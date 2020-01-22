@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.compose
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.RunIn
@@ -28,6 +29,8 @@ import com.android.tools.idea.tests.gui.framework.heapassertions.bleak.runWithBl
 import com.android.tools.idea.tests.gui.uibuilder.RenderTaskLeakCheckRule
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import junit.framework.TestCase.assertFalse
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -41,6 +44,16 @@ class ComposePreviewTest {
   @Rule
   @JvmField
   val renderTaskLeakCheckRule = RenderTaskLeakCheckRule()
+
+  @Before
+  fun setUp() {
+    StudioFlags.COMPOSE_PREVIEW.override(true)
+  }
+
+  @After
+  fun tearDown() {
+    StudioFlags.COMPOSE_PREVIEW.override(false)
+  }
 
   @Test
   @Throws(Exception::class)

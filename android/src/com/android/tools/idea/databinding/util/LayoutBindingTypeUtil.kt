@@ -23,7 +23,6 @@ import com.android.tools.idea.databinding.index.BindingLayoutType
 import com.android.tools.idea.databinding.index.BindingXmlIndex
 import com.android.tools.idea.databinding.index.ViewIdData
 import com.android.tools.idea.databinding.util.DataBindingUtil.getQualifiedBindingName
-import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.util.androidFacet
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFactory
@@ -116,8 +115,7 @@ object LayoutBindingTypeUtil {
     if (layoutName == null) {
       return null
     }
-    // The following line must be called to make sure the underlying repositories are initialized
-    ResourceRepositoryManager.getInstance(facet).existingAppResources ?: return null
+
     val resourceUrl = ResourceUrl.parse(layoutName)
     if (resourceUrl == null || resourceUrl.type != ResourceType.LAYOUT) {
       return null

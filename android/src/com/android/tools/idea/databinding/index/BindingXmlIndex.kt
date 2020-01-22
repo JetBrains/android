@@ -284,7 +284,6 @@ class BindingXmlIndex : FileBasedIndexExtension<String, BindingXmlData>() {
       override fun acceptInput(file: VirtualFile): Boolean {
         return "xml" == file.extension
                && ResourceFolderType.getFolderType(file.parent?.name.orEmpty()) == ResourceFolderType.LAYOUT
-               && file.parent?.parent?.name == FD_RES
                && XmlFileType.INSTANCE == file.fileType
       }
     }

@@ -19,7 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs
 import com.android.tools.idea.uibuilder.handlers.motion.property2.testutil.MotionAttributeRule
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
@@ -34,7 +34,7 @@ class MotionLayoutPropertyProviderTest {
 
   @JvmField
   @Rule
-  val motionRule = MotionAttributeRule(projectRule, "layout.xml", "scene.xml")
+  val motionRule = MotionAttributeRule(projectRule)
 
   @JvmField
   @Rule
@@ -44,7 +44,7 @@ class MotionLayoutPropertyProviderTest {
   fun testTransition() {
     motionRule.selectTransition("start", "end")
     val properties = motionRule.properties.getValue(MotionSceneAttrs.Tags.TRANSITION)
-    Truth.assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
+    assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "autoTransition",
       "duration",
       "motionInterpolator",
@@ -52,22 +52,22 @@ class MotionLayoutPropertyProviderTest {
       "constraintSetEnd",
       "staggered",
       "transitionDisable")
-    Truth.assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
+    assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
       "id")
-    Truth.assertThat(properties[SdkConstants.AUTO_URI, "duration"].value).isEqualTo("2000")
+    assertThat(properties[SdkConstants.AUTO_URI, "duration"].value).isEqualTo("2000")
   }
 
   @Test
   fun testConstraint() {
     motionRule.selectConstraint("start", "widget")
     val properties = motionRule.properties.getValue(MotionSceneAttrs.Tags.CONSTRAINT)
-    Truth.assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsAllOf(
+    assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsAllOf(
       "constraint_referenced_ids",
       "barrierDirection",
       "barrierAllowsGoneWidgets",
       "layout_constraintLeft_toLeftOf",
       "layout_constraintLeft_toRightOf")
-    Truth.assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
+    assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
       "id",
       "alpha",
       "elevation",
@@ -97,25 +97,73 @@ class MotionLayoutPropertyProviderTest {
       "translationY",
       "translationZ",
       "visibility")
-    Truth.assertThat(properties[SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH].value)
+    assertThat(properties[SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH].value)
       .isEqualTo("64dp")
 
     val customProperties = motionRule.properties.getValue(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)
-    Truth.assertThat(customProperties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
+    assertThat(customProperties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "textSize")
+  }
+
+  @Test
+  fun testEmptyConstraint() {
+    motionRule.selectConstraint("start", "buttonEmptyConstraint")
+    assertThat(motionRule.properties.keys).containsExactly(MotionSceneAttrs.Tags.CONSTRAINT)
+
+    val properties = motionRule.properties.getValue(MotionSceneAttrs.Tags.CONSTRAINT)
+    assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsAllOf(
+      "constraint_referenced_ids",
+      "barrierDirection",
+      "barrierAllowsGoneWidgets",
+      "layout_constraintLeft_toLeftOf",
+      "layout_constraintLeft_toRightOf")
+    assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
+      "id",
+      "alpha",
+      "elevation",
+      "layout_width",
+      "layout_marginBottom",
+      "layout_marginEnd",
+      "layout_marginLeft",
+      "layout_marginRight",
+      "layout_marginStart",
+      "layout_marginTop",
+      "layout_height",
+      "maxHeight",
+      "maxWidth",
+      "minHeight",
+      "minWidth",
+      "orientation",
+      "pivotX",
+      "pivotY",
+      "rotation",
+      "rotationX",
+      "rotationY",
+      "scaleX",
+      "scaleY",
+      "transformPivotX",
+      "transformPivotY",
+      "translationX",
+      "translationY",
+      "translationZ",
+      "visibility")
+    assertThat(properties[SdkConstants.ANDROID_URI, SdkConstants.ATTR_ID].value)
+      .isEqualTo("buttonEmptyConstraint")
+    assertThat(properties[SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH].value)
+      .isNull()
   }
 
   @Test
   fun testSectionedConstraint() {
     motionRule.selectConstraint("start", "button")
     val layoutProperties = motionRule.properties.getValue(MotionSceneAttrs.Tags.LAYOUT)
-    Truth.assertThat(layoutProperties.getByNamespace(SdkConstants.AUTO_URI).keys).containsAllOf(
+    assertThat(layoutProperties.getByNamespace(SdkConstants.AUTO_URI).keys).containsAllOf(
       "constraint_referenced_ids",
       "barrierDirection",
       "barrierAllowsGoneWidgets",
       "layout_constraintLeft_toLeftOf",
       "layout_constraintLeft_toRightOf")
-    Truth.assertThat(layoutProperties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsAllOf(
+    assertThat(layoutProperties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsAllOf(
       "layout_width",
       "layout_marginBottom",
       "layout_marginEnd",
@@ -126,26 +174,26 @@ class MotionLayoutPropertyProviderTest {
       "layout_height")
 
     val motionProperties = motionRule.properties.getValue(MotionSceneAttrs.Tags.MOTION)
-    Truth.assertThat(motionProperties.getByNamespace(SdkConstants.AUTO_URI).keys).containsAllOf(
+    assertThat(motionProperties.getByNamespace(SdkConstants.AUTO_URI).keys).containsAllOf(
       "animate_relativeTo",
       "transitionEasing",
       "pathMotionArc",
       "motionPathRotate",
       "motionStagger",
       "drawPath")
-    Truth.assertThat(motionProperties.getByNamespace(SdkConstants.ANDROID_URI).keys).isEmpty()
+    assertThat(motionProperties.getByNamespace(SdkConstants.ANDROID_URI).keys).isEmpty()
 
     val propertySetProperties = motionRule.properties.getValue(MotionSceneAttrs.Tags.PROPERTY_SET)
-    Truth.assertThat(propertySetProperties.getByNamespace(SdkConstants.AUTO_URI).keys).containsAllOf(
+    assertThat(propertySetProperties.getByNamespace(SdkConstants.AUTO_URI).keys).containsAllOf(
       "visibilityMode",
       "motionProgress",
       "layout_constraintTag")
-    Truth.assertThat(propertySetProperties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsAllOf(
+    assertThat(propertySetProperties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsAllOf(
       "alpha",
       "visibility")
 
     val customProperties = motionRule.properties.getValue(MotionSceneAttrs.Tags.CUSTOM_ATTRIBUTE)
-    Truth.assertThat(customProperties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
+    assertThat(customProperties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "textSize")
   }
 
@@ -153,7 +201,7 @@ class MotionLayoutPropertyProviderTest {
   fun testKeyPosition() {
     motionRule.selectKeyFrame("start", "end", MotionSceneAttrs.Tags.KEY_POSITION, 51, "widget")
     val properties = motionRule.properties.getValue(MotionSceneAttrs.Tags.KEY_POSITION)
-    Truth.assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
+    assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "framePosition",
       "motionTarget",
       "keyPositionType",
@@ -166,23 +214,23 @@ class MotionLayoutPropertyProviderTest {
       "curveFit",
       "drawPath",
       "sizePercent")
-    Truth.assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).isEmpty()
-    Truth.assertThat(properties[SdkConstants.AUTO_URI, "framePosition"].value).isEqualTo("51")
-    Truth.assertThat(properties[SdkConstants.AUTO_URI, "pathMotionArc"].value).isEqualTo("flip")
+    assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).isEmpty()
+    assertThat(properties[SdkConstants.AUTO_URI, "framePosition"].value).isEqualTo("51")
+    assertThat(properties[SdkConstants.AUTO_URI, "pathMotionArc"].value).isEqualTo("flip")
   }
 
   @Test
   fun testKeyAttribute() {
     motionRule.selectKeyFrame("start", "end", MotionSceneAttrs.Tags.KEY_ATTRIBUTE, 99, "widget")
     val properties = motionRule.properties.getValue(MotionSceneAttrs.Tags.KEY_ATTRIBUTE)
-    Truth.assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
+    assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "framePosition",
       "motionTarget",
       "transitionEasing",
       "curveFit",
       "motionProgress",
       "transitionPathRotate")
-    Truth.assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
+    assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
       "visibility",
       "alpha",
       "elevation",
@@ -194,15 +242,15 @@ class MotionLayoutPropertyProviderTest {
       "translationX",
       "translationY",
       "translationZ")
-    Truth.assertThat(properties[SdkConstants.AUTO_URI, "framePosition"].value).isEqualTo("99")
-    Truth.assertThat(properties[SdkConstants.ANDROID_URI, "rotation"].value).isEqualTo("1")
+    assertThat(properties[SdkConstants.AUTO_URI, "framePosition"].value).isEqualTo("99")
+    assertThat(properties[SdkConstants.ANDROID_URI, "rotation"].value).isEqualTo("1")
   }
 
   @Test
   fun testKeyCycle() {
     motionRule.selectKeyFrame("start", "end", MotionSceneAttrs.Tags.KEY_CYCLE, 15, "widget")
     val properties = motionRule.properties.getValue(MotionSceneAttrs.Tags.KEY_CYCLE)
-    Truth.assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
+    assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "framePosition",
       "motionTarget",
       "transitionEasing",
@@ -213,7 +261,7 @@ class MotionLayoutPropertyProviderTest {
       "wavePeriod",
       "waveShape",
       "waveVariesBy")
-    Truth.assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
+    assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
       "alpha",
       "elevation",
       "rotation",
@@ -224,15 +272,15 @@ class MotionLayoutPropertyProviderTest {
       "translationX",
       "translationY",
       "translationZ")
-    Truth.assertThat(properties[SdkConstants.AUTO_URI, "framePosition"].value).isEqualTo("15")
-    Truth.assertThat(properties[SdkConstants.AUTO_URI, "transitionPathRotate"].value).isEqualTo("1.5")
+    assertThat(properties[SdkConstants.AUTO_URI, "framePosition"].value).isEqualTo("15")
+    assertThat(properties[SdkConstants.AUTO_URI, "transitionPathRotate"].value).isEqualTo("1.5")
   }
 
   @Test
   fun testKeyTimeCycle() {
     motionRule.selectKeyFrame("start", "end", MotionSceneAttrs.Tags.KEY_TIME_CYCLE, 25, "widget")
     val properties = motionRule.properties.getValue(MotionSceneAttrs.Tags.KEY_TIME_CYCLE)
-    Truth.assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
+    assertThat(properties.getByNamespace(SdkConstants.AUTO_URI).keys).containsExactly(
       "framePosition",
       "motionTarget",
       "transitionEasing",
@@ -243,7 +291,7 @@ class MotionLayoutPropertyProviderTest {
       "waveDecay",
       "wavePeriod",
       "waveShape")
-    Truth.assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
+    assertThat(properties.getByNamespace(SdkConstants.ANDROID_URI).keys).containsExactly(
       "alpha",
       "elevation",
       "rotation",
@@ -254,7 +302,7 @@ class MotionLayoutPropertyProviderTest {
       "translationX",
       "translationY",
       "translationZ")
-    Truth.assertThat(properties[SdkConstants.AUTO_URI, "framePosition"].value).isEqualTo("25")
-    Truth.assertThat(properties[SdkConstants.AUTO_URI, "transitionPathRotate"].value).isEqualTo("1.5")
+    assertThat(properties[SdkConstants.AUTO_URI, "framePosition"].value).isEqualTo("25")
+    assertThat(properties[SdkConstants.AUTO_URI, "transitionPathRotate"].value).isEqualTo("1.5")
   }
 }

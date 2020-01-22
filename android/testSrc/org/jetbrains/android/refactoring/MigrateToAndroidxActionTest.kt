@@ -58,7 +58,7 @@ class MigrateToAndroidxActionTest {
   }
 
   @Test
-  fun `check action is disabled when kts detected`() {
+  fun `check action is enabled when kts detected`() {
     myProject?.putUserData(GradleKtsBuildFilesWarningStep.HAS_KTS_BUILD_FILES, true)
 
     val action = MigrateToAndroidxAction()
@@ -66,7 +66,7 @@ class MigrateToAndroidxActionTest {
     action.update(event)
 
     assertTrue("Action should be visible", event.presentation.isVisible)
-    assertFalse("Action should be disabled if kts build files detected", event.presentation.isEnabled)
+    assertTrue("Action should be enabled if kts build files detected", event.presentation.isEnabled)
   }
 
   @Test

@@ -31,7 +31,6 @@ import com.android.tools.idea.uibuilder.property2.NelePropertyType;
 import com.android.tools.property.panel.api.TableLineModel;
 import com.intellij.concurrency.JobScheduler;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.popup.util.PopupUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.EditorComboBox;
 import icons.StudioIcons;
@@ -59,6 +58,7 @@ import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public class NewCustomAttributePanel extends DialogWrapper {
   private JTextField myAttributeNameEditor;
@@ -135,6 +135,31 @@ public class NewCustomAttributePanel extends DialogWrapper {
   protected void dispose() {
     getWindow().removeWindowFocusListener(myWindowFocusListener);
     super.dispose();
+  }
+
+  @TestOnly
+  public JTextField getAttributeNameEditor() {
+    return myAttributeNameEditor;
+  }
+
+  @TestOnly
+  public JTextField getInitialValueEditor() {
+    return myInitialValueEditor;
+  }
+
+  @TestOnly
+  public EditorComboBox getDataTypeComboBox() {
+    return myDataType;
+  }
+
+  @TestOnly
+  public JCheckBox getAcceptAnyway() {
+    return myAcceptAnyway;
+  }
+
+  @TestOnly
+  public JLabel getErrorLabel() {
+    return myError;
   }
 
   @Override

@@ -294,7 +294,7 @@ public class MotionSceneAttrs {
 
   public static class OnClick {
     public static final String ATTR_TARGET_ID = "targetId";
-    public static final String ATTR_CLICK_ACTION = "targetId";
+    public static final String ATTR_CLICK_ACTION = "clickAction";
   }
 
   public static class OnSwipe {

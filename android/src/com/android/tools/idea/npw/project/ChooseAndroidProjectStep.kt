@@ -169,10 +169,12 @@ class ChooseAndroidProjectStep(model: NewProjectModel) : ModelWizardStep<NewProj
       }
       when (selectedTemplate) {
         is OldTemplateRendererWithDescription -> {
+          newRenderTemplate.clear()
           renderTemplateHandle.setNullableValue(selectedTemplate.template)
           extraRenderTemplateModel.templateHandle = selectedTemplate.template.takeIf { formFactorInfo.formFactor === FormFactor.THINGS }
         }
         is NewTemplateRendererWithDescription -> {
+          renderTemplateHandle.clear()
           newRenderTemplate.setNullableValue(selectedTemplate.template)
           // TODO(qumeric): add support for Android Things
         }

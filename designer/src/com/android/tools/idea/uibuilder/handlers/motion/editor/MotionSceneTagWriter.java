@@ -23,6 +23,8 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotati
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.util.Computable;
@@ -61,6 +63,11 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
     super(tag.myXmlTag, tag.mParent);
     mTag = tag;
     mType = tag.getTagName();
+  }
+
+  @Override
+  public String getTagName() {
+    return mType;
   }
 
   @Override
@@ -226,7 +233,8 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
    */
   public static void saveAndNotify(PsiFile xmlFile, NlModel nlModel) {
     LayoutPullParsers.saveFileIfNecessary(xmlFile);
-    nlModel.notifyModified(NlModel.ChangeType.EDIT);
+    // Some tests need to read during notifyModified. The invokeLater avoids deadlocks.
+    ApplicationManager.getApplication().invokeLater(() -> nlModel.notifyModified(NlModel.ChangeType.EDIT));
   }
 
   @Override

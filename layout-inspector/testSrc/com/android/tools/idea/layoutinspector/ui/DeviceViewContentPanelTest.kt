@@ -30,10 +30,13 @@ import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.idea.layoutinspector.view
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
 import junit.framework.TestCase.assertEquals
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.Mockito.mock
 import java.awt.Color
 import java.awt.Dimension
@@ -47,6 +50,9 @@ private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData"
 private const val DIFF_THRESHOLD = 0.05
 
 class DeviceViewContentPanelTest {
+
+  @get:Rule
+  val chain = RuleChain.outerRule(ProjectRule()).around(DeviceViewSettingsRule())
 
   @Before
   fun setUp() {
@@ -69,6 +75,7 @@ class DeviceViewContentPanelTest {
       }
     }
     val settings = DeviceViewSettings(scalePercent = 30)
+    settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
     assertEquals(Dimension(188, 197), panel.preferredSize)
 
@@ -85,18 +92,19 @@ class DeviceViewContentPanelTest {
   @Test
   fun testPaint() {
     val model = model {
-      view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 25, 30, 50, 50, imageBottom = mock(Image::class.java))
+      view(ROOT, 0, 0, 500, 1000) {
+        view(VIEW1, 125, 150, 250, 250, imageBottom = mock(Image::class.java))
       }
     }
 
     @Suppress("UndesirableClassUsage")
-    val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
+    val generatedImage = BufferedImage(1000, 1500, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
     val settings = DeviceViewSettings(scalePercent = 100)
+    settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
-    panel.setSize(200, 300)
+    panel.setSize(1000, 1500)
 
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint.png"), generatedImage, DIFF_THRESHOLD)
@@ -112,13 +120,24 @@ class DeviceViewContentPanelTest {
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_rotated.png"), generatedImage, DIFF_THRESHOLD)
 
-    val windowRoot = model.root.children[0]
+    val windowRoot = model[ROOT]!!
     model.selection = windowRoot
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_selected.png"), generatedImage, DIFF_THRESHOLD)
 
-    model.hoveredNode = windowRoot.children[0]
+    settings.drawLabel = true
+    model.selection = model[VIEW1]!!
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_label.png"), generatedImage, DIFF_THRESHOLD)
+
+    settings.drawBorders = false
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_noborders.png"), generatedImage, DIFF_THRESHOLD)
+
+    model.hoveredNode = windowRoot
     graphics = generatedImage.createGraphics()
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_hovered.png"), generatedImage, DIFF_THRESHOLD)
@@ -127,18 +146,19 @@ class DeviceViewContentPanelTest {
   @Test
   fun testOverlay() {
     val model = model {
-      view(ROOT, 0, 0, 100, 200) {
-        view(VIEW1, 25, 30, 50, 50)
+      view(ROOT, 0, 0, 500, 1000) {
+        view(VIEW1, 125, 150, 250, 250)
       }
     }
 
     @Suppress("UndesirableClassUsage")
-    val generatedImage = BufferedImage(200, 300, TYPE_INT_ARGB)
+    val generatedImage = BufferedImage(1000, 1500, TYPE_INT_ARGB)
     var graphics = generatedImage.createGraphics()
 
     val settings = DeviceViewSettings(scalePercent = 100)
+    settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
-    panel.setSize(200, 300)
+    panel.setSize(1000, 1500)
 
     panel.model.overlay = ImageIO.read(File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaint_hovered.png"))
 
@@ -177,6 +197,7 @@ class DeviceViewContentPanelTest {
     val graphics = generatedImage.createGraphics()
 
     val settings = DeviceViewSettings(scalePercent = 50)
+    settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(200, 300)
 
@@ -193,6 +214,7 @@ class DeviceViewContentPanelTest {
     }
 
     val settings = DeviceViewSettings(scalePercent = 100)
+    settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(200, 300)
     val fakeUi = FakeUi(panel)
@@ -226,6 +248,7 @@ class DeviceViewContentPanelTest {
     var graphics = generatedImage.createGraphics()
 
     val settings = DeviceViewSettings(scalePercent = 100)
+    settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(200, 300)
 
@@ -265,6 +288,7 @@ class DeviceViewContentPanelTest {
     var graphics = generatedImage.createGraphics()
 
     val settings = DeviceViewSettings(scalePercent = 100)
+    settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(200, 300)
     panel.paint(graphics)
@@ -297,6 +321,7 @@ class DeviceViewContentPanelTest {
     var graphics = generatedImage.createGraphics()
 
     val settings = DeviceViewSettings(scalePercent = 50)
+    settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(350, 450)
 
@@ -320,6 +345,22 @@ class DeviceViewContentPanelTest {
     panel.paint(graphics)
     ImageDiffUtil.assertImageSimilar(
       File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImages_view2.png"), generatedImage, DIFF_THRESHOLD)
+
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(
+      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImages_view2.png"), generatedImage, DIFF_THRESHOLD)
+
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(
+      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImages_view2.png"), generatedImage, DIFF_THRESHOLD)
+
+    settings.drawLabel = true
+    graphics = generatedImage.createGraphics()
+    panel.paint(graphics)
+    ImageDiffUtil.assertImageSimilar(
+      File(getWorkspaceRoot(), "$TEST_DATA_PATH/testPaintWithImages_label.png"), generatedImage, DIFF_THRESHOLD)
   }
 
   @Test
@@ -339,6 +380,7 @@ class DeviceViewContentPanelTest {
     var graphics = generatedImage.createGraphics()
 
     val settings = DeviceViewSettings(scalePercent = 50)
+    settings.drawLabel = false
     val panel = DeviceViewContentPanel(model, settings)
     panel.setSize(350, 450)
 

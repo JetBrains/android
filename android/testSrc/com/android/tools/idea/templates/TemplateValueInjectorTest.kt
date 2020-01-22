@@ -29,23 +29,25 @@ import com.android.tools.idea.npw.template.TemplateValueInjector
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_API
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_BUILD_TOOLS_VERSION
 import com.android.tools.idea.templates.TemplateAttributes.ATTR_KOTLIN_VERSION
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockApplicationEx
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Disposer
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mock
-
+import org.mockito.MockitoAnnotations.initMocks
 import java.io.File
 import java.util.HashMap
 
-import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.command.impl.DummyProject
-import org.mockito.MockitoAnnotations.initMocks
-
 class TemplateValueInjectorTest {
+
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory()
 
   @Mock
   private val myMockAndroidVersionsInfo: AndroidVersionsInfo? = null
@@ -96,12 +98,11 @@ class TemplateValueInjectorTest {
 
   @Test
   fun checkMaxAppCompatVersion() {
-    val project = DummyProject.getInstance()
     val versionItemForQ = AndroidVersionsInfo().VersionItem(MockPlatformTarget(VersionCodes.Q, 0))
     val templateValues = HashMap<String, Any>()
     val injector = TemplateValueInjector(templateValues)
 
-    injector.setBuildAttributes(versionItemForQ, project, false)
+    injector.setBuildAttributes(versionItemForQ, projectRule.project, false)
 
     assertThat(templateValues[ATTR_BUILD_API]).isEqualTo(VersionCodes.P)
   }

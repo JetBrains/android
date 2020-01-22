@@ -493,31 +493,40 @@ public class AndroidStudioSystemHealthMonitor extends PreloadingActivity {
     final UnanalyzedHeapReport report = reports.get(0);
     final Path path = report.getHprofPath();
 
-    MessageBusConnection connection = ApplicationManager.getApplication().getMessageBus().connect();
+    ProjectManager projectManager = ProjectManager.getInstanceIfCreated();
+    Project[] openedProjects = projectManager != null ? projectManager.getOpenProjects() : null;
 
-    AtomicBoolean eventHandled = new AtomicBoolean(false);
-    connection.subscribe(ProjectManager.TOPIC, new ProjectManagerListener()
-    {
-      @Override
-      public void projectOpened(@NotNull Project project) {
-        if (eventHandled.getAndSet(true)) {
-          return;
+    if (openedProjects != null && openedProjects.length > 0) {
+      Project project = openedProjects[0];
+      StartupManager.getInstance(project).runWhenProjectIsInitialized(
+        () -> new AnalysisRunnable(report, true).run()
+      );
+    } else {
+      MessageBusConnection connection = ApplicationManager.getApplication().getMessageBus().connect();
+      AtomicBoolean eventHandled = new AtomicBoolean(false);
+
+      connection.subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+        @Override
+        public void projectOpened(@NotNull Project project) {
+          if (eventHandled.getAndSet(true)) {
+            return;
+          }
+          connection.disconnect();
+          StartupManager.getInstance(project).runWhenProjectIsInitialized(
+            () -> new AnalysisRunnable(report, true).run());
         }
-        connection.disconnect();
-        StartupManager.getInstance(project).runWhenProjectIsInitialized(
-          () -> new AnalysisRunnable(report, true).run());
-      }
-    });
-    connection.subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
-      @Override
-      public void welcomeScreenDisplayed() {
-        if (eventHandled.getAndSet(true)) {
-          return;
+      });
+      connection.subscribe(AppLifecycleListener.TOPIC, new AppLifecycleListener() {
+        @Override
+        public void welcomeScreenDisplayed() {
+          if (eventHandled.getAndSet(true)) {
+            return;
+          }
+          connection.disconnect();
+          new AnalysisRunnable(report, true).run();
         }
-        connection.disconnect();
-        new AnalysisRunnable(report, true).run();
-      }
-    });
+      });
+    }
     return Collections.singletonList(path);
   }
 

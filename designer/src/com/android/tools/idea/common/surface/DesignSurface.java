@@ -744,6 +744,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
+   * Measure the scale size which can fit the SceneViews into the scrollable area.
+   * This function doesn't consider the legal scale range, which can be get by {@link #getMaxScale()} and {@link #getMinScale()}.
+   *
    * @param size    dimension to fit into the view
    * @param fitInto {@link ZoomType#FIT_INTO}
    * @return The scale to make the content fit the design surface

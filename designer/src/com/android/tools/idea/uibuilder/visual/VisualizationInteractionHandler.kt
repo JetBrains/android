@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionHandler
@@ -79,19 +80,18 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
     val mouseX = mouseEvent.x
     val mouseY = mouseEvent.y
     val sceneView = surface.getHoverSceneView(mouseX, mouseY) ?: return
-    val model = sceneView.sceneManager.model
+
+    val hoveredManager = sceneView.sceneManager
+    val primarySceneManager = surface.sceneManager
+
+    val group = DefaultActionGroup().apply {
+      // Do not allow to delete the default NlModel (which is the primary one)
+      add(RemoveCustomModelAction(customModelsProvider, hoveredManager.model, hoveredManager != primarySceneManager))
+      // TODO: add edit and copy options.
+    }
 
     val actionManager = ActionManager.getInstance()
     val invoker = mouseEvent.source as? Component ?: surface
-
-    val group = DefaultActionGroup().apply {
-      if (model.modelDisplayName != "Default") {
-        add(object : AnAction("Remove Configuration", "Remove a custom configuration", null) {
-          override fun actionPerformed(e: AnActionEvent) = customModelsProvider.removeCustomConfigurationAttributes(model)
-        })
-      }
-      // TODO: add edit and copy options.
-    }
 
     if (group.childrenCount != 0) {
       val popupMenu = actionManager.createActionPopupMenu(ActionPlaces.POPUP, group)
@@ -102,4 +102,16 @@ class VisualizationInteractionHandler(private val surface: DesignSurface,
   override fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,
                                           @SwingCoordinate mouseY: Int,
                                           @JdkConstants.InputEventMask modifiersEx: Int): Cursor? = null
+}
+
+private class RemoveCustomModelAction(val provider: CustomModelsProvider, val model: NlModel, val enabled: Boolean) :
+  AnAction("Remove Configuration", "Remove a custom configuration", null) {
+
+  override fun actionPerformed(e: AnActionEvent) = provider.removeCustomConfigurationAttributes(model)
+
+  override fun update(e: AnActionEvent) {
+    e.presentation.isEnabled = enabled
+    e.presentation.isVisible = true
+    e.presentation.description = if (enabled) "" else "Cannot remove default preview"
+  }
 }

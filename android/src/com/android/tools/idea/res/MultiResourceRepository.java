@@ -426,27 +426,31 @@ public abstract class MultiResourceRepository extends LocalResourceRepository im
    */
   @GuardedBy("ITEM_MAP_LOCK")
   public void invalidateCache(@NotNull SingleNamespaceResourceRepository repository, @NotNull ResourceType... types) {
-    assert myLeafsByNamespace.values().contains(repository) : repository;
-
     ResourceNamespace namespace = repository.getNamespace();
 
-    // Update myUnreconciledResources only if myCachedMaps is used for this namespace.
-    if (myLeafsByNamespace.get(namespace).size() != 1) {
-      for (ResourceType type : types) {
-        if (myCachedMaps.get(namespace, type) != null) {
-          Set<SingleNamespaceResourceRepository> repositories = myUnreconciledResources.get(namespace, type);
-          if (repositories == null) {
-            repositories = new HashSet<>();
-            myUnreconciledResources.put(namespace, type, repositories);
+    // Since myLeafsByNamespace updates are not atomic with respect to grandchildren updates, it is
+    // possible that the repository that triggered cache invalidation is not in myLeafsByNamespace.
+    // In such a case we don't need to do anything.
+    ImmutableList<SingleNamespaceResourceRepository> leafs = myLeafsByNamespace.get(namespace);
+    if (leafs != null && leafs.contains(repository)) {
+      // Update myUnreconciledResources only if myCachedMaps is used for this namespace.
+      if (leafs.size() != 1) {
+        for (ResourceType type : types) {
+          if (myCachedMaps.get(namespace, type) != null) {
+            Set<SingleNamespaceResourceRepository> repositories = myUnreconciledResources.get(namespace, type);
+            if (repositories == null) {
+              repositories = new HashSet<>();
+              myUnreconciledResources.put(namespace, type, repositories);
+            }
+            repositories.add(repository);
           }
-          repositories.add(repository);
         }
+
+        setModificationCount(ourModificationCounter.incrementAndGet());
       }
 
-      setModificationCount(ourModificationCounter.incrementAndGet());
+      invalidateParentCaches(repository, types);
     }
-
-    invalidateParentCaches(repository, types);
   }
 
   @Override

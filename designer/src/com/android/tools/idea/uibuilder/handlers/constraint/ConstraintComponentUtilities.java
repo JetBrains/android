@@ -107,6 +107,7 @@ public final class ConstraintComponentUtilities {
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_TOP_TO_BOTTOM_OF));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_BOTTOM_TO_TOP_OF));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_BOTTOM_TO_BOTTOM_OF));
+    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_BASELINE_TO_BASELINE_OF));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_BIAS));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_VERTICAL_BIAS));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_HORIZONTAL_CHAIN_STYLE));
@@ -129,8 +130,8 @@ public final class ConstraintComponentUtilities {
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_MAX_WIDTH));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_MAX_HEIGHT));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_MIN_WIDTH));
-    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X));
-    ourLayoutAttributes.add(Pair.of(SHERPA_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y));
+    ourLayoutAttributes.add(Pair.of(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_X));
+    ourLayoutAttributes.add(Pair.of(TOOLS_URI, ATTR_LAYOUT_EDITOR_ABSOLUTE_Y));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_BEGIN));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_END));
     ourLayoutAttributes.add(Pair.of(SHERPA_URI, LAYOUT_CONSTRAINT_GUIDE_PERCENT));
@@ -1821,26 +1822,5 @@ public final class ConstraintComponentUtilities {
       return true;
     }
     return false;
-  }
-
-  /**
-   * This remaps the margin start and end strings when setting dimensions
-   *
-   * @param component
-   * @param attr
-   * @return
-   */
-  public static String mapStartEndStrings(NlComponent component, String attr) {
-    if (SdkConstants.ATTR_LAYOUT_MARGIN_START.equals(attr)) {
-      if (useLeftRight(component)) {
-        return SdkConstants.ATTR_LAYOUT_MARGIN_LEFT;
-      }
-    }
-    else if (SdkConstants.ATTR_LAYOUT_MARGIN_END.equals(attr)) {
-      if (useLeftRight(component)) {
-        return SdkConstants.ATTR_LAYOUT_MARGIN_RIGHT;
-      }
-    }
-    return attr;
   }
 }

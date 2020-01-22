@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.editors.shortcuts.asString
+import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.BuildStatus
 import com.android.tools.idea.gradle.project.build.GradleBuildState
-import com.intellij.openapi.actionSystem.ShortcutSet
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
@@ -40,15 +40,6 @@ import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import java.awt.Color
 import java.util.concurrent.TimeUnit
-
-/**
- * Returns the textual representation of the given [ShortcutSet]. If there is no shortcut, this method will return an empty string.
- * An optional [prefix] and [suffix] can be specified. These are only returned if there is a shortcut and the result string is not empty.
- */
-private fun ShortcutSet.asString(prefix: String = " (", suffix: String = ")"): String {
-  val shortcutString = KeymapUtil.getFirstKeyboardShortcutText(this)
-  return if (shortcutString.isNotEmpty()) "${prefix}${shortcutString}${suffix}" else ""
-}
 
 private fun createBuildNotificationPanel(project: Project,
                                          file: VirtualFile,

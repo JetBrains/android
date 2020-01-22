@@ -68,6 +68,7 @@ import com.intellij.openapi.vfs.VirtualFileVisitor
 import com.intellij.pom.java.LanguageLevel
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.XmlElementFactory
+import org.jetbrains.annotations.NonNls
 import java.io.File
 import java.io.IOException
 import com.android.tools.idea.templates.mergeXml as mergeXmlUtil
@@ -253,6 +254,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
 
     val buildModel = projectBuildModel?.getModuleBuildModel(toModule) ?: return
     buildModel.dependencies().addModule(resolvedConfiguration, ":$moduleName")
+    io.applyChanges(buildModel)
   }
 
   /**
@@ -399,6 +401,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     val gradleName = ':' + name.trimStart(':')
     val buildModel = projectBuildModel?.getModuleBuildModel(toModule) ?: return
     buildModel.android().dynamicFeatures().addListValue().setValue(gradleName)
+    io.applyChanges(buildModel)
   }
 
   fun applyChanges() {

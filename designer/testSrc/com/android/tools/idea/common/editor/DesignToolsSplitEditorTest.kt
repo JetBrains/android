@@ -21,6 +21,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LayoutEditorEvent
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
@@ -51,6 +52,9 @@ class DesignToolsSplitEditorTest : AndroidTestCase() {
     textEditor = mock(TextEditor::class.java)
     `when`(textEditor.component).thenReturn(textEditorComponent)
     `when`(textEditor.file).thenReturn(mock(VirtualFile::class.java))
+    val editor = mock(Editor::class.java)
+    `when`(editor.contentComponent).thenReturn(mock(JComponent::class.java))
+    `when`(textEditor.editor).thenReturn(editor)
     val component = mock(JComponent::class.java)
     `when`(component.getActionForKeyStroke(any(KeyStroke::class.java))).thenCallRealMethod()
     splitEditor = object : DesignToolsSplitEditor(textEditor, designerEditor, "testEditor", project) {
