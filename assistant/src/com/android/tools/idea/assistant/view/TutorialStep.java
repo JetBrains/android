@@ -98,16 +98,19 @@ public class TutorialStep extends JPanel {
   @NotNull private final JPanel myContents;
   @NotNull private final Project myProject;
 
+  private final boolean myUseLocalHTMLPaths;
+
   private static Logger getLog() {
     return Logger.getInstance(TutorialStep.class);
   }
 
-  TutorialStep(@NotNull StepData step, int index, @NotNull ActionListener listener, @NotNull Project project, boolean hideStepIndex) {
+  TutorialStep(@NotNull StepData step, int index, @NotNull ActionListener listener, @NotNull Project project, boolean hideStepIndex, boolean useLocalHTMLPaths) {
     super(new GridBagLayout());
     myIndex = index;
     myStep = step;
     myProject = project;
     myContents = new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 0, true, true));
+    myUseLocalHTMLPaths = useLocalHTMLPaths;
     setOpaque(false);
 
     // TODO: Consider the setup being in the ctors of customer inner classes.
@@ -148,8 +151,12 @@ public class TutorialStep extends JPanel {
           section.setOpaque(false);
           section.setBorder(BorderFactory.createEmptyBorder());
           section.setDragEnabled(false);
+          String content = element.getSection();
+          if (myUseLocalHTMLPaths) {
+            content = UIUtils.addLocalHTMLPaths(getClass().getClassLoader(), content);
+          }
           // HACK ALERT: Without a margin on the outer html container, the contents are set to a height of zero on theme change.
-          UIUtils.setHtml(section, element.getSection(), ".as-shim { margin-top: 1px; }");
+          UIUtils.setHtml(section, content, ".as-shim { margin-top: 1px; }");
           myContents.add(section);
           addedNewComponent = true;
           break;

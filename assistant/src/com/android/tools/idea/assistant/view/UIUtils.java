@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.assistant.view;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.BrowserHyperlinkListener;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
+import java.net.URL;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -234,4 +236,46 @@ public class UIUtils {
     return text;
   }
 
+  /**
+   * Filter the given html content and replace local relative paths for images
+   * by absolute paths, to work around a limitation of JEditorPane HTML's parser.
+   * @param html
+   * @return processed html content if local images are used.
+   */
+  public static @Nullable String addLocalHTMLPaths(@NotNull ClassLoader classLoader, @Nullable String html) {
+    if (html != null) {
+      String localImage = findLocalImage(html);
+      if (localImage != null) {
+        URL url = classLoader.getResource("/" + localImage);
+        if (url != null) {
+          return addLocalHTMLPaths(html, url, localImage);
+        }
+      }
+    }
+    return html;
+  }
+
+  @VisibleForTesting
+  @Nullable
+  static String findLocalImage(@NotNull String html) {
+    // find the first image that is local and use it as resource
+    String pattern = "<img src=\"/";
+    int index = html.indexOf(pattern);
+    if (index >= 0) {
+      index += pattern.length();
+      String image = html.substring(index, html.indexOf('\"', index));
+      if (!image.isEmpty()) {
+        return image;
+      }
+    }
+    return null;
+  }
+
+  @VisibleForTesting
+  @NotNull
+  static String addLocalHTMLPaths(@NotNull String html, @NotNull URL url, @NotNull String localImage) {
+    String baseUrl = url.getPath().replace(localImage, "");
+    String replacementPattern = "<img src=\"file://" + baseUrl;
+    return html.replaceAll("<img src=\"/", replacementPattern);
+  }
 }

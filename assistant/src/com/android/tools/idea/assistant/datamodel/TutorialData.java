@@ -72,4 +72,10 @@ public interface TutorialData {
    */
   @NotNull
   List<? extends StepData> getSteps();
+
+  /**
+   * Returns true if the tutorial uses local image files in HTML
+   * @return true to use local image files
+   */
+  boolean hasLocalHTMLPaths();
 }
