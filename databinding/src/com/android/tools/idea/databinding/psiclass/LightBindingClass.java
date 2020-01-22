@@ -33,9 +33,9 @@ import com.android.tools.idea.databinding.util.ViewBindingUtil;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.ide.highlighter.JavaFileType;
 import com.intellij.lang.Language;
 import com.intellij.lang.java.JavaLanguage;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
@@ -113,7 +113,7 @@ public class LightBindingClass extends AndroidLightClassBase {
 
     // Create a dummy, backing file to represent this binding class
     PsiFileFactory fileFactory = PsiFileFactory.getInstance(getProject());
-    myBackingFile = (PsiJavaFile)fileFactory.createFileFromText(myConfig.getClassName() + ".java", JavaFileType.INSTANCE,
+    myBackingFile = (PsiJavaFile)fileFactory.createFileFromText(myConfig.getClassName() + ".java", StdFileTypes.JAVA,
                                                             "// This class is generated on-the-fly by the IDE.");
     myBackingFile.setPackageName(StringUtil.getPackageName(myConfig.getQualifiedName()));
 

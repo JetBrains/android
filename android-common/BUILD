@@ -80,7 +80,6 @@ iml_module(
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
         "//tools/idea/uast/uast-common:intellij.platform.uast[module]",
         "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
-        "//tools/idea/java/java-psi-impl:intellij.java.psi.impl[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/idea:intellij.java.impl[module]",

@@ -45,7 +45,6 @@ iml_module(
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module]",
         "//tools/idea/platform/lang-api:intellij.platform.lang[module]",
         "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
-        "//tools/idea/java/java-psi-impl:intellij.java.psi.impl[module]",
         "//tools/idea/java/java-indexing-api:intellij.java.indexing[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",

@@ -17,7 +17,7 @@ package com.android.tools.idea.mlkit;
 
 import com.android.SdkConstants;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
@@ -42,7 +42,7 @@ public class LightModelClass extends AndroidLightClassBase {
 
     myContainingFile = (PsiJavaFile)PsiFileFactory.getInstance(module.getProject()).createFileFromText(
       classConfig.myModelMetadata.myClassName + SdkConstants.DOT_JAVA,
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       "// This class is generated on-the-fly by the IDE.");
     myContainingFile.setPackageName(classConfig.myPackageName);
 

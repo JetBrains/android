@@ -22,7 +22,6 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.IntellijProjectSizeStats
 import com.intellij.ide.highlighter.JavaClassFileType
-import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.fileTypes.FileTypeRegistry
@@ -58,7 +57,7 @@ class ProjectSizeUsageTracker(val project: Project) : ProjectComponent {
 class ReportProjectSizeTask(val project: Project) : Runnable {
   private enum class FileType(private val fileType: com.intellij.openapi.fileTypes.FileType,
                               private val statsFileType: IntellijProjectSizeStats.FileType) {
-    JAVA(JavaFileType.INSTANCE, IntellijProjectSizeStats.FileType.JAVA),
+    JAVA(StdFileTypes.JAVA, IntellijProjectSizeStats.FileType.JAVA),
     XML(StdFileTypes.XML, IntellijProjectSizeStats.FileType.XML),
     JAVA_CLASS(JavaClassFileType.INSTANCE, IntellijProjectSizeStats.FileType.DOT_CLASS),
     KOTLIN(FileTypeRegistry.getInstance().findFileTypeByName("Kotlin") ?: PlainTextFileType.INSTANCE,
