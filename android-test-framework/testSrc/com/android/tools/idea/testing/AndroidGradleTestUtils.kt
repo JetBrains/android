@@ -592,6 +592,7 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
     listOf(),
     listOf(),
     LintOptionsStub(),
+    listOf(),
     setOf(),
     JavaCompileOptionsStub(),
     AaptOptionsStub(),
