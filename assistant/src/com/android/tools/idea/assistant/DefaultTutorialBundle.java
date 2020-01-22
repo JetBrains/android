@@ -373,6 +373,9 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     @Nullable
     private String myIconName;
 
+    @XmlAttribute(name = "hasLocalHTMLPaths")
+    private boolean myHasLocalHTMLPaths = false;
+
     protected String myResourceRoot;
 
     @XmlElements({
@@ -418,6 +421,11 @@ public class DefaultTutorialBundle implements TutorialBundleData {
     @NotNull
     public String getKey() {
       return myKey;
+    }
+
+    @Override
+    public boolean hasLocalHTMLPaths() {
+      return myHasLocalHTMLPaths;
     }
 
     @Nullable
