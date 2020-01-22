@@ -54,6 +54,8 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_ARTIFACT_URLS_FOR_METHOD_CALL_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_ARTIFACT_URLS_IN_MAVEN;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_ARTIFACT_URLS_IN_MAVEN_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_CREDENTIALS_IN_MAVEN;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_CREDENTIALS_IN_MAVEN_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_NAME_FOR_METHOD_CALL;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_NAME_FOR_METHOD_CALL_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_URL_FOR_METHOD_CALL;
@@ -703,6 +705,37 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertThat(model.name().toString()).isEqualTo("Good Name");
     assertThat(model.url().toString()).isEqualTo("good.url");
     verifyListProperty(model.artifactUrls(), "repositories.maven.artifactUrls", ImmutableList.of("nice.url", "other.nice.url"));
+  }
+
+  @Test
+  public void testSetCredentialsInMaven() throws IOException {
+    writeToBuildFile(REPOSITORIES_MODEL_SET_CREDENTIALS_IN_MAVEN);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(1);
+
+    repositoriesModel.addMavenRepositoryByUrl("good.url", "Good Name");
+    repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(2);
+    assertThat(repositories.get(1)).isInstanceOf(MavenRepositoryModelImpl.class);
+
+    ((MavenRepositoryModelImpl)repositories.get(1)).credentials().username().setValue("joe.bloggs");
+    ((MavenRepositoryModelImpl)repositories.get(1)).credentials().password().setValue("12345678");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_SET_CREDENTIALS_IN_MAVEN_EXPECTED);
+
+    repositoriesModel = buildModel.repositories();
+    repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(2);
+    assertThat(repositories.get(1)).isInstanceOf(MavenRepositoryModelImpl.class);
+    MavenRepositoryModelImpl model = (MavenRepositoryModelImpl)repositories.get(1);
+    assertThat(model.name().toString()).isEqualTo("Good Name");
+    assertThat(model.url().toString()).isEqualTo("good.url");
+    assertThat(model.credentials().username().toString()).isEqualTo("joe.bloggs");
+    assertThat(model.credentials().password().toString()).isEqualTo("12345678");
   }
 
   @Test
