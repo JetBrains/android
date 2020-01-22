@@ -16,6 +16,8 @@
 package com.android.tools.idea.appinspection.test
 
 import com.android.tools.app.inspection.AppInspection
+import com.android.tools.idea.appinspection.api.AppInspectionJarCopier
+import com.android.tools.idea.appinspection.api.AppInspectorJar
 import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.profiler.proto.Common
 
@@ -72,4 +74,17 @@ object AppInspectionTestUtils {
       .setIsEnded(true)
       .setAppInspectionEvent(createRawAppInspectionEvent(data.toByteArray(), name = "test.inspector"))
       .build()
+
+  /**
+   * Keeps track of the copied jar so tests could verify the operation happened.
+   */
+  object TestTransportJarCopier : AppInspectionJarCopier {
+    private const val deviceBasePath = "/test/"
+    lateinit var copiedJar: AppInspectorJar
+
+    override fun copyFileToDevice(jar: AppInspectorJar): List<String> {
+      copiedJar = jar
+      return listOf(deviceBasePath + jar.name)
+    }
+  }
 }

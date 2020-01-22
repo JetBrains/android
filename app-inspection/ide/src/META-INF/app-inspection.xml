@@ -24,4 +24,7 @@
                       factoryClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"/>
     <applicationService serviceImplementation="com.android.tools.idea.appinspection.ide.AppInspectionHostService"/>
   </extensions>>
+  <extensions defaultExtensionNs="com.android.run">
+    <androidLaunchTaskContributor implementation="com.android.tools.idea.appinspection.ide.AppInspectionLaunchTaskContributor"/>
+  </extensions>
 </idea-plugin>
