@@ -480,6 +480,7 @@ open class TemplateTest : AndroidGradleTestCase() {
 
   @TemplateCheck
   fun testNewFiles() {
+    // Bug 37139315
     if (!SystemInfo.isWindows) {
       checkCreateTemplate("AIDL File")
     }
@@ -510,18 +511,15 @@ open class TemplateTest : AndroidGradleTestCase() {
     checkCreateTemplate("Messaging service", withKotlin)
   }
 
-  // TODO(qumeric): uncomment when the template will be ready
-  /*
   @TemplateCheck
   fun testAutomotiveMediaService() {
-    checkCreateTemplate("Automotive Media Service")
+    checkCreateTemplate("Media service")
   }
 
   @TemplateCheck
   fun testAutomotiveMediaServiceWithKotlin() {
-    checkCreateTemplate("Automotive Media Service", withKotlin)
+    checkCreateTemplate("Media service", withKotlin)
   }
-  */
 }
 
 typealias ProjectStateCustomizer = (ModuleTemplateDataBuilder, ProjectTemplateDataBuilder) -> Unit
