@@ -47,5 +47,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.lint" />
+    <orderEntry type="module" module-name="android.sdktools.lint-checks" />
   </component>
 </module>

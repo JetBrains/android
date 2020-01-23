@@ -87,6 +87,7 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.output.parser[module, test]",
         "//tools/idea/plugins/junit:intellij.junit[module, test]",
         "//tools/idea/java/execution/impl:intellij.java.execution.impl[module, test]",
+        "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
     ],
 )
 
