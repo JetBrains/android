@@ -55,6 +55,7 @@ class SqliteEvaluatorViewImpl(
   }
 
   private fun setSchemaFromSelectedItem() {
+    if (evaluatorPanel.databaseComboBox.selectedIndex < 0) return
     val database = (evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database
     val schema = schemaProvider.getSchema(database)
     FileDocumentManager.getInstance().getFile(editorTextField.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
