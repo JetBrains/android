@@ -22,6 +22,7 @@ import com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiManager
 import com.intellij.ui.LanguageTextField
 import java.awt.BorderLayout
 import java.util.ArrayList
@@ -59,6 +60,8 @@ class SqliteEvaluatorViewImpl(
     val database = (evaluatorPanel.databaseComboBox.selectedItem as ComboBoxItem).database
     val schema = schemaProvider.getSchema(database)
     FileDocumentManager.getInstance().getFile(editorTextField.document)?.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
+    // since the schema has changed we need to drop psi caches to re-run reference resolution and highlighting in the editor text field.
+    PsiManager.getInstance(project).dropPsiCaches()
   }
 
   override fun addDatabase(database: SqliteDatabase, index: Int) {

@@ -23,19 +23,25 @@ import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteSchema
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorViewImpl
 import com.android.tools.idea.sqlite.ui.tableView.TableViewImpl
+import com.android.tools.idea.testing.IdeComponents
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.psi.PsiManager
+import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 import java.awt.Dimension
 import javax.swing.JComboBox
 
-class SqliteEvaluatorViewImplTest: LightPlatformTestCase() {
+class SqliteEvaluatorViewImplTest : LightJavaCodeInsightFixtureTestCase() {
   private lateinit var view: SqliteEvaluatorViewImpl
 
   override fun setUp() {
     super.setUp()
     view = SqliteEvaluatorViewImpl(project, TableViewImpl(), object : SchemaProvider {
-      override fun getSchema(database: SqliteDatabase): SqliteSchema? { return SqliteSchema(emptyList()) }
+      override fun getSchema(database: SqliteDatabase): SqliteSchema? {
+        return SqliteSchema(emptyList())
+      }
     })
     val component = view.component
     component.size = Dimension(600, 200)
@@ -72,5 +78,28 @@ class SqliteEvaluatorViewImplTest: LightPlatformTestCase() {
 
     view.selectDatabase(database2)
     assertEquals(database2, view.getActiveDatabase())
+  }
+
+  fun testPsiCacheIsDroppedWhenNewDatabaseIsSelected() {
+    // Prepare
+    val ideComponents = IdeComponents(myFixture)
+    val mockPsiManager = mock(PsiManager::class.java)
+    ideComponents.replaceProjectService(PsiManager::class.java, mockPsiManager)
+
+    val comboBox = TreeWalker(view.component).descendants().filterIsInstance<JComboBox<*>>().first()
+
+    val database1 = FileSqliteDatabase("db1", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+    val database2 = FileSqliteDatabase("db2", mock(DatabaseConnection::class.java), mock(VirtualFile::class.java))
+
+    // Act/Assert
+    view.addDatabase(database1, 0)
+    view.addDatabase(database2, 1)
+    verify(mockPsiManager).dropPsiCaches()
+
+    view.selectDatabase(database2)
+    verify(mockPsiManager, times(2)).dropPsiCaches()
+
+    comboBox.selectedIndex = 0
+    verify(mockPsiManager, times(3)).dropPsiCaches()
   }
 }
