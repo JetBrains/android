@@ -39,9 +39,13 @@ class BuildAttributionUiAnalytics(private val project: Project) {
   private val pagesCountByType = mutableMapOf<BuildAttributionUiEvent.Page.PageType, Int>()
 
   init {
-    Disposer.register(project, Disposable {
+    Disposer.register(project, Disposable { sendSessionOverIfExist() })
+  }
+
+  private fun sendSessionOverIfExist() {
+    if (buildAttributionReportSessionId != null) {
       doLog(newUiEventBuilderWithPage().setEventType(BuildAttributionUiEvent.EventType.USAGE_SESSION_OVER))
-    })
+    }
   }
 
   /**
@@ -131,6 +135,7 @@ class BuildAttributionUiAnalytics(private val project: Project) {
   fun helpLinkClicked() = doLog(newUiEventBuilderWithPage().setEventType(BuildAttributionUiEvent.EventType.HELP_LINK_CLICKED))
 
   private fun newUiEventBuilder(): BuildAttributionUiEvent.Builder {
+    requireNotNull(buildAttributionReportSessionId)
     return BuildAttributionUiEvent.newBuilder().setBuildAttributionReportSessionId(buildAttributionReportSessionId)
   }
 
@@ -168,9 +173,7 @@ class BuildAttributionUiAnalytics(private val project: Project) {
    * If previous session existed, send closing event for it.
    */
   fun newReportSessionId(buildSessionId: String) {
-    if (buildAttributionReportSessionId != null) {
-      doLog(newUiEventBuilderWithPage().setEventType(BuildAttributionUiEvent.EventType.USAGE_SESSION_OVER))
-    }
+    sendSessionOverIfExist()
     pagesVisited.clear()
     pagesCountByType.clear()
     currentPage = unknownPage

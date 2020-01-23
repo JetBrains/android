@@ -32,19 +32,17 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.BufferUnderflowException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Manages the parsing of traces into {@link CpuCapture} objects and provide a way to retrieve them.
@@ -101,9 +99,15 @@ public class CpuCaptureParser {
   private int myProcessIdHint;
 
   /**
-   * Metadata associated with parsing a capture. If an entry exists, the metadata will be populated and uploaded to metrics.
+   * Metadata associated with parsing a capture.
    */
   private Map<Long, CpuCaptureMetadata> myCaptureMetadataMap = new HashMap<>();
+
+  /**
+   * If an entry exist we have already published metrics for the loaded capture. We use a static set because
+   * the CpuCaptureParser is recreated each time a new capture is loaded.
+   */
+  private static Set<String> myPreviouslyLoadedCaptures = new HashSet<>();
 
   public CpuCaptureParser(@NotNull IdeProfilerServices services) {
     myServices = services;
@@ -116,6 +120,11 @@ public class CpuCaptureParser {
 
   public AspectModel<CpuProfilerAspect> getAspect() {
     return myAspect;
+  }
+
+  @VisibleForTesting
+  static void clearPreviouslyLoadedCaptures() {
+    myPreviouslyLoadedCaptures.clear();
   }
 
   /**
@@ -196,7 +205,13 @@ public class CpuCaptureParser {
    * they want to abort the trace parsing or continue with it.
    */
   @Nullable
+  @VisibleForTesting
   public CompletableFuture<CpuCapture> parse(@NotNull File traceFile) {
+    return parse(traceFile, true); // Most test don't check which metrics are captured so we default a value.
+  }
+
+  @Nullable
+  public CompletableFuture<CpuCapture> parse(@NotNull File traceFile, boolean captureImportedTraceMetrics) {
     if (!traceFile.exists() || traceFile.isDirectory()) {
       // Nothing to be parsed. We shouldn't even try to do it.
       getLogger().info("Trace not parsed, as its path doesn't exist or points to a directory.");
@@ -226,7 +241,25 @@ public class CpuCaptureParser {
       // Trace file is not too big to be parsed. Parse it normally.
       myCaptures.put(IMPORTED_TRACE_ID, createCaptureFuture(traceFile));
     }
-
+    // If we have already sent metrics for this capture then do not send again.
+    if (!myPreviouslyLoadedCaptures.contains(traceFile.getAbsolutePath())) {
+      // Toggle which metrics we report if we are imported or a fresh capture.
+      if (captureImportedTraceMetrics) {
+        CompletableFuture<CpuCapture> future = myCaptures.get(IMPORTED_TRACE_ID);
+        if (future != null) {
+          future.whenCompleteAsync((capture, exception) -> {
+            if (capture != null) {
+              myServices.getFeatureTracker().trackImportTrace(capture.getType(), true);
+            }
+          }, myServices.getMainExecutor());
+        }
+      }
+      else {
+        // If we are not capturing imported trace metrics we are capturing recorded trace metrics
+        trackCaptureTrace(IMPORTED_TRACE_ID, (int)traceFile.length());
+      }
+      myPreviouslyLoadedCaptures.add(traceFile.getAbsolutePath());
+    }
     updateParsingStateWhenDone(myCaptures.get(IMPORTED_TRACE_ID));
     return myCaptures.get(IMPORTED_TRACE_ID);
   }
@@ -318,8 +351,6 @@ public class CpuCaptureParser {
                                              @NotNull ByteString traceData,
                                              CpuTraceType profilerType) {
     updateParsingStateWhenStarting();
-    CpuCaptureMetadata metadata = myCaptureMetadataMap.containsKey(traceId) ?
-                                  myCaptureMetadataMap.get(traceId) : new CpuCaptureMetadata(new ProfilingConfiguration());
 
     if (!myCaptures.containsKey(traceId)) {
       // Trace is not being parsed nor is already parsed. We need to start parsing it.
@@ -345,7 +376,17 @@ public class CpuCaptureParser {
       }
     }
 
+    CompletableFuture<CpuCapture> future = trackCaptureTrace(traceId, traceData.size());
+    updateParsingStateWhenDone(future);
+    return future;
+  }
+
+  @Nullable
+  private CompletableFuture<CpuCapture> trackCaptureTrace(long traceId, int traceDataSize) {
+    CpuCaptureMetadata metadata =
+      myCaptureMetadataMap.computeIfAbsent(traceId, (id) -> new CpuCaptureMetadata(new ProfilingConfiguration()));
     CompletableFuture<CpuCapture> future = myCaptures.get(traceId);
+    metadata.setTraceFileSizeBytes(traceDataSize);
     if (future != null) {
       future.whenCompleteAsync((capture, exception) -> {
         if (capture != null) {
@@ -376,7 +417,6 @@ public class CpuCaptureParser {
       }, myServices.getMainExecutor());
     }
     else {
-      metadata.setTraceFileSizeBytes(traceData.size());
       metadata.setStatus(CpuCaptureMetadata.CaptureStatus.USER_ABORTED_PARSING);
       myServices.showNotification(CpuProfilerNotifications.PARSING_ABORTED);
 
@@ -388,8 +428,6 @@ public class CpuCaptureParser {
         myCaptureMetadataMap.remove(traceId);
       }
     }
-
-    updateParsingStateWhenDone(future);
     return future;
   }
 

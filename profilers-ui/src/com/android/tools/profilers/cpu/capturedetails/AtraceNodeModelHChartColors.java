@@ -19,9 +19,7 @@ package com.android.tools.profilers.cpu.capturedetails;
 import static com.android.tools.profilers.cpu.capturedetails.CaptureNodeHRenderer.toUnmatchColor;
 
 import com.android.tools.adtui.common.DataVisualizationColors;
-import com.android.tools.adtui.common.EnumColors;
 import com.android.tools.profilers.ProfilerColors;
-import com.android.tools.profilers.cpu.CpuProfilerStage;
 import com.android.tools.profilers.cpu.nodemodel.AtraceNodeModel;
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel;
 import com.intellij.ui.ColorUtil;
@@ -34,9 +32,6 @@ import org.jetbrains.annotations.NotNull;
  * {@link com.android.tools.adtui.chart.hchart.HTreeChart}.
  */
 class AtraceNodeModelHChartColors {
-
-  private static EnumColors<CpuProfilerStage.ThreadState> threadColors = ProfilerColors.THREAD_STATES.build();
-
   private static void validateModel(@NotNull CaptureNodeModel model) {
     if (!(model instanceof AtraceNodeModel)) {
       throw new IllegalStateException("Model must be an instance of AtraceNodeModel.");
@@ -93,5 +88,16 @@ class AtraceNodeModelHChartColors {
       color = isFocused ? ProfilerColors.CPU_FLAMECHART_APP_HOVER : ProfilerColors.CPU_FLAMECHART_APP;
     }
     return isUnmatched ? toUnmatchColor(color) : color;
+  }
+
+  static Color getTextColor(@NotNull CaptureNodeModel model,
+                            CaptureDetails.Type chartType,
+                            boolean isDeselected) {
+    if (chartType == CaptureDetails.Type.CALL_CHART) {
+      int index = model.getFullName().hashCode();
+      return isDeselected ? DataVisualizationColors.INSTANCE.getFontColor(DataVisualizationColors.BACKGROUND_DATA_COLOR)
+                          : DataVisualizationColors.INSTANCE.getFontColor(index);
+    }
+    return DataVisualizationColors.DEFAULT_DARK_TEXT_COLOR;
   }
 }

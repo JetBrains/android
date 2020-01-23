@@ -221,6 +221,10 @@ public final class FakeFeatureTracker implements FeatureTracker {
     return myLastCpuCaptureMetadata;
   }
 
+  public void resetLastCpuCaptureMetadata() {
+    myLastCpuCaptureMetadata = null;
+  }
+
   @Override
   public void trackImportTrace(@NotNull Cpu.CpuTraceType profilerType, boolean success) {
     myLastCpuTraceType = profilerType;

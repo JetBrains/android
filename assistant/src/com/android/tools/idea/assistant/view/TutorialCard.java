@@ -38,6 +38,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.BoundedRangeModel;
 import javax.swing.Box;
@@ -170,7 +171,11 @@ public class TutorialCard extends CardViewPanel {
     if (myTutorial.getDescription() != null && !myTutorial.getDescription().isEmpty()) {
       TutorialDescription description = new TutorialDescription();
       StringBuilder sb = new StringBuilder();
-      sb.append("<p class=\"description\">").append(myTutorial.getDescription());
+      String descriptionContent = myTutorial.getDescription();
+      if (myTutorial.hasLocalHTMLPaths()) {
+        descriptionContent = UIUtils.addLocalHTMLPaths(getClass().getClassLoader(), descriptionContent);
+      }
+      sb.append("<p class=\"description\">").append(descriptionContent);
       if (myTutorial.getRemoteLink() != null && myTutorial.getRemoteLinkLabel() != null) {
         sb.append("<br><br><a href=\"").append(myTutorial.getRemoteLink()).append("\" target=\"_blank\">")
           .append(myTutorial.getRemoteLinkLabel()).append("</a>");
@@ -187,15 +192,20 @@ public class TutorialCard extends CardViewPanel {
 
     boolean hideStepIndex = myBundle.hideStepIndex();
     if (myBundle.isStepByStep()) {
-      contents.add(new TutorialStep(myTutorial.getSteps().get(myStepIndex), myStepIndex, myListener, myProject, hideStepIndex), c);
-      c.gridy++;
+      List<? extends StepData> steps = myTutorial.getSteps();
+      if (!steps.isEmpty()) {
+        contents.add(new TutorialStep(steps.get(myStepIndex), myStepIndex, myListener,
+                                      myProject, hideStepIndex, myTutorial.hasLocalHTMLPaths()), c);
+        c.gridy++;
+      }
     }
     else {
       // Add each of the tutorial steps in order.
       int numericLabel = 0;
 
       for (StepData step : myTutorial.getSteps()) {
-        TutorialStep stepDisplay = new TutorialStep(step, numericLabel, myListener, myProject, hideStepIndex);
+        TutorialStep stepDisplay = new TutorialStep(step, numericLabel, myListener,
+                                                    myProject, hideStepIndex, myTutorial.hasLocalHTMLPaths());
         contents.add(stepDisplay, c);
         c.gridy++;
         numericLabel++;

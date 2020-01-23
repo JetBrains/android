@@ -865,7 +865,15 @@ public class NavigationSchema implements Disposable {
       if (type == NAVIGATION) {
         myTypeToDestinationClass.forEach((childType, childDestinationClass) -> {
           for (String tag : myTagToDestinationClass.inverse().get(childDestinationClass)) {
-            result.put(childType == NAVIGATION ? NavGraphElement.class : ConcreteDestinationElement.class, tag);
+            if (childType == NAVIGATION) {
+              result.put(NavGraphElement.class, tag);
+            } else if (childType == FRAGMENT) {
+              result.put(FragmentDestinationElement.class, tag);
+            } else if (childType == ACTIVITY) {
+              result.put(ActivityDestinationElement.class, tag);
+            } else {
+              result.put(ConcreteDestinationElement.class, tag);
+            }
           }
         });
         result.put(NavGraphElement.class, TAG_INCLUDE);
