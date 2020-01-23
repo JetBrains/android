@@ -354,7 +354,7 @@ class PTableImpl(
         rendererShouldUpdateCellHeight = false
       }
     }
-    scrollRectToVisible(getCellRect(row, column, true))
+    scrollCellIntoView(row, column)
   }
 
   private fun filterChanged(oldValue: String, newValue: String) {

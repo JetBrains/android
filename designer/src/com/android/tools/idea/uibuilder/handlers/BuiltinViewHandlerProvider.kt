@@ -36,6 +36,7 @@ import com.android.SdkConstants.CHIP_GROUP
 import com.android.SdkConstants.CHRONOMETER
 import com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_BARRIER
 import com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_CHAIN
+import com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_FLOW
 import com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_HELPER
 import com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_LAYER
 import com.android.SdkConstants.COLLAPSING_TOOLBAR_LAYOUT
@@ -125,6 +126,7 @@ import com.android.tools.idea.uibuilder.handlers.absolute.AbsoluteLayoutHandler
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintHelperHandler
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutBarrierHandler
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutChainHandler
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutFlowHandler
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutGuidelineHandler
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutLayerHandler
@@ -241,6 +243,7 @@ private object AndroidxViewHandlerProvider : ViewHandlerProvider {
       CLASS_CONSTRAINT_LAYOUT_CHAIN.isEquals(viewTag) -> ConstraintLayoutChainHandler()
       CLASS_CONSTRAINT_LAYOUT_HELPER.isEquals(viewTag) -> ConstraintHelperHandler()
       CLASS_CONSTRAINT_LAYOUT_LAYER.isEquals(viewTag) -> ConstraintLayoutLayerHandler()
+      CLASS_CONSTRAINT_LAYOUT_FLOW.isEquals(viewTag) -> ConstraintLayoutFlowHandler()
       COLLAPSING_TOOLBAR_LAYOUT.isEquals(viewTag) -> CollapsingToolbarLayoutHandler()
       CONSTRAINT_LAYOUT_GUIDELINE.isEquals(viewTag) -> ConstraintLayoutGuidelineHandler()
       CONSTRAINT_LAYOUT.isEquals(viewTag) -> ConstraintLayoutHandler()

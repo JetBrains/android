@@ -62,7 +62,14 @@ private const val INITIAL_DELAY_MILLI_SECONDS = 10L
 private const val MAX_DELAY_MILLI_SECONDS = 1000L
 private const val MAX_TIMES_TO_RETRY = 10
 
-object SkiaParser {
+class InvalidPictureException : Exception()
+
+interface SkiaParserService {
+  @Throws(InvalidPictureException::class)
+  fun getViewTree(data: ByteArray): InspectorView?
+}
+
+object SkiaParser : SkiaParserService {
   private val unmarshaller = JAXBContext.newInstance(VersionMap::class.java).createUnmarshaller()
   private val devbuildServerInfo = ServerInfo(null, -1, -1)
   private var supportedVersionMap: Map<Int?, ServerInfo>? = null
@@ -70,7 +77,8 @@ object SkiaParser {
   private const val VERSION_MAP_FILE_NAME = "version-map.xml"
   private val progressIndicator = StudioLoggerProgressIndicator(SkiaParser::class.java)
 
-  fun getViewTree(data: ByteArray): InspectorView? {
+  @Throws(InvalidPictureException::class)
+  override fun getViewTree(data: ByteArray): InspectorView? {
     val server = runServer(data)
     val response = server.getViewTree(data)
     return response?.root?.let { buildTree(it) }
@@ -109,7 +117,7 @@ object SkiaParser {
   private fun getSkpVersion(data: ByteArray): Int {
     // SKPs start with "skiapict" in ascii
     if (data.slice(0..7) != "skiapict".toByteArray(Charsets.US_ASCII).asList() || data.size < 12) {
-      throw Exception("invalid skia picture")
+      throw InvalidPictureException()
     }
 
     var skpVersion = 0

@@ -68,10 +68,10 @@ class CustomPropertiesInspectorProviderTest : NavTestCase(NAVIGATION_EDITOR_CUST
 
     // Temporary logging to help diagnose sporadic test failures
     val names = properties.keys.toList().sorted()
-    assertTrue(toString(names), names == listOf("id", "label", "layout", "myBoolean", "myInteger", "myString", "name"))
+    assertTrue(toString(names), names == listOf("id", "label", "layout", "myBoolean", "myInteger", "myString"))
 
     val customProperties = names.map { properties[it]?.isCustomProperty }
-    assertTrue(toString(customProperties), customProperties == listOf(false, false, false, true, true, true, false))
+    assertTrue(toString(customProperties), customProperties == listOf(false, false, false, true, true, true))
 
     assertTrue(inspectorProvider.isApplicable(components, properties, propertiesManager))
     assertFalse(activityInspectorProvider.isApplicable(components, properties, propertiesManager))

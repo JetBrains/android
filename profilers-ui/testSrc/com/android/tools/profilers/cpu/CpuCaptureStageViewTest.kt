@@ -24,10 +24,12 @@ import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
+import com.android.tools.profiler.proto.Cpu
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.analysis.CaptureNodeAnalysisModel
@@ -59,7 +61,8 @@ class CpuCaptureStageViewTest {
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
-    stage = CpuCaptureStage.create(profilers, "", TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH))
+    stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
+                                   TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.VALID_TRACE_PATH))
   }
 
   @Test
@@ -151,7 +154,8 @@ class CpuCaptureStageViewTest {
   fun showTrackGroupTooltip() {
     // Load Atrace
     services.enablePerfetto(true)
-    val stage = CpuCaptureStage.create(profilersView.studioProfilers, "", TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_PID1_PATH))
+    val stage = CpuCaptureStage.create(profilersView.studioProfilers, ProfilersTestData.DEFAULT_CONFIG,
+                                       TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_PID1_PATH))
     val stageView = CpuCaptureStageView(profilersView, stage)
     stage.enter()
     stageView.component.setBounds(0, 0, 500, 500)

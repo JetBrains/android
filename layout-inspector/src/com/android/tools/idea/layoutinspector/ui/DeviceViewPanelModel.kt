@@ -85,6 +85,9 @@ class DeviceViewPanelModel(private val model: InspectorModel) {
   val rotatable
     get() = model.hasSubImages && overlay == null
 
+  val isFallbackMode
+    get() = model.root.children.any { it.fallbackMode }
+
   val isActive
     get() = !model.isEmpty
 
