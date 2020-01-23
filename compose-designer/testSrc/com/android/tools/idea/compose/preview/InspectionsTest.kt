@@ -15,11 +15,19 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.containers.toArray
 import org.intellij.lang.annotations.Language
 import org.junit.Assert.assertArrayEquals
+
+/**
+ * Returns the [HighlightInfo] description adding the relative line number
+ */
+private fun HighlightInfo.descriptionWithLineNumbers() =
+  "${StringUtil.offsetToLineNumber(highlighter.document.text, startOffset)}: ${description}"
 
 class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
   fun testNeedsComposableInspection() {
@@ -54,25 +62,30 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
       import androidx.ui.tooling.preview.Preview
       import androidx.compose.Composable
 
-      @Composable
       @Preview
-      fun Preview1(a: Int) {
+      @Composable
+      fun Preview1(a: Int) { // ERROR, no defaults
       }
 
       @Preview(name = "preview2", apiLevel = 12)
       @Composable
       fun Preview2(b: String = "hello") {
       }
+
+      @Preview
+      @Composable
+      fun Preview3(a: Int, b: String = "hello") { // ERROR, first parameter has not default
+      }
     """.trimIndent()
 
     myFixture.configureByText("Test.kt", fileContent)
     val inspections = myFixture.doHighlighting(HighlightSeverity.ERROR)
       .sortedByDescending { -it.startOffset }
-      .map { it.description }
+      .map { it.descriptionWithLineNumbers() }
       .toArray(emptyArray())
 
-    assertArrayEquals(arrayOf("Composable functions with parameters are not supported in Preview.",
-                              "Composable functions with parameters are not supported in Preview."),
+    assertArrayEquals(arrayOf("3: Composable functions with non-default parameters are not supported in Preview.",
+                              "13: Composable functions with non-default parameters are not supported in Preview."),
                       inspections)
   }
 
