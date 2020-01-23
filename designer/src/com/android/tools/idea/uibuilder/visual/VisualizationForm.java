@@ -142,7 +142,8 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
         Supplier<RenderSettings> renderSettingsProvider = () -> {
           RenderSettings settings = RenderSettings.getProjectSettings(model.getProject());
           boolean showDecoration = VisualizationToolSettings.getInstance().getGlobalState().getShowDecoration();
-          return settings.copy(0.5f, false, showDecoration);
+          // 0.0f makes it spend 50% memory. See document in RenderTask#MIN_DOWNSCALING_FACTOR.
+          return settings.copy(0.0f, false, showDecoration);
         };
         return new LayoutlibSceneManager(model, surface, renderSettingsProvider);
       })
