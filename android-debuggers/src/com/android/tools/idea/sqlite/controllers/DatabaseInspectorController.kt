@@ -75,6 +75,8 @@ class DatabaseInspectorControllerImpl(
 
   private val sqliteViewListener = SqliteViewListenerImpl()
 
+  private var evaluatorTabCount = 0
+
   override val component: JComponent
     get() = view.component
 
@@ -182,6 +184,8 @@ class DatabaseInspectorControllerImpl(
   }
 
   private fun openNewEvaluatorTab(): SqliteEvaluatorController {
+    evaluatorTabCount += 1
+
     val tabId = TabId.AdHocQueryTab()
 
     val sqliteEvaluatorView = viewFactory.createEvaluatorView(
@@ -190,8 +194,7 @@ class DatabaseInspectorControllerImpl(
       viewFactory.createTableView()
     )
 
-    // TODO(b/136556640) What name should we use for these tabs?
-    view.openTab(tabId, "New Query", sqliteEvaluatorView.component)
+    view.openTab(tabId, "New Query [$evaluatorTabCount]", sqliteEvaluatorView.component)
 
     val sqliteEvaluatorController = SqliteEvaluatorController(
       project,
