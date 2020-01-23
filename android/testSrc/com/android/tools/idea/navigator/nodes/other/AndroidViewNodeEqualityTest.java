@@ -35,13 +35,15 @@ public class AndroidViewNodeEqualityTest extends AndroidTestCase {
     ProjectViewNode<?> androidModuleNode = new AndroidModuleNode(getProject(), myModule, projectViewPane, viewSettings);
     ProjectViewNode<?> nonAndroidModuleNode = new NonAndroidModuleNode(getProject(), myModule, projectViewPane, viewSettings);
     ProjectViewNode<?> ndkModuleNode = new NdkModuleNode(getProject(), myModule, projectViewPane, viewSettings);
-    // Check equality related to https://issuetracker.google.com/70635980.
-    assertTrue(androidModuleNode.equals(nonAndroidModuleNode));
-    assertTrue(nonAndroidModuleNode.equals(androidModuleNode));
-    assertTrue(androidModuleNode.equals(ndkModuleNode));
-    assertTrue(ndkModuleNode.equals(androidModuleNode));
-    assertTrue(nonAndroidModuleNode.equals(ndkModuleNode));
-    assertTrue(ndkModuleNode.equals(nonAndroidModuleNode));
+    // Do not attempt fixing https://issuetracker.google.com/70635980 by breaking equality semantics. Different node types return different
+    // children and are not interchangeable. Any issues with module type detection should be resolved at the place where the incorrect
+    // module type is inferred.
+    assertFalse(androidModuleNode.equals(nonAndroidModuleNode));
+    assertFalse(nonAndroidModuleNode.equals(androidModuleNode));
+    assertFalse(androidModuleNode.equals(ndkModuleNode));
+    assertFalse(ndkModuleNode.equals(androidModuleNode));
+    assertFalse(nonAndroidModuleNode.equals(ndkModuleNode));
+    assertFalse(ndkModuleNode.equals(nonAndroidModuleNode));
     ProjectViewNode<?> nonAndroidSourceTypeNode =
         new NonAndroidSourceTypeNode(getProject(), myModule, viewSettings, NonAndroidSourceType.JAVA);
     // Check inequality related to https://issuetracker.google.com/37003106.
