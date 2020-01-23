@@ -39,6 +39,7 @@ import com.intellij.psi.PsiManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import javax.swing.Icon;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -213,12 +214,7 @@ public class AndroidSourceTypeNode extends ProjectViewNode<AndroidFacet> impleme
 
   @Override
   public int hashCode() {
-    int result = super.hashCode();
-    result = 31 * result + mySourceType.hashCode();
-    for (VirtualFile root : mySourceRoots) {
-      result = 31 * result + root.hashCode();
-    }
-    return result;
+    return Objects.hash(super.hashCode(), mySourceType, mySourceRoots);
   }
 
   @Override
