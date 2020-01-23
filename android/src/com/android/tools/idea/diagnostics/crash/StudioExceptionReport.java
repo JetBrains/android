@@ -22,10 +22,10 @@ import com.android.tools.idea.diagnostics.crash.exception.NoPiiException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
-import com.intellij.diagnostic.IdeErrorsDialog;
 import com.intellij.execution.filters.CompositeFilter;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.ide.plugins.PluginUtil;
 import com.intellij.idea.IdeaLogger;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.PluginId;
@@ -129,7 +129,7 @@ public class StudioExceptionReport extends BaseStudioReport {
       Throwable cause = getRootCause(throwable);
       this.exceptionInfo = getDescription(cause, userReported);
       this.userReported = userReported;
-      this.pluginId = IdeErrorsDialog.findPluginId(cause);
+      this.pluginId = PluginUtil.getInstance().findPluginId(cause);
       return this;
     }
 

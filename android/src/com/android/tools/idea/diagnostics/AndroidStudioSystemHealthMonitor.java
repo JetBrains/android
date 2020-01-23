@@ -60,6 +60,7 @@ import com.intellij.ide.actions.SaveAllAction;
 import com.intellij.ide.actions.UndoRedoAction;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.ide.plugins.PluginUtil;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.internal.statistic.analytics.StudioCrashDetails;
 import com.intellij.internal.statistic.analytics.StudioCrashDetection;
@@ -652,7 +653,7 @@ public class AndroidStudioSystemHealthMonitor extends PreloadingActivity {
 
   private static void incrementAndSaveExceptionCount(@NotNull Throwable t) {
     incrementAndSaveExceptionCount();
-    PluginId pluginId = IdeErrorsDialog.findPluginId(t);
+    PluginId pluginId = PluginUtil.getInstance().findPluginId(t);
     if (pluginId != null) {
       IdeaPluginDescriptor plugin = PluginManagerCore.getPlugin(pluginId);
       if (plugin != null && plugin.isBundled()) {
