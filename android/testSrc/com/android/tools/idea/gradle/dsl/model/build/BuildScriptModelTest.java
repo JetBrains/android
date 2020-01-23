@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.build;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_ADD_DEPENDENCY;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_ADD_DEPENDENCY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EDIT_DEPENDENCY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EDIT_DEPENDENCY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK_SUB;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK;
@@ -126,6 +127,7 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
 
     assertTrue(buildModel.isModified());
     applyChanges(buildModel);
+    verifyFileContents(myBuildFile, BUILD_SCRIPT_MODEL_EDIT_DEPENDENCY_EXPECTED);
     assertFalse(buildModel.isModified());
 
     buildModel.reparse();
@@ -157,23 +159,29 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
   @Test
   public void testRemoveRepositoriesSingleBlock() throws IOException {
     writeToBuildFile(BUILD_SCRIPT_MODEL_REMOVE_REPOSITORIES_SINGLE_BLOCK);
-    BuildScriptModel buildscript = getGradleBuildModel().buildscript();
+    GradleBuildModel buildModel = getGradleBuildModel();
+    BuildScriptModel buildscript = buildModel.buildscript();
     List<RepositoryModel> repositories = buildscript.repositories().repositories();
     assertThat(repositories).hasSize(2);
     buildscript.removeRepositoriesBlocks();
     repositories = buildscript.repositories().repositories();
     assertThat(repositories).hasSize(0);
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, "");
   }
 
   @Test
   public void testRemoveRepositoriesMultipleBlocks() throws IOException {
     writeToBuildFile(BUILD_SCRIPT_MODEL_REMOVE_REPOSITORIES_MULTIPLE_BLOCKS);
-    BuildScriptModel buildscript = getGradleBuildModel().buildscript();
+    GradleBuildModel buildModel = getGradleBuildModel();
+    BuildScriptModel buildscript = buildModel.buildscript();
     List<RepositoryModel> repositories = buildscript.repositories().repositories();
     assertThat(repositories).hasSize(2);
     buildscript.removeRepositoriesBlocks();
     repositories = buildscript.repositories().repositories();
     assertThat(repositories).hasSize(0);
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, "");
   }
 
   @Test
