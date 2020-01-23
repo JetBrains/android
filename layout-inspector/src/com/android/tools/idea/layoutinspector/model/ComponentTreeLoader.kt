@@ -17,30 +17,41 @@ package com.android.tools.idea.layoutinspector.model
 
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.SkiaParser
-import com.android.tools.idea.layoutinspector.common.StringTable
+import com.android.tools.idea.layoutinspector.SkiaParserService
+import com.android.tools.idea.layoutinspector.common.StringTableImpl
 import com.android.tools.idea.layoutinspector.resource.ResourceLookup
 import com.android.tools.idea.layoutinspector.transport.DefaultInspectorClient
 import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.ui.UIUtil
 import java.awt.Image
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
+import javax.imageio.ImageIO
 
 private val LOAD_TIMEOUT = TimeUnit.SECONDS.toMillis(20)
 
 /**
- * A [TreeLoader] that uses a [DefaultClient] to fetch a view tree from an API 29+ device, and parses it into [ViewNode]s
+ * A [TreeLoader] that uses a [DefaultInspectorClient] to fetch a view tree from an API 29+ device, and parses it into [ViewNode]s
  */
 object ComponentTreeLoader : TreeLoader {
   override fun loadComponentTree(
     maybeEvent: Any?, resourceLookup: ResourceLookup, client: InspectorClient
   ): ViewNode? {
+    return loadComponentTree(maybeEvent, resourceLookup, client, SkiaParser)
+  }
+
+  @VisibleForTesting
+  fun loadComponentTree(
+    maybeEvent: Any?, resourceLookup: ResourceLookup, client: InspectorClient, skiaParser: SkiaParserService
+  ): ViewNode? {
     val event = maybeEvent as? LayoutInspectorProto.LayoutInspectorEvent ?: return null
-    return ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client)
+    return ComponentTreeLoaderImpl(event.tree, resourceLookup).loadComponentTree(client, skiaParser)
   }
 
   override fun getAllWindowIds(maybeEvent: Any?, client: InspectorClient): List<Long>? {
@@ -53,9 +64,9 @@ private class ComponentTreeLoaderImpl(
   private val tree: LayoutInspectorProto.ComponentTreeEvent, private val resourceLookup: ResourceLookup?
 ) {
   private val loadStartTime = AtomicLong(-1)
-  private val stringTable = StringTable(tree.stringList)
+  private val stringTable = StringTableImpl(tree.stringList)
 
-  fun loadComponentTree(client: InspectorClient): ViewNode? {
+  fun loadComponentTree(client: InspectorClient, skiaParser: SkiaParserService): ViewNode? {
     val defaultClient = client as? DefaultInspectorClient ?: throw UnsupportedOperationException(
       "ComponentTreeLoaderImpl requires a DefaultClient")
     val time = System.currentTimeMillis()
@@ -65,22 +76,30 @@ private class ComponentTreeLoaderImpl(
     return try {
       val rootView = loadRootView()
       val bytes = defaultClient.getPayload(tree.payloadId)
-      var viewRoot: InspectorView? = null
+      var rootViewFromSkiaImage: InspectorView? = null
       if (bytes.isNotEmpty()) {
         try {
-          viewRoot = SkiaParser.getViewTree(bytes)
-          if (viewRoot != null && viewRoot.id.isEmpty()) {
-            // We were unable to parse the skia image. Allow the user to interact with the component tree.
-            viewRoot = null
+          if (tree.payloadType == LayoutInspectorProto.ComponentTreeEvent.PayloadType.PNG && rootView != null) {
+            ImageIO.read(ByteArrayInputStream(bytes))?.let {
+              rootView.imageBottom = it
+              rootView.fallbackMode = true
+            }
           }
-          defaultClient.logInitialRender(viewRoot != null)
+          else if (tree.payloadType == LayoutInspectorProto.ComponentTreeEvent.PayloadType.SKP) {
+            rootViewFromSkiaImage = skiaParser.getViewTree(bytes)
+            if (rootViewFromSkiaImage != null && rootViewFromSkiaImage.id.isEmpty()) {
+              // We were unable to parse the skia image. Allow the user to interact with the component tree.
+              rootViewFromSkiaImage = null
+            }
+            defaultClient.logInitialRender(rootViewFromSkiaImage != null)
+          }
         }
         catch (ex: Exception) {
           Logger.getInstance(LayoutInspector::class.java).warn(ex)
         }
       }
-      if (viewRoot != null) {
-        val imageLoader = ComponentImageLoader(rootView, viewRoot)
+      if (rootViewFromSkiaImage != null && rootView != null) {
+        val imageLoader = ComponentImageLoader(rootView, rootViewFromSkiaImage)
         imageLoader.loadImages()
       }
       rootView
@@ -90,9 +109,9 @@ private class ComponentTreeLoaderImpl(
     }
   }
 
-  private fun loadRootView(): ViewNode {
+  private fun loadRootView(): ViewNode? {
     resourceLookup?.updateConfiguration(tree.resources, stringTable)
-    return loadView(tree.root, null)
+    return if (tree.hasRoot()) loadView(tree.root, null) else null
   }
 
   private fun loadView(view: LayoutInspectorProto.View, parent: ViewNode?): ViewNode {

@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
+import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static org.jetbrains.jps.model.java.JavaResourceRootType.RESOURCE;
+import static org.jetbrains.jps.model.java.JavaResourceRootType.TEST_RESOURCE;
+import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
+import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
+
 import com.android.builder.model.AndroidArtifact;
-import com.android.builder.model.BuildTypeContainer;
-import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
-import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeBaseArtifact;
 import com.android.ide.common.gradle.model.IdeVariant;
@@ -30,18 +34,11 @@ import com.android.tools.idea.gradle.util.GeneratedSourceFolders;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModifiableRootModel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-
-import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
-import static org.jetbrains.jps.model.java.JavaResourceRootType.RESOURCE;
-import static org.jetbrains.jps.model.java.JavaResourceRootType.TEST_RESOURCE;
-import static org.jetbrains.jps.model.java.JavaSourceRootType.SOURCE;
-import static org.jetbrains.jps.model.java.JavaSourceRootType.TEST_SOURCE;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 class AndroidContentEntriesSetup extends ContentEntriesSetup {
   static class Factory {
@@ -100,6 +97,14 @@ class AndroidContentEntriesSetup extends ContentEntriesSetup {
 
   private void addSourceFolder(@NotNull SourceProvider sourceProvider, @NotNull List<ContentEntry> contentEntries, boolean isTest) {
     JpsModuleSourceRootType sourceType = getResourceSourceType(isTest);
+
+    File manifestFolder = sourceProvider.getManifestFile().getParentFile();
+    if (manifestFolder != null) {
+      ContentEntry containingEntry = findParentContentEntry(manifestFolder, contentEntries.stream());
+      if (containingEntry == null) {
+        myModuleModel.addContentEntry(pathToIdeaUrl(manifestFolder));
+      }
+    }
 
     addSourceFolders(sourceProvider.getResDirectories(), contentEntries, sourceType, false);
     addSourceFolders(sourceProvider.getResourcesDirectories(), contentEntries, sourceType, false);

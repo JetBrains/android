@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.databinding.psiclass
 
-import com.android.tools.idea.databinding.util.BrUtil
-import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.module.ModuleDataBinding
 import com.android.tools.idea.databinding.project.ProjectLayoutResourcesModificationTracker
+import com.android.tools.idea.databinding.util.BrUtil
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.google.common.collect.ImmutableSet
-import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.JavaPsiFacade
@@ -104,7 +104,7 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, priv
 
     // Create a dummy, backing file to represent this BR file
     val factory = PsiFileFactory.getInstance(project)
-    val backingFile = factory.createFileFromText("BR.java", JavaFileType.INSTANCE,
+    val backingFile = factory.createFileFromText("BR.java", StdFileTypes.JAVA,
                                                  "// This class is generated on-the-fly by the IDE.") as PsiJavaFile
     backingFile.packageName = qualifiedName.replace(".BR", "")
     containingFile = backingFile

@@ -801,7 +801,7 @@ public final class GroovyDslUtil {
     else {
       PsiElement psiElement = createNameElement(element, newName);
       if (psiElement == null) {
-        throw new IllegalStateException("Can't create new GrExpression for name element '" + newName + "'");
+        return;
       }
       newElement = oldName.replace(psiElement);
     }

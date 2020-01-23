@@ -96,7 +96,7 @@ internal fun KtCallExpression.isBlockElement(parent: GradlePropertiesDslElement)
   return zeroOrOneClosures && (namedDomainBlockReference || knownBlockForParent)
 }
 
-internal fun convertToExternalTextValue(context: GradleDslSimpleExpression, applyContext: GradleDslFile, referenceText : String) : String {
+fun convertToExternalTextValue(context: GradleDslSimpleExpression, applyContext: GradleDslFile, referenceText : String) : String {
   val resolvedReference = context.resolveReference(referenceText, false) ?: return referenceText
   // Get the resolvedReference value type that might be used for the final cast.
   // TODO(karimai): what if the type need to be imported ?
@@ -753,7 +753,7 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
           else -> factory.createExpressionIfPossible(newName)
         }
         else -> factory.createExpressionIfPossible(newName)
-      } ?: throw IllegalStateException("Can't create new KtExpression for name element \"$newName\"")
+      } ?: return
 
     // For Kotlin, committing changes is a bit different, and if the psiElement is invalid, it throws an exception (unlike Groovy), so we
     // need to check if the oldName is still valid, otherwise, we use the psiElement created to update the name.

@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.refactoring.renaming
 
+import com.android.annotations.concurrency.WorkerThread
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ValueResourceNameValidator
 import com.android.resources.ResourceType
@@ -23,7 +24,6 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.psi.AndroidResourceToPsiResolver
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.RESOURCE_CONTEXT_ELEMENT
-import com.android.tools.idea.res.psi.ResourceReferencePsiElement.Companion.RESOURCE_CONTEXT_SCOPE
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
 import com.android.tools.idea.util.androidFacet
 import com.android.utils.reflection.qualifiedName
@@ -98,9 +98,6 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
     if (element !is ResourceReferencePsiElement) {
       val resourceReferenceElement = ResourceReferencePsiElement.create(element)?.toWritableResourceReferencePsiElement() ?: return
       resourceReferenceElement.putCopyableUserData(RESOURCE_CONTEXT_ELEMENT, element)
-      resourceReferenceElement.putCopyableUserData(
-        RESOURCE_CONTEXT_SCOPE,
-        ResourceRepositoryToPsiResolver.getResourceSearchScope(resourceReferenceElement.resourceReference, element))
       allRenames.remove(element)
       allRenames[resourceReferenceElement] = newName
     }
@@ -158,16 +155,18 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
     }
   }
 
+  @WorkerThread
   override fun findReferences(
     element: PsiElement,
     searchScope: SearchScope,
     searchInCommentsAndStrings: Boolean
   ): MutableCollection<PsiReference> {
-    val found = super.findReferences(element, searchScope, searchInCommentsAndStrings)
-    val resourceElement =
-      (element as? ResourceReferencePsiElement) ?: return found
-    val contextElement =
-      resourceElement.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT) ?: return found
+    val resourceElement = (element as? ResourceReferencePsiElement)
+                          ?: return super.findReferences(element, searchScope, searchInCommentsAndStrings)
+    val contextElement = resourceElement.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT)
+                         ?: return super.findReferences(element, searchScope, searchInCommentsAndStrings)
+    val resourceScope = ResourceRepositoryToPsiResolver.getResourceSearchScope(resourceElement.resourceReference, contextElement)
+    val found = super.findReferences(element, searchScope.intersectWith(resourceScope), searchInCommentsAndStrings)
 
     // Add any file based resources not found in references search
     val fileResources =
@@ -277,10 +276,6 @@ open class ResourceRenameHandler : RenameHandler, TitledHandler {
       return
     }
     referencePsiElement.putCopyableUserData(RESOURCE_CONTEXT_ELEMENT, file)
-    referencePsiElement.putCopyableUserData(
-      RESOURCE_CONTEXT_SCOPE,
-      ResourceRepositoryToPsiResolver.getResourceSearchScope(referencePsiElement.resourceReference, file)
-    )
     val newName = NEW_NAME_RESOURCE.getData(dataContext)
     ResourceRenameDialog(project, referencePsiElement, null, editor, newName).show(dataContext)
   }

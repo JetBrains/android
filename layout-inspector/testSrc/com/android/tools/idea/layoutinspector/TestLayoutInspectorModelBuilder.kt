@@ -19,6 +19,9 @@ import com.android.SdkConstants.CLASS_VIEW
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.util.ConfigurationBuilder
+import com.android.tools.idea.layoutinspector.util.TestStringTable
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import org.mockito.Mockito.mock
 import java.awt.Image
@@ -127,6 +130,11 @@ class InspectorModelDescriptor(val project: Project) {
     val windowRoot = root.build()
     val model = InspectorModel(project)
     model.update(windowRoot, windowRoot.drawId, listOf(windowRoot.drawId))
+    if (ModuleManager.getInstance(project) != null) {
+      val strings = TestStringTable()
+      val config = ConfigurationBuilder(strings)
+      model.resourceLookup.updateConfiguration(config.makeDummyConfiguration(project), strings)
+    }
     return model
   }
 }

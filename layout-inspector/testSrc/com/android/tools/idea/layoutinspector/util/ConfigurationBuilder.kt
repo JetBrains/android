@@ -17,33 +17,29 @@ package com.android.tools.idea.layoutinspector.util
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
+import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.Project
+import com.intellij.testFramework.runInEdtAndGet
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.kotlin.fir.resolve.getOrPut
 
-class ConfigurationBuilder(facet: AndroidFacet) {
-  private val defaultPackage = Manifest.getMainManifest(facet)!!.`package`.value!!
-  private var stringId = 0
-  private val strings = mutableMapOf<String, Int>()
+private const val defaultPackageName = "com.example"
 
-  fun makeConfiguration(): Pair<LayoutInspectorProto.ResourceConfiguration, StringTable> {
-    val config = LayoutInspectorProto.ResourceConfiguration.newBuilder()
-      .setAppPackageName(addString(defaultPackage))
-      .setTheme(addResource(ResourceReference.style(ResourceNamespace.TODO(), "AppTheme")))
-      .build()
-    val stringTable = StringTable(strings.map { LayoutInspectorProto.StringEntry.newBuilder().setId(it.value).setStr(it.key).build() })
-    return Pair(config, stringTable)
+// TODO: Add tests that uses other configuration values
+class ConfigurationBuilder(private val strings: TestStringTable) {
+
+  fun makeDummyConfiguration(project: Project): LayoutInspectorProto.ResourceConfiguration {
+    val packageName = runInEdtAndGet { getAppPackageName(project) }
+    return LayoutInspectorProto.ResourceConfiguration.newBuilder().apply {
+      appPackageName = strings.add(packageName)
+      theme = strings.add(ResourceReference.style(ResourceNamespace.fromPackageName(packageName), "AppTheme"))
+    }.build()
   }
 
-  private fun addString(string: String): Int = strings.getOrPut(string) { ++stringId }
-
-  private fun addResource(resource: ResourceReference): LayoutInspectorProto.Resource {
-    return LayoutInspectorProto.Resource.newBuilder()
-      .setNamespace(addString(resource.namespace.packageName ?: defaultPackage))
-      .setName(addString(resource.name))
-      .setType(addString(resource.resourceType.getName()))
-      .build()
+  private fun getAppPackageName(project: Project): String {
+    val module = ModuleManager.getInstance(project)?.findModuleByName("app") ?: return defaultPackageName
+    val facet = AndroidFacet.getInstance(module)
+    return Manifest.getMainManifest(facet)?.`package`?.value ?: defaultPackageName
   }
 }

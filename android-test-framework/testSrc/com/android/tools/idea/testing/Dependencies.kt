@@ -17,6 +17,7 @@ package com.android.tools.idea.testing
 
 import com.android.SdkConstants
 import com.android.ide.common.repository.GradleVersion
+import com.android.testutils.TestUtils
 import com.android.tools.idea.util.toVirtualFile
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.roots.DependencyScope
@@ -27,10 +28,10 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.io.ZipUtil
 import java.io.File
 
-private const val ROOT_FOLDER = "../.."
-private const val LEGACY_FOLDER = "$ROOT_FOLDER/prebuilts/tools/common/m2/repository/com/android/support/"
-private const val ANDROIDX_FOLDER = "$ROOT_FOLDER/prebuilts/tools/common/m2/repository/androidx/"
-private const val GOOGLE_FOLDER = "$ROOT_FOLDER/prebuilts/tools/common/m2/repository/com/google/android/"
+private val MAVEN_REPO = TestUtils.getPrebuiltOfflineMavenRepo()
+private val LEGACY_FOLDER = "$MAVEN_REPO/com/android/support/"
+private val ANDROIDX_FOLDER = "$MAVEN_REPO/androidx/"
+private val GOOGLE_FOLDER = "$MAVEN_REPO/com/google/android/"
 
 /**
  * Adds a dependency from prebuilts to an existing test fixture.

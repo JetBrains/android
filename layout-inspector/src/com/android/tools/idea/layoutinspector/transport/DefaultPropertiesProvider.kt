@@ -17,7 +17,7 @@ package com.android.tools.idea.layoutinspector.transport
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.ide.common.rendering.api.ResourceReference
-import com.android.tools.idea.layoutinspector.common.StringTable
+import com.android.tools.idea.layoutinspector.common.StringTableImpl
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
@@ -99,7 +99,7 @@ class DefaultPropertiesProvider(
     private val resourceLookup: ResourceLookup
   ) {
     // TODO: The module namespace probably should be retrieved from the module. Use the layout namespace for now:
-    private val stringTable = StringTable(properties.stringList)
+    private val stringTable = StringTableImpl(properties.stringList)
     private val layout = stringTable[properties.layout]
     private val table = HashBasedTable.create<String, String, InspectorPropertyItem>()
 
@@ -120,8 +120,8 @@ class DefaultPropertiesProvider(
           Type.GRAVITY,
           Type.INT_FLAG -> fromFlags(property.flagValue)
           Type.BOOLEAN -> fromBoolean(property)?.toString()
+          Type.CHAR -> fromChar(property)?.toString()
           Type.BYTE,
-          Type.CHAR,
           Type.INT16,
           Type.INT32 -> fromInt32(property)?.toString()
           Type.INT64 -> fromInt64(property)?.toString()
@@ -176,7 +176,7 @@ class DefaultPropertiesProvider(
           Type.ANIM,
           Type.ANIMATOR,
           Type.INTERPOLATOR,
-          Type.DRAWABLE -> stringTable[property.int32Value]
+          Type.DRAWABLE -> stringTable[property.int32Value].ifEmpty { null }
           else -> null  // TODO offer information from other object types
         }
         val value: String? = when (property.type) {
@@ -216,6 +216,11 @@ class DefaultPropertiesProvider(
     private fun fromBoolean(property: Property): Boolean? {
       val intValue = fromInt32(property) ?: return null
       return intValue != 0
+    }
+
+    private fun fromChar(property: Property): Char? {
+      val intValue = fromInt32(property) ?: return null
+      return intValue.toChar()
     }
 
     private fun fromInt32(property: Property): Int? {

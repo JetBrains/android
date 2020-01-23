@@ -22,13 +22,4 @@ import org.junit.runner.RunWith;
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(com.android.tools.idea.AndroidCommonTestSuite.class)  // a suite mustn't contain itself
 public class AndroidCommonTestSuite extends IdeaTestSuiteBase {
-
-  static {
-    symlinkToIdeaHome(
-        "tools/adt/idea/adt-ui/lib/libwebp",
-        "tools/adt/idea/artwork/resources/device-art-resources",
-        "tools/idea/java");
-  }
 }
-
-

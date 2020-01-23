@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.res.psi
 
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.ide.common.resources.ResourceItem
@@ -175,6 +176,7 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
    * @param context           [PsiElement] context element from which an action is being performed.
    * @return [SearchScope] a scope that contains the files of the project which can reference same resource as context element.
    */
+  @Slow
   @JvmStatic
   fun getResourceSearchScope(resourceReference: ResourceReference, context: PsiElement): SearchScope {
     val gotoDeclarationTargets = getGotoDeclarationTargets(resourceReference, context)

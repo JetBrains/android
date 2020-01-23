@@ -32,15 +32,6 @@ public class SyncPerfTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {
-    symlinkToIdeaHome(
-      "prebuilts/studio/jdk",
-      "prebuilts/studio/sdk",
-      "tools/adt/idea/android/annotations",
-      "tools/adt/idea/sync-perf-tests/testData",
-      "tools/base/templates",
-      "tools/idea/java"
-    );
-
     setUpSourceZip("prebuilts/studio/buildbenchmarks/dolphin.3627ef8a/src.zip",
                    // We unzip the source code into the same directory containing other test data.
                    "tools/adt/idea/sync-perf-tests/testData/" + TestProjectPaths.DOLPHIN_PROJECT_ROOT,
@@ -49,9 +40,9 @@ public class SyncPerfTestSuite extends IdeaTestSuiteBase {
                    "tools/adt/idea/sync-perf-tests/testData/" + TestProjectPaths.BASE100,
                    new DiffSpec("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/setupForSyncTest.diff", 2));
 
-    setUpOfflineRepo("prebuilts/studio/buildbenchmarks/dolphin.3627ef8a/repo.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/repo.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("tools/adt/idea/sync-perf-tests/test_deps.zip", "prebuilts/tools/common/m2/repository");
-    setUpOfflineRepo("tools/base/build-system/studio_repo.zip", "out/studio/repo");
+    unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/dolphin.3627ef8a/repo.zip");
+    unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/android-studio-gradle-test.3600041f/repo.zip");
+    unzipIntoOfflineMavenRepo("tools/adt/idea/sync-perf-tests/test_deps.zip");
+    unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip");
   }
 }

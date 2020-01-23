@@ -1,1 +1,1 @@
-<view xmlns:android="http://schemas.android.com/apk/res/android" android:bufferT<caret>>
+<view xmlns:android="http://schemas.android.com/apk/res/android" class="TextView" android:bufferT<caret>>

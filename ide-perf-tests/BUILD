@@ -66,6 +66,5 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/idea:intellij.idea.community.main[module, test]",
-        "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module, test]",
     ],
 )

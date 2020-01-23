@@ -22,13 +22,13 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
 import com.android.tools.idea.res.ResourceHelper;
-import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
+import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -159,7 +159,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
     // For xml files, we want to open raw color and color resource picker.
     // For java and kotlin files, we should open color resource picker only and set R.color.[resource_name] to the field.
     // TODO: Open color resource picker for java and kotlin files.
-    boolean isClickable = AndroidAnnotatorUtil.getFileType(element) == XmlFileType.INSTANCE;
+    boolean isClickable = AndroidAnnotatorUtil.getFileType(element) == StdFileTypes.XML;
     return new AndroidAnnotatorUtil.ColorRenderer(element, color, reference, isClickable, configuration);
   }
 

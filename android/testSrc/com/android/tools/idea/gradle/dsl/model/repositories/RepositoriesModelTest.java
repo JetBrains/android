@@ -50,6 +50,8 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_MAVEN_REPOSITORY_WITH_ARTIFACT_URLS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_MAVEN_REPOSITORY_WITH_CREDENTIALS;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_PARSE_MULTIPLE_REPOSITORIES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_ARTIFACT_URLS_FOR_METHOD_CALL;
+import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_ARTIFACT_URLS_FOR_METHOD_CALL_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_ARTIFACT_URLS_IN_MAVEN;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_ARTIFACT_URLS_IN_MAVEN_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.REPOSITORIES_MODEL_SET_NAME_FOR_METHOD_CALL;
@@ -635,11 +637,7 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     GradleBuildModel buildModel = getGradleBuildModel();
     RepositoriesModel repositoriesModel = buildModel.repositories();
     List<RepositoryModel> repositories = repositoriesModel.repositories();
-    assertThat(repositories).isEmpty();
-
-    repositoriesModel.addRepositoryByMethodName("jcenter");
-    repositories = repositoriesModel.repositories();
-    assertSize(1, repositories);
+    assertThat(repositories).hasSize(1);
     verifyJCenterDefaultRepositoryModel(repositories.get(0));
 
     ((UrlBasedRepositoryModel)repositories.get(0)).url().setValue("good.url");
@@ -652,6 +650,28 @@ public class RepositoriesModelTest extends GradleFileModelTestCase {
     assertSize(1, repositories);
     assertThat(repositories.get(0)).isInstanceOf(JCenterRepositoryModel.class);
     assertThat(((JCenterRepositoryModel)repositories.get(0)).url().toString()).isEqualTo("good.url");
+  }
+
+  @Test
+  public void testSetArtifactUrlsForMethodCall() throws IOException {
+    writeToBuildFile(REPOSITORIES_MODEL_SET_ARTIFACT_URLS_FOR_METHOD_CALL);
+    GradleBuildModel buildModel = getGradleBuildModel();
+    RepositoriesModel repositoriesModel = buildModel.repositories();
+    List<RepositoryModel> repositories = repositoriesModel.repositories();
+    assertThat(repositories).hasSize(1);
+    RepositoryModel repositoryModel = repositories.get(0);
+    verifyJCenterDefaultRepositoryModel(repositoryModel);
+
+    ((MavenRepositoryModelImpl) repositoryModel).artifactUrls().addListValue().setValue("some.url");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, REPOSITORIES_MODEL_SET_ARTIFACT_URLS_FOR_METHOD_CALL_EXPECTED);
+
+    repositoriesModel = buildModel.repositories();
+    repositories = repositoriesModel.repositories();
+    assertSize(1, repositories);
+    assertThat(repositories.get(0)).isInstanceOf(JCenterRepositoryModel.class);
+    verifyListProperty(((JCenterRepositoryModel) (repositories.get(0))).artifactUrls(), ImmutableList.of("some.url"));
   }
 
   @Test

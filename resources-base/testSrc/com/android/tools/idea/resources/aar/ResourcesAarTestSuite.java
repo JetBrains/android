@@ -22,10 +22,4 @@ import org.junit.runner.RunWith;
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(ResourcesAarTestSuite.class)  // A suite must not contain itself.
 public class ResourcesAarTestSuite extends IdeaTestSuiteBase {
-  static {
-    symlinkToIdeaHome(
-        "prebuilts/studio/layoutlib",
-        "tools/adt/idea/android/testData",
-        "tools/idea/java");
-  }
 }

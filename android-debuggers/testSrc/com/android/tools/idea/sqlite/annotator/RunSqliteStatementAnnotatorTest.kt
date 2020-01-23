@@ -16,18 +16,18 @@
 package com.android.tools.idea.sqlite.annotator
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
-import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.sqlite.DatabaseInspectorProjectService
+import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteDatabase
 import com.android.tools.idea.testing.IdeComponents
 import com.android.tools.idea.testing.caret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.daemon.GutterMark
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.icons.AllIcons
-import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.editor.markup.GutterIconRenderer
+import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.util.ui.EmptyIcon
 import org.mockito.Mockito.`when`
@@ -66,7 +66,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(false)
 
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       // language=java
       """
         package com.example;
@@ -91,7 +91,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(false)
 
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       // language=java
       """
         package com.example;
@@ -112,7 +112,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
 
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       // language=java
       """
         package com.example;
@@ -133,7 +133,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(true)
 
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       // language=java
       """
         package com.example;
@@ -154,7 +154,7 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     `when`(mockDatabaseInspectorProjectService.hasOpenDatabase()).thenReturn(false)
 
     myFixture.configureByText(
-      JavaFileType.INSTANCE,
+      StdFileTypes.JAVA,
       // language=kotlin
       """
         package com.example;

@@ -64,6 +64,9 @@ class ViewNode(var drawId: Long,
   // imageTop: the image painted after the sub views
   var imageTop: Image? = null
 
+  // True if we were unable to generate proper images for this subtree and instead have a single flat image.
+  var fallbackMode = false
+
   var tag: XmlTag?
     get() = tagPointer?.element
     set(value) {

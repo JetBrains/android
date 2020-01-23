@@ -568,17 +568,16 @@ public class AttributeProcessingUtil {
         // instead of
         //   <LinearLayout />
         //
-        // In this case code here treats <view> tag as a special case, in which it adds all the attributes
-        // from all available styleables that have the same simple names as found descendants of View class.
+        // In this case code adds styleables corresponding to the tag-value of "class" attributes
         //
         // See LayoutInflater#createViewFromTag in Android framework for inflating code
 
-        for (PsiClass aClass : map.values()) {
-          String name = aClass.getName();
-          if (name == null) {
-            continue;
+        String name = tag.getAttributeValue("class");
+        if (name != null) {
+          PsiClass aClass = map.get(name);
+          if (aClass != null) {
+            registerAttributes(facet, element, name, getResourcePackage(aClass), callback, skipAttrNames);
           }
-          registerAttributes(facet, element, name, getResourcePackage(aClass), callback, skipAttrNames);
         }
         break;
 

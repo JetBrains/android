@@ -31,7 +31,7 @@ import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertiesModel
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
-import com.android.tools.idea.layoutinspector.util.InspectorBuilder
+import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.google.common.truth.Truth.assertThat
@@ -40,28 +40,22 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 
 @RunsInEdt
 class ResourceLookupResolverTest {
+  private val projectRule = AndroidProjectRule.withSdk()
 
-  @JvmField
-  @Rule
-  val projectRule = AndroidProjectRule.withSdk()
-
-  @JvmField
-  @Rule
-  val edtRule = EdtRule()
+  @get:Rule
+  val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
   @Before
-  fun setUp() = InspectorBuilder.setUpDemo(projectRule)
-
-
-  @After
-  fun tearDown() = InspectorBuilder.tearDownDemo()
+  fun setUp() {
+    DemoExample.setUpDemo(projectRule.fixture)
+  }
 
   @Suppress("SameParameterValue")
   private fun createResourceLookupResolver(theme: String, vararg qualifiers: String): ResourceLookupResolver {
@@ -90,9 +84,9 @@ class ResourceLookupResolverTest {
     val locations = resolver.findFileLocations(data.textColor, data.demo, 10)
     checkLocation(locations[0], "demo.xml:18", "framework:textColor=\"@color/textRedIndirect\"")
     checkLocation(locations[1], "colors.xml:6", "<color name=\"textRedIndirect\">@color/textRed</color>")
-    checkLocation(locations[2], "colors.xml:5", "<color name=\"textRed\">#F32133</color>")
+    checkLocation(locations[2], "colors.xml:5", "<color name=\"textRed\">#FF0000</color>")
     assertThat(locations.size).isEqualTo(3)
-    assertThat(resolver.findAttributeValue(data.textColor, data.demo)).isEqualTo("#F32133")
+    assertThat(resolver.findAttributeValue(data.textColor, data.demo)).isEqualTo("#FF0000")
   }
 
   @Test

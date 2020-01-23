@@ -21,7 +21,6 @@ import com.android.SdkConstants;
 import com.android.tools.idea.naveditor.NavTestUtil;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
@@ -66,7 +65,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     myFixture.copyDirectoryToProject("navschematest", "src");
 
     for (String prebuiltPath : NavTestUtil.getNavEditorAarPaths().keySet()) {
-      File aar = new File(PathManager.getHomePath(), prebuiltPath);
+      File aar = new File(prebuiltPath);
       File tempDir = FileUtil.createTempDirectory("NavigationSchemaTest", null);
       ZipUtil.extract(aar, tempDir, null);
       String path = new File(tempDir, "classes.jar").getPath();

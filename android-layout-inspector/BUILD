@@ -118,7 +118,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/observable:intellij.android.observable[module]",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
-        "//tools/idea/xml/xml-psi-impl:intellij.xml.psi.impl[module]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/idea/platform/testFramework:intellij.platform.testFramework[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",

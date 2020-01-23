@@ -35,7 +35,7 @@ import org.jetbrains.jps.model.module.JpsModuleSourceRoot;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 public abstract class ContentEntriesSetup {
-  @NotNull private final ModifiableRootModel myModuleModel;
+  @NotNull protected final ModifiableRootModel myModuleModel;
   @NotNull private final List<RootSourceFolder> myOrphans = new ArrayList<>();
 
   protected ContentEntriesSetup(@NotNull ModifiableRootModel moduleModel) {

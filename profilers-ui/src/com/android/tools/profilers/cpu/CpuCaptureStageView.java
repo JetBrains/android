@@ -260,6 +260,8 @@ public class CpuCaptureStageView extends StageView<CpuCaptureStage> {
                                                AxisComponent.AxisOrientation.BOTTOM);
     timeAxis.setMinimumSize(new Dimension(0, ProfilerLayout.TIME_AXIS_HEIGHT));
     timeAxis.setPreferredSize(new Dimension(Integer.MAX_VALUE, ProfilerLayout.TIME_AXIS_HEIGHT));
+    // Hide the axis line so it doesn't stack with panel border.
+    timeAxis.setShowAxisLine(false);
     // Align with track content.
     axisPanel.add(timeAxis, new TabularLayout.Constraint(0, 1));
     return axisPanel;
