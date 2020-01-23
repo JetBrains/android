@@ -216,7 +216,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
   /**
    * Add a library dependency into the project.
    */
-  override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?) {
+  override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?) {
     // Translate from "compile" to "implementation" based on the parameter map context
     val newConfiguration = GradleUtil.mapConfigurationName(configuration, projectTemplateData.gradlePluginVersion, false)
     referencesExecutor.addDependency(newConfiguration, mavenCoordinate, minRev)
@@ -224,7 +224,10 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     val baseFeature = context.moduleTemplateData?.baseFeature
 
     val buildModel =
-      if (baseFeature == null) {
+      if (moduleDir != null) {
+        projectBuildModel?.getModuleBuildModel(moduleDir) ?: return
+      }
+      else if (baseFeature == null) {
         moduleGradleBuildModel
       }
       else {
@@ -287,7 +290,7 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
   /**
    * Instantiates the given template file into the given output file (running the Freemarker engine over it)
    */
-  override fun save(source: String, to: File, trimVertical: Boolean, squishEmptyLines: Boolean) {
+  override fun save(source: String, to: File, trimVertical: Boolean, squishEmptyLines: Boolean, commitDocument: Boolean) {
     val targetFile = getTargetFile(to)
     val untrimmedContent = extractFullyQualifiedNames(to, source.withoutSkipLines())
     val trimmedUnsquishedContent = if (trimVertical) untrimmedContent.trim() else untrimmedContent
@@ -301,6 +304,15 @@ class DefaultRecipeExecutor2(private val context: RenderingContext2) : RecipeExe
     }
     io.writeFile(this, content, targetFile)
     referencesExecutor.addTargetFile(targetFile)
+    if (commitDocument) {
+      val virtualFile = findFileByIoFile(targetFile, true) ?: return
+      // RecipeIO.writeTextFile saves Documents but doesn't commit them, since there might not be a Project to speak of yet.
+      // ProjectBuildModel uses PSI, so let's make sure the Document is committed, since it's illegal to modify PSI for a file with
+      // and uncommitted Document.
+      FileDocumentManager.getInstance()
+        .getCachedDocument(virtualFile)
+        ?.let(PsiDocumentManager.getInstance(project)::commitDocument)
+    }
   }
 
   override fun createDirectory(at: File) {

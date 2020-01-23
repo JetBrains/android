@@ -27,7 +27,7 @@ import java.io.File
 internal class FindReferencesRecipeExecutor2(private val context: RenderingContext2) : RecipeExecutor2 {
   override fun hasDependency(mavenCoordinate: String, moduleDir: File?): Boolean = false
 
-  override fun save(source: String, to: File, trimVertical: Boolean, squishEmptyLines: Boolean) {
+  override fun save(source: String, to: File, trimVertical: Boolean, squishEmptyLines: Boolean, commitDocument: Boolean) {
     addTargetFile(to)
   }
 
@@ -58,7 +58,7 @@ internal class FindReferencesRecipeExecutor2(private val context: RenderingConte
     context.classpathEntries.add(mavenCoordinate)
   }
 
-  override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?) {
+  override fun addDependency(mavenCoordinate: String, configuration: String, minRev: String?, moduleDir: File?) {
     context.dependencies.put(configuration, mavenCoordinate)
   }
 
