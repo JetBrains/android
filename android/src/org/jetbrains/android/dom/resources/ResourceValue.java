@@ -26,7 +26,7 @@ import com.android.utils.HashCodes;
 import com.intellij.lang.java.lexer.JavaLexer;
 import com.intellij.pom.java.LanguageLevel;
 import java.util.Objects;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -212,7 +212,7 @@ public class ResourceValue {
     return AndroidUtils.isIdentifier(myResourceName)
            // Value resources are allowed to contain . and : in the names
            || FolderTypeRelationship.getRelatedFolders(type).contains(ResourceFolderType.VALUES)
-              && AndroidUtils.isIdentifier(AndroidResourceUtil.getFieldNameByResourceName(myResourceName));
+              && AndroidUtils.isIdentifier(IdeResourcesUtil.getFieldNameByResourceName(myResourceName));
   }
 
   @Nullable
@@ -250,7 +250,7 @@ public class ResourceValue {
 
     String name = myResourceName;
     if (FolderTypeRelationship.getRelatedFolders(type).contains(ResourceFolderType.VALUES)) {
-      name = AndroidResourceUtil.getFieldNameByResourceName(name);
+      name = IdeResourcesUtil.getFieldNameByResourceName(name);
     }
 
     if (!AndroidUtils.isIdentifier(name)) {

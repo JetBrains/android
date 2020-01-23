@@ -22,7 +22,7 @@ import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -47,7 +47,6 @@ import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.wrappers.FileResourceElementWrapper;
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,7 +72,7 @@ public abstract class ResourceManager {
   public ResourceType getValueResourceType(@NotNull XmlTag tag) {
     ResourceFolderType fileResType = getFileResourceFolderType(tag.getContainingFile());
     if (ResourceFolderType.VALUES == fileResType) {
-      return AndroidResourceUtil.getResourceTypeForResourceTag(tag);
+      return IdeResourcesUtil.getResourceTypeForResourceTag(tag);
     }
     return null;
   }
@@ -112,9 +111,9 @@ public abstract class ResourceManager {
     Set<VirtualFile> files = getFilesDeclaringId(namespace, id);
 
     return findIdUsagesFromFiles(files, attributeValue -> {
-      if (AndroidResourceUtil.isIdDeclaration(attributeValue)) {
+      if (IdeResourcesUtil.isIdDeclaration(attributeValue)) {
         String value = attributeValue.getValue();
-        String idInAttr = AndroidResourceUtil.getResourceNameByReferenceText(value);
+        String idInAttr = IdeResourcesUtil.getResourceNameByReferenceText(value);
         return id.equals(idInAttr);
       }
       return false;
@@ -133,7 +132,7 @@ public abstract class ResourceManager {
     Set<VirtualFile> files = getFilesDeclaringId(namespace, id);
 
     return findIdUsagesFromFiles(files, attributeValue -> {
-      if (AndroidResourceUtil.isConstraintReferencedIds(attributeValue)) {
+      if (IdeResourcesUtil.isConstraintReferencedIds(attributeValue)) {
         String ids = attributeValue.getValue();
         return ArrayUtil.indexOf(ids.split(","), id) >= 0;
       }
@@ -147,7 +146,7 @@ public abstract class ResourceManager {
     for (ResourceRepository repository : getLeafResourceRepositories()) {
       List<ResourceItem> items = repository.getResources(namespace, ResourceType.ID, id);
       for (ResourceItem item : items) {
-        VirtualFile file = ResourceHelper.getSourceAsVirtualFile(item);
+        VirtualFile file = IdeResourcesUtil.getSourceAsVirtualFile(item);
         if (file != null) {
           files.add(file);
         }
@@ -219,7 +218,7 @@ public abstract class ResourceManager {
         List<ResourceItem> resources = getResources(namespace, resourceType, resName);
         for (ResourceItem resource : resources) {
           if (resource.isFileBased()) {
-            VirtualFile file = ResourceHelper.getSourceAsVirtualFile(resource);
+            VirtualFile file = IdeResourcesUtil.getSourceAsVirtualFile(resource);
             if (file != null) {
               PsiFile psiFile = PsiManager.getInstance(myProject).findFile(file);
               if (psiFile != null) {
@@ -270,7 +269,7 @@ public abstract class ResourceManager {
   public List<ValueResourceInfoImpl> findValueResourceInfos(@NotNull ResourceNamespace namespace, @NotNull ResourceType resourceType,
                                                             @NotNull String resourceName, boolean distinguishDelimitersInName,
                                                             boolean searchAttrs) {
-    if (!AndroidResourceUtil.VALUE_RESOURCE_TYPES.contains(resourceType) && (resourceType != ResourceType.ATTR || !searchAttrs)) {
+    if (!IdeResourcesUtil.VALUE_RESOURCE_TYPES.contains(resourceType) && (resourceType != ResourceType.ATTR || !searchAttrs)) {
       return Collections.emptyList();
     }
 
@@ -283,7 +282,7 @@ public abstract class ResourceManager {
         items = repository.getResources(namespace, resourceType, item -> AndroidUtils.equal(resourceName, item.getName(), false));
       }
       for (ResourceItem item : items) {
-        VirtualFile file = ResourceHelper.getSourceAsVirtualFile(item);
+        VirtualFile file = IdeResourcesUtil.getSourceAsVirtualFile(item);
         if (file != null && isValueResourceFile(file)) {
           result.add(new ValueResourceInfoImpl(item, file, myProject));
         }

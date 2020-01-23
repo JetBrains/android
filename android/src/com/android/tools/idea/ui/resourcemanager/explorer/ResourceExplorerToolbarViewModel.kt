@@ -56,7 +56,7 @@ import org.jetbrains.android.actions.CreateResourceFileAction
 import org.jetbrains.android.actions.CreateResourceFileActionGroup
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
-import org.jetbrains.android.util.getResourceSubdirs
+import com.android.tools.idea.res.getResourceSubdirs
 import kotlin.properties.Delegates
 
 /**

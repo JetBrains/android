@@ -34,7 +34,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.HorizontalTabbedPanelBuilder;
 import com.android.tools.idea.ui.resourcechooser.ColorResourcePicker;
@@ -100,7 +100,7 @@ public class AndroidAnnotatorUtil {
                                                 @NotNull ResourceResolver resourceResolver,
                                                 @NotNull AndroidFacet facet) {
     Project project = facet.getModule().getProject();
-    VirtualFile file = ResourceHelper.resolveDrawable(resourceResolver, resourceValue, project);
+    VirtualFile file = IdeResourcesUtil.resolveDrawable(resourceResolver, resourceValue, project);
     if (file != null && file.getPath().endsWith(DOT_XML)) {
       file = pickBitmapFromXml(file, resourceResolver, project, facet, resourceValue);
     }
@@ -137,7 +137,7 @@ public class AndroidAnnotatorUtil {
             if (densityQualifier != null) {
               Density density = densityQualifier.getValue();
               if (density != null && density.isValidValueForDevice()) {
-                return ResourceHelper.getSourceAsVirtualFile(item);
+                return IdeResourcesUtil.getSourceAsVirtualFile(item);
               }
             }
           }
@@ -171,7 +171,7 @@ public class AndroidAnnotatorUtil {
         return null;
       }
       ResourceValue resValue = resourceResolver.findResValue(source, resourceValue.isFramework());
-      return resValue == null ? null : ResourceHelper.resolveDrawable(resourceResolver, resValue, project);
+      return resValue == null ? null : IdeResourcesUtil.resolveDrawable(resourceResolver, resValue, project);
     }
     catch (Throwable ignore) {
       // Not logging for now; afraid to risk unexpected crashes in upcoming preview. TODO: Re-enable.
@@ -269,7 +269,7 @@ public class AndroidAnnotatorUtil {
     VirtualFile layout;
     String parentName = parent.getName();
     if (!parentName.startsWith(FD_RES_LAYOUT)) {
-      layout = ResourceHelper.pickAnyLayoutFile(facet);
+      layout = IdeResourcesUtil.pickAnyLayoutFile(facet);
       if (layout == null) {
         return null;
       }
@@ -328,9 +328,9 @@ public class AndroidAnnotatorUtil {
       if (myColor != null) {
         return myColor;
       } else if (myElement instanceof XmlTag) {
-        return ResourceHelper.parseColor(((XmlTag)myElement).getValue().getText());
+        return IdeResourcesUtil.parseColor(((XmlTag)myElement).getValue().getText());
       } else if (myElement instanceof XmlAttributeValue) {
-        return ResourceHelper.parseColor(((XmlAttributeValue)myElement).getValue());
+        return IdeResourcesUtil.parseColor(((XmlAttributeValue)myElement).getValue());
       } else {
         return null;
       }
@@ -386,7 +386,7 @@ public class AndroidAnnotatorUtil {
     }
 
     private void setColorToAttribute(@NotNull Color color) {
-      setColorStringAttribute(ResourceHelper.colorToString(color));
+      setColorStringAttribute(IdeResourcesUtil.colorToString(color));
     }
 
     private void setColorStringAttribute(@NotNull String colorString) {

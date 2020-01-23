@@ -55,7 +55,7 @@ import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.layout.LayoutViewElement;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -207,7 +207,7 @@ public class AndroidFindStyleApplicationsProcessor extends BaseRefactoringProces
         collectResDir(m, myStyleName, resDirs);
       }
     }
-    final List<VirtualFile> subdirs = AndroidResourceUtil.getResourceSubdirs(
+    final List<VirtualFile> subdirs = IdeResourcesUtil.getResourceSubdirs(
       ResourceFolderType.LAYOUT, resDirs);
 
     List<VirtualFile> filesToProcess = new ArrayList<VirtualFile>();

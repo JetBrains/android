@@ -23,7 +23,6 @@ import com.android.tools.adtui.treegrid.TreeGridSpeedSearch;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ColorUtils;
-import com.android.tools.idea.editors.theme.MaterialColorUtils;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
@@ -33,11 +32,10 @@ import com.android.tools.idea.rendering.HtmlBuilderHelper;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.SampleDataResourceItem;
 import com.android.tools.idea.res.StateList;
-import com.android.tools.idea.ui.MaterialColors;
 import com.android.tools.idea.ui.resourcechooser.groups.ResourceChooserGroup;
 import com.android.tools.idea.ui.resourcechooser.groups.ResourceChooserGroups;
 import com.android.tools.idea.ui.resourcechooser.icons.IconFactory;
@@ -171,7 +169,6 @@ import org.jetbrains.android.refactoring.AndroidBaseLayoutRefactoringAction;
 import org.jetbrains.android.refactoring.AndroidExtractStyleAction;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -468,7 +465,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       List<Color> cachedColorResolution = null;
 
       if (myFilterColorStateLists && panel.getType() == ResourceType.COLOR) {
-        cachedColorResolution = ResourceHelper.resolveMultipleColors(getResourceResolver(), item.getResourceValue(), myModule.getProject());
+        cachedColorResolution = IdeResourcesUtil.resolveMultipleColors(getResourceResolver(), item.getResourceValue(), myModule.getProject());
         if (cachedColorResolution.size() > 1) {
           // Filter color state lists
           return false;
@@ -484,16 +481,16 @@ public class ChooseResourceDialog extends DialogWrapper {
 
         // For colors, we allow to search the exact value if the search starts with #
         // This allow to search all the project colors that match a give value.
-        final Color color = ResourceHelper.parseColor(text);
+        final Color color = IdeResourcesUtil.parseColor(text);
         return (cachedColorResolution == null ?
-                ResourceHelper.resolveMultipleColors(getResourceResolver(), item.getResourceValue(), myModule.getProject()) :
+                IdeResourcesUtil.resolveMultipleColors(getResourceResolver(), item.getResourceValue(), myModule.getProject()) :
                 cachedColorResolution).contains(color);
       }
 
       if (item.getType() == ResourceType.STRING) {
         // For string items, we check the search string against the string value
         // TODO: Cache on item!
-        String string = ResourceHelper.resolveStringValue(getResourceResolver(), item.getResourceUrl());
+        String string = IdeResourcesUtil.resolveStringValue(getResourceResolver(), item.getResourceUrl());
         if (StringUtil.containsIgnoreCase(string, text)) {
           return true;
         }
@@ -569,7 +566,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     String themeName = configuration.getTheme();
     for (StyleItemResourceValue item : ResolutionUtils.getThemeAttributes(resolver, themeName)) {
       ResourceType type = ResolutionUtils.getAttrType(item, configuration);
-      if (type != null && ResourceHelper.isAccessibleInXml(item, facet)) {
+      if (type != null && IdeResourcesUtil.isAccessibleInXml(item, facet)) {
         attrs.putValue(type, ResolutionUtils.getQualifiedItemAttrName(item));
       }
     }
@@ -859,16 +856,16 @@ public class ChooseResourceDialog extends DialogWrapper {
                                      ResourceResolver resolver, ResourceValue resValue) {
     Color color = null;
     if (resValue != null) {
-      color = ResourceHelper.resolveColor(resolver, resValue, myModule.getProject());
+      color = IdeResourcesUtil.resolveColor(resolver, resValue, myModule.getProject());
     }
 
     if (color == null) {
-      color = ResourceHelper.parseColor(value);
+      color = IdeResourcesUtil.parseColor(value);
     }
     myColorPicker = new ColorPicker(myDisposable, color, true, new ColorPickerListener() {
       @Override
       public void colorChanged(Color color) {
-        notifyResourcePickerListeners(ResourceHelper.colorToString(color));
+        notifyResourcePickerListeners(IdeResourcesUtil.colorToString(color));
       }
 
       @Override
@@ -882,7 +879,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       @NotNull
       @Override
       public String doSave() {
-        String value = ResourceHelper.colorToString(myColorPicker.getColor());
+        String value = IdeResourcesUtil.colorToString(myColorPicker.getColor());
         if (getResourceNameVisibility() == ResourceNameVisibility.FORCE ||
             (getResourceNameVisibility() == ResourceNameVisibility.SHOW && !getSelectedPanel().myEditorPanel.getResourceName().isEmpty())) {
           value = saveValuesResource(getSelectedPanel().myEditorPanel.getResourceName(), value, getLocationSettings());
@@ -932,7 +929,7 @@ public class ChooseResourceDialog extends DialogWrapper {
                                          final ResourceType stateListType, final ResourceFolderType stateListFolderType) {
     StateList stateList = null;
     if (resValue != null) {
-      stateList = ResourceHelper.resolveStateList(resolver, resValue, myModule.getProject());
+      stateList = IdeResourcesUtil.resolveStateList(resolver, resValue, myModule.getProject());
       if (stateList != null && stateList.getType() != stateListType) {
         // this is very strange, this means we have asked to open the resource picker to allow drawables but with a color state-list
         // or to 'not allow drawables', but with a drawables state-list, must be a user error, this should not normally happen.
@@ -973,15 +970,15 @@ public class ChooseResourceDialog extends DialogWrapper {
         }
         else {
           if (resourceType != null) {
-            files = AndroidResourceUtil.findOrCreateStateListFiles(project, resDir, resourceFolderType, resourceType,
-                                                                   stateListName, dirNames);
+            files = IdeResourcesUtil.findOrCreateStateListFiles(project, resDir, resourceFolderType, resourceType,
+                                                                stateListName, dirNames);
           }
         }
         if (files != null) {
           assert myStateListPicker != null;
           StateList stateList1 = myStateListPicker.getStateList();
           assert stateList1 != null;
-          AndroidResourceUtil.updateStateList(project, stateList1, files);
+          IdeResourcesUtil.updateStateList(project, stateList1, files);
         }
 
         if (resourceFolderType == ResourceFolderType.COLOR) {
@@ -1070,7 +1067,7 @@ public class ChooseResourceDialog extends DialogWrapper {
       newFileAction.getTemplatePresentation().putClientProperty(FOLDER_TYPE_KEY, folderType);
       actionGroup.add(newFileAction);
     }
-    if (AndroidResourceUtil.VALUE_RESOURCE_TYPES.contains(resourceType)) {
+    if (IdeResourcesUtil.VALUE_RESOURCE_TYPES.contains(resourceType)) {
       String title = "New " + resourceType + " Value...";
       if (resourceType == ResourceType.LAYOUT) {
         title = "New Layout Alias";
@@ -1121,7 +1118,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     List<String> dirNames = dialog.getDirNames();
     String resValue = dialog.getValue();
     String resName = dialog.getResourceName();
-    if (!AndroidResourceUtil.createValueResource(project, resDir, resName, resourceType, fileName, dirNames, resValue)) {
+    if (!IdeResourcesUtil.createValueResource(project, resDir, resName, resourceType, fileName, dirNames, resValue)) {
       return;
     }
 
@@ -1307,10 +1304,10 @@ public class ChooseResourceDialog extends DialogWrapper {
       AndroidUtils.reportError(project, AndroidBundle.message("check.resource.dir.error", myModule.getName()));
     }
     else {
-      if (!AndroidResourceUtil.changeValueResource(project, resDir, name, type, value, fileName, dirNames, myUseGlobalUndo)) {
+      if (!IdeResourcesUtil.changeValueResource(project, resDir, name, type, value, fileName, dirNames, myUseGlobalUndo)) {
         // Changing value resource has failed, one possible reason is that resource isn't defined in the project.
         // Trying to create the resource instead.
-        AndroidResourceUtil.createValueResource(project, resDir, name, type, fileName, dirNames, value);
+        IdeResourcesUtil.createValueResource(project, resDir, name, type, fileName, dirNames, value);
       }
     }
     return PREFIX_RESOURCE_REF + type + "/" + name;
@@ -1713,7 +1710,7 @@ public class ChooseResourceDialog extends DialogWrapper {
           }
         });
         // TODO, what if we change module in the resource editor, we should update the auto complete to match
-        myReferenceComponent.setCompletionStrings(ResourceHelper.getCompletionFromTypes(myFacet, getAllowedTypes(myType)));
+        myReferenceComponent.setCompletionStrings(IdeResourcesUtil.getCompletionFromTypes(myFacet, getAllowedTypes(myType)));
 
         Box referenceComponentPanel = new Box(BoxLayout.Y_AXIS);
         referenceComponentPanel.setName("ReferenceEditor"); // for UI tests
@@ -1855,7 +1852,7 @@ public class ChooseResourceDialog extends DialogWrapper {
           return true;
         }
         Project project = myModule.getProject();
-        StateList stateList = ResourceHelper.resolveStateList(getResourceResolver(), item.getResourceValue(), project);
+        StateList stateList = IdeResourcesUtil.resolveStateList(getResourceResolver(), item.getResourceValue(), project);
         if (stateList != null) { // if this is not a state list, it may be just a normal color
           return true;
         }
@@ -1965,7 +1962,7 @@ public class ChooseResourceDialog extends DialogWrapper {
         resourceEditorTab = myReferencePanel;
       }
       else {
-        StateList stateList = ResourceHelper.resolveStateList(getResourceResolver(), resourceValue, myModule.getProject());
+        StateList stateList = IdeResourcesUtil.resolveStateList(getResourceResolver(), resourceValue, myModule.getProject());
         if (stateList != null) { // if this is not a state list, it may be just a normal color
           ensurePickersInitialized();
           assert myStateListPickerPanel != null;
@@ -1984,7 +1981,7 @@ public class ChooseResourceDialog extends DialogWrapper {
           resourceEditorTab = myStateListPickerPanel;
         }
         else {
-          Color color = ResourceHelper.parseColor(resourceValue.getValue());
+          Color color = IdeResourcesUtil.parseColor(resourceValue.getValue());
           if (color != null) { // if invalid color because of user error or a reference to another color
             ensurePickersInitialized();
             assert myColorPickerPanel != null;
@@ -2063,7 +2060,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     }
 
     private void setLocationFromResourceItem(@NotNull ResourceItem item) {
-      VirtualFile virtualFile = ResourceHelper.getSourceAsVirtualFile(item);
+      VirtualFile virtualFile = IdeResourcesUtil.getSourceAsVirtualFile(item);
       if (virtualFile == null) {
         assert false : "Item's source can not be null when selecting a resource item";
         return;
@@ -2363,7 +2360,7 @@ public class ChooseResourceDialog extends DialogWrapper {
     @Nullable
     public String getValueForLivePreview() {
       if (myType == ResourceType.COLOR && myColorPicker != null && myColorPicker.isShowing()) {
-        return ResourceHelper.colorToString(myColorPicker.getColor());
+        return IdeResourcesUtil.colorToString(myColorPicker.getColor());
       }
       ResourceChooserItem item = getSelectedItem();
       return item != null ? item.getResourceUrl() : null;

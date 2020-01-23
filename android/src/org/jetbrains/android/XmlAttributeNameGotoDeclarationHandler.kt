@@ -22,7 +22,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlAttribute
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.isResourceFile
+import com.android.tools.idea.res.isResourceFile
 
 /**
  * {@link GotoDeclarationHandler} which handles XML attribute names.

@@ -31,8 +31,8 @@ import com.intellij.usages.UsageTarget
 import com.intellij.usages.UsageView
 import com.intellij.util.containers.isNullOrEmpty
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.getItemPsiFile
-import org.jetbrains.android.util.getItemTag
+import com.android.tools.idea.res.getItemPsiFile
+import com.android.tools.idea.res.getItemTag
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
 

@@ -155,7 +155,7 @@ public class MotionLayoutDecorator extends SceneDecorator {
     }
     Project project = component.getModel().getProject();
     AndroidFacet facet = component.getModel().getFacet();
-    List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
+    List<VirtualFile> resourcesXML = AndroidResourcesIdeUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
       .getModuleResources(facet).getResourceDirs());
     if (resourcesXML.isEmpty()) {
       return null;

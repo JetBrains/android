@@ -60,7 +60,7 @@ import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.AssetRepositoryImpl;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -257,7 +257,7 @@ public class RenderTask {
 
   public void setXmlFile(@NotNull XmlFile file) {
     myXmlFile = file;
-    ReadAction.run(() -> getContext().setFolderType(ResourceHelper.getFolderType(file)));
+    ReadAction.run(() -> getContext().setFolderType(IdeResourcesUtil.getFolderType(file)));
   }
 
   @Nullable

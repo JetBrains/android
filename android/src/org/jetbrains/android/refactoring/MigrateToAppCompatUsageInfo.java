@@ -31,7 +31,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.*;
 import com.intellij.usageView.UsageInfo;
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.*;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
@@ -383,7 +383,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
       PsiFile file = element.getContainingFile();
       assert file instanceof XmlFile;
       if (!StringUtil.isEmpty(myEntry.myNewNamespace)) {
-        String prefixUsed = AndroidResourceUtil.ensureNamespaceImported((XmlFile)file, myEntry.myNewNamespace, null);
+        String prefixUsed = IdeResourcesUtil.ensureNamespaceImported((XmlFile)file, myEntry.myNewNamespace, null);
         xmlTag.setName(prefixUsed + ":" + myEntry.myNewTagName);
       }
       else {
@@ -414,7 +414,7 @@ abstract class MigrateToAppCompatUsageInfo extends UsageInfo {
         currentAttr.setName(myEntry.myNewAttributeName);
       }
       else {
-        String prefixUsed = AndroidResourceUtil.ensureNamespaceImported((XmlFile)file, myEntry.myNewNamespace, null);
+        String prefixUsed = IdeResourcesUtil.ensureNamespaceImported((XmlFile)file, myEntry.myNewNamespace, null);
         currentAttr.setName(prefixUsed + ":" + myEntry.myNewAttributeName);
       }
       return null;

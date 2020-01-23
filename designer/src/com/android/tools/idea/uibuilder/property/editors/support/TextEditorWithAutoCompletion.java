@@ -20,7 +20,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.adtui.model.stdui.DefaultCommonBorderModel;
 import com.android.tools.adtui.stdui.CommonBorder;
 import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.codeInsight.completion.PrefixMatcher;
 import com.intellij.codeInsight.completion.impl.CamelHumpMatcher;
 import com.intellij.codeInsight.lookup.Lookup;
@@ -167,7 +167,7 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
         types.remove(ResourceType.ID);
 
         Set<String> ids = ApplicationManager.getApplication().runReadAction(
-          (Computable<Set<String>>)() -> ResourceHelper.findIdsInFile(property.getModel().getFile())
+          (Computable<Set<String>>)() -> IdeResourcesUtil.findIdsInFile(property.getModel().getFile())
         );
         for (String id : ids) {
           items.add("@id/" + id);
@@ -186,7 +186,7 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
         types.add(ResourceType.DRAWABLE);
       }
 
-      items.addAll(ResourceHelper.getCompletionFromTypes(facet, types, false));
+      items.addAll(IdeResourcesUtil.getCompletionFromTypes(facet, types, false));
     }
 
     return items;
@@ -254,7 +254,7 @@ public class TextEditorWithAutoCompletion extends TextFieldWithAutoCompletion<St
 
     @Override
     public int compare(String item1, String item2) {
-      return ResourceHelper.compareResourceReferences(item1, item2);
+      return IdeResourcesUtil.compareResourceReferences(item1, item2);
     }
   }
 }

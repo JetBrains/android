@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import org.jetbrains.android.dom.AndroidDomUtil;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,7 +89,7 @@ public class AndroidResourceReference extends AndroidResourceReferenceBase {
   @Override
   public PsiElement handleElementRename(@NotNull String newElementName) throws IncorrectOperationException {
     if (newElementName.startsWith(SdkConstants.NEW_ID_PREFIX)) {
-      newElementName = AndroidResourceUtil.getResourceNameByReferenceText(newElementName);
+      newElementName = IdeResourcesUtil.getResourceNameByReferenceText(newElementName);
     }
     ResourceValue value = myValue.getValue();
     assert value != null;

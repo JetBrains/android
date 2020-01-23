@@ -22,7 +22,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
@@ -37,7 +37,6 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -310,7 +309,7 @@ public class LayoutMetadata {
           }
         } else {
           if (namespace != null) {
-            AndroidResourceUtil.ensureNamespaceImported(file, namespace, null);
+            IdeResourcesUtil.ensureNamespaceImported(file, namespace, null);
             element.setAttribute(name, namespace, value);
           } else {
             element.setAttribute(name, value);
@@ -335,7 +334,7 @@ public class LayoutMetadata {
 
         VirtualFile layoutFile = file.getVirtualFile();
         if (layoutFile != null) {
-          final List<VirtualFile> variations = ResourceHelper.getResourceVariations(layoutFile, false);
+          final List<VirtualFile> variations = IdeResourcesUtil.getResourceVariations(layoutFile, false);
           if (variations.isEmpty()) {
             return null;
           }
@@ -392,7 +391,7 @@ public class LayoutMetadata {
               }
             } else {
               if (namespace != null) {
-                AndroidResourceUtil.ensureNamespaceImported(file, namespace, null);
+                IdeResourcesUtil.ensureNamespaceImported(file, namespace, null);
                 tag.setAttribute(name, namespace, value);
               } else {
                 tag.setAttribute(name, value);

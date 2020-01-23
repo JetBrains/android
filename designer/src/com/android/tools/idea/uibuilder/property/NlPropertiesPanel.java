@@ -38,7 +38,7 @@ import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.common.property.PropertiesPanel;
 import com.android.tools.idea.common.property.inspector.InspectorPanel;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.uibuilder.property.inspector.NlInspectorPanel;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
@@ -356,7 +356,7 @@ public class NlPropertiesPanel extends PropertiesPanel<NlPropertiesManager> impl
     if (value == null) {
       return null;
     }
-    ResourceNamespace.Resolver resolver = ResourceHelper.getNamespaceResolver(tag);
+    ResourceNamespace.Resolver resolver = IdeResourcesUtil.getNamespaceResolver(tag);
     ResourceNamespace defaultNamespace = ResourceRepositoryManager.getInstance(myPropertiesManager.getFacet()).getNamespace();
     if (value.getResourceType() == ResourceType.STYLE_ITEM) {
       ResourceReference reference = value.getReference();

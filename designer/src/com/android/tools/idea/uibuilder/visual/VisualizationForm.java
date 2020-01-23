@@ -30,7 +30,7 @@ import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.RenderSettings;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
@@ -268,7 +268,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
    * @return true on success. False if the preview update is not possible (e.g. the file for the editor cannot be found).
    */
   public boolean setNextEditor(@NotNull FileEditor editor) {
-    if (ResourceHelper.getFolderType(editor.getFile()) != ResourceFolderType.LAYOUT) {
+    if (IdeResourcesUtil.getFolderType(editor.getFile()) != ResourceFolderType.LAYOUT) {
       return false;
     }
     myPendingEditor = editor;

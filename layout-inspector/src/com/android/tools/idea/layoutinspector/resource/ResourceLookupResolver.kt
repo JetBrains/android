@@ -68,8 +68,8 @@ import com.intellij.psi.xml.XmlTag
 import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.getItemPsiFile
-import org.jetbrains.android.util.getItemTag
+import com.android.tools.idea.res.getItemPsiFile
+import com.android.tools.idea.res.getItemTag
 import javax.swing.Icon
 
 /**

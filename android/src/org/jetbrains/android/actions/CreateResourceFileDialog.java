@@ -9,7 +9,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.IdeResourceNameValidator;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.CommonBundle;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.actions.TemplateKindCombo;
@@ -108,7 +108,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
     }
 
     if (chooseFileName) {
-      filename = ResourceHelper.prependResourcePrefix(module, filename, folderType);
+      filename = IdeResourcesUtil.prependResourcePrefix(module, filename, folderType);
     }
 
     boolean validateImmediately = false;
@@ -313,7 +313,7 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
   public JComponent getPreferredFocusedComponent() {
     String name = myFileNameField.getText();
     if (name.isEmpty()
-        || name.equals(ResourceHelper.prependResourcePrefix(getSelectedModule(), null, getSelectedFolderType()))
+        || name.equals(IdeResourcesUtil.prependResourcePrefix(getSelectedModule(), null, getSelectedFolderType()))
         || getNameError(name) != null) {
       return myFileNameField;
     }

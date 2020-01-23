@@ -30,7 +30,7 @@ import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.checks.ApiDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.google.common.base.Joiner;
@@ -54,7 +54,6 @@ import java.util.Collections;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.KotlinLanguage;
@@ -230,7 +229,7 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
       for (ResourceItem item : repository.getAllResources()) {
         FolderConfiguration configuration = item.getConfiguration();
         if (oldConfig.equals(configuration)) {
-          VirtualFile sourceFile = ResourceHelper.getSourceAsVirtualFile(item);
+          VirtualFile sourceFile = IdeResourcesUtil.getSourceAsVirtualFile(item);
           if (sourceFile != null && dir.equals(sourceFile.getParent())) {
             srcItems.add(item);
           }
@@ -264,15 +263,15 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
               String fileName = source.getFileName();
               List<String> dirNames = Collections.singletonList(targetDir);
               if (destFolderResources.containsEntry(item.getName(), item.getType())) {
-                AndroidResourceUtil.changeValueResource(project, res, item.getName(), item.getType(), textValue, fileName, dirNames,
-                                                        false);
+                IdeResourcesUtil.changeValueResource(project, res, item.getName(), item.getType(), textValue, fileName, dirNames,
+                                                     false);
               }
               else {
-                AndroidResourceUtil.createValueResource(project, res, item.getName(), item.getType(), fileName, dirNames, textValue);
+                IdeResourcesUtil.createValueResource(project, res, item.getName(), item.getType(), fileName, dirNames, textValue);
               }
             }
             else {
-              VirtualFile virtualFile = ResourceHelper.getSourceAsVirtualFile(item);
+              VirtualFile virtualFile = IdeResourcesUtil.getSourceAsVirtualFile(item);
               if (virtualFile != null) {
                 VirtualFile existing = destDir.findChild(virtualFile.getName());
                 if (existing != null) {

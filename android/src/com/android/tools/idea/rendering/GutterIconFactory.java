@@ -24,7 +24,7 @@ import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.utils.XmlUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
@@ -195,7 +195,7 @@ public class GutterIconFactory {
         String value = attribute.getNodeValue();
 
         if (isReference(value)) {
-          String resolvedValue = ResourceHelper.resolveStringValue(resolver, value);
+          String resolvedValue = IdeResourcesUtil.resolveStringValue(resolver, value);
 
           // Leave the attribute value alone if we were unable to resolve it
           if (!isReference(resolvedValue)) {

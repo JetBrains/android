@@ -21,7 +21,7 @@ import static com.android.tools.lint.checks.AnnotationDetector.RESTRICT_TO_ANNOT
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.ScopeType;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -55,7 +55,7 @@ public class LayoutViewClassUtils {
         return new String[]{name};
       }
 
-      if (ResourceHelper.isClassPackageNeeded(qualifiedName, c, apiLevel)) {
+      if (IdeResourcesUtil.isClassPackageNeeded(qualifiedName, c, apiLevel)) {
         return new String[]{qualifiedName};
       }
       return new String[]{name, qualifiedName};
@@ -74,7 +74,7 @@ public class LayoutViewClassUtils {
       for (PsiClass aClass : classes) {
         final String qualifiedName = aClass.getQualifiedName();
 
-        if (qualifiedName != null && !ResourceHelper.isClassPackageNeeded(qualifiedName, baseClass, apiLevel) && aClass.isInheritor(baseClass, true)) {
+        if (qualifiedName != null && !IdeResourcesUtil.isClassPackageNeeded(qualifiedName, baseClass, apiLevel) && aClass.isInheritor(baseClass, true)) {
           return aClass;
         }
       }

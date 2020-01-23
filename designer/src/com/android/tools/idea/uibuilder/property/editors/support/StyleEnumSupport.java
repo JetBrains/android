@@ -26,7 +26,7 @@ import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.NlProperty;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
@@ -110,7 +110,7 @@ public class StyleEnumSupport extends EnumSupport {
     ApplicationManager.getApplication().assertReadAccessAllowed();
 
     XmlTag tag = getTagOfFirstComponent();
-    return tag != null ? ResourceHelper.getNamespaceResolver(tag) : ResourceNamespace.Resolver.EMPTY_RESOLVER;
+    return tag != null ? IdeResourcesUtil.getNamespaceResolver(tag) : ResourceNamespace.Resolver.EMPTY_RESOLVER;
   }
 
   @Nullable

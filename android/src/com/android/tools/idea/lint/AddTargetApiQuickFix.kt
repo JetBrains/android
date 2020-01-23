@@ -40,7 +40,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import org.jetbrains.android.util.AndroidBundle
-import org.jetbrains.android.util.ensureNamespaceImported
+import com.android.tools.idea.res.ensureNamespaceImported
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.util.addAnnotation
 import org.jetbrains.kotlin.name.FqName

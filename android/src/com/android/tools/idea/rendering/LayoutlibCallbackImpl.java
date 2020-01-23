@@ -82,7 +82,7 @@ import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -467,7 +467,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       parser = LayoutPsiPullParser.create(aaptResource, ResourceNamespace.TODO(), myLogger);
     }
     else {
-      PathString pathString = ResourceHelper.toFileResourcePathString(value);
+      PathString pathString = IdeResourcesUtil.toFileResourcePathString(value);
       if (pathString == null) {
         return null;
       }

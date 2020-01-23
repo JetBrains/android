@@ -25,7 +25,7 @@ import com.android.tools.property.ptable.PTableItem;
 import com.android.tools.idea.common.property.NlProperty;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.JBColor;
@@ -120,7 +120,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
       return null;
     }
 
-    VirtualFile bitmap = ResourceHelper.resolveDrawable(resolver, drawable, property.getModel().getProject());
+    VirtualFile bitmap = IdeResourcesUtil.resolveDrawable(resolver, drawable, property.getModel().getProject());
     bitmap = AndroidAnnotatorUtil.pickBestBitmap(bitmap);
     return bitmap == null ? null : GutterIconCache.getInstance().getIcon(bitmap, resolver, property.getModel().getFacet());
   }
@@ -147,7 +147,7 @@ public class NlDefaultRenderer extends NlAttributeRenderer {
 
   @Nullable
   private static Icon getColorIcon(@NotNull String hexColor, int iconSize) {
-    Color color = ResourceHelper.parseColor(hexColor);
+    Color color = IdeResourcesUtil.parseColor(hexColor);
     return color == null ? null : JBUI.scale(new ColorIcon(iconSize, color, true));
   }
 

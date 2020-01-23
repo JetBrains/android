@@ -25,7 +25,7 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -71,7 +71,6 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProviderUtil;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.facet.SourceProviderManager;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -247,10 +246,10 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
           PsiField[] fields;
           PsiElement elm = getResourceDefinition(item);
           if (elm instanceof PsiFile) {
-            fields = AndroidResourceUtil.findResourceFieldsForFileResource((PsiFile)elm, true);
+            fields = IdeResourcesUtil.findResourceFieldsForFileResource((PsiFile)elm, true);
           }
           else if (elm instanceof XmlTag) {
-            fields = AndroidResourceUtil.findResourceFieldsForValueResource((XmlTag)elm, true);
+            fields = IdeResourcesUtil.findResourceFieldsForValueResource((XmlTag)elm, true);
           }
           else {
             continue;
@@ -288,14 +287,14 @@ public class AndroidModularizeHandler implements RefactoringActionHandler {
 
     @Nullable
     private PsiElement getResourceDefinition(ResourceItem resource) {
-      PsiFile psiFile = AndroidResourceUtil.getItemPsiFile(myProject, resource);
+      PsiFile psiFile = IdeResourcesUtil.getItemPsiFile(myProject, resource);
       if (psiFile == null) { // psiFile could be null if this is dynamically defined, so nothing to visit...
         return null;
       }
 
-      if (ResourceHelper.getFolderType(psiFile) == ResourceFolderType.VALUES) {
+      if (IdeResourcesUtil.getFolderType(psiFile) == ResourceFolderType.VALUES) {
         // This is just a value, so we'll just scan its corresponding XmlTag
-        return AndroidResourceUtil.getItemTag(myProject, resource);
+        return IdeResourcesUtil.getItemTag(myProject, resource);
       }
       return psiFile;
     }

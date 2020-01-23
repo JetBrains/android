@@ -683,7 +683,7 @@ public class ResourceNotificationManager {
       }
 
       if ((child instanceof PsiWhiteSpace || child instanceof XmlText || parent instanceof XmlText)
-          && ResourceHelper.getFolderType(event.getFile()) != ResourceFolderType.VALUES) {
+          && IdeResourcesUtil.getFolderType(event.getFile()) != ResourceFolderType.VALUES) {
         // Editing text or whitespace has no effect outside of values files
         return true;
       }
