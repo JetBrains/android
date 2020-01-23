@@ -26,7 +26,7 @@ import java.util.List;
 public class AndroidProfilerDownloader {
 
   private static final Logger LOG = Logger.getInstance(AndroidProfilerDownloader.class);
-  private static final String VERSION = "26.6.0.0";
+  private static final String VERSION = "26.6.0.1";
 
   public static boolean makeSureProfilerIsInPlace() {
     if (ApplicationManager.getApplication() == null) return false; // to support regular junit tests with no Application initialized

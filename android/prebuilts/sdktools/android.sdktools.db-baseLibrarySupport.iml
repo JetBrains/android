@@ -6,9 +6,9 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-db-baseLibrarySupport" type="repository">
-        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:baseLibrarySupport:26.6.0.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:baseLibrarySupport:26.6.0.1" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/baseLibrarySupport/26.6.0.0/baseLibrarySupport-26.6.0.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/baseLibrarySupport/26.6.0.1/baseLibrarySupport-26.6.0.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
