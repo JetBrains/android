@@ -34,6 +34,7 @@ import static com.android.SdkConstants.ATTR_ORIENTATION;
 import static com.android.SdkConstants.ATTR_VALUE;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_CONSTRAINTS;
+import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_FLOW;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_GROUP;
 import static com.android.SdkConstants.CLASS_CONSTRAINT_LAYOUT_LAYER;
 import static com.android.SdkConstants.CLASS_MOTION_LAYOUT;
@@ -191,6 +192,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
   private final static String ADD_LAYER = "Add Layer";
   private final static String ADD_GROUP = "Add Group";
   private final static String ADD_CONSTRAINTS_SET = "Add Set of Constraints";
+  private final static String ADD_FLOW = "Add Flow";
 
   private static HashMap<String, Boolean> ourVisibilityFlags = new HashMap<>();
 
@@ -803,6 +805,7 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
     public static final int GROUP = 4;
     public static final int CONSTRAINT_SET = 5;
     public static final int LAYER = 6;
+    public static final int FLOW = 7;
 
     final int myType;
 
@@ -868,6 +871,14 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
           case LAYER: {
             NlComponent layer = NlComponentHelperKt
               .createChild(parent, editor, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_LAYER.newName() : CLASS_CONSTRAINT_LAYOUT_LAYER.oldName(),
+                           null, InsertType.CREATE);
+            assert layer != null;
+            layer.ensureId();
+          }
+          break;
+          case FLOW: {
+            NlComponent layer = NlComponentHelperKt
+              .createChild(parent, editor, useAndroidx ? CLASS_CONSTRAINT_LAYOUT_FLOW.newName() : CLASS_CONSTRAINT_LAYOUT_FLOW.oldName(),
                            null, InsertType.CREATE);
             assert layer != null;
             layer.ensureId();
@@ -1041,6 +1052,9 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
         show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 9);
       }
       if (myType == LAYER) {
+        show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 9);
+      }
+      if (myType == FLOW) {
         show = ConstraintComponentUtilities.isConstraintModelGreaterThan(editor, 1, 9);
       }
 
@@ -1917,6 +1931,10 @@ public class ConstraintLayoutHandler extends ViewGroupHandler implements Compone
       new AddElementAction(AddElementAction.LAYER,
                            // TODO: add new icon to StudioIcons and replace this icon
                            AndroidIcons.SherpaIcons.Layer,
-                           ADD_LAYER));
+                           ADD_LAYER),
+      new AddElementAction(AddElementAction.FLOW,
+                           // TODO: add new icon to StudioIcons and replace this icon
+                           AndroidIcons.SherpaIcons.Layer,
+                           ADD_FLOW));
   }
 }
