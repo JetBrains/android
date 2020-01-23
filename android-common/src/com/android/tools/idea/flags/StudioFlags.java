@@ -323,11 +323,6 @@ public final class StudioFlags {
     "Enable Visualisation Tool to preview layouts in multiple font sizes at the same time",
     true);
 
-  public static final Flag<Boolean> NELE_NEW_INTERACTION_INTERFACE = Flag.create(
-    NELE, "new.interaction.interface", "New Interaction Interface",
-    "Enable new interaction interface in design surface.",
-    true);
-
   public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
     NELE, "show.source.code.editor", "New Source Code Editor",
     "Enable new source code editor with preview(s) coming as a substitute to Compose and Custom View editors.",
