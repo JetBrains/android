@@ -501,6 +501,9 @@ public final class StudioFlags {
     LAYOUT_INSPECTOR, "dynamic.layout.editor", "Enable dynamic layout editor",
     "If enabled, users can edit layout properties with live updates on a device while the dynamic layout inspector is running.",
     false);
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.devbuild.skia", "Use the locally-built skia rendering server",
+    "If enabled and this is a locally-built studio instance, use the locally-built skia server instead of one from the SDK.", false);
   //endregion
 
   //region Refactorings
