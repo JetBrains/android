@@ -21,7 +21,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.getClassName
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.execution.actions.LazyRunConfigurationProducer
-import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.runConfigurationType
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
@@ -36,18 +35,8 @@ import org.jetbrains.kotlin.psi.psiUtil.getNonStrictParentOfType
  * in the PSI tree, such as its annotations, function name or even the keyword "fun".
  */
 open class ComposePreviewRunConfigurationProducer : LazyRunConfigurationProducer<ComposePreviewRunConfiguration>() {
-  final override fun getConfigurationFactory(): ConfigurationFactory {
-    if (StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.get()) {
-      // When the flag is enabled, ComposePreviewRunConfigurationType should be registered in compose-designer.xml, so actually try to
-      // locate the configuration type.
-      return runConfigurationType<ComposePreviewRunConfigurationType>().configurationFactories[0]
-    }
-    else {
-      // When the flag is disabled, return a new instance of ComposePreviewRunConfigurationType, so this method returns a valid
-      // configuration type instance when IntelliJ is iterating through the list of producers.
-      return ComposePreviewRunConfigurationType()
-    }
-  }
+  final override fun getConfigurationFactory() =
+    runConfigurationType<ComposePreviewRunConfigurationType>().configurationFactories[0]
 
   public final override fun setupConfigurationFromContext(configuration: ComposePreviewRunConfiguration,
                                                           context: ConfigurationContext,

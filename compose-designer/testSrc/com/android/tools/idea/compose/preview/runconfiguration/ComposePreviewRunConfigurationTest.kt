@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.ddmlib.IDevice
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ConsolePrinter
 import com.android.tools.idea.run.tasks.ActivityLaunchTask
@@ -28,6 +29,16 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.mockito.Mockito.mock
 
 class ComposePreviewRunConfigurationTest : AndroidTestCase() {
+
+  override fun setUp() {
+    super.setUp()
+    StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.override(true)
+  }
+
+  override fun tearDown() {
+    super.tearDown()
+    StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.clearOverride()
+  }
 
   fun testAmStartOptionsWithComposableMethod() {
     val runConfigurationFactory = ComposePreviewRunConfigurationType().configurationFactories[0]
