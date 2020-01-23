@@ -53,14 +53,12 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -427,7 +425,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     // let's open the file
     AndroidFacet facet = motionLayout.getModel().getFacet();
 
-    List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
+    List<VirtualFile> resourcesXML = IdeResourcesUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
       .getModuleResources(facet).getResourceDirs());
     if (resourcesXML.isEmpty()) {
       return null;
@@ -623,7 +621,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
       return null;
     }
     AndroidFacet facet = component.getModel().getFacet();
-    List<VirtualFile> resourcesXML = AndroidResourceUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
+    List<VirtualFile> resourcesXML = IdeResourcesUtil.getResourceSubdirs(ResourceFolderType.XML, ResourceRepositoryManager
       .getModuleResources(facet).getResourceDirs());
     if (resourcesXML.isEmpty()) {
       return null;

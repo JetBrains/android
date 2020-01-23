@@ -23,7 +23,7 @@ import static com.android.SdkConstants.XMLNS_PREFIX;
 
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.databinding.LayoutBindingProjectComponent;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.codeInsight.intention.AbstractIntentionAction;
 import com.intellij.codeInsight.intention.HighPriorityAction;
 import com.intellij.openapi.editor.Editor;
@@ -80,7 +80,7 @@ public final class ConvertLayoutToDataBindingAction extends AbstractIntentionAct
 
   @Override
   public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
-    if (ResourceHelper.getFolderType(file) != ResourceFolderType.LAYOUT) {
+    if (IdeResourcesUtil.getFolderType(file) != ResourceFolderType.LAYOUT) {
       return false;
     }
     if (!(file instanceof XmlFile)) {

@@ -48,7 +48,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ValueResourceInfo;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,13 +87,13 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
     }
     if (element instanceof XmlAttributeValue) {
       XmlAttributeValue value = (XmlAttributeValue)element;
-      if (AndroidResourceUtil.isIdDeclaration(value)) {
+      if (IdeResourcesUtil.isIdDeclaration(value)) {
         return true;
       }
     }
     element = correctResourceElement(element);
     if (element instanceof PsiField) {
-      return AndroidResourceUtil.isResourceField((PsiField)element);
+      return IdeResourcesUtil.isResourceField((PsiField)element);
     }
     else if (element instanceof PsiFile || element instanceof XmlTag) {
       final AndroidFacet facet = AndroidFacet.getInstance(element);
@@ -106,7 +106,7 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
         else {
           ResourceFolderType fileResType = resourceManager.getFileResourceFolderType(element.getContainingFile());
           if (ResourceFolderType.VALUES == fileResType) {
-            return AndroidResourceUtil.getResourceTypeForResourceTag((XmlTag)element) != null;
+            return IdeResourcesUtil.getResourceTypeForResourceTag((XmlTag)element) != null;
           }
         }
       }
@@ -179,16 +179,16 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
       ValueResourceInfo resourceInfo = ((LazyValueResourceElementWrapper)element).getResourceInfo();
       PsiField[] resourceFields = forHighlightUsages
                                   ? PsiField.EMPTY_ARRAY
-                                  : AndroidResourceUtil.findResourceFields(facet, resourceInfo.getType().getName(),
-                                                                           resourceInfo.getName(), true);
+                                  : IdeResourcesUtil.findResourceFields(facet, resourceInfo.getType().getName(),
+                                                                        resourceInfo.getName(), true);
       return new MyFindUsagesHandler(element, resourceFields);
     }
 
     if (element instanceof XmlAttributeValue) {
       XmlAttributeValue value = (XmlAttributeValue)element;
-      if (AndroidResourceUtil.isIdDeclaration(value)) {
+      if (IdeResourcesUtil.isIdDeclaration(value)) {
         element = wrapIfNecessary(value);
-        PsiField[] fields = forHighlightUsages ? PsiField.EMPTY_ARRAY : AndroidResourceUtil.findIdFields(value);
+        PsiField[] fields = forHighlightUsages ? PsiField.EMPTY_ARRAY : IdeResourcesUtil.findIdFields(value);
         return new MyFindUsagesHandler(element, fields);
       }
     }
@@ -197,7 +197,7 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
       // resource file
       PsiField[] fields = forHighlightUsages
                           ? PsiField.EMPTY_ARRAY
-                          : AndroidResourceUtil.findResourceFieldsForFileResource((PsiFile)element, true);
+                          : IdeResourcesUtil.findResourceFieldsForFileResource((PsiFile)element, true);
       if (fields.length == 0) {
         return null;
       }
@@ -212,12 +212,12 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
 
       PsiField[] fields = PsiField.EMPTY_ARRAY;
       if (!forHighlightUsages) {
-        fields = AndroidResourceUtil.findResourceFieldsForValueResource(tag, true);
+        fields = IdeResourcesUtil.findResourceFieldsForValueResource(tag, true);
         if (fields.length == 0) {
           return null;
         }
 
-        PsiField[] styleableFields = AndroidResourceUtil.findStyleableAttributeFields(tag, true);
+        PsiField[] styleableFields = IdeResourcesUtil.findStyleableAttributeFields(tag, true);
         if (styleableFields.length > 0) {
           fields = ObjectArrays.concat(fields, styleableFields, PsiField.class);
         }
@@ -227,7 +227,7 @@ public class AndroidFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
     }
     else if (element instanceof PsiField) {
       PsiField field = (PsiField)element;
-      List<PsiElement> resources = AndroidResourceUtil.findResourcesByField(field);
+      List<PsiElement> resources = IdeResourcesUtil.findResourcesByField(field);
       if (resources.isEmpty()) {
         return new MyFindUsagesHandler(element);
       }

@@ -77,7 +77,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -414,7 +414,7 @@ public class AndroidLintIdeClient extends LintIdeClient {
   @Override
   @NonNull
   public Location.Handle createResourceItemHandle(@NonNull ResourceItem item) {
-    XmlTag tag = AndroidResourceUtil.getItemTag(myProject, item);
+    XmlTag tag = IdeResourcesUtil.getItemTag(myProject, item);
     if (tag != null) {
       PathString source = item.getSource();
       assert source != null : item;

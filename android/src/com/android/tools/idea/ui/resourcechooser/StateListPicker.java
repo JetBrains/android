@@ -27,7 +27,7 @@ import com.android.tools.idea.editors.theme.ThemeEditorConstants;
 import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.editors.theme.ui.ResourceComponent;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.StateList;
 import com.android.tools.idea.res.StateListState;
 import com.google.common.base.Strings;
@@ -124,11 +124,11 @@ public class StateListPicker extends JPanel {
     AndroidFacet facet = AndroidFacet.getInstance(myModule);
     assert facet != null;
     assert myStateList != null;
-    List<String> completionStrings = ResourceHelper.getCompletionFromTypes(facet, myStateList.getFolderType() == ResourceFolderType.COLOR
+    List<String> completionStrings = IdeResourcesUtil.getCompletionFromTypes(facet, myStateList.getFolderType() == ResourceFolderType.COLOR
                                                                                   ? ThemeEditorConstants.COLORS_ONLY
                                                                                   : ThemeEditorConstants.DRAWABLES_ONLY);
     stateComponent.getResourceComponent().setCompletionStrings(completionStrings);
-    stateComponent.getAlphaComponent().setCompletionStrings(ResourceHelper.getCompletionFromTypes(facet, DIMENSIONS_ONLY));
+    stateComponent.getAlphaComponent().setCompletionStrings(IdeResourcesUtil.getCompletionFromTypes(facet, DIMENSIONS_ONLY));
 
     return stateComponent;
   }
@@ -343,7 +343,7 @@ public class StateListPicker extends JPanel {
     String alphaValue = component.getAlphaValue();
     if (!StringUtil.isEmpty(alphaValue)) {
       try {
-        float alpha = Float.parseFloat(ResourceHelper.resolveStringValue(resourceResolver, alphaValue));
+        float alpha = Float.parseFloat(IdeResourcesUtil.resolveStringValue(resourceResolver, alphaValue));
         Font iconFont = JBUI.Fonts.smallFont().asBold();
         component.getAlphaComponent().setSwatchIcon(new ResourceSwatchComponent.TextIcon(String.format(Locale.US, "%.2f", alpha),
                                                                                          iconFont));
@@ -365,11 +365,11 @@ public class StateListPicker extends JPanel {
     resValue = resourceResolver.resolveResValue(resValue);
 
     if (resValue == null || resValue.getResourceType() == ResourceType.COLOR) {
-      final List<Color> colors = ResourceHelper.resolveMultipleColors(resourceResolver, resValue,
-                                                                      renderTask.getContext().getModule().getProject());
+      final List<Color> colors = IdeResourcesUtil.resolveMultipleColors(resourceResolver, resValue,
+                                                                        renderTask.getContext().getModule().getProject());
       ResourceSwatchComponent.SwatchIcon icon;
       if (colors.isEmpty()) {
-        Color colorValue = ResourceHelper.parseColor(resourceName);
+        Color colorValue = IdeResourcesUtil.parseColor(resourceName);
         if (colorValue != null) {
           icon = new ResourceSwatchComponent.ColorIcon(colorValue);
         }

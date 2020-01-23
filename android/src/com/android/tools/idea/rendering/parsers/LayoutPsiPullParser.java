@@ -71,7 +71,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.LayoutMetadata;
 import com.android.tools.idea.rendering.RenderLogger;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -214,7 +214,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
                                            boolean honorMergeParentTag,
                                            @Nullable ResourceResolver resolver,
                                            int sampleDataCounter) {
-    if (ResourceHelper.getFolderType(file) == ResourceFolderType.MENU) {
+    if (IdeResourcesUtil.getFolderType(file) == ResourceFolderType.MENU) {
       return new MenuPsiPullParser(file, logger);
     }
     return new LayoutPsiPullParser(file, logger, honorMergeParentTag, resolver, sampleDataCounter);

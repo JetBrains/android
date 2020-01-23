@@ -64,7 +64,7 @@ import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -522,7 +522,7 @@ public class Configuration implements Disposable, ModificationTracker {
         if (myEditedConfig.isMatchFor(currentConfig)) {
           LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(module);
           if (resources != null && myFile != null) {
-            ResourceFolderType folderType = ResourceHelper.getFolderType(myFile);
+            ResourceFolderType folderType = IdeResourcesUtil.getFolderType(myFile);
             if (folderType != null) {
               if (ResourceFolderType.VALUES.equals(folderType)) {
                 // If it's a file in the values folder, ResourceRepository.getMatchingFiles won't work.

@@ -18,7 +18,7 @@ import com.intellij.util.containers.HashSet;
 import com.intellij.util.containers.MultiMap;
 import org.jetbrains.android.dom.resources.ResourceNameConverter;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,7 +82,7 @@ class AndroidInlineAllStyleUsagesProcessor extends BaseRefactoringProcessor {
     final Set<UsageInfo> usages = new HashSet<UsageInfo>();
     AndroidInlineUtil.addReferences(myStyleElement, usages);
 
-    for (PsiField field : AndroidResourceUtil.findResourceFieldsForValueResource(myStyleTag, false)) {
+    for (PsiField field : IdeResourcesUtil.findResourceFieldsForValueResource(myStyleTag, false)) {
       AndroidInlineUtil.addReferences(field, usages);
     }
     return usages.toArray(UsageInfo.EMPTY_ARRAY);

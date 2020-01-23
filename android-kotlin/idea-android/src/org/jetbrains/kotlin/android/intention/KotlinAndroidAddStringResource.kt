@@ -42,8 +42,8 @@ import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidUtils
-import org.jetbrains.android.util.createValueResource
-import org.jetbrains.android.util.getRJavaFieldName
+import com.android.tools.idea.res.createValueResource
+import com.android.tools.idea.res.getRJavaFieldName
 import org.jetbrains.kotlin.builtins.isExtensionFunctionType
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -115,8 +115,10 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtLiteralStringTem
         val parameters = getCreateXmlResourceParameters(facet.module, element, file.virtualFile) ?: return
 
         runWriteAction {
-            if (!createValueResource(project, parameters.resourceDirectory, parameters.name, ResourceType.STRING,
-                                                         parameters.fileName, parameters.directoryNames, parameters.value)) {
+            if (!createValueResource(project, parameters.resourceDirectory, parameters.name,
+                                                                                   ResourceType.STRING,
+                                                                                   parameters.fileName, parameters.directoryNames,
+                                                                                   parameters.value)) {
                 return@runWriteAction
             }
 

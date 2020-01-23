@@ -200,7 +200,7 @@ fun addAarDependency(
   val aarDir = FileUtil.createTempDirectory(libraryName, "_exploded")
 
   // Create a manifest file in the right place, so that files inside aarDir are considered resource files.
-  // See AndroidResourceUtil#isResourceDirectory which is called from ResourcesDomFileDescription#isResourcesFile.
+  // See AndroidResourcesIdeUtil#isResourceDirectory which is called from ResourcesDomFileDescription#isResourcesFile.
   createAndroidManifest(aarDir, packageName)
 
   val resDir = aarDir.resolve(SdkConstants.FD_RES)

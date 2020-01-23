@@ -30,7 +30,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.DefaultXmlExtension;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +57,7 @@ public class AndroidXmlExtension extends DefaultXmlExtension {
         @Override
         public Boolean compute() {
           if (AndroidFacet.getInstance(file) != null) {
-            if (AndroidResourceUtil.isInResourceSubdirectory(file, null)) {
+            if (IdeResourcesUtil.isInResourceSubdirectory(file, null)) {
               return true;
             }
 

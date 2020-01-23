@@ -26,6 +26,9 @@ import com.android.resources.ResourceUrl
 import com.android.tools.idea.res.AndroidRClassBase
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.getFolderType
+import com.android.tools.idea.res.getResourceClassName
+import com.android.tools.idea.res.getResourceTypeForResourceTag
+import com.android.tools.idea.res.isInResourceSubdirectory
 import com.android.tools.idea.res.isValueBased
 import com.android.tools.idea.res.resolve
 import com.android.tools.idea.res.resourceNamespace
@@ -57,9 +60,6 @@ import org.jetbrains.android.augment.AndroidLightField
 import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper
-import org.jetbrains.android.util.getResourceClassName
-import org.jetbrains.android.util.getResourceTypeForResourceTag
-import org.jetbrains.android.util.isInResourceSubdirectory
 import javax.swing.Icon
 
 /**

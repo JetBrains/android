@@ -22,7 +22,7 @@ import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceUrl;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -117,7 +117,7 @@ public class StyleFilter {
       return false;
     }
 
-    return ResourceHelper.isAccessibleInXml(style, myFacet);
+    return IdeResourcesUtil.isAccessibleInXml(style, myFacet);
   }
 
   @NotNull

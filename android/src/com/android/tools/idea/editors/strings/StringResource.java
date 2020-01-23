@@ -32,7 +32,7 @@ import com.intellij.psi.xml.XmlTag;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,7 +66,7 @@ public final class StringResource {
 
     for (ResourceItem item : data.getRepository().getItems(key)) {
       assert item instanceof PsiResourceItem || item instanceof DynamicValueResourceItem : item.getClass();
-      XmlTag tag = AndroidResourceUtil.getItemTag(project, item);
+      XmlTag tag = IdeResourcesUtil.getItemTag(project, item);
 
       if (tag != null && "false".equals(tag.getAttributeValue(SdkConstants.ATTR_TRANSLATABLE))) {
         translatable = false;

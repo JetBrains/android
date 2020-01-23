@@ -19,7 +19,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 
 /**
  * @author Eugene.Kudelevsky
@@ -42,6 +42,6 @@ public class AndroidProblemFileHighlightingFilter implements Condition<VirtualFi
     if (parent == null) return false;
     parent = parent.getParent();
     if (parent == null) return false;
-    return AndroidResourceUtil.isLocalResourceDirectory(parent, myProject);
+    return IdeResourcesUtil.isLocalResourceDirectory(parent, myProject);
   }
 }

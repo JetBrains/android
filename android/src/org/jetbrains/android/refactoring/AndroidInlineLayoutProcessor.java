@@ -20,7 +20,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.HashSet;
 import com.intellij.util.containers.MultiMap;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -85,7 +85,7 @@ public class AndroidInlineLayoutProcessor extends BaseRefactoringProcessor {
     final Set<UsageInfo> usages = new HashSet<UsageInfo>();
     AndroidInlineUtil.addReferences(myLayoutFile, usages);
 
-    for (PsiField field : AndroidResourceUtil.findResourceFieldsForFileResource(myLayoutFile, false)) {
+    for (PsiField field : IdeResourcesUtil.findResourceFieldsForFileResource(myLayoutFile, false)) {
       AndroidInlineUtil.addReferences(field, usages);
     }
     return usages.toArray(UsageInfo.EMPTY_ARRAY);

@@ -27,7 +27,7 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlText
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.isResourceFile
+import com.android.tools.idea.res.isResourceFile
 
 class AndroidXmlTypedHandler : TypedHandlerDelegate() {
   override fun charTyped(charTyped: Char, project: Project, editor: Editor, file: PsiFile): Result {

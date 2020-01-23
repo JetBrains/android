@@ -221,6 +221,6 @@ class AndroidLintIdeSupport : LintIdeSupport() {
   }
 
   override fun ensureNamespaceImported(file: XmlFile, namespaceUri: String, suggestedPrefix: String?): String {
-    return org.jetbrains.android.util.ensureNamespaceImported(file, namespaceUri, suggestedPrefix)
+    return com.android.tools.idea.res.ensureNamespaceImported(file, namespaceUri, suggestedPrefix)
   }
 }

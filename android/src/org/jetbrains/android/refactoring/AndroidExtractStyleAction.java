@@ -23,7 +23,7 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.resources.Style;
 import org.jetbrains.android.dom.resources.StyleItem;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -72,7 +72,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
       return null;
     }
     final String dialogTitle = AndroidBundle.message("android.extract.style.title");
-    final String fileName = AndroidResourceUtil.getDefaultResourceFileName(ResourceType.STYLE);
+    final String fileName = IdeResourcesUtil.getDefaultResourceFileName(ResourceType.STYLE);
     assert fileName != null;
     final List<String> dirNames = Collections.singletonList(ResourceFolderType.VALUES.getName());
     final List<XmlAttribute> extractableAttributes = getExtractableAttributes(viewTag);
@@ -147,7 +147,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
       protected void run(@NotNull final Result result) throws Throwable {
         final List<XmlAttribute> attributesToDelete = new ArrayList<XmlAttribute>();
 
-        if (!AndroidResourceUtil
+        if (!IdeResourcesUtil
           .createValueResource(project, chosenDirectory, styleName, null, ResourceType.STYLE, fileName, dirNames,
                                new Processor<ResourceElement>() {
             @Override

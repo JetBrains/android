@@ -24,7 +24,7 @@ import org.jetbrains.android.actions.CreateTypedResourceFileAction;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -118,7 +118,7 @@ public class CreateFileResourceQuickFix implements LocalQuickFix, IntentionActio
     }
 
     try {
-      AndroidResourceUtil.createFileResource(
+      IdeResourcesUtil.createFileResource(
         myResourceName, resSubdir, CreateTypedResourceFileAction.getDefaultRootTagByResourceType(myResourceType), resDirName, false);
       UndoUtil.markPsiFileForUndo(myFile);
     }

@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.visual;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.DataManager;
@@ -337,7 +337,7 @@ public class VisualizationManager implements ProjectComponent {
     return Arrays.stream(myFileEditorManager.getSelectedEditors())
       .filter(editor -> {
         VirtualFile editorFile = editor.getFile();
-        ResourceFolderType type = ResourceHelper.getFolderType(editorFile);
+        ResourceFolderType type = IdeResourcesUtil.getFolderType(editorFile);
         return type == ResourceFolderType.LAYOUT;
       })
       .findFirst()
@@ -399,7 +399,7 @@ public class VisualizationManager implements ProjectComponent {
         VirtualFile newVirtualFile = newEditor.getFile();
         if (newVirtualFile != null) {
           PsiFile psiFile = PsiManager.getInstance(myProject).findFile(newVirtualFile);
-          if (ResourceHelper.getFolderType(psiFile) == ResourceFolderType.LAYOUT) {
+          if (IdeResourcesUtil.getFolderType(psiFile) == ResourceFolderType.LAYOUT) {
             // Visualization tool only works for layout files.
             editorForLayout = newEditor;
           }

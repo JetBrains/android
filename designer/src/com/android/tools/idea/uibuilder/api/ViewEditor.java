@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import static com.android.tools.idea.res.FloatResources.parseFloatAttribute;
-import static com.android.tools.idea.res.ResourceHelper.resolveStringValue;
+import static com.android.tools.idea.res.IdeResourcesUtil.resolveStringValue;
 
 /**
  * The UI builder / layout editor as exposed to {@link ViewHandler} instances.

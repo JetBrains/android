@@ -65,7 +65,7 @@ import javax.swing.SwingConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -282,7 +282,7 @@ public class RecyclerViewAssistant extends AssistantPopupPanel {
     assert resourceDir != null;
 
     return WriteCommandAction.runWriteCommandAction(project, (Computable<PsiFile>)() -> {
-      List<VirtualFile> files = AndroidResourceUtil.findOrCreateStateListFiles(
+      List<VirtualFile> files = IdeResourcesUtil.findOrCreateStateListFiles(
         project, resourceDir, ResourceFolderType.LAYOUT, ResourceType.LAYOUT, resourceName, Collections.singletonList(FD_RES_LAYOUT));
       if (files == null || files.isEmpty()) {
         return null;

@@ -25,7 +25,7 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -50,7 +50,6 @@ import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -207,7 +206,7 @@ public class LocalResourceManager extends ResourceManager {
     return getResourceRepository()
         .getResources(namespace, resourceType, name)
         .stream()
-        .map(item -> ResourceHelper.getSourceAsVirtualFile(item))
+        .map(item -> IdeResourcesUtil.getSourceAsVirtualFile(item))
         .filter(file -> Objects.nonNull(file))
         .distinct()
         .map(file -> AndroidUtils.loadDomElement(myProject, file, Resources.class))
@@ -217,7 +216,7 @@ public class LocalResourceManager extends ResourceManager {
 
   @NotNull
   public List<PsiElement> findResourcesByField(@NotNull PsiField field) {
-    String type = AndroidResourceUtil.getResourceClassName(field);
+    String type = IdeResourcesUtil.getResourceClassName(field);
     if (type == null) {
       return Collections.emptyList();
     }
@@ -336,7 +335,7 @@ public class LocalResourceManager extends ResourceManager {
       }
 
       for (ResourceItem item : items) {
-        VirtualFile resFile = ResourceHelper.getSourceAsVirtualFile(item);
+        VirtualFile resFile = IdeResourcesUtil.getSourceAsVirtualFile(item);
         if (resFile != null && ResourceFolderType.getFolderType(resFile.getParent().getName()) == resourceFolderType) {
           PsiFile file = AndroidPsiUtils.getPsiFileSafely(myProject, resFile);
           if (file != null) {

@@ -47,7 +47,6 @@ import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -347,7 +346,7 @@ class ResourceFolderRepositoryFileCacheImpl implements ResourceFolderRepositoryF
         return;
       }
       List<AndroidFacet> facets = ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID);
-      Map<VirtualFile, AndroidFacet> resDirectories = AndroidResourceUtil.getResourceDirectoriesForFacets(facets);
+      Map<VirtualFile, AndroidFacet> resDirectories = IdeResourcesUtil.getResourceDirectoriesForFacets(facets);
       Set<Path> usedCacheDirectories = new HashSet<>();
       for (VirtualFile resourceDir : resDirectories.keySet()) {
         Path dir = cache.getCacheFile(myProject, resourceDir);

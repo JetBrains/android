@@ -31,7 +31,7 @@ import static com.android.tools.idea.resources.base.RepositoryLoader.portableFil
 import static com.android.tools.idea.resources.base.ResourceSerializationUtil.createPersistentCache;
 import static com.android.tools.idea.resources.base.ResourceSerializationUtil.writeResourcesToStream;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.jetbrains.android.util.AndroidResourceUtil.getResourceTypeForResourceTag;
+import static com.android.tools.idea.res.IdeResourcesUtil.getResourceTypeForResourceTag;
 
 import com.android.SdkConstants;
 import com.android.annotations.concurrency.Slow;
@@ -622,7 +622,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     ReadAction.run(() -> {
       PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
       if (psiFile != null) {
-        ResourceFolderType folderType = ResourceHelper.getFolderType(psiFile);
+        ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
         if (folderType != null) {
           scheduleScan(psiFile, folderType);
         }
@@ -676,7 +676,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     ApplicationManager.getApplication().runWriteAction(() -> {
       for (PsiFile file : files) {
         if (file.isValid()) {
-          ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+          ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
           if (folderType != null) {
             scan(file, folderType);
           }
@@ -705,7 +705,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       PsiFile psiFile = manager.findFile(virtualFile);
       assert psiFile != null;
 
-      ResourceFolderType type = ResourceHelper.getFolderType(virtualFile);
+      ResourceFolderType type = IdeResourcesUtil.getFolderType(virtualFile);
       assert type != null;
 
       scan(psiFile, type);
@@ -864,7 +864,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   private void scan(@NotNull VirtualFile file) {
-    ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
     if (folderType == null) {
       return;
     }
@@ -1004,7 +1004,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   private final class SimplePsiListener extends PsiTreeAnyChangeAbstractAdapter {
     @Override
     protected void onChange(@Nullable PsiFile psiFile) {
-      ResourceFolderType folderType = ResourceHelper.getFolderType(psiFile);
+      ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
       if (folderType != null && psiFile != null && isResourceFile(psiFile)) {
         scheduleScan(psiFile, folderType);
       }
@@ -1027,7 +1027,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           return;
         }
         // Some child was added within a file.
-        ResourceFolderType folderType = ResourceHelper.getFolderType(psiFile);
+        ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
         if (folderType != null && isResourceFile(psiFile)) {
           PsiElement child = event.getChild();
           PsiElement parent = event.getParent();
@@ -1169,7 +1169,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           return;
         }
         // Some child was removed within a file.
-        ResourceFolderType folderType = ResourceHelper.getFolderType(psiFile);
+        ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
         if (folderType != null && isResourceFile(psiFile)) {
           PsiElement child = event.getChild();
           PsiElement parent = event.getParent();
@@ -1284,7 +1284,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           // That's the case if the XML edited is not a resource file (e.g. the manifest file),
           // or if it's within a file that is not a value file or an id-generating file (layouts and menus),
           // such as editing the content of a drawable XML file.
-          ResourceFolderType folderType = ResourceHelper.getFolderType(psiFile);
+          ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
           if (folderType != null && FolderTypeRelationship.isIdGeneratingFolderType(folderType) &&
               psiFile.getFileType() == StdFileTypes.XML) {
             // The only way the edit affected the set of resources was if the user added or removed an
@@ -1602,7 +1602,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       if (parentTagName.equals(TAG_ITEM)) {
         XmlTag style = parentTag.getParentTag();
         if (style != null && ResourceType.fromXmlTagName(style.getName()) != null) {
-          ResourceFolderType folderType = ResourceHelper.getFolderType(psiFile);
+          ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
           assert folderType != null;
           if (convertToPsiIfNeeded(psiFile, folderType)) {
             return;
@@ -1623,7 +1623,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       // Find surrounding item.
       while (parentTag != null) {
         if (isItemElement(parentTag)) {
-          ResourceFolderType folderType = ResourceHelper.getFolderType(psiFile);
+          ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
           assert folderType != null;
           if (convertToPsiIfNeeded(psiFile, folderType)) {
             return;
@@ -1677,7 +1677,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       if (psiFile != null && isRelevantFile(psiFile)) {
         VirtualFile file = psiFile.getVirtualFile();
         if (file != null) {
-          ResourceFolderType folderType = ResourceHelper.getFolderType(psiFile);
+          ResourceFolderType folderType = IdeResourcesUtil.getFolderType(psiFile);
           if (folderType != null && isResourceFile(psiFile)) {
             // TODO: If I get an XmlText change and the parent is the resources tag or it's a layout, nothing to do.
             scheduleScan(psiFile, folderType);
@@ -1731,7 +1731,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       invalidateParentCaches(this, ResourceType.values());
     }
 
-    ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
     if (folderType != null) {
       clearLayoutlibCaches(file, folderType);
     }

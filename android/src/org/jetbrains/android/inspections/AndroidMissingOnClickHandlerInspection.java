@@ -27,7 +27,7 @@ import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.menu.MenuDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,7 +84,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
   private static Set<PsiClass> findRelatedActivitiesForMenu(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
     final String resType = ResourceType.MENU.getName();
     final String resourceName = SdkUtils.fileNameToResourceName(file.getName());
-    final PsiField[] fields = AndroidResourceUtil.findResourceFields(facet, resType, resourceName, true);
+    final PsiField[] fields = IdeResourcesUtil.findResourceFields(facet, resType, resourceName, true);
 
     if (fields.length == 0) {
       return Collections.emptySet();

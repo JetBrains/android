@@ -45,7 +45,6 @@ import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -177,7 +176,7 @@ public class ResourceFolderRegistry implements Disposable {
       // Some directories in the registry may already be populated by this point, so filter them out.
       indicator.setText("Indexing resources");
       indicator.setIndeterminate(false);
-      Map<VirtualFile, AndroidFacet> resDirectories = AndroidResourceUtil.getResourceDirectoriesForFacets(facets);
+      Map<VirtualFile, AndroidFacet> resDirectories = IdeResourcesUtil.getResourceDirectoriesForFacets(facets);
       // Might already be done, as there can be a race for filling the memory caches.
       if (resDirectories.isEmpty()) {
         return;

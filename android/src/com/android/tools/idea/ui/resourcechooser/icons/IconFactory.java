@@ -23,7 +23,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTaskContext;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.checks.IconDetector;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.ui.RowIcon;
@@ -139,7 +139,7 @@ public class IconFactory {
       RenderTaskContext context = renderTask.getContext();
       ResourceResolver resolver = context.getConfiguration().getResourceResolver();
       assert resolver != null;
-      List<Color> colors = ResourceHelper.resolveMultipleColors(resolver, resourceValue, context.getModule().getProject());
+      List<Color> colors = IdeResourcesUtil.resolveMultipleColors(resolver, resourceValue, context.getModule().getProject());
       if (colors.size() == 1) {
         icon = new ResourceChooserColorIcon(size, colors.get(0), checkerboardSize);
       }

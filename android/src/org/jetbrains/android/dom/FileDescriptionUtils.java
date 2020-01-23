@@ -23,7 +23,7 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Conditions;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -85,7 +85,7 @@ public final class FileDescriptionUtils {
         return false;
       }
 
-      if (!AndroidResourceUtil.isInResourceSubdirectory(file, folderType.getName())) {
+      if (!IdeResourcesUtil.isInResourceSubdirectory(file, folderType.getName())) {
         return false;
       }
 
