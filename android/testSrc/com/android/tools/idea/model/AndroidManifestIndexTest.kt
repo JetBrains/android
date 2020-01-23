@@ -30,8 +30,8 @@ import org.junit.runners.JUnit4
 class AndroidManifestIndexTest {
   @Test
   fun indexer_reallyShortManifest() {
-    val manifest = AndroidManifestIndex.Indexer.computeValue(FakeXmlFileContent("<"))
-    assertThat(manifest).isNull()
+    val manifestMap = AndroidManifestIndex.Indexer.map(FakeXmlFileContent("<"))
+    assertThat(manifestMap).isEmpty()
   }
 
   @Test
@@ -63,34 +63,35 @@ class AndroidManifestIndexTest {
   <uses-sdk android:minSdkVersion='22' android:targetSdkVersion='28'/>
 </manifest>
     """.trimIndent()
-    val manifest = AndroidManifestIndex.Indexer.computeValue(FakeXmlFileContent(manifestContent))
-    assertThat(manifest).isEqualTo(
-      AndroidManifestRawText(
-        activities = setOf(
-          ActivityRawText(
-            name = ".EnabledActivity",
-            enabled = "true",
-            intentFilters = setOf(
-              IntentFilterRawText(actionNames = setOf("android.intent.action.MAIN"),
-                                  categoryNames = setOf("android.intent.category.DEFAULT"))
-            )
-          ),
-          ActivityRawText(name = ".DisabledActivity", enabled = "false", intentFilters = setOf())
+    val manifestMap = AndroidManifestIndex.Indexer.map(FakeXmlFileContent(manifestContent))
+    assertThat(manifestMap).containsExactly("com.example", AndroidManifestRawText(
+      activities = setOf(
+        ActivityRawText(
+          name = ".EnabledActivity",
+          enabled = "true",
+          intentFilters = setOf(
+            IntentFilterRawText(actionNames = setOf("android.intent.action.MAIN"),
+                                categoryNames = setOf("android.intent.category.DEFAULT"))
+          )
         ),
-        activityAliases = setOf(
-          ActivityAliasRawText(name = ".EnabledAlias", targetActivity = ".DisabledActivity", enabled = "true", intentFilters = setOf()),
-          ActivityAliasRawText(name = ".DisabledAlias", targetActivity = ".EnabledActivity", enabled = "false", intentFilters = setOf())
-        ),
-        customPermissionGroupNames = setOf("custom.permissions.CUSTOM_GROUP"),
-        customPermissionNames = setOf("custom.permissions.IN_CUSTOM_GROUP", "custom.permissions.NO_GROUP"),
-        debuggable = "true",
-        enabled = "true",
-        minSdkLevel = "22",
-        packageName = "com.example",
-        usedPermissionNames = setOf("android.permission.SEND_SMS", "custom.permissions.NO_GROUP"),
-        targetSdkLevel = "28",
-        theme = "@style/Theme.AppCompat"
-      )
+        ActivityRawText(name = ".DisabledActivity", enabled = "false", intentFilters = setOf())
+      ),
+      activityAliases = setOf(
+        ActivityAliasRawText(name = ".EnabledAlias", targetActivity = ".DisabledActivity",
+                             enabled = "true", intentFilters = setOf()),
+        ActivityAliasRawText(name = ".DisabledAlias", targetActivity = ".EnabledActivity",
+                             enabled = "false", intentFilters = setOf())
+      ),
+      customPermissionGroupNames = setOf("custom.permissions.CUSTOM_GROUP"),
+      customPermissionNames = setOf("custom.permissions.IN_CUSTOM_GROUP",
+                                    "custom.permissions.NO_GROUP"),
+      debuggable = "true",
+      enabled = "true",
+      minSdkLevel = "22",
+      packageName = "com.example",
+      usedPermissionNames = setOf("android.permission.SEND_SMS", "custom.permissions.NO_GROUP"),
+      targetSdkLevel = "28",
+      theme = "@style/Theme.AppCompat")
     )
   }
 }
