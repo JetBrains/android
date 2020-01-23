@@ -63,7 +63,7 @@ public class ModuleDependencyModelImpl extends DependencyModelImpl implements
                                          @Nullable String config) {
     GradleNameElement name = GradleNameElement.create(configurationName);
     GradleDslMethodCall methodCall = new GradleDslMethodCall(parent, name, PROJECT);
-    GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, name);
+    GradleDslExpressionMap mapArguments = new GradleDslExpressionMap(methodCall, GradleNameElement.empty());
     mapArguments.setNewLiteral(PATH, path);
     if (config != null) {
       mapArguments.setNewLiteral(CONFIGURATION, config);

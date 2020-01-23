@@ -700,6 +700,7 @@ enum class TestFileName(val path: String) {
   FILE_TREE_DEPENDENCY_ADD_AND_REMOVE_INCLUDE_WITHOUT_APPLY("fileTreeDependency/addAndRemoveIncludeWithoutApply"),
   FILE_TREE_DEPENDENCY_REMOVE_ONLY_POSSIBLE_IN_MAP_FORM("fileTreeDependency/removeOnlyPossibleInMapForm"),
   MODULE_DEPENDENCY_INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT("moduleDependency/insertPsiElementsAfterFileBlockComment"),
+  MODULE_DEPENDENCY_INSERT_PSI_ELEMENT_AFTER_FILE_BLOCK_COMMENT_EXPECTED("moduleDependency/insertPsiElementsAfterFileBlockCommentExpected"),
   MODULE_DEPENDENCY_INSERTION_ORDER("moduleDependency/insertionOrder"),
   MODULE_DEPENDENCY_INSERTION_ORDER_EXPECTED("moduleDependency/insertionOrderExpected"),
   MODULE_DEPENDENCY_PARSING_WITH_COMPACT_NOTATION("moduleDependency/parsingWithCompactNotation"),
