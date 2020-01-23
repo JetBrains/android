@@ -21,18 +21,18 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.containers.toArray
 import org.intellij.lang.annotations.Language
-import org.junit.Assert.assertArrayEquals
 
 /**
  * Returns the [HighlightInfo] description adding the relative line number
  */
-private fun HighlightInfo.descriptionWithLineNumbers() =
+private fun HighlightInfo.descriptionWithLineNumber() =
   "${StringUtil.offsetToLineNumber(highlighter.document.text, startOffset)}: ${description}"
 
 class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
   fun testNeedsComposableInspection() {
     myFixture.enableInspections(PreviewNeedsComposableAnnotationInspection() as InspectionProfileEntry)
 
+    @Suppress("TestFunctionName")
     @Language("kotlin")
     val fileContent = """
       import androidx.ui.tooling.preview.Preview
@@ -50,13 +50,14 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
     """.trimIndent()
 
     myFixture.configureByText("Test.kt", fileContent)
-    assertEquals("Preview only works with Composable functions.",
-                 myFixture.doHighlighting(HighlightSeverity.ERROR).single().description)
+    assertEquals("9: Preview only works with Composable functions.",
+                 myFixture.doHighlighting(HighlightSeverity.ERROR).single().descriptionWithLineNumber())
   }
 
   fun testNoParametersInPreview() {
     myFixture.enableInspections(PreviewAnnotationInFunctionWithParametersInspection() as InspectionProfileEntry)
 
+    @Suppress("TestFunctionName")
     @Language("kotlin")
     val fileContent = """
       import androidx.ui.tooling.preview.Preview
@@ -81,17 +82,18 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
     myFixture.configureByText("Test.kt", fileContent)
     val inspections = myFixture.doHighlighting(HighlightSeverity.ERROR)
       .sortedByDescending { -it.startOffset }
-      .map { it.descriptionWithLineNumbers() }
-      .toArray(emptyArray())
+      .joinToString("\n") { it.descriptionWithLineNumber() }
 
-    assertArrayEquals(arrayOf("3: Composable functions with non-default parameters are not supported in Preview.",
-                              "13: Composable functions with non-default parameters are not supported in Preview."),
-                      inspections)
+
+    assertEquals("""3: Composable functions with non-default parameters are not supported in Preview.
+                    |13: Composable functions with non-default parameters are not supported in Preview.""".trimMargin(),
+                 inspections)
   }
 
   fun testPreviewMustBeTopLevel() {
     myFixture.enableInspections(PreviewMustBeTopLevelFunction() as InspectionProfileEntry)
 
+    @Suppress("TestFunctionName", "ClassName")
     @Language("kotlin")
     val fileContent = """
       import androidx.ui.tooling.preview.Preview
@@ -151,19 +153,20 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
     myFixture.configureByText("Test.kt", fileContent)
     val inspections = myFixture.doHighlighting(HighlightSeverity.ERROR)
       .sortedByDescending { -it.startOffset }
-      .map { it.description }
-      .toArray(emptyArray())
+      .joinToString("\n") { it.descriptionWithLineNumber() }
 
-    val nErrors = "\\/\\/ ERROR".toRegex().findAll(fileContent).count()
-
-    assertEquals(nErrors, inspections.size)
-    assertEquals("Preview must be a top level declarations or in a top level class with a default constructor.",
-                 inspections.distinct().single())
+    assertEquals("""7: Preview must be a top level declarations or in a top level class with a default constructor.
+                    |10: Preview must be a top level declarations or in a top level class with a default constructor.
+                    |21: Preview must be a top level declarations or in a top level class with a default constructor.
+                    |34: Preview must be a top level declarations or in a top level class with a default constructor.
+                    |47: Preview must be a top level declarations or in a top level class with a default constructor.""".trimMargin(),
+                 inspections)
   }
 
   fun testWidthShouldntExceedApiLimit() {
     myFixture.enableInspections(PreviewDimensionRespectsLimit() as InspectionProfileEntry)
 
+    @Suppress("TestFunctionName")
     @Language("kotlin")
     val fileContent = """
       import androidx.ui.tooling.preview.Preview
@@ -183,15 +186,16 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
     myFixture.configureByText("Test.kt", fileContent)
     val inspections = myFixture.doHighlighting(HighlightSeverity.WARNING)
       .sortedByDescending { -it.startOffset }
-      .map { it.description }
-      .toArray(emptyArray())
+      .joinToString("\n") { it.descriptionWithLineNumber() }
 
-    assertEquals("Preview width is limited to 2,000. Setting a higher number will not increase the preview width.", inspections.single())
+
+    assertEquals("4: Preview width is limited to 2,000. Setting a higher number will not increase the preview width.", inspections)
   }
 
   fun testHeightShouldntExceedApiLimit() {
     myFixture.enableInspections(PreviewDimensionRespectsLimit() as InspectionProfileEntry)
 
+    @Suppress("TestFunctionName")
     @Language("kotlin")
     val fileContent = """
       import androidx.ui.tooling.preview.Preview
@@ -211,15 +215,16 @@ class InspectionsTest : ComposeLightJavaCodeInsightFixtureTestCase() {
     myFixture.configureByText("Test.kt", fileContent)
     val inspections = myFixture.doHighlighting(HighlightSeverity.WARNING)
       .sortedByDescending { -it.startOffset }
-      .map { it.description }
-      .toArray(emptyArray())
+      .joinToString("\n") { it.descriptionWithLineNumber() }
 
-    assertEquals("Preview height is limited to 2,000. Setting a higher number will not increase the preview height.", inspections.single())
+
+    assertEquals("4: Preview height is limited to 2,000. Setting a higher number will not increase the preview height.", inspections)
   }
 
   fun testOnlyParametersAndValuesAreHighlighted() {
     myFixture.enableInspections(PreviewDimensionRespectsLimit() as InspectionProfileEntry)
 
+    @Suppress("TestFunctionName")
     @Language("kotlin")
     val fileContent = """
       import androidx.ui.tooling.preview.Preview
