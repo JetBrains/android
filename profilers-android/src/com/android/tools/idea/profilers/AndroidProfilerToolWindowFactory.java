@@ -59,7 +59,6 @@ public class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFa
 
   @Override
   public void init(@NotNull ToolWindow toolWindow) {
-    toolWindow.hide(null);
     toolWindow.setStripeTitle(PROFILER_TOOL_WINDOW_TITLE);
 
     // When we initialize the ToolWindow we call to the profiler service to also make sure it is initialized.
