@@ -117,6 +117,7 @@ public class AndroidSourceGeneratingBuilder extends ModuleLevelBuilder {
     }
   }
 
+  @NotNull
   @Override
   public List<String> getCompilableFileExtensions() {
     return Arrays.asList(AIDL_EXTENSION, RENDERSCRIPT_EXTENSION);
