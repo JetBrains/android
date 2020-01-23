@@ -58,14 +58,10 @@ public class ResourceContent implements Function<OutputStream, Exception> {
     StringBuilder notFoundPaths = new StringBuilder();
     for (String path : LIB_CUSTOM_PATHS) {
       String jarPath = homePath + path;
-      VirtualFile rootDir = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(jarPath));
-
-      if (rootDir != null) {
-        File rootFile = VfsUtilCore.virtualToIoFile(rootDir);
-        if (rootFile.exists()) {
-          LOG.debug("Sample data base dir found at " + jarPath);
-          return rootFile;
-        }
+      File rootFile = new File(jarPath);
+      if (rootFile.exists()) {
+        LOG.debug("Sample data base dir found at " + jarPath);
+        return rootFile;
       }
       else {
         notFoundPaths.append(jarPath).append('\n');
