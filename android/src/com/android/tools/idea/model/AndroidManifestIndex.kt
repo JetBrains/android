@@ -41,6 +41,7 @@ import com.android.SdkConstants.TAG_USES_SDK
 import com.android.tools.apk.analyzer.BinaryXmlParser
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.util.androidFacet
 import com.android.utils.reflection.qualifiedName
 import com.google.common.primitives.Shorts
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk
@@ -50,6 +51,7 @@ import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.io.DataInputOutputUtilRt.readSeq
 import com.intellij.openapi.util.io.DataInputOutputUtilRt.writeSeq
 import com.intellij.openapi.util.text.StringUtil
@@ -70,6 +72,7 @@ import com.intellij.util.io.IOUtil.writeUTF
 import com.intellij.util.io.KeyDescriptor
 import com.intellij.util.text.CharArrayUtil
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.utils.addIfNotNull
 import org.kxml2.io.KXmlParser
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParser.END_DOCUMENT
@@ -106,6 +109,32 @@ class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawT
 
     @JvmStatic
     fun indexEnabled() = ApplicationManager.getApplication().isUnitTestMode || StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.get()
+
+    /**
+     * Returns corresponding [AndroidFacet]s by given key(package name)
+     * NOTE: This function must be called from a smart read action.
+     *
+     * This may not be useful for non-Gradle build systems, as they may allow for package name overrides.
+     * Most callers should use the build system-dependent AndroidProjectSystem.findAndroidFacetsWithPackageName.
+     *
+     * @see DumbService.runReadActionInSmartMode
+     */
+    @JvmStatic
+    fun queryByPackageName(project: Project, packageName: String, scope: GlobalSearchScope): List<AndroidFacet> {
+      if (!checkIndexAccessibleFor(project)) {
+        return emptyList()
+      }
+
+      val facets = mutableSetOf<AndroidFacet>()
+      val fileBasedIndex = FileBasedIndex.getInstance()
+      fileBasedIndex.processFilesContainingAllKeys(NAME, listOf(packageName), scope, null, { relevantFile ->
+        val module = ProjectFileIndex.getInstance(project).getModuleForFile(relevantFile)
+        module?.androidFacet?.let { facets.add(it) }
+        true
+      })
+
+      return facets.toList()
+    }
 
     /**
      * Returns the [AndroidManifestRawText] for the given [manifestFile], or null

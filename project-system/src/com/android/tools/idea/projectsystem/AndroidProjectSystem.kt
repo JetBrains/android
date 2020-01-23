@@ -24,6 +24,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFinder
+import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.android.facet.AndroidFacet
 import java.nio.file.Path
 
@@ -104,6 +105,11 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    * when the structure of the project changes.
    */
   fun getSourceProvidersFactory(): SourceProvidersFactory
+
+  /**
+   * Returns a list of [AndroidFacet]s by given package name.
+   */
+  fun getAndroidFacetsWithPackageName(project: Project, packageName: String, scope: GlobalSearchScope): Collection<AndroidFacet>
 }
 
 val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")

@@ -28,6 +28,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.SourceProvidersFactory
+import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
@@ -35,11 +36,14 @@ import com.android.tools.idea.res.ProjectLightResourceClassService
 import com.android.tools.idea.sdk.AndroidSdks
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.ui.AppUIUtil
+import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.createSourceProvidersForLegacyModule
 import java.nio.file.Path
@@ -102,5 +106,15 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
     override fun createSourceProvidersFor(facet: AndroidFacet): SourceProviders? {
       return createSourceProvidersForLegacyModule(facet)
     }
+  }
+
+  override fun getAndroidFacetsWithPackageName(project: Project, packageName: String, scope: GlobalSearchScope): Collection<AndroidFacet> {
+    // TODO(b/148300410)
+    return ProjectFacetManager.getInstance(project)
+      .getFacets(AndroidFacet.ID)
+      .asSequence()
+      .filter { getPackageName(it) == packageName }
+      .filter { facet -> facet.sourceProviders.mainManifestFile?.let(scope::contains) == true }
+      .toList()
   }
 }

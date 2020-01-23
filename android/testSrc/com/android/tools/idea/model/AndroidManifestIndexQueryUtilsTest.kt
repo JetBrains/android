@@ -17,16 +17,20 @@ package com.android.tools.idea.model
 
 import com.android.AndroidProjectTypes
 import com.android.SdkConstants.FN_ANDROID_MANIFEST_XML
+import com.android.tools.idea.model.AndroidManifestIndex.Companion.queryByPackageName
 import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.run.activity.IndexedActivityWrapper
 import com.google.common.truth.Truth
 import com.intellij.openapi.module.Module
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.facet.AndroidFacet
 
 class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
-  private val LIB_MODULE_WITH_DEPENDENCY = "withDependency"
+  private val LIB_MODULE1_WITH_DEPENDENCY = "withDependency1"
+  private val LIB_MODULE2_WITH_DEPENDENCY = "withDependency2"
 
   override fun setUp() {
     super.setUp()
@@ -36,7 +40,8 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
   override fun configureAdditionalModules(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
                                           modules: MutableList<MyAdditionalModuleData>) {
     super.configureAdditionalModules(projectBuilder, modules)
-    addModuleWithAndroidFacet(projectBuilder, modules, LIB_MODULE_WITH_DEPENDENCY, AndroidProjectTypes.PROJECT_TYPE_LIBRARY, true)
+    addModuleWithAndroidFacet(projectBuilder, modules, LIB_MODULE1_WITH_DEPENDENCY, AndroidProjectTypes.PROJECT_TYPE_LIBRARY, true)
+    addModuleWithAndroidFacet(projectBuilder, modules, LIB_MODULE2_WITH_DEPENDENCY, AndroidProjectTypes.PROJECT_TYPE_LIBRARY, true)
   }
 
   fun testQueryMinSdkAndTargetSdk() {
@@ -152,9 +157,9 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
     </manifest>
     """.trimIndent()
 
-    Truth.assertThat(myAdditionalModules.size).isEqualTo(1)
+    Truth.assertThat(myAdditionalModules.size).isEqualTo(2)
     val libModule = myAdditionalModules[0]
-    updateManifest(libModule, "additionalModules/$LIB_MODULE_WITH_DEPENDENCY/$FN_ANDROID_MANIFEST_XML", anotherManifestContent)
+    updateManifest(libModule, "additionalModules/$LIB_MODULE1_WITH_DEPENDENCY/$FN_ANDROID_MANIFEST_XML", anotherManifestContent)
 
     Truth.assertThat(myFacet.queryCustomPermissionsFromManifestIndex()).isEqualTo(
       setOf("custom.permissions.IN_CUSTOM_GROUP",
@@ -220,5 +225,75 @@ class AndroidManifestIndexQueryUtilsTest : AndroidTestCase() {
   private fun updateManifest(module: Module, relativePath: String, manifestContents: String) {
     deleteManifest(module)
     myFixture.addFileToProject(relativePath, manifestContents)
+  }
+
+  fun testQueryAndroidFacets_packageChanged() {
+    val manifestContent = """
+    <?xml version='1.0' encoding='utf-8'?>
+    <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
+      package='com.example' android:enabled='true'>
+    </manifest>
+    """.trimIndent()
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent)
+    var facets = queryByPackageName(project, "com.example", GlobalSearchScope.projectScope(project)).toList()
+    Truth.assertThat(facets.size).isEqualTo(1)
+    Truth.assertThat(facets[0]).isEqualTo(myFacet)
+
+    // change package name and see if corresponding modules are found or not
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent.replace("example", "changed"))
+    facets = queryByPackageName(project, "com.changed", GlobalSearchScope.projectScope(project)).toList()
+    Truth.assertThat(facets.size).isEqualTo(1)
+    Truth.assertThat(facets[0]).isEqualTo(myFacet)
+  }
+
+  fun testQueryAndroidFacets_multipleModules() {
+    val manifestContent = """
+    <?xml version='1.0' encoding='utf-8'?>
+    <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
+      package='com.example' android:enabled='true'>
+    </manifest>
+    """.trimIndent()
+    updateManifest(myModule, FN_ANDROID_MANIFEST_XML, manifestContent)
+
+    // update the manifest file of 'additional module1' with dependency
+    val manifestContentForLib1 = """
+    <?xml version='1.0' encoding='utf-8'?>
+    <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
+      package='com.anotherExample' android:debuggable="false" android:enabled='true'>
+    <permission-group android:name='custom.permissions.CUSTOM_GROUP1'/>
+    <permission android:name='custom.permissions.IN_CUSTOM_GROUP1' android:permissionGroup='custom.permissions.CUSTOM_GROUP1'/>
+    <permission android:name='custom.permissions.NO_GROUP1'/>
+    </manifest>
+    """.trimIndent()
+
+    // update the manifest file of 'additional module2' with dependency
+    val manifestContentForLib2 = """
+    <?xml version='1.0' encoding='utf-8'?>
+    <manifest xmlns:android='http://schemas.android.com/apk/res/android' 
+      package='com.anotherExample' android:debuggable="false" android:enabled='true'>
+    <permission-group android:name='custom.permissions.CUSTOM_GROUP1'/>
+    <permission android:name='custom.permissions.IN_CUSTOM_GROUP1' android:permissionGroup='custom.permissions.CUSTOM_GROUP1'/>
+    <permission android:name='custom.permissions.NO_GROUP1'/>
+    </manifest>
+    """.trimIndent()
+
+    Truth.assertThat(myAdditionalModules.size).isEqualTo(2)
+    val libModule1 = myAdditionalModules[0]
+    val libFacet1 = AndroidFacet.getInstance(libModule1)
+    updateManifest(libModule1, "additionalModules/$LIB_MODULE1_WITH_DEPENDENCY/$FN_ANDROID_MANIFEST_XML", manifestContentForLib1)
+
+    val libModule2 = myAdditionalModules[1]
+    val libFacet2 = AndroidFacet.getInstance(libModule2)
+    updateManifest(libModule2, "additionalModules/$LIB_MODULE2_WITH_DEPENDENCY/$FN_ANDROID_MANIFEST_XML", manifestContentForLib2)
+
+
+    var facets = queryByPackageName(project, "com.anotherExample", GlobalSearchScope.projectScope(project)).toList()
+    // manifest files in additional 2 modules are with the same package name
+    Truth.assertThat(facets.size).isEqualTo(2)
+    Truth.assertThat(facets).containsExactly(libFacet1, libFacet2)
+
+    facets = queryByPackageName(project, "com.example", GlobalSearchScope.projectScope(project)).toList()
+    Truth.assertThat(facets.size).isEqualTo(1)
+    Truth.assertThat(facets[0]).isEqualTo(myFacet)
   }
 }

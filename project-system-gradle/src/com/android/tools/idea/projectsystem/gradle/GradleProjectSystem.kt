@@ -22,7 +22,8 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.AndroidManifestIndex
+import com.android.tools.idea.model.logManifestIndexQueryError
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -31,18 +32,25 @@ import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.SourceProvidersFactory
 import com.android.tools.idea.projectsystem.SourceProvidersImpl
 import com.android.tools.idea.projectsystem.createSourceProvidersForLegacyModule
+import com.android.tools.idea.projectsystem.sourceProviders
 import com.android.tools.idea.res.AndroidInnerClassFinder
 import com.android.tools.idea.res.AndroidManifestClassPsiElementFinder
 import com.android.tools.idea.res.AndroidResourceClassPsiElementFinder
 import com.android.tools.idea.res.ProjectLightResourceClassService
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.templates.GradleFilePsiMerger
+import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElementFinder
+import com.intellij.psi.search.GlobalSearchScope
+import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.createIdeaSourceProviderFromModelSourceProvider
 import java.nio.file.Path
@@ -102,6 +110,29 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
       val model = AndroidModuleModel.get(facet)
       return if (model != null) createSourceProvidersFromModel(model) else createSourceProvidersForLegacyModule(facet)
     }
+  }
+
+  override fun getAndroidFacetsWithPackageName(project: Project, packageName: String, scope: GlobalSearchScope): List<AndroidFacet> {
+    if (AndroidManifestIndex.indexEnabled()) {
+      try {
+        return DumbService.getInstance(project).runReadActionInSmartMode<List<AndroidFacet>>(Computable {
+          AndroidManifestIndex.queryByPackageName(project, packageName, scope)
+        })
+      }
+      catch (e: IndexNotReadyException) {
+        // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+        //  We need to refactor the callers of this to require a *smart*
+        //  read action, at which point we can remove this try-catch.
+        logManifestIndexQueryError(e)
+      }
+    }
+
+    return ProjectFacetManager.getInstance(project)
+      .getFacets(AndroidFacet.ID)
+      .asSequence()
+      .filter { getPackageName(it) == packageName }
+      .filter { facet -> facet.sourceProviders.mainManifestFile?.let(scope::contains) == true }
+      .toList()
   }
 }
 
