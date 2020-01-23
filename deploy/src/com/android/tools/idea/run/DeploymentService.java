@@ -16,6 +16,7 @@
 package com.android.tools.idea.run;
 
 import com.android.tools.deployer.ApkFileDatabase;
+import com.android.tools.deployer.DeploymentCacheDatabase;
 import com.android.tools.deployer.SqlApkFileDatabase;
 import com.android.tools.deployer.tasks.TaskRunner;
 import com.android.tools.idea.run.deployable.DeployableProvider;
@@ -40,6 +41,8 @@ public class DeploymentService {
 
   private final ApkFileDatabase dexDatabase;
 
+  private final DeploymentCacheDatabase deploymentCacheDatabase;
+
   @Nullable
   private DeployableProvider myDeployableProvider = null;
 
@@ -54,6 +57,7 @@ public class DeploymentService {
     runner = new TaskRunner(service);
     Path path = Paths.get(PathManager.getSystemPath(), ".deploy.db");
     dexDatabase  = new SqlApkFileDatabase(new File(path.toString()), PathManager.getTempPath());
+    deploymentCacheDatabase = new DeploymentCacheDatabase();
   }
 
   public TaskRunner getTaskRunner() {
@@ -62,6 +66,11 @@ public class DeploymentService {
 
   public ApkFileDatabase getDexDatabase() {
     return dexDatabase;
+  }
+
+
+  public DeploymentCacheDatabase getDeploymentCacheDatabase() {
+    return deploymentCacheDatabase;
   }
 
   public void setDeployableProvider(@Nullable DeployableProvider provider) {
