@@ -13,86 +13,77 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.emulator;
+package com.android.tools.idea.emulator
 
-import com.intellij.openapi.project.DumbAware;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
-import java.awt.BorderLayout;
-import java.awt.LayoutManager;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
+import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.wm.ToolWindow
+import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
+import java.awt.BorderLayout
+import java.awt.LayoutManager
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
 
-public class EmulatorToolWindow implements DumbAware {
-  public static final boolean SHUTDOWN_CAPABLE = false;
-  public static final String ID = "Emulator";
+class EmulatorToolWindow(project: Project) : DumbAware {
+  private val toolWindowContent: JPanel
+  private var initialized = false
 
-  private JPanel myToolWindowContent;
-  private boolean myInitialized;
+  val component: JComponent
+    get() = toolWindowContent
 
-  public EmulatorToolWindow(Project project) {
-    myToolWindowContent = new JPanel(new BorderLayout());
+  private fun createContent(window: ToolWindow) {
+    initialized = true
+    try { // TODO: Well we should probably fetch the proper emulator port from somewhere.
+      val emulatorPanel = EmulatorJarLoader.createView(5554)
+      // Tor modifications: wrap in another JPanel to keep aspect ratio
+      val layoutManager: LayoutManager = EmulatorLayoutManager(emulatorPanel)
+      toolWindowContent.add(emulatorPanel)
+      toolWindowContent.layout = layoutManager
+      toolWindowContent.repaint()
+      window.title = EmulatorJarLoader.getCurrentAvdName(emulatorPanel)
+    }
+    catch (e: Exception) {
+      val label = "Unable to load emulator view: $e"
+      toolWindowContent.add(JLabel(label), BorderLayout.CENTER)
+    }
+  }
 
-    // Lazily initialize content since we can only have one frame
-    project.getMessageBus().connect().subscribe(ToolWindowManagerListener.TOPIC, new ToolWindowManagerListener() {
-      @Override
-      public void stateChanged() {
-        if (!SHUTDOWN_CAPABLE && myInitialized) {
-          return;
+  private fun destroyContent() {
+    initialized = false
+    toolWindowContent.layout = BorderLayout()
+    toolWindowContent.removeAll()
+  }
+
+  init {
+    toolWindowContent = JPanel(BorderLayout())
+
+    // Lazily initialize content since we can only have one frame.
+    project.messageBus.connect().subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
+      override fun stateChanged() {
+        if (!SHUTDOWN_CAPABLE && initialized) {
+          return
         }
-
         // We need to query the tool window again, because it might have been unregistered when closing the project.
-        ToolWindow window = ToolWindowManager.getInstance(project).getToolWindow(ID);
-        if (window == null) {
-          return;
-        }
-
-        if (window.isVisible()) {
-          // TODO: How do I unsubscribe? This will keep notifying me of all tool windows, forever.
-          if (myInitialized) {
-            return;
+        val window = ToolWindowManager.getInstance(project).getToolWindow(
+          ID) ?: return
+        if (window.isVisible) { // TODO: How do I unsubscribe? This will keep notifying me of all tool windows, forever.
+          if (initialized) {
+            return
           }
-
-          myInitialized = true;
-          createContent(window);
+          initialized = true
+          createContent(window)
         }
-        else if (SHUTDOWN_CAPABLE && myInitialized) {
-          destroyContent();
+        else if (SHUTDOWN_CAPABLE && initialized) {
+          destroyContent()
         }
       }
-    });
+    })
   }
 
-  public JComponent getComponent() {
-    return myToolWindowContent;
-  }
-
-  private void createContent(ToolWindow window) {
-    myInitialized = true;
-    try {
-      // TODO: Well we should probably fetch the proper emulator port from somewhere.
-      JPanel emulatorPanel = EmulatorJarLoader.createView(5554);
-
-      // Tor modifications: wrap in another JPanel to keep aspect ratio
-      LayoutManager layoutManager = new EmulatorLayoutManager(emulatorPanel);
-      myToolWindowContent.add(emulatorPanel);
-      myToolWindowContent.setLayout(layoutManager);
-      myToolWindowContent.repaint();
-      window.setTitle(EmulatorJarLoader.getCurrentAvdName(emulatorPanel));
-
-    }
-    catch (Exception ex) {
-      String label = "Unable to load emulator view: " + ex.toString();
-      myToolWindowContent.add(new JLabel(label), BorderLayout.CENTER);
-    }
-  }
-
-  private void destroyContent() {
-    myInitialized = false;
-    myToolWindowContent.setLayout(new BorderLayout());
-    myToolWindowContent.removeAll();
+  companion object {
+    const val SHUTDOWN_CAPABLE = false
+    const val ID = "Emulator"
   }
 }
