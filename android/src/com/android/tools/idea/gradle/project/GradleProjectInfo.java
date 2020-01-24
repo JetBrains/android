@@ -39,6 +39,7 @@ import java.util.Arrays;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 import javax.swing.*;
 import java.io.File;
@@ -131,6 +132,11 @@ public final class GradleProjectInfo {
       if (GradleSyncState.getInstance(myProject).getLastSyncFinishedTimeStamp() != -1L) {
         return true;
       }
+
+      if (!GradleSettings.getInstance(myProject).getLinkedProjectsSettings().isEmpty()){
+        return true;
+      }
+
       return hasTopLevelGradleBuildFile();
     });
   }
