@@ -11,7 +11,7 @@
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="android.sdktools.android-annotations" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.common" scope="TEST" />
-    <orderEntry type="module-library" exported="">
+    <orderEntry type="module-library" exported="" scope="TEST">
       <library name="precompiled-perf-logger" type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:perf-logger:26.6.0.1" />
         <CLASSES>

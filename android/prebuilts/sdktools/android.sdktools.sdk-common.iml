@@ -14,21 +14,7 @@
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" exported="" name="gson" level="project" />
     <orderEntry type="module" module-name="android.sdktools.builder-test-api" />
-    <orderEntry type="library" scope="TEST" name="Mocks" level="project" />
-    <orderEntry type="module-library">
-      <library name="bouncycastle" type="repository">
-        <properties maven-id="org.bouncycastle:bcpkix-jdk15on:1.56" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/bouncycastle/bcpkix-jdk15on/1.56/bcpkix-jdk15on-1.56.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/bouncycastle/bcprov-jdk15on/1.56/bcprov-jdk15on-1.56.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/org/bouncycastle/bcpkix-jdk15on/1.56/bcpkix-jdk15on-1.56-sources.jar!/" />
-          <root url="jar://$MAVEN_REPOSITORY$/org/bouncycastle/bcprov-jdk15on/1.56/bcprov-jdk15on-1.56-sources.jar!/" />
-        </SOURCES>
-      </library>
-    </orderEntry>
+    <orderEntry type="library" name="bouncy-castle-provider" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="library" name="kotlin-reflect" level="project" />

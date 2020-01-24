@@ -9,7 +9,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="android.sdktools.layoutlib-api" />
     <orderEntry type="module-library">
-      <library name="layoutlib-jre11" type="repository">
+      <library type="repository">
         <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:layoutlib-jre11:26.6.0.1" />
         <CLASSES>
           <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layoutlib-jre11/26.6.0.1/layoutlib-jre11-26.6.0.1.jar!/" />
