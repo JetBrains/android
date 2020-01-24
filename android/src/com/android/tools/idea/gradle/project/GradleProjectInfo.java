@@ -51,6 +51,7 @@ import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.settings.GradleSettings;
 
 public class GradleProjectInfo {
   @NotNull private final Project myProject;
@@ -117,6 +118,9 @@ public class GradleProjectInfo {
       // See https://code.google.com/p/android/issues/detail?id=203384
       // This could be a project without modules. Check that at least it synced with Gradle.
       if (GradleSyncState.getInstance(myProject).getLastSyncFinishedTimeStamp() != -1L) {
+        return true;
+      }
+      if (!GradleSettings.getInstance(myProject).getLinkedProjectsSettings().isEmpty()){
         return true;
       }
       return hasTopLevelGradleFile();
