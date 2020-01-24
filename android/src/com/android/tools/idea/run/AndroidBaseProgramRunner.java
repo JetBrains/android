@@ -100,7 +100,7 @@ public abstract class AndroidBaseProgramRunner implements ProgramRunner<RunnerSe
       assert processHandler != null;
 
       RunProfile runProfile = env.getRunProfile();
-      RunConfiguration runConfiguration = runProfile instanceof RunConfiguration ? (RunConfiguration<?>)runProfile : null;
+      RunConfiguration runConfiguration = runProfile instanceof RunConfiguration ? (RunConfiguration)runProfile : null;
       AndroidSessionInfo.create(processHandler, descriptor, runConfiguration, env.getExecutor().getId(), env.getExecutor().getActionName(),
                                 env.getExecutionTarget()
       );
