@@ -14,6 +14,13 @@
   ~ limitations under the License.
   -->
 <idea-plugin>
+
+  <actions>
+    <action id="Android.RunLayoutInspector" class="com.android.tools.idea.layoutinspector.ShowLayoutInspectorAction">
+      <add-to-group group-id="AndroidToolsGroup" />
+    </action>
+  </actions>
+
   <extensions defaultExtensionNs="com.intellij">
     <facet.toolWindow id="Layout Inspector"
                       facetIdList="android"
