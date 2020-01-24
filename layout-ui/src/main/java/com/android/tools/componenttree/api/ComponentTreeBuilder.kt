@@ -51,7 +51,6 @@ class ComponentTreeBuilder {
   private val keyStrokes = mutableMapOf<KeyStroke, Pair<String, () -> Unit>>()
   private var installTreeSearch = true
   private var isRootVisible = true
-  private var showRootHandles = false
 
   /**
    * Register a [NodeType].
@@ -99,11 +98,6 @@ class ComponentTreeBuilder {
   fun withHiddenRoot() = apply { isRootVisible = false }
 
   /**
-   * Show the expansion icon for the root
-   */
-  fun withExpandableRoot() = apply { showRootHandles = true }
-
-  /**
    * Build the tree component and return it with the tree model.
    */
   fun build(): Triple<JComponent, ComponentTreeModel, ComponentTreeSelectionModel> {
@@ -111,7 +105,7 @@ class ComponentTreeBuilder {
     val selectionModel = ComponentTreeSelectionModelImpl(model)
     val tree = TreeImpl(model, contextPopup, doubleClick, badges)
     tree.isRootVisible = isRootVisible
-    tree.showsRootHandles = !isRootVisible || showRootHandles
+    tree.showsRootHandles = !isRootVisible
     if (installTreeSearch) {
       TreeSpeedSearch(tree) { model.toSearchString(it.lastPathComponent) }
     }

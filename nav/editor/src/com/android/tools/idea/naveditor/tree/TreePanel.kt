@@ -49,7 +49,6 @@ class TreePanel : ToolContent<DesignSurface> {
       .withNodeType(NlComponentNodeType())
       .withContextMenu { _, x: Int, y: Int -> showContextMenu(x, y) }
       .withDoubleClick { activateComponent() }
-      .withExpandableRoot()
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
 
     val (tree, model, selectionModel) = builder.build()
@@ -60,7 +59,6 @@ class TreePanel : ToolContent<DesignSurface> {
       designSurface?.let {
         val list = selectionModel.selection.filterIsInstance<NlComponent>()
         it.selectionModel.setSelection(list)
-        it.needsRepaint()
       }
     }
   }
