@@ -50,8 +50,10 @@ import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.serviceContainer.NonInjectable
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
+import org.jetbrains.annotations.TestOnly
 import org.jetbrains.ide.PooledThreadExecutor
 import java.util.TreeMap
 import java.util.concurrent.Executor
@@ -119,7 +121,7 @@ interface DatabaseInspectorProjectService {
   fun getOpenDatabases(): Set<SqliteDatabase>
 }
 
-class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
+class DatabaseInspectorProjectServiceImpl @NonInjectable @TestOnly constructor(
   private val project: Project,
   private val toolWindowManager: ToolWindowManager = ToolWindowManager.getInstance(project),
   edtExecutor: Executor = EdtExecutorService.getInstance(),
@@ -140,6 +142,37 @@ class DatabaseInspectorProjectServiceImpl @JvmOverloads constructor(
       Disposer.register(project, it)
     }
   }) : DatabaseInspectorProjectService {
+
+  @NonInjectable
+  @TestOnly
+  constructor(project: Project, edtExecutor: Executor, taskExecutor: Executor, viewFactory: DatabaseInspectorViewsFactory) : this (
+    project,
+    ToolWindowManager.getInstance(project),
+    edtExecutor,
+    taskExecutor,
+    DatabaseConnectionFactoryImpl(),
+    Consumer { OpenFileAction.openFile(it, project) },
+    viewFactory,
+    ModelImpl(),
+    { myModel ->
+      DatabaseInspectorControllerImpl(
+        project,
+        myModel,
+        viewFactory,
+        edtExecutor,
+        taskExecutor
+      ).also {
+        it.setUp()
+        Disposer.register(project, it)
+      }
+    }
+  )
+
+  constructor(project: Project) : this (
+    project,
+    EdtExecutorService.getInstance(),
+    PooledThreadExecutor.INSTANCE, DatabaseInspectorViewsFactoryImpl()
+  )
 
   private val edtExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(edtExecutor)
   private val taskExecutor: FutureCallbackExecutor = FutureCallbackExecutor.wrap(taskExecutor)
