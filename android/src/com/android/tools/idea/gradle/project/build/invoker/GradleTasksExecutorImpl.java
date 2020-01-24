@@ -31,6 +31,7 @@ import static com.intellij.openapi.ui.MessageType.INFO;
 import static com.intellij.openapi.util.text.StringUtil.formatDuration;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
+import static com.intellij.util.ArrayUtilRt.toStringArray;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
