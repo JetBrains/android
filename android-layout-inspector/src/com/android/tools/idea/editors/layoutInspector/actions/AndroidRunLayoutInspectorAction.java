@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class AndroidRunLayoutInspectorAction extends AnAction {
   public AndroidRunLayoutInspectorAction() {
-    super(AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
+    super(AndroidBundle.message("android.ddms.actions.layoutinspector.title.legacy"),
           AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
           StudioIcons.Shell.Menu.LAYOUT_INSPECTOR);
   }
