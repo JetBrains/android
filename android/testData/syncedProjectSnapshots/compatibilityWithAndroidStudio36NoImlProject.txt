@@ -127,12 +127,12 @@ PROJECT             : AS36_noiml
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: androidx.annotation:annotation:1.0.0@jar
+        LIBRARY             : Gradle: androidx.annotation:annotation:1.0.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: androidx.annotation:annotation:1.0.0@jar [=]
+            Name                : Gradle: androidx.annotation:annotation:1.0.0 [=]
             *CLASSES            : jar://<M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar!/
         LIBRARY             : Gradle: androidx.appcompat:appcompat:1.0.2@aar
             LibraryLevel        : project
@@ -144,12 +144,12 @@ PROJECT             : AS36_noiml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/res
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/annotations.zip!/
-        LIBRARY             : Gradle: androidx.arch.core:core-common:2.0.0@jar
+        LIBRARY             : Gradle: androidx.arch.core:core-common:2.0.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: androidx.arch.core:core-common:2.0.0@jar [=]
+            Name                : Gradle: androidx.arch.core:core-common:2.0.0 [=]
             *CLASSES            : jar://<M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar!/
         LIBRARY             : Gradle: androidx.arch.core:core-runtime:2.0.0@aar
             LibraryLevel        : project
@@ -169,19 +169,19 @@ PROJECT             : AS36_noiml
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/AndroidManifest.xml
-        LIBRARY             : Gradle: androidx.collection:collection:1.0.0@jar
+        LIBRARY             : Gradle: androidx.collection:collection:1.0.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: androidx.collection:collection:1.0.0@jar [=]
+            Name                : Gradle: androidx.collection:collection:1.0.0 [=]
             *CLASSES            : jar://<M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar!/
-        LIBRARY             : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
+        LIBRARY             : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3@jar [=]
+            Name                : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3 [=]
             *CLASSES            : jar://<M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar!/
         LIBRARY             : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar
             LibraryLevel        : project
@@ -286,12 +286,12 @@ PROJECT             : AS36_noiml
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/AndroidManifest.xml
-        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-common:2.0.0@jar
+        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-common:2.0.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: androidx.lifecycle:lifecycle-common:2.0.0@jar [=]
+            Name                : Gradle: androidx.lifecycle:lifecycle-common:2.0.0 [=]
             *CLASSES            : jar://<M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar!/
         LIBRARY             : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
             LibraryLevel        : project
@@ -466,61 +466,61 @@ PROJECT             : AS36_noiml
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/AndroidManifest.xml
-        LIBRARY             : Gradle: com.google.code.findbugs:jsr305:2.0.1@jar
+        LIBRARY             : Gradle: com.google.code.findbugs:jsr305:2.0.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
             IsExported          : false
-            Name                : Gradle: com.google.code.findbugs:jsr305:2.0.1@jar [=]
+            Name                : Gradle: com.google.code.findbugs:jsr305:2.0.1 [=]
             *CLASSES            : jar://<M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar!/
-        LIBRARY             : Gradle: com.squareup:javawriter:2.1.1@jar
+        LIBRARY             : Gradle: com.squareup:javawriter:2.1.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
             IsExported          : false
-            Name                : Gradle: com.squareup:javawriter:2.1.1@jar [=]
+            Name                : Gradle: com.squareup:javawriter:2.1.1 [=]
             *CLASSES            : jar://<M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar!/
-        LIBRARY             : Gradle: javax.inject:javax.inject:1@jar
+        LIBRARY             : Gradle: javax.inject:javax.inject:1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
             IsExported          : false
-            Name                : Gradle: javax.inject:javax.inject:1@jar [=]
+            Name                : Gradle: javax.inject:javax.inject:1 [=]
             *CLASSES            : jar://<M2>/javax/inject/javax.inject/1/javax.inject-1.jar!/
-        LIBRARY             : Gradle: junit:junit:4.12@jar
+        LIBRARY             : Gradle: junit:junit:4.12
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
             IsExported          : false
-            Name                : Gradle: junit:junit:4.12@jar [=]
+            Name                : Gradle: junit:junit:4.12 [=]
             *CLASSES            : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
-        LIBRARY             : Gradle: net.sf.kxml:kxml2:2.3.0@jar
+        LIBRARY             : Gradle: net.sf.kxml:kxml2:2.3.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
             IsExported          : false
-            Name                : Gradle: net.sf.kxml:kxml2:2.3.0@jar [=]
+            Name                : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
             *CLASSES            : jar://<M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar!/
-        LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3@jar
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
             IsExported          : false
-            Name                : Gradle: org.hamcrest:hamcrest-core:1.3@jar [=]
+            Name                : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
-        LIBRARY             : Gradle: org.hamcrest:hamcrest-integration:1.3@jar
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-integration:1.3
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
             IsExported          : false
-            Name                : Gradle: org.hamcrest:hamcrest-integration:1.3@jar [=]
+            Name                : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar!/
-        LIBRARY             : Gradle: org.hamcrest:hamcrest-library:1.3@jar
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-library:1.3
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
             IsExported          : false
-            Name                : Gradle: org.hamcrest:hamcrest-library:1.3@jar [=]
+            Name                : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
         ORDER_ENTRY         : java_lib
     MODULE              : app
@@ -632,12 +632,12 @@ PROJECT             : AS36_noiml
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: androidx.annotation:annotation:1.0.0@jar
+        LIBRARY             : Gradle: androidx.annotation:annotation:1.0.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: androidx.annotation:annotation:1.0.0@jar [=]
+            Name                : Gradle: androidx.annotation:annotation:1.0.0 [=]
             *CLASSES            : jar://<M2>/androidx/annotation/annotation/1.0.0/annotation-1.0.0.jar!/
         LIBRARY             : Gradle: androidx.appcompat:appcompat:1.0.2@aar
             LibraryLevel        : project
@@ -649,12 +649,12 @@ PROJECT             : AS36_noiml
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/res
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/annotations.zip!/
-        LIBRARY             : Gradle: androidx.arch.core:core-common:2.0.0@jar
+        LIBRARY             : Gradle: androidx.arch.core:core-common:2.0.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: androidx.arch.core:core-common:2.0.0@jar [=]
+            Name                : Gradle: androidx.arch.core:core-common:2.0.0 [=]
             *CLASSES            : jar://<M2>/androidx/arch/core/core-common/2.0.0/core-common-2.0.0.jar!/
         LIBRARY             : Gradle: androidx.arch.core:core-runtime:2.0.0@aar
             LibraryLevel        : project
@@ -674,19 +674,19 @@ PROJECT             : AS36_noiml
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/AndroidManifest.xml
-        LIBRARY             : Gradle: androidx.collection:collection:1.0.0@jar
+        LIBRARY             : Gradle: androidx.collection:collection:1.0.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: androidx.collection:collection:1.0.0@jar [=]
+            Name                : Gradle: androidx.collection:collection:1.0.0 [=]
             *CLASSES            : jar://<M2>/androidx/collection/collection/1.0.0/collection-1.0.0.jar!/
-        LIBRARY             : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3@jar
+        LIBRARY             : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3@jar [=]
+            Name                : Gradle: androidx.constraintlayout:constraintlayout-solver:1.1.3 [=]
             *CLASSES            : jar://<M2>/androidx/constraintlayout/constraintlayout-solver/1.1.3/constraintlayout-solver-1.1.3.jar!/
         LIBRARY             : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar
             LibraryLevel        : project
@@ -791,12 +791,12 @@ PROJECT             : AS36_noiml
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/AndroidManifest.xml
-        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-common:2.0.0@jar
+        LIBRARY             : Gradle: androidx.lifecycle:lifecycle-common:2.0.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: androidx.lifecycle:lifecycle-common:2.0.0@jar [=]
+            Name                : Gradle: androidx.lifecycle:lifecycle-common:2.0.0 [=]
             *CLASSES            : jar://<M2>/androidx/lifecycle/lifecycle-common/2.0.0/lifecycle-common-2.0.0.jar!/
         LIBRARY             : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar
             LibraryLevel        : project
@@ -971,61 +971,61 @@ PROJECT             : AS36_noiml
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/AndroidManifest.xml
-        LIBRARY             : Gradle: com.google.code.findbugs:jsr305:2.0.1@jar
+        LIBRARY             : Gradle: com.google.code.findbugs:jsr305:2.0.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
             IsExported          : false
-            Name                : Gradle: com.google.code.findbugs:jsr305:2.0.1@jar [=]
+            Name                : Gradle: com.google.code.findbugs:jsr305:2.0.1 [=]
             *CLASSES            : jar://<M2>/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar!/
-        LIBRARY             : Gradle: com.squareup:javawriter:2.1.1@jar
+        LIBRARY             : Gradle: com.squareup:javawriter:2.1.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
             IsExported          : false
-            Name                : Gradle: com.squareup:javawriter:2.1.1@jar [=]
+            Name                : Gradle: com.squareup:javawriter:2.1.1 [=]
             *CLASSES            : jar://<M2>/com/squareup/javawriter/2.1.1/javawriter-2.1.1.jar!/
-        LIBRARY             : Gradle: javax.inject:javax.inject:1@jar
+        LIBRARY             : Gradle: javax.inject:javax.inject:1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
             IsExported          : false
-            Name                : Gradle: javax.inject:javax.inject:1@jar [=]
+            Name                : Gradle: javax.inject:javax.inject:1 [=]
             *CLASSES            : jar://<M2>/javax/inject/javax.inject/1/javax.inject-1.jar!/
-        LIBRARY             : Gradle: junit:junit:4.12@jar
+        LIBRARY             : Gradle: junit:junit:4.12
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
             IsExported          : false
-            Name                : Gradle: junit:junit:4.12@jar [=]
+            Name                : Gradle: junit:junit:4.12 [=]
             *CLASSES            : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
-        LIBRARY             : Gradle: net.sf.kxml:kxml2:2.3.0@jar
+        LIBRARY             : Gradle: net.sf.kxml:kxml2:2.3.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
             IsExported          : false
-            Name                : Gradle: net.sf.kxml:kxml2:2.3.0@jar [=]
+            Name                : Gradle: net.sf.kxml:kxml2:2.3.0 [=]
             *CLASSES            : jar://<M2>/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar!/
-        LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3@jar
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
             IsExported          : false
-            Name                : Gradle: org.hamcrest:hamcrest-core:1.3@jar [=]
+            Name                : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
-        LIBRARY             : Gradle: org.hamcrest:hamcrest-integration:1.3@jar
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-integration:1.3
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
             IsExported          : false
-            Name                : Gradle: org.hamcrest:hamcrest-integration:1.3@jar [=]
+            Name                : Gradle: org.hamcrest:hamcrest-integration:1.3 [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-integration/1.3/hamcrest-integration-1.3.jar!/
-        LIBRARY             : Gradle: org.hamcrest:hamcrest-library:1.3@jar
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-library:1.3
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Test
             IsExported          : false
-            Name                : Gradle: org.hamcrest:hamcrest-library:1.3@jar [=]
+            Name                : Gradle: org.hamcrest:hamcrest-library:1.3 [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-library/1.3/hamcrest-library-1.3.jar!/
         ORDER_ENTRY         : android_library
     MODULE              : dynamicfeature

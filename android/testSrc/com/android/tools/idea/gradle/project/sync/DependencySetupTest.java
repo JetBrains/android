@@ -151,7 +151,7 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
 
     Module appModule = myModules.getAppModule();
     assertAbout(libraryDependencies()).that(appModule).containsMatching(
-      false, "Gradle: artifacts:library\\-debug:unspecified@jar$", COMPILE);
+      false, "Gradle: artifacts:library\\-debug:unspecified$", COMPILE);
   }
 
   public void testWithLocalJarsAsModules() throws Exception {
