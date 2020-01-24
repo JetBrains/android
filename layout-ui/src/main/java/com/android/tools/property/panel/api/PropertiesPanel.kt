@@ -29,6 +29,8 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.properties.Delegates
 
+const val PROPERTIES_PANEL_NAME = "properties.panel"
+
 private const val RECENT_TAB_PREFIX = "android.last.property.tab."
 private const val PROPERTY_TAB_NAME = "tab.name"
 
@@ -61,6 +63,8 @@ class PropertiesPanel<P: PropertyItem>(parentDisposable: Disposable) : Disposabl
   var filter: String by Delegates.observable("") { _, oldValue, newValue -> filterChanged(oldValue, newValue) }
 
   init {
+    component.name = PROPERTIES_PANEL_NAME
+    component.putClientProperty(PROPERTIES_PANEL_NAME, this)
     hidden.isVisible = false
     Disposer.register(parentDisposable, this)
     tabbedPanel.addChangeListener { saveMostRecentTabPage() }

@@ -223,6 +223,13 @@ public class EditorFixture {
   }
 
   /**
+   * Wait for the editor to become active.
+   */
+  public void waitForFileToActivate() {
+    Wait.seconds(10).expecting("File editor is active").until(() -> getCurrentFile() != null);
+  }
+
+  /**
    * Type the given text into the editor
    *
    * @param text the text to type at the current editor position

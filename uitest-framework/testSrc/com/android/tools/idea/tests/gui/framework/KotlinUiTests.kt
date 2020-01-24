@@ -15,10 +15,13 @@
  */
 package com.android.tools.idea.tests.gui.framework
 
+import com.intellij.openapi.util.Ref
 import org.fest.swing.core.ComponentFinder
 import org.fest.swing.core.GenericTypeMatcher
+import org.fest.swing.edt.GuiQuery
 import org.fest.swing.exception.ComponentLookupException
 import org.fest.swing.fixture.ContainerFixture
+import org.fest.swing.timing.Wait
 import java.awt.Container
 import javax.swing.JComponent
 import javax.swing.JDialog
@@ -51,3 +54,8 @@ catch (_: ComponentLookupException) {
   null
 }
 
+fun <T> waitUntilFound(message: String, finder: () -> T?, secondsToWait: Long = 1L): T {
+  val reference = Ref<T>()
+  Wait.seconds(secondsToWait).expecting(message).until { GuiQuery.get { finder()?.let { reference.set(it) } } != null }
+  return reference.get()
+}

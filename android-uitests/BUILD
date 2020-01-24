@@ -128,6 +128,14 @@ iml_module(
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//prebuilts/studio/layoutlib/data:layoutlib_native[test]",
+        "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector[module, test]",
+        "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
+        "//tools/adt/idea/android-transport:intellij.android.transport[module, test]",
+        "//tools/idea/.idea/libraries:transport-proto[test]",
+        "//tools/idea/.idea/libraries:protobuf[test]",
+        "//tools/idea/.idea/libraries:layoutinspector-proto[test]",
+        "//tools/idea/.idea/libraries:studio-proto[test]",
+        "//tools/idea/.idea/libraries:studio-grpc[test]",
     ],
 )
 
