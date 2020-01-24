@@ -113,8 +113,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
 
   @Nullable private Runnable myCancelPreviousAddModelsRequestTask = null;
 
-  @Nullable private List<NlModel> myModels = null;
-
   /**
    * Contains the editor that is currently being loaded.
    * Once the file is loaded, myPendingEditor will be null.
@@ -252,10 +250,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   @Override
   public void dispose() {
     deactivate();
-    if (myModels != null) {
-      removeAndDisposeModels(myModels);
-      myModels = null;
-    }
+    removeAndDisposeModels(mySurface.getModels());
   }
 
   private void removeAndDisposeModels(@NotNull List<NlModel> models) {
@@ -438,10 +433,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
 
     myWorkBench.setFileEditor(null);
 
-    if (myModels != null) {
-      removeAndDisposeModels(myModels);
-      myModels = null;
-    }
+    removeAndDisposeModels(mySurface.getModels());
   }
 
   private void activeModels(@NotNull List<NlModel> models) {
@@ -460,7 +452,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
       }
       myWorkBench.setFileEditor(myEditor);
     }
-    myModels = models;
   }
 
   @NotNull
