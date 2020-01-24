@@ -208,6 +208,16 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
     GradleDslParser parser = getDslFile().getParser();
     referenceText = parser.convertReferenceText(searchStartElement, referenceText);
 
+    boolean withinBuildscript = false;
+    GradleDslElement element = this;
+    while (element != null) {
+      element = element.getParent();
+      if (element instanceof BuildScriptDslElement) {
+        withinBuildscript = true;
+        break;
+      }
+    }
+
     List<String> referenceTextSegments = Splitter.on('.').trimResults().omitEmptyStrings().splitToList(referenceText);
     int index = 0;
     int segmentCount = referenceTextSegments.size();
@@ -217,7 +227,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
       if (dslFile == null) {
         break;
       }
-      // Now lets search in that project build.gradle file.
+      // start the search for our element at the top-level of the Dsl file (but see below for buildscript handling)
       searchStartElement = dslFile;
     }
 
@@ -250,7 +260,8 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
       9. RootProject/build.gradle
     */
 
-    GradleDslElement resolvedElement;
+    GradleDslElement resolvedElement = null;
+    GradleDslFile dslFile = searchStartElement.getDslFile();
     if (index >= segmentCount) {
       // the reference text is fully resolved by now. ex: if the while text itself is "rootProject" etc.
       resolvedElement = searchStartElement;
@@ -258,10 +269,16 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
     else {
       // Search in the file that searchStartElement belongs to.
       referenceTextSegments = referenceTextSegments.subList(index, segmentCount);
-      resolvedElement = resolveReferenceInSameModule(searchStartElement, referenceTextSegments, parser, resolveWithOrder);
+      // if we are resolving in the general context of buildscript { } within the same module, then build code external to the
+      // buildscript block will not yet have run: restrict search to the buildscript element (which should exist)
+      if (dslFile == searchStartElement  && withinBuildscript) {
+        searchStartElement = dslFile.getPropertyElement(BUILDSCRIPT);
+      }
+      if (searchStartElement != null) {
+        resolvedElement = resolveReferenceInSameModule(searchStartElement, referenceTextSegments, parser, resolveWithOrder);
+      }
     }
 
-    GradleDslFile dslFile = searchStartElement.getDslFile();
     if (resolvedElement == null) {
       // Now look in the parent projects ext blocks.
       resolvedElement = resolveReferenceInParentModules(dslFile, referenceTextSegments, parser);
@@ -494,7 +511,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
       elementTrace.push(element);
     }
     // Make sure we don't check any nested scope for the element.
-    while (ignoreParentNumber-- > 0 && element != null && !(element instanceof GradleDslFile)) {
+    while (ignoreParentNumber-- > 0 && element != null && !(element instanceof GradleDslFile) && !(element instanceof BuildScriptDslElement)) {
       element = element.getParent();
     }
     while (element != null) {
@@ -552,7 +569,7 @@ public abstract class GradleDslSimpleExpression extends GradleDslElementImpl imp
                                                                @NotNull List<String> referenceText,
                                                                GradleDslNameConverter converter,
                                                                boolean resolveWithOrder) {
-    // Try to resolve in the build.gradle file the startElement is belongs to.
+    // Try to resolve in the build.gradle file the startElement belongs to.
     GradleDslElement element =
       resolveReferenceOnElement(startElement, referenceText, converter, resolveWithOrder, true, startElement.getNameElement().fullNameParts().size());
     if (element != null) {
