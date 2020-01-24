@@ -361,8 +361,8 @@ public class DynamicAppUtils {
     if (builtArtifacts != null) {
       Collection<GenericBuiltArtifact> artifacts = builtArtifacts.getElements();
       if (!artifacts.isEmpty()) {
-        Path path = artifacts.iterator().next().getOutputFile();
-        return artifacts.size() > 1 ? path.toFile().getParentFile() : path.toFile();
+        File output = new File(artifacts.iterator().next().getOutputFile());
+        return artifacts.size() > 1 ? output.getParentFile() : output;
       }
     }
     getLogger().warn("Failed to read Json output file. Build may have failed.");
