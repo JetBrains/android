@@ -15,7 +15,9 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.adtui.model.LineChartModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.SeriesData;
@@ -29,6 +31,7 @@ import com.android.tools.profilers.StudioProfilers;
 import com.google.common.truth.Truth;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Rule;
@@ -115,5 +118,14 @@ public class DetailedMemoryUsageTest {
         Truth.assertThat(series.get(j).value).isEqualTo((j + 4) * 10 + i);
       }
     }
+  }
+
+  @Test
+  public void rangeChangeTriggersLineCharUpdate() throws Exception {
+    DetailedMemoryUsage usage = new DetailedMemoryUsage(myProfilers, myStage);
+    CountDownLatch latch = new CountDownLatch(1);
+    usage.addDependency(new AspectObserver()).onChange(LineChartModel.Aspect.LINE_CHART, () -> latch.countDown());
+    usage.getMemoryRange().set(0, 100);
+    Truth.assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
   }
 }
