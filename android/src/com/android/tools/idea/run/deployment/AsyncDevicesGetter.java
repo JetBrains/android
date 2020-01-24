@@ -128,7 +128,6 @@ public class AsyncDevicesGetter {
   @NotNull
   @VisibleForTesting
   List<Device> getImpl(@NotNull Collection<VirtualDevice> virtualDevices, @NotNull Collection<ConnectedDevice> connectedDevices) {
-    @SuppressWarnings("UnstableApiUsage")
     Stream<Device> deviceStream = Streams.concat(
       connectedVirtualDeviceStream(connectedDevices, virtualDevices),
       physicalDeviceStream(connectedDevices),
@@ -188,7 +187,7 @@ public class AsyncDevicesGetter {
       return;
     }
 
-    Module module = ((ModuleBasedConfiguration)configuration).getConfigurationModule().getModule();
+    Module module = ((ModuleBasedConfiguration<?, ?>)configuration).getConfigurationModule().getModule();
 
     if (module == null) {
       myChecker = null;
