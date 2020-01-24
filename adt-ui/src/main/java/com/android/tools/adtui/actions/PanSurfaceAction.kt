@@ -19,16 +19,17 @@ import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.util.IconUtil
-import icons.StudioIcons
+import icons.StudioIcons.LayoutEditor.Toolbar.PAN_TOOL
+import icons.StudioIcons.LayoutEditor.Toolbar.PAN_TOOL_SELECTED
 
-object PanSurfaceAction : ToggleAction("Pan screen (hold SPACE bar and drag)", "Click and drag the surface.",
-                                       IconUtil.toSize(StudioIcons.LayoutEditor.Toolbar.PAN_TOOL, 16, 16)) {
+object PanSurfaceAction : ToggleAction("Pan screen (hold SPACE bar and drag)", "Click and drag the surface.", PAN_TOOL) {
   override fun update(event: AnActionEvent) {
     super.update(event)
     val pannable = event.getData<Pannable>(PANNABLE_KEY)
     event.presentation.isEnabledAndVisible = pannable != null
     event.presentation.isEnabled = pannable?.isPannable == true
+    // setSelectedIcon doesn't work as expected, so instead we manually change the regular Icon when the Toggle is Selected
+    event.presentation.icon = if (isSelected(event)) PAN_TOOL_SELECTED else PAN_TOOL
   }
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
