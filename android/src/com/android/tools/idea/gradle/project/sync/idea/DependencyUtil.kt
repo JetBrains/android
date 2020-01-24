@@ -302,6 +302,8 @@ private fun setupAndroidDependenciesForArtifact(
       LIBRARY_ANDROID -> {
         libraryData.addPath(BINARY, library.compileJarFile)
         libraryData.addPath(BINARY, library.resFolder)
+        // TODO: Should this be binary? Do we need the platform to allow custom types here?
+        libraryData.addPath(BINARY, library.manifest)
         library.localJars.forEach { localJar ->
           libraryData.addPath(BINARY, localJar)
         }
