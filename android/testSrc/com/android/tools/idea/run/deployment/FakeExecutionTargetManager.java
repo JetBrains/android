@@ -28,7 +28,7 @@ final class FakeExecutionTargetManager extends ExecutionTargetManager {
   private ExecutionTarget myActiveTarget = DefaultExecutionTarget.INSTANCE;
 
   @Override
-  protected boolean doCanRun(@Nullable RunConfiguration configuration, @NotNull ExecutionTarget target) {
+  public boolean doCanRun(@Nullable RunConfiguration configuration, @NotNull ExecutionTarget target) {
     throw new UnsupportedOperationException();
   }
 
