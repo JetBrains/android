@@ -483,7 +483,7 @@ private fun String.removeSuffix(suffix: String) =
  * Replaces artifact version in string containing artifact idslike com.android.group:artifact:28.7.8@aar with <VERSION>.
  */
 private val androidLibraryPattern =
-  Regex("(?:(?:com\\.android\\.)|(?:android\\.arch\\.))(?:(?:\\w|-)+(?:\\.(?:(?:\\w|-)+))*:(?:\\w|-)+:)(.+?)(?:@aar|@jar|$)")
+  Regex("(?:(?:com\\.android\\.)|(?:android\\.arch\\.))(?:(?:\\w|-)+(?:\\.(?:(?:\\w|-)+))*:(?:\\w|-)+:)([^@ ]*)")
 
 private fun String.removeAndroidVersionsFromDependencyNames(): String =
     androidLibraryPattern.find(this)?.groups?.get(1)?.let {

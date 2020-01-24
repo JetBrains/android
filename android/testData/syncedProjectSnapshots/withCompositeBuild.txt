@@ -172,12 +172,12 @@ PROJECT             : testWithCompositeBuild
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.core:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
             LibraryLevel        : project
@@ -188,12 +188,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.lifecycle:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
             LibraryLevel        : project
@@ -231,12 +231,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar
             LibraryLevel        : project
@@ -275,12 +275,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support:collections:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:collections:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
             LibraryLevel        : project
@@ -375,12 +375,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:support-annotations:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
             LibraryLevel        : project
@@ -457,40 +457,40 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
+        LIBRARY             : Gradle: org.jetbrains:annotations:13.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains:annotations:13.0@jar [=]
+            Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY         : TestCompositeLib1-lib
         ORDER_ENTRY         : TestCompositeLib3-lib
@@ -651,12 +651,12 @@ PROJECT             : testWithCompositeBuild
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.core:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
             LibraryLevel        : project
@@ -667,12 +667,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.lifecycle:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
             LibraryLevel        : project
@@ -738,12 +738,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support:collections:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:collections:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
             LibraryLevel        : project
@@ -838,12 +838,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:support-annotations:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
             LibraryLevel        : project
@@ -920,40 +920,40 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
+        LIBRARY             : Gradle: org.jetbrains:annotations:13.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains:annotations:13.0@jar [=]
+            Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY         : TestCompositeLib3-lib
         ORDER_ENTRY         : composite2
@@ -1131,12 +1131,12 @@ PROJECT             : testWithCompositeBuild
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.core:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
             LibraryLevel        : project
@@ -1147,12 +1147,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.lifecycle:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
             LibraryLevel        : project
@@ -1190,12 +1190,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar
             LibraryLevel        : project
@@ -1234,12 +1234,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support:collections:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:collections:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
             LibraryLevel        : project
@@ -1334,12 +1334,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:support-annotations:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
             LibraryLevel        : project
@@ -1416,40 +1416,40 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
+        LIBRARY             : Gradle: org.jetbrains:annotations:13.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains:annotations:13.0@jar [=]
+            Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY         : TestCompositeLib3-lib
         ORDER_ENTRY         : composite4
@@ -1562,12 +1562,12 @@ PROJECT             : testWithCompositeBuild
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.core:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
             LibraryLevel        : project
@@ -1578,12 +1578,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.lifecycle:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
             LibraryLevel        : project
@@ -1649,12 +1649,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support:collections:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:collections:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
             LibraryLevel        : project
@@ -1749,12 +1749,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:support-annotations:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
             LibraryLevel        : project
@@ -2055,12 +2055,12 @@ PROJECT             : testWithCompositeBuild
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.core:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
             LibraryLevel        : project
@@ -2071,12 +2071,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.lifecycle:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
             LibraryLevel        : project
@@ -2114,12 +2114,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar
             LibraryLevel        : project
@@ -2158,12 +2158,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support:collections:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:collections:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
             LibraryLevel        : project
@@ -2258,12 +2258,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:support-annotations:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
             LibraryLevel        : project
@@ -2340,40 +2340,40 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
+        LIBRARY             : Gradle: org.jetbrains:annotations:13.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains:annotations:13.0@jar [=]
+            Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY         : TestCompositeLib1-lib
         ORDER_ENTRY         : TestCompositeLib3-lib
@@ -2535,12 +2535,12 @@ PROJECT             : testWithCompositeBuild
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.core:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
             LibraryLevel        : project
@@ -2551,12 +2551,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.lifecycle:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
             LibraryLevel        : project
@@ -2622,12 +2622,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support:collections:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:collections:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
             LibraryLevel        : project
@@ -2722,12 +2722,12 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:support-annotations:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
             LibraryLevel        : project
@@ -2804,38 +2804,38 @@ PROJECT             : testWithCompositeBuild
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
+        LIBRARY             : Gradle: org.jetbrains:annotations:13.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains:annotations:13.0@jar [=]
+            Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/

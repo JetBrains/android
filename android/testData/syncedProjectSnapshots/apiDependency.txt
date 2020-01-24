@@ -108,12 +108,12 @@ PROJECT             : testApiDependency
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.core:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
             LibraryLevel        : project
@@ -124,12 +124,12 @@ PROJECT             : testApiDependency
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.lifecycle:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
             LibraryLevel        : project
@@ -195,12 +195,12 @@ PROJECT             : testApiDependency
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support:collections:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:collections:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
             LibraryLevel        : project
@@ -295,12 +295,12 @@ PROJECT             : testApiDependency
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:support-annotations:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
             LibraryLevel        : project
@@ -377,19 +377,19 @@ PROJECT             : testApiDependency
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.example.jlib:lib3:0.9.1@jar
+        LIBRARY             : Gradle: com.example.jlib:lib3:0.9.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.example.jlib:lib3:0.9.1@jar [=]
+            Name                : Gradle: com.example.jlib:lib3:0.9.1 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
-        LIBRARY             : Gradle: com.example.jlib:lib4:0.9.1@jar
+        LIBRARY             : Gradle: com.example.jlib:lib4:0.9.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.example.jlib:lib4:0.9.1@jar [=]
+            Name                : Gradle: com.example.jlib:lib4:0.9.1 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
         LIBRARY             : Gradle: com.example.libs:lib1:0.9.1@aar
             LibraryLevel        : project
@@ -409,19 +409,19 @@ PROJECT             : testApiDependency
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-0.9.1/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-0.9.1/res
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lib2-0.9.1/AndroidManifest.xml
-        LIBRARY             : Gradle: junit:junit:4.12@jar
-            LibraryLevel        : project
-            IsModuleLevel       : false
+        LIBRARY             : Gradle: junit:junit:4.12
+            LibraryLevel        : module
+            IsModuleLevel       : true
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: junit:junit:4.12@jar [=]
+            Name                : Gradle: junit:junit:4.12 [=]
             *CLASSES            : jar://<M2>/junit/junit/4.12/junit-4.12.jar!/
-        LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3@jar
-            LibraryLevel        : project
-            IsModuleLevel       : false
+        LIBRARY             : Gradle: org.hamcrest:hamcrest-core:1.3
+            LibraryLevel        : module
+            IsModuleLevel       : true
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.hamcrest:hamcrest-core:1.3@jar [=]
+            Name                : Gradle: org.hamcrest:hamcrest-core:1.3 [=]
             *CLASSES            : jar://<M2>/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar!/
         ORDER_ENTRY         : jlib
         ORDER_ENTRY         : jlib0
@@ -618,12 +618,12 @@ PROJECT             : testApiDependency
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.core:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
             LibraryLevel        : project
@@ -634,12 +634,12 @@ PROJECT             : testApiDependency
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.lifecycle:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
             LibraryLevel        : project
@@ -705,12 +705,12 @@ PROJECT             : testApiDependency
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support:collections:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:collections:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
             LibraryLevel        : project
@@ -805,12 +805,12 @@ PROJECT             : testApiDependency
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
+        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:support-annotations:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
             LibraryLevel        : project
@@ -887,19 +887,19 @@ PROJECT             : testApiDependency
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
-        LIBRARY             : Gradle: com.example.jlib:lib3:0.9.1@jar
+        LIBRARY             : Gradle: com.example.jlib:lib3:0.9.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.example.jlib:lib3:0.9.1@jar [=]
+            Name                : Gradle: com.example.jlib:lib3:0.9.1 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib3/0.9.1/lib3-0.9.1.jar!/
-        LIBRARY             : Gradle: com.example.jlib:lib4:0.9.1@jar
+        LIBRARY             : Gradle: com.example.jlib:lib4:0.9.1
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.example.jlib:lib4:0.9.1@jar [=]
+            Name                : Gradle: com.example.jlib:lib4:0.9.1 [=]
             *CLASSES            : jar://<DEV>/tools/adt/idea/android/testData/projects/psdSampleRepo/com/example/jlib/lib4/0.9.1/lib4-0.9.1.jar!/
         LIBRARY             : Gradle: com.example.libs:lib1:0.9.1@aar
             LibraryLevel        : project
