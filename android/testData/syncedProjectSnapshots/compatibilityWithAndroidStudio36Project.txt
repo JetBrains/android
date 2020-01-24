@@ -142,6 +142,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/annotations.zip!/
         LIBRARY             : Gradle: androidx.arch.core:core-common:2.0.0@jar
             LibraryLevel        : project
@@ -158,6 +159,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -166,6 +168,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.collection:collection:1.0.0@jar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -188,6 +191,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -196,6 +200,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.core:core:1.0.1@aar
             LibraryLevel        : project
@@ -205,6 +210,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.core:core:1.0.1@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/annotations.zip!/
         LIBRARY             : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar
             LibraryLevel        : project
@@ -214,6 +220,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.customview:customview:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -222,6 +229,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.customview:customview:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.documentfile:documentfile:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -230,6 +238,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.documentfile:documentfile:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -238,6 +247,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.fragment:fragment:1.0.0@aar
             LibraryLevel        : project
@@ -247,6 +257,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.fragment:fragment:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.interpolator:interpolator:1.0.0@aar
             LibraryLevel        : project
@@ -256,6 +267,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.legacy:legacy-support-core-ui:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -264,6 +276,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.legacy:legacy-support-core-ui:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-ui-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-ui-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-ui-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.legacy:legacy-support-core-utils:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -272,6 +285,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.legacy:legacy-support-core-utils:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.lifecycle:lifecycle-common:2.0.0@jar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -287,6 +301,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-core-2.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-core-2.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-core-2.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -295,6 +310,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-2.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-2.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-2.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -303,6 +319,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-runtime-2.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-runtime-2.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-runtime-2.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -311,6 +328,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-viewmodel-2.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-viewmodel-2.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-viewmodel-2.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.loader:loader:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -319,6 +337,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.loader:loader:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -327,6 +346,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.print:print:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -335,6 +355,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.print:print:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
             LibraryLevel        : project
@@ -344,6 +365,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -352,6 +374,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar
             LibraryLevel        : project
@@ -361,6 +384,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.2.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.2.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.2.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -369,6 +393,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.2.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.2.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.2.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.test.ext:junit:1.1.1@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -377,6 +402,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.test.ext:junit:1.1.1@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.test:core:1.2.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -385,6 +411,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.test:core:1.2.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.test:monitor:1.2.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -393,6 +420,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.test:monitor:1.2.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.2.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.2.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.2.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.test:runner:1.2.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -401,6 +429,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.test:runner:1.2.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -409,6 +438,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.vectordrawable:vectordrawable-animated:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-animated-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-animated-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-animated-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.vectordrawable:vectordrawable:1.0.1@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -417,6 +447,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.vectordrawable:vectordrawable:1.0.1@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-1.0.1/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-1.0.1/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-1.0.1/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -425,6 +456,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.viewpager:viewpager:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -433,6 +465,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: com.google.code.findbugs:jsr305:2.0.1@jar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -614,6 +647,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.appcompat:appcompat:1.0.2@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-1.0.2/annotations.zip!/
         LIBRARY             : Gradle: androidx.arch.core:core-common:2.0.0@jar
             LibraryLevel        : project
@@ -630,6 +664,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.arch.core:core-runtime:2.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-runtime-2.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -638,6 +673,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.asynclayoutinflater:asynclayoutinflater:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.collection:collection:1.0.0@jar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -660,6 +696,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.constraintlayout:constraintlayout:1.1.3@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraintlayout-1.1.3/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -668,6 +705,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.coordinatorlayout:coordinatorlayout:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.core:core:1.0.1@aar
             LibraryLevel        : project
@@ -677,6 +715,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.core:core:1.0.1@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/core-1.0.1/annotations.zip!/
         LIBRARY             : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar
             LibraryLevel        : project
@@ -686,6 +725,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.cursoradapter:cursoradapter:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.customview:customview:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -694,6 +734,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.customview:customview:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.documentfile:documentfile:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -702,6 +743,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.documentfile:documentfile:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -710,6 +752,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.drawerlayout:drawerlayout:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.fragment:fragment:1.0.0@aar
             LibraryLevel        : project
@@ -719,6 +762,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.fragment:fragment:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/fragment-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.interpolator:interpolator:1.0.0@aar
             LibraryLevel        : project
@@ -728,6 +772,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.interpolator:interpolator:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.legacy:legacy-support-core-ui:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -736,6 +781,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.legacy:legacy-support-core-ui:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-ui-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-ui-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-ui-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.legacy:legacy-support-core-utils:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -744,6 +790,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.legacy:legacy-support-core-utils:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/legacy-support-core-utils-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.lifecycle:lifecycle-common:2.0.0@jar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -759,6 +806,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.lifecycle:lifecycle-livedata-core:2.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-core-2.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-core-2.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-core-2.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -767,6 +815,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.lifecycle:lifecycle-livedata:2.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-2.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-2.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-livedata-2.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -775,6 +824,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-runtime-2.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-runtime-2.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-runtime-2.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -783,6 +833,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.lifecycle:lifecycle-viewmodel:2.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-viewmodel-2.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-viewmodel-2.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/lifecycle-viewmodel-2.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.loader:loader:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -791,6 +842,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.loader:loader:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -799,6 +851,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.localbroadcastmanager:localbroadcastmanager:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.print:print:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -807,6 +860,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.print:print:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar
             LibraryLevel        : project
@@ -816,6 +870,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.slidingpanelayout:slidingpanelayout:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -824,6 +879,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.swiperefreshlayout:swiperefreshlayout:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-1.0.0/annotations.zip!/
         LIBRARY             : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar
             LibraryLevel        : project
@@ -833,6 +889,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.test.espresso:espresso-core:3.2.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.2.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.2.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-core-3.2.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -841,6 +898,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.test.espresso:espresso-idling-resource:3.2.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.2.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.2.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/espresso-idling-resource-3.2.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.test.ext:junit:1.1.1@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -849,6 +907,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.test.ext:junit:1.1.1@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-junit-1.1.1/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.test:core:1.2.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -857,6 +916,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.test:core:1.2.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/jetified-core-1.2.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.test:monitor:1.2.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -865,6 +925,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.test:monitor:1.2.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.2.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.2.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/monitor-1.2.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.test:runner:1.2.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -873,6 +934,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.test:runner:1.2.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runner-1.2.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.vectordrawable:vectordrawable-animated:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -881,6 +943,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.vectordrawable:vectordrawable-animated:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-animated-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-animated-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-animated-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.vectordrawable:vectordrawable:1.0.1@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -889,6 +952,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.vectordrawable:vectordrawable:1.0.1@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-1.0.1/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-1.0.1/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/vectordrawable-1.0.1/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -897,6 +961,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.versionedparcelable:versionedparcelable:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: androidx.viewpager:viewpager:1.0.0@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -905,6 +970,7 @@ PROJECT             : AS36
             Name                : Gradle: androidx.viewpager:viewpager:1.0.0@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-1.0.0/AndroidManifest.xml
         LIBRARY             : Gradle: com.google.code.findbugs:jsr305:2.0.1@jar
             LibraryLevel        : project
             IsModuleLevel       : false
