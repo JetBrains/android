@@ -32,7 +32,6 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.ComponentTreeFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.SceneComponentFixture;
@@ -78,7 +77,6 @@ public class NavNlEditorTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/72238573
   @Test
   public void testCreateAndDelete() throws Exception {
-    // TODO: support with new component tree
     StudioFlags.NAV_NEW_COMPONENT_TREE.override(false);
 
     NlEditorFixture layout = guiTest
@@ -114,6 +112,37 @@ public class NavNlEditorTest {
 
     List<NlComponent> selectedComponents = fixture.getSelectedComponents();
     assertEquals(0, selectedComponents.size());
+  }
+
+  @RunIn(TestGroup.UNRELIABLE)
+  @Test
+  public void testCreateAndDeleteWithTree() throws Exception {
+    StudioFlags.NAV_NEW_COMPONENT_TREE.override(true);
+
+    NlEditorFixture navEditor = guiTest
+      .importProject("Navigation")
+      .waitForGradleProjectSyncToFinish()
+      .getEditor()
+      .open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
+      .getLayoutEditor(true);
+
+    AddDestinationMenuFixture menuFixture = navEditor
+      .waitForRenderToFinish()
+      .getNavSurface()
+      .openAddDestinationMenu()
+      .waitForContents();
+
+    assertEquals(3, menuFixture.visibleItemCount());
+    guiTest.robot().enterText("fragment_my");
+    assertEquals(1, menuFixture.visibleItemCount());
+
+    menuFixture.selectDestination("fragment_my");
+
+    ComponentTreeFixture<NlComponent> treeFixture = navEditor.navComponentTree();
+    treeFixture.showPopupMenuAt(1).menuItemWithPath("Delete").click();
+
+    navEditor.getAllComponents().forEach(component -> assertNotEquals("main_activity", component.getComponent().getId()));
+    treeFixture.selectedComponents().forEach(component -> assertNotEquals("main_activity", component.getId()));
   }
 
   @RunIn(TestGroup.UNRELIABLE)  // b/137919011
