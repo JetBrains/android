@@ -47,7 +47,6 @@ class BuildAttributionViewFixture(robot: Robot, target: JPanel) : JPanelFixture(
       "Build: finished at",
       "Plugins with tasks determining this build's duration",
       "Tasks determining this build's duration",
-      "Plugin Configuration Time",
       "Warnings"
     ))
   }
