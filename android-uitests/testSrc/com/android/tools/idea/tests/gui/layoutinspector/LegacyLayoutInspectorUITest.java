@@ -20,15 +20,18 @@ import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
 import com.android.fakeadbserver.shellcommandhandlers.ActivityManagerCommandHandler;
+import com.android.flags.junit.SetFlagRule;
 import com.android.tools.idea.editors.layoutInspector.actions.LayoutInspectorDebugStubber;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.AndroidProcessChooserDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.LayoutInspectorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.inspector.LegacyLayoutInspectorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.RunToolWindowFixture;
+import com.android.tools.idea.ui.LayoutInspectorSettingsKt;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import org.fest.swing.edt.GuiQuery;
@@ -47,10 +50,23 @@ import java.util.concurrent.TimeUnit;
 import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
-public class LayoutInspectorTest {
+public class LegacyLayoutInspectorUITest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final SetFlagRule<Boolean> flagRule = new SetFlagRule<>(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLED, false);
 
   private FakeAdbServer fakeAdbServer;
+  private boolean myOldSetting;
+
+  @Before
+  public void chooseOldInspector() {
+    myOldSetting = LayoutInspectorSettingsKt.getEnableLiveLayoutInspector();
+    LayoutInspectorSettingsKt.setEnableLiveLayoutInspector(false);
+  }
+
+  @After
+  public void restoreInspectorSettings() {
+    LayoutInspectorSettingsKt.setEnableLiveLayoutInspector(myOldSetting);
+  }
 
   @Before
   public void setupFakeAdbServer() throws Exception {
@@ -60,7 +76,7 @@ public class LayoutInspectorTest {
       public String startProcess(@NotNull DeviceState deviceState) {
         deviceState.startClient(1234, 1235, "google.simpleapplication", false);
         return "Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER]"
-          + " cmp=google.simpleapplication/google.simpleapplication.MyActivity }";
+               + " cmp=google.simpleapplication/google.simpleapplication.MyActivity }";
       }
     };
     fakeAdbServer = new FakeAdbServer.Builder()
@@ -128,14 +144,14 @@ public class LayoutInspectorTest {
       .until(() -> !GuiQuery.get(() -> DumbService.isDumb(ideFrame.getProject())));
     // TODO end workaround for http://b/126957955
 
-    guiTest.ideFrame().waitAndInvokeMenuPath("Tools", "Layout Inspector");
+    guiTest.ideFrame().waitAndInvokeMenuPath("Tools", "Legacy Layout Inspector");
     // easier to select via index rather than by path string which changes depending on the api version
     AndroidProcessChooserDialogFixture.find(guiTest.robot()).selectProcess().clickOk();
-    List<String> layoutElements = new LayoutInspectorFixture(guiTest.robot()).getLayoutElements();
+    List<String> layoutElements = new LegacyLayoutInspectorFixture(guiTest.robot()).getLayoutElements();
     checkLayout(layoutElements);
   }
 
-  private void checkLayout(List<String> layoutElements) {
+  private static void checkLayout(List<String> layoutElements) {
     assertThat(layoutElements).contains("android.widget.RelativeLayout");
     assertThat(layoutElements).contains("android.widget.TextView");
     assertThat(layoutElements).contains("android.widget.FrameLayout");
