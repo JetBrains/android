@@ -20,15 +20,12 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle" />
     <orderEntry type="module" module-name="intellij.android.transport" />
     <orderEntry type="module" module-name="intellij.android.android-layout-inspector" />
-    <orderEntry type="module" module-name="assistant" />
-    <orderEntry type="module" module-name="connection-assistant" />
-    <orderEntry type="module" module-name="whats-new-assistant" />
     <orderEntry type="module" module-name="intellij.android.lang-databinding" />
     <orderEntry type="module" module-name="intellij.android.databinding" />
     <orderEntry type="module" module-name="intellij.android.naveditor" />
     <orderEntry type="module" module-name="intellij.android.layout-inspector" />
     <orderEntry type="module" module-name="intellij.android.compose-designer" />
     <orderEntry type="module" module-name="intellij.android.room" />
-    <orderEntry type="module" module-name="intellij.android.wizardTemplate.impl" />
+    <orderEntry type="module" module-name="android.sdktools.wizardTemplate.impl" />
   </component>
 </module>

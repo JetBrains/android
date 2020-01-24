@@ -119,7 +119,7 @@
     <orderEntry type="module" module-name="intellij.android.wizard.model" />
     <orderEntry type="library" name="commons-io" level="project" />
     <orderEntry type="module" module-name="intellij.android.smali" />
-    <orderEntry type="module" module-name="intellij.android.gradle-tooling.api" />
+    <orderEntry type="module" module-name="intellij.android.gradle-tooling" />
     <orderEntry type="module" module-name="intellij.android.gradle-tooling.impl" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" />
     <orderEntry type="module" module-name="android.sdktools.flags" />
@@ -179,7 +179,7 @@
       </library>
     </orderEntry>
     <orderEntry type="module" module-name="intellij.platform.objectSerializer.annotations" />
-    <orderEntry type="module" module-name="intellij.android.wizardTemplate.plugin" />
+    <orderEntry type="module" module-name="android.sdktools.wizardTemplate.plugin" />
     <orderEntry type="module" module-name="intellij.terminal" />
     <orderEntry type="library" scope="PROVIDED" name="org.jetbrains.intellij.deps.android.tools.base:templates" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="org.jetbrains.intellij.deps.android.tools.base:layoutlib-resources" level="project" />
