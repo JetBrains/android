@@ -15,23 +15,28 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite
 
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.AppUIUtil
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
 import java.awt.Component
+import javax.swing.ListSelectionModel
+import javax.swing.event.ListSelectionEvent
 
 /**
  * A table to display Android test results. Test results are grouped by device and test case. The column is a device name
  * and the row is a test case.
  */
-class AndroidTestResultsTable {
+class AndroidTestResultsTable(listener: AndroidTestResultsTableListener) {
   private val myModel = AndroidTestResultsTableModel()
-  private val myTableViewContainer = JBScrollPane(TableView<AndroidTestResultsRow>(myModel))
+  private val myTableView = AndroidTestResultsTableView(myModel, listener)
+  private val myTableViewContainer = JBScrollPane(myTableView)
 
   /**
    * Adds a device to the table.
@@ -71,6 +76,48 @@ class AndroidTestResultsTable {
    */
   fun getComponent(): Component {
     return myTableViewContainer
+  }
+
+  /**
+   * Returns an internal model class for testing.
+   */
+  @VisibleForTesting
+  fun getModelForTesting(): ListTableModel<out AndroidTestResults> = myModel
+
+  /**
+   * Returns an internal view class for testing.
+   */
+  @VisibleForTesting
+  fun getTableViewForTesting(): TableView<out AndroidTestResults> = myTableView
+}
+
+/**
+ * A listener to receive events occurred in AndroidTestResultsTable.
+ */
+interface AndroidTestResultsTableListener {
+  /**
+   * Called when a user selects a test results row. This method is only invoked when
+   * the selected item is changed. e.g. If a user clicks the same row twice, the callback
+   * is invoked only for the first time.
+   *
+   * @param selectedResults results which a user selected
+   */
+  fun onAndroidTestResultsRowSelected(selectedResults: AndroidTestResults)
+}
+
+/**
+ * An internal swing view component implementing AndroidTestResults table view.
+ */
+private class AndroidTestResultsTableView(model: AndroidTestResultsTableModel,
+                                          private val listener: AndroidTestResultsTableListener)
+  : TableView<AndroidTestResultsRow>(model) {
+  init {
+    selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
+  }
+
+  override fun valueChanged(event: ListSelectionEvent) {
+    super.valueChanged(event)
+    selectedObject?.let { listener.onAndroidTestResultsRowSelected(it) }
   }
 }
 
@@ -127,14 +174,14 @@ private class TestStatusColumn : ColumnInfo<AndroidTestResultsRow, String>("Stat
  */
 private class AndroidTestResultsColumn(private val device: AndroidDevice) : ColumnInfo<AndroidTestResultsRow, String>(device.name) {
   override fun valueOf(item: AndroidTestResultsRow): String {
-    return item.getTestCaseResult(device)?.result?.name ?: ""
+    return item.getTestCaseResult(device)?.name ?: ""
   }
 }
 
 /**
  * A row for displaying test results. Each row has test results for every device.
  */
-private class AndroidTestResultsRow(val testCaseName: String) {
+private class AndroidTestResultsRow(override val testCaseName: String) : AndroidTestResults {
   private val myTestCases = mutableMapOf<String, AndroidTestCase>()
 
   /**
@@ -150,7 +197,7 @@ private class AndroidTestResultsRow(val testCaseName: String) {
   /**
    * Returns a test case result for a given [device].
    */
-  fun getTestCaseResult(device: AndroidDevice) = myTestCases[device.id]
+  override fun getTestCaseResult(device: AndroidDevice) = myTestCases[device.id]?.result
 
   /**
    * Returns a one liner test result summary string.
