@@ -25,11 +25,15 @@ import com.android.tools.idea.actions.SendFeedbackAction
 import com.android.tools.idea.gradle.project.ProjectStructure
 import com.intellij.openapi.project.Project
 
-class TaskIssueReporter(
+interface TaskIssueReporter {
+  fun reportIssue(taskIssue: TaskIssueUiData)
+}
+
+class TaskIssueReporterImpl(
   reportData: BuildAttributionReportUiData,
   private val project: Project,
   private val analytics: BuildAttributionUiAnalytics
-) {
+) : TaskIssueReporter {
 
   private val generator = TaskIssueReportGenerator(
     reportData,
@@ -38,7 +42,7 @@ class TaskIssueReporter(
   )
 
   @UiThread
-  fun reportIssue(taskIssue: TaskIssueUiData) {
+  override fun reportIssue(taskIssue: TaskIssueUiData) {
     BuildAttributionIssueReportingDialog(project, analytics, taskIssue.task.pluginName, generator.generateReportText(taskIssue)).show()
   }
 }
