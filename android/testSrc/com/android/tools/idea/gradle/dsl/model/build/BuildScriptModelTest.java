@@ -22,6 +22,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_FROM_BUILDSCRIPT_BLOCK_SUB;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK;
+import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_PARSE_DEPENDENCIES;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_PARSE_REPOSITORIES;
 import static com.android.tools.idea.gradle.dsl.TestFileName.BUILD_SCRIPT_MODEL_REMOVE_REPOSITORIES_MULTIPLE_BLOCKS;
@@ -204,7 +205,14 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
 
     List<ArtifactDependencyModel> artifacts = buildModel.buildscript().dependencies().artifacts();
     assertSize(1, artifacts);
-    verifyPropertyModel(artifacts.get(0).completeModel(), "buildscript.dependencies.classpath", "com.android.tools.build:gradle:$VERSION");
+    String propertyText;
+    if (isGroovy()) {
+      propertyText = "$VERSION";
+    }
+    else {
+      propertyText = "${project.extra[\"VERSION\"]}";
+    }
+    verifyPropertyModel(artifacts.get(0).completeModel(), "buildscript.dependencies.classpath", "com.android.tools.build:gradle:" + propertyText);
   }
 
   @Test
@@ -215,7 +223,14 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
 
     List<ArtifactDependencyModel> artifacts = buildModel.buildscript().dependencies().artifacts();
     assertSize(1, artifacts);
-    verifyPropertyModel(artifacts.get(0).completeModel(), "buildscript.dependencies.classpath", "com.android.tools.build:gradle:$VERSION");
+    String propertyText;
+    if (isGroovy()) {
+      propertyText = "$VERSION";
+    }
+    else {
+      propertyText = "${project.extra[\"VERSION\"]}";
+    }
+    verifyPropertyModel(artifacts.get(0).completeModel(), "buildscript.dependencies.classpath", "com.android.tools.build:gradle:" + propertyText);
 
     // Add the missing variable to the buildscript block.
     buildModel.buildscript().ext().findProperty("VERSION").setValue("2.1.2");
@@ -223,6 +238,11 @@ public class BuildScriptModelTest extends GradleFileModelTestCase {
     buildModel.android().defaultConfig().applicationId().setValue(new ReferenceTo("VERSION"));
 
     applyChangesAndReparse(buildModel);
+    // TODO(b/147796130), TODO(b/148271448): this passes and both language syntaxes are legal, but (in some sense) only by accident: the
+    //  KotlinScript writer writes ${extra[""]} within a dependencies { } block to pick up a buildscript property, but dependencies is
+    //  itself ExtensionAware.  However: there is no `extra` extension function on DependencyHandlerScope, only `ext`, which means that
+    //  the `extra` reference is resolved on the buildscript block rather than the dependencies block.
+    verifyFileContents(myBuildFile, BUILD_SCRIPT_MODEL_EXT_PROPERTIES_NOT_VISIBLE_FROM_BUILDSCRIPT_BLOCK_EXPECTED);
 
     artifacts = buildModel.buildscript().dependencies().artifacts();
     assertSize(1, artifacts);
