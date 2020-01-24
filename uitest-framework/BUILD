@@ -78,6 +78,7 @@ iml_module(
         "//tools/adt/idea/nav/editor:intellij.android.nav.editor[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
+        "//tools/adt/idea/layout-inspector:intellij.android.layout-inspector[module, test]",
     ],
 )
 
