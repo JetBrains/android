@@ -173,6 +173,11 @@ public class DebuggerRedefiner implements ClassRedefiner {
     }
   }
 
+  @Override
+  public Deploy.SwapResponse redefine(Deploy.OverlaySwapRequest request) throws DeployerException {
+    throw DeployerException.operationNotSupported("No overlay swaps for debuggers yet.");
+  }
+
   /**
    * Give a project return the DebugggerSession object associated with it at the port should a debugger is connected there. Otherwise,
    * return null.

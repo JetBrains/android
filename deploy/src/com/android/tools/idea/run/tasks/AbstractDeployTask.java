@@ -23,6 +23,7 @@ import com.android.tools.deployer.DeployMetric;
 import com.android.tools.deployer.Deployer;
 import com.android.tools.deployer.DeployerException;
 import com.android.tools.deployer.Installer;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.DeploymentService;
@@ -103,8 +104,8 @@ public abstract class AbstractDeployTask implements LaunchTask {
     Installer installer = new AdbInstaller(getLocalInstaller(), adb, metrics, logger);
     DeploymentService service = DeploymentService.getInstance(myProject);
     IdeService ideService = new IdeService(myProject);
-    Deployer deployer = new Deployer(adb, service.getDexDatabase(), service.getTaskRunner(),
-                                     installer, ideService, metrics, logger);
+    Deployer deployer = new Deployer(adb, service.getDeploymentCacheDatabase(), service.getDexDatabase(), service.getTaskRunner(),
+                                     installer, ideService, metrics, logger, StudioFlags.APPLY_CHANGES_OPTIMISTIC_SWAP.get());
     List<String> idsSkippedInstall = new ArrayList<>();
     for (Map.Entry<String, List<File>> entry : myPackages.entrySet()) {
       String applicationId = entry.getKey();
