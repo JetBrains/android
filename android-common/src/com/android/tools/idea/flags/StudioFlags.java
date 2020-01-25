@@ -389,6 +389,13 @@ public final class StudioFlags {
     "Upon installing, if application is already on device, only send parts of the apks which have changed (the delta).",
     true);
 
+  public static final Flag<Boolean> APPLY_CHANGES_OPTIMISTIC_SWAP = Flag.create(
+    RUNDEBUG,
+    "applychanges.optimisticswap",
+    "Use the 'Apply Changes 2.0' deployment pipeline",
+    "Supports Install-without-Install, Speculative Diff and Structural Redefinition",
+    false);
+
   public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED = Flag.create(
     RUNDEBUG,
     "select.device.snapshot.combo.box.snapshots.enabled",
