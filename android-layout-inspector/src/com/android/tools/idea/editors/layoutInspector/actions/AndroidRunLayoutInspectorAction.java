@@ -32,9 +32,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class AndroidRunLayoutInspectorAction extends AnAction {
   public AndroidRunLayoutInspectorAction() {
-    super(AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
-          AndroidBundle.message("android.ddms.actions.layoutinspector.description"),
-          StudioIcons.Shell.Menu.LAYOUT_INSPECTOR);
+    super(() -> AndroidBundle.message("android.ddms.actions.layoutinspector.title"),
+          () -> AndroidBundle.message("android.ddms.actions.layoutinspector.description"), StudioIcons.Shell.Menu.LAYOUT_INSPECTOR);
   }
 
   @Override
