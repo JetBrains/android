@@ -23,11 +23,9 @@ import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
  * @author Eugene.Kudelevsky
  */
 public class LegacyNewAndroidComponentAction extends AnAction {
-
   protected LegacyNewAndroidComponentAction() {
-    super(AndroidBundle.message("android.new.component.action.title.non.gradle"),
-          AndroidBundle.message("android.new.component.action.description"),
-          AndroidIcons.Android);
+    super(() -> AndroidBundle.message("android.new.component.action.title.non.gradle"),
+          () -> AndroidBundle.message("android.new.component.action.description"), AndroidIcons.Android);
   }
 
   @Override
