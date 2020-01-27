@@ -33,6 +33,14 @@ class DefaultTimelineTest {
   }
 
   @Test
+  fun zoomIn_DoesNotCollapse() {
+    // Set to two points very close to each other.
+    timeline.viewRange.set(4.499328215754487E12, 4.499328215754489E12)
+    timeline.zoomIn()
+    assertThat(timeline.viewRange.length).isGreaterThan(0.0)
+  }
+
+  @Test
   fun zoomOut() {
     timeline.dataRange.set(0.0, 5.0)
     timeline.viewRange.set(1.0, 2.0)
