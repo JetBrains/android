@@ -145,8 +145,6 @@ import com.intellij.codeInspection.CommonProblemDescriptor;
 import com.intellij.codeInspection.QuickFix;
 import com.intellij.codeInspection.reference.RefEntity;
 import com.intellij.codeInspection.ui.util.SynchronizedBidiMultiMap;
-import com.intellij.ide.projectView.ProjectView;
-import com.intellij.ide.projectView.impl.ProjectViewPane;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -159,7 +157,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.testFramework.ProjectViewTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.io.IOException;
@@ -488,13 +485,6 @@ public class AndroidLintTest extends AndroidTestCase {
 
   public void testGenBackupDescriptor() throws Exception {
     deleteManifest();
-    // This is needed for quick fixes that call TemplateUtils.selectEditor(..)
-    // which in turn looks up the ProjectViewPane.ID.
-    ProjectViewTestUtil.setupImpl(getProject(), true);
-    // In unit test mode, ProjectViewSelectInTarget#select()
-    // short circuits the typical flow and sends the selection to the
-    // ProjectViewPane.ID
-    ProjectView.getInstance(getProject()).changeView(ProjectViewPane.ID);
 
     // setup project files
     myFixture.copyFileToProject(getGlobalTestDir() + "/MySqliteHelper.java",
@@ -528,13 +518,6 @@ public class AndroidLintTest extends AndroidTestCase {
     // getSharedPreferences, the quickfix should create an empty backup descriptor
     // that contains helpful comments.
     deleteManifest();
-    // This is needed for quick fixes that call TemplateUtils.selectEditor(..)
-    // which in turn looks up the ProjectViewPane.ID.
-    ProjectViewTestUtil.setupImpl(getProject(), true);
-    // In unit test mode, ProjectViewSelectInTarget#select()
-    // short circuits the typical flow and sends the selection to the
-    // ProjectViewPane.ID
-    ProjectView.getInstance(getProject()).changeView(ProjectViewPane.ID);
 
     doTestWithFix(new AndroidLintAllowBackupInspection(),
                   "Set fullBackupContent attribute and generate descriptor",
