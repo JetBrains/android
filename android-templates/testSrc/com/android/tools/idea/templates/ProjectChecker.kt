@@ -321,7 +321,8 @@ data class ProjectChecker(
         "isThingsLauncher" to "Launch activity automatically on boot",
         "isEnabled" to "Enabled",
         "isExported" to "Exported",
-        "includeHelper" to "Include helper start methods?"
+        "includeHelper" to "Include helper start methods?",
+        "isInteractive" to "Interactive"
       )
       overrideBooleanParameters.forEach {(id, name) ->
         activityState[id]?.let { value ->

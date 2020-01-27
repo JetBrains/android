@@ -942,6 +942,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareWatchFaceService() {
+    checkCreateTemplate("other", "WatchFaceService", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareWatchFaceServiceWithKotlin() {
+    checkCreateTemplate("other", "WatchFaceService", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewValueResourceFile() {
     checkCreateTemplate("other", "ValueResourceFile")
   }
