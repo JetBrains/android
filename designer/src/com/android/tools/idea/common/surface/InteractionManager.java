@@ -21,7 +21,6 @@ import com.android.tools.adtui.actions.ZoomType;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.adtui.ui.AdtUiCursors;
-import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.Scene;
@@ -764,21 +763,6 @@ public class InteractionManager implements Disposable {
         // Start a scroll interaction and a timer to bundle all the scroll events
         startInteraction(new MouseWheelMovedEvent(e, getInteractionInformation()), scrollInteraction);
         myScrollEndTimer.addActionListener(myScrollEndListener);
-      }
-      else {
-        // TODO: Remove below code after StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
-        SceneView sceneView = mySurface.getSceneView(x, y);
-        if (sceneView == null) {
-          e.getComponent().getParent().dispatchEvent(e);
-          return;
-        }
-
-        final NlComponent component = Coordinates.findComponent(sceneView, x, y);
-        if (component == null) {
-          // There is no component consuming the scroll
-          e.getComponent().getParent().dispatchEvent(e);
-          return;
-        }
       }
 
       boolean isScrollInteraction = myCurrentInteraction instanceof ScrollInteraction;
