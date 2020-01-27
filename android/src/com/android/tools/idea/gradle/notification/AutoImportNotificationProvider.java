@@ -15,6 +15,10 @@
  */
 package com.android.tools.idea.gradle.notification;
 
+import static com.android.SdkConstants.FN_BUILD_GRADLE;
+import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
+import static com.intellij.ide.BrowserUtil.browse;
+
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.util.GradleProjectSettingsFinder;
@@ -28,23 +32,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
-import static com.android.SdkConstants.FN_BUILD_GRADLE;
-import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.intellij.ide.BrowserUtil.browse;
-
 /**
  * Notifies users that Gradle "auto-import" feature is enabled, explains the issues with this feature and offers a way to disable it. This
  * notification only appears on build.gradle and settings.gradle files.
  */
-public class AutoImportNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
+public final class AutoImportNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("android.gradle.auto.import");
 
   @NotNull private final Project myProject;
-  @NotNull private final EditorNotifications myNotifications;
 
-  public AutoImportNotificationProvider(@NotNull Project project, @NotNull EditorNotifications notifications) {
+  public AutoImportNotificationProvider(@NotNull Project project) {
     myProject = project;
-    myNotifications = notifications;
   }
 
   @Override
@@ -55,13 +53,13 @@ public class AutoImportNotificationProvider extends EditorNotifications.Provider
 
   @Override
   @Nullable
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
-    if (!GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor, @NotNull Project project) {
+    if (!GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
       return null;
     }
     String name = file.getName();
     if (FN_BUILD_GRADLE.equals(name) || FN_SETTINGS_GRADLE.equals(name)) {
-      GradleProjectSettings settings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(myProject);
+      GradleProjectSettings settings = GradleProjectSettingsFinder.getInstance().findGradleProjectSettings(project);
       if (IdeInfo.getInstance().isAndroidStudio() && settings != null && settings.isUseAutoImport()) {
         return new DisableAutoImportNotificationPanel(settings);
       }
@@ -77,7 +75,7 @@ public class AutoImportNotificationProvider extends EditorNotifications.Provider
 
       createActionLabel("Disable 'auto-import'", () -> {
         settings.setUseAutoImport(false);
-        myNotifications.updateAllNotifications();
+        EditorNotifications.getInstance(myProject).updateAllNotifications();
       });
     }
   }

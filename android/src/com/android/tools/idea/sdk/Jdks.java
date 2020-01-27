@@ -37,6 +37,7 @@ import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -48,6 +49,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.pom.java.LanguageLevel;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.SystemProperties;
 import java.io.File;
 import java.util.ArrayList;
@@ -61,7 +63,8 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utility methods related to IDEA JDKs.
  */
-public class Jdks {
+@Service
+public final class Jdks {
   @NotNull private static final Logger LOG = Logger.getInstance(Jdks.class);
 
   @NonNls public static final String DOWNLOAD_JDK_8_URL =
@@ -76,8 +79,13 @@ public class Jdks {
     return ServiceManager.getService(Jdks.class);
   }
 
+  @NonInjectable
   public Jdks(@NotNull IdeInfo ideInfo) {
     myIdeInfo = ideInfo;
+  }
+
+  public Jdks() {
+    myIdeInfo = IdeInfo.getInstance();
   }
 
   @Nullable

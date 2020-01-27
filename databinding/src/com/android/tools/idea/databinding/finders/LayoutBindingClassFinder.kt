@@ -19,6 +19,7 @@ import com.android.tools.idea.databinding.DataBindingProjectComponent
 import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.PsiPackage
@@ -32,10 +33,9 @@ import com.intellij.psi.search.GlobalSearchScope
  *
  * See [LightBindingClass]
  */
-class LayoutBindingClassFinder(private val dataBindingComponent: DataBindingProjectComponent) : PsiElementFinder() {
-
+class LayoutBindingClassFinder(private val project: Project) : PsiElementFinder() {
   override fun findClass(qualifiedName: String, scope: GlobalSearchScope): PsiClass? {
-    for (facet in dataBindingComponent.getDataBindingEnabledFacets()) {
+    for (facet in project.getComponent(DataBindingProjectComponent::class.java).getDataBindingEnabledFacets()) {
       val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
       val info = moduleResources.dataBindingResourceFiles?.get(qualifiedName) ?: continue
       val file = info.psiFile.virtualFile
@@ -56,7 +56,7 @@ class LayoutBindingClassFinder(private val dataBindingComponent: DataBindingProj
       return PsiClass.EMPTY_ARRAY
     }
 
-    return dataBindingComponent.getDataBindingEnabledFacets()
+    return project.getComponent(DataBindingProjectComponent::class.java).getDataBindingEnabledFacets()
       .flatMap { facet ->
         ResourceRepositoryManager.getModuleResources(facet).dataBindingResourceFiles?.values?.asIterable() ?: emptyList()
       }.filter { info ->

@@ -21,12 +21,13 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.serviceContainer.NonInjectable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -37,7 +38,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 
-public class SyncIssuesReporter {
+@Service
+public final class SyncIssuesReporter {
   @NotNull private final Map<Integer, BaseSyncIssuesReporter> myStrategies = new HashMap<>(6);
   @NotNull private final BaseSyncIssuesReporter myDefaultMessageFactory;
 
@@ -47,14 +49,15 @@ public class SyncIssuesReporter {
   }
 
   @SuppressWarnings("unused") // Instantiated by IDEA
-  public SyncIssuesReporter(@NotNull UnresolvedDependenciesReporter unresolvedDependenciesReporter) {
-    this(unresolvedDependenciesReporter, new ExternalNdkBuildIssuesReporter(), new UnsupportedGradleReporter(),
+  public SyncIssuesReporter() {
+    this(UnresolvedDependenciesReporter.getInstance(), new ExternalNdkBuildIssuesReporter(), new UnsupportedGradleReporter(),
          new BuildToolsTooLowReporter(), new MissingSdkPackageSyncIssuesReporter(), new MinSdkInManifestIssuesReporter(),
          new TargetSdkInManifestIssuesReporter(), new DeprecatedConfigurationReporter(), new MissingSdkIssueReporter(),
          new OutOfDateThirdPartyPluginIssueReporter());
   }
 
   @VisibleForTesting
+  @NonInjectable
   SyncIssuesReporter(@NotNull BaseSyncIssuesReporter... strategies) {
     for (BaseSyncIssuesReporter strategy : strategies) {
       int issueType = strategy.getSupportedIssueType();
