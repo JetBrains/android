@@ -44,7 +44,7 @@ fun generateManifest(
     android:supportsRtl="true"
     android:theme="$theme" />
   """
-  else "/"
+  else ""
 
   return """
     <manifest xmlns:android="http://schemas.android.com/apk/res/android"
