@@ -72,7 +72,7 @@ class AndroidGradleProjectRule : NamedExternalResource() {
   val modules: Modules get() = delegateTestCase.modules
 
   override fun before(description: Description) {
-    delegateTestCase.name = description.methodName
+    delegateTestCase.name = description.methodName ?: description.displayName
     delegateTestCase.setUp()
   }
 
