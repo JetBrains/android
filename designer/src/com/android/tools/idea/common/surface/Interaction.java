@@ -19,7 +19,6 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.event.KeyEvent;
 import java.util.Collections;
 import java.util.List;
 
@@ -135,30 +134,5 @@ public abstract class Interaction implements Interaction2 {
    */
   @Deprecated
   public void cancel(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
-  }
-
-  /**
-   * Handles a key press during the interaction. May be called repeatedly when the
-   * user is holding the key for several seconds.
-   *
-   * @param event The AWT event for the key press,
-   * @return true if this interaction consumed the key press, otherwise return false
-   * @deprecated Use {@link #update(InteractionEvent)} with keyboard related {@link InteractionEvent}s.
-   */
-  @Deprecated
-  public boolean keyPressed(@NotNull KeyEvent event) {
-    return false;
-  }
-
-  /**
-   * Handles a key release during the interaction.
-   *
-   * @param event The AWT event for the key release,
-   * @return true if this interaction consumed the key press, otherwise return false
-   * @deprecated Use {@link #update(InteractionEvent)} with keyboard related {@link InteractionEvent}s.
-   */
-  @Deprecated
-  public boolean keyReleased(@NotNull KeyEvent event) {
-    return false;
   }
 }
