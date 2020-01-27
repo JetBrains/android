@@ -141,12 +141,12 @@ class MaterialVdIconsLoader(
   }
 
   private fun visitFiles(file: File, visitor: (File) -> Unit) {
-    file.listFiles()?.forEach { iconFile ->
-      iconFile.listFiles()?.let { childFiles ->
-        if (childFiles.size == 1 && !childFiles.first().isDirectory) {
-          visitor(childFiles.first())
-        }
-      }
-    }
+    val vectorDrawableFiles =
+      file.listFiles()?.mapNotNull { iconDir ->
+        iconDir.listFiles { fileInIconDir ->
+          !fileInIconDir.isDirectory && fileInIconDir.name.endsWith(SdkConstants.DOT_XML, true)
+        }?.firstOrNull() // For every icon directory, one 'xml' file is expected
+      } ?: emptyList()
+    vectorDrawableFiles.forEach(visitor)
   }
 }
