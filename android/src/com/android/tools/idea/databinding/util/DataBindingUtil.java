@@ -23,6 +23,7 @@ import com.android.tools.idea.databinding.index.BindingXmlIndex;
 import com.android.tools.idea.databinding.index.ImportData;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionSupport;
 import com.android.tools.idea.lang.databinding.DataBindingExpressionUtil;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.openapi.util.text.StringUtil;
@@ -58,6 +59,9 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class DataBindingUtil {
   public static final String BR = "BR";
+
+  @NotNull
+  private static Logger getLog() { return Logger.getInstance(DataBindingUtil.class); }
 
   /**
    * Returns the first implementation for this data binding extension point, but will be null if the
@@ -509,6 +513,12 @@ public final class DataBindingUtil {
 
   @Nullable
   public static XmlFile findXmlFile(@NotNull Project project, @NotNull VirtualFile layoutFile) {
+    if (!layoutFile.isValid()) {
+      // PsiManager.findfile below will return null anyway in this case but also log an error. For
+      // databinding, we don't want to log an error - if the file is invalid, just abort.
+      getLog().info("findXmlFile aborted for invalid file: " + layoutFile);
+      return null;
+    }
     return (XmlFile)PsiManager.getInstance(project).findFile(layoutFile);
   }
 
