@@ -34,17 +34,10 @@ import com.intellij.ui.EditorNotifications;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public final class GeneratedFileNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("android.generated.file.ro");
-
-  @NotNull private final GeneratedSourceFileChangeTracker myGeneratedSourceFileChangeTracker;
-  @NotNull private final GradleProjectInfo myProjectInfo;
-
-  public GeneratedFileNotificationProvider(@NotNull Project project) {
-    myGeneratedSourceFileChangeTracker = GeneratedSourceFileChangeTracker.getInstance(project);
-    myProjectInfo = GradleProjectInfo.getInstance(project);
-  }
 
   @NotNull
   @Override
@@ -54,11 +47,34 @@ public final class GeneratedFileNotificationProvider extends EditorNotifications
 
   @Nullable
   @Override
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor, @NotNull Project project) {
-    AndroidModuleModel androidModel = myProjectInfo.findAndroidModelInModule(file, false /* include excluded files */);
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
+                                                         @NotNull FileEditor fileEditor,
+                                                         @NotNull Project project) {
+    AndroidModuleModel androidModel =
+      GradleProjectInfo.getInstance(project).findAndroidModelInModule(file, false /* include excluded files */);
     if (androidModel == null) {
       return null;
     }
+    return doCreateNotification(file, fileEditor, project, androidModel);
+  }
+
+  @TestOnly
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file,
+                                                         @NotNull FileEditor fileEditor,
+                                                         @NotNull Project project,
+                                                         @NotNull GradleProjectInfo projectInfo) {
+    AndroidModuleModel androidModel = projectInfo.findAndroidModelInModule(file, false /* include excluded files */);
+    if (androidModel == null) {
+      return null;
+    }
+    return doCreateNotification(file, fileEditor, project, androidModel);
+  }
+
+  @Nullable
+  private static EditorNotificationPanel doCreateNotification(@NotNull VirtualFile file,
+                                                              @NotNull FileEditor fileEditor,
+                                                              @NotNull Project project,
+                                                              @NotNull AndroidModuleModel androidModel) {
     if (DISABLE_GENERATED_FILE_NOTIFICATION_KEY.get(fileEditor, false)) {
       return null;
     }
@@ -68,7 +84,7 @@ public final class GeneratedFileNotificationProvider extends EditorNotifications
       return null;
     }
     if (isAncestor(buildFolder, file, false /* not strict */)) {
-      if (myGeneratedSourceFileChangeTracker.isEditedGeneratedFile(file)) {
+      if (GeneratedSourceFileChangeTracker.getInstance(project).isEditedGeneratedFile(file)) {
         // A warning is already being displayed by GeneratedFileEditingNotificationProvider
         return null;
       }
