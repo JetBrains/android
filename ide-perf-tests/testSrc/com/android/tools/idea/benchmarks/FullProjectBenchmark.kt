@@ -20,50 +20,55 @@ import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.fileTypes.FileType
-import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.ProjectScope
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidTestBase
-import org.jetbrains.kotlin.konan.file.File
-import org.junit.Before
-import org.junit.Rule
+import org.junit.After
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
+import java.io.File
 
 /**
- * Runs syntax highlighting on all source files in a given project, computing the average highlighting time per file.
+ * Contains performance tests for a particular project defined by the subclasses.
  *
- * Run locally with:
- * bazel test --test_output=streamed --test_filter=FullProjectHighlightingBenchmark //tools/adt/idea/ide-perf-tests/...
+ * The gradleRule is shared between tests to preserve the sync state for benchmarks between tests.
+ * The subclass must provide an AndroidGradleProjectRule and call FullProjectBenchmark.loadProject in @BeforeClass function.
  */
-@RunWith(Parameterized::class)
-class FullProjectHighlightingBenchmark(private val projectName: String, private val fileTypes: List<FileType>) {
-  @get:Rule
-  val gradleRule = AndroidGradleProjectRule()
+abstract class FullProjectBenchmark {
+  abstract val projectName: String
+  abstract val fileTypes: List<FileType>
+  abstract val gradleRule: AndroidGradleProjectRule
 
-  @Before
-  fun setup() {
-    val modulePath = AndroidTestBase.getModulePath("ide-perf-tests")
-    gradleRule.fixture.testDataPath = modulePath + File.separator + "testData"
+  @After
+  fun tearDown() {
+    runInEdtAndWait {
+      clearCaches()
+    }
+  }
+
+  @Test
+  fun fullProjectHighlighting() {
+    runInEdtAndWait {
+      for (fileType in fileTypes) {
+        measureHighlighting(fileType)
+      }
+    }
   }
 
   companion object {
-    /**
-     * The list of projects and corresponding file types to analyze.
-     * Note: some of these projects are copied into testData at runtime (see [IdeBenchmarkTestSuite]).
-     */
-    @JvmStatic
-    @get:Parameterized.Parameters(name = "{0}")
-    @Suppress("unused")
-    val projects = listOf(
-      arrayOf("SantaTracker", listOf(StdFileTypes.JAVA, StdFileTypes.XML))
-    )
+    fun loadProject(gradleRule: AndroidGradleProjectRule, projectName: String) {
+      val modulePath = AndroidTestBase.getModulePath("ide-perf-tests")
+      gradleRule.fixture.testDataPath = modulePath + File.separator + "testData"
+      disableExpensivePlatformAssertions(gradleRule.fixture)
+      enableAllDefaultInspections(gradleRule.fixture)
 
-    /** The Perfgate dashboard summarizing the results of this test. */
-    val benchmark = Benchmark.Builder("Full Project Highlighting")
+      gradleRule.load(projectName)
+      gradleRule.generateSources() // Gets us closer to a production setup.
+      waitForAsyncVfsRefreshes() // Avoids write actions during highlighting.
+    }
+
+    val highlightingBenchmark = Benchmark.Builder("Full Project Highlighting")
       .setDescription("""
         For each test project, this benchmark runs syntax highlighting on all files of a given file type
         and records the time elapsed per file. All measurements are given in milliseconds.
@@ -78,22 +83,9 @@ class FullProjectHighlightingBenchmark(private val projectName: String, private 
       .build()
   }
 
-  @Test
-  fun fullProjectHighlighting() {
-    disableExpensivePlatformAssertions(gradleRule.fixture)
-    enableAllDefaultInspections(gradleRule.fixture)
-
-    gradleRule.load(projectName)
-    gradleRule.generateSources() // Gets us closer to a production setup.
-    waitForAsyncVfsRefreshes() // Avoids write actions during highlighting.
-
-    runInEdtAndWait {
-      for (fileType in fileTypes) {
-        // Ideally each file type would get its own JUnit test, but
-        // we don't want to run Gradle sync more than we need to.
-        measureHighlighting(fileType)
-      }
-    }
+  private fun clearCaches() {
+    PsiManager.getInstance(gradleRule.project).dropPsiCaches()
+    System.gc() // May help reduce noise, but it's just a hope. Investigate as needed.
   }
 
   /** Measures highlighting performance for all project source files of the given type. */
@@ -120,8 +112,7 @@ class FullProjectHighlightingBenchmark(private val projectName: String, private 
     }
 
     // Reset.
-    PsiManager.getInstance(project).dropPsiCaches()
-    System.gc() // May help reduce noise, but it's just a hope. Investigate as needed.
+    clearCaches()
 
     // Measure.
     var totalTimeMs = 0L
@@ -155,7 +146,7 @@ class FullProjectHighlightingBenchmark(private val projectName: String, private 
 
     // Perfgate.
     val metric = Metric("${projectName}_${fileType.description}")
-    metric.addSamples(benchmark, *samples.toTypedArray())
+    metric.addSamples(highlightingBenchmark, *samples.toTypedArray())
     metric.commit()
   }
 }
