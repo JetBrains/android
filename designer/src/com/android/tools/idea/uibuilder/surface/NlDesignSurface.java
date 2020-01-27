@@ -70,7 +70,6 @@ import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.update.Update;
 import java.awt.Dimension;
 import java.awt.Rectangle;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -296,12 +295,21 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
     @NotNull boolean isFileHandled(String filename);
 
     /**
-     * Triggered when preview in the design surface is clicked.
+     * Triggered when preview in the design surface is clicked, returns true if the navigation was handled by this handler.
+     * This method receives the x and y coordinates of the click. You will usually only need the coordinates if your navigation can
+     * be different within a same {@link SceneComponent}.
+     *
+     * @param sceneView {@link SceneView} for which the navigation request is being issued
+     * @param sceneComponent {@link SceneComponent} for which the navigation request is being issued
+     * @param x X coordinate within the {@link SceneView} where the click action was initiated
+     * @param y y coordinate within the {@link SceneView} where the click action was initiated
+     * @param requestFocus true if the navigation should focus the editor
      */
-    void handleNavigate(SceneView view,
-                        ImmutableList<NlModel> models,
-                        boolean editor,
-                        @Nullable NlComponent component);
+    boolean handleNavigate(@NotNull SceneView sceneView,
+                           @NotNull SceneComponent sceneComponent,
+                           @AndroidDpCoordinate int x,
+                           @AndroidDpCoordinate int y,
+                           boolean requestFocus);
   }
 
   @NotNull private SceneMode mySceneMode = SceneMode.Companion.loadPreferredMode();

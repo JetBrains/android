@@ -17,9 +17,11 @@ package com.android.tools.idea.compose.preview.navigation
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.api.InsertType
+import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.dimensionToString
 import com.android.tools.idea.uibuilder.model.createChild
@@ -30,7 +32,6 @@ import com.android.tools.idea.uibuilder.model.x
 import com.android.tools.idea.uibuilder.model.y
 import com.android.tools.idea.uibuilder.scene.RenderListener
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.google.common.collect.ImmutableList
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
@@ -78,25 +79,22 @@ class PreviewNavigationHandler : NlDesignSurface.NavigationHandler {
   }
 
   override fun handleNavigate(sceneView: SceneView,
-                              models: ImmutableList<NlModel>,
-                              requestFocus: Boolean,
-                              component: NlComponent?) {
-    val navigateTo = componentNavigationMap[component]
-    navigateTo?.navigate(requestFocus) ?: navigateToDefault(sceneView, models, requestFocus)
+                              sceneComponent: SceneComponent,
+                              @AndroidDpCoordinate x: Int,
+                              @AndroidDpCoordinate y: Int,
+                              requestFocus: Boolean): Boolean {
+    val navigateTo = componentNavigationMap[sceneComponent.nlComponent] ?: return navigateToDefault(sceneView, requestFocus)
+    navigateTo.navigate(requestFocus)
+    return true
   }
 
   override fun isFileHandled(filename: String?): Boolean {
     return filename != null && files.any { it.name == filename }
   }
 
-  private fun navigateToDefault(sceneView: SceneView, models: ImmutableList<NlModel>, requestFocus: Boolean) {
-    for (model in models) {
-      if (sceneView.model == model) {
-        val navigatable = defaultNavigationMap[model] ?: return
-        navigatable.navigate(requestFocus)
-        return
-      }
-    }
+  private fun navigateToDefault(sceneView: SceneView, requestFocus: Boolean): Boolean {
+    defaultNavigationMap[sceneView.sceneManager.model]?.navigate(requestFocus) ?: return false
+    return true
   }
 
   override fun dispose() {

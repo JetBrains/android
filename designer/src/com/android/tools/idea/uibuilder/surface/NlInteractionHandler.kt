@@ -180,18 +180,17 @@ class NlInteractionHandler(private val surface: DesignSurface): InteractionHandl
     }
   }
 
-  private fun clickPreview(x: Int, y: Int, needsFocusEditor: Boolean) {
+  private fun clickPreview(@SwingCoordinate x: Int, @SwingCoordinate y: Int, needsFocusEditor: Boolean) {
     val sceneView = surface.getSceneView(x, y) ?: return
+    val androidX = Coordinates.getAndroidXDip(sceneView, x)
+    val androidY = Coordinates.getAndroidYDip(sceneView, y)
+    val sceneComponent = surface.scene?.findComponent(sceneView.context, androidX, androidY) ?: return
 
-    val component = Coordinates.findComponent(sceneView, x, y)
-    val navigationHandler = (surface as NlDesignSurface).navigationHandler
-    if (surface.navigationHandler != null) {
-      navigationHandler!!.handleNavigate(sceneView, surface.models, needsFocusEditor, component)
-      return
-    }
-
-    if (component != null) {
-      navigateToComponent(component, needsFocusEditor)
+    if ((surface as NlDesignSurface).navigationHandler?.handleNavigate(sceneView,
+                                                                       sceneComponent,
+                                                                       androidX, androidY,
+                                                                       needsFocusEditor) != true) {
+      navigateToComponent(sceneComponent.nlComponent, needsFocusEditor)
     }
   }
 
