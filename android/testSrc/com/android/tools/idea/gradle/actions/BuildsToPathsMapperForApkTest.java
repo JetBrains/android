@@ -15,6 +15,11 @@
  */
 package com.android.tools.idea.gradle.actions;
 
+import static com.android.tools.idea.gradle.actions.BuildsToPathsMapper.tryToGetOutputPreBuild;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.android.ide.common.gradle.model.IdeAndroidArtifact;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.google.common.collect.Lists;
 import java.io.File;
@@ -70,6 +75,17 @@ public class BuildsToPathsMapperForApkTest extends BuildsToPathsMapperForApkTest
     File expectedOutput =
       AndroidModuleModel.get(myModule).getSelectedVariant().getMainArtifact().getOutputs().iterator().next().getOutputFile();
     assertEquals(expectedOutput, myBuildsAndBundlePaths.get(myModule.getName()));
+  }
+
+  public void testEmptyOutputFromPreBuildModel() {
+    // Simulate the case that output files are empty.
+    AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
+    IdeAndroidArtifact artifact = mock(IdeAndroidArtifact.class);
+    when(androidModel.getMainArtifact()).thenReturn(artifact);
+    when(artifact.getOutputs()).thenReturn(Collections.emptyList());
+
+    // Verify tryToGetOutputPreBuild returns null.
+    assertNull(tryToGetOutputPreBuild(androidModel));
   }
 
   private void initSimpleAppForSignedApk() throws Exception {

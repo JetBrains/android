@@ -27,6 +27,7 @@ import com.android.builder.model.VariantBuildOutput;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.run.OutputBuildAction;
 import com.android.tools.idea.gradle.run.PostBuildModel;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -192,9 +193,13 @@ public class BuildsToPathsMapper {
     return null;
   }
 
+  @VisibleForTesting
   @Nullable
-  private static File tryToGetOutputPreBuild(@NotNull AndroidModuleModel androidModel) {
+  static File tryToGetOutputPreBuild(@NotNull AndroidModuleModel androidModel) {
     Collection<AndroidArtifactOutput> outputs = androidModel.getMainArtifact().getOutputs();
+    if (outputs.isEmpty()) {
+      return null;
+    }
     File outputFolderOrApk = outputs.iterator().next().getOutputFile();
     if (outputs.size() > 1) {
       return outputFolderOrApk.getParentFile();
