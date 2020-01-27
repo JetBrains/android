@@ -56,6 +56,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.types.typeUtil.isUnit
 
@@ -235,9 +236,20 @@ class AndroidComposeCompletionWeigher : CompletionWeigher() {
   private fun LookupElement.isForNamedArgument() = lookupString.endsWith(" =")
 }
 
+private fun InsertionContext.getNextElementIgnoringWhitespace(): PsiElement? {
+  val elementAtCaret = file.findElementAt(editor.caretModel.offset) ?: return null
+  return elementAtCaret.getNextSiblingIgnoringWhitespace(true) ?: return null
+}
+
+private fun InsertionContext.isNextElementOpenCurlyBrace() = getNextElementIgnoringWhitespace()?.text?.startsWith("{") == true
+
+private fun InsertionContext.isNextElementOpenParenthesis() = getNextElementIgnoringWhitespace()?.text?.startsWith("(") == true
+
 class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : KotlinCallableInsertHandler(CallType.DEFAULT) {
   override fun handleInsert(context: InsertionContext, item: LookupElement) = with(context) {
     super.handleInsert(context, item)
+
+    if (isNextElementOpenParenthesis()) return
 
     // All Kotlin insertion handlers do this, possibly to post-process adding a new import in the call to super above.
     val psiDocumentManager = PsiDocumentManager.getInstance(project)
@@ -274,7 +286,7 @@ class AndroidComposeInsertHandler(private val descriptor: FunctionDescriptor) : 
         }
       }
 
-      if (insertLambda) {
+      if (insertLambda && !isNextElementOpenCurlyBrace()) {
         addTextSegment(" {\n")
         addEndVariable()
         addTextSegment("\n}")
