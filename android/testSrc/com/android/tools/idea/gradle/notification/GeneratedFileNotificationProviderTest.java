@@ -51,7 +51,7 @@ public class GeneratedFileNotificationProviderTest extends JavaProjectTestCase {
 
     when(myAndroidModuleModel.getAndroidProject()).thenReturn(myAndroidProject);
 
-    myNotificationProvider = new GeneratedFileNotificationProvider(getProject());
+    myNotificationProvider = new GeneratedFileNotificationProvider();
   }
 
   public void testCreateNotificationPanelWithFileInBuildFolder() throws IOException {
@@ -61,7 +61,7 @@ public class GeneratedFileNotificationProviderTest extends JavaProjectTestCase {
     when(myProjectInfo.findAndroidModelInModule(file, false)).thenReturn(myAndroidModuleModel);
     when(myAndroidProject.getBuildFolder()).thenReturn(virtualToIoFile(buildFolder));
 
-    MyEditorNotificationPanel panel = (MyEditorNotificationPanel)myNotificationProvider.createNotificationPanel(file, myFileEditor, myProject);
+    MyEditorNotificationPanel panel = (MyEditorNotificationPanel)myNotificationProvider.createNotificationPanel(file, myFileEditor, getProject(), myProjectInfo);
     assertEquals("Files under the \"build\" folder are generated and should not be edited.", panel.getText());
 
     // Ensure that "excluded" files are not ignored.
