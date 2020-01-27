@@ -107,6 +107,7 @@ class AndroidMavenImportIntentionActionTest : AndroidGradleTestCase() {
     // Make sure we've imported the RecyclerView correctly as well
     val newSource = myFixture.editor.document.text
     val diff = TestUtils.getDiff(source, newSource, 1)
+/* b/148420850
     assertThat(diff.trim()).isEqualTo(
       """
       @@ -2 +2
@@ -117,6 +118,7 @@ class AndroidMavenImportIntentionActionTest : AndroidGradleTestCase() {
         public class Test {
       """.trimIndent().trim()
     )
+b/148420850 */
   }
 
   fun testUnresolvedSymbolInAndroidX() {
