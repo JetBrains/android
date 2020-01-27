@@ -922,6 +922,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareAutomotiveMessagingService() {
+    checkCreateTemplate("other", "AutomotiveMessagingService", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareAutomotiveMessagingServiceWithKotlin() {
+    checkCreateTemplate("other", "AutomotiveMessagingService", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testWatchFaceService() {
     checkCreateTemplate("other", "WatchFaceService")
   }
