@@ -82,6 +82,7 @@ abstract class GradleSyncProjectComparisonTest(
 ) : GradleSyncIntegrationTestCase(), SnapshotComparisonTest {
   override fun useSingleVariantSyncInfrastructure(): Boolean = singleVariantSync
 
+/* b/148419893
   class FullVariantGradleSyncProjectComparisonTest : GradleSyncProjectComparisonTestCase()
 
   class SingleVariantGradleSyncProjectComparisonTest :
@@ -89,6 +90,7 @@ abstract class GradleSyncProjectComparisonTest(
     /** TODO(b/124504437): Enable this test */
     override fun testNdkProjectSync() = Unit
   }
+b/148419893 */
 
   abstract class GradleSyncProjectComparisonTestCase(singleVariantSync: Boolean = false
   ) : GradleSyncProjectComparisonTest(singleVariantSync) {
