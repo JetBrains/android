@@ -23,8 +23,14 @@ import com.intellij.openapi.startup.StartupActivity
 class ComposePreviewRunConfigurationStartupActivity : StartupActivity.DumbAware {
 
   override fun runActivity(project: Project) {
+    val producerClass = ComposePreviewRunConfigurationProducer::class.java
+    val producerService = RunConfigurationProducerService.getInstance(project)
     if (!StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.get()) {
-      RunConfigurationProducerService.getInstance(project).addIgnoredProducer(ComposePreviewRunConfigurationProducer::class.java)
+      producerService.addIgnoredProducer(producerClass)
+    }
+    else {
+      // Make sure to remove the producer from the ignored list in case it was added at some point when the flag was disabled.
+      producerService.state.ignoredProducers.remove(producerClass.name)
     }
   }
 }
