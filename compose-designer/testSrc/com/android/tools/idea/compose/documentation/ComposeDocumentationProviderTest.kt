@@ -54,8 +54,7 @@ class ComposeDocumentationProviderTest {
     projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH)
     projectRule.requestSyncAndWait()
 
-    Assert.assertTrue("The project must compile correctly for the test to pass",
-                      projectRule.invokeTasks("compileDebugSources").isBuildSuccessful)
+    assertTrue("The project must compile correctly for the test to pass", projectRule.invokeTasks("compileDebugSources").isBuildSuccessful)
   }
 
   @After
