@@ -599,10 +599,6 @@ public class InteractionManager implements Disposable {
           myIsInteractionCanceled = true;
           return;
         }
-
-        if (myCurrentInteraction.keyPressed(event)) {
-          return;
-        }
       }
 
       if (isPanningKeyboardKey(event)) {
