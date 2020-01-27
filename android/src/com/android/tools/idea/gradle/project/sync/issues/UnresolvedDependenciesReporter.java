@@ -42,6 +42,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
@@ -57,7 +58,8 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssueReporter {
+@Service
+public final class UnresolvedDependenciesReporter extends SimpleDeduplicatingSyncIssueReporter {
   private static final String UNRESOLVED_DEPENDENCIES_GROUP = "Unresolved dependencies";
 
   @NotNull

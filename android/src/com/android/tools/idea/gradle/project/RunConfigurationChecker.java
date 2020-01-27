@@ -20,11 +20,11 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTask;
 import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProviderUtil;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Check that all {@link com.android.tools.idea.run.AndroidRunConfiguration AndroidRunConfigurations} of an Android project
@@ -33,16 +33,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * This is a workaround to bug <a href="http://issuetracker.google.com/76403139">76403139</a></a>.
  */
-public class RunConfigurationChecker  {
+@Service
+public final class RunConfigurationChecker  {
   @NotNull private final Project myProject;
-  @NotNull private IdeInfo myIdeInfo;
-  @NotNull private AtomicBoolean myCheckPerformed = new AtomicBoolean();
+  @NotNull private final IdeInfo myIdeInfo;
+  @NotNull private final AtomicBoolean myCheckPerformed = new AtomicBoolean();
 
   @SuppressWarnings("unused") // Instantiated by IDEA
-  public RunConfigurationChecker(@NotNull Project project,
-                                 @NotNull IdeInfo ideInfo) {
+  public RunConfigurationChecker(@NotNull Project project) {
     myProject = project;
-    myIdeInfo = ideInfo;
+    myIdeInfo = IdeInfo.getInstance();
   }
 
   @NotNull

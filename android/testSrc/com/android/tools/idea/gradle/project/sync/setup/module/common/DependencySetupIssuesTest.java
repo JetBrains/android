@@ -15,23 +15,25 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.common;
 
+import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.WARNING;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.JavaProjectTestCase;
-import org.mockito.Mock;
-
 import java.util.List;
-
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.android.tools.idea.project.messages.MessageType.WARNING;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link DependencySetupIssues}.
@@ -51,7 +53,7 @@ public class DependencySetupIssuesTest extends JavaProjectTestCase {
 
     Project project = getProject();
     mySyncMessages = GradleSyncMessagesStub.replaceSyncMessagesService(project, getTestRootDisposable());
-    myIssues = new DependencySetupIssues(project, mySyncState, mySyncMessages);
+    myIssues = new DependencySetupIssues(mySyncState, mySyncMessages);
   }
 
   public void testAddMissingModule() {

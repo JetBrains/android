@@ -16,6 +16,10 @@
 
 package com.android.tools.idea.gradle.notification;
 
+import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
+import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
+
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
@@ -27,28 +31,19 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.EditorNotifications;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-
-import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIFICATION_KEY;
-import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
-import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
-
-public class GeneratedFileNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
+public final class GeneratedFileNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("android.generated.file.ro");
 
-  @NotNull private final Project myProject;
   @NotNull private final GeneratedSourceFileChangeTracker myGeneratedSourceFileChangeTracker;
   @NotNull private final GradleProjectInfo myProjectInfo;
 
-  public GeneratedFileNotificationProvider(@NotNull Project project,
-                                           @NotNull GeneratedSourceFileChangeTracker changeTracker,
-                                           @NotNull GradleProjectInfo projectInfo) {
-    myProject = project;
-    myGeneratedSourceFileChangeTracker = changeTracker;
-    myProjectInfo = projectInfo;
+  public GeneratedFileNotificationProvider(@NotNull Project project) {
+    myGeneratedSourceFileChangeTracker = GeneratedSourceFileChangeTracker.getInstance(project);
+    myProjectInfo = GradleProjectInfo.getInstance(project);
   }
 
   @NotNull
@@ -59,7 +54,7 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
 
   @Nullable
   @Override
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor) {
+  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor, @NotNull Project project) {
     AndroidModuleModel androidModel = myProjectInfo.findAndroidModelInModule(file, false /* include excluded files */);
     if (androidModel == null) {
       return null;

@@ -15,6 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.common;
 
+import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.MISSING_DEPENDENCIES;
+import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.android.tools.idea.project.messages.MessageType.WARNING;
+import static com.intellij.openapi.util.text.StringUtil.isEmpty;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.project.messages.MessageType;
@@ -25,26 +32,23 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.ArrayUtilRt;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
-
-import static com.android.tools.idea.gradle.project.sync.messages.GroupNames.MISSING_DEPENDENCIES;
-import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.android.tools.idea.project.messages.MessageType.WARNING;
-import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Collects and reports dependencies that were not correctly set up during a Gradle sync.
  */
-public class DependencySetupIssues {
+public final class DependencySetupIssues {
   @NotNull private final GradleSyncState mySyncState;
   @NotNull private final GradleSyncMessages mySyncMessages;
 
@@ -59,7 +63,13 @@ public class DependencySetupIssues {
     return ServiceManager.getService(project, DependencySetupIssues.class);
   }
 
-  public DependencySetupIssues(@NotNull Project project, @NotNull GradleSyncState syncState, @NotNull GradleSyncMessages syncMessages) {
+  public DependencySetupIssues(@NotNull Project project) {
+    mySyncState = GradleSyncState.getInstance(project);
+    mySyncMessages = GradleSyncMessages.getInstance(project);
+  }
+
+  @NonInjectable
+  public DependencySetupIssues(@NotNull GradleSyncState syncState, @NotNull GradleSyncMessages syncMessages) {
     mySyncState = syncState;
     mySyncMessages = syncMessages;
   }

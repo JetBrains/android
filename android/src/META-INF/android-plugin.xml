@@ -336,7 +336,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.instantapp.InstantAppSdks" />
     <applicationService serviceImplementation="com.android.tools.idea.sdk.IdeSdks"/>
     <applicationService serviceImplementation="com.android.tools.idea.sdk.AndroidSdks"/>
-    <applicationService serviceImplementation="com.android.tools.idea.sdk.Jdks"/>
     <applicationService serviceImplementation="com.android.tools.idea.project.AndroidRunConfigurations"/>
     <applicationService serviceImplementation="com.android.tools.idea.project.CustomProjectTypeImporter$MainImporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.EmbeddedDistributionPaths"/>
@@ -344,17 +343,13 @@
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.common.GradleInitScripts"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.importing.GradleProjectImporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.service.repo.ExternalRepository"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.SdkSync"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.precheck.PreSyncChecks"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.GradleSyncInvoker"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.cleanup.PreSyncProjectCleanUp"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.sync.setup.module.dependency.DependenciesExtractor"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.project.SupportedModuleChecker"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.LibraryFilePaths"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.BuildFileProcessor"/>
-    <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleVersions"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleProjectSettingsFinder"/>
     <applicationService serviceImplementation="com.android.tools.idea.gradle.util.GradleLocalCache"/>
     <applicationService serviceImplementation="com.android.tools.idea.res.AarResourceRepositoryCache"/>
@@ -571,7 +566,6 @@
     <projectService serviceImplementation="com.android.tools.idea.apk.debugging.DexSourceFiles"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.actions.BuildsToPathsMapper"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.ProjectStructure"/>
-    <projectService serviceImplementation="com.android.tools.idea.gradle.project.RunConfigurationChecker"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.GradleProjectBuilder"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.project.BuildSettings"/>

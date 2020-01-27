@@ -17,6 +17,7 @@ package com.android.tools.idea.databinding
 
 import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
 import com.android.tools.idea.databinding.psiclass.LightBrClass
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
@@ -39,11 +40,12 @@ private val BR_CLASS_NAME_LIST = arrayOf(DataBindingUtil.BR)
  *  hardcoded references to it from the Kotlin plugin.
  *  Move back to: finders.BrShortNamesCache
  */
-class BrShortNamesCache(private val component: DataBindingProjectComponent) : PsiShortNamesCache() {
+class BrShortNamesCache(private val project: Project) : PsiShortNamesCache() {
   private val allFieldNamesCache: CachedValue<Array<String>>
 
   init {
-    allFieldNamesCache = CachedValuesManager.getManager(component.project).createCachedValue(
+    val component = project.getComponent(DataBindingProjectComponent::class.java)
+    allFieldNamesCache = CachedValuesManager.getManager(project).createCachedValue(
       {
         val facets = component.getDataBindingEnabledFacets()
         val allFields = facets
@@ -60,7 +62,7 @@ class BrShortNamesCache(private val component: DataBindingProjectComponent) : Ps
       return PsiClass.EMPTY_ARRAY
     }
 
-    return component.getDataBindingEnabledFacets()
+    return project.getComponent(DataBindingProjectComponent::class.java).getDataBindingEnabledFacets()
       .filter { scope.isSearchInModuleContent(it.module) }
       .map { DataBindingClassFactory.getOrCreateBrClassFor(it) }
       .toTypedArray()
@@ -110,7 +112,5 @@ class BrShortNamesCache(private val component: DataBindingProjectComponent) : Ps
     return getFieldsByName(name, scope).take(maxCount).toTypedArray()
   }
 
-  private fun isMyScope(scope: GlobalSearchScope): Boolean {
-    return (component.project == scope.project)
-  }
+  private fun isMyScope(scope: GlobalSearchScope) = project == scope.project
 }

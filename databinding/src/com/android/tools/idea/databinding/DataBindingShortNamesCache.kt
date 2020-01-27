@@ -21,6 +21,7 @@ import com.android.tools.idea.databinding.psiclass.DataBindingClassFactory
 import com.android.tools.idea.databinding.psiclass.LightBindingClass
 import com.android.tools.idea.res.DataBindingLayoutInfo
 import com.android.tools.idea.res.ResourceRepositoryManager
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -43,7 +44,7 @@ import org.jetbrains.android.facet.AndroidFacet
  *  hardcoded references to it from the Kotlin plugin.
  *  Move back to: cache.LayoutBindingShortNamesCache
  */
-class DataBindingShortNamesCache(private val component: DataBindingProjectComponent) : PsiShortNamesCache() {
+class DataBindingShortNamesCache(project: Project) : PsiShortNamesCache() {
   private val layoutInfoCache: CachedValue<Map<String, List<DataBindingLayoutInfo>>>
   private val methodsByNameCache: CachedValue<Map<String, List<PsiMethod>>>
   private val fieldsByNameCache: CachedValue<Map<String, List<PsiField>>>
@@ -53,10 +54,9 @@ class DataBindingShortNamesCache(private val component: DataBindingProjectCompon
   private val allFieldNamesCache: CachedValue<Array<String>>
 
   init {
-    val project = component.project
     val cachedValuesManager = CachedValuesManager.getManager(project)
 
-    val layoutInfoProvider = LayoutInfoCacheProvider(component)
+    val layoutInfoProvider = LayoutInfoCacheProvider(project.getComponent(DataBindingProjectComponent::class.java))
 
     layoutInfoCache = cachedValuesManager.createCachedValue(layoutInfoProvider, false)
 

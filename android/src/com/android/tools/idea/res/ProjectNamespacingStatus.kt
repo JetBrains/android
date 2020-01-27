@@ -30,7 +30,7 @@ import com.intellij.openapi.project.Project
  * When namespaces are not used at all, some project-wide functionality may be simplified, e.g. "find usages" doesn't have to look for
  * usages of fields from two R classes (namespaced and non-namespaced). This is mostly to simplify UI, not gain performance.
  */
-class ProjectNamespacingStatusService(project: Project, private val moduleManager: ModuleManager) {
+class ProjectNamespacingStatusService(private val project: Project) {
   @Volatile
   var namespacesUsed = checkNamespacesUsed()
     private set
@@ -45,7 +45,7 @@ class ProjectNamespacingStatusService(project: Project, private val moduleManage
   }
 
   private fun checkNamespacesUsed(): Boolean {
-    return moduleManager.modules.any { it.androidFacet?.namespacing == AaptOptions.Namespacing.REQUIRED }
+    return ModuleManager.getInstance(project).modules.any { it.androidFacet?.namespacing == AaptOptions.Namespacing.REQUIRED }
   }
 
   companion object {
