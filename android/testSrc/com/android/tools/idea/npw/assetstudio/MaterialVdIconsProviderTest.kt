@@ -22,8 +22,11 @@ import com.android.tools.idea.material.icons.MaterialVdIcons
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.io.FileUtil
 import org.intellij.lang.annotations.Language
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -43,6 +46,18 @@ private val TIMEOUT_UNIT = TimeUnit.SECONDS
 
 class MaterialVdIconsProviderTest {
 
+  private lateinit var disposable: Disposable
+
+  @Before
+  fun setup() {
+    disposable = Disposer.newDisposable()
+  }
+
+  @After
+  fun teardown() {
+    Disposer.dispose(disposable)
+  }
+
   @Test
   fun testGetMaterialIcons() {
     val latch = CountDownLatch(2) // A call for each style: "Style 1", "Style 2"
@@ -51,7 +66,8 @@ class MaterialVdIconsProviderTest {
       materialIcons = icons
       latch.countDown()
     }
-    MaterialVdIconsProvider.loadMaterialVdIcons(uiCallback, MaterialIconsMetadataTestUrlProvider(), MaterialIconsTestUrlProvider())
+    MaterialVdIconsProvider.loadMaterialVdIcons(
+      uiCallback, MaterialIconsMetadataTestUrlProvider(), MaterialIconsTestUrlProvider(), disposable)
     assertTrue(latch.await(WAIT_TIMEOUT, TIMEOUT_UNIT))
     Truth.assertThat(materialIcons.styles).hasLength(2)
     assertEquals("Style 1", materialIcons.styles[0])
@@ -74,7 +90,7 @@ class MaterialVdIconsProviderTest {
     }
     MaterialVdIconsProvider.loadMaterialVdIcons(uiCallback, object : MaterialIconsMetadataUrlProvider {
       override fun getMetadataUrl(): URL? = null
-    }, null)
+    }, null, disposable)
     assertTrue(latch.await(WAIT_TIMEOUT, TIMEOUT_UNIT))
     Truth.assertThat(materialIcons!!.styles).isEmpty()
   }
@@ -90,7 +106,7 @@ class MaterialVdIconsProviderTest {
     MaterialVdIconsProvider.loadMaterialVdIcons(uiCallback, MaterialIconsMetadataTestUrlProvider(), object : MaterialIconsUrlProvider {
       override fun getStyleUrl(style: String): URL? = null
       override fun getIconUrl(style: String, iconName: String, iconFileName: String): URL? = null
-    })
+    }, disposable)
     assertTrue(latch.await(WAIT_TIMEOUT, TIMEOUT_UNIT))
     val materialIcons = icons!!
     Truth.assertThat(materialIcons.styles).hasLength(2)
@@ -185,7 +201,8 @@ class MaterialVdIconsProviderTestWithSdk {
       materialIcons = icons
       latch.countDown()
     }
-    MaterialVdIconsProvider.loadMaterialVdIcons(uiCallback, null, null) // Use the 'real' URL providers
+    MaterialVdIconsProvider.loadMaterialVdIcons(uiCallback, null, null, // Use the 'real' URL providers
+                                                rule.fixture.projectDisposable)
     assertTrue(latch.await(WAIT_TIMEOUT, TIMEOUT_UNIT))
     Truth.assertThat(materialIcons.styles).hasLength(1)
     assertEquals("Style 1", materialIcons.styles[0])

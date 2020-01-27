@@ -32,7 +32,9 @@ import com.android.tools.idea.material.icons.SdkMaterialIconsUrlProvider
 import com.android.tools.idea.material.icons.SdkMetadataUrlProvider
 import com.android.tools.idea.npw.assetstudio.MaterialVdIconsProvider.Status
 import com.google.common.util.concurrent.ThreadFactoryBuilder
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -74,12 +76,13 @@ class MaterialVdIconsProvider {
      *  whether to expect more calls with more icons.
      * @param metadataUrlProvider Url provider for the metadata file.
      * @param iconsUrlProvider Url provider for [MaterialVdIconsLoader].
+     * @param parentDisposable When disposed, the background thread used for loading/copying/downloading icons is shutdown.
      */
     @JvmStatic
     fun loadMaterialVdIcons(refreshUiCallback: (MaterialVdIcons, Status) -> Unit,
                             metadataUrlProvider: MaterialIconsMetadataUrlProvider?,
-                            iconsUrlProvider: MaterialIconsUrlProvider?) {
-      // TODO(120776262): Take a Disposable argument, use it to stop the background executor when disposed.
+                            iconsUrlProvider: MaterialIconsUrlProvider?,
+                            parentDisposable: Disposable) {
       val metadataUrl = (metadataUrlProvider ?: getMetadataUrlProvider()).getMetadataUrl()
       val metadata = metadataUrl?.let { getMetadata(it) }
       when {
@@ -93,7 +96,7 @@ class MaterialVdIconsProvider {
         }
         else -> {
           loadMaterialVdIcons(
-            metadata, metadataUrl, iconsUrlProvider ?: getIconsUrlProvider(), refreshUiCallback)
+            metadata, metadataUrl, iconsUrlProvider ?: getIconsUrlProvider(), refreshUiCallback, parentDisposable)
         }
       }
     }
@@ -103,9 +106,12 @@ class MaterialVdIconsProvider {
 private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
                                 metadataUrl: URL,
                                 iconsUrlProvider: MaterialIconsUrlProvider,
-                                refreshUiCallback: (MaterialVdIcons, Status) -> Unit) {
+                                refreshUiCallback: (MaterialVdIcons, Status) -> Unit,
+                                parentDisposable: Disposable) {
   val iconsLoader = MaterialVdIconsLoader(metadata, iconsUrlProvider)
   val backgroundExecutor = createBackgroundExecutor()
+  val disposable = Disposable { backgroundExecutor.shutdownNow() }
+  Disposer.register(parentDisposable, disposable)
   metadata.families.forEachIndexed { index, style ->
     // Load icons by style/family.
     CompletableFuture.supplyAsync(Supplier {
