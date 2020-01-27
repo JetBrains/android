@@ -47,7 +47,7 @@ abstract class AbstractModuleConfigurable<ModuleT : PsModule, out PanelT>(
 
   protected abstract fun createPanel(): PanelT
 
-  final override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback = modulePanel.navigateTo(place, requestFocus)
+  final override fun navigateTo(place: Place?, requestFocus: Boolean): ActionCallback? = modulePanel.navigateTo(place, requestFocus)
   final override fun queryPlace(place: Place) = modulePanel.queryPlace(place)
   final override fun createOptionsPanel(): JComponent = modulePanel
   final override fun restoreUiState() = modulePanel.restoreUiState()

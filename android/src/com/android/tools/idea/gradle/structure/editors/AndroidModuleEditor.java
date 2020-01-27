@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.structure.editors;
 
+import static javax.swing.SwingConstants.TOP;
+
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.gradle.parser.BuildFileKey;
@@ -29,19 +31,17 @@ import com.intellij.openapi.module.ModuleConfigurationEditor;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
-import com.intellij.openapi.util.ActionCallback;
 import com.intellij.ui.components.JBTabbedPane;
 import com.intellij.ui.navigation.Place;
+import java.awt.Component;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
-
-import static javax.swing.SwingConstants.TOP;
 
 /**
  * Provides a Project Structure editor for an individual module. Can load a number of sub-editors in a tabbed pane.
@@ -185,12 +185,6 @@ public class AndroidModuleEditor implements Place.Navigator, Disposable {
   @Nullable
   private Component selectAndGetDependenciesTab() {
     return selectAndGetTabComponent(ProjectBundle.message("modules.classpath.title"));
-  }
-
-  @Override
-  @Nullable
-  public ActionCallback navigateTo(@Nullable Place place, boolean requestFocus) {
-    return null;
   }
 
   public void openSigningConfiguration() {
