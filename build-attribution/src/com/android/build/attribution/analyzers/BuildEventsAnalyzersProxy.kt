@@ -88,6 +88,10 @@ class BuildEventsAnalyzersProxy(
     return criticalPathAnalyzer.buildFinishedTimestamp - criticalPathAnalyzer.buildStartedTimestamp
   }
 
+  fun getBuildFinishedTimestamp(): Long {
+    return criticalPathAnalyzer.buildFinishedTimestamp
+  }
+
   override fun getCriticalPathTasks(): List<TaskData> {
     return criticalPathAnalyzer.tasksDeterminingBuildDuration.filter(TaskData::isOnTheCriticalPath)
   }

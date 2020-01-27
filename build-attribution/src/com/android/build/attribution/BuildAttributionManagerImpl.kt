@@ -52,7 +52,7 @@ class BuildAttributionManagerImpl(
     val buildSessionId = UUID.randomUUID().toString()
 
     BuildAttributionAnalyticsManager(buildSessionId, project).use { analyticsManager ->
-      analyticsManager.recordPostBuildAnalysis {
+      analyticsManager.logBuildAttributionPerformanceStats(buildFinishedTimestamp - analyzersProxy.getBuildFinishedTimestamp()) {
         val attributionData = AndroidGradlePluginAttributionData.load(attributionFileDir)
         if (attributionData != null) {
           taskContainer.updateTasksData(attributionData)
