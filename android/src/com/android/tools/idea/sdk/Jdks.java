@@ -37,7 +37,6 @@ import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
-import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -63,7 +62,6 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utility methods related to IDEA JDKs.
  */
-@Service
 public final class Jdks {
   @NotNull private static final Logger LOG = Logger.getInstance(Jdks.class);
 

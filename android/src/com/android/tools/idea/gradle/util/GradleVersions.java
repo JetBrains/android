@@ -23,7 +23,6 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.LOCAL;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
@@ -38,7 +37,6 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.DistributionType;
 import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 
-@Service
 public final class GradleVersions {
   private static final Pattern GRADLE_JAR_NAME_PATTERN = Pattern.compile("gradle-core-(.*)\\.jar");
   private final GradleProjectSettingsFinder mySettingsFinder;
