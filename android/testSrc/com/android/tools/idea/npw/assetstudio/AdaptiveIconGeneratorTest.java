@@ -25,6 +25,7 @@ import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
 import com.android.tools.idea.projectsystem.AndroidModulePaths;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.intellij.application.options.CodeStyle;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -137,7 +138,9 @@ abstract class AdaptiveIconGeneratorTest extends AndroidTestCase {
       if (!Arrays.asList(excludedFromContentComparison).contains(filename)) {
         if (filename.endsWith(".xml")) {
           assertEquals("File " + filename + " does not match",
-                       new String(Files.readAllBytes(goldenFile), UTF_8), ((GeneratedXmlResource)icon).getXmlText());
+                       new String(Files.readAllBytes(goldenFile), UTF_8).replaceAll("(\r\n|\n)",
+                                                                                    CodeStyle.getSettings(getProject()).getLineSeparator()),
+                       ((GeneratedXmlResource)icon).getXmlText());
         }
         else {
           BufferedImage goldenImage = ImageIO.read(goldenFile.toFile());

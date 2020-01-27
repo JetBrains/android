@@ -301,6 +301,7 @@ public final class ImageDiffUtil {
         boolean deleted = output.delete();
         assertTrue(deleted);
       }
+      output.mkdirs();
       ImageIO.write(deltaImage, "PNG", output);
       error += " - see details in archived file " + output.getPath();
       System.out.println(error);
