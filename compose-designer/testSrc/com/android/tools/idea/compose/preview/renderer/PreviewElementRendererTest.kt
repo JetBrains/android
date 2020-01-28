@@ -42,8 +42,10 @@ class SinglePreviewElementRendererTest {
     projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/compose-designer/testData").path
     projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH)
     projectRule.requestSyncAndWait()
-
-    assertTrue("The project must compile correctly for the test to pass", projectRule.invokeTasks("compileDebugSources").isBuildSuccessful)
+    projectRule.invokeTasks("compileDebugSources").buildError?.let {
+      // The project must compile correctly, otherwise the tests should fail.
+      throw it
+    }
   }
 
   @After
