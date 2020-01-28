@@ -80,7 +80,7 @@ fun pluginInfoPanel(
 
 fun taskInfoPanel(taskData: TaskUiData, listener: TreeLinkListener<TaskIssueUiData>): JPanel {
   val infoPanel = JBPanel<JBPanel<*>>(GridBagLayout())
-  val taskDescription = JBLabel(
+  val taskDescription = htmlTextLabel(
     HtmlBuilder()
       .openHtmlBody()
       .add(
@@ -91,12 +91,8 @@ fun taskInfoPanel(taskData: TaskUiData, listener: TreeLinkListener<TaskIssueUiDa
       )
       .closeHtmlBody()
       .html
-  ).apply {
-    setAllowAutoWrapping(true)
-    setCopyable(true)
-    isFocusable = false
-  }
-  val taskInfo = JBLabel(
+  )
+  val taskInfo = htmlTextLabel(
     HtmlBuilder()
       .openHtmlBody()
       .add("Module: ${taskData.module}")
@@ -110,11 +106,7 @@ fun taskInfoPanel(taskData: TaskUiData, listener: TreeLinkListener<TaskIssueUiDa
       .add("Executed incrementally: ${if (taskData.executedIncrementally) "Yes" else "No"}")
       .closeHtmlBody()
       .html
-  ).apply {
-    setAllowAutoWrapping(true)
-    setCopyable(true)
-    isFocusable = false
-  }
+  )
   val issuesList = JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
     add(JBLabel("Issues with this task").withFont(JBUI.Fonts.label().asBold()))
     for (issue in taskData.issues) {
@@ -160,13 +152,7 @@ fun taskInfoPanel(taskData: TaskUiData, listener: TreeLinkListener<TaskIssueUiDa
   return infoPanel
 }
 
-private fun reasonsToRunList(taskData: TaskUiData) = JBLabel().apply {
-  setAllowAutoWrapping(true)
-  setCopyable(true)
-  isFocusable = false
-  verticalTextPosition = SwingConstants.TOP
-  text = createReasonsText(taskData.reasonsToRun)
-}
+private fun reasonsToRunList(taskData: TaskUiData) = htmlTextLabel(createReasonsText(taskData.reasonsToRun))
 
 private fun createReasonsText(reasons: List<String>): String = if (reasons.isEmpty()) {
   "No info"
@@ -200,4 +186,15 @@ fun criticalPathHeader(prefix: String, duration: String): JComponent =
 
 fun headerLabel(text: String): JLabel = JBLabel(text).withFont(JBUI.Fonts.label(13f).asBold()).apply {
   name = "pageHeader"
+}
+
+/**
+ * Label with auto-wrapping turned on that accepts html text.
+ * Used in Build Analyzer to render long multi-line text.
+ */
+fun htmlTextLabel(html: String): JBLabel = JBLabel(html).apply {
+  setAllowAutoWrapping(true)
+  setCopyable(true)
+  isFocusable = false
+  verticalTextPosition = SwingConstants.TOP
 }

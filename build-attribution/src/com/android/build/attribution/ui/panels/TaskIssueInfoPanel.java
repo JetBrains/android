@@ -18,6 +18,7 @@ package com.android.build.attribution.ui.panels;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.durationString;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.issueIcon;
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.percentageString;
+import static com.android.build.attribution.ui.panels.BuildAttributionPanelsKt.htmlTextLabel;
 
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel;
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics;
@@ -38,7 +39,6 @@ import java.awt.GridBagLayout;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingConstants;
 
 public class TaskIssueInfoPanel extends JBPanel {
   private final TaskUiData myTaskData;
@@ -172,10 +172,6 @@ public class TaskIssueInfoPanel extends JBPanel {
       .add(taskData.getExecutedIncrementally() ? "Yes" : "No")
       .closeHtmlBody()
       .getHtml();
-    JBLabel label = new JBLabel().setAllowAutoWrapping(true).setCopyable(true);
-    label.setFocusable(false);
-    label.setVerticalTextPosition(SwingConstants.TOP);
-    label.setText(text);
-    return label;
+    return htmlTextLabel(text);
   }
 }

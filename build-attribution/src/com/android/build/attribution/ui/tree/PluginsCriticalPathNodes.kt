@@ -37,6 +37,7 @@ import com.android.build.attribution.ui.panels.TreeLinkListener
 import com.android.build.attribution.ui.panels.createIssueTypeListPanel
 import com.android.build.attribution.ui.panels.criticalPathHeader
 import com.android.build.attribution.ui.panels.headerLabel
+import com.android.build.attribution.ui.panels.htmlTextLabel
 import com.android.build.attribution.ui.panels.pluginInfoPanel
 import com.android.build.attribution.ui.panels.taskInfoPanel
 import com.android.build.attribution.ui.percentageString
@@ -264,16 +265,15 @@ private class PluginIssuesRootNode(
     override fun createBody(): JComponent {
       val listPanel = JBPanel<JBPanel<*>>(VerticalLayout(6))
       val totalWarningsCount = pluginUiData.warningCount
-      listPanel.add(JBLabel().apply {
-        text = if (children.isEmpty())
-          "No warnings detected for this build."
-        else
-          "$totalWarningsCount ${StringUtil.pluralize("warning", totalWarningsCount)} " +
-          "of the following ${StringUtil.pluralize("type", children.size)} were detected for this build."
-        setAllowAutoWrapping(true)
-        setCopyable(true)
-        isFocusable = false
-      })
+      listPanel.add(
+        htmlTextLabel(
+          if (children.isEmpty())
+            "No warnings detected for this build."
+          else
+            "$totalWarningsCount ${StringUtil.pluralize("warning", totalWarningsCount)} " +
+            "of the following ${StringUtil.pluralize("type", children.size)} were detected for this build."
+        )
+      )
       children.forEach {
         if (it is AbstractBuildAttributionNode) {
           val name = it.nodeName
