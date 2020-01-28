@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.DefaultExecutionTarget;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.ExecutionTargetProvider;
@@ -52,7 +53,8 @@ public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetPro
   static class Target extends AndroidExecutionTarget {
     @NotNull private final Device myDevice;
 
-    private Target(@NotNull Device device) {
+    @VisibleForTesting
+    Target(@NotNull Device device) {
       myDevice = device;
     }
 
@@ -88,7 +90,8 @@ public class DeviceAndSnapshotExecutionTargetProvider extends ExecutionTargetPro
     @Override
     public Collection<IDevice> getDevices() {
       // TODO Handle the Multiple Devices case
-      return Collections.singletonList(myDevice.getDdmlibDevice());
+      IDevice device = myDevice.getDdmlibDevice();
+      return device == null ? Collections.emptyList() : Collections.singletonList(device);
     }
 
     @NotNull
