@@ -61,7 +61,7 @@ open class TransformTestCase : GradleFileModelTestCase() {
   }
 
   protected fun createLiteral(name: String = "fake", parent: GradleDslElement = gradleDslFile): GradleDslLiteral {
-    return GradleDslLiteral(parent, GradleNameElement.create(name.copy()))
+    return GradleDslLiteral(parent, GradleNameElement.fake(name.copy()))
   }
 
   protected fun createMethodCall(methodName: String,

@@ -165,6 +165,7 @@ enum class TestFileName(val path: String) {
   ANDROID_MODEL_ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK_EXPECTED("androidModel/addAndApplyDefaultConfigBlockExpected"),
   ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK("androidModel/addAndApplyBuildTypeBlock"),
   ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED("androidModel/addAndApplyBuildTypeBlockExpected"),
+  ANDROID_MODEL_ADD_AND_APPLY_DOTTED_BUILD_TYPE_BLOCK_EXPECTED("androidModel/addAndApplyDottedBuildTypeBlockExpected"),
   ANDROID_MODEL_ADD_AND_APPLY_PRODUCT_FLAVOR_BLOCK("androidModel/addAndApplyProductFlavorBlock"),
   ANDROID_MODEL_ADD_AND_APPLY_PRODUCT_FLAVOR_BLOCK_EXPECTED("androidModel/addAndApplyProductFlavorBlockExpected"),
   ANDROID_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_BLOCK("androidModel/addAndApplySigningConfigBlock"),

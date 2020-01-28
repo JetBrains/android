@@ -97,6 +97,8 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     return element.psiElement
   }
 
+  internal fun maybeQuoteBits(parts: List<String>) = parts.map { if (it.contains('.')) "`$it`" else it }.joinToString(".")
+
   override fun createDslElement(element: GradleDslElement): PsiElement? {
     // If we are trying to create an extra block, we should skip this step as we don't use proper blocks for extra properties in KTS.
     if (element is ExtDslElement) return getParentPsi(element)
@@ -118,33 +120,38 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     val psiFactory = KtPsiFactory(project)
 
     val externalNameInfo = maybeTrimForParent(element.nameElement, element.parent, this)
-    var statementText = externalNameInfo.externalNameParts.joinToString(".")
+    val joinedName = externalNameInfo.externalNameParts.joinToString(".")
+    val quotedName = maybeQuoteBits(externalNameInfo.externalNameParts)
+    var statementText : String
     val useAssignment = when (val asMethod = externalNameInfo.asMethod) {
       null -> element.shouldUseAssignment()
       else -> !asMethod
     }
     // TODO(xof): this is a bit horrible, and if there are any other examples where we need to adjust the syntax (as opposed to name)
     //  of something depending on its context, try to figure out a useful generalization.
-    if (element.parent is DependenciesDslElement && !useAssignment && !KTS_KNOWN_CONFIGURATIONS.contains(statementText)) {
-      statementText = "\"${statementText}\""
+    if (element.parent is DependenciesDslElement && !useAssignment && !KTS_KNOWN_CONFIGURATIONS.contains(joinedName)) {
+      statementText = "\"${joinedName}\""
     }
-    if (element is GradleDslNamedDomainElement) {
+    else if (element is GradleDslNamedDomainElement) {
       val parent = element.parent
       statementText = when {
         // use an existing methodName if we have one
-        element.methodName != null -> "${element.methodName}(\"$statementText\")"
+        element.methodName != null -> "${element.methodName}(\"$joinedName\")"
         // use getByName() if the element is implicitly provided, otherwise create()
         parent is GradleDslNamedDomainContainer -> when {
-          parent.implicitlyExists(statementText) -> "getByName(\"$statementText\")"
-          else -> "create(\"$statementText\")"
+          parent.implicitlyExists(joinedName) -> "getByName(\"$joinedName\")"
+          else -> "create(\"$joinedName\")"
         }
         // should never happen (named domain element added to something that isn't a named domain container)
         else -> {
           val log = logger<KotlinDslWriter>()
           log.warn("NamedDomainElement $element added to non-NamedDomainContainer $parent", Throwable())
-          "getByName(\"$statementText\")"
+          "getByName(\"$joinedName\")"
         }
       }
+    }
+    else {
+      statementText = joinedName
     }
 
     if (element.isBlockElement) {
@@ -161,9 +168,9 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
           // This is about a regular extra property and should have a dedicated syntax.
           // TODO(b/141842964): For now, we need to be careful about psi to dsl translation in both ways and reflect the dsl logic back to
           //  the psi elements.
-          if (element.fullName.startsWith("ext.")) statementText = "extra[\"${statementText}\"] = \"abc\""
+          if (element.fullName.startsWith("ext.")) statementText = "extra[\"${joinedName}\"] = \"abc\""
           else {
-            statementText = "val $statementText by extra(\"abc\")"
+            statementText = "val $quotedName by extra(\"abc\")"
             isVarOrProperty = true
           }
         }
@@ -172,7 +179,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
         }
       }
       else if (element.elementType == PropertyType.VARIABLE) {
-        statementText = "val ${statementText} = \"abc\""
+        statementText = "val ${quotedName} = \"abc\""
         isVarOrProperty = true
       }
       else if (element.elementType == PropertyType.DERIVED && element is GradleDslExpressionMap) {

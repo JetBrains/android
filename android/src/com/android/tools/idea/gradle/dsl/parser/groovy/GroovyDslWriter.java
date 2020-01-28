@@ -23,6 +23,7 @@ import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslE
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
@@ -96,6 +97,25 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     return element.getPsiElement();
   }
 
+  @NotNull
+  private String quoteBitsIfNecessary(List<String> parts) {
+    StringBuilder sb = new StringBuilder();
+    boolean firstPart = true;
+    for (String part: parts) {
+      if (!firstPart) {
+        sb.append('.');
+      }
+      else {
+        firstPart = false;
+      }
+      if (part.contains(".")) {
+        part = "\'" + part + "\'";
+      }
+      sb.append(part);
+    }
+    return sb.toString();
+  }
+
   @Override
   public PsiElement createDslElement(@NotNull GradleDslElement element) {
     GroovyPsiElement psiElement = ensureGroovyPsi(element.getPsiElement());
@@ -122,7 +142,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
 
     ExternalNameInfo externalNameInfo = maybeTrimForParent(element.getNameElement(), element.getParent(), this);
-    String statementText = String.join(".", externalNameInfo.externalNameParts);
+    String statementText = quoteBitsIfNecessary(externalNameInfo.externalNameParts);
     assert !statementText.isEmpty() : "Element name can't be empty! This will cause statement creation to error.";
 
     boolean useAssignment = element.shouldUseAssignment();
@@ -276,7 +296,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     PsiElement anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter);
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
-    String elementName = !methodCall.getFullName().isEmpty() ? String.join(".", maybeTrimForParent(methodCall.getNameElement(), methodCall.getParent(), this).externalNameParts) + " " : "";
+    String elementName = !methodCall.getFullName().isEmpty() ? quoteBitsIfNecessary(maybeTrimForParent(methodCall.getNameElement(), methodCall.getParent(), this).externalNameParts) + " " : "";
     String methodCallText = (methodCall.isConstructor() ? "new ": "") + methodCall.getMethodName() + "()";
     String statementText = (methodCall.shouldUseAssignment()) ? elementName + "= " + methodCallText : elementName + methodCallText;
     GrStatement statement = factory.createStatementFromText(statementText);

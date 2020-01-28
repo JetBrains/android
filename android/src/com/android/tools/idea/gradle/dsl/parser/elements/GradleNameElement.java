@@ -18,7 +18,7 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT;
 
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
-import com.google.common.base.Splitter;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
@@ -79,7 +79,7 @@ public class GradleNameElement {
 
   @NotNull
   public static GradleNameElement create(@NotNull String name) {
-    return new GradleNameElement(name, false);
+    return new GradleNameElement(escape(name), false);
   }
 
   @NotNull
@@ -136,12 +136,12 @@ public class GradleNameElement {
     if (name == null) {
       return Lists.newArrayList();
     }
-    List<String> nameSegments = Splitter.on('.').splitToList(name);
+    List<String> nameSegments = split(name);
     return ContainerUtil.map(nameSegments, GradleNameElement::convertNameToKey);
   }
 
   public static String createNameFromParts(@NotNull List<String> parts) {
-    return String.join(".", parts);
+    return join(parts);
   }
 
   @NotNull
@@ -236,6 +236,7 @@ public class GradleNameElement {
       }
     }
 
+    // TODO(xof): think about this split
     List<String> parts = Arrays.asList(propertyReference.split("\\."));
     if (!parts.isEmpty() && parts.get(0).equals(name)) {
       return true;
@@ -267,13 +268,57 @@ public class GradleNameElement {
     return StringUtil.unquoteString(str);
   }
 
+  @NotNull
+  public static String escape(@NotNull String part) {
+    StringBuilder buf = new StringBuilder();
+    for (int i = 0; i < part.length(); i++) {
+      char c = part.charAt(i);
+      if (c == '.' || c == '\\') {
+        buf.append('\\');
+      }
+      buf.append(c);
+    }
+    String result = buf.toString();
+    return result;
+  }
+
+  @NotNull
+  @VisibleForTesting
+  public static String join (@NotNull List<String> parts) {
+    String result = parts.stream().map(GradleNameElement::escape).collect(Collectors.joining("."));
+    return result;
+  }
+
+  @NotNull
+  @VisibleForTesting
+  public static List<String> split(@NotNull String name) {
+    StringBuilder buf = new StringBuilder();
+    List<String> result = new ArrayList<>();
+    for (int i = 0; i < name.length(); i++) {
+      char c = name.charAt(i);
+      if (c == '\\') {
+        assert i < name.length() - 1;
+        buf.append(name.charAt(++i));
+      }
+      else if (c == '.') {
+        result.add(buf.toString());
+        buf.setLength(0);
+      }
+      else {
+        buf.append(name.charAt(i));
+      }
+    }
+    result.add(buf.toString());
+    return result;
+  }
+
   /**
    * READ ACCESS REQUIRED.
    */
   private void setUpFrom(@Nullable PsiElement element, GradleDslNameConverter converter) {
     myNameElement = element;
     if (myNameElement instanceof PsiNamedElement) {
-      myLocalName = ((PsiNamedElement)myNameElement).getName();
+      myLocalName = escape(((PsiNamedElement)myNameElement).getName());
     }
     else if (myNameElement != null) {
       myLocalName = converter.psiToName(myNameElement);
