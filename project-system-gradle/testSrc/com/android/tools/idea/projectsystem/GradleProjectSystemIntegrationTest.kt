@@ -48,4 +48,15 @@ class GradleProjectSystemIntegrationTest : AndroidGradleTestCase() {
     assertThat(appcompat.manifestFile?.fileName).isEqualTo(SdkConstants.FN_ANDROID_MANIFEST_XML)
     assertThat(appcompat.resFolder!!.root.toFile()).isDirectory()
   }
+
+  fun testGetDefaultApkFile() {
+    loadSimpleApplication()
+    // Invoke assemble task to generate output listing file and apk file.
+    invokeGradleTasks(project, "assembleDebug")
+    val defaultApkFile = project
+      .getProjectSystem()
+      .getDefaultApkFile()
+    assertNotNull(defaultApkFile)
+    assertThat(defaultApkFile!!.name).isEqualTo("app-debug.apk")
+  }
 }
