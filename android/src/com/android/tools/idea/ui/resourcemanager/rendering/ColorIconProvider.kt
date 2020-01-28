@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.ide.common.resources.ResourceResolver
 import com.android.tools.idea.res.resolveMultipleColors
-import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.resolveValue
 import com.intellij.openapi.project.Project
 import java.awt.Color
@@ -27,7 +27,7 @@ import javax.swing.Icon
 
 /**
  * Create a reusable [Icon] that is updated each time [getIcon] is called
- * and represent a color or a set of color if the provided [DesignAsset]
+ * and represent a color or a set of color if the provided [Asset]
  * is a state list.
  */
 class ColorIconProvider(
@@ -40,7 +40,7 @@ class ColorIconProvider(
   private val icon = ColorIcon()
   val colors get() = icon.colors
 
-  override fun getIcon(assetToRender: DesignAsset,
+  override fun getIcon(assetToRender: Asset,
                        width: Int,
                        height: Int,
                        refreshCallback: () -> Unit,
