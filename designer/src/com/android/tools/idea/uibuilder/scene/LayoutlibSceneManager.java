@@ -1298,12 +1298,12 @@ public class LayoutlibSceneManager extends SceneManager {
 
   /**
    * Triggers execution of the Handler and frame callbacks in the layoutlib
-   * @return a future that is completed when callbacks are executed
+   * @return a boolean future that is completed when callbacks are executed that is true if there are more callbacks to execute
    */
   @NotNull
-  public CompletableFuture<Void> executeCallbacks() {
+  public CompletableFuture<Boolean> executeCallbacks() {
     if (myRenderTask == null) {
-      return CompletableFuture.completedFuture(null);
+      return CompletableFuture.completedFuture(false);
     }
     return myRenderTask.executeCallbacks();
   }
