@@ -86,6 +86,19 @@ public class DefaultActivityLocator extends ActivityLocator {
   public void validate() throws ActivityLocatorException {
     assert !myFacet.getProperties().USE_CUSTOM_COMPILER_MANIFEST;
 
+    DefaultActivityLocatorStrategy strategy = StudioFlags.DEFAULT_ACTIVITY_LOCATOR_STRATEGY.get();
+
+    if (strategy == DefaultActivityLocatorStrategy.INDEX && AndroidManifestIndex.indexEnabled()) {
+      if (DumbService.isDumb(myFacet.getModule().getProject())) {
+        return;
+      }
+      List<ActivityWrapper> activities = getActivitiesFromManifestIndex(myFacet);
+      if (computeDefaultActivity(activities) == null) {
+        throw new ActivityLocatorException(AndroidBundle.message("default.activity.not.found.error"));
+      }
+      return;
+    }
+
     // Workaround for b/123339491 since the Mac touchbar icon updater will call this method on the UI thread
     // This workaround avoids calculating the MergedManifest on the UI thread.
     boolean usePotentiallyStaleManifest = ApplicationManager.getApplication().isDispatchThread();
