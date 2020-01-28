@@ -20,6 +20,7 @@ import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
 import com.android.fakeadbserver.hostcommandhandlers.HostCommandHandler
+import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.Uninterruptibles
 import org.junit.rules.ExternalResource
 import java.net.Socket
@@ -69,7 +70,7 @@ class FakeAdbRule : ExternalResource() {
     startingDevices[deviceId] = startLatch
     val device = fakeAdbServer?.connectDevice(deviceId, manufacturer, model, release, sdk, hostConnectionType)?.get()!!
     device.deviceStatus = DeviceState.DeviceStatus.ONLINE
-    startLatch.await()
+    assertThat(startLatch.await(30, TimeUnit.SECONDS)).isTrue()
   }
 
 
