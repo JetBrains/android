@@ -5,15 +5,32 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.options.SearchableConfigurable
+import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.layout.panel
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.annotations.Nls
 import javax.swing.JComboBox
+import javax.swing.JList
 
 class NlOptionsConfigurable : SearchableConfigurable, Configurable.NoScroll {
 
-  private class EditorModeComboBox : JComboBox<AndroidEditorSettings.EditorMode>(AndroidEditorSettings.EditorMode.values())
+  private class EditorModeComboBox : JComboBox<AndroidEditorSettings.EditorMode>(AndroidEditorSettings.EditorMode.values()) {
+    init {
+      setRenderer(EditorModeCellRenderer())
+    }
+
+    private class EditorModeCellRenderer : SimpleListCellRenderer<AndroidEditorSettings.EditorMode>() {
+      override fun customize(list: JList<out AndroidEditorSettings.EditorMode>,
+                             value: AndroidEditorSettings.EditorMode?,
+                             index: Int,
+                             selected: Boolean,
+                             hasFocus: Boolean) {
+        value?.toString()?.let { text = it }
+        value?.icon?.let { icon = it }
+      }
+    }
+  }
 
   private val preferXmlEditor = JBCheckBox("Prefer XML editor")
   private val showLint = JBCheckBox("Show lint icons on design surface")
