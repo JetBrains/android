@@ -69,6 +69,7 @@ class WarningsRootNode(
           "of the following ${StringUtil.pluralize("type", children.size)} were detected for this build:"
         setAllowAutoWrapping(true)
         setCopyable(true)
+        isFocusable = false
       })
       children.forEach {
         if (it is AbstractBuildAttributionNode) {
