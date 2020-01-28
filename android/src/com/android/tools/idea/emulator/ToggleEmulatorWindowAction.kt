@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.wm.ToolWindowManager
@@ -32,5 +33,11 @@ class ToggleEmulatorWindowAction : AnAction("Toggle Emulator Window") {
         toolWindow.activate(null)
       }
     }
+  }
+
+  override fun update(e: AnActionEvent) {
+    val enabled = StudioFlags.EMBEDDED_EMULATOR_ENABLED.get()
+    e.presentation.isEnabled = enabled
+    e.presentation.isVisible = enabled
   }
 }
