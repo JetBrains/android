@@ -15,68 +15,112 @@
  */
 package com.android.tools.idea.emulator
 
+import com.android.annotations.concurrency.UiThread
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
-import java.awt.BorderLayout
-import java.awt.LayoutManager
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
+import com.intellij.ui.content.ContentFactory
+import com.intellij.ui.content.ContentManager
+import com.intellij.ui.content.ContentManagerAdapter
+import com.intellij.ui.content.ContentManagerEvent
+import java.text.Collator
 
-class EmulatorToolWindow(project: Project) : DumbAware {
-  private val toolWindowContent: JPanel
+class EmulatorToolWindow(private val project: Project) : DumbAware {
+  private val ID_KEY = Key.create<String>("pane-id")
+
   private var initialized = false
-
-  val component: JComponent
-    get() = toolWindowContent
-
-  private fun createContent(window: ToolWindow) {
-    initialized = true
-    try { // TODO: Well we should probably fetch the proper emulator port from somewhere.
-      val emulatorPanel = EmulatorJarLoader.createView(5554)
-      // Tor modifications: wrap in another JPanel to keep aspect ratio
-      val layoutManager: LayoutManager = EmulatorLayoutManager(emulatorPanel)
-      toolWindowContent.add(emulatorPanel)
-      toolWindowContent.layout = layoutManager
-      toolWindowContent.repaint()
-      window.title = EmulatorJarLoader.getCurrentAvdName(emulatorPanel)
-    }
-    catch (e: Exception) {
-      val label = "Unable to load emulator view: $e"
-      toolWindowContent.add(JLabel(label), BorderLayout.CENTER)
+  private val panes: MutableList<EmulatorToolWindowPane> = arrayListOf()
+  private var activePane: EmulatorToolWindowPane? = null
+  private var contentManagerListener = object : ContentManagerAdapter() {
+    @UiThread
+    override fun selectionChanged(event: ContentManagerEvent) {
+      if (event.operation == ContentManagerEvent.ContentOperation.add) {
+        viewSelectionChanged()
+      }
     }
   }
 
-  private fun destroyContent() {
+  private fun addPane(pane: EmulatorToolWindowPane, toolWindow: ToolWindow) {
+    val contentFactory = ContentFactory.SERVICE.getInstance()
+    val content = contentFactory.createContent(pane.component, pane.title, false)
+    content.putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
+    content.tabName = pane.title
+    content.icon = pane.icon
+    content.popupIcon = pane.icon
+    content.putUserData(ID_KEY, pane.id)
+
+    val index = panes.binarySearch(pane, PANE_COMPARATOR).inv()
+    assert(index >= 0)
+
+    if (index >= 0) {
+      panes.add(index, pane)
+      toolWindow.contentManager.addContent(content, index)
+      if (activePane == null) {
+        activePane = pane
+      }
+    }
+  }
+
+  private fun createContent(toolWindow: ToolWindow) {
+    initialized = true
+    // TODO: Discover running Emulators and create panes for each of them.
+    val pane = EmulatorToolWindowPane("Pixel 3 API 29", 5554)
+    addPane(pane, toolWindow)
+
+    toolWindow.contentManager.addContentManagerListener(contentManagerListener)
+    viewSelectionChanged()
+  }
+
+  private fun viewSelectionChanged() {
+    val content = getContentManager().selectedContent
+    val id = content?.getUserData<String>(ID_KEY)
+    if (id != activePane?.id) {
+      activePane?.destroyContent()
+      activePane = null
+    }
+    if (id != null) {
+      activePane = findPaneById(id)
+      activePane?.createContent()
+    }
+  }
+
+  private fun findPaneById(id: String): EmulatorToolWindowPane? {
+    return panes.firstOrNull { it.id == id }
+  }
+
+  private fun getContentManager(): ContentManager {
+    return ToolWindowManager.getInstance(project).getToolWindow(ID).contentManager
+  }
+
+  private fun destroyContent(toolWindow: ToolWindow) {
     initialized = false
-    toolWindowContent.layout = BorderLayout()
-    toolWindowContent.removeAll()
+    toolWindow.contentManager.removeContentManagerListener(contentManagerListener)
+    activePane?.destroyContent()
+    activePane = null
+    panes.clear()
   }
 
   init {
-    toolWindowContent = JPanel(BorderLayout())
-
     // Lazily initialize content since we can only have one frame.
     project.messageBus.connect().subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
+      @UiThread
       override fun stateChanged() {
         if (!SHUTDOWN_CAPABLE && initialized) {
           return
         }
         // We need to query the tool window again, because it might have been unregistered when closing the project.
-        val window = ToolWindowManager.getInstance(project).getToolWindow(
-          ID) ?: return
+        val window = ToolWindowManager.getInstance(project).getToolWindow(ID) ?: return
         if (window.isVisible) { // TODO: How do I unsubscribe? This will keep notifying me of all tool windows, forever.
-          if (initialized) {
-            return
+          if (!initialized) {
+            initialized = true
+            createContent(window)
           }
-          initialized = true
-          createContent(window)
         }
         else if (SHUTDOWN_CAPABLE && initialized) {
-          destroyContent()
+          destroyContent(window)
         }
       }
     })
@@ -87,3 +131,7 @@ class EmulatorToolWindow(project: Project) : DumbAware {
     const val ID = "Emulator"
   }
 }
+
+private val COLLATOR = Collator.getInstance()
+
+private val PANE_COMPARATOR = compareBy<EmulatorToolWindowPane, Any?>(COLLATOR) { it.title }.thenBy { it.port }
