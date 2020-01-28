@@ -15,20 +15,48 @@
  */
 package com.android.tools.idea.benchmarks
 
+import com.android.SdkConstants
+import com.android.tools.idea.psi.TagToClassMapper
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.moveCaret
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
+import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.command.undo.UndoManager
+import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.ProjectScope
 import com.intellij.testFramework.runInEdtAndWait
+import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import org.jetbrains.android.AndroidTestBase
 import org.junit.After
 import org.junit.Ignore
 import org.junit.Test
 import java.io.File
+
+/**
+ * Contains the inputs necessary to run a layout critical user journey completion run, @see layoutAttributeCompletionBenchmark
+ */
+data class LayoutCompletionInput(
+  val activityPath: String,
+  val activityWindow: String,
+  val layoutPath: String,
+  val layoutWindow: String
+)
+
+/**
+ * Contains the results of a layout critical user journey completion run, @see layoutAttributeCompletionBenchmark
+ */
+data class LayoutCompletionSample (
+  val fastPathTime: Metric.MetricSample,
+  val mediumPathTime: Metric.MetricSample,
+  val slowPathTime: Metric.MetricSample
+)
 
 /**
  * Contains performance tests for a particular project defined by the subclasses.
@@ -41,6 +69,8 @@ abstract class FullProjectBenchmark {
   abstract val projectName: String
   abstract val fileTypes: List<FileType>
   abstract val gradleRule: AndroidGradleProjectRule
+  abstract val layoutAttributeCompletionInput: LayoutCompletionInput
+  abstract val layoutTagCompletionInput:  LayoutCompletionInput
 
   @After
   fun tearDown() {
@@ -56,6 +86,111 @@ abstract class FullProjectBenchmark {
         measureHighlighting(fileType)
       }
     }
+  }
+
+  @Test
+  fun layoutAttributeCompletion() {
+    testLayoutCompletion(layoutAttributeCompletionInput, layoutCompletionBenchmark, "Attribute")
+  }
+
+  @Test
+  fun layoutTagCompletion() {
+    testLayoutCompletion(layoutTagCompletionInput, layoutCompletionBenchmark, "Tag")
+  }
+
+  private fun testLayoutCompletion(layoutCompletionInput: LayoutCompletionInput, benchmark: Benchmark, completionType: String) {
+    runBenchmark(
+      recordResults = { runLayoutEditingCuj(layoutCompletionInput) },
+      runBetweenIterations = { clearCaches() },
+      commitResults = { commitLayoutCompletionSamplesToBenchmark(it, benchmark, completionType) }
+    )
+  }
+
+  private fun runLayoutEditingCuj(layoutCompletionInput: LayoutCompletionInput): LayoutCompletionSample {
+    val project = gradleRule.project
+    val activityFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(project.basePath + layoutCompletionInput.activityPath)!!
+    val layoutFile = LocalFileSystem.getInstance().refreshAndFindFileByPath(project.basePath + layoutCompletionInput.layoutPath)!!
+    val psiFile = PsiManager.getInstance(project).findFile(activityFile)
+    val classMapper = TagToClassMapper.getInstance(ModuleUtilCore.findModuleForFile(psiFile)!!)
+    val fixture = gradleRule.fixture
+
+    // Measure completion time, slow path
+    fixture.openFileInEditor(layoutFile)
+    fixture.editor.caretModel.moveToOffset(0)
+    fixture.moveCaret(layoutCompletionInput.layoutWindow)
+    assertThat(classMapper.getClassMapFreshness(SdkConstants.CLASS_VIEW))
+      .isEqualTo(TagToClassMapper.ClassMapFreshness.REBUILD_ENTIRE_CLASS_MAP)
+    val slowPathSample = Metric.MetricSample(
+      System.currentTimeMillis(),
+      measureElapsedMillis {
+        val lookupElements = fixture.completeBasic()
+        assertThat(lookupElements).isNotEmpty()
+      })
+
+    // Measure completion time, fast path
+    assertThat(classMapper.getClassMapFreshness(SdkConstants.CLASS_VIEW))
+      .isEqualTo(TagToClassMapper.ClassMapFreshness.VALID_CLASS_MAP)
+    fixture.editor.caretModel.moveToOffset(0)
+    fixture.moveCaret(layoutCompletionInput.layoutWindow)
+    val fastPathSample = Metric.MetricSample(
+      System.currentTimeMillis(),
+      measureElapsedMillis {
+        val lookupElements = fixture.completeBasic()
+        assertThat(lookupElements).isNotEmpty()
+      })
+
+    // Edit something in the activity file
+    fixture.openFileInEditor(activityFile)
+    fixture.moveCaret(layoutCompletionInput.activityWindow)
+    fixture.type("\nprintln(\"hello\")")
+    UndoManager.getInstance(fixture.project).undo(TextEditorProvider.getInstance().getTextEditor(fixture.editor))
+
+    // Measure attribute completion time, medium path
+    fixture.openFileInEditor(layoutFile)
+    fixture.editor.caretModel.moveToOffset(0)
+    fixture.moveCaret(layoutCompletionInput.layoutWindow)
+    assertThat(classMapper.getClassMapFreshness(SdkConstants.CLASS_VIEW))
+      .isEqualTo(TagToClassMapper.ClassMapFreshness.REBUILD_PARTIAL_CLASS_MAP)
+    val mediumPathSample = Metric.MetricSample(
+      System.currentTimeMillis(),
+      measureElapsedMillis {
+        val lookupElements = fixture.completeBasic()
+        assertThat(lookupElements).isNotEmpty()
+      })
+
+    return LayoutCompletionSample(fastPathSample, mediumPathSample, slowPathSample)
+  }
+
+  private fun commitLayoutCompletionSamplesToBenchmark(
+    samples: List<LayoutCompletionSample>,
+    benchmark: Benchmark,
+    completionType: String
+  ) {
+    val slowSamples = samples.map { it.slowPathTime }
+    val mediumSamples = samples.map { it.mediumPathTime }
+    val fastSamples = samples.map { it.fastPathTime }
+
+    // Diagnostic logging.
+    println("""
+      ===
+      Project: $projectName
+      Benchmark name: ${benchmark.name}
+      Average Slow time: ${slowSamples.map { it.sampleData }.average()} ms
+      Average Medium time: ${mediumSamples.map { it.sampleData }.average()} ms
+      Average Fast time: ${fastSamples.map { it.sampleData }.average()} ms
+      ===
+    """.trimIndent())
+    println("Fast_path_time,Medium_path_time,Slow_path_time")
+    samples.forEach { println("${it.fastPathTime.sampleData},${it.mediumPathTime.sampleData},${it.slowPathTime.sampleData}") }
+    val slowPathMetric =  Metric("${projectName}_${completionType}_Slow_Path")
+    slowPathMetric.addSamples(benchmark, *slowSamples.toTypedArray())
+    slowPathMetric.commit()
+    val mediumPathMetric =  Metric("${projectName}_${completionType}_Medium_Path")
+    mediumPathMetric.addSamples(benchmark, *mediumSamples.toTypedArray())
+    mediumPathMetric.commit()
+    val fastPathMetric =  Metric("${projectName}_${completionType}_Fast_Path")
+    fastPathMetric.addSamples(benchmark, *fastSamples.toTypedArray())
+    fastPathMetric.commit()
   }
 
   companion object {
@@ -83,11 +218,28 @@ abstract class FullProjectBenchmark {
       """.trimIndent())
       .setProject(EDITOR_PERFGATE_PROJECT_NAME)
       .build()
+
+    val layoutCompletionBenchmark = Benchmark.Builder("Layout Completion Benchmark")
+      .setDescription("""
+        This test record the time taken to provide completion results for view attributes and tags in layout 
+          files in three typical scenarios. All measurements are given in milliseconds.
+
+        Fast Path relates to time where completion results are cached and should be near instant.
+        Medium Path relates to time where completion results are only cached for SDK and library results,
+          all local completion elements must be recalculated. This happens after a change is made in Kotlin or Java
+          files.
+        Slow Path relates to time where there is no cache. Local, SDK and library results must be recalculated.
+          This happens on project open, or after Gradle sync.
+      """.trimIndent())
+      .setProject(EDITOR_PERFGATE_PROJECT_NAME)
+      .build()
   }
 
   private fun clearCaches() {
     PsiManager.getInstance(gradleRule.project).dropPsiCaches()
     System.gc() // May help reduce noise, but it's just a hope. Investigate as needed.
+    // Reset TagToClassMap cache
+    gradleRule.project.allModules().forEach { TagToClassMapper.getInstance(it).resetAllClassMaps() }
   }
 
   /** Measures highlighting performance for all project source files of the given type. */

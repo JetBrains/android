@@ -19,10 +19,12 @@ import com.android.tools.perflogger.Metric
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.impl.ApplicationInfoImpl
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.newvfs.RefreshQueue
 import com.intellij.profile.codeInspection.ProjectInspectionProfileManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.testFramework.runInInitMode
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -112,6 +114,30 @@ fun measureTimeMs(
     }
   )
   return samplesMs
+}
+
+fun <T> runBenchmark(
+  recordResults: () -> T,
+  runBetweenIterations: () -> Unit,
+  commitResults: (List<T>) -> Unit,
+  warmupIterations: Int = 100,
+  mainIterations: Int = 100
+) {
+  val samples = mutableListOf<T>()
+  runInEdtAndWait {
+    // Warmup
+    repeat(warmupIterations) {
+      recordResults()
+      runBetweenIterations()
+    }
+
+    // Measure
+    repeat(mainIterations) {
+      samples.add(recordResults())
+      runBetweenIterations()
+    }
+  }
+  commitResults(samples)
 }
 
 /**
