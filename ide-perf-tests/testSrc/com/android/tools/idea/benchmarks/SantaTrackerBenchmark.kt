@@ -40,4 +40,16 @@ class SantaTrackerBenchmark : FullProjectBenchmark() {
   override val gradleRule = staticRule
   override val projectName = PROJECT_NAME
   override val fileTypes = listOf(StdFileTypes.JAVA, StdFileTypes.XML)
+  override val layoutAttributeCompletionInput = LayoutCompletionInput(
+    "/santa-tracker/src/main/java/com/google/android/apps/santatracker/games/cityquiz/CityQuizActivity.java",
+    "updateScore();|",
+    "/santa-tracker/src/main/res/layout/activity_city_quiz.xml",
+    "android:id=\"@+id/title_city_quiz\"\n            |"
+  )
+  override val layoutTagCompletionInput = LayoutCompletionInput(
+    "/santa-tracker/src/main/java/com/google/android/apps/santatracker/games/cityquiz/CityQuizActivity.java",
+    "updateScore();|",
+    "/santa-tracker/src/main/res/layout/activity_city_quiz.xml",
+    "<|ProgressBar"
+  )
 }

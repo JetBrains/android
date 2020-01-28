@@ -20,6 +20,7 @@ import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.psi.PsiClass;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 public interface TagToClassMapper {
 
@@ -32,6 +33,22 @@ public interface TagToClassMapper {
   @NotNull
   Map<String, PsiClass> getClassMap(String className);
 
+  /**
+   * Returns cache state for a particular class map that can be accessed from the current module.
+   *
+   * @param className fully qualified name of the superclass
+   */
+  @NotNull
+  ClassMapFreshness getClassMapFreshness(String className);
+
+  enum ClassMapFreshness {
+    REBUILD_ENTIRE_CLASS_MAP,
+    REBUILD_PARTIAL_CLASS_MAP,
+    VALID_CLASS_MAP
+  }
+
+  @TestOnly
+  void resetAllClassMaps();
 
   static TagToClassMapper getInstance(@NotNull Module module) {
     return ModuleServiceManager.getService(module, TagToClassMapper.class);
