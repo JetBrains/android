@@ -39,11 +39,11 @@ public class AndroidRunLayoutInspectorAction extends AnAction {
   @Override
   public void update(AnActionEvent e) {
     if (isDebuggerPaused(e.getProject())) {
-      e.getPresentation().setDescription(AndroidBundle.message("android.ddms.actions.layoutinspector.description.disabled"));
+      e.getPresentation().setDescription(() -> AndroidBundle.message("android.ddms.actions.layoutinspector.description.disabled"));
       e.getPresentation().setEnabled(false);
     }
     else {
-      e.getPresentation().setDescription(AndroidBundle.message("android.ddms.actions.layoutinspector.description"));
+      e.getPresentation().setDescription(() -> AndroidBundle.message("android.ddms.actions.layoutinspector.description"));
       e.getPresentation().setEnabled(true);
     }
   }
