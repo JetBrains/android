@@ -16,6 +16,7 @@
 package com.android.build.attribution.ui.panels;
 
 import static com.android.build.attribution.ui.BuildAttributionUIUtilKt.warningIcon;
+import static com.android.build.attribution.ui.panels.BuildAttributionPanelsKt.htmlTextLabel;
 
 import com.android.build.attribution.ui.DescriptionWithHelpLinkLabel;
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics;
@@ -76,8 +77,7 @@ public class AnnotationProcessorIssueInfoPanel extends JBPanel {
 
     JLabel iconLabel = new JLabel(warningIcon());
     JComponent issueDescription = new DescriptionWithHelpLinkLabel(descriptionHtml, HELP_LINK, myAnalytics);
-    JBLabel recommendation = new JBLabel(recommendationHtml).setAllowAutoWrapping(true).setCopyable(true);
-    recommendation.setFocusable(false);
+    JBLabel recommendation = htmlTextLabel(recommendationHtml);
 
     JBPanel<JBPanel> panel = new JBPanel<>(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
