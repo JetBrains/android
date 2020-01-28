@@ -82,14 +82,11 @@ public class TaskIssueInfoPanel extends JBPanel {
     String text = new HtmlBuilder()
       .openHtmlBody()
       .addHtml(myIssue.getExplanation())
-      .newline()
-      .addLink("Learn more", myIssue.getHelpLink())
       .closeHtmlBody()
       .getHtml();
 
     JLabel iconLabel = new JLabel(issueIcon(myIssue.getType()));
-    JBLabel issueDescription = new DescriptionWithHelpLinkLabel(text, myAnalytics);
-    issueDescription.setVerticalTextPosition(SwingConstants.TOP);
+    JComponent issueDescription = new DescriptionWithHelpLinkLabel(text, myIssue.getHelpLink(), myAnalytics);
 
     JBPanel<JBPanel> panel = new JBPanel<>(new GridBagLayout());
     GridBagConstraints c = new GridBagConstraints();
@@ -100,6 +97,7 @@ public class TaskIssueInfoPanel extends JBPanel {
     panel.add(iconLabel, c);
 
     c.gridx = 1;
+    c.gridy = 0;
     c.insets = JBUI.insetsLeft(5);
     c.weightx = 1.0;
     c.weighty = 1.0;
@@ -175,6 +173,7 @@ public class TaskIssueInfoPanel extends JBPanel {
       .closeHtmlBody()
       .getHtml();
     JBLabel label = new JBLabel().setAllowAutoWrapping(true).setCopyable(true);
+    label.setFocusable(false);
     label.setVerticalTextPosition(SwingConstants.TOP);
     label.setText(text);
     return label;

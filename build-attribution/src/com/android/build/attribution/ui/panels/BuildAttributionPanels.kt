@@ -50,7 +50,7 @@ fun pluginInfoPanel(
   pluginUiData: CriticalPathPluginUiData,
   listener: TreeLinkListener<TaskIssueType>,
   analytics: BuildAttributionUiAnalytics
-): JComponent = JBPanel<JBPanel<*>>(VerticalLayout(15)).apply {
+): JComponent = JBPanel<JBPanel<*>>(VerticalLayout(0)).apply {
   val pluginText = HtmlBuilder()
     .openHtmlBody()
     .add(
@@ -59,11 +59,10 @@ fun pluginInfoPanel(
     )
     .newline()
     .add("determining this build's duration.")
-    .newline()
-    .addLink("Learn more", CRITICAL_PATH_LINK)
     .closeHtmlBody()
-  add(DescriptionWithHelpLinkLabel(pluginText.html, analytics))
+  add(DescriptionWithHelpLinkLabel(pluginText.html, CRITICAL_PATH_LINK, analytics))
   add(JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
+    border = JBUI.Borders.emptyTop(15)
     add(JBLabel("Warnings detected").withFont(JBUI.Fonts.label().asBold()))
     for (issueGroup in pluginUiData.issues) {
       add(HyperlinkLabel("${issueGroup.type.uiName} (${issueGroup.size})").apply {
@@ -92,8 +91,11 @@ fun taskInfoPanel(taskData: TaskUiData, listener: TreeLinkListener<TaskIssueUiDa
       )
       .closeHtmlBody()
       .html
-  )
-    .setAllowAutoWrapping(true).setCopyable(true)
+  ).apply {
+    setAllowAutoWrapping(true)
+    setCopyable(true)
+    isFocusable = false
+  }
   val taskInfo = JBLabel(
     HtmlBuilder()
       .openHtmlBody()
@@ -108,8 +110,11 @@ fun taskInfoPanel(taskData: TaskUiData, listener: TreeLinkListener<TaskIssueUiDa
       .add("Executed incrementally: ${if (taskData.executedIncrementally) "Yes" else "No"}")
       .closeHtmlBody()
       .html
-  )
-    .setAllowAutoWrapping(true).setCopyable(true)
+  ).apply {
+    setAllowAutoWrapping(true)
+    setCopyable(true)
+    isFocusable = false
+  }
   val issuesList = JBPanel<JBPanel<*>>(VerticalLayout(6)).apply {
     add(JBLabel("Issues with this task").withFont(JBUI.Fonts.label().asBold()))
     for (issue in taskData.issues) {
@@ -158,6 +163,7 @@ fun taskInfoPanel(taskData: TaskUiData, listener: TreeLinkListener<TaskIssueUiDa
 private fun reasonsToRunList(taskData: TaskUiData) = JBLabel().apply {
   setAllowAutoWrapping(true)
   setCopyable(true)
+  isFocusable = false
   verticalTextPosition = SwingConstants.TOP
   text = createReasonsText(taskData.reasonsToRun)
 }
@@ -195,4 +201,3 @@ fun criticalPathHeader(prefix: String, duration: String): JComponent =
 fun headerLabel(text: String): JLabel = JBLabel(text).withFont(JBUI.Fonts.label(13f).asBold()).apply {
   name = "pageHeader"
 }
-
