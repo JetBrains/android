@@ -19,27 +19,21 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
+import com.intellij.openapi.wm.ToolWindowContentUiType
 import com.intellij.openapi.wm.ToolWindowFactory
-import com.intellij.ui.content.ContentFactory
 import org.jetbrains.android.util.AndroidUtils
 
 class EmulatorToolWindowFactory : ToolWindowFactory, DumbAware {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-    val view = EmulatorToolWindow(project)
-    val contentFactory = ContentFactory.SERVICE.getInstance()
-    val content = contentFactory.createContent(view.component, null, false)
-    toolWindow.contentManager.addContent(content)
+    toolWindow.setDefaultContentUiType(ToolWindowContentUiType.COMBO)
+    EmulatorToolWindow(project)
   }
 
-  // After restarting the IDE don't automatically bring back; emulator may not be running anymore
+  // After restarting the IDE don't automatically unless visible.
   override fun isDoNotActivateOnStart(): Boolean = true
 
-  // Only show in Android projects
+  // Only show in Android projects.
   override fun shouldBeAvailable(project: Project): Boolean {
     return StudioFlags.EMBEDDED_EMULATOR_ENABLED.get() && AndroidUtils.hasAndroidFacets(project)
-  }
-
-  override fun init(window: ToolWindow) {
-    window.title = EmulatorJarLoader.getCurrentAvdName(null)
   }
 }

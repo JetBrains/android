@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.emulator;
 
-
 import com.android.tools.idea.sdk.IdeSdks;
 import java.io.File;
 import java.lang.reflect.Constructor;
@@ -32,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class EmulatorJarLoader {
-
   private static final Logger LOGGER = Logger.getLogger(EmulatorJarLoader.class.getName());
   /* The name of the jar file that provides the emulator view */
   private static final String EMULATOR_VIEW_JAR = "emulator-studio-view.jar";
@@ -94,13 +92,5 @@ public class EmulatorJarLoader {
     else {
       throw new IllegalStateException("Couldn't initialize embedded emulator");
     }
-  }
-
-  public static String getCurrentAvdName(@Nullable JPanel view) {
-    if (view == null) {
-      return "Emulator";
-    }
-    // TODO: Look up somehow AVD name from the InteractiveEmulatorView.
-    return "Pixel 3 API 29";
   }
 }
