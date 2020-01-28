@@ -25,17 +25,30 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanti
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.semantics.SemanticsDescription;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.impl.source.resolve.reference.impl.manipulators.StringLiteralManipulator;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import java.util.Map;
 import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.plugins.groovy.lang.lexer.TokenSets;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression;
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.literals.GrString;
+import org.jetbrains.plugins.groovy.lang.resolve.GroovyStringLiteralManipulator;
 
 public class GroovyDslNameConverter implements GradleDslNameConverter {
   @NotNull
   @Override
   public String psiToName(@NotNull PsiElement element) {
+    PsiElement child = element.getFirstChild();
+    if (child instanceof LeafPsiElement && child == element.getLastChild() &&
+        TokenSets.STRING_LITERAL_SET.contains(((LeafPsiElement) child).getElementType())) {
+      String text = element.getText();
+      return GradleNameElement.escape(text.substring(1, text.length() - 1));
+    }
     return getGradleNameForPsiElement(element);
   }
 

@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPL
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DOTTED_BUILD_TYPE_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SOURCE_SET_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS
@@ -787,6 +788,26 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android = buildModel.android()
     assertNotNull(android)
     assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId())
+  }
+
+  @Test
+  fun testAddAndApplyDottedBuildTypeBlock() {
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK);
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    android.addBuildType("dotted.buildtype")
+    var buildTypes = android.buildTypes()
+    assertThat(buildTypes).hasSize(1)
+    assertEquals("buildTypes", "dotted.buildtype", buildTypes[0].name())
+    buildTypes[0].applicationIdSuffix().setValue("foo")
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_DOTTED_BUILD_TYPE_BLOCK_EXPECTED)
+
+    buildTypes = gradleBuildModel.android().buildTypes()
+    assertThat(buildTypes).hasSize(1)
+    assertEquals("buildTypes", "dotted.buildtype", buildTypes[0].name())
+    assertEquals("applicationIdSuffix", "foo", buildTypes[0].applicationIdSuffix())
   }
 
   @Test
