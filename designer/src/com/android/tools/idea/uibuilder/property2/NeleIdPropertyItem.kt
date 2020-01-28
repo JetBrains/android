@@ -25,8 +25,9 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor
 import com.android.tools.lint.detector.api.stripIdPrefix
-import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.xml.XmlAttributeValue
@@ -115,8 +116,7 @@ open class NeleIdPropertyItem(
           CommonDataKeys.PROJECT.name to value.project),
         null
       )
-      val event = AnActionEvent.createFromAnAction(action, null, "", simpleContext)
-      action.actionPerformed(event)
+      ActionUtil.invokeAction(action, simpleContext, ActionPlaces.UNKNOWN, null, null)
     } else {
       // Exact replace only
       val project = model.facet.module.project
