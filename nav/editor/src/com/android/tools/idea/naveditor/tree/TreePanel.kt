@@ -47,6 +47,7 @@ class TreePanel : ToolContent<DesignSurface> {
   init {
     val builder = ComponentTreeBuilder()
       .withNodeType(NlComponentNodeType())
+      .withMultipleSelection()
       .withContextMenu { _, x: Int, y: Int -> showContextMenu(x, y) }
       .withDoubleClick { activateComponent() }
       .withExpandableRoot()
