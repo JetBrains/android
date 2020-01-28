@@ -20,6 +20,7 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.idea.res.SampleDataResourceItem
 import com.android.tools.idea.res.resolveDrawable
+import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.resolveValue
 import com.android.tools.idea.ui.resourcemanager.plugin.DesignAssetRendererManager
@@ -39,7 +40,8 @@ class DrawableSlowPreviewProvider(private val facet: AndroidFacet,
 
   override val previewPlaceholder: BufferedImage = createDrawablePlaceholderImage(JBUIScale.scale(20), JBUIScale.scale(20))
 
-  override fun getSlowPreview(width: Int, height: Int, designAsset: DesignAsset): CompletableFuture<out BufferedImage?> {
+  override fun getSlowPreview(width: Int, height: Int, asset: Asset): CompletableFuture<out BufferedImage?> {
+    val designAsset = asset as? DesignAsset ?: return CompletableFuture.completedFuture(null)
     val dimension = Dimension(width, height)
     if (designAsset.resourceItem is SampleDataResourceItem) {
       // Do not try to resolve SampleData, it will return an iterable resourceValue that will generate different previews.

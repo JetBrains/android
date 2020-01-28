@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.tools.idea.ui.resourcemanager.RESOURCE_DEBUG
-import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetData
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetIconProvider
@@ -50,13 +49,11 @@ class DesignAssetCellRenderer(
     val assetToRender = value.getHighestDensityAsset()
 
     val iconProvider: AssetIconProvider = assetPreviewManager.getPreviewProvider(assetToRender.type)
-    label.icon = if (assetToRender is DesignAsset) {
-      iconProvider.getIcon(assetToRender,
+    label.icon = iconProvider.getIcon(assetToRender,
                            thumbnailSize.width,
                            thumbnailSize.height,
                            { list.getCellBounds(index, index)?.let(list::repaint) },
                            { index in list.firstVisibleIndex..list.lastVisibleIndex })
-    } else null
     // DefaultIconProvider provides an empty icon, to avoid comparison, we just set the thumbnail to null.
     assetView.thumbnail = if (iconProvider is DefaultIconProvider) null else label
     assetView.withChessboard = iconProvider.supportsTransparency

@@ -20,6 +20,7 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.res.toFileResourcePathString
+import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.resolveValue
 import com.android.tools.idea.ui.resourcemanager.plugin.LayoutRenderer
@@ -41,7 +42,8 @@ class LayoutSlowPreviewProvider(private val facet: AndroidFacet,
 
   override val previewPlaceholder: BufferedImage = createLayoutPlaceholderImage(JBUIScale.scale(100), JBUIScale.scale(100))
 
-  override fun getSlowPreview(width: Int, height: Int, designAsset: DesignAsset): CompletableFuture<BufferedImage?> {
+  override fun getSlowPreview(width: Int, height: Int, asset: Asset): CompletableFuture<BufferedImage?> {
+    val designAsset = asset as? DesignAsset ?: return CompletableFuture.completedFuture(null)
     val file = resourceResolver.getResolvedLayoutFile(designAsset) ?: return CompletableFuture.completedFuture(null)
     val psiFile = AndroidPsiUtils.getPsiFileSafely(facet.module.project, file) as? XmlFile ?: return CompletableFuture.completedFuture(null)
     return CompletableFuture.supplyAsync(
