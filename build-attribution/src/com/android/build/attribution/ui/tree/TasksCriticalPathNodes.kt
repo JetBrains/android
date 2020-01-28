@@ -88,10 +88,8 @@ class CriticalPathTasksRoot(
           .add("These tasks belong to a group of sequentially executed tasks that has the largest impact on this build's duration.")
           .newline()
           .add("Addressing this group provides the greatest likelihood of reducing the overall build duration.")
-          .newline()
-          .addLink("Learn more", CRITICAL_PATH_LINK)
           .closeHtmlBody()
-        return DescriptionWithHelpLinkLabel(text.html, analytics)
+        return DescriptionWithHelpLinkLabel(text.html, CRITICAL_PATH_LINK, analytics)
       }
 
       override fun createRightInfoPanel(): JComponent? {
