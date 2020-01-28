@@ -35,7 +35,6 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.image.BufferedImage
 import java.io.File
-import java.util.concurrent.Executors
 
 class ComposeDocumentationProviderTest {
   @get:Rule
@@ -71,7 +70,6 @@ class ComposeDocumentationProviderTest {
     val activityFile = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/MainActivity.kt",
                                                 ProjectRootManager.getInstance(project).contentRoots[0])!!
 
-    val executor = Executors.newSingleThreadExecutor()
     val composeDocProvider = ComposeDocumentationProvider()
     val previewMethod = ReadAction.compute<KtNamedFunction, Throwable> {
       val ktFile = PsiManager.getInstance(project).findFile(activityFile) as KtFile
