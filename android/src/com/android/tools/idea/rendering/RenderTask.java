@@ -1106,7 +1106,7 @@ public class RenderTask {
           }
 
           return CompletableFuture.completedFuture(Collections.emptyMap());
-        });
+        }, AppExecutorUtil.getAppExecutorService());
   }
 
   /**
