@@ -25,7 +25,6 @@ import com.google.common.truth.Truth
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 
-@org.junit.Ignore("b/148419894")
 class ModulesPerspectiveConfigurableTest : DependencyTestCase() {
 
   private lateinit var resolvedProject: Project

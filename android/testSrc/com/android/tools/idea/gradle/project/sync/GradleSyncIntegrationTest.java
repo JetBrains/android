@@ -296,9 +296,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     loadProject(TRANSITIVE_DEPENDENCIES);
     Module library1Module = myModules.getModule("library1");
     LanguageLevel javaLanguageLevel = getJavaLanguageLevel(library1Module);
-/* b/148420475
     assertEquals(JDK_1_7, javaLanguageLevel);
-b/148420475 */
   }
 
   @Nullable
