@@ -2,6 +2,9 @@
 package org.jetbrains.android;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
@@ -26,6 +29,8 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.impl.compiled.ClsFieldImpl;
+import org.jetbrains.android.augment.ResourceLightField;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -50,8 +55,8 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
     if (originalElement == null) {
       return null;
     }
-    ResourceReferenceType referenceType = AndroidPsiUtils.getResourceReferenceType(originalElement);
-    if (referenceType == ResourceReferenceType.NONE) {
+    ResourceReferencePsiElement referencePsiElement = ResourceReferencePsiElement.create(element);
+    if (referencePsiElement == null) {
       return null;
     }
 
@@ -60,14 +65,8 @@ public class AndroidDocumentationProvider implements DocumentationProvider, Exte
       return null;
     }
 
-    ResourceType type = AndroidPsiUtils.getResourceType(originalElement);
-    if (type == null) {
-      return null;
-    }
-
-    String name = AndroidPsiUtils.getResourceName(originalElement);
-    boolean isFrameworkResource = referenceType == ResourceReferenceType.FRAMEWORK;
-    return AndroidJavaDocRenderer.render(module, type, name, isFrameworkResource);
+    ResourceReference resourceReference = referencePsiElement.getResourceReference();
+    return AndroidJavaDocRenderer.render(module, resourceReference.getResourceUrl());
   }
 
   @Override
