@@ -27,8 +27,12 @@ import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.run.editor.AndroidDebugger;
+import com.android.tools.idea.run.editor.AndroidDebuggerInfoProvider;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.FutureCallback;
+import com.intellij.execution.RunManager;
+import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.ide.util.PropertiesComponent;
@@ -41,7 +45,12 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.XmlRecursiveElementVisitor;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlElement;
-import com.intellij.ui.*;
+import com.intellij.ui.CollectionComboBoxModel;
+import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.DoubleClickListener;
+import com.intellij.ui.SimpleListCellRenderer;
+import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.containers.HashSet;
@@ -49,6 +58,24 @@ import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -58,19 +85,6 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 public class AndroidProcessChooserDialog extends DialogWrapper {
   @NonNls private static final String DEBUGGABLE_PROCESS_PROPERTY = "DEBUGGABLE_PROCESS";
   @NonNls private static final String SHOW_ALL_PROCESSES_PROPERTY = "SHOW_ALL_PROCESSES";
@@ -79,14 +93,22 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
 
   private final Project myProject;
   private final boolean myShowDebuggerSelection;
+
   private final MyProcessTreeCellRenderer myCellRenderer;
   private JPanel myContentPanel;
   private Tree myProcessTree;
   private JBCheckBox myShowAllProcessesCheckBox;
 
-  private JComboBox<AndroidDebugger> myDebuggerTypeCombo;
-  private JLabel myDebuggerLabel;
+  // Dropdown to select Run Configuration.
+  private JLabel myDebuggerRunConfigLabel;
+  private JComboBox<RunConfiguration> myDebuggerRunConfigCombo;
 
+  // Dropdown to select the debugger type.
+  private JLabel myDebuggerLabel;
+  private JComboBox<AndroidDebugger> myDebuggerTypeCombo;
+
+  // Values cached in project properties about the most recent device/process selections of the user. These values are saved back to project
+  // properties when the user clicks the OK button in the dialog.
   private String myLastSelectedDevice;
   private String myLastSelectedProcess;
 
@@ -94,9 +116,15 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
   private final AndroidDebugBridge.IClientChangeListener myClientChangeListener;
   private final AndroidDebugBridge.IDeviceChangeListener myDeviceChangeListener;
 
+  // Process, RunConfiguration, and DebuggerType selected by the user.
   private Client mySelectedClient;
-  private AndroidDebugger myAndroidDebugger;
+  private RunConfiguration mySelectedRunConfiguration;
+  private AndroidDebugger mySelectedAndroidDebugger;
 
+  /**
+   * @param project               the current project
+   * @param showDebuggerSelection if false, the debugger-related dropdowns (e.g., run configuration, debugger type) are hidden.
+   */
   public AndroidProcessChooserDialog(@NotNull Project project, boolean showDebuggerSelection) {
     super(project);
     setTitle("Choose Process");
@@ -211,37 +239,145 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     if (!showDebuggerSelection) {
       myDebuggerLabel.setVisible(false);
       myDebuggerTypeCombo.setVisible(false);
+      myDebuggerRunConfigLabel.setVisible(false);
+      myDebuggerRunConfigCombo.setVisible(false);
       return;
     }
 
+    // If the user selects a different run configuration, we need to enable/disable and repopulate the DebuggerType combobox (e.g., change
+    // the default selection).
+    myDebuggerRunConfigCombo.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        myDebuggerTypeCombo.setEnabled(myDebuggerRunConfigCombo.getSelectedItem() == null);
+        myDebuggerLabel.setEnabled(myDebuggerRunConfigCombo.getSelectedItem() == null);
+
+        final PropertiesComponent properties = PropertiesComponent.getInstance(myProject);
+        String lastSelectedDebuggerId = properties.getValue(DEBUGGER_ID_PROPERTY);
+        populateDebuggerTypeCombo((RunConfiguration)myDebuggerRunConfigCombo.getSelectedItem(), lastSelectedDebuggerId);
+      }
+    });
+
+    // The attach dialog contains the project's run configurations.
+    // We also add null to the front of the list to represent "[Create New]" run configuration.
+    List<RunConfiguration> runConfigurations = RunManager.getInstance(myProject).getAllConfigurationsList();
+    runConfigurations.add(0, null);
+    myDebuggerRunConfigCombo.setModel(new CollectionComboBoxModel(runConfigurations));
+    myDebuggerRunConfigCombo.setRenderer(SimpleListCellRenderer.create("[Create New]", RunConfiguration::getName));
+
+    // The run configuration dropdown is initialized to the project's currently selected run configuration; if there is no run configuration,
+    // then [Create New] remains as the default initial selection.
+    RunConfiguration configuration = getCurrentRunConfiguration();
+    myDebuggerRunConfigCombo.setSelectedItem(configuration);
+
+    // Initialize the DebuggerType dropdown contents and the selection.
+    populateDebuggerTypeCombo(configuration, lastSelectedDebuggerId);
+  }
+
+  /**
+   * Populates myDebuggerRunConfig combo box with a set of eligible debugger types (e.g., auto, native-only, etc), and selects one of them.
+   *
+   * @param configuration          if not null, debugger types and the selected debugger are taken from this run configuration
+   * @param lastSelectedDebuggerId if configuration is null, this debugger Id is used as a hint to determine which debugger to select from
+   *                               all possible debugger types supported by the current project
+   */
+  private void populateDebuggerTypeCombo(@Nullable RunConfiguration configuration, @Nullable String lastSelectedDebuggerId) {
+    if (configuration != null) {
+      myDebuggerRunConfigCombo.setSelectedItem(configuration);
+
+      // If a run configuration is selected, the user is not allowed to change the debugger type from this dropdown.
+      myDebuggerLabel.setEnabled(false);
+      myDebuggerTypeCombo.setEnabled(false);
+    }
+
+    // Populate the debugger dropdown.
+    List<AndroidDebugger> androidDebuggers = getAndroidDebuggers(configuration);
+    androidDebuggers.sort((left, right) -> left.getId().compareTo(right.getId()));
+    myDebuggerTypeCombo.setModel(new CollectionComboBoxModel(androidDebuggers));
+    myDebuggerTypeCombo.setRenderer(SimpleListCellRenderer.create("", AndroidDebugger::getDisplayName));
+
+    // Populate which entry is selected in the debugger dropdown (even if it's disabled).
     AndroidDebugger selectedDebugger = null;
-    AndroidDebugger defaultDebugger = null;
+
+    // if configuration is provided, get the currently selected debugger from the config.
+    if (configuration != null) {
+      for (AndroidDebuggerInfoProvider provider : AndroidDebuggerInfoProvider.EP_NAME.getExtensions()) {
+        if (provider.supportsProject(myProject)) {
+          selectedDebugger = provider.getSelectedAndroidDebugger(configuration);
+          break;
+        }
+      }
+    }
+
+    // If we don't have a configuration, or we cannot extract debugger from the configuration, try to select the most recently
+    // selected debugger.
+    if (selectedDebugger == null) {
+      AndroidDebugger defaultDebugger = null;
+      for (AndroidDebugger androidDebugger : androidDebuggers) {
+        if (selectedDebugger == null &&
+            lastSelectedDebuggerId != null &&
+            androidDebugger.getId().equals(lastSelectedDebuggerId)) {
+          selectedDebugger = androidDebugger;
+        }
+        else if (androidDebugger.shouldBeDefault()) {
+          defaultDebugger = androidDebugger;
+        }
+      }
+
+      if (selectedDebugger == null) {
+        // If there is no most recently selected debugger, then use the debugger that's marked as the default.
+        // If there is no default, use the first debugger from the list.
+        if (defaultDebugger != null) {
+          selectedDebugger = defaultDebugger;
+        }
+        else if (!androidDebuggers.isEmpty()) {
+          selectedDebugger = androidDebuggers.get(0);
+        }
+      }
+    }
+
+    if (selectedDebugger != null) {
+      myDebuggerTypeCombo.setSelectedItem(selectedDebugger);
+    }
+  }
+
+  /**
+   * @param configuration if not null, then it is used as the source of debugger types; otherwise debuggers are obtained from
+   *                      the extension points.
+   * @return all android debuggers that should be populated in the debugger type dropdown.
+   */
+  private List<AndroidDebugger> getAndroidDebuggers(@Nullable RunConfiguration configuration) {
+    if (configuration != null) {
+      for (AndroidDebuggerInfoProvider provider : AndroidDebuggerInfoProvider.EP_NAME.getExtensions()) {
+        if (!provider.supportsProject(myProject)) {
+          continue;
+        }
+        return provider.getAndroidDebuggers(configuration);
+      }
+    }
+
     List<AndroidDebugger> androidDebuggers = Lists.newLinkedList();
     for (AndroidDebugger androidDebugger : AndroidDebugger.EP_NAME.getExtensions()) {
       if (!androidDebugger.supportsProject(myProject)) {
         continue;
       }
       androidDebuggers.add(androidDebugger);
-      if (selectedDebugger == null &&
-          lastSelectedDebuggerId != null &&
-          androidDebugger.getId().equals(lastSelectedDebuggerId)) {
-        selectedDebugger = androidDebugger;
-      }
-      else if (androidDebugger.shouldBeDefault()) {
-        defaultDebugger = androidDebugger;
-      }
     }
 
-    if (selectedDebugger == null) {
-      selectedDebugger = defaultDebugger;
+    return androidDebuggers;
+  }
+
+  /**
+   * @return the RunConfiguration selected in the main UI for the current project, or null if there is no selection
+   */
+  @Nullable
+  private RunConfiguration getCurrentRunConfiguration() {
+    RunnerAndConfigurationSettings currentRunnerAndConfigurationSettings = RunManager.getInstance(myProject).getSelectedConfiguration();
+    if (currentRunnerAndConfigurationSettings == null) {
+      return null;
     }
 
-    androidDebuggers.sort((left, right) -> left.getId().compareTo(right.getId()));
-    myDebuggerTypeCombo.setModel(new CollectionComboBoxModel(androidDebuggers));
-    myDebuggerTypeCombo.setRenderer(SimpleListCellRenderer.create("", AndroidDebugger::getDisplayName));
-    if (selectedDebugger != null) {
-      myDebuggerTypeCombo.setSelectedItem(selectedDebugger);
-    }
+    return currentRunnerAndConfigurationSettings.getConfiguration();
   }
 
   @NotNull
@@ -461,15 +597,17 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       return;
     }
 
-    myAndroidDebugger = (AndroidDebugger)myDebuggerTypeCombo.getSelectedItem();
+    mySelectedAndroidDebugger = (AndroidDebugger)myDebuggerTypeCombo.getSelectedItem();
 
     properties.setValue(DEBUGGABLE_DEVICE_PROPERTY, getPersistableName(selectedDevice));
     properties.setValue(DEBUGGABLE_PROCESS_PROPERTY, getPersistableName(mySelectedClient));
     properties.setValue(SHOW_ALL_PROCESSES_PROPERTY, Boolean.toString(myShowAllProcessesCheckBox.isSelected()));
 
-    if (myAndroidDebugger != null) {
-      properties.setValue(DEBUGGER_ID_PROPERTY, myAndroidDebugger.getId());
+    if (mySelectedAndroidDebugger != null) {
+      properties.setValue(DEBUGGER_ID_PROPERTY, mySelectedAndroidDebugger.getId());
     }
+
+    mySelectedRunConfiguration = (RunConfiguration)myDebuggerRunConfigCombo.getSelectedItem();
 
     super.doOKAction();
   }
@@ -482,10 +620,18 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
     return mySelectedClient;
   }
 
+  /**
+   * Returns the run configuration that was selected if OK was pressed, null otherwise.
+   */
+  @Nullable
+  public RunConfiguration getRunConfiguration() {
+    return mySelectedRunConfiguration;
+  }
+
   @NotNull
-  public AndroidDebugger getAndroidDebugger() {
+  public AndroidDebugger getSelectedAndroidDebugger() {
     assert myShowDebuggerSelection : "Cannot obtain debugger after constructing dialog w/o debugger selection combo";
-    return myAndroidDebugger;
+    return mySelectedAndroidDebugger;
   }
 
   @Override
