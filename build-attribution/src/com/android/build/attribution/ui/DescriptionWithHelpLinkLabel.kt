@@ -16,8 +16,8 @@
 package com.android.build.attribution.ui
 
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
+import com.android.build.attribution.ui.panels.htmlTextLabel
 import com.intellij.ui.HyperlinkLabel
-import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
 import java.awt.GridBagConstraints
@@ -35,8 +35,7 @@ class DescriptionWithHelpLinkLabel(
 ) : JBPanel<JBPanel<*>>(GridBagLayout()) {
 
   init {
-    val descriptionTextLabel = JBLabel(text).setAllowAutoWrapping(true).setCopyable(true)
-    descriptionTextLabel.isFocusable = false
+    val descriptionTextLabel = htmlTextLabel(text)
 
     val descriptionConstraints = GridBagConstraints().apply {
       fill = GridBagConstraints.HORIZONTAL
