@@ -30,16 +30,20 @@ class TimeBasedReminderTest : PlatformTestCase() {
     reminder = TimeBasedReminder(project, "test.property")
   }
 
+  override fun tearDown() {
+    reminder.doNotAskForApplication = false
+    reminder.doNotAskForProject = false
+    super.tearDown()
+  }
+
   fun testShouldNotCheckWhenDoNotAskForAppIsSet() {
     reminder.doNotAskForApplication = true
     assertFalse(reminder.shouldAsk())
-    reminder.doNotAskForApplication = false
   }
 
   fun testShouldNotCheckWhenDoNotAskForProjectIsSet() {
     reminder.doNotAskForProject = true
     assertFalse(reminder.shouldAsk())
-    reminder.doNotAskForProject = false
   }
 
   fun testShouldNotCheckWhenTimePassedIsLessThanOneDay() {
