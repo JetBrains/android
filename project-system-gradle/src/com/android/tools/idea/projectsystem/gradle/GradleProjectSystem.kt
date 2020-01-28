@@ -21,6 +21,7 @@ import com.android.tools.apk.analyzer.AaptInvoker
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModelHandler
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
+import com.android.tools.idea.gradle.util.DynamicAppUtils.getOutputFileOrFolderFromListingFile
 import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.logManifestIndexQueryError
@@ -80,8 +81,16 @@ class GradleProjectSystem(val project: Project) : AndroidProjectSystem {
     return ModuleManager.getInstance(project).modules.asSequence()
       .mapNotNull { AndroidModuleModel.get(it) }
       .filter { it.androidProject.projectType == PROJECT_TYPE_APP }
-      .flatMap { it.selectedVariant.mainArtifact.outputs.asSequence() }
-      .map { it.mainOutputFile.outputFile }
+      .flatMap { androidModel ->
+        @Suppress("DEPRECATION")
+        if (androidModel.features.isBuildOutputFileSupported) {
+          sequenceOf(getOutputFileOrFolderFromListingFile(androidModel.selectedVariant.mainArtifact.assembleTaskOutputListingFile))
+        }
+        else {
+          androidModel.selectedVariant.mainArtifact.outputs.asSequence().map { it.mainOutputFile.outputFile }
+        }
+      }
+      .filterNotNull()
       .find { it.exists() }
       ?.let { VfsUtil.findFileByIoFile(it, true) }
   }
