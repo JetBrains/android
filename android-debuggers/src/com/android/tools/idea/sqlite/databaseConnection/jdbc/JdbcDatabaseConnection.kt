@@ -16,6 +16,7 @@
 package com.android.tools.idea.sqlite.databaseConnection.jdbc
 
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.model.SqliteAffinity
@@ -29,7 +30,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.concurrency.SequentialTaskExecutor
 import java.sql.Connection
-import java.sql.JDBCType
+import java.sql.ResultSet
 import java.util.concurrent.Executor
 
 /**
@@ -76,18 +77,28 @@ class JdbcDatabaseConnection(
   }
 
   private fun readColumnDefinitions(connection: Connection, tableName: String): List<SqliteColumn> {
-    val columnsSet = connection.metaData.getColumns(null, null, tableName, null)
-    val keyColumnsNames = connection.getColumnNamesInPrimaryKey(tableName)
+    var resultSet: ResultSet? = null
+    try {
+      val statement = connection.createStatement()
+      val pragmaStatement = "PRAGMA table_info(${AndroidSqlLexer.getValidName(tableName)})"
+      resultSet = statement.executeQuery(pragmaStatement)
 
-    return columnsSet.map {
-      val columnName = columnsSet.getString("COLUMN_NAME")
-      SqliteColumn(
-        columnName,
-        SqliteAffinity.fromJDBCType(JDBCType.valueOf(columnsSet.getInt("DATA_TYPE"))),
-        columnsSet.getString("IS_NULLABLE") == "YES",
-        keyColumnsNames.contains(columnName)
-      )
-    }.toList()
+      return resultSet.map {
+        val columnName = getString(2)
+        val columnType = getString(3)
+        val colNotNull = getString(4)
+        val colPk = getString(6)
+
+        SqliteColumn(
+          columnName,
+          SqliteAffinity.fromTypename(columnType),
+          colNotNull == "0",
+          colPk == "1"
+        )
+      }.toList()
+    } finally {
+      resultSet?.close()
+    }
   }
 
   override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet?> {
