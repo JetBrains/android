@@ -7,6 +7,7 @@ import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.run.AndroidProcessHandler;
 import com.android.tools.idea.run.editor.AndroidDebugger;
 import com.intellij.execution.ExecutionManager;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.facet.ProjectFacetManager;
@@ -17,6 +18,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AndroidConnectDebuggerAction extends AnAction {
   private final boolean isAndroidStudio = IdeInfo.getInstance().isAndroidStudio();
@@ -34,7 +36,8 @@ public class AndroidConnectDebuggerAction extends AnAction {
         return;
       }
 
-      AppExecutorUtil.getAppExecutorService().submit(() -> closeOldSessionAndRun(project, dialog.getAndroidDebugger(), client));
+      AppExecutorUtil.getAppExecutorService().execute(
+        () -> closeOldSessionAndRun(project, dialog.getSelectedAndroidDebugger(), client, dialog.getRunConfiguration()));
     }
   }
 
@@ -47,9 +50,12 @@ public class AndroidConnectDebuggerAction extends AnAction {
   }
 
   @Slow
-  private static void closeOldSessionAndRun(@NotNull Project project, @NotNull AndroidDebugger androidDebugger, @NotNull Client client) {
+  private static void closeOldSessionAndRun(@NotNull Project project,
+                                            @NotNull AndroidDebugger androidDebugger,
+                                            @NotNull Client client,
+                                            @Nullable RunConfiguration configuration) {
     terminateRunSessions(project, client);
-    androidDebugger.attachToClient(project, client);
+    androidDebugger.attachToClient(project, client, configuration);
   }
 
   // Disconnect any active run sessions to the same client
