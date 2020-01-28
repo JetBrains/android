@@ -287,9 +287,9 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     val columns = schema.tables.first().columns
     assertEquals(SqliteAffinity.INTEGER, columns.first { it.name == "column0" }.affinity)
     assertEquals(SqliteAffinity.TEXT, columns.first { it.name == "column1" }.affinity)
-    assertEquals(SqliteAffinity.TEXT, columns.first { it.name == "column2" }.affinity)
+    assertEquals(SqliteAffinity.BLOB, columns.first { it.name == "column2" }.affinity)
     assertEquals(SqliteAffinity.REAL, columns.first { it.name == "column3" }.affinity)
-    assertEquals(SqliteAffinity.REAL, columns.first { it.name == "column4" }.affinity)
+    assertEquals(SqliteAffinity.NUMERIC, columns.first { it.name == "column4" }.affinity)
   }
 
   fun testNotNull() {
