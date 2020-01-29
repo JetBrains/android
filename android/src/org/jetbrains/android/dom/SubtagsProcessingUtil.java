@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Utility functions for enumerating available children tag types in the context of a given XML tag.
  *
- * Entry point is {@link #processSubtags(AndroidFacet, AndroidDomElement, SubtagProcessor)}, look for a
+ * Entry point is {@link #processSubTags(AndroidFacet, AndroidDomElement, boolean, SubtagProcessor)}, look for a
  * Javadoc there.
  */
 public class SubtagsProcessingUtil {
@@ -73,7 +73,8 @@ public class SubtagsProcessingUtil {
    */
   public static void registerXmlResourcesSubtags(@NotNull AndroidFacet facet,
                                                  @NotNull XmlTag tag,
-                                                 @NotNull SubtagProcessor subtagProcessor) {
+                                                 @NotNull SubtagProcessor subtagProcessor,
+                                                 boolean processExistingSubTags) {
     final String tagName = tag.getName();
 
     switch (tagName) {
@@ -119,14 +120,15 @@ public class SubtagsProcessingUtil {
     PsiClass psiClass = prefClassMap.get(tagName);
 
     if (psiClass != null && isPreferenceGroup(psiClass, groupClass)) {
-      registerClassNameSubtags(tag, prefClassMap, PreferenceElement.class, subtagProcessor);
+      registerClassNameSubtags(tag, prefClassMap, PreferenceElement.class, subtagProcessor, processExistingSubTags);
     }
   }
 
   private static void registerClassNameSubtags(XmlTag tag,
                                                Map<String, PsiClass> classMap,
                                                Type type,
-                                               SubtagProcessor subtagProcessor) {
+                                               SubtagProcessor subtagProcessor,
+                                               boolean processExistingSubTags) {
     final Set<String> allAllowedTags = new HashSet<>();
     final Map<String, String> class2Name = new HashMap<>();
 
@@ -144,18 +146,21 @@ public class SubtagsProcessingUtil {
         }
       }
     }
-    registerSubtags(tag, allAllowedTags, class2Name.values(), type, subtagProcessor);
+    registerSubtags(tag, allAllowedTags, class2Name.values(), type, subtagProcessor, processExistingSubTags);
   }
 
   private static void registerSubtags(@NotNull XmlTag tag,
                                       @NotNull Collection<String> allowedTags,
                                       @NotNull Collection<String> tagsToComplete,
                                       @NotNull Type type,
-                                      @NotNull SubtagProcessor subtagProcessor) {
+                                      @NotNull SubtagProcessor subtagProcessor,
+                                      boolean processExistingSubTags) {
     for (String tagName : tagsToComplete) {
       subtagProcessor.processSubtag(tagName, type);
     }
-    registerExistingSubtags(tag, allowedTags::contains, type, subtagProcessor);
+    if (processExistingSubTags) {
+      processExistingSubTags(tag, allowedTags::contains, type, subtagProcessor);
+    }
   }
 
   /**
@@ -163,17 +168,18 @@ public class SubtagsProcessingUtil {
    * Proceeds by dispatching on element type by instanceof checks, "returns" information about available tags
    * via {@code subtagCallback}.
    */
-  public static void processSubtags(@NotNull AndroidFacet facet,
+  public static void processSubTags(@NotNull AndroidFacet facet,
                                     @NotNull AndroidDomElement element,
+                                    boolean processExistingSubTags,
                                     @NotNull SubtagProcessor subtagProcessor) {
     if (element instanceof LayoutElement) {
       registerClassNameSubtags(element.getXmlTag(), AttributeProcessingUtil.getViewClassMap(facet), LayoutViewElement.class,
-                               subtagProcessor);
+                               subtagProcessor, processExistingSubTags);
     }
     else if (element instanceof XmlResourceElement) {
       XmlTag tag = element.getXmlTag();
       if (tag != null) {
-        registerXmlResourcesSubtags(facet, tag, subtagProcessor);
+        registerXmlResourcesSubtags(facet, tag, subtagProcessor, true);
       }
     }
     else if (element instanceof NavElement) {
@@ -187,7 +193,7 @@ public class SubtagsProcessingUtil {
       NavigationSchema schema = NavigationSchema.get(facet.getModule());
       Multimap<Class<? extends AndroidDomElement>, String> subtags = schema.getDestinationSubtags(element.getXmlTag().getName());
       for (Class<? extends AndroidDomElement> c : subtags.keys()) {
-        registerSubtags(element.getXmlTag(), subtags.get(c), subtags.get(c), c, subtagProcessor);
+        registerSubtags(element.getXmlTag(), subtags.get(c), subtags.get(c), c, subtagProcessor, processExistingSubTags);
       }
     }
   }
@@ -195,7 +201,7 @@ public class SubtagsProcessingUtil {
   /**
    * Enumerate types of XML tags that are already are children of a tag, via {@code subtagProcessor}
    */
-  private static void registerExistingSubtags(@NotNull XmlTag tag,
+  private static void processExistingSubTags(@NotNull XmlTag tag,
                                               @NotNull Predicate<String> filter,
                                               @NotNull Type type,
                                               @NotNull SubtagProcessor subtagProcessor) {
