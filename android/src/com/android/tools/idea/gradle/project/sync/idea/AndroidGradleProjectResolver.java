@@ -27,7 +27,6 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
 import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.PROJECT_CLEANUP_MODEL;
 import static com.android.tools.idea.gradle.util.AndroidGradleSettings.ANDROID_HOME_JVM_ARG;
-import static com.android.tools.idea.gradle.util.GradleBuilds.BUILD_SRC_FOLDER_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.MODULE_WITH_BUILD_VARIANT_SWITCHED_FROM_UI;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
@@ -292,7 +291,7 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         !hasArtifacts(gradleModule)) {
       // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
       // compile it using Gradle. We still need to create the module to display files inside it.
-      createJavaProject(gradleModule, moduleNode, emptyList(), false, false);
+      createJavaProject(gradleModule, moduleNode, emptyList(), false);
       return;
     }
 
@@ -326,7 +325,6 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
         gradleModule,
         moduleNode,
         ImmutableList.of(),
-        false,
         gradlePluginList.contains("org.gradle.api.plugins.JavaPlugin")
       );
     }
@@ -442,10 +440,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   private void createJavaProject(@NotNull IdeaModule gradleModule,
                                  @NotNull DataNode<ModuleData> ideModule,
                                  @NotNull Collection<SyncIssue> syncIssues,
-                                 boolean androidProjectWithoutVariants,
                                  boolean isBuildable) {
     ExternalProject externalProject = resolverCtx.getExtraProject(gradleModule, ExternalProject.class);
-    JavaModuleModel javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, syncIssues, externalProject, androidProjectWithoutVariants, isBuildable);
+    JavaModuleModel javaModuleModel = myIdeaJavaModuleModelFactory.create(gradleModule, syncIssues, externalProject, isBuildable);
     ideModule.createChild(JAVA_MODULE_MODEL, javaModuleModel);
   }
 

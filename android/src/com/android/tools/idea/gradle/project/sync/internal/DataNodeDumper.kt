@@ -66,7 +66,6 @@ fun <T : Any> DataNode<T>.dump(): String = buildString {
       isBuildable = ${isBuildable}
       languageLevel = ${javaLanguageLevel}
       buildFolderPath = ${buildFolderPath}
-      isAndroidModuleWithoutVariants = ${isAndroidModuleWithoutVariants}
       contentRoots = ${contentRoots}
       javaModuleDependencies = ${javaModuleDependencies}
       jarLibraryDependencies = ${jarLibraryDependencies}

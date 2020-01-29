@@ -71,7 +71,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCas
 
     JavaModuleModel model = JavaModuleModel
       .create(module.getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), artifactsByConfiguration,
-              Collections.emptyList(), null, null, null, true, false);
+              Collections.emptyList(), null, null, null, true);
     ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
     mySetupStep.doSetUpModule(context, model);
 
@@ -96,7 +96,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCas
 
     JavaModuleModel model = JavaModuleModel
       .create(module.getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), artifactsByConfiguration,
-              Collections.emptyList(), null, null, null, true, false);
+              Collections.emptyList(), null, null, null, true);
     ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
     mySetupStep.doSetUpModule(context, model);
 
@@ -156,7 +156,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCas
     JavaModuleModel model =
       JavaModuleModel
         .create(moduleName, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), artifactsByConfiguration,
-                Collections.emptyList(), null, buildFolderPath, null, true, false);
+                Collections.emptyList(), null, buildFolderPath, null, true);
     ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
     mySetupStep.doSetUpModule(context, model);
 

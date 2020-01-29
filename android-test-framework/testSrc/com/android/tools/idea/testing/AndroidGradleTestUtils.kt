@@ -840,8 +840,7 @@ private fun createJavaModuleDataNode(
         null,
         null,
         null,
-        buildable,
-        false
+        buildable
       ),
       null
     )
