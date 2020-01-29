@@ -118,7 +118,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     val psiFactory = KtPsiFactory(project)
 
     val externalNameInfo = maybeTrimForParent(element.nameElement, element.parent, this)
-    var statementText = externalNameInfo.externalName
+    var statementText = externalNameInfo.externalNameParts.joinToString(".")
     val useAssignment = when (val asMethod = externalNameInfo.asMethod) {
       null -> element.shouldUseAssignment()
       else -> !asMethod
@@ -403,7 +403,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     val statementText =
       if (methodCall.fullName.isNotEmpty() && methodCall.fullName != methodCall.methodName) {
         val externalNameInfo = maybeTrimForParent(methodCall.nameElement, methodCall.parent, this)
-        var propertyName = externalNameInfo.externalName
+        var propertyName = externalNameInfo.externalNameParts.joinToString(".")
         // If we are writing a project property, we should be make sure to use double quotes instead of single quotes
         // since we use single quotes for ProjectPropertiesDslElement.
         if (propertyName.startsWith("project(':")) {
@@ -413,7 +413,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
           null -> methodCall.shouldUseAssignment()
           else -> !asMethod
         }
-        var methodName = maybeTrimForParent(GradleNameElement.fake(methodCall.methodName), methodCall.parent, this).externalName
+        var methodName = maybeTrimForParent(GradleNameElement.fake(methodCall.methodName), methodCall.parent, this).externalNameParts.joinToString(".")
         if (useAssignment) {
           // Ex: a = b().
           "$propertyName = $methodName()"
@@ -429,7 +429,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     else {
         // Ex : proguardFile() where the name is the same as the methodName, so we need to make sure we create one method only.
         maybeTrimForParent(
-          GradleNameElement.fake(methodCall.getMethodName()), methodCall.getParent(), this).externalName + "()"
+          GradleNameElement.fake(methodCall.getMethodName()), methodCall.getParent(), this).externalNameParts.joinToString(".") + "()"
       }
     val expression = psiFactory.createExpression(statementText)
 

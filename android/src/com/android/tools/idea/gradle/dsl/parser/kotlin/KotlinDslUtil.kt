@@ -150,7 +150,7 @@ fun convertToExternalTextValue(
   // Now we can start appending names from the resolved reference file context.
   for (currentElement in resolutionElements) {
     // Get the external name for the resolve reference.
-    val elementExternalName = applyContext.parser.externalNameForParent(currentElement.name, currentElement.parent!!).externalName
+    val elementExternalName = applyContext.parser.externalNameForParent(currentElement.name, currentElement.parent!!).externalNameParts.joinToString(".")
     when (currentElement) {
       is ExtDslElement -> if (currentParent != context.dslFile) {
         externalName.append("extra[\"")

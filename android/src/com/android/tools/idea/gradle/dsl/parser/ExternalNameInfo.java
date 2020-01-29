@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.gradle.dsl.parser;
 
+import java.util.Arrays;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ExternalNameInfo {
-  @NotNull public final String externalName;
+  /**
+   * a list each element of which is the name in the external Dsl language of an element of the Dsl hierarchy.
+   */
+  @NotNull public final List<String> externalNameParts;
   /**
    * a tri-state boolean, indicating that this external name is used as a method (true), is used as a property (false), or
    * uncertainty (null).
@@ -27,7 +32,12 @@ public class ExternalNameInfo {
   @Nullable public final Boolean asMethod;
 
   public ExternalNameInfo(@NotNull String externalName, @Nullable Boolean asMethod) {
-    this.externalName = externalName;
+    this.externalNameParts = Arrays.asList(externalName);
+    this.asMethod = asMethod;
+  }
+
+  public ExternalNameInfo(@NotNull List<String> externalNameParts, @Nullable Boolean asMethod) {
+    this.externalNameParts = externalNameParts;
     this.asMethod = asMethod;
   }
 }
