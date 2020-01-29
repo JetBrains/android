@@ -39,6 +39,7 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import java.io.File;
 import java.util.Map;
 import org.jetbrains.android.AndroidTestBase;
+import org.jetbrains.annotations.NotNull;
 
 public class AndroidVirtualDeviceTest extends AndroidTestBase {
   private static final String DEVICE_ID =  "pixel_3a";
@@ -109,7 +110,6 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
 
     AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new File("/android-home"), fop);
 
-    AvdManagerConnection connection = new AvdManagerConnection(sdkHandler, MoreExecutors.newDirectExecutorService());
     FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
     RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
 
@@ -119,10 +119,7 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     Map<String, RemotePackage> remotes = Maps.newHashMap();
     remotes.put("platforms;android-23", remotePlatform);
     AndroidVirtualDevice avd = new AndroidVirtualDevice(new ScopedStateStore(ScopedStateStore.Scope.STEP, null, null), remotes, true, fop);
-    final AvdInfo avdInfo = avd.createAvd(connection, sdkHandler);
-    assertNotNull(avdInfo);
-    disposeOnTearDown(() -> connection.deleteAvd(avdInfo));
-    assertNotNull(avdInfo);
+    final AvdInfo avdInfo = createAvd(avd, sdkHandler);
     Map<String, String> properties = avdInfo.getProperties();
     Map<String, String> referenceMap = getReferenceMap();
     for (Map.Entry<String, String> entry : referenceMap.entrySet()) {
@@ -132,6 +129,44 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
     // We do not care about those so we only ensure we have the ones we need.
     File skin = new File(properties.get(AvdManager.AVD_INI_SKIN_PATH));
     assertEquals(DEVICE_ID, skin.getName());
+  }
+
+  public void testSelectedByDefault() throws Exception {
+    MockFileOp fop = new MockFileOp();
+    recordPlatform23(fop);
+    recordGoogleApisAddon23(fop);
+    recordGoogleApisSysImg23(fop);
+    fop.recordExistingFile(new File(DeviceArtDescriptor.getBundledDescriptorsFolder(), DEVICE_ID));
+
+    FakePackage.FakeRemotePackage remotePlatform = new FakePackage.FakeRemotePackage("platforms;android-23");
+    RepoFactory factory = AndroidSdkHandler.getRepositoryModule().createLatestFactory();
+
+    DetailsTypes.PlatformDetailsType platformDetailsType = factory.createPlatformDetailsType();
+    platformDetailsType.setApiLevel(23);
+    remotePlatform.setTypeDetails((TypeDetails)platformDetailsType);
+
+    Map<String, RemotePackage> remotes = Maps.newHashMap();
+
+    AndroidVirtualDevice avd = new AndroidVirtualDevice(new ScopedStateStore(ScopedStateStore.Scope.STEP, null, null), remotes, true, fop);
+    AndroidSdkHandler sdkHandler = new AndroidSdkHandler(new File("/sdk"), new File("/android-home"), fop);
+
+    // No SDK installed -> Not selected by default
+    assertFalse(avd.isSelectedByDefault());
+
+    // SDK installed, but no system image -> Selected by default
+    avd.sdkHandler = sdkHandler;
+    assertTrue(avd.isSelectedByDefault());
+
+    // SDK installed, System image, but no AVD -> Selected by default
+    remotes.put("platforms;android-23", remotePlatform);
+    avd = new AndroidVirtualDevice(new ScopedStateStore(ScopedStateStore.Scope.STEP, null, null), remotes, true, fop);
+    avd.sdkHandler = sdkHandler;
+    assertTrue(avd.isSelectedByDefault());
+
+    // SDK installed, System image, matching AVD -> Selected by default
+    createAvd(avd, sdkHandler);
+
+    assertFalse(avd.isSelectedByDefault());
   }
 
   private static void recordPlatform23(MockFileOp fop) {
@@ -270,5 +305,15 @@ public class AndroidVirtualDeviceTest extends AndroidTestBase {
                            + "</ns3:sdk-sys-img>\n");
   }
 
+  @NotNull
+  private AvdInfo createAvd(@NotNull AndroidVirtualDevice avd, @NotNull AndroidSdkHandler sdkHandler) throws WizardException {
+    AvdManagerConnection connection = new AvdManagerConnection(sdkHandler, MoreExecutors.newDirectExecutorService());
+    final AvdInfo avdInfo = avd.createAvd(connection, sdkHandler);
+    assertNotNull(avdInfo);
+    disposeOnTearDown(() -> connection.deleteAvd(avdInfo));
+    connection.getAvds(true); // Force refresh
+
+    return avdInfo;
+  }
 
 }
