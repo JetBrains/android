@@ -15,9 +15,16 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite;
 
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.adtui.stdui.CommonButton;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.DetailsViewContentView;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.DetailsViewDeviceSelectorListView;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.ui.UIUtil;
@@ -36,7 +43,7 @@ import org.jetbrains.annotations.NotNull;
  *
  * Note: This view is under development and most of methods are not implemented yet.
  */
-public class AndroidTestSuiteDetailsView {
+public class AndroidTestSuiteDetailsView implements DetailsViewDeviceSelectorListView.DetailsViewDeviceSelectorListViewListener {
 
   /**
    * An interface to listen events occurred in AndroidTestSuiteDetailsView.
@@ -48,13 +55,24 @@ public class AndroidTestSuiteDetailsView {
     void onAndroidTestSuiteDetailsViewCloseButtonClicked();
   }
 
+  /**
+   * Minimum width of the device list swing component in pixel.
+   */
+  private static final int MIN_DEVICE_LIST_WIDTH = 64;
+  private static final int DEFAULT_DEVICE_LIST_WIDTH = 128;
+
   // Those properties are initialized by IntelliJ form editor before the constructor using reflection.
   private JPanel myRootPanel;
   private JPanel myHeaderPanel;
   private JBLabel myTitleText;
   private CommonButton myCloseButton;
+  private JPanel myContentPanel;
 
-  public AndroidTestSuiteDetailsView(@NotNull AndroidTestSuiteDetailsViewListener listener) {
+  private final DetailsViewDeviceSelectorListView myDeviceSelectorListView;
+
+  @UiThread
+  public AndroidTestSuiteDetailsView(@NotNull Disposable parentDisposable,
+                                     @NotNull AndroidTestSuiteDetailsViewListener listener) {
     myHeaderPanel.setBorder(new SideBorder(UIUtil.getBoundsColor(), SideBorder.BOTTOM));
 
     myCloseButton.addActionListener(new ActionListener() {
@@ -63,6 +81,20 @@ public class AndroidTestSuiteDetailsView {
         listener.onAndroidTestSuiteDetailsViewCloseButtonClicked();
       }
     });
+
+    ThreeComponentsSplitter componentsSplitter = new ThreeComponentsSplitter(/*vertical=*/false, /*onePixelDividers=*/true);
+    componentsSplitter.setOpaque(false);
+    componentsSplitter.setMinSize(MIN_DEVICE_LIST_WIDTH);
+    Disposer.register(parentDisposable, componentsSplitter);
+
+    myDeviceSelectorListView = new DetailsViewDeviceSelectorListView(this);
+    componentsSplitter.setFirstComponent(myDeviceSelectorListView.getRootPanel());
+    componentsSplitter.setFirstSize(DEFAULT_DEVICE_LIST_WIDTH);
+
+    DetailsViewContentView contentView = new DetailsViewContentView();
+    componentsSplitter.setLastComponent(contentView.getRootPanel());
+
+    myContentPanel.add(componentsSplitter);
   }
 
   /**
@@ -84,12 +116,28 @@ public class AndroidTestSuiteDetailsView {
   /**
    * Updates the view with a given AndroidTestResults.
    */
+  @UiThread
   public void setAndroidTestResults(@NotNull AndroidTestResults results) {
     setTitle(results.getTestCaseName());
   }
 
+  @UiThread
   private void setTitle(@NotNull String title) {
     myTitleText.setText(title);
+  }
+
+  /**
+   * Adds a given Android device to the device selector list in the details view.
+   */
+  @UiThread
+  public void addDevice(@NotNull AndroidDevice device) {
+    myDeviceSelectorListView.addDevice(device);
+  }
+
+  @Override
+  @UiThread
+  public void onDeviceSelected(@NotNull AndroidDevice selectedDevice) {
+    // TODO: implement this.
   }
 
   @VisibleForTesting

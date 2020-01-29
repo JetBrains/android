@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite
 
+import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite
@@ -32,6 +33,7 @@ interface AndroidTestResultListener {
    *
    * @param device a device which a test suite to be executed on
    */
+  @AnyThread
   fun onTestSuiteScheduled(device: AndroidDevice)
 
   /**
@@ -40,6 +42,7 @@ interface AndroidTestResultListener {
    * @param device a device which a test suite to be executed on
    * @param testSuite a test suite metadata
    */
+  @AnyThread
   fun onTestSuiteStarted(device: AndroidDevice, testSuite: AndroidTestSuite)
 
   /**
@@ -49,6 +52,7 @@ interface AndroidTestResultListener {
    * @param testSuite a test suite metadata
    * @param testCase a test case metadata
    */
+  @AnyThread
   fun onTestCaseStarted(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase)
 
   /**
@@ -58,6 +62,7 @@ interface AndroidTestResultListener {
    * @param testSuite a test suite metadata
    * @param testCase a test case metadata
    */
+  @AnyThread
   fun onTestCaseFinished(device: AndroidDevice, testSuite: AndroidTestSuite, testCase: AndroidTestCase)
 
   /**
@@ -67,5 +72,6 @@ interface AndroidTestResultListener {
    * @param device a device which a test suite to be executed on
    * @param testSuite a test suite metadata
    */
+  @AnyThread
   fun onTestSuiteFinished(device: AndroidDevice, testSuite: AndroidTestSuite)
 }

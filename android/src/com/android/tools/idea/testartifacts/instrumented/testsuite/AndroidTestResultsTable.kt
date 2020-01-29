@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
@@ -43,10 +44,9 @@ class AndroidTestResultsTable(listener: AndroidTestResultsTableListener) {
    *
    * @param device a new column will be added to the table for the given device
    */
+  @UiThread
   fun addDevice(device: AndroidDevice) {
-    AppUIUtil.invokeOnEdt {
-      myModel.addDeviceColumn(device)
-    }
+    myModel.addDeviceColumn(device)
   }
 
   /**
@@ -56,24 +56,23 @@ class AndroidTestResultsTable(listener: AndroidTestResultsTableListener) {
    * @param device a device which the given [testCase] belongs to
    * @param testCase a test case to be displayed in the table
    */
+  @UiThread
   fun addTestCase(device: AndroidDevice, testCase: AndroidTestCase) {
-    AppUIUtil.invokeOnEdt {
-      myModel.addTestResultsRow(device, testCase)
-    }
+    myModel.addTestResultsRow(device, testCase)
   }
 
   /**
    * Refreshes and redraws the table.
    */
+  @UiThread
   fun refreshTable() {
-    AppUIUtil.invokeOnEdt {
-      myModel.fireTableDataChanged()
-    }
+    myModel.fireTableDataChanged()
   }
 
   /**
    * Returns a root component of the table view.
    */
+  @UiThread
   fun getComponent(): Component {
     return myTableViewContainer
   }

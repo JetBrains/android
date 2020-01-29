@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite;
 
+import com.android.annotations.concurrency.AnyThread;
+import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
@@ -31,6 +33,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.AppUIUtil;
 import com.intellij.ui.components.JBLabel;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -73,6 +76,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
    *
    * @param parentDisposable a parent disposable which this view's lifespan is tied with.
    */
+  @UiThread
   public AndroidTestSuiteView(@NotNull Disposable parentDisposable) {
     myTable = new AndroidTestResultsTable(this);
     myTableViewContainer.add(myTable.getComponent());
@@ -84,7 +88,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     Disposer.register(this, myComponentsSplitter);
     myComponentsSplitter.setFirstComponent(myRootPanel);
 
-    myDetailsView = new AndroidTestSuiteDetailsView(this);
+    myDetailsView = new AndroidTestSuiteDetailsView(parentDisposable, this);
     myDetailsView.getRootPanel().setVisible(false);
     myComponentsSplitter.setLastComponent(myDetailsView.getRootPanel());
 
@@ -93,6 +97,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     Disposer.register(parentDisposable, this);
   }
 
+  @UiThread
   private void updateProgress() {
     int completedTestCases = passedTestCases + failedTestCases + skippedTestCases;
     if (scheduledTestCases == 0) {
@@ -109,55 +114,70 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   }
 
   @Override
+  @AnyThread
   public void onTestSuiteScheduled(@NotNull AndroidDevice device) {
-    myTable.addDevice(device);
+    AppUIUtil.invokeOnEdt(() -> {
+      myTable.addDevice(device);
+      myDetailsView.addDevice(device);
+    });
   }
 
   @Override
+  @AnyThread
   public void onTestSuiteStarted(@NotNull AndroidDevice device, @NotNull AndroidTestSuite testSuite) {
-    scheduledTestCases += testSuite.getTestCaseCount();
-    updateProgress();
+    AppUIUtil.invokeOnEdt(() -> {
+      scheduledTestCases += testSuite.getTestCaseCount();
+      updateProgress();
+    });
   }
 
   @Override
+  @AnyThread
   public void onTestCaseStarted(@NotNull AndroidDevice device, @NotNull AndroidTestSuite testSuite, @NotNull AndroidTestCase testCase) {
-    myTable.addTestCase(device, testCase);
+    AppUIUtil.invokeOnEdt(() -> myTable.addTestCase(device, testCase));
   }
 
   @Override
+  @AnyThread
   public void onTestCaseFinished(@NotNull AndroidDevice device,
                                  @NotNull AndroidTestSuite testSuite,
                                  @NotNull AndroidTestCase testCase) {
-    switch(Preconditions.checkNotNull(testCase.getResult())) {
-      case PASSED:
-        passedTestCases++;
-        break;
-      case FAILED:
-        failedTestCases++;
-        break;
-      case SKIPPED:
-        skippedTestCases++;
-        break;
-    }
-    updateProgress();
-    myTable.refreshTable();
+    AppUIUtil.invokeOnEdt(() -> {
+      switch (Preconditions.checkNotNull(testCase.getResult())) {
+        case PASSED:
+          passedTestCases++;
+          break;
+        case FAILED:
+          failedTestCases++;
+          break;
+        case SKIPPED:
+          skippedTestCases++;
+          break;
+      }
+      updateProgress();
+      myTable.refreshTable();
+    });
   }
 
   @Override
+  @AnyThread
   public void onTestSuiteFinished(@NotNull AndroidDevice device, @NotNull AndroidTestSuite testSuite) {
-    myTable.refreshTable();
+    AppUIUtil.invokeOnEdt(() -> myTable.refreshTable());
   }
 
   @Override
+  @UiThread
   public void onAndroidTestResultsRowSelected(@NotNull AndroidTestResults selectedResults) {
     openAndroidTestSuiteDetailsView(selectedResults);
   }
 
   @Override
+  @UiThread
   public void onAndroidTestSuiteDetailsViewCloseButtonClicked() {
     closeAndroidTestSuiteDetailsView();
   }
 
+  @UiThread
   private void openAndroidTestSuiteDetailsView(@NotNull AndroidTestResults results) {
     myDetailsView.setAndroidTestResults(results);
     myDetailsView.getRootPanel().setVisible(true);
@@ -168,6 +188,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
     myComponentsSplitter.setLastSize(myComponentsSplitter.getLastSize());
   }
 
+  @UiThread
   private void closeAndroidTestSuiteDetailsView() {
     myDetailsView.getRootPanel().setVisible(false);
 
