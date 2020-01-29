@@ -168,7 +168,7 @@ internal fun maybeTrimForParent(name: GradleNameElement, parent: GradleDslElemen
   if (parts.isEmpty()) {
     return ExternalNameInfo(name.fullName(), null)
   }
-  var lastNamePart = parts.removeAt(parts.size - 1)
+  val lastNamePart = parts.removeAt(parts.size - 1)
   val parentParts = Splitter.on(".").splitToList(parent.qualifiedName)
   var i = 0
   while (i < parentParts.size && !parts.isEmpty() && parentParts[i] == parts[0]) {
@@ -177,8 +177,6 @@ internal fun maybeTrimForParent(name: GradleNameElement, parent: GradleDslElemen
   }
 
   val externalNameInfo = converter.externalNameForParent(lastNamePart, parent)
-
-  lastNamePart = externalNameInfo.externalName
-  parts.add(lastNamePart)
-  return ExternalNameInfo(GradleNameElement.createNameFromParts(parts), externalNameInfo.asMethod)
+  parts.addAll(externalNameInfo.externalNameParts)
+  return ExternalNameInfo(parts, externalNameInfo.asMethod)
 }

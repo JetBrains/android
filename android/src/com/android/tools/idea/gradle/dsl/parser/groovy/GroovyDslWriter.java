@@ -20,11 +20,9 @@ import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
-import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
@@ -124,7 +122,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
 
     ExternalNameInfo externalNameInfo = maybeTrimForParent(element.getNameElement(), element.getParent(), this);
-    String statementText = externalNameInfo.externalName;
+    String statementText = String.join(".", externalNameInfo.externalNameParts);
     assert !statementText.isEmpty() : "Element name can't be empty! This will cause statement creation to error.";
 
     boolean useAssignment = element.shouldUseAssignment();
@@ -278,7 +276,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     PsiElement anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter);
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
-    String elementName = !methodCall.getFullName().isEmpty() ? maybeTrimForParent(methodCall.getNameElement(), methodCall.getParent(), this).externalName + " " : "";
+    String elementName = !methodCall.getFullName().isEmpty() ? String.join(".", maybeTrimForParent(methodCall.getNameElement(), methodCall.getParent(), this).externalNameParts) + " " : "";
     String methodCallText = (methodCall.isConstructor() ? "new ": "") + methodCall.getMethodName() + "()";
     String statementText = (methodCall.shouldUseAssignment()) ? elementName + "= " + methodCallText : elementName + methodCallText;
     GrStatement statement = factory.createStatementFromText(statementText);
