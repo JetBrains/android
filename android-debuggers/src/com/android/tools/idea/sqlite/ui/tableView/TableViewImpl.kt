@@ -26,6 +26,8 @@ import com.intellij.ui.table.JBTable
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JComponent
@@ -92,7 +94,16 @@ class TableViewImpl : TableView {
 
     table.tableHeader.defaultRenderer = MyTableHeaderRenderer()
     table.emptyText.text = tableIsEmptyText
-    panel.root.add(JBScrollPane(table))
+
+    val scrollPane = JBScrollPane(table)
+
+    scrollPane.addComponentListener(object : ComponentAdapter() {
+      override fun componentResized(e: ComponentEvent) {
+        setAutoResizeMode()
+      }
+    })
+
+    panel.root.add(scrollPane)
 
     table.tableHeader.addMouseListener(object : MouseAdapter() {
       override fun mouseClicked(e: MouseEvent) {
@@ -125,6 +136,8 @@ class TableViewImpl : TableView {
   override fun showTableColumns(columns: List<SqliteColumn>) {
     this.columns = columns
     table.model = MyTableModel(columns)
+
+    setAutoResizeMode()
   }
 
   override fun showTableRowBatch(rows: List<SqliteRow>) {
@@ -163,6 +176,21 @@ class TableViewImpl : TableView {
 
   override fun removeListener(listener: TableView.Listener) {
     listeners.remove(listener)
+  }
+
+  /**
+   * Changes the auto resize mode of JTable so that if the preferred width of the table is less than the width of the parent,
+   * the table is set to AUTO_RESIZE_SUBSEQUENT_COLUMNS, to fill the parent's width.
+   * Otherwise, if the preferred width of the table is greater than or equal to the width of the parent,
+   * horizontal scrolling is enabled with AUTO_RESIZE_OFF.
+   */
+  private fun setAutoResizeMode() {
+    if (table.preferredSize.width < table.parent.width) {
+      table.autoResizeMode = JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS
+    }
+    else {
+      table.autoResizeMode = JTable.AUTO_RESIZE_OFF
+    }
   }
 
   private class MyTableHeaderRenderer : TableCellRenderer {
