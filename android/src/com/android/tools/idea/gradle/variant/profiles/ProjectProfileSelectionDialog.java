@@ -139,7 +139,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
               textRenderer.append(myConflicts.size() == 1 ? "[Conflict]" : "[Conflicts]", attributes);
             }
 
-            textRenderer.setIcon(AllIcons.Actions.Module);
+            textRenderer.setIcon(AllIcons.Nodes.Module);
           }
           else if (data instanceof String) {
             textRenderer.append((String)data, SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES);
@@ -478,7 +478,7 @@ public class ProjectProfileSelectionDialog extends DialogWrapper {
           ColoredTreeCellRenderer textRenderer = getTextRenderer();
           if (data instanceof Conflict.AffectedModule) {
             textRenderer.append(((Conflict.AffectedModule)data).getTarget().getName());
-            textRenderer.setIcon(AllIcons.Actions.Module);
+            textRenderer.setIcon(AllIcons.Nodes.Module);
           }
           else if (data instanceof String) {
             textRenderer.append((String)data, SimpleTextAttributes.REGULAR_ITALIC_ATTRIBUTES);

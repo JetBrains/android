@@ -41,8 +41,6 @@ import com.android.tools.idea.gradle.util.GradleVersions;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.ServiceContainerUtil;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.util.List;
 import org.junit.Test;

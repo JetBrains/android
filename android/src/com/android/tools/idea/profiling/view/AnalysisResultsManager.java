@@ -114,13 +114,13 @@ public class AnalysisResultsManager extends CaptureEditorLightToolWindowManager 
         super.update(e);
         Presentation presentation = e.getPresentation();
         if (isSelected(e)) {
-          presentation.setText(AndroidBundle.message("android.captures.analysis.results.manager.run.disabled.name"));
-          presentation.setDescription(AndroidBundle.message("android.captures.analysis.results.manager.run.disabled.description"));
+          presentation.setText(() -> AndroidBundle.message("android.captures.analysis.results.manager.run.disabled.name"));
+          presentation.setDescription(() -> AndroidBundle.message("android.captures.analysis.results.manager.run.disabled.description"));
           presentation.setIcon(IconLoader.getDisabledIcon(AllIcons.Actions.Execute));
         }
         else {
-          presentation.setText(AndroidBundle.message("android.captures.analysis.results.manager.run.enabled.name"));
-          presentation.setDescription(AndroidBundle.message("android.captures.analysis.results.manager.run.enabled.description"));
+          presentation.setText(() -> AndroidBundle.message("android.captures.analysis.results.manager.run.enabled.name"));
+          presentation.setDescription(() -> AndroidBundle.message("android.captures.analysis.results.manager.run.enabled.description"));
           presentation.setIcon(AllIcons.Toolwindows.ToolWindowRun);
         }
       }

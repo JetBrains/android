@@ -25,8 +25,8 @@ import javax.swing.*;
 import javax.swing.tree.TreeNode;
 import java.awt.*;
 
-import static com.intellij.icons.AllIcons.General.CollapseAll;
-import static com.intellij.icons.AllIcons.General.ExpandAll;
+import static com.intellij.icons.AllIcons.Actions.Collapseall;
+import static com.intellij.icons.AllIcons.Actions.Expandall;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 
 /**
@@ -45,10 +45,10 @@ public class ToolWindowAlikePanel extends JPanel {
       CommonActionsManager actions = CommonActionsManager.getInstance();
 
       AnAction expandAllAction = actions.createExpandAllAction(expander, tree);
-      expandAllAction.getTemplatePresentation().setIcon(ExpandAll);
+      expandAllAction.getTemplatePresentation().setIcon(Expandall);
 
       AnAction collapseAllAction = actions.createCollapseAllAction(expander, tree);
-      collapseAllAction.getTemplatePresentation().setIcon(CollapseAll);
+      collapseAllAction.getTemplatePresentation().setIcon(Collapseall);
 
       panel.setAdditionalTitleActions(expandAllAction, collapseAllAction);
     }

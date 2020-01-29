@@ -69,12 +69,12 @@ class AndroidLightPackage private constructor(
   /**
    * Project service responsible for interning instances of [AndroidLightPackage] with a given name.
    */
-  class InstanceCache(private val psiManager: PsiManager) {
+  class InstanceCache(private val project: Project) {
     /**
      * Cache of [PsiPackage] instances for a given package name.
      */
     private val packageCache: Cache<String, PsiPackage> = CacheBuilder.newBuilder().softValues().build()
 
-    fun get(name: String): PsiPackage = packageCache.getAndUnwrap(name) { AndroidLightPackage(psiManager, name) }
+    fun get(name: String): PsiPackage = packageCache.getAndUnwrap(name) { AndroidLightPackage(PsiManager.getInstance(project), name) }
   }
 }

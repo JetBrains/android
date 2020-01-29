@@ -48,8 +48,8 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class AndroidBaseProgramRunner implements ProgramRunner<RunnerSettings> {
   @Override
-  public final void execute(@NotNull ExecutionEnvironment environment, @Nullable Callback callback) throws ExecutionException {
-    ExecutionManager.getInstance(environment.getProject()).startRunProfile(environment, callback, state -> {
+  public final void execute(@NotNull ExecutionEnvironment environment) throws ExecutionException {
+    ExecutionManager.getInstance(environment.getProject()).startRunProfile(environment, state -> {
       return doExecute(state, environment);
     });
   }
