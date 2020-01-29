@@ -24,6 +24,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyFile;
 import org.jetbrains.plugins.groovy.lang.psi.GroovyPsiElement;
@@ -97,8 +98,25 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     return element.getPsiElement();
   }
 
+  // from Groovy documentation
+  //
+  // 3.1 (Normal Identifiers) Identifiers start with a letter, a dollar or an underscore. They cannot start with a number.
+  //
+  // from groovy.flex
+  //
+  //   mDIGIT = [0-9]
+  //   mLETTER = [:letter:] | "_"
+  //   mIDENT = ({mLETTER}|\$) ({mLETTER} | {mDIGIT} | \$)*
+  //
+  // so apparently we can only have ASCII digits, but arbitrary letters.  OK then.
+  @NotNull private static final Pattern GROOVY_NORMAL_IDENTIFIER = Pattern.compile("(\\p{L}|[_$])(\\p{L}|[0-9]|[_$])*");
+
   @NotNull
-  private String quoteBitsIfNecessary(List<String> parts) {
+  private String quoteBitsIfNecessary(ExternalNameInfo info) {
+    List<String> parts = info.externalNameParts;
+    if (info.verbatim) {
+      return String.join(".", parts);
+    }
     StringBuilder sb = new StringBuilder();
     boolean firstPart = true;
     for (String part: parts) {
@@ -108,7 +126,8 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
       else {
         firstPart = false;
       }
-      if (part.contains(".")) {
+      if(!GROOVY_NORMAL_IDENTIFIER.matcher(part).matches()) {
+        // TODO(b/126937269): need to escape single quotes (and backslashes).  Also needs support from the parser
         part = "\'" + part + "\'";
       }
       sb.append(part);
@@ -142,7 +161,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
 
     ExternalNameInfo externalNameInfo = maybeTrimForParent(element.getNameElement(), element.getParent(), this);
-    String statementText = quoteBitsIfNecessary(externalNameInfo.externalNameParts);
+    String statementText = quoteBitsIfNecessary(externalNameInfo);
     assert !statementText.isEmpty() : "Element name can't be empty! This will cause statement creation to error.";
 
     boolean useAssignment = element.shouldUseAssignment();
@@ -296,7 +315,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     PsiElement anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter);
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
-    String elementName = !methodCall.getFullName().isEmpty() ? quoteBitsIfNecessary(maybeTrimForParent(methodCall.getNameElement(), methodCall.getParent(), this).externalNameParts) + " " : "";
+    String elementName = !methodCall.getFullName().isEmpty() ? quoteBitsIfNecessary(maybeTrimForParent(methodCall.getNameElement(), methodCall.getParent(), this)) + " " : "";
     String methodCallText = (methodCall.isConstructor() ? "new ": "") + methodCall.getMethodName() + "()";
     String statementText = (methodCall.shouldUseAssignment()) ? elementName + "= " + methodCallText : elementName + methodCallText;
     GrStatement statement = factory.createStatementFromText(statementText);

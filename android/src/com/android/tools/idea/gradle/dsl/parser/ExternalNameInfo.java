@@ -30,14 +30,22 @@ public class ExternalNameInfo {
    * uncertainty (null).
    */
   @Nullable public final Boolean asMethod;
+  /**
+   * a boolean indicating whether this name should be emitted verbatim by the Dsl writer, or whether any hierarchical parts
+   * should be quoted if necessary for the Dsl language's identifier syntax.  This should only be set to false in internal
+   * construction of Dsl names, e.g. for project dependencies.
+   */
+  public final boolean verbatim;
 
   public ExternalNameInfo(@NotNull String externalName, @Nullable Boolean asMethod) {
     this.externalNameParts = Arrays.asList(externalName);
     this.asMethod = asMethod;
+    this.verbatim = false;
   }
 
-  public ExternalNameInfo(@NotNull List<String> externalNameParts, @Nullable Boolean asMethod) {
+  public ExternalNameInfo(@NotNull List<String> externalNameParts, @Nullable Boolean asMethod, boolean verbatim) {
     this.externalNameParts = externalNameParts;
     this.asMethod = asMethod;
+    this.verbatim = verbatim;
   }
 }
