@@ -220,8 +220,8 @@ public class AndroidVirtualDevice extends InstallableComponent {
       desired = getSystemImageDescription(sdkHandler);
     }
     catch (WizardException e) {
-      // ignore, error will be shown during configure if they opt to try to create.
-      return false;
+      // No System Image yet. Default is to install.
+      return true;
     }
 
     AvdManagerConnection connection = AvdManagerConnection.getAvdManagerConnection(sdkHandler);
