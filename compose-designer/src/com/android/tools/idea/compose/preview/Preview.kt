@@ -467,9 +467,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
                          modelUpdater)
         }
 
-        val navigable: Navigatable = PsiNavigationSupport.getInstance().createNavigatable(
-          project, psiFile.virtualFile, previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0)
-        navigationHandler.addDefaultLocation(model, navigable, psiFile.virtualFile)
+        navigationHandler.setDefaultLocation(model, psiFile, previewElement.previewElementDefinitionPsi?.element?.textOffset ?: 0)
 
         previewElement.configuration.applyTo(model.configuration)
 

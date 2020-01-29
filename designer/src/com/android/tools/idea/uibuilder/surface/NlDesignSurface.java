@@ -289,12 +289,6 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
    * Optional navigation helper for when the surface is clicked.
    */
   public interface NavigationHandler extends Disposable {
-
-    /**
-     * Returns true if the file name passed is handled by the navigation handler. False otherwise.
-     */
-    @NotNull boolean isFileHandled(String filename);
-
     /**
      * Triggered when preview in the design surface is clicked, returns true if the navigation was handled by this handler.
      * This method receives the x and y coordinates of the click. You will usually only need the coordinates if your navigation can
@@ -308,8 +302,8 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
      */
     boolean handleNavigate(@NotNull SceneView sceneView,
                            @NotNull SceneComponent sceneComponent,
-                           @AndroidDpCoordinate int x,
-                           @AndroidDpCoordinate int y,
+                           @SwingCoordinate int x,
+                           @SwingCoordinate int y,
                            boolean requestFocus);
   }
 
