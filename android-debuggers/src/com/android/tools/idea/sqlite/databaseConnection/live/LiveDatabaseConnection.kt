@@ -96,7 +96,6 @@ class LiveDatabaseConnection(
     return SqliteSchema(tables)
   }
 
-  // TODO(blocked): properly handle supported data types. See https://www.sqlite.org/datatype3.html
   private fun SqliteInspection.Column.toSqliteColumn(): SqliteColumn {
     // TODO(blocked): add support for primary keys
     // TODO(blocked): add support for NOT NULL
