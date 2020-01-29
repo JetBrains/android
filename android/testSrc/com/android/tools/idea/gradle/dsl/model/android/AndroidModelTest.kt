@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPL
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DEFAULT_CONFIG_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DEREF_BUILD_TYPE_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_DOTTED_BUILD_TYPE_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SIGNING_CONFIG_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_EMPTY_SOURCE_SET_BLOCK
@@ -31,6 +32,8 @@ import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPL
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_NON_ASCII_BUILD_TYPE_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_NUMERIC_BUILD_TYPE_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_OPERATOR_BUILD_TYPE_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_PRODUCT_FLAVOR_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_PRODUCT_FLAVOR_BLOCK_EXPECTED
@@ -38,6 +41,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPL
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SOURCE_SET_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SOURCE_SET_BLOCK_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SPACE_BUILD_TYPE_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_REMOVE_BUILD_TYPE_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_REMOVE_PRODUCT_FLAVOR_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_RESET_BUILD_TYPE_BLOCK
@@ -791,44 +795,53 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("defaultConfig", "foo.bar", android.defaultConfig().applicationId())
   }
 
-  @Test
-  fun testAddAndApplyDottedBuildTypeBlock() {
+  private fun doTestAddAndApplyOneBuildTypeBlock(name : String, expected : TestFileName) {
     writeToBuildFile(ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
-    android.addBuildType("dotted.buildtype")
+    android.addBuildType(name)
     var buildTypes = android.buildTypes()
     assertThat(buildTypes).hasSize(1)
-    assertEquals("buildTypes", "dotted.buildtype", buildTypes[0].name())
+    assertEquals("buildTypes", name, buildTypes[0].name())
     buildTypes[0].applicationIdSuffix().setValue("foo")
 
     applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_DOTTED_BUILD_TYPE_BLOCK_EXPECTED)
+    verifyFileContents(myBuildFile, expected)
 
     buildTypes = gradleBuildModel.android().buildTypes()
     assertThat(buildTypes).hasSize(1)
-    assertEquals("buildTypes", "dotted.buildtype", buildTypes[0].name())
+    assertEquals("buildTypes", name, buildTypes[0].name())
     assertEquals("applicationIdSuffix", "foo", buildTypes[0].applicationIdSuffix())
   }
 
   @Test
+  fun testAddAndApplyDottedBuildTypeBlock() {
+    doTestAddAndApplyOneBuildTypeBlock("dotted.buildtype", ANDROID_MODEL_ADD_AND_APPLY_DOTTED_BUILD_TYPE_BLOCK_EXPECTED)
+  }
+
+  @Test
   fun testAddAndApplyOperatorBuildTypeBlock() {
-    writeToBuildFile(ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK)
-    val buildModel = gradleBuildModel
-    val android = buildModel.android()
-    android.addBuildType("debug-custom")
-    var buildTypes = android.buildTypes()
-    assertThat(buildTypes).hasSize(1)
-    assertEquals("buildTypes", "debug-custom", buildTypes[0].name())
-    buildTypes[0].applicationIdSuffix().setValue("foo")
+    doTestAddAndApplyOneBuildTypeBlock("debug-custom", ANDROID_MODEL_ADD_AND_APPLY_OPERATOR_BUILD_TYPE_BLOCK_EXPECTED)
+  }
 
-    applyChangesAndReparse(buildModel)
-    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_OPERATOR_BUILD_TYPE_BLOCK_EXPECTED)
+  @Test
+  fun testAddAndApplyDerefBuildTypeBlock() {
+    doTestAddAndApplyOneBuildTypeBlock("debug[0]", ANDROID_MODEL_ADD_AND_APPLY_DEREF_BUILD_TYPE_BLOCK_EXPECTED)
+  }
 
-    buildTypes = gradleBuildModel.android().buildTypes()
-    assertThat(buildTypes).hasSize(1)
-    assertEquals("buildTypes", "debug-custom", buildTypes[0].name())
-    assertEquals("applicationIdSuffix", "foo", buildTypes[0].applicationIdSuffix())
+  @Test
+  fun testAddAndApplySpaceBuildTypeBlock() {
+    doTestAddAndApplyOneBuildTypeBlock("space buildtype", ANDROID_MODEL_ADD_AND_APPLY_SPACE_BUILD_TYPE_BLOCK_EXPECTED)
+  }
+
+  @Test
+  fun testAddAndApplyNumericBuildTypeBlock() {
+    doTestAddAndApplyOneBuildTypeBlock("2abc", ANDROID_MODEL_ADD_AND_APPLY_NUMERIC_BUILD_TYPE_BLOCK_EXPECTED)
+  }
+
+  @Test
+  fun testAddAndApplyNonAsciiBuildTypeBlock() {
+    doTestAddAndApplyOneBuildTypeBlock("ħƁǅẅΣЖא", ANDROID_MODEL_ADD_AND_APPLY_NON_ASCII_BUILD_TYPE_BLOCK_EXPECTED)
   }
 
   @Test
