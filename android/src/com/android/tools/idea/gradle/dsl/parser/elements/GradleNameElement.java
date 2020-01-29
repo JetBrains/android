@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
+import com.intellij.util.containers.ContainerUtil;
 import java.util.ArrayList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -125,14 +126,18 @@ public class GradleNameElement {
 
   @NotNull
   public String fullName() {
-    List<String> parts = qualifyingParts();
-    parts.add(name());
+    List<String> parts = fullNameParts();
     return createNameFromParts(parts);
   }
 
   @NotNull
   public List<String> fullNameParts() {
-    return Splitter.on(".").splitToList(fullName());
+    String name = findName();
+    if (name == null) {
+      return Lists.newArrayList();
+    }
+    List<String> nameSegments = Splitter.on('.').splitToList(name);
+    return ContainerUtil.map(nameSegments, GradleNameElement::convertNameToKey);
   }
 
   public static String createNameFromParts(@NotNull List<String> parts) {
@@ -140,35 +145,30 @@ public class GradleNameElement {
   }
 
   @NotNull
-  public ArrayList<String> qualifyingParts() {
-    String name = findName();
-    if (name == null) {
-      return Lists.newArrayList();
+  public List<String> qualifyingParts() {
+    List<String> parts = fullNameParts();
+    if (parts.isEmpty()) {
+      return parts;
     }
-
-    List<String> nameSegments = Splitter.on('.').splitToList(name);
-    // Remove the last element, which is not a qualifying part;
-    return nameSegments.subList(0, nameSegments.size() - 1).stream()
-      .map(GradleNameElement::convertNameToKey).collect(Collectors.toCollection(ArrayList::new));
+    else {
+      return parts.subList(0, parts.size() - 1);
+    }
   }
 
   public boolean isQualified() {
-    String name = findName();
-    if (name == null) {
-      return false;
-    }
-
-    return name.contains(".");
+    List<String> parts = fullNameParts();
+    return parts.size() > 1;
   }
 
   @NotNull
   public String name() {
-    String name = findName();
-    if (name == null) {
+    List<String> parts = fullNameParts();
+    if (parts.isEmpty()) {
       return "";
     }
-    int lastDotIndex = name.lastIndexOf('.') + 1;
-    return convertNameToKey(name.substring(lastDotIndex));
+    else {
+      return parts.get(parts.size() - 1);
+    }
   }
 
   @Nullable
