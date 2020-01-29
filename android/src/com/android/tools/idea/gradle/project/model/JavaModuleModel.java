@@ -58,7 +58,6 @@ public class JavaModuleModel implements ModuleModel {
   @Nullable private final String myLanguageLevel;
 
   private final boolean myBuildable;
-  private final boolean myAndroidModuleWithoutVariants;
 
   @Nullable
   public static JavaModuleModel get(@NotNull Module module) {
@@ -80,15 +79,13 @@ public class JavaModuleModel implements ModuleModel {
                                        @Nullable ExtIdeaCompilerOutput compilerOutput,
                                        @Nullable File buildFolderPath,
                                        @Nullable String languageLevel,
-                                       boolean buildable,
-                                       boolean androidModuleWithoutVariants) {
+                                       boolean buildable) {
     Collection<SyncIssue> syncIssuesCopy = ContainerUtil.map(syncIssues, issue -> new IdeSyncIssue(issue));
     List<String> configurationsCopy = new ArrayList<>(artifactsByConfiguration.keySet());
     Collections.sort(configurationsCopy);
 
     return new JavaModuleModel(moduleName, contentRoots, javaModuleDependencies, jarLibraryDependencies, artifactsByConfiguration,
-                               syncIssuesCopy, configurationsCopy, compilerOutput, buildFolderPath, languageLevel, buildable,
-                               androidModuleWithoutVariants);
+                               syncIssuesCopy, configurationsCopy, compilerOutput, buildFolderPath, languageLevel, buildable);
   }
 
   @PropertyMapping({
@@ -102,8 +99,7 @@ public class JavaModuleModel implements ModuleModel {
     "myCompilerOutput",
     "myBuildFolderPath",
     "myLanguageLevel",
-    "myBuildable",
-    "myAndroidModuleWithoutVariants",})
+    "myBuildable"})
   public JavaModuleModel(@NotNull String moduleName,
                          @NotNull Collection<JavaModuleContentRoot> contentRoots,
                          @NotNull Collection<JavaModuleDependency> javaModuleDependencies,
@@ -114,8 +110,7 @@ public class JavaModuleModel implements ModuleModel {
                          @Nullable ExtIdeaCompilerOutput compilerOutput,
                          @Nullable File buildFolderPath,
                          @Nullable String languageLevel,
-                         boolean buildable,
-                         boolean androidModuleWithoutVariants) {
+                         boolean buildable) {
     myModuleName = moduleName;
     myContentRoots = contentRoots;
     myJavaModuleDependencies = javaModuleDependencies;
@@ -127,7 +122,6 @@ public class JavaModuleModel implements ModuleModel {
     myBuildFolderPath = buildFolderPath;
     myLanguageLevel = languageLevel;
     myBuildable = buildable;
-    myAndroidModuleWithoutVariants = androidModuleWithoutVariants;
   }
 
   @Override
@@ -200,10 +194,6 @@ public class JavaModuleModel implements ModuleModel {
 
   public boolean isBuildable() {
     return myBuildable;
-  }
-
-  public boolean isAndroidModuleWithoutVariants() {
-    return myAndroidModuleWithoutVariants;
   }
 
   @NotNull

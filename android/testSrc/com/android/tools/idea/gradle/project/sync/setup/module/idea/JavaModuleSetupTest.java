@@ -27,7 +27,6 @@ import com.android.builder.model.SyncIssue;
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
-import com.android.tools.idea.gradle.project.sync.setup.module.idea.java.CheckAndroidModuleWithoutVariantsStep;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
@@ -61,45 +60,10 @@ public class JavaModuleSetupTest extends PlatformTestCase {
   }
 
   public void testSetUpModule() {
-    when(myJavaModel.isAndroidModuleWithoutVariants()).thenReturn(false);
     myModuleSetup.setUpModule(myContext, myJavaModel);
 
     verify(mySetupStep1, times(1)).setUpModule(myContext, myJavaModel);
     verify(mySetupStep2, times(1)).setUpModule(myContext, myJavaModel);
-  }
-
-  public void testSetUpAndroidModuleWithoutVariants() {
-    when(myJavaModel.isAndroidModuleWithoutVariants()).thenReturn(true);
-    myModuleSetup = new JavaModuleSetup(new CheckAndroidModuleWithoutVariantsStep());
-
-    Module module = getModule();
-    // Add AndroidFacet to verify that is removed.
-    createAndAddAndroidFacet(module);
-
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      // Add source folders and excluded folders to verify that they are removed.
-      ModifiableRootModel modifiableModel = ModuleRootManager.getInstance(module).getModifiableModel();
-      ContentEntry contentEntry = modifiableModel.addContentEntry("file://fakePath");
-      contentEntry.addSourceFolder("file://fakePath/sourceFolder", false);
-      contentEntry.addExcludeFolder("file://fakePath/excludedFolder");
-      modifiableModel.commit();
-    });
-
-    IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(getProject());
-    myContext = new ModuleSetupContext.Factory().create(module, modelsProvider);
-    myModuleSetup.setUpModule(myContext, myJavaModel);
-    ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
-
-    // Verify AndroidFacet was removed.
-    assertNull(AndroidFacet.getInstance(module));
-
-    // Verify source folders and excluded folders were removed.
-    ContentEntry[] contentEntries = ModuleRootManager.getInstance(module).getContentEntries();
-    assertThat(contentEntries).hasLength(1);
-
-    ContentEntry contentEntry = contentEntries[0];
-    assertThat(contentEntry.getSourceFolders()).isEmpty();
-    assertThat(contentEntry.getExcludeFolderUrls()).isEmpty();
   }
 
   public void testSetUpAndroidModuleRegistersSyncIssues() {

@@ -65,14 +65,11 @@ public class IdeaJavaModuleModelFactory {
   public JavaModuleModel create(@NotNull IdeaModule ideaModule,
                                 @NotNull Collection<SyncIssue> syncIssues,
                                 @Nullable ExternalProject externalProject,
-                                boolean androidModuleWithoutVariants,
                                 boolean isBuildable) {
     Pair<Collection<JavaModuleDependency>, Collection<JarLibraryDependency>> dependencies = getDependencies(ideaModule);
     return JavaModuleModel.create(ideaModule.getName(), getContentRoots(ideaModule), dependencies.first, dependencies.second,
                                   getArtifactsByConfiguration(externalProject), syncIssues, getCompilerOutput(externalProject),
-                                  ideaModule.getGradleProject().getBuildDirectory(), getLanguageLevel(externalProject),
-                                  !androidModuleWithoutVariants && isBuildable,
-                                  androidModuleWithoutVariants);
+                                  ideaModule.getGradleProject().getBuildDirectory(), getLanguageLevel(externalProject), isBuildable);
   }
 
   @NotNull
