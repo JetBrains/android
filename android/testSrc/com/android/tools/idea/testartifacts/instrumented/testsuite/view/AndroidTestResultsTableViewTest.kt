@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.testartifacts.instrumented.testsuite
+package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
@@ -38,11 +38,11 @@ import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.MockitoAnnotations
 
 /**
- * Unit tests for [AndroidTestResultsTable].
+ * Unit tests for [AndroidTestResultsTableView].
  */
 @RunWith(JUnit4::class)
 @RunsInEdt
-class AndroidTestResultsTableTest {
+class AndroidTestResultsTableViewTest {
 
   @get:Rule val edtRule = EdtRule()
   val disposable: Disposable = Disposer.newDisposable()
@@ -62,7 +62,7 @@ class AndroidTestResultsTableTest {
 
   @Test
   fun initialTable() {
-    val table = AndroidTestResultsTable(mockListener)
+    val table = AndroidTestResultsTableView(mockListener)
 
     // Assert columns.
     assertThat(table.getModelForTesting().columnInfos).hasLength(2)
@@ -75,7 +75,7 @@ class AndroidTestResultsTableTest {
 
   @Test
   fun addDevice() {
-    val table = AndroidTestResultsTable(mockListener)
+    val table = AndroidTestResultsTableView(mockListener)
 
     table.addDevice(AndroidDevice("deviceId1", "deviceName1"))
     table.addDevice(AndroidDevice("deviceId2", "deviceName2"))
@@ -90,7 +90,7 @@ class AndroidTestResultsTableTest {
 
   @Test
   fun addTestResults() {
-    val table = AndroidTestResultsTable(mockListener)
+    val table = AndroidTestResultsTableView(mockListener)
     val device1 = AndroidDevice("deviceId1", "deviceName1")
     val device2 = AndroidDevice("deviceId2", "deviceName2")
     val testcase1OnDevice1 = AndroidTestCase("testid1", "testname1")
@@ -132,7 +132,7 @@ class AndroidTestResultsTableTest {
 
   @Test
   fun clickTestResultsRow() {
-    val table = AndroidTestResultsTable(mockListener)
+    val table = AndroidTestResultsTableView(mockListener)
     val device1 = AndroidDevice("deviceId1", "deviceName1")
     val device2 = AndroidDevice("deviceId2", "deviceName2")
 
