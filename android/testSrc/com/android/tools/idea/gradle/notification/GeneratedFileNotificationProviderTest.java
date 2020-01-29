@@ -27,7 +27,6 @@ import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.notification.GeneratedFileNotificationProvider.MyEditorNotificationPanel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.intellij.ide.GeneratedSourceFileChangeTracker;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
@@ -38,7 +37,6 @@ import org.mockito.Mock;
  * Tests for {@link GeneratedFileNotificationProvider}.
  */
 public class GeneratedFileNotificationProviderTest extends PlatformTestCase {
-  @Mock private GeneratedSourceFileChangeTracker myGeneratedSourceFileChangeTracker;
   @Mock private GradleProjectInfo myProjectInfo;
   @Mock private AndroidModuleModel myAndroidModuleModel;
   @Mock private IdeAndroidProject myAndroidProject;
@@ -53,7 +51,7 @@ public class GeneratedFileNotificationProviderTest extends PlatformTestCase {
 
     when(myAndroidModuleModel.getAndroidProject()).thenReturn(myAndroidProject);
 
-    myNotificationProvider = new GeneratedFileNotificationProvider(getProject(), myGeneratedSourceFileChangeTracker, myProjectInfo);
+    myNotificationProvider = new GeneratedFileNotificationProvider();
   }
 
   public void testCreateNotificationPanelWithFileInBuildFolder() throws IOException {
@@ -63,7 +61,7 @@ public class GeneratedFileNotificationProviderTest extends PlatformTestCase {
     when(myProjectInfo.findAndroidModelInModule(file, false)).thenReturn(myAndroidModuleModel);
     when(myAndroidProject.getBuildFolder()).thenReturn(virtualToIoFile(buildFolder));
 
-    MyEditorNotificationPanel panel = (MyEditorNotificationPanel)myNotificationProvider.createNotificationPanel(file, myFileEditor);
+    MyEditorNotificationPanel panel = (MyEditorNotificationPanel)myNotificationProvider.createNotificationPanel(file, myFileEditor, getProject(), myProjectInfo);
     assertEquals("Files under the \"build\" folder are generated and should not be edited.", panel.getText());
 
     // Ensure that "excluded" files are not ignored.

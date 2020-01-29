@@ -1,3 +1,4 @@
+// Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.sdk;
 
 import com.intellij.ide.highlighter.XmlFileType;
@@ -17,18 +18,13 @@ import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author Eugene.Kudelevsky
- */
-public class AndroidSdkNotConfiguredNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
+public final class AndroidSdkNotConfiguredNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> {
   private static final Key<EditorNotificationPanel> KEY = Key.create("android.sdk.not.configured.notification");
 
   private final Project myProject;
-  private final EditorNotifications myNotifications;
 
   public AndroidSdkNotConfiguredNotificationProvider(Project project) {
     myProject = project;
-    myNotifications = EditorNotifications.getInstance(project);
   }
 
   @NotNull
@@ -69,7 +65,7 @@ public class AndroidSdkNotConfiguredNotificationProvider extends EditorNotificat
         @Override
         public void run() {
           ModulesConfigurator.showDialog(module.getProject(), module.getName(), ClasspathEditor.getName());
-          myNotifications.updateAllNotifications();
+          EditorNotifications.getInstance(myProject).updateAllNotifications();
         }
       });
     }

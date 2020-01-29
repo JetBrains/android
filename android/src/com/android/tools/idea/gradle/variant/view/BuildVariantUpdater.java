@@ -44,7 +44,6 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetu
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
@@ -82,7 +81,7 @@ public final class BuildVariantUpdater {
 
   @NotNull
   public static BuildVariantUpdater getInstance(@NotNull Project project) {
-    return ServiceManager.getService(project, BuildVariantUpdater.class);
+    return project.getService(BuildVariantUpdater.class);
   }
 
   // called by IDEA.

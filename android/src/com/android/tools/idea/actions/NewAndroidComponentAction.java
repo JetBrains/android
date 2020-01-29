@@ -124,15 +124,15 @@ public class NewAndroidComponentAction extends AnAction {
     // See also com.android.tools.idea.npw.template.ChooseActivityTypeStep#validateTemplate
     AndroidVersion buildSdkVersion = moduleInfo.getBuildSdkVersion();
     if (myMinSdkApi > moduleInfo.getMinSdkVersion().getFeatureLevel()) {
-      presentation.setText(AndroidBundle.message("android.wizard.action.requires.minsdk", myTemplateName, myMinSdkApi));
+      presentation.setText(() -> AndroidBundle.message("android.wizard.action.requires.minsdk", myTemplateName, myMinSdkApi));
       presentation.setEnabled(false);
     }
     else if (buildSdkVersion != null && myMinBuildSdkApi > buildSdkVersion.getFeatureLevel()) {
-      presentation.setText(AndroidBundle.message("android.wizard.action.requires.minbuildsdk", myTemplateName, myMinBuildSdkApi));
+      presentation.setText(() -> AndroidBundle.message("android.wizard.action.requires.minbuildsdk", myTemplateName, myMinBuildSdkApi));
       presentation.setEnabled(false);
     }
     else if (myAndroidXRequired && !useAndroidX(module)) {
-      presentation.setText(AndroidBundle.message("android.wizard.action.requires.androidx", myTemplateName));
+      presentation.setText(() -> AndroidBundle.message("android.wizard.action.requires.androidx", myTemplateName));
       presentation.setEnabled(false);
     }
     else {

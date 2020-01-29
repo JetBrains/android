@@ -72,6 +72,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -99,6 +100,7 @@ public class AndroidSdks {
     return ServiceManager.getService(AndroidSdks.class);
   }
 
+  @NonInjectable
   public AndroidSdks(@NotNull Jdks jdks, @NotNull IdeInfo ideInfo) {
     myIdeInfo = ideInfo;
     myJdks = jdks;

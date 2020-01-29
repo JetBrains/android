@@ -332,7 +332,7 @@ public class BrowsePanel extends AdtSecondaryPanel {
             presentation.setEnabledAndVisible(true);
             break;
           case IS_REMOVABLE_DESIGN_PROPERTY:
-            presentation.setIcon(AllIcons.Actions.Delete);
+            presentation.setIcon(AllIcons.Actions.Cancel);
             presentation.setText("Remove this Design Property");
             presentation.setEnabledAndVisible(true);
             break;

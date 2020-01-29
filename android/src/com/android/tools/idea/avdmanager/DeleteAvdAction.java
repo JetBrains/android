@@ -26,7 +26,7 @@ import java.awt.event.ActionEvent;
  */
 public class DeleteAvdAction extends AvdUiAction {
   public DeleteAvdAction(AvdInfoProvider avdInfoProvider) {
-    super(avdInfoProvider, "Delete", "Delete this AVD", AllIcons.Actions.Delete);
+    super(avdInfoProvider, "Delete", "Delete this AVD", AllIcons.Actions.Cancel);
   }
 
   @Override
