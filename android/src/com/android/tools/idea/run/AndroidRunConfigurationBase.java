@@ -517,6 +517,13 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return myProfilerState;
   }
 
+  /**
+   * Returns whether this configuration can run in Android Profiler.
+   */
+  public boolean isProfilable() {
+    return true;
+  }
+
   private static class DefaultPostBuildModelProvider implements PostBuildModelProvider {
     @Nullable
     @Transient
