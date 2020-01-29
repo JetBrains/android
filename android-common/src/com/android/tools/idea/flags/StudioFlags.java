@@ -648,6 +648,11 @@ public final class StudioFlags {
      * Don't use TagToClassMapper when computing tag attributes in AttributeProcessingUtil.
      */
     ATTRIBUTES_FROM_STYLEABLES,
+
+    /**
+     * Use @CustomChildren instead of DomExtender.
+     */
+    CUSTOM_CHILDREN,
   }
 
   public static final Flag<LayoutXmlMode> LAYOUT_XML_MODE = Flag.create(
