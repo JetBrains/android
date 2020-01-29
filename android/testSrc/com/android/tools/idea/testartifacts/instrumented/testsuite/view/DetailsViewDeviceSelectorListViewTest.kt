@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.testartifacts.instrumented.testsuite
+package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
-import com.android.tools.idea.testartifacts.instrumented.testsuite.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
+import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
-import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.DetailsViewDeviceSelectorListView.DetailsViewDeviceSelectorListViewListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockApplication
 import com.intellij.openapi.Disposable
@@ -36,16 +35,15 @@ import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations
 
 /**
- * Unit tests for [AndroidTestSuiteDetailsView].
+ * Unit tests for [DetailsViewDeviceSelectorListView].
  */
 @RunWith(JUnit4::class)
 @RunsInEdt
-class AndroidTestSuiteDetailsViewTest {
-
+class DetailsViewDeviceSelectorListViewTest {
   @get:Rule val edtRule = EdtRule()
   val disposable: Disposable = Disposer.newDisposable()
 
-  @Mock lateinit var mockListener: AndroidTestSuiteDetailsViewListener
+  @Mock lateinit var mockListener: DetailsViewDeviceSelectorListViewListener
 
   @Before
   fun setup() {
@@ -59,27 +57,36 @@ class AndroidTestSuiteDetailsViewTest {
   }
 
   @Test
-  fun setAndroidTestResultsShouldUpdateUiComponents() {
-    val view = AndroidTestSuiteDetailsView(disposable, mockListener)
-
-    view.setAndroidTestResults(createTestResults("testName", AndroidTestCaseResult.PASSED))
-
-    assertThat(view.titleTextViewForTesting.text).isEqualTo("testName")
+  fun deviceListIsEmptyByDefault() {
+    val view = DetailsViewDeviceSelectorListView(mockListener)
+    assertThat(view.deviceListForTesting.itemsCount).isEqualTo(0)
   }
 
   @Test
-  fun clickOnCloseButtonShouldInvokeListener() {
-    val view = AndroidTestSuiteDetailsView(disposable, mockListener)
+  fun addDevice() {
+    val view = DetailsViewDeviceSelectorListView(mockListener)
+    val device = AndroidDevice(id = "device id", name = "device name")
 
-    view.closeButtonForTesting.doClick()
+    view.addDevice(device)
 
-    verify(mockListener).onAndroidTestSuiteDetailsViewCloseButtonClicked()
+    assertThat(view.deviceListForTesting.itemsCount).isEqualTo(1)
+    assertThat(view.deviceListForTesting.model.getElementAt(0)).isEqualTo(device)
   }
 
-  private fun createTestResults(testCaseName: String, testCaseResult: AndroidTestCaseResult?): AndroidTestResults {
-    return object: AndroidTestResults {
-      override val testCaseName = testCaseName
-      override fun getTestCaseResult(device: AndroidDevice) = testCaseResult
-    }
+  @Test
+  fun selectDevice() {
+    val view = DetailsViewDeviceSelectorListView(mockListener)
+    val device1 = AndroidDevice(id = "device id 1", name = "device name 1")
+    val device2 = AndroidDevice(id = "device id 2", name = "device name 2")
+
+    view.addDevice(device1)
+    view.addDevice(device2)
+
+    assertThat(view.deviceListForTesting.itemsCount).isEqualTo(2)
+    assertThat(view.deviceListForTesting.selectedIndices).isEmpty()  // Nothing is selected initially.
+
+    view.deviceListForTesting.selectedIndex = 0
+
+    verify(mockListener).onDeviceSelected(eq(device1))
   }
 }
