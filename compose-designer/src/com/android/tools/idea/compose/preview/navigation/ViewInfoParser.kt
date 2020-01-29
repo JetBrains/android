@@ -15,14 +15,27 @@
  */
 package com.android.tools.idea.compose.preview.navigation
 
+import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.compose.preview.COMPOSE_VIEW_ADAPTER
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.jvm.isAccessible
 
-data class SourceLocation(val className: String, val methodName: String, val fileName: String, val lineNumber: Int) {
+interface SourceLocation {
+  val className: String
+  val methodName: String
+  val fileName: String
+  val lineNumber: Int
+
   /**
    * Returns true if there is no source location information
    */
   fun isEmpty() = lineNumber == -1 && className == ""
 }
+
+internal data class SourceLocationImpl(override val className: String,
+                                       override val methodName: String,
+                                       override val fileName: String,
+                                       override val lineNumber: Int) : SourceLocation
 typealias LineNumberMapper = (SourceLocation) -> SourceLocation
 
 private val identifyLineNumberMapper: LineNumberMapper = { sourceLocation -> sourceLocation }
@@ -31,18 +44,17 @@ private val identifyLineNumberMapper: LineNumberMapper = { sourceLocation -> sou
  * Parse the viewObject for ComposeViewAdapter. For now we use reflection to parse these information without much structuring.
  * In the future we hope to change this.
  */
-fun parseViewInfo(rootView: Any,
-                  isFileHandled: (String) -> Boolean = { true },
+fun parseViewInfo(rootViewInfo: ViewInfo,
                   lineNumberMapper: LineNumberMapper = identifyLineNumberMapper): List<ComposeViewInfo> {
   try {
-    val viewObj = findComposeViewAdapter(rootView) ?: return listOf()
-    val viewInfoField = viewObj.javaClass.getDeclaredField("viewInfos").also {
+    val viewObj = findComposeViewAdapter(rootViewInfo.viewObject) ?: return listOf()
+    val viewInfoField = viewObj::class.declaredMemberProperties
+      .single { it.name == "viewInfos" }
+      .getter.also {
       it.isAccessible = true
     }
-    val rootViewInfo = viewInfoField.get(viewObj) as List<*>
-    return parseBounds(rootViewInfo, isFileHandled, lineNumberMapper)
-      .flatMap { it.allChildren() }
-      .filter { !it.sourceLocation.isEmpty() }
+    val composeViewInfos = viewInfoField.call(viewObj) as List<*>
+    return parseBounds(composeViewInfos, lineNumberMapper)
   } catch (e: Exception) {
     return listOf()
   }
@@ -61,15 +73,10 @@ private fun findComposeViewAdapter(viewObj: Any): Any? {
   return null
 }
 
-private fun parseBounds(list: List<Any?>,
-                        isFileHandled: (String) -> Boolean,
-                        fileLocationMapper: LineNumberMapper): List<ComposeViewInfo> = list.mapNotNull { item ->
+private fun parseBounds(elements: List<Any?>,
+                        fileLocationMapper: LineNumberMapper): List<ComposeViewInfo> = elements.mapNotNull { item ->
   try {
     val fileName = item!!.javaClass.getMethod("getFileName").invoke(item) as String
-    if (!isFileHandled(fileName)) {
-      return@mapNotNull null
-    }
-
     val lineNumber = item.javaClass.getMethod("getLineNumber").invoke(item) as Int
     val method = try {
       item.javaClass.getMethod("getMethodName").invoke(item) as String
@@ -80,11 +87,11 @@ private fun parseBounds(list: List<Any?>,
     val bounds = getBound(item)
     val children = item.javaClass.getMethod("getChildren").invoke(item) as List<Any?>
     val sourceLocation = fileLocationMapper(
-      SourceLocation(method.substringBeforeLast("."),
-                     method.substringAfterLast("."),
-                     fileName,
-                     lineNumber))
-    ComposeViewInfo(sourceLocation, bounds, parseBounds(children, isFileHandled, fileLocationMapper))
+      SourceLocationImpl(method.substringBeforeLast("."),
+                         method.substringAfterLast("."),
+                         fileName,
+                         lineNumber))
+    ComposeViewInfo(sourceLocation, bounds, parseBounds(children, fileLocationMapper))
   }
   catch (t: Throwable) {
     null
@@ -98,18 +105,16 @@ private fun getBound(viewInfo: Any): PxBounds {
   val rightPx = bounds.javaClass.getMethod("getRight").invoke(bounds)
   val leftPx = bounds.javaClass.getMethod("getLeft").invoke(bounds)
 
-  val topFloat = getFloat(topPx)
-  val bottomFloat = getFloat(bottomPx)
-  val rightFloat = getFloat(rightPx)
-  val leftFloat = getFloat(leftPx)
-
   return PxBounds(
-    Px(leftFloat),
-    Px(topFloat),
-    Px(rightFloat),
-    Px(bottomFloat))
+    left = getInt(leftPx),
+    top = getInt(topPx),
+    right = getInt(rightPx),
+    bottom = getInt(bottomPx))
 }
 
-private fun getFloat(px: Any): Float {
-  return px.javaClass.getMethod("getValue").invoke(px) as Float
+private fun getInt(px: Any): Int {
+  val value = px.javaClass.getMethod("getValue").invoke(px)
+  // In dev05, the type of Px changed from Float to Int. We need to handle both cases here for backwards compatibility
+  return value as? Int ?: (value as Float).toInt()
 }
+
