@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,9 +45,7 @@ import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor
 import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.run.util.StopWatch
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
-import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.surface.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.uibuilder.surface.SceneMode
@@ -197,10 +195,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       interactionHandler
     }
     .setEditable(true)
-    .setLayoutManager(GridSurfaceLayoutManager(NlConstants.DEFAULT_SCREEN_OFFSET_X,
-                                               NlConstants.DEFAULT_SCREEN_OFFSET_Y,
-                                               NlConstants.SCREEN_DELTA,
-                                               NlConstants.SCREEN_DELTA))
     .build()
     .apply {
       setScreenMode(SceneMode.COMPOSE, false)
