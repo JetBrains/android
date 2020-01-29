@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.testartifacts.instrumented.testsuite
+package com.android.tools.idea.testartifacts.instrumented.testsuite.api
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
