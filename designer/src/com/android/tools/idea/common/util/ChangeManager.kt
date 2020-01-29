@@ -28,15 +28,14 @@ import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
-import com.intellij.ui.EditorNotifications
 import com.intellij.util.ui.update.MergingUpdateQueue
 import com.intellij.util.ui.update.Update
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Consumer
+import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.withLock
 
 /**
@@ -61,13 +60,15 @@ fun setupChangeListener(
   val documentManager = PsiDocumentManager.getInstance(project)
   documentManager.getDocument(psiFile)!!.addDocumentListener(object : DocumentListener {
     val aggregatedEventsLock = ReentrantLock()
+    @GuardedBy("aggregatedEventsLock")
     val aggregatedEvents = mutableSetOf<DocumentEvent>()
+    @GuardedBy("aggregatedEventsLock")
     var lastUpdatedNanos = 0L
 
     private fun onDocumentChanged(events: Set<DocumentEvent>) {
-      aggregatedEventsLock.withLock {
-        onDocumentUpdated(lastUpdatedNanos)
-      }
+      onDocumentUpdated(aggregatedEventsLock.withLock {
+        lastUpdatedNanos
+      })
     }
 
     override fun documentChanged(event: DocumentEvent) {
