@@ -41,8 +41,8 @@ public class AndroidEditorSettings implements PersistentStateComponent<AndroidEd
       myIcon = icon;
     }
 
-    @Override
-    public String toString() {
+    @NotNull
+    public String getDisplayName() {
       return myDisplayName;
     }
 

@@ -26,8 +26,10 @@ class NlOptionsConfigurable : SearchableConfigurable, Configurable.NoScroll {
                              index: Int,
                              selected: Boolean,
                              hasFocus: Boolean) {
-        value?.toString()?.let { text = it }
-        value?.icon?.let { icon = it }
+        value?.let {
+          text = it.displayName
+          icon = it.icon
+        }
       }
     }
   }
