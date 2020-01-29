@@ -584,13 +584,17 @@ public final class StudioFlags {
     "Use ResourceRepository to resolve references, not ResourceManager.",
     true);
 
-  public static final Flag<Boolean> RUN_DOM_EXTENDER = Flag.create(
+  public enum LayoutXmlMode {
+    DEFAULT,
+    NO_DOM_EXTENDER
+  }
+
+  public static final Flag<LayoutXmlMode> LAYOUT_XML_MODE = Flag.create(
     EDITOR,
-    "run.dom.extender",
-    "Run DOM extender",
-    "When disabled AndroidDomExtender does nothing, simulating a situation where DOM extensions have not been " +
-    "computed yet.",
-    true);
+    "layout.mode",
+    "Layout XML editing mode",
+    "Controls how XML editing in layout files works.",
+    LayoutXmlMode.DEFAULT);
 
   public static final Flag<Boolean> MULTI_DEX_KEEP_FILE_SUPPORT_ENABLED = Flag.create(
     EDITOR, "multidexkeepfile.support.enabled",
