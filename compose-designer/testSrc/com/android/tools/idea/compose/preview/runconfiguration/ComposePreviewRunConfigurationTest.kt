@@ -30,9 +30,13 @@ import org.mockito.Mockito.mock
 
 class ComposePreviewRunConfigurationTest : AndroidTestCase() {
 
+  private lateinit var runConfiguration: TestComposePreviewRunConfiguration
+
   override fun setUp() {
     super.setUp()
     StudioFlags.COMPOSE_PREVIEW_RUN_CONFIGURATION.override(true)
+    val runConfigurationFactory = ComposePreviewRunConfigurationType().configurationFactories[0]
+    runConfiguration = TestComposePreviewRunConfiguration(project, runConfigurationFactory)
   }
 
   override fun tearDown() {
@@ -41,8 +45,6 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
   }
 
   fun testAmStartOptionsWithComposableMethod() {
-    val runConfigurationFactory = ComposePreviewRunConfigurationType().configurationFactories[0]
-    val runConfiguration = TestComposePreviewRunConfiguration(project, runConfigurationFactory)
     runConfiguration.composableMethodFqn = "com.mycomposeapp.SomeClass.SomeComposable"
 
     val status = mock(LaunchStatus::class.java)
@@ -51,6 +53,10 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
                  "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER " +
                  "--es composable com.mycomposeapp.SomeClass.SomeComposable",
                  task.getStartActivityCommand(mock(IDevice::class.java), status, mock(ConsolePrinter::class.java)))
+  }
+
+  fun testConfigurationIsNotProfilable() {
+    assertFalse(runConfiguration.isProfilable())
   }
 
   private class FakeApplicationIdProvider : ApplicationIdProvider {

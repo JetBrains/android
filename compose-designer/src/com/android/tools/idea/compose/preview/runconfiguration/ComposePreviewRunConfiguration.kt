@@ -35,4 +35,6 @@ open class ComposePreviewRunConfiguration(project: Project, factory: Configurati
     @Suppress("LeakingThis")
     setLaunchActivity("androidx.ui.tooling.preview.PreviewActivity", true)
   }
+
+  override fun isProfilable() = false
 }
