@@ -82,7 +82,6 @@ import com.android.support.AndroidxName;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
@@ -435,8 +434,6 @@ public class AndroidDomUtil {
 
   @Nullable
   public static AttributeDefinition getAttributeDefinition(@NotNull AndroidFacet facet, @NotNull XmlAttribute attribute) {
-    checkThreading();
-
     String localName = attribute.getLocalName();
 
     ResourceNamespace namespace = null;
@@ -589,20 +586,5 @@ public class AndroidDomUtil {
 
     PsiClass tagClass = JavaPsiFacade.getInstance(tag.getProject()).findClass(qualifiedName, tag.getResolveScope());
     return InheritanceUtil.isInheritor(tagClass, MigrateToAndroidxUtil.getNameInProject(baseClass, tag.getProject()));
-  }
-
-  private static final boolean CHECK_THREADING = false;
-
-  public static void checkThreading() {
-    if (!CHECK_THREADING) {
-      return;
-    }
-
-    if (ApplicationManager.getApplication().isDispatchThread()) {
-      LOG.error("Android DOM operations on the UI thread.");
-    }
-    else if (Thread.currentThread().getName().startsWith("JobScheduler FJ pool")) {
-      LOG.error("Android DOM operations on FJ pool.");
-    }
   }
 }
