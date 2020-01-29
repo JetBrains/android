@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite;
 
+import static com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestSuiteConstantsKt.ANDROID_TEST_RESULT_LISTENER_KEY;
+
 import com.android.annotations.concurrency.AnyThread;
 import com.android.annotations.concurrency.UiThread;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase;
@@ -211,7 +214,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   public void attachToProcess(ProcessHandler processHandler) {
     // Put this test suite view to the process handler as AndroidTestResultListener so the view
     // is notified the test results and to be updated.
-    processHandler.putCopyableUserData(AndroidTestSuiteConstantsKt.ANDROID_TEST_RESULT_LISTENER_KEY, this);
+    processHandler.putCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY, this);
   }
 
   @Override
