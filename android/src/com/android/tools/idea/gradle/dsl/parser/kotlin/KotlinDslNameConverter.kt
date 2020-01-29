@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.kotlin
 
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo
 import com.android.tools.idea.gradle.dsl.parser.GradleDslNameConverter
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression
@@ -55,16 +56,16 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
   }
 
   @JvmDefault
-  override fun externalNameForParent(modelName: String, context: GradleDslElement): Pair<String, Boolean?> {
+  override fun externalNameForParent(modelName: String, context: GradleDslElement): ExternalNameInfo {
     val map = context.getExternalToModelMap(this)
-    val defaultResult : Pair<String, Boolean?> = modelName to null
-    var result : Pair<String, Boolean?>? = null
+    val defaultResult = ExternalNameInfo(modelName, null)
+    var result : ExternalNameInfo? = null
     for (e in map.entries) {
       if (e.value.first == modelName ) {
         // prefer assignment if possible, or otherwise the first appropriate method we find
         when (e.value.second) {
-          VAR, VWO -> return e.key.first to false
-          SET, ADD_AS_LIST, OTHER -> if (result == null) result = e.key.first to true
+          VAR, VWO -> return ExternalNameInfo(e.key.first, false)
+          SET, ADD_AS_LIST, OTHER -> if (result == null) result = ExternalNameInfo(e.key.first, true)
           else -> Unit
         }
       }

@@ -180,7 +180,7 @@ internal fun maybeTrimForParent(name: GradleNameElement,
 
   val externalNameInfo = converter.externalNameForParent(lastNamePart, parent)
 
-  lastNamePart = externalNameInfo.first
+  lastNamePart = externalNameInfo.externalName
   parts.add(lastNamePart)
-  return GradleNameElement.createNameFromParts(parts) to externalNameInfo.second
+  return GradleNameElement.createNameFromParts(parts) to externalNameInfo.asMethod
 }
