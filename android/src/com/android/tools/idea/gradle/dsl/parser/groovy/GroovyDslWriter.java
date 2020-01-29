@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.parser.groovy;
 
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
 import com.android.tools.idea.gradle.dsl.parser.GradleDslWriter;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
@@ -122,13 +123,13 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     Project project = parentPsiElement.getProject();
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(project);
 
-    Pair<String, Boolean> externalNameInfo = maybeTrimForParent(element.getNameElement(), element.getParent(), this);
-    String statementText = externalNameInfo.getFirst();
-    assert statementText != null && !statementText.isEmpty() : "Element name can't be null! This will cause statement creation to error.";
+    ExternalNameInfo externalNameInfo = maybeTrimForParent(element.getNameElement(), element.getParent(), this);
+    String statementText = externalNameInfo.externalName;
+    assert !statementText.isEmpty() : "Element name can't be empty! This will cause statement creation to error.";
 
     boolean useAssignment = element.shouldUseAssignment();
-    if (externalNameInfo.getSecond() != null) {
-      useAssignment = !externalNameInfo.getSecond();
+    if (externalNameInfo.asMethod != null) {
+      useAssignment = !externalNameInfo.asMethod;
     }
     if (element.isBlockElement()) {
       if (element instanceof MavenRepositoryDslElement && element.getContainedElements(true).isEmpty()) {
@@ -277,7 +278,7 @@ public class GroovyDslWriter extends GroovyDslNameConverter implements GradleDsl
     PsiElement anchor = getPsiElementForAnchor(parentPsiElement, anchorAfter);
 
     GroovyPsiElementFactory factory = GroovyPsiElementFactory.getInstance(parentPsiElement.getProject());
-    String elementName = !methodCall.getFullName().isEmpty() ? maybeTrimForParent(methodCall.getNameElement(), methodCall.getParent(), this).getFirst() + " " : "";
+    String elementName = !methodCall.getFullName().isEmpty() ? maybeTrimForParent(methodCall.getNameElement(), methodCall.getParent(), this).externalName + " " : "";
     String methodCallText = (methodCall.isConstructor() ? "new ": "") + methodCall.getMethodName() + "()";
     String statementText = (methodCall.shouldUseAssignment()) ? elementName + "= " + methodCallText : elementName + methodCallText;
     GrStatement statement = factory.createStatementFromText(statementText);
