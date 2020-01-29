@@ -66,7 +66,10 @@ iml_module(
 
 kotlin_test(
     name = "intellij.android.profilers.performance",
-    srcs = ["testSrc/com/android/tools/profilers/performance"],
+    srcs = glob([
+        "testSrc/com/android/tools/profilers/performance/**/*.kt",
+        "testSrc/com/android/tools/profilers/performance/**/*.java",
+    ]),
     jvm_flags = ["-Dtest.suite.jar=intellij.android.profilers.performance.jar"],
     test_class = "com.android.testutils.JarTestSuite",
     runtime_deps = [
