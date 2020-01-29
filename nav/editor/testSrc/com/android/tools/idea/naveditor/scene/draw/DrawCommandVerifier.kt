@@ -28,8 +28,10 @@ import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.Shape
 import java.awt.Stroke
+import java.awt.geom.Ellipse2D
 import java.awt.geom.Line2D
 import java.awt.geom.Path2D
+import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 import java.awt.geom.RoundRectangle2D
 import java.awt.image.BufferedImage
@@ -54,8 +56,14 @@ private const val HEADER_ICON_SIZE = 14f
 private const val HEADER_TEXT_PADDING = 2f
 
 private val ACTION_STROKE = BasicStroke(3f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND)
+private val ACTION_HANDLE_STROKE = BasicStroke(2f)
+private val ACTION_HANDLE_OUTER_COLOR = Color(0xf5f5f5)
+private val ACTION_HANDLE_INNER_COLOR = Color(0x1886f7)
 
 private const val ACTION_ARROW_PARALLEL = 10f
+
+private val LINE_TO_MOUSE_COLOR = Color(0x1886f7)
+private val LINE_TO_MOUSE_STROKE = BasicStroke(3f)
 
 fun verifyDrawFragment(inOrder: InOrder,
                        g: Graphics2D,
@@ -256,3 +264,37 @@ fun verifyDrawIcon(inOrder: InOrder, g: Graphics2D, rectangle: Rectangle2D.Float
   }
   inOrder.verify(g).dispose()
 }
+
+
+fun verifyDrawLineToMouse(inOrder: InOrder, g: Graphics2D, center: Point2D.Float, mouseX: Int, mouseY: Int) {
+  inOrder.verify(g).create()
+  inOrder.verify(g).color = LINE_TO_MOUSE_COLOR
+  inOrder.verify(g).stroke = argThat(StrokeArgumentMatcher(LINE_TO_MOUSE_STROKE))
+  val line = Line2D.Float(center.x, center.y, mouseX.toFloat(), mouseY.toFloat())
+  inOrder.verify(g).draw(argThat(ShapeArgumentMatcher(line)))
+  inOrder.verify(g).dispose()
+}
+
+fun verifyDrawActionHandle(inOrder: InOrder, g: Graphics2D, center: Point2D.Float, outerRadius: Float, innerRadius: Float,
+                           outerColor: Color, innerColor: Color) {
+  val outerEllipse = makeCircle(center, outerRadius)
+  verifyFillShape(inOrder, g, outerEllipse, outerColor)
+
+  val innerEllipse = makeCircle(center, innerRadius)
+  verifyDrawShape(inOrder, g, innerEllipse, innerColor, ACTION_HANDLE_STROKE)
+}
+
+fun verifyDrawActionHandleDrag(inOrder: InOrder, g: Graphics2D, center: Point2D.Float,
+                               outerRadius: Float, innerRadius: Float,
+                               mouseX: Int, mouseY: Int) {
+  val outerEllipse = makeCircle(center, outerRadius)
+  verifyFillShape(inOrder, g, outerEllipse, ACTION_HANDLE_OUTER_COLOR)
+
+  val innerEllipse = makeCircle(center, innerRadius)
+  verifyFillShape(inOrder, g, innerEllipse, ACTION_HANDLE_INNER_COLOR)
+
+  verifyDrawLineToMouse(inOrder, g, center, mouseX, mouseY)
+}
+
+private fun makeCircle(center: Point2D.Float, radius: Float) =
+  Ellipse2D.Float(center.x - radius, center.y - radius, 2 * radius, 2 * radius)

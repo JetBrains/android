@@ -30,7 +30,7 @@ import com.android.tools.idea.naveditor.scene.NavColors.SELECTED
 import com.android.tools.idea.naveditor.scene.makeCircle
 import com.android.tools.idea.naveditor.scene.makeCircleLerp
 
-data class DrawActionHandleDrag(private val center: SwingPoint,
+class DrawActionHandleDrag(private val center: SwingPoint,
                                 private val initialOuterRadius: SwingLength,
                                 private val finalOuterRadius: SwingLength,
                                 private val innerRadius: SwingLength,
