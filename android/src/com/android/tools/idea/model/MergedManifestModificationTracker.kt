@@ -21,8 +21,10 @@ import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleServiceManager
+import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.openapi.util.SimpleModificationTracker
+import org.jetbrains.annotations.TestOnly
 
 /**
  * A module-wide modification tracker whose modification count is a value
@@ -32,6 +34,22 @@ import com.intellij.openapi.util.SimpleModificationTracker
 class MergedManifestModificationTracker(val module: Module) : ModificationTracker {
   private val manifestContributorTracker = SimpleModificationTracker()
   private val LOG: Logger get() = logger(::LOG)
+  var manifestChangedActivityRegistered = false
+    private set
+    @TestOnly get
+
+  init {
+    val project = module.project
+    if (!project.isDefault) {
+      val startupManager = StartupManager.getInstance(project)
+      if (!startupManager.postStartupActivityPassed()) {
+        // If query happens before indexing when project just starts up, invalid queried results are cached.
+        // So we need to explicitly update tracker to ensure another index query, instead of providing stale cached results.
+        startupManager.registerPostStartupActivity { manifestChanged() }
+        manifestChangedActivityRegistered = true
+      }
+    }
+  }
 
   companion object {
     @JvmStatic
