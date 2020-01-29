@@ -20,15 +20,14 @@ import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import java.awt.Cursor
 import java.awt.event.MouseEvent
-import java.util.EventObject
 
 /**
  * An implementation of [Interaction] that passes interaction events to layoutlib via [LayoutlibSceneManager]
  */
 class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
-  override fun commit(event: EventObject?, interactionInformation: InteractionInformation) {
-    val mouseEvent = event as MouseEvent
-    end(mouseEvent.x, mouseEvent.y, mouseEvent.modifiersEx)
+  override fun commit(event: InteractionEvent) {
+    val mouseEvent = event as MouseReleasedEvent
+    end(mouseEvent.eventObject.x, mouseEvent.eventObject.y, mouseEvent.eventObject.modifiersEx)
   }
 
   override fun end(x: Int, y: Int, modifiersEx: Int) {
@@ -40,7 +39,7 @@ class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
     sceneView.surface.repaint()
   }
 
-  override fun begin(event: EventObject?, interactionInformation: InteractionInformation) {
+  override fun begin(event: InteractionEvent) {
     if (event is MouseEvent) {
       begin(event.x, event.y, event.modifiersEx)
     }
@@ -55,8 +54,8 @@ class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
     }
   }
 
-  override fun cancel(event: EventObject?, interactionInformation: InteractionInformation) {
-    cancel(interactionInformation.x, interactionInformation.y, interactionInformation.modifiersEx)
+  override fun cancel(event: InteractionEvent) {
+    cancel(event.info.x, event.info.y, event.info.modifiersEx)
   }
 
   override fun cancel(x: Int, y: Int, modifiersEx: Int) {
@@ -66,7 +65,7 @@ class LayoutlibInteraction(private val sceneView: SceneView) : Interaction() {
 
   override fun getCursor(): Cursor? = sceneView.scene.mouseCursor
 
-  override fun update(event: EventObject, interactionInformation: InteractionInformation) {
+  override fun update(event: InteractionEvent) {
     if (event is MouseEvent) {
       val mouseX = event.x
       val mouseY = event.y

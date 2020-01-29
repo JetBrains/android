@@ -28,8 +28,11 @@ import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.surface.Interaction;
+import com.android.tools.idea.common.surface.InteractionEvent;
 import com.android.tools.idea.common.surface.InteractionInformation;
 import com.android.tools.idea.common.surface.Layer;
+import com.android.tools.idea.common.surface.MouseDraggedEvent;
+import com.android.tools.idea.common.surface.MousePressedEvent;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
@@ -166,9 +169,9 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public void begin(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
-    if (event instanceof MouseEvent) {
-      MouseEvent mouseEvent = (MouseEvent) event;
+  public void begin(@NotNull InteractionEvent event) {
+    if (event instanceof MousePressedEvent) {
+      MouseEvent mouseEvent = ((MousePressedEvent)event).getEventObject();
       begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
     }
   }
@@ -205,9 +208,9 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public void update(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
-    if (event instanceof MouseEvent) {
-      MouseEvent mouseEvent = (MouseEvent) event;
+  public void update(@NotNull InteractionEvent event) {
+    if (event instanceof MouseDraggedEvent) {
+      MouseEvent mouseEvent = ((MouseDraggedEvent)event).getEventObject();
       update(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
     }
   }
@@ -258,9 +261,9 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public void commit(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+  public void commit(@NotNull InteractionEvent event) {
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    end(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+    end(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
   }
 
   @Override
@@ -287,9 +290,9 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public void cancel(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+  public void cancel(@NotNull InteractionEvent event) {
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    cancel(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+    cancel(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
   }
 
   @Override
