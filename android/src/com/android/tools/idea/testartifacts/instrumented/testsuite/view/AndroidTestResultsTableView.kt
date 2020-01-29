@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.testartifacts.instrumented.testsuite
+package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
@@ -21,7 +21,6 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
 import com.google.common.annotations.VisibleForTesting
-import com.intellij.ui.AppUIUtil
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.ColumnInfo
@@ -34,9 +33,9 @@ import javax.swing.event.ListSelectionEvent
  * A table to display Android test results. Test results are grouped by device and test case. The column is a device name
  * and the row is a test case.
  */
-class AndroidTestResultsTable(listener: AndroidTestResultsTableListener) {
+class AndroidTestResultsTableView(listener: AndroidTestResultsTableListener) {
   private val myModel = AndroidTestResultsTableModel()
-  private val myTableView = AndroidTestResultsTableView(myModel, listener)
+  private val myTableView = AndroidTestResultsTableViewComponent(myModel, listener)
   private val myTableViewContainer = JBScrollPane(myTableView)
 
   /**
@@ -107,8 +106,8 @@ interface AndroidTestResultsTableListener {
 /**
  * An internal swing view component implementing AndroidTestResults table view.
  */
-private class AndroidTestResultsTableView(model: AndroidTestResultsTableModel,
-                                          private val listener: AndroidTestResultsTableListener)
+private class AndroidTestResultsTableViewComponent(model: AndroidTestResultsTableModel,
+                                                   private val listener: AndroidTestResultsTableListener)
   : TableView<AndroidTestResultsRow>(model) {
   init {
     selectionModel.selectionMode = ListSelectionModel.SINGLE_SELECTION
@@ -121,7 +120,7 @@ private class AndroidTestResultsTableView(model: AndroidTestResultsTableModel,
 }
 
 /**
- * A view model class of [AndroidTestResultsTable].
+ * A view model class of [AndroidTestResultsTableViewComponent].
  */
 private class AndroidTestResultsTableModel :
   ListTableModel<AndroidTestResultsRow>(TestNameColumn(), TestStatusColumn()) {

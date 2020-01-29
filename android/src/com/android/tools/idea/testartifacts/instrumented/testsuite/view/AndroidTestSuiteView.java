@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.testartifacts.instrumented.testsuite;
+package com.android.tools.idea.testartifacts.instrumented.testsuite.view;
 
 import static com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestSuiteConstantsKt.ANDROID_TEST_RESULT_LISTENER_KEY;
 
 import com.android.annotations.concurrency.AnyThread;
 import com.android.annotations.concurrency.UiThread;
-import com.android.tools.idea.testartifacts.instrumented.testsuite.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResultListener;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
@@ -66,7 +66,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   private JPanel myTableViewContainer;
 
   private final ThreeComponentsSplitter myComponentsSplitter;
-  private final AndroidTestResultsTable myTable;
+  private final AndroidTestResultsTableView myTable;
   private final AndroidTestSuiteDetailsView myDetailsView;
 
   private int scheduledTestCases = 0;
@@ -81,7 +81,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
    */
   @UiThread
   public AndroidTestSuiteView(@NotNull Disposable parentDisposable) {
-    myTable = new AndroidTestResultsTable(this);
+    myTable = new AndroidTestResultsTableView(this);
     myTableViewContainer.add(myTable.getComponent());
 
     myComponentsSplitter = new ThreeComponentsSplitter(/*vertical=*/true,
@@ -277,7 +277,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   public void dispose() { }
 
   @VisibleForTesting
-  public AndroidTestResultsTable getTableForTesting() {
+  public AndroidTestResultsTableView getTableForTesting() {
     return myTable;
   }
 
