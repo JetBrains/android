@@ -16,6 +16,7 @@
 package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingLength
+import com.android.tools.adtui.common.SwingPoint
 import com.android.tools.adtui.common.SwingRectangle
 import com.android.tools.idea.common.model.Scale
 import com.android.tools.idea.common.scene.SceneContext
@@ -31,6 +32,7 @@ import org.mockito.Mockito.verifyNoMoreInteractions
 import java.awt.Color
 import java.awt.FontMetrics
 import java.awt.Graphics2D
+import java.awt.geom.Point2D
 import java.awt.geom.Rectangle2D
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
@@ -46,7 +48,24 @@ private val FRAME_COLOR = Color.RED
 private val TEXT_COLOR = Color.BLUE
 private val HIGHLIGHT_COLOR = Color.GREEN
 
+private val OUTER_HANDLE_COLOR = Color.WHITE
+private val INNER_HANDLE_COLOR = Color.BLACK
+
+private val HANDLE_CENTER = Point2D.Float(10f, 10f)
+private const val INITIAL_OUTER_RADIUS = 10f
+private const val FINAL_OUTER_RADIUS = 20f
+private const val INITIAL_INNER_RADIUS = 30f
+private const val FINAL_INNER_RADIUS = 40f
+private const val DURATION = 100
+
 class DrawCommandTest : NavTestCase() {
+  private lateinit var context: SceneContext
+
+  override fun setUp() {
+    super.setUp()
+    context = mock(SceneContext::class.java)
+  }
+
   fun testDrawPlaceholder() {
     val command = DrawPlaceholder(SwingRectangle(RECTANGLE))
     verifyDrawCommand(command) { inOrder, g -> verifyDrawPlaceholder(inOrder, g, RECTANGLE) }
@@ -180,6 +199,60 @@ class DrawCommandTest : NavTestCase() {
     }
   }
 
+  fun testDrawLineToMouse() {
+    val command = DrawLineToMouse(SwingPoint(HANDLE_CENTER))
+    val mouseX = 20
+    val mouseY = 30
+    setMouse(mouseX, mouseY)
+
+    verifyDrawCommand(command) { inOrder, g ->
+      verifyDrawLineToMouse(inOrder, g, HANDLE_CENTER, mouseX, mouseY)
+    }
+  }
+
+  fun testDrawActionHandle() {
+    val command = DrawActionHandle(SwingPoint(HANDLE_CENTER), SwingLength(INITIAL_OUTER_RADIUS), SwingLength(FINAL_OUTER_RADIUS),
+                                   SwingLength(INITIAL_INNER_RADIUS), SwingLength(FINAL_INNER_RADIUS),
+                                   DURATION, OUTER_HANDLE_COLOR, INNER_HANDLE_COLOR)
+
+    testDrawActionHandle(command, 0f)
+    testDrawActionHandle(command, 0.5f)
+    testDrawActionHandle(command, 1f)
+  }
+
+  private fun testDrawActionHandle(command: DrawCommand, fraction: Float) {
+    `when`(context.time).thenReturn((fraction * DURATION).toLong())
+
+    val outerRadius = interpolate(INITIAL_OUTER_RADIUS, FINAL_OUTER_RADIUS, fraction)
+    val innerRadius = interpolate(INITIAL_INNER_RADIUS, FINAL_INNER_RADIUS, fraction)
+
+    verifyDrawCommand(command) { inOrder, g ->
+      verifyDrawActionHandle(inOrder, g, HANDLE_CENTER, outerRadius, innerRadius, OUTER_HANDLE_COLOR, INNER_HANDLE_COLOR)
+    }
+  }
+
+  fun testDrawActionHandleDrag() {
+    val command = DrawActionHandleDrag(SwingPoint(HANDLE_CENTER), SwingLength(INITIAL_OUTER_RADIUS), SwingLength(FINAL_OUTER_RADIUS),
+                                       SwingLength(FINAL_INNER_RADIUS), DURATION)
+
+    testDrawActionHandleDrag(command, 0f)
+    testDrawActionHandleDrag(command, 0.5f)
+    testDrawActionHandleDrag(command, 1f)
+  }
+
+  private fun testDrawActionHandleDrag(command: DrawCommand, fraction: Float) {
+    `when`(context.time).thenReturn((fraction * DURATION).toLong())
+    val mouseX = 20
+    val mouseY = 30
+    setMouse(mouseX, mouseY)
+
+    val outerRadius = interpolate(INITIAL_OUTER_RADIUS, FINAL_OUTER_RADIUS, fraction)
+
+    verifyDrawCommand(command) { inOrder, g ->
+      verifyDrawActionHandleDrag(inOrder, g, HANDLE_CENTER, outerRadius, FINAL_INNER_RADIUS, mouseX, mouseY)
+    }
+  }
+
   private fun verifyDrawCommand(command: DrawCommand, verifier: (InOrder, Graphics2D) -> Unit) {
     val graphics = mock(Graphics2D::class.java)
     `when`(graphics.create()).thenReturn(graphics)
@@ -189,10 +262,18 @@ class DrawCommandTest : NavTestCase() {
     `when`(graphics.getFontMetrics(any())).thenReturn(metrics)
 
     val inOrder = inOrder(graphics)
-    val context = SceneContext.get()
 
     command.paint(graphics, context)
     verifier(inOrder, graphics)
     verifyNoMoreInteractions(graphics)
+  }
+
+  private fun setMouse(x: Int, y: Int) {
+    `when`(context.mouseX).thenReturn(x)
+    `when`(context.mouseY).thenReturn(y)
+  }
+
+  private fun interpolate(start: Float, end: Float, fraction: Float): Float {
+    return start + (end - start) * fraction
   }
 }
