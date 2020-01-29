@@ -77,42 +77,44 @@ class JdbcDatabaseConnection(
   }
 
   private fun readColumnDefinitions(connection: Connection, tableName: String): List<SqliteColumn> {
-    var resultSet: ResultSet? = null
-    try {
-      val statement = connection.createStatement()
-      val pragmaStatement = "PRAGMA table_info(${AndroidSqlLexer.getValidName(tableName)})"
-      resultSet = statement.executeQuery(pragmaStatement)
+    connection.createStatement().use { statement ->
+      statement.executeQuery("PRAGMA table_info(${AndroidSqlLexer.getValidName(tableName)})").use {
+        return it.map {
+          val columnName = getString(2)
+          val columnType = getString(3)
+          val colNotNull = getString(4)
+          val colPk = getString(6)
 
-      return resultSet.map {
-        val columnName = getString(2)
-        val columnType = getString(3)
-        val colNotNull = getString(4)
-        val colPk = getString(6)
-
-        SqliteColumn(
-          columnName,
-          SqliteAffinity.fromTypename(columnType),
-          colNotNull == "0",
-          colPk == "1"
-        )
-      }.toList()
-    } finally {
-      resultSet?.close()
+          SqliteColumn(
+            columnName,
+            SqliteAffinity.fromTypename(columnType),
+            colNotNull == "0",
+            colPk == "1"
+          )
+        }.toList()
+      }
     }
   }
 
   override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet?> {
     return sequentialTaskExecutor.executeAsync {
-      val preparedStatement = connection.resolvePreparedStatement(sqliteStatement)
-      val hasResultSet = preparedStatement.execute().also {
-        logger.info("SQL statement \"${sqliteStatement.sqliteStatementText}\" executed with success.")
-      }
+      connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
+        var resultSet: ResultSet? = null
+        try {
+          val hasResultSet = preparedStatement.execute().also {
+            logger.info("SQL statement \"${sqliteStatement.sqliteStatementText}\" executed with success.")
+            resultSet = preparedStatement.resultSet
+          }
 
-      if (hasResultSet) {
-        JdbcSqliteResultSet(this, connection, sqliteStatement)
-      }
-      else {
-        null
+          if (hasResultSet) {
+            JdbcSqliteResultSet(this, connection, sqliteStatement)
+          }
+          else {
+            null
+          }
+        } finally {
+          resultSet?.close()
+        }
       }
     }
   }
