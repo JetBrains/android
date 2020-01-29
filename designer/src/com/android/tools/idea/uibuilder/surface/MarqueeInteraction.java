@@ -23,8 +23,9 @@ import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.scene.draw.DrawLassoUtil;
 import com.android.tools.idea.common.surface.Interaction;
-import com.android.tools.idea.common.surface.InteractionInformation;
+import com.android.tools.idea.common.surface.InteractionEvent;
 import com.android.tools.idea.common.surface.Layer;
+import com.android.tools.idea.common.surface.MouseDraggedEvent;
 import com.android.tools.idea.common.surface.SceneView;
 import com.intellij.util.containers.ContainerUtil;
 import java.awt.Cursor;
@@ -32,7 +33,6 @@ import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EventObject;
 import java.util.List;
 import org.intellij.lang.annotations.JdkConstants.InputEventMask;
 import org.jetbrains.annotations.NotNull;
@@ -60,16 +60,16 @@ public class MarqueeInteraction extends Interaction {
   }
 
   @Override
-  public void begin(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
-    assert event instanceof MouseEvent;
-    MouseEvent mouseEvent = (MouseEvent) event;
+  public void begin(@NotNull InteractionEvent event) {
+    assert event instanceof MouseDraggedEvent;
+    MouseEvent mouseEvent = ((MouseDraggedEvent)event).getEventObject();
     begin(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
   }
 
   @Override
-  public void update(@NotNull EventObject event, @NotNull InteractionInformation interactionInformation) {
-    if (event instanceof MouseEvent) {
-      MouseEvent mouseEvent = (MouseEvent) event;
+  public void update(@NotNull InteractionEvent event) {
+    if (event instanceof MouseDraggedEvent) {
+      MouseEvent mouseEvent = ((MouseDraggedEvent)event).getEventObject();
       update(mouseEvent.getX(), mouseEvent.getY(), mouseEvent.getModifiersEx());
     }
   }
@@ -100,14 +100,14 @@ public class MarqueeInteraction extends Interaction {
   }
 
   @Override
-  public void commit(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+  public void commit(@NotNull InteractionEvent event) {
     // Do nothing
   }
 
   @Override
-  public void cancel(@Nullable EventObject event, @NotNull InteractionInformation interactionInformation) {
+  public void cancel(@NotNull InteractionEvent event) {
     //noinspection MagicConstant // it is annotated as @InputEventMask in Kotlin.
-    cancel(interactionInformation.getX(), interactionInformation.getY(), interactionInformation.getModifiersEx());
+    cancel(event.getInfo().getX(), event.getInfo().getY(), event.getInfo().getModifiersEx());
   }
 
   @Override
