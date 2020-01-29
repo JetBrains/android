@@ -55,6 +55,24 @@ public class MergedManifestManagerTest extends AndroidTestCase {
 
   }
 
+  public void testDuplicateActivities() throws Exception {
+    MergedManifestSnapshot manifest = getMergedManifest("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+                                                    "    package='com.android.unittest'>\n" +
+                                                    "    <application\n" +
+                                                    "        android:label='@string/app_name'\n" +
+                                                    "        android:name='.app.TestApp' android:icon='@drawable/app_icon'>\n" +
+                                                    "\n" +
+                                                    "        <activity\n" +
+                                                    "            android:name='.MainActivity'/>\n" +
+                                                    "\n" +
+                                                        "        <activity\n" +
+                                                        "            android:name='.MainActivity'/>\n" +
+                                                    "    </application>\n" +
+                                                    "</manifest>\n" +
+                                                    "");
+    assertNotNull(manifest.findActivity("com.android.unittest.MainActivity"));
+  }
+
   public void testGetActivityThemes1() throws Exception {
     MergedManifestSnapshot info = getMergedManifest("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
                                                    "    package='com.android.unittest'>\n" +
