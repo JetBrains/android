@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPL
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LIST_ELEMENTS_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED
+import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_OPERATOR_BUILD_TYPE_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_PRODUCT_FLAVOR_BLOCK
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_PRODUCT_FLAVOR_BLOCK_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.ANDROID_MODEL_ADD_AND_APPLY_SIGNING_CONFIG_BLOCK
@@ -792,7 +793,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddAndApplyDottedBuildTypeBlock() {
-    writeToBuildFile(ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK);
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK)
     val buildModel = gradleBuildModel
     val android = buildModel.android()
     android.addBuildType("dotted.buildtype")
@@ -807,6 +808,26 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildTypes = gradleBuildModel.android().buildTypes()
     assertThat(buildTypes).hasSize(1)
     assertEquals("buildTypes", "dotted.buildtype", buildTypes[0].name())
+    assertEquals("applicationIdSuffix", "foo", buildTypes[0].applicationIdSuffix())
+  }
+
+  @Test
+  fun testAddAndApplyOperatorBuildTypeBlock() {
+    writeToBuildFile(ANDROID_MODEL_ADD_AND_APPLY_BUILD_TYPE_BLOCK)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    android.addBuildType("debug-custom")
+    var buildTypes = android.buildTypes()
+    assertThat(buildTypes).hasSize(1)
+    assertEquals("buildTypes", "debug-custom", buildTypes[0].name())
+    buildTypes[0].applicationIdSuffix().setValue("foo")
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, ANDROID_MODEL_ADD_AND_APPLY_OPERATOR_BUILD_TYPE_BLOCK_EXPECTED)
+
+    buildTypes = gradleBuildModel.android().buildTypes()
+    assertThat(buildTypes).hasSize(1)
+    assertEquals("buildTypes", "debug-custom", buildTypes[0].name())
     assertEquals("applicationIdSuffix", "foo", buildTypes[0].applicationIdSuffix())
   }
 

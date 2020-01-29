@@ -161,13 +161,10 @@ internal fun findLastPsiElementIn(startElement: GradleDslElement): PsiElement? {
  * [GradleDslNameConverter.externalNameForParent])
  */
 internal fun maybeTrimForParent(name: GradleNameElement, parent: GradleDslElement?, converter: GradleDslNameConverter): ExternalNameInfo {
+  val parts = ArrayList(name.fullNameParts());
   // FIXME(xof): this case needs fixing too
-  if (parent == null) return ExternalNameInfo(name.fullName(), null)
+  if (parent == null || parts.isEmpty()) return ExternalNameInfo(parts, null, name.isFake)
 
-  val parts = ArrayList(name.fullNameParts())
-  if (parts.isEmpty()) {
-    return ExternalNameInfo(name.fullName(), null)
-  }
   val lastNamePart = parts.removeAt(parts.size - 1)
   // TODO(xof): this Splitter is unlikely to be correct
   val parentParts = Splitter.on(".").splitToList(parent.qualifiedName)
@@ -179,5 +176,5 @@ internal fun maybeTrimForParent(name: GradleNameElement, parent: GradleDslElemen
 
   val externalNameInfo = converter.externalNameForParent(lastNamePart, parent)
   parts.addAll(externalNameInfo.externalNameParts)
-  return ExternalNameInfo(parts, externalNameInfo.asMethod)
+  return ExternalNameInfo(parts, externalNameInfo.asMethod, name.isFake)
 }
