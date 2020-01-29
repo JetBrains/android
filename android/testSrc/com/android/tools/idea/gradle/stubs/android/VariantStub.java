@@ -22,6 +22,7 @@ import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -150,4 +151,8 @@ public class VariantStub implements IdeVariant {
   public boolean isInstantAppCompatible() {
     return false;
   }
+
+  @NotNull
+  @Override
+  public Collection<File> getDesugarLibLintFiles() { return Collections.emptyList(); }
 }
