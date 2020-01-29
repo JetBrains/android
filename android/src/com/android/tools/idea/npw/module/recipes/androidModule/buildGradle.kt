@@ -25,7 +25,6 @@ import com.android.tools.idea.templates.RepositoryUrlManager
 import com.android.tools.idea.templates.resolveDependency
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.GradlePluginVersion
-import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.has
 import com.android.tools.idea.wizard.template.renderIf
 
@@ -38,7 +37,6 @@ fun buildGradle(
   minApi: Int,
   targetApi: Int,
   useAndroidX: Boolean,
-  language: Language,
   gradlePluginVersion: GradlePluginVersion,
   includeCppSupport: Boolean = false,
   // TODO(qumeric): do something better
@@ -53,17 +51,11 @@ fun buildGradle(
   val explicitBuildToolsVersion = needsExplicitBuildToolsVersion(GradleVersion.parse(gradlePluginVersion), parseRevision(buildToolsVersion))
   val supportsImprovedTestDeps = supportsImprovedTestDeps(gradlePluginVersion)
   val isApplicationProject = !isLibraryProject
-  val kotlinPluginsBlock = renderIf(language == Language.Kotlin) {
-    """
-    apply plugin: 'kotlin-android'
-    apply plugin: 'kotlin-android-extensions'
-    """
-  }
   val pluginsBlock = "    " + when {
     isLibraryProject -> "apply plugin: 'com.android.library'"
     isDynamicFeature -> "apply plugin: 'com.android.dynamic-feature'"
     else -> "apply plugin: 'com.android.application'"
-  } + "\n    " + kotlinPluginsBlock
+  }
 
 
   val androidConfigBlock = androidConfig(
