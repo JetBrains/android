@@ -41,6 +41,7 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.castSafelyTo
 import icons.StudioIcons
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
@@ -145,7 +146,8 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
     val descriptor = getFunctionDescriptor()
     return when {
       !COMPOSE_COMPLETION_INSERT_HANDLER.get() -> super.handleInsert(context)
-      descriptor == null ->  super.handleInsert(context)
+      !AndroidEditorSettings.getInstance().globalState.isComposeInsertHandlerEnabled -> super.handleInsert(context)
+      descriptor == null -> super.handleInsert(context)
       else -> AndroidComposeInsertHandler(descriptor).handleInsert(context, this)
     }
   }

@@ -24,6 +24,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.android.uipreview.AndroidEditorSettings
 
 class AndroidComposeCompletionContributorTest : AndroidTestCase() {
 
@@ -525,6 +526,60 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       }
       """.trimIndent()
       , true)
+  }
+
+  fun testInsertHandler_disabledThroughSettings() {
+    // Given:
+    myFixture.addFileToProject(
+      "src/com/example/MyViews.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun FoobarOne(first: Int, second: String, third: String? = null) {}
+
+      """.trimIndent()
+    )
+
+    val file = myFixture.addFileToProject(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+        Foobar${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    AndroidEditorSettings.getInstance().globalState.isComposeInsertHandlerEnabled = false
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+        FoobarOne()
+      }
+      """.trimIndent()
+    )
+
+    AndroidEditorSettings.getInstance().globalState.isComposeInsertHandlerEnabled = true
   }
 
   private val JavaCodeInsightTestFixture.renderedLookupElements: Collection<String>

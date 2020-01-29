@@ -1040,6 +1040,7 @@
                              displayName="Memory Settings"
                              provider="com.android.tools.idea.memorysettings.MemorySettingsConfigurableProvider"
                              id="memory.settings"/>
+    <codeCompletionConfigurable instance="org.jetbrains.android.compose.ComposeCodeCompletionConfigurable"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.android.tools.idea.wizard.template">
