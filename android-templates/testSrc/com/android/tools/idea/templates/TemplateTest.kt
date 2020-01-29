@@ -672,6 +672,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareAppWidget() {
+    checkCreateTemplate("other", "AppWidget", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareAppWidgetWithKotlin() {
+    checkCreateTemplate("other", "AppWidget", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewBlankFragment() {
     checkCreateTemplate("fragments", "BlankFragment")
   }
