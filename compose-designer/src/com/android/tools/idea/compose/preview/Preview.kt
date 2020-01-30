@@ -297,11 +297,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
           return
         }
 
-        // Clean-up the class loading cache for all the possibly affected modules.
-        val module = ModuleUtil.findModuleForFile(file)!!
-        val modules = mutableSetOf<Module>()
-        ModuleUtil.collectModulesDependsOn(module, modules)
-        modules.forEach { ModuleClassLoaderManager.get().clearCache(it) }
         EditorNotifications.getInstance(project).updateNotifications(file.virtualFile!!)
         refresh()
       }
