@@ -135,6 +135,19 @@ public class StudioIcons {
     public static final Icon VIRTUAL_DEVICE_WEAR = load("/studio/icons/device-explorer/virtual-device-wear.svg"); // 16x16
   }
 
+  public static class Emulator {
+    public static final Icon BACK = load("/studio/icons/emulator/back.svg"); // 16x16
+    public static final Icon HOME = load("/studio/icons/emulator/home.svg"); // 16x16
+    public static final Icon OVERVIEW = load("/studio/icons/emulator/overview.svg"); // 16x16
+    public static final Icon POWER = load("/studio/icons/emulator/power.svg"); // 16x16
+    public static final Icon ROTATE_LEFT = load("/studio/icons/emulator/rotate-left.svg"); // 16x16
+    public static final Icon ROTATE_RIGHT = load("/studio/icons/emulator/rotate-right.svg"); // 16x16
+    public static final Icon SCREENSHOT = load("/studio/icons/emulator/screenshot.svg"); // 16x16
+    public static final Icon VOLUME_DOWN = load("/studio/icons/emulator/volume-down.svg"); // 16x16
+    public static final Icon VOLUME_UP = load("/studio/icons/emulator/volume-up.svg"); // 16x16
+    public static final Icon ZOOM_IN = load("/studio/icons/emulator/zoom-in.svg"); // 16x16
+  }
+
   public static class LayoutEditor {
     public static class Extras {
       public static final Icon DOWNLOAD_OVERLAY_LEGACY_LARGE = load("/studio/icons/layout-editor/extras/download-overlay-legacy-large.svg"); // 24x24
