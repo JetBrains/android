@@ -84,6 +84,8 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_REPLACE_METHOD_DEPENDENCY_WITH_CLOSURE_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_RESET;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_EMPTY;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_NON_STANDARD;
+import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_NON_STANDARD_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_MULTIPLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_CONFIGURATION_WHEN_SINGLE;
 import static com.android.tools.idea.gradle.dsl.TestFileName.ARTIFACT_DEPENDENCY_SET_EXCLUDES_BLOCK_TO_REFERENCES;
@@ -1996,6 +1998,24 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     // the change to an empty configuration name should cause the writer to refuse to change the
     // identifier, without throwing an exception.
     verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_EMPTY);
+  }
+
+  @Test
+  public void testSetConfigurationToNonStandard() throws IOException {
+    writeToBuildFile(ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_NON_STANDARD);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    List<ArtifactDependencyModel> artifacts = buildModel.dependencies().artifacts();
+
+    assertThat(artifacts).hasSize(1);
+    artifacts.get(0).setConfigurationName("customImplementation");
+
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, ARTIFACT_DEPENDENCY_SET_CONFIGURATION_TO_NON_STANDARD_EXPECTED);
+
+    artifacts = buildModel.dependencies().artifacts();
+    assertThat(artifacts).hasSize(1);
+    assertThat(artifacts.get(0).configurationName()).isEqualTo("customImplementation");
   }
 
   public static class ExpectedArtifactDependency extends ArtifactDependencySpecImpl {
