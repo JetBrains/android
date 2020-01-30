@@ -32,8 +32,8 @@ class EmulatorToolWindow(private val project: Project) : DumbAware {
   private val ID_KEY = Key.create<String>("pane-id")
 
   private var initialized = false
-  private val panes: MutableList<EmulatorToolWindowPane> = arrayListOf()
-  private var activePane: EmulatorToolWindowPane? = null
+  private val myPanels: MutableList<EmulatorToolWindowPanel> = arrayListOf()
+  private var myActivePanel: EmulatorToolWindowPanel? = null
   private var contentManagerListener = object : ContentManagerAdapter() {
     @UiThread
     override fun selectionChanged(event: ContentManagerEvent) {
@@ -43,23 +43,23 @@ class EmulatorToolWindow(private val project: Project) : DumbAware {
     }
   }
 
-  private fun addPane(pane: EmulatorToolWindowPane, toolWindow: ToolWindow) {
+  private fun addPane(panel: EmulatorToolWindowPanel, toolWindow: ToolWindow) {
     val contentFactory = ContentFactory.SERVICE.getInstance()
-    val content = contentFactory.createContent(pane.component, pane.title, false)
+    val content = contentFactory.createContent(panel.component, panel.title, false)
     content.putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
-    content.tabName = pane.title
-    content.icon = pane.icon
-    content.popupIcon = pane.icon
-    content.putUserData(ID_KEY, pane.id)
+    content.tabName = panel.title
+    content.icon = panel.icon
+    content.popupIcon = panel.icon
+    content.putUserData(ID_KEY, panel.id)
 
-    val index = panes.binarySearch(pane, PANE_COMPARATOR).inv()
+    val index = myPanels.binarySearch(panel, PANE_COMPARATOR).inv()
     assert(index >= 0)
 
     if (index >= 0) {
-      panes.add(index, pane)
+      myPanels.add(index, panel)
       toolWindow.contentManager.addContent(content, index)
-      if (activePane == null) {
-        activePane = pane
+      if (myActivePanel == null) {
+        myActivePanel = panel
       }
     }
   }
@@ -67,7 +67,7 @@ class EmulatorToolWindow(private val project: Project) : DumbAware {
   private fun createContent(toolWindow: ToolWindow) {
     initialized = true
     // TODO: Discover running Emulators and create panes for each of them.
-    val pane = EmulatorToolWindowPane("Pixel 3 API 29", 5554)
+    val pane = EmulatorToolWindowPanel("Pixel 3 API 29", 5554)
     addPane(pane, toolWindow)
 
     toolWindow.contentManager.addContentManagerListener(contentManagerListener)
@@ -77,18 +77,18 @@ class EmulatorToolWindow(private val project: Project) : DumbAware {
   private fun viewSelectionChanged() {
     val content = getContentManager().selectedContent
     val id = content?.getUserData<String>(ID_KEY)
-    if (id != activePane?.id) {
-      activePane?.destroyContent()
-      activePane = null
+    if (id != myActivePanel?.id) {
+      myActivePanel?.destroyContent()
+      myActivePanel = null
     }
     if (id != null) {
-      activePane = findPaneById(id)
-      activePane?.createContent()
+      myActivePanel = findPaneById(id)
+      myActivePanel?.createContent()
     }
   }
 
-  private fun findPaneById(id: String): EmulatorToolWindowPane? {
-    return panes.firstOrNull { it.id == id }
+  private fun findPaneById(id: String): EmulatorToolWindowPanel? {
+    return myPanels.firstOrNull { it.id == id }
   }
 
   private fun getContentManager(): ContentManager {
@@ -98,9 +98,9 @@ class EmulatorToolWindow(private val project: Project) : DumbAware {
   private fun destroyContent(toolWindow: ToolWindow) {
     initialized = false
     toolWindow.contentManager.removeContentManagerListener(contentManagerListener)
-    activePane?.destroyContent()
-    activePane = null
-    panes.clear()
+    myActivePanel?.destroyContent()
+    myActivePanel = null
+    myPanels.clear()
   }
 
   init {
@@ -134,4 +134,4 @@ class EmulatorToolWindow(private val project: Project) : DumbAware {
 
 private val COLLATOR = Collator.getInstance()
 
-private val PANE_COMPARATOR = compareBy<EmulatorToolWindowPane, Any?>(COLLATOR) { it.title }.thenBy { it.port }
+private val PANE_COMPARATOR = compareBy<EmulatorToolWindowPanel, Any?>(COLLATOR) { it.title }.thenBy { it.port }
