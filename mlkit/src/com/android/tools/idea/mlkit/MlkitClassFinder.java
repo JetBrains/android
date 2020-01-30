@@ -90,10 +90,10 @@ public class MlkitClassFinder extends PsiElementFinder {
   @NotNull
   private static String computeDataKey(@NotNull String qualifiedName) {
     // If it might inner class, then find second last element which matches data key.
-    if (qualifiedName.endsWith(MlkitNames.OUTPUT) || qualifiedName.endsWith(MlkitNames.LABEL)) {
+    if (qualifiedName.endsWith(MlkitNames.OUTPUTS) || qualifiedName.endsWith(MlkitNames.INPUTS)) {
       String[] candidates = qualifiedName.split("\\.");
       if (candidates.length >= 2) {
-        return candidates[candidates.length-2];
+        return candidates[candidates.length - 2];
       }
     }
 

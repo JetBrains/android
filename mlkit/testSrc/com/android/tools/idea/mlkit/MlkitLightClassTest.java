@@ -40,6 +40,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
     StudioFlags.MLKIT_TFLITE_MODEL_FILE_TYPE.override(true);
     StudioFlags.MLKIT_LIGHT_CLASSES.override(true);
 
+    // Pull in tflite model, which has image(i.e. name: image1) as input tensor and labels as output tensor
     myFixture.setTestDataPath(new File(getModulePath("mlkit"), "testData").getPath());
     VirtualFile tfliteFile = myFixture.copyFileToProject("my_model.tflite", "/assets/my_model.tflite");
     PsiTestUtil.addSourceContentToRoots(myModule, tfliteFile);
@@ -73,18 +74,22 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "\n" +
       "import android.app.Activity;\n" +
       "import android.os.Bundle;\n" +
-      "import java.nio.ByteBuffer;" +
       "import p1.p2.mlkit.auto.MyModel;\n" +
-      "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
+      "import java.lang.String;\n" +
+      "import java.lang.Float;\n" +
+      "import java.util.Map;\n" +
+      "import android.graphics.Bitmap;\n" +
       "\n" +
       "public class MainActivity extends Activity {\n" +
       "    @Override\n" +
       "    protected void onCreate(Bundle savedInstanceState) {\n" +
       "        super.onCreate(savedInstanceState);\n" +
       "        MyModel myModel = new MyModel(this);\n" +
-      "        FirebaseVisionImage image = null;\n" +
-      "        MyModel.Output output = myModel.run(image);\n" +
-      "        ByteBuffer byteBuffer = output.getProbability();\n" +
+      "        Bitmap image = null;\n" +
+      "        MyModel.Inputs inputs = myModel.createInputs();\n" +
+      "        inputs.loadImage1(image);\n" +
+      "        MyModel.Outputs output = myModel.run(inputs);\n" +
+      "        Map<String, Float> probability = output.getProbability();\n" +
       "    }\n" +
       "}"
     );
@@ -103,15 +108,17 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "import android.os.Bundle\n" +
       "import p1.p2.mlkit.auto.MyModel\n" +
       "import android.util.Log\n" +
-      "import com.google.firebase.ml.vision.common.FirebaseVisionImage\n" +
+      "import android.graphics.Bitmap\n" +
       "\n" +
       "class MainActivity : Activity() {\n" +
       "    override fun onCreate(savedInstanceState: Bundle?) {\n" +
       "        super.onCreate(savedInstanceState)\n" +
-      "        val image: FirebaseVisionImage? = null\n" +
+      "        val image: Bitmap? = null\n" +
       "        val mymodel = MyModel(this)\n" +
-      "        val output = mymodel.run(image)\n" +
-      "        val probability = output.probability\n" +
+      "        val inputs = mymodel.createInputs()\n" +
+      "        inputs.loadImage1(image)\n" +
+      "        val outputs = mymodel.run(inputs)\n" +
+      "        val probability = outputs.probability\n" +
       "        Log.d(\"TAG\", probability.toString())\n" +
       "    }\n" +
       "}"
@@ -162,6 +169,47 @@ public class MlkitLightClassTest extends AndroidTestCase {
       "}");
   }
 
+  public void testCompleteCreateInputsMethod() {
+    PsiFile activityFile = myFixture.addFileToProject(
+      "/src/p1/p2/MainActivity.java",
+      // language=java
+      "package p1.p2;\n" +
+      "\n" +
+      "import android.app.Activity;\n" +
+      "import android.os.Bundle;\n" +
+      "import p1.p2.mlkit.auto.MyModel;\n" +
+      "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
+      "\n" +
+      "public class MainActivity extends Activity {\n" +
+      "    @Override\n" +
+      "    protected void onCreate(Bundle savedInstanceState) {\n" +
+      "        super.onCreate(savedInstanceState);\n" +
+      "        MyModel myModel = new MyModel(this);\n" +
+      "        myModel.c<caret>;\n" +
+      "    }\n" +
+      "}"
+    );
+
+    myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
+    myFixture.complete(CompletionType.BASIC);
+    myFixture.checkResult(
+      "package p1.p2;\n" +
+      "\n" +
+      "import android.app.Activity;\n" +
+      "import android.os.Bundle;\n" +
+      "import p1.p2.mlkit.auto.MyModel;\n" +
+      "import com.google.firebase.ml.vision.common.FirebaseVisionImage;\n" +
+      "\n" +
+      "public class MainActivity extends Activity {\n" +
+      "    @Override\n" +
+      "    protected void onCreate(Bundle savedInstanceState) {\n" +
+      "        super.onCreate(savedInstanceState);\n" +
+      "        MyModel myModel = new MyModel(this);\n" +
+      "        myModel.createInputs();\n" +
+      "    }\n" +
+      "}");
+  }
+
   public void testCompleteInnerClass() {
     PsiFile activityFile = myFixture.addFileToProject(
       "/src/p1/p2/MainActivity.java",
@@ -184,8 +232,8 @@ public class MlkitLightClassTest extends AndroidTestCase {
     myFixture.configureFromExistingVirtualFile(activityFile.getVirtualFile());
     LookupElement[] elements = myFixture.complete(CompletionType.BASIC);
     assertThat(elements).hasLength(2);
-    assertThat(elements[0].toString()).isEqualTo("MyModel.Label");
-    assertThat(elements[1].toString()).isEqualTo("MyModel.Output");
+    assertThat(elements[0].toString()).isEqualTo("MyModel.Inputs");
+    assertThat(elements[1].toString()).isEqualTo("MyModel.Outputs");
 
     myFixture.getLookup().setCurrentItem(elements[0]);
     myFixture.finishLookup(Lookup.NORMAL_SELECT_CHAR);
@@ -201,7 +249,7 @@ public class MlkitLightClassTest extends AndroidTestCase {
                           "    @Override\n" +
                           "    protected void onCreate(Bundle savedInstanceState) {\n" +
                           "        super.onCreate(savedInstanceState);\n" +
-                          "        MyModel.Label;\n" +
+                          "        MyModel.Inputs;\n" +
                           "    }\n" +
                           "}");
   }

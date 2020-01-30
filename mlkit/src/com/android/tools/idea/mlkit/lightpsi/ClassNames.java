@@ -16,9 +16,7 @@
 package com.android.tools.idea.mlkit.lightpsi;
 
 class ClassNames {
-  public static String VISION_IMAGE = "com.google.firebase.ml.vision.common.FirebaseVisionImage";
-  public static String TASK = "com.google.android.gms.tasks.Task";
-  public static String LIST = "java.util.List";
+  public static String BITMAP = "android.graphics.Bitmap";
   public static String BYTE_BUFFER = "java.nio.ByteBuffer";
   public static String CONTEXT = "android.content.Context";
 }

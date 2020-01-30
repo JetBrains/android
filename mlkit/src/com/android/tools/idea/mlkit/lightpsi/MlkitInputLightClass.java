@@ -15,60 +15,53 @@
  */
 package com.android.tools.idea.mlkit.lightpsi;
 
-import static com.intellij.psi.CommonClassNames.JAVA_UTIL_MAP;
-
 import com.android.tools.idea.mlkit.MlkitModuleService;
 import com.android.tools.idea.mlkit.MlkitUtils;
 import com.android.tools.mlkit.MlkitNames;
 import com.android.tools.mlkit.Param;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ModificationTracker;
-import com.intellij.psi.CommonClassNames;
-import com.intellij.psi.JavaPsiFacade;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.light.LightMethodBuilder;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PropertyUtilBase;
 import java.util.List;
 import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Output class for output tensors. For each tensor it has a private field to store data and a getter method.
+ * Input class for input tensors. For each tensor it has a private field to store data and a getter method.
  *
  * @see LightModelClass
  */
-public class MlkitOutputLightClass extends AndroidLightClassBase {
+public class MlkitInputLightClass extends AndroidLightClassBase {
   private final PsiClass containingClass;
   private final String qualifiedName;
   private final CachedValue<PsiMethod[]> myMethodCache;
 
-  public MlkitOutputLightClass(@NotNull Module module, List<Param> params, PsiClass containingClass) {
+  public MlkitInputLightClass(@NotNull Module module, List<Param> params, PsiClass containingClass) {
     super(PsiManager.getInstance(module.getProject()),
           ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.STATIC, PsiModifier.FINAL));
-    this.qualifiedName = String.join(".", MlkitUtils.computeModelPackageName(module), containingClass.getName(), MlkitNames.OUTPUTS);
+    this.qualifiedName = String.join(".", MlkitUtils.computeModelPackageName(module), containingClass.getName(), MlkitNames.INPUTS);
     this.containingClass = containingClass;
 
     setModuleInfo(module, false);
 
-    // Cache getter methods for output class
+    // Cache load methods for input class
     ModificationTracker modificationTracker = new MlkitModuleService.ModelFileModificationTracker(module);
     myMethodCache = CachedValuesManager.getManager(getProject()).createCachedValue(
       () -> {
         PsiMethod[] methods = new PsiMethod[params.size()];
         for (int i = 0; i < methods.length; i++) {
-          methods[i] = buildGetterMethod(params.get(i));
+          methods[i] = buildLoadMethod(params.get(i));
         }
 
         return CachedValueProvider.Result.create(methods, modificationTracker);
@@ -84,7 +77,7 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
 
   @Override
   public String getName() {
-    return MlkitNames.OUTPUTS;
+    return MlkitNames.INPUTS;
   }
 
   @NotNull
@@ -93,22 +86,14 @@ public class MlkitOutputLightClass extends AndroidLightClassBase {
     return myMethodCache.getValue();
   }
 
-  private PsiMethod buildGetterMethod(Param param) {
-    Project project = getProject();
-    GlobalSearchScope scope = getResolveScope();
-    PsiType returnType;
-    if (param.getFileType() == Param.FileType.TENSOR_AXIS_LABELS) {
-      final PsiClass mapClass = JavaPsiFacade.getInstance(project).findClass(JAVA_UTIL_MAP, scope);
-      final PsiType key = PsiType.getJavaLangString(PsiManager.getInstance(getProject()), scope);
-      final PsiType value = PsiType.getTypeByName(CommonClassNames.JAVA_LANG_FLOAT, project, scope);
-      returnType = PsiElementFactory.getInstance(project).createType(mapClass, key, value);
-    } else {
-      returnType = PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(param), project, scope);
-    }
+  private PsiMethod buildLoadMethod(Param param) {
+    PsiType paramType = PsiType.getTypeByName(CodeUtils.getTypeQualifiedName(param), getProject(), getResolveScope());
 
-    return new LightMethodBuilder(myManager, PropertyUtilBase.suggestGetterName(param.getName(), returnType))
-      .setMethodReturnType(returnType)
+    String methodName = "load" + StringUtil.capitalizeWithJavaBeanConvention(StringUtil.sanitizeJavaIdentifier(param.getName()));
+    return new LightMethodBuilder(myManager, methodName)
       .addModifiers(PsiModifier.PUBLIC, PsiModifier.FINAL)
+      .addParameter(param.getName(), paramType)
+      .setMethodReturnType(PsiType.VOID)
       .setContainingClass(this);
   }
 
