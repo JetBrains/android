@@ -42,7 +42,7 @@ class LegacyClientTest {
 
   @Test
   fun testReloadAllWindows() {
-    val inspector = LayoutInspector(InspectorModel(projectRule.project))
+    val inspector = LayoutInspector(InspectorModel(projectRule.project), projectRule.fixture.projectDisposable)
     val client = inspector.allClients.firstIsInstance<LegacyClient>()
 
     // we don't need the default poller--stop it so it doesn't leak

@@ -56,12 +56,12 @@ class DeviceViewContentPanelTest {
 
   @Before
   fun setUp() {
-    InspectorClient.clientFactory = { mock(InspectorClient::class.java) }
+    InspectorClient.clientFactory = { _, _ -> mock(InspectorClient::class.java) }
   }
 
   @After
   fun tearDown() {
-    InspectorClient.clientFactory = { DefaultInspectorClient(it) }
+    InspectorClient.clientFactory = { model, disposable -> DefaultInspectorClient(model, disposable) }
   }
 
   @Test

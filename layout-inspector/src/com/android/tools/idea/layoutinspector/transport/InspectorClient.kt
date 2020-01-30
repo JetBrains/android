@@ -26,6 +26,7 @@ import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspec
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.Event.EventGroupIds
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
 import java.util.concurrent.Future
 
 /**
@@ -106,12 +107,14 @@ interface InspectorClient {
      * Be sure to set it back afterward!
      */
     @VisibleForTesting
-    var clientFactory: (model: InspectorModel) -> InspectorClient = { DefaultInspectorClient(it) }
+    var clientFactory: (model: InspectorModel, parentDisposable: Disposable) -> InspectorClient = { model, parentDisposable ->
+      DefaultInspectorClient(model, parentDisposable)
+    }
 
     /**
      * Use this method to create a new client.
      */
-    fun createInstance(model: InspectorModel): InspectorClient = clientFactory(model)
+    fun createInstance(model: InspectorModel, parentDisposable: Disposable): InspectorClient = clientFactory(model, parentDisposable)
   }
 }
 
