@@ -893,6 +893,8 @@ java_test(
         "qa_sanity_emu",
         "requires_emulator",
         "cpu:100",
+        "qa_sanity_unreliable_emu",  # intend to run it here to see stable sanity ui tests running time
+        "qa_unreliable",  # intend to run it here to see stable sanity ui tests running time
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
