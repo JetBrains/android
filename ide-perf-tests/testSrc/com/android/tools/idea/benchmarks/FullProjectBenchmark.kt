@@ -36,7 +36,6 @@ import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import org.jetbrains.android.AndroidTestBase
 import org.junit.After
 import org.junit.Ignore
-import org.junit.Test
 import java.io.File
 
 /**
@@ -66,11 +65,7 @@ data class LayoutCompletionSample (
  */
 @Ignore
 abstract class FullProjectBenchmark {
-  abstract val projectName: String
-  abstract val fileTypes: List<FileType>
   abstract val gradleRule: AndroidGradleProjectRule
-  abstract val layoutAttributeCompletionInput: LayoutCompletionInput
-  abstract val layoutTagCompletionInput:  LayoutCompletionInput
 
   @After
   fun tearDown() {
@@ -79,30 +74,27 @@ abstract class FullProjectBenchmark {
     }
   }
 
-  @Test
-  fun fullProjectHighlighting() {
+  fun fullProjectHighlighting(fileTypes: List<FileType>, projectName: String) {
     runInEdtAndWait {
       for (fileType in fileTypes) {
-        measureHighlighting(fileType)
+        measureHighlighting(fileType, projectName)
       }
     }
   }
 
-  @Test
-  fun layoutAttributeCompletion() {
-    testLayoutCompletion(layoutAttributeCompletionInput, layoutCompletionBenchmark, "Attribute")
+  fun layoutAttributeCompletion(layoutAttributeCompletionInput: LayoutCompletionInput, projectName: String) {
+    testLayoutCompletion(layoutAttributeCompletionInput, projectName, "Attribute")
   }
 
-  @Test
-  fun layoutTagCompletion() {
-    testLayoutCompletion(layoutTagCompletionInput, layoutCompletionBenchmark, "Tag")
+  fun layoutTagCompletion(layoutTagCompletionInput: LayoutCompletionInput, projectName: String) {
+    testLayoutCompletion(layoutTagCompletionInput, projectName, "Tag")
   }
 
-  private fun testLayoutCompletion(layoutCompletionInput: LayoutCompletionInput, benchmark: Benchmark, completionType: String) {
+  private fun testLayoutCompletion(layoutCompletionInput: LayoutCompletionInput, projectName: String, completionType: String) {
     runBenchmark(
       recordResults = { runLayoutEditingCuj(layoutCompletionInput) },
       runBetweenIterations = { clearCaches() },
-      commitResults = { commitLayoutCompletionSamplesToBenchmark(it, benchmark, completionType) }
+      commitResults = { commitLayoutCompletionSamplesToBenchmark(it, projectName, completionType) }
     )
   }
 
@@ -163,7 +155,7 @@ abstract class FullProjectBenchmark {
 
   private fun commitLayoutCompletionSamplesToBenchmark(
     samples: List<LayoutCompletionSample>,
-    benchmark: Benchmark,
+    projectName: String,
     completionType: String
   ) {
     val slowSamples = samples.map { it.slowPathTime }
@@ -174,7 +166,7 @@ abstract class FullProjectBenchmark {
     println("""
       ===
       Project: $projectName
-      Benchmark name: ${benchmark.name}
+      Benchmark name: ${layoutCompletionBenchmark.name}
       Average Slow time: ${slowSamples.map { it.sampleData }.average()} ms
       Average Medium time: ${mediumSamples.map { it.sampleData }.average()} ms
       Average Fast time: ${fastSamples.map { it.sampleData }.average()} ms
@@ -183,13 +175,13 @@ abstract class FullProjectBenchmark {
     println("Fast_path_time,Medium_path_time,Slow_path_time")
     samples.forEach { println("${it.fastPathTime.sampleData},${it.mediumPathTime.sampleData},${it.slowPathTime.sampleData}") }
     val slowPathMetric =  Metric("${projectName}_${completionType}_Slow_Path")
-    slowPathMetric.addSamples(benchmark, *slowSamples.toTypedArray())
+    slowPathMetric.addSamples(layoutCompletionBenchmark, *slowSamples.toTypedArray())
     slowPathMetric.commit()
     val mediumPathMetric =  Metric("${projectName}_${completionType}_Medium_Path")
-    mediumPathMetric.addSamples(benchmark, *mediumSamples.toTypedArray())
+    mediumPathMetric.addSamples(layoutCompletionBenchmark, *mediumSamples.toTypedArray())
     mediumPathMetric.commit()
     val fastPathMetric =  Metric("${projectName}_${completionType}_Fast_Path")
-    fastPathMetric.addSamples(benchmark, *fastSamples.toTypedArray())
+    fastPathMetric.addSamples(layoutCompletionBenchmark, *fastSamples.toTypedArray())
     fastPathMetric.commit()
   }
 
@@ -243,7 +235,7 @@ abstract class FullProjectBenchmark {
   }
 
   /** Measures highlighting performance for all project source files of the given type. */
-  private fun measureHighlighting(fileType: FileType) {
+  private fun measureHighlighting(fileType: FileType, projectName: String) {
     // Collect files.
     val project = gradleRule.project
     val files = FileTypeIndex.getFiles(fileType, ProjectScope.getContentScope(project))

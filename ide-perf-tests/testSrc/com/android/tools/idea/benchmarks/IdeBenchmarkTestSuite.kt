@@ -37,6 +37,13 @@ class IdeBenchmarkTestSuite : IdeaTestSuiteBase() {
           DiffSpec("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/setupForIdeTest.diff", 2))
         unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/SantaTracker.181be75/repo.zip")
 
+        // Updated SantaTracker project with Kotlin sources
+        setUpSourceZip(
+          "prebuilts/studio/buildbenchmarks/SantaTrackerKotlin/src.zip",
+          "tools/adt/idea/ide-perf-tests/testData/SantaTrackerKotlin",
+          DiffSpec("prebuilts/studio/buildbenchmarks/SantaTrackerKotlin/setupForIdeTest.diff", 0))
+        unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/SantaTrackerKotlin/repo.zip")
+
         unzipIntoOfflineMavenRepo("tools/base/build-system/studio_repo.zip")
         unzipIntoOfflineMavenRepo("tools/adt/idea/android/test_deps.zip")
       }

@@ -24,12 +24,12 @@ import org.junit.ClassRule
 import org.junit.Test
 
 /**
- * Runs the FullProjectBenchmark tests on an old version of the Santa Tracker project which has only Java and XML files.
+ * Runs the FullProjectBenchmark tests on an updated version of SantaTracker project which includes Kotlin, Java and XML files
  *
  * Run locally with:
- * bazel test --test_output=streamed --test_filter=SantaTrackerBenchmark //tools/adt/idea/ide-perf-tests/...
+ * bazel test --test_output=streamed --test_filter=SantaTrackerKotlinBenchmark //tools/adt/idea/ide-perf-tests/...
  */
-class SantaTrackerBenchmark : FullProjectBenchmark() {
+class SantaTrackerKotlinBenchmark : FullProjectBenchmark() {
   override val gradleRule = staticRule
 
   companion object {
@@ -37,8 +37,7 @@ class SantaTrackerBenchmark : FullProjectBenchmark() {
     @ClassRule
     val staticRule = AndroidGradleProjectRule()
 
-    private const val PROJECT_NAME = "SantaTracker"
-
+    private const val PROJECT_NAME = "SantaTrackerKotlin"
     @JvmStatic
     @BeforeClass
     fun setUpBeforeClass() {
@@ -55,10 +54,11 @@ class SantaTrackerBenchmark : FullProjectBenchmark() {
   fun layoutAttributeCompletion() {
     super.layoutAttributeCompletion(
       LayoutCompletionInput(
-        "/santa-tracker/src/main/java/com/google/android/apps/santatracker/games/cityquiz/CityQuizActivity.java",
-        "updateScore();|",
-        "/santa-tracker/src/main/res/layout/activity_city_quiz.xml",
-        "android:id=\"@+id/title_city_quiz\"\n            |"),
+        "/cityquiz/src/main/java/com/google/android/apps/santatracker/cityquiz/CityQuizActivity.kt",
+        "updateScore()\n|",
+        "/cityquiz/src/main/res/layout/activity_city_quiz.xml",
+        "android:id=\"@+id/title_city_quiz\"\n            |"
+      ),
       PROJECT_NAME)
   }
 
@@ -66,10 +66,11 @@ class SantaTrackerBenchmark : FullProjectBenchmark() {
   fun layoutTagCompletion() {
     super.layoutTagCompletion(
       LayoutCompletionInput(
-        "/santa-tracker/src/main/java/com/google/android/apps/santatracker/games/cityquiz/CityQuizActivity.java",
-        "updateScore();|",
-        "/santa-tracker/src/main/res/layout/activity_city_quiz.xml",
-        "<|ProgressBar"),
+        "/cityquiz/src/main/java/com/google/android/apps/santatracker/cityquiz/CityQuizActivity.kt",
+        "updateScore()\n|",
+        "/cityquiz/src/main/res/layout/activity_city_quiz.xml",
+        "<|ProgressBar"
+      ),
       PROJECT_NAME)
   }
 }

@@ -7,6 +7,7 @@ iml_module(
     test_class = "com.android.tools.idea.benchmarks.IdeBenchmarkTestSuite",
     # keep sorted
     test_data = [
+        "//prebuilts/studio/buildbenchmarks:SantaTrackerKotlin_project",
         "//prebuilts/studio/buildbenchmarks:SantaTracker_project",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
