@@ -46,8 +46,8 @@ import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.project.AndroidProjectInfo;
-import com.android.tools.idea.run.AndroidAppRunConfigurationBase;
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.PreferGradleMake;
@@ -96,7 +96,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import javax.swing.Icon;
 import one.util.streamex.StreamEx;
 import org.jetbrains.annotations.NotNull;
@@ -428,8 +427,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       // pass the file path to the gradle task.
       File deviceSpecFile = deviceSpec.writeToJsonTempFile();
       properties.add(createProjectProperty(PROPERTY_APK_SELECT_CONFIG, deviceSpecFile.getAbsolutePath()));
-      if (configuration instanceof AndroidAppRunConfigurationBase) {
-        if (((AndroidAppRunConfigurationBase)configuration).DEPLOY_AS_INSTANT) {
+      if (configuration instanceof AndroidRunConfiguration) {
+        if (((AndroidRunConfiguration)configuration).DEPLOY_AS_INSTANT) {
           properties.add(createProjectProperty(PROPERTY_EXTRACT_INSTANT_APK, true));
         }
       }
@@ -447,8 +446,8 @@ public class MakeBeforeRunTaskProvider extends BeforeRunTaskProvider<MakeBeforeR
       if (!deviceSpec.getBuildAbis().isEmpty()) {
         properties.add(createProjectProperty(PROPERTY_BUILD_ABI, Joiner.on(',').join(deviceSpec.getBuildAbis())));
       }
-      if (configuration instanceof AndroidAppRunConfigurationBase) {
-        if (((AndroidAppRunConfigurationBase)configuration).DEPLOY_AS_INSTANT) {
+      if (configuration instanceof AndroidRunConfiguration) {
+        if (((AndroidRunConfiguration)configuration).DEPLOY_AS_INSTANT) {
           properties.add(createProjectProperty(PROPERTY_DEPLOY_AS_INSTANT_APP, true));
         }
       }

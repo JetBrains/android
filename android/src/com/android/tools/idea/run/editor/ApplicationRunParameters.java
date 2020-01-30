@@ -2,10 +2,11 @@
 
 package com.android.tools.idea.run.editor;
 
+import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
+
 import com.android.annotations.Nullable;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.run.AndroidAppRunConfigurationBase;
 import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ConfigurationSpecificEditor;
 import com.google.common.base.Preconditions;
@@ -33,21 +34,20 @@ import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.SmartList;
-import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactType;
+import org.jetbrains.annotations.NotNull;
 
-import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
-
-public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> implements ConfigurationSpecificEditor<T>, ActionListener {
+public class ApplicationRunParameters<T extends AndroidRunConfiguration> implements ConfigurationSpecificEditor<T>, ActionListener {
   private JPanel myPanel;
 
   // Deploy options
@@ -184,7 +184,7 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
   }
 
   @Override
-  public void resetFrom(@NotNull AndroidAppRunConfigurationBase configuration) {
+  public void resetFrom(@NotNull AndroidRunConfiguration configuration) {
     InstallOption installOption = getDeployOption(configuration.DEPLOY, configuration.DEPLOY_APK_FROM_BUNDLE, configuration.ARTIFACT_NAME);
     myDeployOptionCombo.setSelectedItem(installOption);
 
@@ -241,7 +241,7 @@ public class ApplicationRunParameters<T extends AndroidAppRunConfigurationBase> 
   }
 
   @Override
-  public void applyTo(@NotNull AndroidAppRunConfigurationBase configuration) {
+  public void applyTo(@NotNull AndroidRunConfiguration configuration) {
     InstallOption installOption = (InstallOption)myDeployOptionCombo.getSelectedItem();
     configuration.DEPLOY = installOption != InstallOption.NOTHING;
     configuration.DEPLOY_APK_FROM_BUNDLE = installOption == InstallOption.APK_FROM_BUNDLE;
