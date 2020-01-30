@@ -70,6 +70,7 @@ import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.update.Update;
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -763,7 +764,13 @@ public class NlDesignSurface extends DesignSurface implements ViewGroupHandler.A
   @NotNull
   @Override
   public CompletableFuture<Void> forceUserRequestedRefresh() {
-    return requestRender();
+    ArrayList<CompletableFuture<Void>> refreshFutures = new ArrayList<>();
+    for (SceneManager sceneManager : getSceneManagers()) {
+      LayoutlibSceneManager layoutlibSceneManager = (LayoutlibSceneManager)sceneManager;
+      refreshFutures.add(layoutlibSceneManager.requestUserInitiatedRender());
+    }
+
+    return CompletableFuture.allOf(refreshFutures.toArray(new CompletableFuture[refreshFutures.size()]));
   }
 
   @Override

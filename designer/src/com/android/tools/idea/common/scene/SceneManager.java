@@ -94,11 +94,6 @@ abstract public class SceneManager implements Disposable {
   }
 
   @NotNull
-  public ImmutableList<SceneView> getSceneViews() {
-    return ImmutableList.of(mySceneView);
-  }
-
-  @NotNull
   public ImmutableList<Layer> getLayers() {
     return mySceneView.getLayers();
   }
