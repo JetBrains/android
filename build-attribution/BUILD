@@ -111,5 +111,7 @@ iml_module(
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
         "//tools/analytics-library/tracker:analytics-tracker[module, test]",
+        "//tools/idea:intellij.platform.jps.build_and_others[module, test]",
+        "//tools/idea/platform/core-impl:intellij.platform.core.impl[module, test]",
     ],
 )

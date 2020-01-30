@@ -19,6 +19,7 @@ import com.android.annotations.concurrency.UiThread
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.TaskIssueReporter
 import com.android.build.attribution.ui.data.BuildAttributionReportUiData
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.build.BuildContentManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -43,7 +44,15 @@ class BuildAttributionUiManager(
   private val buildContentManager: BuildContentManager by lazy {
     ServiceManager.getService(project, BuildContentManager::class.java)
   }
-  private val uiAnalytics = BuildAttributionUiAnalytics(project)
+
+  @VisibleForTesting
+  var buildAttributionTreeView: BuildAttributionTreeView? = null
+
+  @VisibleForTesting
+  var buildContent: Content? = null
+
+  private var contentManager: ContentManager? = null
+
   private val contentManagerListener = object : ContentManagerAdapter() {
     override fun selectionChanged(event: ContentManagerEvent) {
       if (event.content !== buildContent) {
@@ -58,9 +67,7 @@ class BuildAttributionUiManager(
     }
   }
 
-  private var buildContent: Content? = null
-  private var manager: ContentManager? = null
-  private var buildAttributionTreeView: BuildAttributionTreeView? = null
+  private val uiAnalytics = BuildAttributionUiAnalytics(project)
 
   private lateinit var reportUiData: BuildAttributionReportUiData
 
@@ -107,16 +114,16 @@ class BuildAttributionUiManager(
         Disposer.register(content, Disposable { onContentClosed() })
         buildContentManager.addContent(content)
         uiAnalytics.tabCreated()
-        manager = content.manager
-        manager?.addContentManagerListener(contentManagerListener)
+        contentManager = content.manager
+        contentManager?.addContentManagerListener(contentManagerListener)
       }
     }
   }
 
   private fun onContentClosed() {
     uiAnalytics.tabClosed()
-    manager?.removeContentManagerListener(contentManagerListener)
-    manager = null
+    contentManager?.removeContentManagerListener(contentManagerListener)
+    contentManager = null
     buildAttributionTreeView = null
     buildContent = null
   }
@@ -128,7 +135,7 @@ class BuildAttributionUiManager(
         createNewTab()
       }
       uiAnalytics.registerBuildOutputLinkClick()
-      buildContentManager.setSelectedContent(buildContent, true, true, true) {}
+      contentManager!!.setSelectedContent(buildContent!!, true, true)
     }
   }
 }

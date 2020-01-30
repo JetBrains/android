@@ -186,6 +186,7 @@ public class ErrorReporter extends ErrorReportSubmitter {
           reportBuilder.setErrorSignal(jvmCrash.getErrorSignal());
           reportBuilder.setErrorFrame(jvmCrash.getErrorFrame());
           reportBuilder.setErrorThread(jvmCrash.getErrorThread());
+          reportBuilder.setNativeStack(jvmCrash.getNativeStack());
         }
       }
 

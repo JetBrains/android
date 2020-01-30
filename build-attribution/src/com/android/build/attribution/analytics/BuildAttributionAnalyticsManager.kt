@@ -53,11 +53,14 @@ class BuildAttributionAnalyticsManager(
 
   private val attributionStatsBuilder = BuildAttributionStats.newBuilder().setBuildAttributionReportSessionId(buildSessionId)
 
-  fun recordPostBuildAnalysis(block: () -> Unit) {
+  fun logBuildAttributionPerformanceStats(toolingApiLatencyMs: Long, postBuildAnalysis: () -> Unit) {
     val watch = Stopwatch.createStarted()
-    block()
+    postBuildAnalysis()
     attributionStatsBuilder.setBuildAttributionPerformanceStats(
-      BuildAttributionPerformanceStats.newBuilder().setPostBuildAnalysisDurationMs(watch.stop().elapsed(TimeUnit.MILLISECONDS)))
+      BuildAttributionPerformanceStats.newBuilder()
+        .setPostBuildAnalysisDurationMs(watch.stop().elapsed(TimeUnit.MILLISECONDS))
+        .setToolingApiBuildFinishedEventLatencyMs(toolingApiLatencyMs)
+    )
   }
 
   fun logAnalyzersData(analysisResult: BuildEventsAnalysisResult) {
