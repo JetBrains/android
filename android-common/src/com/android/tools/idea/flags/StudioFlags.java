@@ -253,12 +253,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_CONSTRAINT_LAYOUT_ASSISTANT = Flag.create(
     ASSISTANT, "layout.editor.help.constraintlayout", "Display Help for Constraint Layout",
     "If enabled, the assistant panel will display helpful guide on using Constraint Layout.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_MOTION_LAYOUT_ASSISTANT = Flag.create(
     ASSISTANT, "layout.editor.help.motionlayout", "Display Help for Motion Layout",
     "If enabled, the assistant panel will display helpful guide on using Motion Layout.",
-    false);
+    true);
 
   public static final Flag<Boolean> NELE_NAV_EDITOR_ASSISTANT = Flag.create(
     ASSISTANT, "layout.editor.help.naveditor", "Display Help for Navigation Editor",
