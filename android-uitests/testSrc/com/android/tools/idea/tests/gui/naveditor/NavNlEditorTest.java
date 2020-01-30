@@ -23,6 +23,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 
+import com.android.flags.junit.SetFlagRule;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -32,6 +33,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDial
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlComponentFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.designer.ComponentTreeFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.AddDestinationMenuFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture;
@@ -42,7 +44,6 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import org.fest.swing.driver.BasicJListCellReader;
-import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,18 +53,11 @@ import org.junit.runner.RunWith;
  */
 @RunWith(GuiTestRemoteRunner.class)
 public class NavNlEditorTest {
-
   @Rule public final GuiTestRule guiTest = new GuiTestRule();
-
-  @After
-  public void tearDown() {
-    StudioFlags.NAV_NEW_COMPONENT_TREE.clearOverride();
-  }
+  @Rule public final SetFlagRule<Boolean> flagRule = new SetFlagRule<>(StudioFlags.NAV_NEW_COMPONENT_TREE, false);
 
   @Test
   public void testSelectComponent() throws Exception {
-    StudioFlags.NAV_NEW_COMPONENT_TREE.override(false);
-
     IdeFrameFixture frame = guiTest.importProject("Navigation").waitForGradleProjectSyncToFinish();
     // Open file as XML and switch to design tab, wait for successful render
     EditorFixture editor = frame.getEditor();
@@ -75,8 +69,7 @@ public class NavNlEditorTest {
 
     assertThat(layout.getSelection()).containsExactly(screen.getComponent());
 
-    DestinationListFixture destinationListFixture = DestinationListFixture.create(guiTest.robot());
-    List<NlComponent> selectedComponents = destinationListFixture.getSelectedComponents();
+    List<NlComponent> selectedComponents = getPanelSelectedComponents(layout);
     assertEquals(1, selectedComponents.size());
     assertEquals("first_screen", selectedComponents.get(0).getId());
   }
@@ -84,6 +77,7 @@ public class NavNlEditorTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/72238573
   @Test
   public void testCreateAndDelete() throws Exception {
+    // TODO: support with new component tree
     StudioFlags.NAV_NEW_COMPONENT_TREE.override(false);
 
     NlEditorFixture layout = guiTest
@@ -124,7 +118,6 @@ public class NavNlEditorTest {
   @RunIn(TestGroup.UNRELIABLE)  // b/137919011
   @Test
   public void testCreateNewFragmentFromWizard() throws Exception {
-    StudioFlags.NAV_NEW_COMPONENT_TREE.override(false);
     StudioFlags.NPW_SHOW_FRAGMENT_GALLERY.override(true);
     try {
       NlEditorFixture layout = guiTest
@@ -151,8 +144,7 @@ public class NavNlEditorTest {
       ApplicationManager.getApplication().invokeAndWait(() -> dispatchAllInvocationEventsInIdeEventQueue());
       waitForIdle();
 
-      DestinationListFixture destinationListFixture = DestinationListFixture.create(guiTest.robot());
-      List<NlComponent> selectedComponents = destinationListFixture.getSelectedComponents();
+      List<NlComponent> selectedComponents = getPanelSelectedComponents(layout);
       assertEquals(1, selectedComponents.size());
       assertEquals("fullscreenFragment", selectedComponents.get(0).getId());
     } finally {
@@ -357,5 +349,15 @@ public class NavNlEditorTest {
       .getAddDestinationMenu()
       .waitForContents();
     assertTrue(menuFixture.isBalloonVisible());
+  }
+
+  private List<NlComponent> getPanelSelectedComponents(NlEditorFixture editor) {
+    if (StudioFlags.NAV_NEW_COMPONENT_TREE.get()) {
+      ComponentTreeFixture navComponentTreeFixture = editor.navComponentTree();
+      return navComponentTreeFixture.selectedComponents();
+    }
+
+    DestinationListFixture destinationListFixture = DestinationListFixture.create(guiTest.robot());
+    return destinationListFixture.getSelectedComponents();
   }
 }

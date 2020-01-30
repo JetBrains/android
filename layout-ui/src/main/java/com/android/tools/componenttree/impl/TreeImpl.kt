@@ -48,14 +48,15 @@ class TreeImpl(
   componentTreeModel: ComponentTreeModelImpl,
   private val contextPopup: ContextPopupHandler,
   private val doubleClick: DoubleClickHandler,
-  private val badges: List<BadgeItem>
+  private val badges: List<BadgeItem>,
+  componentName: String
 ) : Tree(componentTreeModel) {
 
   private var initialized = false
   private var hasApplicationFocus = { withinApplicationFocus() }
 
   init {
-    name = "componentTree"  // For UI tests
+    name = componentName  // For UI tests
     isRootVisible = true
     showsRootHandles = false
     toggleClickCount = 2

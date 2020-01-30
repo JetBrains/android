@@ -52,6 +52,7 @@ class TreePanel : ToolContent<DesignSurface> {
       .withDoubleClick { activateComponent() }
       .withExpandableRoot()
       .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
+      .withComponentName( "navComponentTree")
 
     val (tree, model, selectionModel) = builder.build()
     componentTree = tree
