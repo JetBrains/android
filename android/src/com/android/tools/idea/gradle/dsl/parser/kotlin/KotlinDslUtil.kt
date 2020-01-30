@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser.kotlin
 import com.android.tools.idea.gradle.dsl.api.ext.RawText
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.parser.GradleReferenceInjection
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement
+import com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.KTS_KNOWN_CONFIGURATIONS
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
@@ -704,6 +706,7 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
   val nameElement = element.nameElement
 
   val localName = nameElement.localName ?: return
+  if (localName == "") return
   if (localName == nameElement.originalName) return
 
   val oldName = nameElement.namedPsiElement ?: return
@@ -741,7 +744,11 @@ internal fun maybeUpdateName(element : GradleDslElement, writer: KotlinDslWriter
           }
           else -> factory.createExpressionIfPossible(newName)
         }
-        else -> factory.createExpressionIfPossible(newName)
+        else -> when {
+          element.parent is DependenciesDslElement && !KTS_KNOWN_CONFIGURATIONS.contains(newName) ->
+            factory.createExpressionIfPossible(StringUtil.unquoteString(newName).addQuotes(true))
+          else -> factory.createExpressionIfPossible(newName)
+        }
       } ?: return
 
     // For Kotlin, committing changes is a bit different, and if the psiElement is invalid, it throws an exception (unlike Groovy), so we

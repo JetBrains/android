@@ -1,5 +1,5 @@
 dependencies {
-  androidTest(files("libs"))
+  "androidTest"(files("libs"))
   api(files("xyz"))
   compile(files("klm"))
   testImplementation(files("a")) {
