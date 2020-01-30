@@ -351,7 +351,6 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
   @NotNull
   private static ListMultimap<String, Device> buildListMultimap(int expectedKeyCount) {
-    // noinspection UnstableApiUsage
     return MultimapBuilder
       .hashKeys(expectedKeyCount)
       .arrayListValues()

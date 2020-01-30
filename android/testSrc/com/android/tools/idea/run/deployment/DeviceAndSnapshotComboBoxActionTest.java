@@ -486,7 +486,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   @Test
   public void updatePresentationConfigurationIsntAndroidRunConfigurationNorAndroidTestRunConfigurationButDeploysToLocalDevice() {
     // Arrange
-    RunConfigurationBase configuration = Mockito.mock(RunConfigurationBase.class);
+    RunConfigurationBase<?> configuration = Mockito.mock(RunConfigurationBase.class);
     Mockito.when(configuration.getUserData(DeviceAndSnapshotComboBoxAction.DEPLOYS_TO_LOCAL_DEVICE)).thenReturn(true);
 
     RunnerAndConfigurationSettings settings = Mockito.mock(RunnerAndConfigurationSettings.class);
