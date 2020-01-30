@@ -18,7 +18,7 @@
   <depends>org.intellij.intelliLang</depends>
 
   <actions>
-    <action id="Android.RunLayoutInspector" class="com.android.tools.idea.editors.layoutInspector.actions.AndroidRunLayoutInspectorAction">
+    <action id="Android.RunLegacyLayoutInspector" class="com.android.tools.idea.editors.layoutInspector.actions.AndroidRunLayoutInspectorAction">
       <add-to-group group-id="AndroidToolsGroup" />
     </action>
   </actions>

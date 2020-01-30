@@ -111,6 +111,7 @@ public class StudioCrashReporterTest {
         .setErrorSignal("signal field")
         .setErrorFrame("frame field")
         .setErrorThread("thread field")
+        .setNativeStack("native stack")
         .build();
 
     String request = getSerializedContent(report);
@@ -119,6 +120,7 @@ public class StudioCrashReporterTest {
     assertRequestContainsField(request, "errorSignal", "signal field");
     assertRequestContainsField(request, "errorFrame", "frame field");
     assertRequestContainsField(request, "errorThread", "thread field");
+    assertRequestContainsField(request, "nativeStack", "native stack");
   }
 
   @Test

@@ -410,6 +410,7 @@ class DefaultInspectorClient(
   }
 
   private fun setDebugViewAttributes(stream: Common.Stream, enable: Boolean) {
+    val currentSelectedStream = selectedStream
     adbBridge?.let {
       if (!setDebugViewAttributes(it, stream, enable) && !enable) {
         reportUnableToResetGlobalSettings()
@@ -421,7 +422,7 @@ class DefaultInspectorClient(
       Futures.addCallback(future, object : FutureCallback<AndroidDebugBridge> {
         override fun onSuccess(bridge: AndroidDebugBridge?) {
           adbBridge = bridge
-          if (stream != selectedStream) {
+          if (stream != currentSelectedStream) {
             return
           }
           val success = bridge?.let { setDebugViewAttributes(it, stream, enable) } ?: false

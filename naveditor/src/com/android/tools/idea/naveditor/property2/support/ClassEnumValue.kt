@@ -39,8 +39,6 @@ data class ClassEnumValue(override val value: String,
                           val isInProject: Boolean) : EnumValue {
   override fun toString() = value
 
-  override fun withHeader(header: String) = this
-  override fun withSeparator() = this
   override fun withIndentation() = this
 
   override fun select(property: PropertyItem): Boolean {

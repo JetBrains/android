@@ -71,6 +71,9 @@ class BuildAttributionTreeView(
   private val tree: Tree
   private val handler: InfoViewHandler
 
+  val isDisposed: Boolean
+    get() = disposed.get()
+
   init {
     val treeStructure = SimpleTreeStructure.Impl(rootNode)
     treeModel = StructureTreeModel(treeStructure, this)
@@ -186,7 +189,8 @@ class BuildAttributionTreeView(
       nodes.add(BuildSummaryNode(reportData.buildSummary, this))
       nodes.add(CriticalPathPluginsRoot(reportData.criticalPathPlugins, this))
       nodes.add(CriticalPathTasksRoot(reportData.criticalPathTasks, this, taskIssueLinkListener))
-      nodes.add(PluginConfigurationTimeRoot(reportData.configurationTime, this))
+      // TODO(b/148275039): Re-enable plugin configuration
+      // nodes.add(PluginConfigurationTimeRoot(reportData.configurationTime, this))
       nodes.add(WarningsRootNode(reportData, this))
       return nodes.toTypedArray()
     }

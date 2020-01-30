@@ -73,8 +73,8 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
       "Medium",
       "Small")
     var index = 0
-    index = EnumValueUtil.checkSection(values, index, PROJECT_HEADER, 2, expectedProjectValues, expectedProjectDisplayValues)
-    index = EnumValueUtil.checkSection(values, index, APPCOMPAT_HEADER, 9, expectedAppCompatValues, expectedAppCompatDisplayValues)
+    index = EnumValueUtil.checkSection(values, index, PROJECT_HEADER, 3, expectedProjectValues, expectedProjectDisplayValues)
+    index = EnumValueUtil.checkSection(values, index, APPCOMPAT_HEADER, 10, expectedAppCompatValues, expectedAppCompatDisplayValues)
     Truth.assertThat(index).isEqualTo(-1)
   }
 
@@ -109,8 +109,8 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
       "Medium",
       "Small")
     var index = 0
-    index = EnumValueUtil.checkSection(values, index, PROJECT_HEADER, 2, expectedProjectValues, expectedProjectDisplayValues)
-    index = EnumValueUtil.checkSection(values, index, ANDROID_HEADER, 9, expectedAndroidValues, expectedAndroidDisplayValues)
+    index = EnumValueUtil.checkSection(values, index, PROJECT_HEADER, 3, expectedProjectValues, expectedProjectDisplayValues)
+    index = EnumValueUtil.checkSection(values, index, ANDROID_HEADER, 10, expectedAndroidValues, expectedAndroidDisplayValues)
     Truth.assertThat(index).isEqualTo(-1)
   }
 
@@ -146,8 +146,8 @@ class TextAppearanceEnumSupportTest: AndroidTestCase() {
       "Medium",
       "Small")
     var index = 0
-    index = EnumValueUtil.checkSection(values, index, PROJECT_HEADER, 2, expectedProjectValues, expectedProjectDisplayValues)
-    index = EnumValueUtil.checkSection(values, index, ANDROID_HEADER, 9, expectedAndroidValues, expectedAndroidDisplayValues)
+    index = EnumValueUtil.checkSection(values, index, PROJECT_HEADER, 3, expectedProjectValues, expectedProjectDisplayValues)
+    index = EnumValueUtil.checkSection(values, index, ANDROID_HEADER, 10, expectedAndroidValues, expectedAndroidDisplayValues)
     Truth.assertThat(index).isEqualTo(-1)
   }
 

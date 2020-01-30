@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.uibuilder.property2.support
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.FRAME_LAYOUT
+import com.android.SdkConstants.TEXT_VIEW
 import com.android.tools.idea.uibuilder.property2.testutils.SupportTestUtil
+import com.android.tools.property.panel.api.HeaderEnumValue
 import com.google.common.truth.Truth.assertThat
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.AndroidTestCase
@@ -69,6 +71,25 @@ private const val OTHER_ACTIVITY = """
   }
 """
 
+@Language("JAVA")
+private const val THIRD_ACTIVITY = """
+  package p1.p2;
+
+  import android.app.Activity;
+  import android.os.Bundle;
+  import android.view.View;
+
+  public class ThirdActivity extends Activity {
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+      super.onCreate(savedInstanceState);
+      setContentView(R.layout.activity_main);
+    }
+  }
+"""
+
+
 class OnClickEnumSupportTest: AndroidTestCase() {
 
   fun testWithNoActivities() {
@@ -78,32 +99,38 @@ class OnClickEnumSupportTest: AndroidTestCase() {
   }
 
   fun testWithFullyQualifiedActivityName() {
-    val support = findEnumSupportFor("p1.p2.MainActivity")
-    assertThat(support.values.map { it.display }).containsExactly("onClick", "help")
-    assertThat(support.values.map { it.value }).containsExactly("onClick", "help")
+    val support = findEnumSupportFor("p1.p2.MainActivity").values
+    assertThat((support[0] as HeaderEnumValue).header).isEqualTo("MainActivity")
+    val values = support.subList(1, support.size)
+    assertThat(values.map { it.display }).containsExactly("help", "onClick").inOrder()
+    assertThat(values.map { it.value }).containsExactly("help", "onClick").inOrder()
   }
 
   fun testWithDotInActivityName() {
-    val support = findEnumSupportFor(".MainActivity")
-    assertThat(support.values.map { it.display }).containsExactly("onClick", "help")
-    assertThat(support.values.map { it.value }).containsExactly("onClick", "help")
+    val support = findEnumSupportFor(".MainActivity").values
+    assertThat((support[0] as HeaderEnumValue).header).isEqualTo("MainActivity")
+    val values = support.subList(1, support.size)
+    assertThat(values.map { it.display }).containsExactly("help", "onClick").inOrder()
+    assertThat(values.map { it.value }).containsExactly("help", "onClick").inOrder()
   }
 
   fun testWithNoActivityName() {
-    val support = findEnumSupportFor("")
-/* b/146019765
-    assertThat(support.values.map { it.display }).containsExactly("onClick", "startProcessing", "onClick", "help").inOrder()
-    assertThat(support.values.map { it.value }).containsExactly("onClick", "startProcessing", "onClick", "help").inOrder()
-    assertThat(support.values[0].header).isEqualTo("OtherActivity")
-    assertThat(support.values[1].header).isEmpty()
-    assertThat(support.values[2].header).isEqualTo("MainActivity")
-    assertThat(support.values[3].header).isEmpty()
-b/146019765 */
+    val support = findEnumSupportFor("").values
+    assertThat((support[0] as HeaderEnumValue).header).isEqualTo("MainActivity")
+    val mainValues = support.subList(1, 3)
+    assertThat((support[3] as HeaderEnumValue).header).isEqualTo("OtherActivity")
+    val otherValues = support.subList(4, 6)
+    assertThat(mainValues.map { it.display }).containsExactly("help", "onClick").inOrder()
+    assertThat(mainValues.map { it.value }).containsExactly("help", "onClick").inOrder()
+    assertThat(otherValues.map { it.display }).containsExactly("onClick", "startProcessing").inOrder()
+    assertThat(otherValues.map { it.value }).containsExactly("onClick", "startProcessing").inOrder()
+    assertThat(support.size).isEqualTo(6)
   }
 
   private fun findEnumSupportFor(activityName: String): OnClickEnumSupport {
     myFixture.addClass(MAIN_ACTIVITY.trimIndent())
     myFixture.addClass(OTHER_ACTIVITY.trimIndent())
+    myFixture.addClass(THIRD_ACTIVITY.trimIndent())
     val util = SupportTestUtil(myFacet, myFixture, TEXT_VIEW, parentTag = FRAME_LAYOUT, activityName = activityName)
     return OnClickEnumSupport(util.nlModel)
   }
