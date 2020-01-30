@@ -58,18 +58,18 @@ class DeviceViewPanelTest {
 
   @Before
   fun setUp() {
-    InspectorClient.clientFactory = { mock(InspectorClient::class.java) }
+    InspectorClient.clientFactory = { _, _ -> mock(InspectorClient::class.java) }
   }
 
   @After
   fun tearDown() {
-    InspectorClient.clientFactory = { DefaultInspectorClient(it) }
+    InspectorClient.clientFactory = { model, parentDisposable -> DefaultInspectorClient(model, parentDisposable) }
   }
 
   @Test
   fun testFocusableActionButtons() {
     val model = model { view(1, 0, 0, 1200, 1600, "RelativeLayout") }
-    val inspector = LayoutInspector(model)
+    val inspector = LayoutInspector(model, disposableRule.disposable)
     val settings = DeviceViewSettings()
     val toolbar = getToolbar(DeviceViewPanel(inspector, settings, disposableRule.disposable))
     toolbar.components.forEach { assertThat(it.isFocusable).isTrue() }
@@ -108,7 +108,8 @@ class DeviceViewPanelTest {
       }
     }
 
-    val panel = DeviceViewPanel(LayoutInspector(model), DeviceViewSettings(scalePercent = 100), disposableRule.disposable)
+    val panel = DeviceViewPanel(LayoutInspector(model, disposableRule.disposable),
+                                DeviceViewSettings(scalePercent = 100), disposableRule.disposable)
     val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
     val viewport = flatten(panel).filterIsInstance<JViewport>().first()
 

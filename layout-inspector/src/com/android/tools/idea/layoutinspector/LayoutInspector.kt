@@ -22,15 +22,17 @@ import com.android.tools.idea.layoutinspector.transport.InspectorClient
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto
 import com.android.tools.profiler.proto.Common
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.Disposer
 import java.util.concurrent.atomic.AtomicLong
 
 @VisibleForTesting
 const val SHOW_ERROR_MESSAGES_IN_DIALOG = false
 
-class LayoutInspector(val layoutInspectorModel: InspectorModel) {
+class LayoutInspector(val layoutInspectorModel: InspectorModel, parentDisposable: Disposable) : Disposable {
   var currentClient: InspectorClient = DisconnectedClient
     private set(client) {
       if (field != client) {
@@ -45,11 +47,15 @@ class LayoutInspector(val layoutInspectorModel: InspectorModel) {
   val allClients: List<InspectorClient>
 
   init {
-    val defaultClient = InspectorClient.createInstance(layoutInspectorModel)
+    val defaultClient = InspectorClient.createInstance(layoutInspectorModel, this)
     registerClientListeners(defaultClient)
     val legacyClient = LegacyClient(layoutInspectorModel.project)
     registerClientListeners(legacyClient)
     allClients = listOf(defaultClient, legacyClient)
+    Disposer.register(parentDisposable, this)
+  }
+
+  override fun dispose() {
   }
 
   private fun registerClientListeners(client: InspectorClient) {

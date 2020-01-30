@@ -33,7 +33,7 @@ import org.mockito.Mockito
 object InspectorBuilder {
 
   fun setUpDemo(projectRule: AndroidProjectRule) {
-    InspectorClient.clientFactory = { Mockito.mock(InspectorClient::class.java) }
+    InspectorClient.clientFactory = { _, _ -> Mockito.mock(InspectorClient::class.java) }
     projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/layout-inspector/testData/resource").path
     projectRule.fixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML)
     projectRule.fixture.copyFileToProject("res/color/app_text_color.xml")
@@ -55,7 +55,7 @@ object InspectorBuilder {
   }
 
   fun tearDownDemo() {
-    InspectorClient.clientFactory = { DefaultInspectorClient(it) }
+    InspectorClient.clientFactory = { model, parentDispoable -> DefaultInspectorClient(model, parentDispoable) }
   }
 
   fun createLayoutInspectorForDemo(projectRule: AndroidProjectRule): LayoutInspector {
@@ -65,7 +65,7 @@ object InspectorBuilder {
     val configBuilder = ConfigurationBuilder(projectRule.module.androidFacet!!)
     val (config, stringTable) = configBuilder.makeConfiguration()
     inspectorModel.resourceLookup.updateConfiguration(config, stringTable)
-    return LayoutInspector(inspectorModel)
+    return LayoutInspector(inspectorModel, projectRule.fixture.projectDisposable)
   }
 
   private fun createDemoViewNodes(): ViewNode {
