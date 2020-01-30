@@ -133,8 +133,7 @@ public class ScrollInteraction extends Interaction {
     }
   }
 
-  @Override
-  public void scroll(@SwingCoordinate int x, @SwingCoordinate int y, int scrollAmount) {
+  private void scroll(@SwingCoordinate int x, @SwingCoordinate int y, int scrollAmount) {
     short currentScrollSign = (short)(scrollAmount < 0 ? -1 : 0);
 
     if (myLastScrollSign != currentScrollSign) {

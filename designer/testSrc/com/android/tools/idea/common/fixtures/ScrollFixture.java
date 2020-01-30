@@ -19,11 +19,18 @@ import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.surface.InteractionInformation;
+import com.android.tools.idea.common.surface.InteractionNonInputEvent;
+import com.android.tools.idea.common.surface.MouseWheelMovedEvent;
+import com.android.tools.idea.common.surface.MouseWheelStopEvent;
 import com.android.tools.idea.uibuilder.fixtures.ScreenFixture;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.android.tools.idea.common.surface.ScrollInteraction;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseWheelEvent;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mockito;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -45,26 +52,36 @@ public class ScrollFixture {
     // Scroll from center of component
     int startX = Coordinates.getSwingX(screen, NlComponentHelperKt.getX(component) + NlComponentHelperKt.getW(component) / 2);
     int startY = Coordinates.getSwingY(screen, NlComponentHelperKt.getY(component) + NlComponentHelperKt.getH(component) / 2);
-    myInteraction.begin(startX, startY, 0);
     myCurrentX = startX;
     myCurrentY = startY;
+    myInteraction.begin(new MouseWheelMovedEvent(new MouseWheelEventBuilder(myCurrentX, myCurrentY).build(),
+                                                 new InteractionInformation(myCurrentX, myCurrentY, 0)));
   }
 
   @NotNull
   public ScrollFixture scroll(@AndroidCoordinate int scrollAmount) {
-    myInteraction.scroll(myCurrentX, myCurrentY, scrollAmount);
+    /**
+     * Create a MouseWheelEvent which scrolls one time and the units of scroll is scrollAmount.
+     */
+    MouseWheelEvent event = new MouseWheelEventBuilder(myCurrentX, myCurrentY)
+      .withAmount(1)
+      .withScrollType(MouseWheelEvent.WHEEL_UNIT_SCROLL)
+      .withUnitToScroll(scrollAmount)
+      .build();
+    myInteraction.update(new MouseWheelMovedEvent(event, new InteractionInformation(myCurrentX, myCurrentY, 0)));
     return this;
   }
 
   @NotNull
   public ComponentFixture release() {
-    myInteraction.end(myCurrentX, myCurrentY, 0);
+    myInteraction.commit(new MouseWheelStopEvent(Mockito.mock(ActionEvent.class),
+                                                 new InteractionInformation(myCurrentX, myCurrentY, 0)));
     return myComponentFixture;
   }
 
   @NotNull
   public ComponentFixture cancel() {
-    myInteraction.cancel(myCurrentX, myCurrentY, 0);
+    myInteraction.cancel(new InteractionNonInputEvent(new InteractionInformation(myCurrentX, myCurrentY, 0)));
     return myComponentFixture;
   }
 }

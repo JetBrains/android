@@ -679,6 +679,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Gives us a chance to change layers behaviour upon drag and drop interaction starting
+   *
+   * TODO(b/142953949): move this function into {@link com.android.tools.idea.uibuilder.surface.DragDropInteraction}
    */
   public void startDragDropInteraction() {
     for (SceneView sceneView: getSceneViews()) {
@@ -689,6 +691,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
 
   /**
    * Gives us a chance to change layers behaviour upon drag and drop interaction ending
+   *
+   * TODO(b/142953949): move this function into {@link com.android.tools.idea.uibuilder.surface.DragDropInteraction}
    */
   public void stopDragDropInteraction() {
     for (SceneView sceneView: getSceneViews()) {
