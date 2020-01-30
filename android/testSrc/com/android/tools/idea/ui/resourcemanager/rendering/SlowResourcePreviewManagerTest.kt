@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.resources.ResourceType
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.ui.resourcemanager.ImageCacheRule
+import com.android.tools.idea.ui.resourcemanager.rendering.ImageCacheRule
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.util.androidFacet

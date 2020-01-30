@@ -21,7 +21,6 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.tools.idea.actions.OpenStringResourceEditorAction
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
@@ -29,16 +28,17 @@ import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
 import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.model.ResourceDataManager
 import com.android.tools.idea.ui.resourcemanager.model.ResourceSection
+import com.android.tools.idea.ui.resourcemanager.model.TypeFilter
 import com.android.tools.idea.ui.resourcemanager.model.getAndroidResources
 import com.android.tools.idea.ui.resourcemanager.model.getDependentModuleResources
 import com.android.tools.idea.ui.resourcemanager.model.getLibraryResources
 import com.android.tools.idea.ui.resourcemanager.model.getModuleResources
 import com.android.tools.idea.ui.resourcemanager.model.getSampleDataResources
 import com.android.tools.idea.ui.resourcemanager.model.getThemeAttributes
-import com.android.tools.idea.ui.resourcemanager.model.TypeFilter
 import com.android.tools.idea.ui.resourcemanager.model.resolveValue
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManagerImpl
+import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.rendering.getReadableConfigurations
 import com.android.tools.idea.ui.resourcemanager.rendering.getReadableValue
 import com.android.tools.idea.util.androidFacet

@@ -17,7 +17,6 @@ package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
-import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import org.jetbrains.android.facet.AndroidFacet
 
