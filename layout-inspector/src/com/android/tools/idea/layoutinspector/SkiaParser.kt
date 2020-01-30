@@ -98,11 +98,7 @@ object SkiaParser : SkiaParserService {
         true, false,
         Transparency.TRANSLUCENT,
         DataBuffer.TYPE_BYTE)
-      val tmpimage = BufferedImage(colorModel, raster, false, null)
-      image = UIUtil.createImage(width, height, BufferedImage.TYPE_INT_ARGB)
-      val g = image.createGraphics()
-      g.drawImage(tmpimage, 0, 0, null)
-      g.dispose()
+      image = BufferedImage(colorModel, raster, false, null)
     }
     val res = InspectorView(node.id, node.type, node.x, node.y, width, height, image)
     node.childrenList.mapNotNull { buildTree(it) }.forEach { res.addChild(it) }
