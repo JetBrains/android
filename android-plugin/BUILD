@@ -33,6 +33,7 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/emulator:intellij.android.emulator[module]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module]",
         "//tools/adt/idea/designer:intellij.android.designer[module]",
         "//tools/adt/idea/app-inspection/ide:intellij.android.app-inspection.ide[module]",
