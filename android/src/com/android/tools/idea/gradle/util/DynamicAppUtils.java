@@ -37,8 +37,8 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.run.PostBuildModel;
 import com.android.tools.idea.gradle.run.PostBuildModelProvider;
 import com.android.tools.idea.log.LogWrapper;
-import com.android.tools.idea.run.AndroidAppRunConfigurationBase;
 import com.android.tools.idea.run.AndroidDevice;
+import com.android.tools.idea.run.AndroidRunConfiguration;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration;
@@ -375,8 +375,8 @@ public class DynamicAppUtils {
   public static boolean useSelectApksFromBundleBuilder(@NotNull Module module,
                                                        @NotNull RunConfiguration configuration,
                                                        @NotNull List<AndroidDevice> targetDevices) {
-    if (configuration instanceof AndroidAppRunConfigurationBase) {
-      AndroidAppRunConfigurationBase androidConfiguration = (AndroidAppRunConfigurationBase)configuration;
+    if (configuration instanceof AndroidRunConfiguration) {
+      AndroidRunConfiguration androidConfiguration = (AndroidRunConfiguration)configuration;
       if (androidConfiguration.DEPLOY_APK_FROM_BUNDLE) {
         Preconditions.checkArgument(androidConfiguration.DEPLOY);
         return true;
