@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.ui.resourcemanager
+package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.AssetKey
@@ -31,8 +31,7 @@ import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import kotlin.math.pow
 
-private val SMALL_MAXIMUM_CACHE_WEIGHT_BYTES = (10 * 1024.0.pow(2)).toLong() // 10 MB
-private val LARGE_MAXIMUM_CACHE_WEIGHT_BYTES = (100 * 1024.0.pow(2)).toLong() // 100 MB
+private val CACHE_WEIGHT_BYTES = (100 * 1024.0.pow(2)).toLong() // 100 MB
 
 /**
  * Helper class that caches the result of a computation of [BufferedImage].
@@ -45,30 +44,20 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
                                      private val objectToImage: Cache<AssetKey, BufferedImage>
 ) : Disposable {
   companion object {
-    private val largeObjectToImage by lazy { createObjectToImageCache(5, LARGE_MAXIMUM_CACHE_WEIGHT_BYTES) }
-    private val smallObjectToImage by lazy { createObjectToImageCache(1, SMALL_MAXIMUM_CACHE_WEIGHT_BYTES) }
+    private val objectToImageCache by lazy {
+      createObjectToImageCache(5, CACHE_WEIGHT_BYTES)
+    }
 
     /**
-     * Returns an ImageCache that uses an image pool of size [LARGE_MAXIMUM_CACHE_WEIGHT_BYTES] to store previews for a given [Asset]
+     * Returns an ImageCache that uses an image pool of size [CACHE_WEIGHT_BYTES] to store previews for a given [Asset]
      *
      * @param parentDisposable Used to dispose of the returned [ImageCache], used as the parent disposable for the default
      * [MergingUpdateQueue] when the [mergingUpdateQueue] parameter is null.
      */
-    fun createLargeImageCache(
+    fun createImageCache(
       parentDisposable: Disposable,
       mergingUpdateQueue: MergingUpdateQueue? = null
-    ) = ImageCache(mergingUpdateQueue, largeObjectToImage).apply { Disposer.register(parentDisposable, this) }
-
-    /**
-     * Returns an ImageCache that uses an image pool of size [SMALL_MAXIMUM_CACHE_WEIGHT_BYTES] to store previews for a given [Asset]
-     *
-     * @param parentDisposable Used to dispose of the returned [ImageCache], used as the parent disposable for the default
-     * [MergingUpdateQueue] when the [mergingUpdateQueue] parameter is null.
-     */
-    fun createSmallImageCache(
-      parentDisposable: Disposable,
-      mergingUpdateQueue: MergingUpdateQueue? = null
-    ) = ImageCache(mergingUpdateQueue, smallObjectToImage).apply { Disposer.register(parentDisposable, this) }
+    ) = ImageCache(mergingUpdateQueue, objectToImageCache).apply { Disposer.register(parentDisposable, this) }
   }
 
   private val pendingFutures = HashMap<Asset, CompletableFuture<*>?>()

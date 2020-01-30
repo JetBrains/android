@@ -26,7 +26,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addAndroidModule
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.ui.resourcemanager.ImageCache
+import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.getPNGFile
 import com.android.tools.idea.ui.resourcemanager.getPNGResourceItem
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
@@ -73,8 +73,8 @@ class ResourceExplorerListViewModelImplTest {
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath = getTestDataDirectory()
-    largeImageCache = ImageCache.createLargeImageCache(disposable)
-    smallImageCache = ImageCache.createSmallImageCache(disposable)
+    largeImageCache = ImageCache.createImageCache(disposable)
+    smallImageCache = ImageCache.createImageCache(disposable)
     resourceResolver = Mockito.mock(ResourceResolver::class.java)
   }
 

@@ -16,7 +16,6 @@
 package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.tools.adtui.ImageUtils
-import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
