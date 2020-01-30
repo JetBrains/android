@@ -628,6 +628,7 @@ public class StudioIcons {
       public static final Icon COMPONENT_TREE = load("/studio/icons/shell/tool-windows/component-tree.svg"); // 13x13
       public static final Icon DEBUG = load("/studio/icons/shell/tool-windows/debug.svg"); // 13x13
       public static final Icon DEVICE_EXPLORER = load("/studio/icons/shell/tool-windows/device-explorer.svg"); // 13x13
+      public static final Icon EMULATOR = load("/studio/icons/shell/tool-windows/emulator.svg"); // 13x13
       public static final Icon EVENT_LOG = load("/studio/icons/shell/tool-windows/event-log.svg"); // 13x13
       public static final Icon FAVORITES = load("/studio/icons/shell/tool-windows/favorites.svg"); // 13x13
       public static final Icon GRADLE = load("/studio/icons/shell/tool-windows/gradle.svg"); // 13x13
@@ -649,9 +650,6 @@ public class StudioIcons {
       public static final Icon VISUAL_ASSETS = load("/studio/icons/shell/tool-windows/visual-assets.svg"); // 13x13
       public static final Icon WINDOW_TOGGLE = load("/studio/icons/shell/tool-windows/window-toggle.svg"); // 16x16
       public static final Icon WINDOW_TOGGLED = load("/studio/icons/shell/tool-windows/window-toggled.svg"); // 16x16
-
-      // Placeholder for now just reusing icon for DEVICE_EXPLORER:
-      public static final Icon EMULATOR = load("/studio/icons/shell/tool-windows/device-explorer.svg"); // 13x13
     }
 
     public static class Toolbar {
