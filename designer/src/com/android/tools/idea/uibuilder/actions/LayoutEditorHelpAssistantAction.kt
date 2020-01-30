@@ -48,8 +48,11 @@ open class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
   private enum class Type {
     NONE,
     CONSTRAINT_LAYOUT,
-    MOTION_LAYOUT
+    MOTION_LAYOUT,
+    FULL
   }
+
+  private val ONLY_FULL: Boolean = true // for now redirect to a single help content
   private var tagName: String = ""
   private var type = Type.NONE
 
@@ -62,6 +65,7 @@ open class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
     when (type) {
       Type.CONSTRAINT_LAYOUT -> openWindow(constraintLayoutHelpPanelBundle.bundleId, event.project!!)
       Type.MOTION_LAYOUT -> openWindow(motionLayoutHelpPanelBundle.bundleId, event.project!!)
+      Type.FULL -> openWindow(fullHelpPanelBundle.bundleId, event.project!!)
       Type.NONE -> Unit
     }
 
@@ -70,7 +74,11 @@ open class LayoutEditorHelpAssistantAction : OpenAssistSidePanelAction() {
 
   private fun updateInternalVariables(e: AnActionEvent) {
     tagName = tagName(e)
-    type = getType(tagName, e)
+    if (ONLY_FULL) {
+      type = Type.FULL
+    } else {
+      type = getType(tagName, e)
+    }
   }
 
   private fun tagName(e: AnActionEvent): String {
@@ -151,11 +159,17 @@ private val motionLayoutHelpPanelBundle =
 private val constraintLayoutHelpPanelBundle =
   HelpPanelBundle("LayoutEditor.HelpAssistant.ConstraintLayout", "/constraintlayout_help_assistance_bundle.xml")
 
+private val fullHelpPanelBundle =
+  HelpPanelBundle("LayoutEditor.HelpAssistant.Full", "/layout_editor_help_assistance_bundle.xml")
+
 class MotionLayoutPanelAssistantBundleCreator :
   LayoutEditorHelpPanelAssistantBundleCreatorBase(motionLayoutHelpPanelBundle)
 
 class ConstraintLayoutPanelAssistantBundleCreator :
   LayoutEditorHelpPanelAssistantBundleCreatorBase(constraintLayoutHelpPanelBundle)
+
+class LayoutEditorPanelAssistantBundleCreator :
+  LayoutEditorHelpPanelAssistantBundleCreatorBase(fullHelpPanelBundle)
 
 /**
  * Base tutorial bundle xml creator.
