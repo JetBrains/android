@@ -372,8 +372,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     doTestSetProperties()
   }
 
-  @Suppress("unused") // Currently writes mapOf() rather than mutableMapOf()
-  fun ignore_testSetPropertiesKotlin() {
+  fun testSetPropertiesKotlin() {
     loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
     doTestSetProperties()
   }
@@ -510,8 +509,7 @@ class PsBuildTypeTest : AndroidGradleTestCase() {
     doTestUndeclaredDebugEditMaps()
   }
 
-  // TODO(b/148375441): Disabled until we figure out the kotlin map story
-  fun ignore_testUndeclaredDebugEditMapsKotlin() {
+  fun testUndeclaredDebugEditMapsKotlin() {
     loadProject(TestProjectPaths.PSD_SAMPLE_KOTLIN)
     doTestUndeclaredDebugEditMaps()
   }

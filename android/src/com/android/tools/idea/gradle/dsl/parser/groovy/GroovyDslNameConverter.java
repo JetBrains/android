@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemantics
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.OTHER;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.MethodSemanticsDescription.SET;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR;
+import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS;
 import static com.android.tools.idea.gradle.dsl.parser.semantics.PropertySemanticsDescription.VWO;
 
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
@@ -78,7 +79,7 @@ public class GroovyDslNameConverter implements GradleDslNameConverter {
         if (semantics == SET || semantics == ADD_AS_LIST || semantics == OTHER) {
           return new ExternalNameInfo(e.getKey().getFirst(), true);
         }
-        if (semantics == VAR || semantics == VWO) {
+        if (semantics == VAR || semantics == VWO || semantics == VAR_BUT_DO_NOT_USE_FOR_WRITING_IN_KTS) {
           result = new ExternalNameInfo(e.getKey().getFirst(), false);
         }
       }

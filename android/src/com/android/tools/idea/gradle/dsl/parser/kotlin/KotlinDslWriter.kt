@@ -106,6 +106,7 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     if (psiElement != null) return psiElement
     var anchorAfter = element.anchor
     var isRealList = false // This is to keep track if we're creating a real list (listOf()).
+    var isNamedPropertyMap = false
     var isVarOrProperty = false
 
     if (element.isNewEmptyBlockElement) return null  // Avoid creation of an empty block.
@@ -207,8 +208,12 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
       if (element.asNamedArgs) {
         statementText += "()"
       }
-      else {
+      else if (element.name.isEmpty()) {
         statementText += "mapOf()"
+      }
+      else {
+        statementText += "(mapOf())"
+        isNamedPropertyMap = true
       }
     }
     else {
@@ -306,6 +311,9 @@ class KotlinDslWriter : KotlinDslNameConverter, GradleDslWriter {
     else if (addedElement is KtCallExpression) {
       if (element is GradleDslExpressionList && !isRealList) {
         element.psiElement = addedElement.valueArgumentList
+      }
+      else if (element is GradleDslExpressionMap && isNamedPropertyMap) {
+        element.psiElement = addedElement.valueArguments[0].getArgumentExpression()
       }
       else {
         element.psiElement = addedElement
