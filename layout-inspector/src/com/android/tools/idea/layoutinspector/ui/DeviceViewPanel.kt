@@ -32,6 +32,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBScrollPane
@@ -291,10 +292,12 @@ class DeviceViewPanel(
     val leftPanel = AdtPrimaryPanel(BorderLayout())
     val leftGroup = DefaultActionGroup()
     leftGroup.add(SelectProcessAction(layoutInspector))
+    leftGroup.add(Separator.getInstance())
     leftGroup.add(ViewMenuAction)
-    leftGroup.add(PauseLayoutInspectorAction(layoutInspector::currentClient))
     leftGroup.add(ToggleOverlayAction)
     leftGroup.add(AlphaSliderAction)
+    leftGroup.add(Separator.getInstance())
+    leftGroup.add(PauseLayoutInspectorAction(layoutInspector::currentClient))
     leftGroup.add(CaptureAction(layoutInspector::currentClient, layoutInspector.layoutInspectorModel))
     val actionToolbar = ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true)
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
