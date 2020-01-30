@@ -174,6 +174,10 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
   @Override
   @NotNull
   public DataNode<ModuleData> createModule(@NotNull IdeaModule gradleModule, @NotNull DataNode<ProjectData> projectDataNode) {
+    if (!isAndroidGradleProject()) {
+      return nextResolver.createModule(gradleModule, projectDataNode);
+    }
+
     AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
     if (androidProject != null && !isSupportedVersion(androidProject)) {
       AndroidStudioEvent.Builder event = AndroidStudioEvent.newBuilder();
