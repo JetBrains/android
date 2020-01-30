@@ -442,4 +442,8 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   public DestinationListFixture destinationList() {
     return DestinationListFixture.Companion.create(robot());
   }
+
+  public ComponentTreeFixture<NlComponent> navComponentTree() {
+    return ComponentTreeFixture.Companion.create("navComponentTree", robot());
+  }
 }
