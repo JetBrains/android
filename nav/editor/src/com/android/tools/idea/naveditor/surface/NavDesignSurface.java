@@ -805,10 +805,8 @@ public class NavDesignSurface extends DesignSurface {
       return;
     }
 
-    for(NlComponent selected: selection) {
-      if (getSelectableComponents().contains(selected)) {
-        return;
-      }
+    if (getSelectableComponents().stream().anyMatch(selection::contains)) {
+      return;
     }
 
     NlComponent selected = selection.get(0);
