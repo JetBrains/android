@@ -212,7 +212,7 @@ iml_module(
             "com.android.tools.idea.diagnostics",  # heap analysis line endings (ag/10016457)
             "com.android.tools.idea.gradle",  # WIP: many sync errors with dependencies, but some others related to paths, etc.
             "com.android.tools.idea.navigator",  # testDependentNativeModules (ag/9872410)
-            "com.android.tools.idea.npw.assetstudio",  # leaks, json exceptions (b/147453294), drawable generator tests
+            "com.android.tools.idea.npw.assetstudio.ui",  # leaks, json exceptions (b/147453294)
             "com.android.tools.idea.run",  # some test directory paths are too long
             "org.jetbrains.android",
         ],

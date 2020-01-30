@@ -78,13 +78,14 @@ public class LauncherIconGeneratorTest extends AdaptiveIconGeneratorTest {
         "manifests/ic_launcher-playstore.png"};
     TextAsset textAsset = new TextAsset();
     textAsset.text().set("AL");
+    textAsset.fontFamily().set("Droid Sans");
     textAsset.color().setValue(new Color(0x0000FF));
     myIconGenerator.sourceAsset().setValue(textAsset);
     myIconGenerator.backgroundImageAsset().setNullableValue(null);
     myIconGenerator.backgroundColor().set(new Color(0xFFFFFF));
     myIconGenerator.generateRoundIcon().set(false);
     // Don't compare context of ic_launcher_foreground.xml because it is slightly platform dependent.
-    checkGeneratedIcons(expectedFilenames, 1.5, "resources/drawable/ic_launcher_foreground.xml");
+    checkGeneratedIcons(expectedFilenames, "resources/drawable/ic_launcher_foreground.xml");
   }
 
   public void testMultiLineText() throws Exception {
@@ -100,13 +101,14 @@ public class LauncherIconGeneratorTest extends AdaptiveIconGeneratorTest {
         "manifests/ic_launcher-playstore.png"};
     TextAsset textAsset = new TextAsset();
     textAsset.text().set("A\nW");
+    textAsset.fontFamily().set("Droid Sans");
     textAsset.color().setValue(new Color(0x0000FF));
     myIconGenerator.sourceAsset().setValue(textAsset);
     myIconGenerator.backgroundImageAsset().setNullableValue(null);
     myIconGenerator.backgroundColor().set(new Color(0xFFFFFF));
     myIconGenerator.generateRoundIcon().set(false);
     // Don't compare context of ic_launcher_foreground.xml because it is slightly platform dependent.
-    checkGeneratedIcons(expectedFilenames, 1.5, "resources/drawable/ic_launcher_foreground.xml");
+    checkGeneratedIcons(expectedFilenames, "resources/drawable/ic_launcher_foreground.xml");
   }
 
   public void testImageBackgroundAndForeground() throws Exception {
