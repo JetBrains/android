@@ -15,6 +15,8 @@
  */
 package com.android.tools.profilers.cpu;
 
+import static com.android.tools.profilers.ProfilerFonts.SMALL_FONT;
+
 import com.android.tools.adtui.AxisComponent;
 import com.android.tools.adtui.RangeSelectionComponent;
 import com.android.tools.adtui.RangeTooltipComponent;
@@ -29,13 +31,17 @@ import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerFonts;
 import com.android.tools.profilers.ProfilerLayeredPane;
 import com.android.tools.profilers.ProfilerLayout;
+import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import java.awt.Dimension;
 import java.awt.event.MouseListener;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -49,12 +55,20 @@ public class CpuCaptureMinimapView {
     myInnerPanel = new JPanel(new TabularLayout("*", "*"));
     myInnerPanel.setBackground(StudioColorsKt.getPrimaryContentBackground());
     myInnerPanel.setBorder(JBUI.Borders.customLine(StudioColorsKt.getBorder(), 1));
+
+    JLabel chartLabel = new JLabel();
+    chartLabel.setText("CPU Usage");
+    chartLabel.setFont(SMALL_FONT);
+    chartLabel.setVerticalAlignment(SwingConstants.TOP);
+    chartLabel.setBorder(new JBEmptyBorder(4, 4, 4, 4));
+
     // Order is important
     RangeSelectionComponent rangeSelectionComponent = createRangeSelectionComponent(model.getRangeSelectionModel());
     myInnerPanel.add(createOverlayComponent(rangeSelectionComponent), new TabularLayout.Constraint(0, 0));
     myInnerPanel.add(rangeSelectionComponent, new TabularLayout.Constraint(0, 0));
     myInnerPanel.add(createAxis(model.getCaptureRange()), new TabularLayout.Constraint(0, 0));
     myInnerPanel.add(createLineChart(model.getCpuUsage()), new TabularLayout.Constraint(0, 0));
+    myInnerPanel.add(chartLabel, new TabularLayout.Constraint(0, 0));
 
     myPanel = new JPanel(new TabularLayout("*", "60px"));
     myPanel.setBorder(JBUI.Borders.empty(4, 8));

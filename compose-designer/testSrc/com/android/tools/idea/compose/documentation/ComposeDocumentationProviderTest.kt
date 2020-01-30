@@ -29,14 +29,12 @@ import com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.junit.After
-import org.junit.Assert
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.image.BufferedImage
 import java.io.File
-import java.util.concurrent.Executors
 
 class ComposeDocumentationProviderTest {
   @get:Rule
@@ -53,9 +51,10 @@ class ComposeDocumentationProviderTest {
     projectRule.fixture.testDataPath = TestUtils.getWorkspaceFile("tools/adt/idea/compose-designer/testData").path
     projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH)
     projectRule.requestSyncAndWait()
-
-    Assert.assertTrue("The project must compile correctly for the test to pass",
-                      projectRule.invokeTasks("compileDebugSources").isBuildSuccessful)
+    projectRule.invokeTasks("compileDebugSources").buildError?.let {
+      // The project must compile correctly, otherwise the tests should fail.
+      throw it
+    }
   }
 
   @After
@@ -71,7 +70,6 @@ class ComposeDocumentationProviderTest {
     val activityFile = VfsUtil.findRelativeFile("app/src/main/java/google/simpleapplication/MainActivity.kt",
                                                 ProjectRootManager.getInstance(project).contentRoots[0])!!
 
-    val executor = Executors.newSingleThreadExecutor()
     val composeDocProvider = ComposeDocumentationProvider()
     val previewMethod = ReadAction.compute<KtNamedFunction, Throwable> {
       val ktFile = PsiManager.getInstance(project).findFile(activityFile) as KtFile

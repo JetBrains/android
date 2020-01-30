@@ -98,6 +98,7 @@ import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_OUTE
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_OUT_OF_SCOPE_MAP_AND_LIST_DEPENDENCIES
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PARSE_MAP_IN_MAP
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PARSE_MAP_IN_MAP_FOR_KTS_ARRAY_EXPRESSION
+import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PARSE_MAP_WITH_SPACES_IN_KEYS
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PROPERTIES
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PROPERTY_DEPENDENCY
 import com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_PROPERTY_MODEL_PROPERTY_SET_VALUE
@@ -3171,6 +3172,17 @@ verifyPropertyModel(depModel, STRING_TYPE, "goodbye", STRING, DERIVED, 0)*/
     val map = buildModel.ext().findProperty("versions").toMap()!!
     assertSize(1, map.keys)
     assertThat(map["firebasePlugins"]!!.forceString(), equalTo("2.1.5"))
+  }
+
+  @Test
+  fun testParseMapWithSpacesInKeys() {
+    writeToBuildFile(GRADLE_PROPERTY_MODEL_PARSE_MAP_WITH_SPACES_IN_KEYS)
+
+    val buildModel = gradleBuildModel
+    val map = buildModel.ext().findProperty("prop1").toMap()!!
+    assertSize(2, map.keys)
+    assertThat(map["key1"]!!.forceString(), equalTo("25"))
+    assertThat(map["key1 "]!!.forceString(), equalTo("30"))
   }
 
   private fun verifyDeleteAndResetProperty(buildModel : GradleBuildModel) {

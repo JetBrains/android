@@ -48,7 +48,7 @@ import com.android.sdklib.devices.State;
 import com.android.tools.idea.io.BufferingFileWrapper;
 import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseIntArray;
@@ -192,7 +192,7 @@ public class ConfigurationMatcher {
     if (parent != null) {
       String parentName = parent.getName();
       if (!parentName.startsWith(FD_RES_LAYOUT)) {
-        ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+        ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
         if (folderType != null) {
           List<ResourceType> related = FolderTypeRelationship.getRelatedResourceTypes(folderType);
           if (!related.isEmpty()) {
@@ -287,7 +287,7 @@ public class ConfigurationMatcher {
         }
       }
 
-      VirtualFile virtualFile = ResourceHelper.getSourceAsVirtualFile(match);
+      VirtualFile virtualFile = IdeResourcesUtil.getSourceAsVirtualFile(match);
       if (virtualFile != null) {
         output.add(virtualFile);
       }
@@ -667,7 +667,7 @@ public class ConfigurationMatcher {
         FileDocumentManager documentManager = FileDocumentManager.getInstance();
         VirtualFile file = documentManager.getFile(activeEditor.getDocument());
         if (file != null && !file.equals(myFile) && file.getFileType() == StdFileTypes.XML
-            && ResourceHelper.getFolderType(myFile) == ResourceHelper.getFolderType(file)) {
+            && IdeResourcesUtil.getFolderType(myFile) == IdeResourcesUtil.getFolderType(file)) {
           Configuration configuration = myManager.getConfiguration(file);
           FolderConfiguration fullConfig = configuration.getFullConfig();
           for (ConfigMatch match : matches) {
@@ -716,7 +716,7 @@ public class ConfigurationMatcher {
         ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(module);
         if (repositoryManager != null) {
           LocalResourceRepository resources = repositoryManager.getAppResources();
-          ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+          ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
           if (folderType != null) {
             List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);
             if (!types.isEmpty()) {

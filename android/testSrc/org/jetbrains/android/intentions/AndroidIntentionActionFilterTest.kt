@@ -24,7 +24,7 @@ import com.intellij.openapi.roots.JavaProjectRootsUtil
 import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.dom.manifest.Manifest
-import org.jetbrains.android.util.isRJavaClass
+import com.android.tools.idea.res.isRJavaClass
 import org.jetbrains.jps.model.java.JavaSourceRootType
 import org.jetbrains.jps.model.java.JpsJavaExtensionService
 

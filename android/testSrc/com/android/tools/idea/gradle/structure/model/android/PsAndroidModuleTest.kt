@@ -913,7 +913,10 @@ class PsAndroidModuleTest : DependencyTestCase() {
         assertThat(appModule.productFlavors.map { it.name }).containsExactly("basic", "paid", "bar", "otherBar")
         assertThat(appModule.signingConfigs.map { it.name }).containsExactly("myConfig", "debug")
         assertThat(appModule.dependencies.items.map { "${it.joinedConfigurationNames} ${it.name}" })
-          .containsExactly("api appcompat-v7", "api libs")
+          .containsExactly("api appcompat-v7", "api libs",
+                           "implementation constraint-layout",
+                           "implementation runner",
+                           "implementation espresso-core")
       }
       finally {
         Disposer.dispose(disposable)

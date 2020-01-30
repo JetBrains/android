@@ -69,7 +69,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.resourceManagers.ResourceManager;
 import org.jetbrains.android.resourceManagers.ValueResourceInfo;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -207,7 +207,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
 
         if (TAG_RESOURCES.equals(parentTag.getName())) {
           // Handle ID definitions, http://developer.android.com/guide/topics/resources/more-resources.html#Id
-          ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(tag);
+          ResourceType type = IdeResourcesUtil.getResourceTypeForResourceTag(tag);
           if (type != null) {
             return generateDoc(element, type, value, false);
           }

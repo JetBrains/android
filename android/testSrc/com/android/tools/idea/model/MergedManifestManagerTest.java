@@ -26,7 +26,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.checks.PermissionHolder;
 import com.android.utils.concurrency.AsyncSupplier;
 import com.google.common.util.concurrent.Futures;
@@ -55,6 +55,24 @@ public class MergedManifestManagerTest extends AndroidTestCase {
 
   }
 
+  public void testDuplicateActivities() throws Exception {
+    MergedManifestSnapshot manifest = getMergedManifest("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
+                                                    "    package='com.android.unittest'>\n" +
+                                                    "    <application\n" +
+                                                    "        android:label='@string/app_name'\n" +
+                                                    "        android:name='.app.TestApp' android:icon='@drawable/app_icon'>\n" +
+                                                    "\n" +
+                                                    "        <activity\n" +
+                                                    "            android:name='.MainActivity'/>\n" +
+                                                    "\n" +
+                                                        "        <activity\n" +
+                                                        "            android:name='.MainActivity'/>\n" +
+                                                    "    </application>\n" +
+                                                    "</manifest>\n" +
+                                                    "");
+    assertNotNull(manifest.findActivity("com.android.unittest.MainActivity"));
+  }
+
   public void testGetActivityThemes1() throws Exception {
     MergedManifestSnapshot info = getMergedManifest("<manifest xmlns:android='http://schemas.android.com/apk/res/android'\n" +
                                                    "    package='com.android.unittest'>\n" +
@@ -63,9 +81,9 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     Map<String, ActivityAttributesSnapshot> map = info.getActivityAttributesMap();
     assertEquals(map.toString(), 0, map.size());
     assertEquals("com.android.unittest", info.getPackage());
-    assertEquals("Theme", ResourceHelper.styleToTheme(info.getDefaultTheme(null, NORMAL, null)));
+    assertEquals("Theme", IdeResourcesUtil.styleToTheme(info.getDefaultTheme(null, NORMAL, null)));
     assertEquals("@android:style/Theme", info.getDefaultTheme(null, null, null));
-    assertEquals("Theme", ResourceHelper.styleToTheme(info.getDefaultTheme(null, XLARGE, null)));
+    assertEquals("Theme", IdeResourcesUtil.styleToTheme(info.getDefaultTheme(null, XLARGE, null)));
   }
 
   public void testGetActivityThemes2() throws Exception {
@@ -76,8 +94,8 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     Map<String, ActivityAttributesSnapshot> map = info.getActivityAttributesMap();
     assertEquals(map.toString(), 0, map.size());
     assertEquals("com.android.unittest", info.getPackage());
-    assertEquals("Theme.Holo", ResourceHelper.styleToTheme(info.getDefaultTheme(null, XLARGE, null)));
-    assertEquals("Theme", ResourceHelper.styleToTheme(info.getDefaultTheme(null, LARGE, null)));
+    assertEquals("Theme.Holo", IdeResourcesUtil.styleToTheme(info.getDefaultTheme(null, XLARGE, null)));
+    assertEquals("Theme", IdeResourcesUtil.styleToTheme(info.getDefaultTheme(null, LARGE, null)));
   }
 
   public void testGetActivityThemes3() throws Exception {
@@ -88,8 +106,8 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     Map<String, ActivityAttributesSnapshot> map = info.getActivityAttributesMap();
     assertEquals(map.toString(), 0, map.size());
     assertEquals("com.android.unittest", info.getPackage());
-    assertEquals("Theme.Holo", ResourceHelper.styleToTheme(info.getDefaultTheme(null, XLARGE, null)));
-    assertEquals("Theme", ResourceHelper.styleToTheme(info.getDefaultTheme(null, NORMAL, null)));
+    assertEquals("Theme.Holo", IdeResourcesUtil.styleToTheme(info.getDefaultTheme(null, XLARGE, null)));
+    assertEquals("Theme", IdeResourcesUtil.styleToTheme(info.getDefaultTheme(null, NORMAL, null)));
   }
 
   public void testGetActivityThemes4() throws Exception {
@@ -112,7 +130,7 @@ public class MergedManifestManagerTest extends AndroidTestCase {
                                                    "</manifest>\n" +
                                                    "");
     assertEquals("com.android.unittest", info.getPackage());
-    assertEquals("Theme", ResourceHelper.styleToTheme(info.getDefaultTheme(null, XLARGE, null)));
+    assertEquals("Theme", IdeResourcesUtil.styleToTheme(info.getDefaultTheme(null, XLARGE, null)));
 
     Map<String, ActivityAttributesSnapshot> map = info.getActivityAttributesMap();
     assertEquals(map.toString(), 2, map.size());
@@ -143,7 +161,7 @@ public class MergedManifestManagerTest extends AndroidTestCase {
 
     assertEquals("@style/NoBackground", info.getDefaultTheme(null, XLARGE, null));
     assertEquals("@style/NoBackground", info.getDefaultTheme(null, NORMAL, null));
-    assertEquals("NoBackground", ResourceHelper.styleToTheme(info.getDefaultTheme(null, NORMAL, null)));
+    assertEquals("NoBackground", IdeResourcesUtil.styleToTheme(info.getDefaultTheme(null, NORMAL, null)));
 
     Map<String, ActivityAttributesSnapshot> map = info.getActivityAttributesMap();
     assertEquals(map.toString(), 2, map.size());
@@ -161,11 +179,11 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     Map<String, ActivityAttributesSnapshot> map = info.getActivityAttributesMap();
     assertEquals(map.toString(), 0, map.size());
     assertEquals("com.android.unittest", info.getPackage());
-    assertEquals("Theme.Holo", ResourceHelper.styleToTheme(info.getDefaultTheme(null, XLARGE, null)));
+    assertEquals("Theme.Holo", IdeResourcesUtil.styleToTheme(info.getDefaultTheme(null, XLARGE, null)));
 
     // Here's the check
     IAndroidTarget olderVersion = new TestAndroidTarget(4);
-    assertEquals("Theme", ResourceHelper.styleToTheme(info.getDefaultTheme(olderVersion, XLARGE, null)));
+    assertEquals("Theme", IdeResourcesUtil.styleToTheme(info.getDefaultTheme(olderVersion, XLARGE, null)));
 
   }
 
@@ -181,7 +199,7 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     assertEquals(map.toString(), 0, map.size());
     assertEquals("com.android.unittest", info.getPackage());
 
-    assertEquals("Theme", ResourceHelper.styleToTheme(info.getDefaultTheme(null, NORMAL, null)));
+    assertEquals("Theme", IdeResourcesUtil.styleToTheme(info.getDefaultTheme(null, NORMAL, null)));
     ResourceValue appIcon = info.getApplicationIcon();
     assertNotNull(appIcon);
     assertEquals(ResourceType.DRAWABLE, appIcon.getResourceType());
@@ -203,7 +221,7 @@ public class MergedManifestManagerTest extends AndroidTestCase {
     assertEquals(map.toString(), 0, map.size());
     assertEquals("com.android.unittest", info.getPackage());
 
-    assertEquals("Theme", ResourceHelper.styleToTheme(info.getDefaultTheme(null, NORMAL, null)));
+    assertEquals("Theme", IdeResourcesUtil.styleToTheme(info.getDefaultTheme(null, NORMAL, null)));
     assertNull(info.getApplicationIcon());
     assertNull(info.getApplicationLabel());
   }

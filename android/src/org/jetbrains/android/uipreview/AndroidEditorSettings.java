@@ -15,27 +15,40 @@
  */
 package org.jetbrains.android.uipreview;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 
 @State(name = "AndroidEditors", storages = @Storage("androidEditors.xml"))
 public class AndroidEditorSettings implements PersistentStateComponent<AndroidEditorSettings.MyState> {
   public enum EditorMode {
-    CODE("Code"), SPLIT("Split"), DESIGN("Design");
+    CODE("Code", AllIcons.General.LayoutEditorOnly),
+    SPLIT("Split", AllIcons.General.LayoutEditorPreview),
+    DESIGN("Design", AllIcons.General.LayoutPreviewOnly);
 
     @NotNull
     private final String myDisplayName;
 
-    EditorMode(@NotNull String displayName) {
+    @NotNull
+    private final Icon myIcon;
+
+    EditorMode(@NotNull String displayName, @NotNull Icon icon) {
       myDisplayName = displayName;
+      myIcon = icon;
     }
 
-    @Override
-    public String toString() {
+    @NotNull
+    public String getDisplayName() {
       return myDisplayName;
+    }
+
+    @NotNull
+    public Icon getIcon() {
+      return myIcon;
     }
   }
 

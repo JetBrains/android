@@ -24,7 +24,7 @@ import org.jetbrains.android.dom.resources.ResourcesDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -57,7 +57,7 @@ public class CreateValueResourceQuickFix implements LocalQuickFix, IntentionActi
   @NotNull
   public String getName() {
     return AndroidBundle.message("create.value.resource.quickfix.name", myResourceName,
-                                 AndroidResourceUtil.getDefaultResourceFileName(myResourceType));
+                                 IdeResourcesUtil.getDefaultResourceFileName(myResourceType));
   }
 
   @NotNull
@@ -85,12 +85,12 @@ public class CreateValueResourceQuickFix implements LocalQuickFix, IntentionActi
   protected boolean doInvoke() {
     Project project = myFile.getProject();
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      final String fileName = AndroidResourceUtil.getDefaultResourceFileName(myResourceType);
+      final String fileName = IdeResourcesUtil.getDefaultResourceFileName(myResourceType);
       assert fileName != null;
       VirtualFile resourceDir = ResourceFolderManager.getInstance(myFacet).getPrimaryFolder();
       assert resourceDir != null;
-      if (!AndroidResourceUtil.createValueResource(project, resourceDir, myResourceName, myResourceType, fileName,
-                                                   Collections.singletonList(SdkConstants.FD_RES_VALUES), "a")) {
+      if (!IdeResourcesUtil.createValueResource(project, resourceDir, myResourceName, myResourceType, fileName,
+                                                Collections.singletonList(SdkConstants.FD_RES_VALUES), "a")) {
         return false;
       }
     }
@@ -128,7 +128,7 @@ public class CreateValueResourceQuickFix implements LocalQuickFix, IntentionActi
       final List<String> dirNames = dialog.getDirNames();
       final String resValue = dialog.getValue();
       final String resName = dialog.getResourceName();
-      if (!AndroidResourceUtil.createValueResource(project, resourceDir, resName, myResourceType, fileName, dirNames, resValue)) {
+      if (!IdeResourcesUtil.createValueResource(project, resourceDir, resName, myResourceType, fileName, dirNames, resValue)) {
         return false;
       }
     }

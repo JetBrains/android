@@ -16,12 +16,11 @@
 package com.android.tools.profilers.memory.adapters.instancefilters;
 
 import com.android.tools.profilers.memory.adapters.ClassDb;
-import com.android.tools.profilers.memory.adapters.FieldObject;
 import com.android.tools.profilers.memory.adapters.InstanceObject;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -81,38 +80,20 @@ public class ActivityFragmentLeakInstanceFilter implements CaptureObjectInstance
       .flatMap(classEntry -> classDatabase.getDescendantClasses(classEntry.getClassId()).stream())
       .collect(Collectors.toSet());
 
-    return instances.stream().filter(instance -> {
-      if (allActivitySubclasses.contains(instance.getClassEntry()) && isPotentialActivityLeak(instance)) {
-        return true;
-      }
-      else if (allFragmentSubclasses.contains(instance.getClassEntry()) && isPotentialFragmentLeak(instance)) {
-        return true;
-      }
-      return false;
-    }).collect(Collectors.toSet());
+    return instances.stream().filter(instance ->
+       (allActivitySubclasses.contains(instance.getClassEntry()) && isPotentialActivityLeak(instance)) ||
+       (allFragmentSubclasses.contains(instance.getClassEntry()) && isPotentialFragmentLeak(instance))
+    ).collect(Collectors.toSet());
   }
 
   /**
    * An Activity instance is determined to be leaked if its mDestroyed/mFinished field has been set to true, and the instance still has a
    * valid depth (not waiting to be GC'd).
    */
-  private boolean isPotentialActivityLeak(@NotNull InstanceObject instance) {
-    int depth = instance.getDepth();
-    if (depth == 0 || depth == Integer.MAX_VALUE) {
-      return false;
-    }
-
-    List<FieldObject> fields = instance.getFields();
-    for (FieldObject field : fields) {
-      String fieldName = field.getFieldName();
-      if (fieldName.equals(FINISHED_FIELD_NAME) || fieldName.equals(DESTROYED_FIELD_NAME)) {
-        if ((Boolean)field.getValue()) {
-          return true;
-        }
-      }
-    }
-
-    return false;
+  private static boolean isPotentialActivityLeak(@NotNull InstanceObject instance) {
+    return isValidDepthWithAnyField(instance,
+                                    name -> FINISHED_FIELD_NAME.equals(name) || DESTROYED_FIELD_NAME.equals(name),
+                                    val -> (Boolean)val);
   }
 
   /**
@@ -121,22 +102,17 @@ public class ActivityFragmentLeakInstanceFilter implements CaptureObjectInstance
    * being attached to an activity. The latter gives us false positives, but it should not uncommon as long as users don't create fragments
    * way ahead of the time of adding them to a FragmentManager.
    */
-  private boolean isPotentialFragmentLeak(@NotNull InstanceObject instance) {
-    int depth = instance.getDepth();
-    if (depth == 0 || depth == Integer.MAX_VALUE) {
-      return false;
-    }
+  private static boolean isPotentialFragmentLeak(@NotNull InstanceObject instance) {
+    return isValidDepthWithAnyField(instance, FRAGFMENT_MANAGER_FIELD_NAME::equals, val -> val == null);
+  }
 
-    List<FieldObject> fields = instance.getFields();
-    for (FieldObject field : fields) {
-      String fieldName = field.getFieldName();
-      if (fieldName.equals(FRAGFMENT_MANAGER_FIELD_NAME)) {
-        if (field.getValue() == null) {
-          return true;
-        }
-      }
-    }
-
-    return false;
+  /**
+   * Check if the instance has a valid depth and any field satisfying predicates on its name and value
+   */
+  private static boolean isValidDepthWithAnyField(@NotNull InstanceObject inst, Predicate<String> onName, Predicate<Object> onVal) {
+    int depth = inst.getDepth();
+    return depth != 0 &&
+           depth != Integer.MAX_VALUE &&
+           inst.getFields().stream().anyMatch(field -> onName.test(field.getFieldName()) && onVal.test(field.getValue()));
   }
 }

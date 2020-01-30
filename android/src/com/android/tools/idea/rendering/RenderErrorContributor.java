@@ -31,7 +31,7 @@ import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_PREFIX;
 import static com.android.ide.common.rendering.api.LayoutLog.TAG_RESOURCES_RESOLVE_THEME_ATTR;
 import static com.android.tools.idea.rendering.RenderLogger.TAG_STILL_BUILDING;
-import static com.android.tools.idea.res.ResourceHelper.isViewPackageNeeded;
+import static com.android.tools.idea.res.IdeResourcesUtil.isViewPackageNeeded;
 import static com.android.tools.lint.detector.api.Lint.editDistance;
 import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 

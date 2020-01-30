@@ -85,7 +85,7 @@ import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.SourceProviderManager
 import org.jetbrains.android.util.AndroidUtils
-import org.jetbrains.android.util.packageToRClass
+import com.android.tools.idea.res.packageToRClass
 import javax.swing.Icon
 
 private val DataContext.module: Module? get() = LangDataKeys.MODULE.getData(this)

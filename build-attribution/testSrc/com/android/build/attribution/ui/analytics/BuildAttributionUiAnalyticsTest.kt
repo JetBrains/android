@@ -63,6 +63,7 @@ import com.google.wireless.android.sdk.stats.BuildAttributionUiEvent.Page.PageTy
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -98,6 +99,7 @@ class BuildAttributionUiAnalyticsTest {
   @After
   fun tearDown() {
     UsageTracker.cleanAfterTesting()
+    Disposer.dispose(project)
   }
 
   @Test

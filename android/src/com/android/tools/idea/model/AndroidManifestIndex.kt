@@ -41,6 +41,7 @@ import com.android.SdkConstants.TAG_USES_SDK
 import com.android.tools.apk.analyzer.BinaryXmlParser
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.tools.idea.util.androidFacet
 import com.android.utils.reflection.qualifiedName
 import com.google.common.primitives.Shorts
 import com.google.devrel.gmscore.tools.apk.arsc.Chunk
@@ -50,23 +51,28 @@ import com.intellij.openapi.fileTypes.StdFileTypes
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.util.io.DataInputOutputUtilRt.readSeq
 import com.intellij.openapi.util.io.DataInputOutputUtilRt.writeSeq
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.util.indexing.DataIndexer
 import com.intellij.util.indexing.DefaultFileTypeSpecificInputFilter
 import com.intellij.util.indexing.FileBasedIndex
+import com.intellij.util.indexing.FileBasedIndexExtension
 import com.intellij.util.indexing.FileContent
 import com.intellij.util.indexing.ID
-import com.intellij.util.indexing.SingleEntryFileBasedIndexExtension
-import com.intellij.util.indexing.SingleEntryIndexer
 import com.intellij.util.io.DataExternalizer
 import com.intellij.util.io.DataInputOutputUtil.readNullable
 import com.intellij.util.io.DataInputOutputUtil.writeNullable
+import com.intellij.util.io.EnumeratorStringDescriptor
 import com.intellij.util.io.IOUtil.readUTF
 import com.intellij.util.io.IOUtil.writeUTF
+import com.intellij.util.io.KeyDescriptor
 import com.intellij.util.text.CharArrayUtil
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.utils.addIfNotNull
 import org.kxml2.io.KXmlParser
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParser.END_DOCUMENT
@@ -82,8 +88,8 @@ import java.util.Objects
 import java.util.stream.Stream
 
 /**
- * A file-based index which maps each AndroidManifest.xml to a structured representation
- * of the manifest's raw text (as an [AndroidManifestRawText]).
+ * A file-based index which maps each AndroidManifest.xml to a single entry, <key: package name, value: structured
+ * representation of the manifest's raw text (as an [AndroidManifestRawText])>.
  *
  * Callers that need to consume only a subset of a merged manifest's attributes can use
  * this index to avoid blocking on computing the entire manifest by applying this pattern:
@@ -95,14 +101,40 @@ import java.util.stream.Stream
  *      [com.android.tools.idea.projectsystem.AndroidModuleSystem.getManifestOverrides])
  *   4. Manually merge the attributes to obtain the final attribute(s) which would be present in the merged manifest
  */
-class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestRawText>() {
+class AndroidManifestIndex : FileBasedIndexExtension<String, AndroidManifestRawText>() {
   companion object {
     private val LOG = Logger.getInstance(AndroidManifestIndex::class.java)
     @JvmField
-    val NAME: ID<Int, AndroidManifestRawText> = ID.create(::NAME.qualifiedName)
+    val NAME: ID<String, AndroidManifestRawText> = ID.create(::NAME.qualifiedName)
 
     @JvmStatic
     fun indexEnabled() = ApplicationManager.getApplication().isUnitTestMode || StudioFlags.ANDROID_MANIFEST_INDEX_ENABLED.get()
+
+    /**
+     * Returns corresponding [AndroidFacet]s by given key(package name)
+     * NOTE: This function must be called from a smart read action.
+     *
+     * This may not be useful for non-Gradle build systems, as they may allow for package name overrides.
+     * Most callers should use the build system-dependent AndroidProjectSystem.findAndroidFacetsWithPackageName.
+     *
+     * @see DumbService.runReadActionInSmartMode
+     */
+    @JvmStatic
+    fun queryByPackageName(project: Project, packageName: String, scope: GlobalSearchScope): List<AndroidFacet> {
+      if (!checkIndexAccessibleFor(project)) {
+        return emptyList()
+      }
+
+      val facets = mutableSetOf<AndroidFacet>()
+      val fileBasedIndex = FileBasedIndex.getInstance()
+      fileBasedIndex.processFilesContainingAllKeys(NAME, listOf(packageName), scope, null, { relevantFile ->
+        val module = ProjectFileIndex.getInstance(project).getModuleForFile(relevantFile)
+        module?.androidFacet?.let { facets.add(it) }
+        true
+      })
+
+      return facets.toList()
+    }
 
     /**
      * Returns the [AndroidManifestRawText] for the given [manifestFile], or null
@@ -168,17 +200,32 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
       }
     }
 
+    /**
+     * Returns the [AndroidManifestRawText] for the given [manifestFile], or null
+     * if the file isn't recognized by the index (e.g. because it's malformed).
+     *
+     * Note: It's guaranteed that there's at most one entry: <package name, android manifest raw text>
+     */
     @JvmStatic
     private fun doGetDataForManifestFile(project: Project, manifestFile: VirtualFile): AndroidManifestRawText? {
-      return FileBasedIndex.getInstance()
-        .getValues(NAME, getFileKey(manifestFile), GlobalSearchScope.fileScope(project, manifestFile))
-        .firstOrNull()
+      val index = FileBasedIndex.getInstance()
+      val scope = GlobalSearchScope.fileScope(project, manifestFile)
+      val values = mutableListOf<AndroidManifestRawText>()
+      index.processAllKeys(NAME, { key ->
+        index.processValues(NAME, key, manifestFile, { _, value ->
+          values.add(value)
+          true
+        }, scope)
+      }, scope, null)
+
+      check(values.size <= 1)
+      return values.firstOrNull()
     }
   }
 
   override fun getValueExternalizer() = AndroidManifestRawText.Externalizer
   override fun getName() = NAME
-  override fun getVersion() = 4
+  override fun getVersion() = 5
   override fun getIndexer() = Indexer
   override fun getInputFilter() = InputFilter
 
@@ -186,8 +233,13 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
     override fun acceptInput(file: VirtualFile) = indexEnabled() && file.name == FN_ANDROID_MANIFEST_XML
   }
 
-  object Indexer : SingleEntryIndexer<AndroidManifestRawText>(false) {
-    public override fun computeValue(inputData: FileContent): AndroidManifestRawText? {
+  object Indexer : DataIndexer<String, AndroidManifestRawText, FileContent> {
+    override fun map(inputData: FileContent): Map<String, AndroidManifestRawText?> {
+      val manifestRawText = computeValue(inputData) ?: return emptyMap()
+      return mapOf(StringUtil.notNullize(manifestRawText.packageName) to manifestRawText)
+    }
+
+    private fun computeValue(inputData: FileContent): AndroidManifestRawText? {
       // TODO: rather than throw errors when the manifest is malformed,
       //  we should do our best to extract as much as we can from the document.
       val parser = KXmlParser()
@@ -251,6 +303,7 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
       var debuggable: String? = null
       var targetSdkLevel: String? = null
       var theme: String? = null
+
       processChildTags {
         when (name) {
           TAG_APPLICATION -> {
@@ -284,6 +337,7 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
           else -> skipSubTree()
         }
       }
+
       return AndroidManifestRawText(
         activities = activities.toSet(),
         activityAliases = activityAliases.toSet(),
@@ -357,6 +411,12 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
         categoryNames = categoryNames.toSet()
       )
     }
+  }
+
+  override fun dependsOnFileContent() = true
+
+  override fun getKeyDescriptor(): KeyDescriptor<String> {
+    return EnumeratorStringDescriptor.INSTANCE
   }
 }
 

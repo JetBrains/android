@@ -3,6 +3,8 @@ package org.jetbrains.android.inspections;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.ReferredResourceFieldInfo;
 import com.intellij.codeInsight.daemon.QuickFixActionRegistrar;
 import com.intellij.codeInsight.quickfix.UnresolvedReferenceQuickFixProvider;
 import com.intellij.openapi.module.Module;
@@ -11,8 +13,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReferenceExpression;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
-import org.jetbrains.android.util.ReferredResourceFieldInfo;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -36,11 +36,11 @@ public class AndroidResourceQuickFixProvider extends UnresolvedReferenceQuickFix
       return;
     }
 
-    ReferredResourceFieldInfo info = AndroidResourceUtil.getReferredResourceOrManifestField(facet, exp, true);
+    ReferredResourceFieldInfo info = IdeResourcesUtil.getReferredResourceOrManifestField(facet, exp, true);
     if (info == null) {
       final PsiElement parent = exp.getParent();
       if (parent instanceof PsiReferenceExpression) {
-        info = AndroidResourceUtil.getReferredResourceOrManifestField(facet, (PsiReferenceExpression)parent, true);
+        info = IdeResourcesUtil.getReferredResourceOrManifestField(facet, (PsiReferenceExpression)parent, true);
       }
     }
     if (info == null || info.isFromManifest()) {
@@ -58,7 +58,7 @@ public class AndroidResourceQuickFixProvider extends UnresolvedReferenceQuickFix
 
     ResourceType resourceType = ResourceType.fromClassName(resClassName);
 
-    if (AndroidResourceUtil.ALL_VALUE_RESOURCE_TYPES.contains(resourceType)) {
+    if (IdeResourcesUtil.ALL_VALUE_RESOURCE_TYPES.contains(resourceType)) {
       registrar
         .register(new CreateValueResourceQuickFix(facet, resourceType, resFieldName, contextFile, true));
     }

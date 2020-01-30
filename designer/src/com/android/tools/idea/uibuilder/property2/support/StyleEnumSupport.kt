@@ -87,7 +87,8 @@ open class StyleEnumSupport(val property: NelePropertyItem) : CachedEnumSupport 
           ResourceNamespace.TODO() -> determineHeaderFromLibraryName(style.libraryName)
           else -> StringUtil.getShortName(style.namespace.packageName ?: OTHER_HEADER, '.')
         }
-        result.add(value.withHeader(header))
+        result.add(EnumValue.header(header))
+        result.add(value)
       }
       prev = style
     }

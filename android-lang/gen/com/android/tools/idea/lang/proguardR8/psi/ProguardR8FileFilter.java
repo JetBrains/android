@@ -24,4 +24,7 @@ import com.intellij.psi.PsiElement;
 
 public interface ProguardR8FileFilter extends PsiElement {
 
+  @NotNull
+  List<ProguardR8File> getFileList();
+
 }

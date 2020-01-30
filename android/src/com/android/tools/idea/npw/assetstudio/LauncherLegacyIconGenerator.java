@@ -116,7 +116,8 @@ public class LauncherLegacyIconGenerator extends IconGenerator {
       if (color != null) {
         options.foregroundColor = color.getRGB();
       }
-      options.image = new TransformedImageAsset(asset, IMAGE_SIZE_MDPI.getSize(), scaleFactor, color, getGraphicGeneratorContext());
+      options.image = new TransformedImageAsset(asset, IMAGE_SIZE_MDPI.getSize(), scaleFactor,
+                                                color, getGraphicGeneratorContext(), myLineSeparator);
     }
 
     options.shape = myShape.get();

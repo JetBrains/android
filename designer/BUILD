@@ -62,8 +62,11 @@ iml_module(
         "//tools/idea/java/java-psi-api:intellij.java.psi[module]",
         "//tools/adt/idea/resources-base:intellij.android.resources-base[module]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
+        "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
+        "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module]",
         "//prebuilts/studio/layoutlib/data:layoutlib_native",
         "//tools/adt/idea/lint:intellij.lint[module]",
+        "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
     ],
 )
 

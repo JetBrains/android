@@ -16,15 +16,18 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.ResolveScopeEnlarger;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import java.util.ArrayList;
 import java.util.Collection;
+import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger;
@@ -53,7 +56,7 @@ public class MlkitResolveScopeEnlarger extends ResolveScopeEnlarger {
   private static SearchScope getAdditionalResolveScope(@NotNull Module module) {
     if (StudioFlags.MLKIT_LIGHT_CLASSES.get()) {
       Collection<VirtualFile> virtualFiles = new ArrayList<>();
-      for (LightModelClass lightClass : MlkitModuleService.getInstance(module).getLightModelClassList()) {
+      for (PsiClass lightClass : MlkitModuleService.getInstance(module).getLightModelClassList()) {
         virtualFiles.add(lightClass.getContainingFile().getViewProvider().getVirtualFile());
       }
       return GlobalSearchScope.filesWithoutLibrariesScope(module.getProject(), virtualFiles);

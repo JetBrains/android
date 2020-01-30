@@ -85,6 +85,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
@@ -280,15 +281,7 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
   public void enter() {
     myLoader.start();
     myEventMonitor.enter();
-    getStudioProfilers().getUpdater().register(myDetailedMemoryUsage);
-    getStudioProfilers().getUpdater().register(myHeapDumpDurations);
-    getStudioProfilers().getUpdater().register(myAllocationDurations);
-    getStudioProfilers().getUpdater().register(myMemoryAxis);
-    getStudioProfilers().getUpdater().register(myObjectsAxis);
-    getStudioProfilers().getUpdater().register(myGcStatsModel);
-    getStudioProfilers().getUpdater().register(myAllocationSamplingRateDurations);
-    getStudioProfilers().getUpdater().register(myCaptureElapsedTimeUpdatable);
-    getStudioProfilers().getUpdater().register(myAllocationSamplingRateUpdatable);
+    forEachUpdatable(getStudioProfilers().getUpdater()::register);
 
     getStudioProfilers().getIdeServices().getCodeNavigator().addListener(this);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getClass());
@@ -301,21 +294,29 @@ public class MemoryProfilerStage extends StreamingStage implements CodeNavigator
     enableSelectLatestCapture(false, null);
 
     myEventMonitor.exit();
-    getStudioProfilers().getUpdater().unregister(myDetailedMemoryUsage);
-    getStudioProfilers().getUpdater().unregister(myHeapDumpDurations);
-    getStudioProfilers().getUpdater().unregister(myAllocationDurations);
-    getStudioProfilers().getUpdater().unregister(myMemoryAxis);
-    getStudioProfilers().getUpdater().unregister(myObjectsAxis);
-    getStudioProfilers().getUpdater().unregister(myGcStatsModel);
-    getStudioProfilers().getUpdater().unregister(myAllocationSamplingRateDurations);
-    getStudioProfilers().getUpdater().unregister(myCaptureElapsedTimeUpdatable);
-    getStudioProfilers().getUpdater().unregister(myAllocationSamplingRateUpdatable);
+    forEachUpdatable(getStudioProfilers().getUpdater()::unregister);
     selectCaptureDuration(null, null);
     myLoader.stop();
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
 
     myRangeSelectionModel.clearListeners();
+  }
+
+  private void forEachUpdatable(Consumer<Updatable> f) {
+    for (Updatable u: new Updatable[] {
+      myDetailedMemoryUsage,
+      myHeapDumpDurations,
+      myAllocationDurations,
+      myMemoryAxis,
+      myObjectsAxis,
+      myGcStatsModel,
+      myAllocationSamplingRateDurations,
+      myCaptureElapsedTimeUpdatable,
+      myAllocationSamplingRateUpdatable
+    }) {
+      f.accept(u);
+    }
   }
 
   @NotNull

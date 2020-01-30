@@ -76,6 +76,7 @@ import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.idea.issues.AgpUpgradeRequiredException;
+import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException;
 import com.android.tools.idea.gradle.project.sync.idea.svs.AndroidExtraModelProvider;
 import com.android.tools.idea.gradle.project.sync.idea.svs.VariantGroup;
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.GradlePluginUpgrade;
@@ -108,6 +109,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -117,7 +119,6 @@ import java.util.zip.ZipException;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.ProjectModel;
 import org.gradle.tooling.model.build.BuildEnvironment;
-import org.gradle.tooling.model.gradle.GradleScript;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.jetbrains.annotations.NotNull;
@@ -205,7 +206,209 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
       moduleDataNode.getData().setSourceCompatibility(androidProject.getJavaCompileOptions().getSourceCompatibility());
       moduleDataNode.getData().setTargetCompatibility(androidProject.getJavaCompileOptions().getTargetCompatibility());
     }
+
+    createAndAttachModelsToDataNode(moduleDataNode, gradleModule, androidProject);
+
     return moduleDataNode;
+  }
+
+  /**
+   * Creates and attached the following models to the moduleNode depending on the type of module:
+   * <ul>
+   *   <li>AndroidModuleModel</li>
+   *   <li>NdkModuleModel</li>
+   *   <li>GradleModuleModel</li>
+   *   <li>JavaModuleModel</li>
+   * </ul>
+   *
+   * @param moduleNode the module node to attach the models to
+   * @param gradleModule the module in question
+   * @param androidProject the android project obtained from this module (null is none found)
+   */
+  private void createAndAttachModelsToDataNode(@NotNull DataNode<ModuleData> moduleNode,
+                                                      @NotNull IdeaModule gradleModule,
+                                                      @Nullable AndroidProject androidProject) {
+    String moduleName = moduleNode.getData().getInternalName();
+    File rootModulePath =  toSystemDependentPath(moduleNode.getData().getLinkedExternalProjectPath());
+
+    VariantGroup variantGroup = resolverCtx.getExtraProject(gradleModule, VariantGroup.class);
+    // The ProjectSyncIssues model was introduced in the Android Gradle plugin 3.6, it contains all the
+    // sync issues that have been produced by the plugin. Before this the sync issues were attached to the
+    // AndroidProject.
+    ProjectSyncIssues projectSyncIssues = resolverCtx.getExtraProject(gradleModule, ProjectSyncIssues.class);
+    KaptGradleModel kaptGradleModel = resolverCtx.getExtraProject(gradleModule, KaptGradleModel.class);
+
+    // 1 - If we have an AndroidProject then we need to construct an AndroidModuleModel.
+    if (androidProject != null) {
+      Variant selectedVariant = findVariantToSelect(androidProject, variantGroup);
+      Collection<SyncIssue> syncIssues = findSyncIssues(androidProject, projectSyncIssues);
+
+      AndroidModuleModel androidModel = AndroidModuleModel.create(
+        moduleName,
+        rootModulePath,
+        androidProject,
+        selectedVariant.getName(),
+        myDependenciesFactory,
+        (variantGroup == null) ? null : variantGroup.getVariants(),
+        syncIssues
+      );
+
+      // Set whether or not we have seen an old (pre 3.0) version of the AndroidProject. If we have seen one
+      // Then we require all Java modules to export their dependencies.
+      myIsImportPre3Dot0 |= androidModel.getFeatures().shouldExportDependencies();
+
+      // This functionality should be moved to the KaptProjectResovlerExtension.
+      patchMissingKaptInformationOntoAndroidModel(androidModel, kaptGradleModel);
+      moduleNode.createChild(ANDROID_MODEL, androidModel);
+    }
+
+    // 2 -  If we have an NativeAndroidProject then we need to construct an NdkModuleModel
+    NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
+    if (nativeAndroidProject != null) {
+      IdeNativeAndroidProject nativeProjectCopy = myNativeAndroidProjectFactory.create(nativeAndroidProject);
+      List<IdeNativeVariantAbi> ideNativeVariantAbis;
+      if (variantGroup != null) {
+        ideNativeVariantAbis = ContainerUtil.map(variantGroup.getNativeVariants(), IdeNativeVariantAbi::new);
+      } else {
+        ideNativeVariantAbis = new ArrayList<>();
+      }
+
+      NdkModuleModel ndkModel = new NdkModuleModel(moduleName, rootModulePath, nativeProjectCopy, ideNativeVariantAbis);
+      moduleNode.createChild(NDK_MODEL, ndkModel);
+    }
+
+    File gradleSettingsFile = findGradleSettingsFile(rootModulePath);
+    if (gradleSettingsFile.isFile() && androidProject == null && nativeAndroidProject == null &&
+        // if the module has artifacts, it is a Java library module.
+        // https://code.google.com/p/android/issues/detail?id=226802
+        !hasArtifacts(gradleModule)) {
+      // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
+      // compile it using Gradle. We still need to create the module to display files inside it.
+      createJavaProject(gradleModule, moduleNode, emptyList(), false, false);
+      return;
+    }
+
+    // 3 - Now we need to create and add the GradleModuleModel
+    GradlePluginModel gradlePluginModel = resolverCtx.getExtraProject(gradleModule, GradlePluginModel.class);
+    File buildScriptPath;
+    try {
+      buildScriptPath = gradleModule.getGradleProject().getBuildScript().getSourceFile();
+    } catch (UnsupportedOperationException e) {
+      buildScriptPath = null;
+    }
+
+    BuildScriptClasspathModel buildScriptClasspathModel = resolverCtx.getExtraProject(gradleModule, BuildScriptClasspathModel.class);
+    Collection<String> gradlePluginList = (gradlePluginModel == null) ? ImmutableList.of() : gradlePluginModel.getGradlePluginList();
+
+    GradleModuleModel gradleModel = new GradleModuleModel(
+      moduleName,
+      gradleModule.getGradleProject(),
+      gradlePluginList,
+      buildScriptPath,
+      (buildScriptClasspathModel == null) ? null : buildScriptClasspathModel.getGradleVersion(),
+      (androidProject == null) ? null : androidProject.getModelVersion(),
+      kaptGradleModel
+    );
+    moduleNode.createChild(GRADLE_MODULE_MODEL, gradleModel);
+
+    // 4 - If this is not an Android or Native project it must be a Java module.
+    // TODO: This model should eventually be removed.
+    if (androidProject == null && nativeAndroidProject == null) {
+      createJavaProject(
+        gradleModule,
+        moduleNode,
+        ImmutableList.of(),
+        false,
+        gradlePluginList.contains("org.gradle.api.plugins.JavaPlugin")
+      );
+    }
+
+    // 5 - Populate extra things
+    populateSourcesAndJavadocModel(gradleModule);
+  }
+
+  /**
+   * Obtains a list of [SyncIssue]s from either the [AndroidProject] (legacy pre Android Gradle plugin 3.6)
+   * or from the [ProjectSyncIssues] model (post Android Gradle plugin 3.6).
+   */
+  @NotNull
+  Collection<SyncIssue> findSyncIssues(@NotNull AndroidProject androidProject, @Nullable ProjectSyncIssues projectSyncIssues) {
+    if (projectSyncIssues != null) {
+      return projectSyncIssues.getSyncIssues();
+    }
+    else {
+      //noinspection deprecation
+      return androidProject.getSyncIssues();
+    }
+  }
+
+  /**
+   * Obtain the selected variant using either the legacy method or from the [VariantGroup]. If no variants are
+   * found then this method throws an [AndroidSyncException].
+   */
+  @NotNull
+  private static Variant findVariantToSelect(@NotNull AndroidProject androidProject, @Nullable VariantGroup variantGroup) {
+    if (variantGroup != null) {
+      List<Variant> variants = variantGroup.getVariants();
+      if (!variants.isEmpty()) {
+        return variants.get(0);
+      }
+    }
+
+    Variant legacyVariant = findLegacyVariantToSelect(androidProject);
+    if (legacyVariant != null) {
+      return legacyVariant;
+    }
+
+    throw new AndroidSyncException(
+      "No variants found for '" + androidProject.getName() + "'. Check build files to ensure at least one variant exists.");
+  }
+
+  /**
+   * Attempts to find a variant from the [AndroidProject], this is here to support legacy versions of the
+   * Android Gradle plugin that don't have the [VariantGroup] model populated. First it tries to find a
+   * [Variant] by the name "debug", otherwise returns the first variant found.
+   */
+  @Nullable
+  private static Variant findLegacyVariantToSelect(@NotNull AndroidProject androidProject) {
+    Collection<Variant> variants = androidProject.getVariants();
+    if (variants.isEmpty()) {
+      return null;
+    }
+
+    // First attempt to select the "debug" variant if it exists.
+    Variant debugVariant = variants.stream().filter(variant -> variant.getName().equals("debug")).findFirst().orElse(null);
+    if (debugVariant != null) {
+      return debugVariant;
+    }
+
+    // Otherwise return the first variant.
+    return variants.stream().min(Comparator.comparing(Variant::getName)).orElse(null);
+  }
+
+  /**
+   * Adds the Kapt generated source directories to Android models generated source folders.
+   * <p>
+   * This should probably not be done here. If we need this information in the Android model then this should
+   * be the responsibility of the Android Gradle plugin. If we don't then this should be handled by the
+   * KaptProjectResolverExtension, however as of now this class only works when module per source set is
+   * enabled.
+   */
+  private static void patchMissingKaptInformationOntoAndroidModel(@NotNull AndroidModuleModel androidModel,
+                                                                  @Nullable KaptGradleModel kaptGradleModel) {
+    if (kaptGradleModel == null || !kaptGradleModel.isEnabled()) {
+      return;
+    }
+
+    kaptGradleModel.getSourceSets().forEach((sourceSet ->  {
+      Variant variant = androidModel.findVariantByName(sourceSet.getSourceSetName());
+      if (variant != null) {
+        File kotlinGenSourceDir = sourceSet.getGeneratedKotlinSourcesDirFile();
+        if (kotlinGenSourceDir != null && variant.getMainArtifact() instanceof IdeBaseArtifact) {
+          ((IdeBaseArtifact)variant.getMainArtifact()).addGeneratedSourceFolder(kotlinGenSourceDir);
+        }
+      }
+    }));
   }
 
   private void populateSourcesAndJavadocModel(@NotNull IdeaModule gradleModule) {
@@ -218,130 +421,9 @@ public class AndroidGradleProjectResolver extends AbstractProjectResolverExtensi
 
   @Override
   public void populateModuleContentRoots(@NotNull IdeaModule gradleModule, @NotNull DataNode<ModuleData> ideModule) {
-    if (!isAndroidGradleProject()) {
+    // TODO: Remove this when we switch to correct content entry handling
+    if (!isAndroidGradleProject() || BUILD_SRC_FOLDER_NAME.equals(gradleModule.getGradleProject().getName())) {
       nextResolver.populateModuleContentRoots(gradleModule, ideModule);
-      return;
-    }
-
-    populateSourcesAndJavadocModel(gradleModule);
-
-    // do not derive module root dir based on *.iml file location
-    File moduleRootDirPath = toSystemDependentPath(ideModule.getData().getLinkedExternalProjectPath());
-
-    AndroidProject androidProject = resolverCtx.getExtraProject(gradleModule, AndroidProject.class);
-
-    // This model was introduced in Android Gradle Plugin 3.6 that contain the sync issues that have been produced by the project,
-    // this model is requested last to ensure that all SyncIssues are collected and gathered. This replaces the SyncIssuses that are
-    // contained within the AndroidProject. These sync issues are immutable unlike the ones in AndroidProject which can be changed in
-    // the plugin after the model has been requested.
-    ProjectSyncIssues projectSyncIssues = resolverCtx.getExtraProject(gradleModule, ProjectSyncIssues.class);
-
-    boolean androidProjectWithoutVariants = false;
-    // This stores the sync issues that should be attached to a Java module if we have a AndroidProject without variants.
-    String moduleName = ideModule.getData().getInternalName();
-
-    VariantGroup variantGroup = resolverCtx.getExtraProject(gradleModule, VariantGroup.class);
-
-    // This model is used to work out whether Kapt is enabled.
-    KaptGradleModel kaptGradleModel = resolverCtx.getExtraProject(gradleModule, KaptGradleModel.class);
-
-    if (androidProject != null) {
-      Variant selectedVariant = myVariantSelector.findVariantToSelect(androidProject);
-      if (selectedVariant == null && variantGroup != null) {
-        List<Variant> variants = variantGroup.getVariants();
-        // If we have single variant sync enabled the Variant model comes separately, select the first one.
-        // All are added to the AndroidModuleModel below.
-        if (!variants.isEmpty()) {
-          selectedVariant = variants.get(0);
-        }
-      }
-      if (selectedVariant == null) {
-        // If an Android project does not have variants, it would be impossible to build. This is a possible but invalid use case.
-        // For now we are going to treat this case as a Java library module, because everywhere in the IDE (e.g. run configurations,
-        // editors, test support, variants tool window, project building, etc.) we have the assumption that there is at least one variant
-        // per Android project, and changing that in the code base is too risky, for very little benefit.
-        // See https://code.google.com/p/android/issues/detail?id=170722
-        androidProjectWithoutVariants = true;
-      }
-      else {
-        AndroidModuleModel model =
-          AndroidModuleModel.create(moduleName, moduleRootDirPath, androidProject, selectedVariant.getName(), myDependenciesFactory,
-                                    (variantGroup == null) ? null : variantGroup.getVariants(), projectSyncIssues);
-
-        // Set whether or not we have seen an old (pre 3.0) version of the AndroidProject. If we have seen one
-        // Then we require all Java modules to export their dependencies.
-        myIsImportPre3Dot0 |= model.getFeatures().shouldExportDependencies();
-
-        populateKaptKotlinGeneratedSourceDir(gradleModule, model);
-        ideModule.createChild(ANDROID_MODEL, model);
-      }
-    }
-
-    NativeAndroidProject nativeAndroidProject = resolverCtx.getExtraProject(gradleModule, NativeAndroidProject.class);
-    if (nativeAndroidProject != null) {
-      IdeNativeAndroidProject copy = myNativeAndroidProjectFactory.create(nativeAndroidProject);
-      List<IdeNativeVariantAbi> ideNativeVariantAbis = new ArrayList<>();
-      if (variantGroup != null) {
-        ideNativeVariantAbis.addAll(ContainerUtil.map(variantGroup.getNativeVariants(), IdeNativeVariantAbi::new));
-      }
-
-      NdkModuleModel ndkModuleModel = new NdkModuleModel(moduleName, moduleRootDirPath, copy, ideNativeVariantAbis);
-      ideModule.createChild(NDK_MODEL, ndkModuleModel);
-    }
-
-    File gradleSettingsFile = findGradleSettingsFile(moduleRootDirPath);
-    if (gradleSettingsFile.isFile() && androidProject == null && nativeAndroidProject == null &&
-        // if the module has artifacts, it is a Java library module.
-        // https://code.google.com/p/android/issues/detail?id=226802
-        !hasArtifacts(gradleModule)) {
-      // This is just a root folder for a group of Gradle projects. We don't set an IdeaGradleProject so the JPS builder won't try to
-      // compile it using Gradle. We still need to create the module to display files inside it.
-      createJavaProject(gradleModule, ideModule, emptyList(), false, false);
-      return;
-    }
-
-    BuildScriptClasspathModel buildScriptModel = resolverCtx.getExtraProject(BuildScriptClasspathModel.class);
-    String gradleVersion = buildScriptModel != null ? buildScriptModel.getGradleVersion() : null;
-
-    GradleProject gradleProject = gradleModule.getGradleProject();
-    GradleScript buildScript = null;
-    try {
-      buildScript = gradleProject.getBuildScript();
-    }
-    catch (UnsupportedOperationException ignore) {
-    }
-    File buildFilePath = buildScript != null ? buildScript.getSourceFile() : null;
-    // Note: currently getModelVersion() matches the AGP version and it is the only way to get the AGP version.
-    // Note: agpVersion is currently not available for Java modules.
-    String agpVersion = androidProject != null ? androidProject.getModelVersion() : null;
-    GradlePluginModel gradlePluginModel = resolverCtx.getExtraProject(gradleModule, GradlePluginModel.class);
-    // We need to make a copy of the Collection since it originates from the Gradle classloader
-    List<String> gradlePluginList = new ArrayList<>();
-    if (gradlePluginModel != null) {
-      gradlePluginList.addAll(gradlePluginModel.getGradlePluginList());
-    }
-    GradleModuleModel gradleModuleModel =
-      new GradleModuleModel(moduleName, gradleProject, gradlePluginList, buildFilePath, gradleVersion, agpVersion, kaptGradleModel);
-    ideModule.createChild(GRADLE_MODULE_MODEL, gradleModuleModel);
-
-    if (nativeAndroidProject == null && (androidProject == null || androidProjectWithoutVariants)) {
-      // For Java modules we need a list, either extract this from the ProjectSyncIssues or get it from the AndroidProject.
-      Collection<SyncIssue> issues = ImmutableList.of();
-      if (projectSyncIssues != null) {
-        issues = projectSyncIssues.getSyncIssues();
-      }
-      else if (androidProject != null) {
-        issues = androidProject.getSyncIssues();
-      }
-
-      // This is a Java lib module or Jar/Aar wrapped module.
-      // The module is buildable only if JavaPlugin is applied. For Jar/Aar wrapped module, this could be false.
-      createJavaProject(gradleModule, ideModule, issues, androidProjectWithoutVariants,
-                        gradlePluginList.contains("org.gradle.api.plugins.JavaPlugin"));
-      // Populate ContentRootDataNode for buildSrc module. This DataNode is required to setup classpath buildscript.
-      if (BUILD_SRC_FOLDER_NAME.equals(gradleModule.getGradleProject().getName())) {
-        nextResolver.populateModuleContentRoots(gradleModule, ideModule);
-      }
     }
   }
 

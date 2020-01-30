@@ -30,7 +30,7 @@ import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.PlatformIcons;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -158,7 +158,7 @@ public class CreateXmlResourceSubdirPanel {
   public void updateDirectories(boolean updateFileCombo, VirtualFile resourceDir) {
     List<VirtualFile> directories = Collections.emptyList();
     if (resourceDir != null) {
-      directories = AndroidResourceUtil.getResourceSubdirs(myFolderType, Collections.singleton(resourceDir));
+      directories = IdeResourcesUtil.getResourceSubdirs(myFolderType, Collections.singleton(resourceDir));
     }
 
     Collections.sort(directories, (f1, f2) -> f1.getName().compareTo(f2.getName()));

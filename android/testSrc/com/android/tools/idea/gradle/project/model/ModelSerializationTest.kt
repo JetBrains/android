@@ -161,7 +161,7 @@ class ModelSerializationTest {
       modelCache,
       dependenciesFactory,
       listOf(VariantStub()),
-      ProjectSyncIssuesStub(listOf(SyncIssueStub())))
+      listOf(SyncIssueStub()))
     AndroidModuleModel.create(
       "moduleName",
       File("some/file/path"),
@@ -263,7 +263,7 @@ class ModelSerializationTest {
         modelCache,
         dependenciesFactory,
         listOf(VariantStub()),
-        ProjectSyncIssuesStub(listOf(SyncIssueStub())))
+        listOf(SyncIssueStub()))
     }
 
   @Test

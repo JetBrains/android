@@ -20,6 +20,7 @@ import static com.android.tools.idea.npw.project.AndroidPackageUtils.getModuleTe
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.annotations.concurrency.WorkerThread;
+import com.android.ide.common.resources.FileResourceNameValidator;
 import com.android.ide.common.vectordrawable.VdOverrideInfo;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.validation.Validator;
@@ -84,7 +85,6 @@ import javax.swing.JRadioButton;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
@@ -271,9 +271,9 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
 
         String name = FileUtil.getNameWithoutExtension(file).toLowerCase(Locale.getDefault());
         if (!name.startsWith(ICON_PREFIX)) {
-          name = ICON_PREFIX + AndroidResourceUtil.getValidResourceFileName(name);
+          name = ICON_PREFIX + FileResourceNameValidator.getValidResourceFileName(name);
         }
-        return AndroidResourceUtil.getValidResourceFileName(name);
+        return FileResourceNameValidator.getValidResourceFileName(name);
       }, fileProperty));
 
       myListeners.release(drawableListener);

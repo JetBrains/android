@@ -29,7 +29,6 @@ import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.newvfs.impl.VirtualFileSystemEntry;
 import com.intellij.psi.PsiManager;
@@ -39,7 +38,6 @@ import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.concurrent.Semaphore;
@@ -48,7 +46,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.imageio.ImageIO;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,8 +85,8 @@ public class ThumbnailManagerTest extends NavTestCase {
     assertSame(image, imageFuture.getTerminalImage());
 
     VirtualFile resDir = myFixture.findFileInTempDir("res");
-    AndroidResourceUtil.createValueResource(getProject(), resDir, "foo", ResourceType.STRING, "strings.xml",
-                                            Collections.singletonList(ResourceFolderType.VALUES.getName()), "bar");
+    IdeResourcesUtil.createValueResource(getProject(), resDir, "foo", ResourceType.STRING, "strings.xml",
+                                         Collections.singletonList(ResourceFolderType.VALUES.getName()), "bar");
     ResourceRepositoryManager.getAppResources(myFacet).sync();
 
     imageFuture = manager.getThumbnail(psiFile, model.getConfiguration(), new Dimension(100, 200));

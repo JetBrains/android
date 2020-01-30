@@ -47,7 +47,7 @@ import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.converters.*;
 import org.jetbrains.android.dom.resources.ResourceNameConverter;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -153,7 +153,7 @@ public class AndroidXmlSpellcheckingStrategy extends XmlSpellcheckingStrategy {
   public Tokenizer getAttributeValueTokenizer(PsiElement element) {
     assert element instanceof XmlAttributeValue;
 
-    if (AndroidResourceUtil.isIdDeclaration((XmlAttributeValue)element)) {
+    if (IdeResourcesUtil.isIdDeclaration((XmlAttributeValue)element)) {
       return myAttributeValueRenamingTokenizer;
     }
     PsiElement parent = element.getParent();

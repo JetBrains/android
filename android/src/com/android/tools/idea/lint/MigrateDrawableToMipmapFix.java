@@ -54,7 +54,7 @@ import com.intellij.refactoring.psi.SearchUtils;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -84,7 +84,7 @@ class MigrateDrawableToMipmapFix implements LintIdeQuickFix {
     LocalResourceRepository projectResources = ResourceRepositoryManager.getProjectResources(facet);
     List<ResourceItem> resourceItems = projectResources.getResources(ResourceNamespace.TODO(), myUrl.type, myUrl.name);
     for (ResourceItem item : resourceItems) {
-      PsiFile file = AndroidResourceUtil.getItemPsiFile(project, item);
+      PsiFile file = IdeResourcesUtil.getItemPsiFile(project, item);
       if (file == null) {
         continue;
       }
@@ -99,7 +99,7 @@ class MigrateDrawableToMipmapFix implements LintIdeQuickFix {
       }
     }
 
-    PsiField[] resourceFields = AndroidResourceUtil.findResourceFields(facet, ResourceType.DRAWABLE.getName(), myUrl.name, true);
+    PsiField[] resourceFields = IdeResourcesUtil.findResourceFields(facet, ResourceType.DRAWABLE.getName(), myUrl.name, true);
     if (resourceFields.length == 1) {
       Iterable<PsiReference> allReferences = SearchUtils.findAllReferences(resourceFields[0], useScope);
       for (PsiReference next : allReferences) {

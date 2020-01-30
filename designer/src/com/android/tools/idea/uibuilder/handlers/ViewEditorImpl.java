@@ -33,7 +33,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
@@ -292,7 +292,7 @@ public class ViewEditorImpl extends ViewEditor {
     ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
     ResourceValue resValue = resourceResolver.findResValue(resourceId, false);
 
-    VirtualFile file = ResourceHelper.resolveLayout(resourceResolver, resValue);
+    VirtualFile file = IdeResourcesUtil.resolveLayout(resourceResolver, resValue);
     if (file == null) {
       return;
     }

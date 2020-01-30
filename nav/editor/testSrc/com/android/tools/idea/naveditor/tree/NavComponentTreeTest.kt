@@ -50,7 +50,7 @@ class NavComponentTreeTest : NavTestCase() {
       }
     }
 
-    surface = NavDesignSurface(project, project)
+    surface = NavDesignSurface(project, myRootDisposable)
     surface.model = model
 
     panel = TreePanel()
@@ -78,20 +78,24 @@ class NavComponentTreeTest : NavTestCase() {
   }
 
   fun testSelection() {
-    testSelection("fragment1", "root")
-    testSelection("fragment2", "root")
-    testSelection("subnav", "root")
-    testSelection("fragment3", "subnav")
+    testSelection("root", "fragment1")
+    testSelection("root", "fragment2")
+    testSelection("root", "subnav")
+    testSelection("subnav", "fragment3")
+
+    testSelection("root", "fragment1", "fragment2")
+    testSelection("root", "fragment3", "fragment2")
+    testSelection("subnav", "fragment3", "action2")
   }
 
-  private fun testSelection(id: String, root: String) {
-    val component = model.find(id)!!
-    surface.selectionModel.setSelection(listOf(component))
+  private fun testSelection(expectedRoot: String, vararg id: String) {
+    val component = id.map {model.find(it)!!}
+    surface.selectionModel.setSelection(component.toList())
 
-    assertThat(listOf(component)).containsExactlyElementsIn(selectionModel.selection).inOrder()
+    assertThat(component).containsExactlyElementsIn(selectionModel.selection).inOrder()
 
-    val expectedRoot = model.find(root)!!
-    assertEquals(surface.currentNavigation, expectedRoot)
+    val expectedNavigation = model.find(expectedRoot)!!
+    assertEquals(surface.currentNavigation, expectedNavigation)
   }
 
   fun testText() {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager.rendering
 
+import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.intellij.openapi.diagnostic.Logger
 import javax.swing.Icon
@@ -89,7 +90,7 @@ interface AssetIconProvider {
    * @see AssetIcon
    */
   fun getIcon(
-    assetToRender: DesignAsset,
+    assetToRender: Asset,
     width: Int,
     height: Int,
     refreshCallback: () -> Unit = {},
@@ -109,7 +110,7 @@ class DefaultIconProvider private constructor() : AssetIconProvider {
   override val supportsTransparency: Boolean = false
 
   override fun getIcon(
-    assetToRender: DesignAsset,
+    assetToRender: Asset,
     width: Int,
     height: Int,
     refreshCallback: () -> Unit,

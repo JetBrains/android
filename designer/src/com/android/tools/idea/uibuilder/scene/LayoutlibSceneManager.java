@@ -390,6 +390,17 @@ public class LayoutlibSceneManager extends SceneManager {
 
   @NotNull
   @Override
+  public ImmutableList<SceneView> getSceneViews() {
+    if (mySecondarySceneView == null) {
+      return ImmutableList.of(getSceneView());
+    }
+    else {
+      return ImmutableList.of(getSceneView(), mySecondarySceneView);
+    }
+  }
+
+  @NotNull
+  @Override
   public ImmutableList<Layer> getLayers() {
     ImmutableList.Builder<Layer> builder = new ImmutableList.Builder<>();
     builder.addAll(super.getLayers());
@@ -613,8 +624,6 @@ public class LayoutlibSceneManager extends SceneManager {
    * Asynchronously inflates the model and updates the view hierarchy
    */
   protected void requestModelUpdate() {
-    ApplicationManager.getApplication().assertIsDispatchThread();
-
     synchronized (myProgressLock) {
       if (myCurrentIndicator == null) {
         myCurrentIndicator = new AndroidPreviewProgressIndicator();

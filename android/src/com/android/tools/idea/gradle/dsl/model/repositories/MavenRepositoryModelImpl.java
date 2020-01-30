@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.dsl.model.repositories;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDslElement.CREDENTIALS;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel;
+import com.android.tools.idea.gradle.dsl.api.repositories.MavenCredentialsModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
@@ -25,7 +26,6 @@ import com.android.tools.idea.gradle.dsl.parser.repositories.MavenCredentialsDsl
 import com.android.tools.idea.gradle.dsl.parser.repositories.MavenRepositoryDslElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a repository defined with maven {}.
@@ -54,9 +54,10 @@ public class MavenRepositoryModelImpl extends UrlBasedRepositoryModelImpl implem
     return GradlePropertyModelBuilder.create(myPropertiesDslElement, ARTIFACT_URLS).asMethod(true).buildResolved();
   }
 
-  @Nullable
+  @NotNull
+  @Override
   public MavenCredentialsModel credentials() {
-    MavenCredentialsDslElement credentials = myPropertiesDslElement.getPropertyElement(CREDENTIALS);
-    return credentials != null ? new MavenCredentialsModel(credentials) : null;
+    MavenCredentialsDslElement credentials = myPropertiesDslElement.ensurePropertyElement(CREDENTIALS);
+    return new MavenCredentialsModelImpl(credentials);
   }
 }

@@ -48,13 +48,13 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.util.NlTreeDumper;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.fixtures.DropTargetDragEventBuilder;
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewHandlerManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.NlInteractionHandler;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -82,22 +82,6 @@ import org.mockito.Mockito;
  */
 public class InteractionManagerTest extends LayoutTestCase {
   private final NlTreeDumper myTreeDumper = new NlTreeDumper(true, false);
-
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
-    StudioFlags.NELE_NEW_INTERACTION_INTERFACE.override(false);
-  }
-
-  @Override
-  protected void tearDown() throws Exception {
-    try {
-      StudioFlags.NELE_NEW_INTERACTION_INTERFACE.clearOverride();
-    }
-    finally {
-      super.tearDown();
-    }
-  }
 
   public void testDragAndDrop() throws Exception {
     // Drops a fragment (xmlFragment below) into the design surface (via drag & drop events) and verifies that
@@ -296,28 +280,38 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testLinearLayoutCursorHoverComponent() {
-    InteractionManager manager = setupLinearLayoutCursorTest();
-    DesignSurface surface = manager.getSurface();
+    DesignSurface surface = setupLinearLayoutCursorTest().getSurface();
+    InteractionHandler interactionHandler = new NlInteractionHandler(surface);
+
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
-    manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getCenterX()),
-                         Coordinates.getSwingYDip(screenView, textView.getCenterY()),
-                         0);
-    Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+    int mouseX = Coordinates.getSwingXDip(screenView, textView.getCenterX());
+    int mouseY = Coordinates.getSwingYDip(screenView, textView.getCenterY());
+    int modifiersEx = 0;
+
+    interactionHandler.hoverWhenNoInteraction(mouseX, mouseY, modifiersEx);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR),
+                 interactionHandler.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx));
   }
 
   public void testLinearLayoutCursorHoverComponentHandle() {
-    InteractionManager manager = setupLinearLayoutCursorTest();
-    DesignSurface surface = manager.getSurface();
+    DesignSurface surface = setupConstraintLayoutCursorTest().getSurface();
+    InteractionHandler interactionHandler = new NlInteractionHandler(surface);
+
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     SelectionModel selectionModel = screenView.getSelectionModel();
     selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
     textView.layout(SceneContext.get(screenView), 0);
-    manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth()),
-                         Coordinates.getSwingYDip(screenView, textView.getDrawY() + textView.getDrawHeight()),
-                         0);
-    Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+
+    int mouseX = Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth());
+    int mouseY = Coordinates.getSwingYDip(screenView, textView.getDrawY() + textView.getDrawHeight());
+    int modifiersEx = 0;
+
+    interactionHandler.hoverWhenNoInteraction(mouseX, mouseY, modifiersEx);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR),
+                 interactionHandler.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx));
   }
 
   public void testLinearLayoutCursorHoverRoot() {
@@ -366,28 +360,36 @@ public class InteractionManagerTest extends LayoutTestCase {
   }
 
   public void testConstraintLayoutCursorHoverComponent() {
-    InteractionManager manager = setupConstraintLayoutCursorTest();
-    DesignSurface surface = manager.getSurface();
+    DesignSurface surface = setupConstraintLayoutCursorTest().getSurface();
+    InteractionHandler interactionHandler = new NlInteractionHandler(surface);
+
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
-    manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getCenterX()),
-                         Coordinates.getSwingYDip(screenView, textView.getCenterY()),
-                         0);
-    Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    int mouseX = Coordinates.getSwingXDip(screenView, textView.getCenterX());
+    int mouseY = Coordinates.getSwingYDip(screenView, textView.getCenterY());
+    int modifiersEx = 0;
+    interactionHandler.hoverWhenNoInteraction(mouseX, mouseY, modifiersEx);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR),
+                 interactionHandler.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx));
   }
 
   public void testConstraintLayoutCursorHoverComponentHandle() {
-    InteractionManager manager = setupConstraintLayoutCursorTest();
-    DesignSurface surface = manager.getSurface();
+    DesignSurface surface = setupConstraintLayoutCursorTest().getSurface();
+    InteractionHandler interactionHandler = new NlInteractionHandler(surface);
+
     ScreenView screenView = (ScreenView)surface.getSceneView(0, 0);
     SceneComponent textView = screenView.getScene().getSceneComponent("textView");
     SelectionModel selectionModel = screenView.getSelectionModel();
     selectionModel.setSelection(ImmutableList.of(textView.getNlComponent()));
     textView.layout(SceneContext.get(screenView), 0);
-    manager.updateCursor(Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth()),
-                         Coordinates.getSwingYDip(screenView, textView.getDrawY() + textView.getDrawHeight()),
-                         0);
-    Mockito.verify(surface).setCursor(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR));
+
+    int mouseX = Coordinates.getSwingXDip(screenView, textView.getDrawX() + textView.getDrawWidth());
+    int mouseY = Coordinates.getSwingYDip(screenView, textView.getDrawY() + textView.getDrawHeight());
+    int modifiersEx = 0;
+
+    interactionHandler.hoverWhenNoInteraction(mouseX, mouseY, modifiersEx);
+    assertEquals(Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR),
+                 interactionHandler.getCursorWhenNoInteraction(mouseX, mouseY, modifiersEx));
   }
 
   public void testConstraintLayoutCursorHoverRoot() {

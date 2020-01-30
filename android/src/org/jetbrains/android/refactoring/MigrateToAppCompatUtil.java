@@ -79,7 +79,7 @@ import java.util.stream.Collectors;
 import org.jetbrains.android.refactoring.AppCompatMigrationEntry.MethodMigrationEntry;
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ChangeCustomViewUsageInfo;
 import org.jetbrains.android.refactoring.MigrateToAppCompatUsageInfo.ClassMigrationUsageInfo;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 
 class MigrateToAppCompatUtil {
@@ -242,7 +242,7 @@ class MigrateToAppCompatUtil {
     return itemsOfType.stream()
       .map(name -> repository.getResources(ResourceNamespace.TODO(), resourceType, name))
       .flatMap(Collection::stream)
-      .map(item -> AndroidResourceUtil.getItemPsiFile(project, item))
+      .map(item -> IdeResourcesUtil.getItemPsiFile(project, item))
       .filter(f -> f instanceof XmlFile)
       .map(XmlFile.class::cast)
       .collect(Collectors.toSet());

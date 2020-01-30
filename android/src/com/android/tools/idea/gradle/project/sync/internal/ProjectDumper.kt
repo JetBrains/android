@@ -33,6 +33,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.AnnotationOrderRootType
 import com.intellij.openapi.roots.ContentEntry
 import com.intellij.openapi.roots.ExcludeFolder
 import com.intellij.openapi.roots.InheritedJdkOrderEntry
@@ -67,6 +68,7 @@ class ProjectDumper(
 ) {
   private val devBuildHome: File = getStudioSourcesLocation()
   private val gradleCache: File = getGradleCacheLocation()
+  private val userM2: File = getUserM2Location()
 
   init {
     println("<DEV>         <== ${devBuildHome.absolutePath}")
@@ -130,6 +132,7 @@ class ProjectDumper(
       .replace(FileUtils.toSystemIndependentPath(gradleCache.absolutePath), "<GRADLE>", ignoreCase = false)
       .replace(FileUtils.toSystemIndependentPath(androidSdk.absolutePath), "<ANDROID_SDK>", ignoreCase = false)
       .replace(FileUtils.toSystemIndependentPath(devBuildHome.absolutePath), "<DEV>", ignoreCase = false)
+      .replace(FileUtils.toSystemIndependentPath(userM2.absolutePath), "<USER_M2>", ignoreCase = false)
       .let {
         if (it.contains(gradleVersionPattern)) {
           it.replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")
@@ -270,6 +273,9 @@ private fun ProjectDumper.dump(library: Library, matchingName: String) {
           (type != OrderRootType.DOCUMENTATION &&
            type != OrderRootType.SOURCES &&
            type != JavadocOrderRootType.getInstance())
+        }
+        .filter { file ->
+          !file.toPrintablePath().contains("<USER_M2>") || type != AnnotationOrderRootType.getInstance()
         }
         .forEach { file ->
           // TODO(b/124659827): Include source and JavaDocs artifacts when available.
@@ -464,6 +470,8 @@ private fun getGradleCacheLocation() = File(System.getProperty("gradle.user.home
 
 private fun getStudioSourcesLocation() = File(PathManager.getHomePath()).parentFile.parentFile!!
 
+private fun getUserM2Location() = File(System.getProperty("user.home") + "/.m2/repository")
+
 private fun getOfflineM2Repositories(): List<File> =
     (EmbeddedDistributionPaths.getInstance().findAndroidStudioLocalMavenRepoPaths())
         .map { File(FileUtil.toCanonicalPath(it.absolutePath)) }
@@ -475,7 +483,7 @@ private fun String.removeSuffix(suffix: String) =
  * Replaces artifact version in string containing artifact idslike com.android.group:artifact:28.7.8@aar with <VERSION>.
  */
 private val androidLibraryPattern =
-  Regex("(?:(?:com\\.android\\.)|(?:android\\.arch\\.))(?:(?:\\w|-)+(?:\\.(?:(?:\\w|-)+))*:(?:\\w|-)+:)(.+?)(?:@aar|@jar|$)")
+  Regex("(?:(?:com\\.android\\.)|(?:android\\.arch\\.))(?:(?:\\w|-)+(?:\\.(?:(?:\\w|-)+))*:(?:\\w|-)+:)([^@ ]*)")
 
 private fun String.removeAndroidVersionsFromDependencyNames(): String =
     androidLibraryPattern.find(this)?.groups?.get(1)?.let {

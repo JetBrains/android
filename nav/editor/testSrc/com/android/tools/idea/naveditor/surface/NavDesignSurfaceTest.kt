@@ -679,17 +679,21 @@ class NavDesignSurfaceTest : NavTestCase() {
     val fragment3 = model.find("fragment3")!!
 
     testCurrentNavigation(surface, root, root)
-    testCurrentNavigation(surface, fragment1, root)
-    testCurrentNavigation(surface, nested1, root)
-    testCurrentNavigation(surface, fragment2, nested1)
+    testCurrentNavigation(surface, root, fragment1)
+    testCurrentNavigation(surface, root, nested1)
+    testCurrentNavigation(surface, nested1, fragment2)
     testCurrentNavigation(surface, nested1, nested1)
-    testCurrentNavigation(surface, nested2, nested1)
-    testCurrentNavigation(surface, fragment3, nested2)
+    testCurrentNavigation(surface, nested1, nested2)
+    testCurrentNavigation(surface, nested2, fragment3)
     testCurrentNavigation(surface, root, root)
+
+    testCurrentNavigation(surface, root, fragment1, nested1)
+    testCurrentNavigation(surface, nested1, fragment2, nested2)
+    testCurrentNavigation(surface, nested1, fragment2, nested2, fragment1)
   }
 
-  private fun testCurrentNavigation(surface: NavDesignSurface, select: NlComponent, expected: NlComponent) {
-    surface.selectionModel.setSelection(listOf(select))
+  private fun testCurrentNavigation(surface: NavDesignSurface, expected: NlComponent, vararg select: NlComponent) {
+    surface.selectionModel.setSelection(select.toList())
     assertEquals(expected.id, surface.currentNavigation.id)
   }
 

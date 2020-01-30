@@ -42,7 +42,6 @@ import org.junit.Test
 import java.awt.Component
 import java.io.File
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -149,11 +148,10 @@ class ResourceImportDialogViewModelTest {
     assertThat(viewModel.assetSets.first().name).isEqualTo("ic_background_image_1")
     assertNull(viewModel.getValidationInfo())
 
-    // Doesn't substitute special characters other than '-' or ' '.
     asset  = DesignAsset(invalidFile!!, emptyList(), ResourceType.DRAWABLE)
     viewModel = ResourceImportDialogViewModel(rule.module.androidFacet!!, sequenceOf(asset))
-    assertThat(viewModel.assetSets.first().name).isEqualTo("background_imag@e_1")
-    assertNotNull(viewModel.getValidationInfo())
+    assertThat(viewModel.assetSets.first().name).isEqualTo("background_imag_e_1")
+    assertNull(viewModel.getValidationInfo())
   }
 
   private fun getTestFiles(vararg path: String): List<VirtualFile> {

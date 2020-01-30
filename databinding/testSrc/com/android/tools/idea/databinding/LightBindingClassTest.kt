@@ -617,4 +617,25 @@ class LightBindingClassTest {
     assertThat(binding.findFieldByName("testId", false)!!.type.canonicalText)
       .isEqualTo(ModuleDataBinding.getInstance(facet).dataBindingMode.viewStubProxy)
   }
+
+  @Test
+  fun noFieldsAreGeneratedForMergeTags() {
+    val file = fixture.addFileToProject("res/layout/activity_main.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <layout xmlns:android="http://schemas.android.com/apk/res/android">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+          <Button android:id="@+id/test_button" />
+          <merge android:id="@+id/test_merge" />
+          <TextView android:id="@+id/test_text" />
+        </LinearLayout>
+      </layout>
+    """.trimIndent())
+    val context = fixture.addClass("public class MainActivity {}")
+
+    val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
+    assertThat(binding.fields.map { field -> field.name }).containsExactly("testButton", "testText")
+  }
 }

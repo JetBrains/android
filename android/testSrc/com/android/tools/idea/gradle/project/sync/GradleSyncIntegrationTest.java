@@ -80,6 +80,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
+import com.android.tools.idea.gradle.project.sync.idea.issues.AndroidSyncException;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
 import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
@@ -406,20 +407,8 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     // Remove all variants.
     appendToFile(appBuildFile, "android.variantFilter { variant -> variant.ignore = true }");
 
-    requestSyncAndWait();
-
-    // Verify user was warned.
-    List<SyncMessage> messages = syncMessages.getReportedMessages();
-    assertThat(messages).hasSize(1);
-
-    SyncMessage message = messages.get(0);
-    // @formatter:off
-    assertAbout(syncMessage()).that(message).hasType(MessageType.ERROR)
-                                            .hasMessageLine("The module 'app' is an Android project without build variants, and cannot be built.", 0);
-    // @formatter:on
-
-    // Verify AndroidFacet was removed.
-    assertNull(AndroidFacet.getInstance(myModules.getAppModule()));
+    String failure = requestSyncAndGetExpectedFailure();
+    assertThat(failure).contains("No variants found for 'app'. Check build files to ensure at least one variant exists.");
   }
 
   // See https://code.google.com/p/android/issues/detail?id=74259

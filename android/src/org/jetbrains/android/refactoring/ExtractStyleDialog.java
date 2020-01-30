@@ -17,7 +17,7 @@ package org.jetbrains.android.refactoring;
 
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.actionSystem.ActionToolbarPosition;
@@ -37,7 +37,6 @@ import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -84,7 +83,7 @@ class ExtractStyleDialog extends DialogWrapper {
       myStyleNameField.setText(parentStyleName + ".");
       myStyleNameField.selectAll();
     } else {
-      String prefix = ResourceHelper.prependResourcePrefix(module, null, ResourceFolderType.VALUES);
+      String prefix = IdeResourcesUtil.prependResourcePrefix(module, null, ResourceFolderType.VALUES);
       if (prefix != null) {
         myStyleNameField.setText(prefix);
       }
@@ -214,7 +213,7 @@ class ExtractStyleDialog extends DialogWrapper {
     if (styleName.isEmpty()) {
       return new ValidationInfo("specify style name", myStyleNameField);
     }
-    if (!AndroidResourceUtil.isCorrectAndroidResourceName(styleName)) {
+    if (!IdeResourcesUtil.isCorrectAndroidResourceName(styleName)) {
       return new ValidationInfo("incorrect style name", myStyleNameField);
     }
     final Module module = getChosenModule();

@@ -16,6 +16,7 @@
 package com.android.tools.idea.mlkit;
 
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.mlkit.lightpsi.LightModelClass;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -28,7 +29,9 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.indexing.FileBasedIndex;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import org.jetbrains.android.augment.AndroidLightClassBase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,11 +49,14 @@ public class MlkitShortNamesCache extends PsiShortNamesCache {
   @Override
   public PsiClass[] getClassesByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
     if (StudioFlags.MLKIT_LIGHT_CLASSES.get()) {
-      List<LightModelClass> lightClassList = new ArrayList<>();
+      List<PsiClass> lightClassList = new ArrayList<>();
       FileBasedIndex.getInstance().processValues(MlModelFileIndex.INDEX_ID, name, null, (file, value) -> {
         Module module = ModuleUtilCore.findModuleForFile(file, myProject);
-        if (module != null && AndroidFacet.getInstance(module) != null) {
-          lightClassList.add(MlkitModuleService.getInstance(module).getOrCreateLightModelClass(value));
+        if (module != null && AndroidFacet.getInstance(module) != null && value.isValidModel()) {
+          LightModelClass lightModelClass = MlkitModuleService.getInstance(module).getOrCreateLightModelClass(value);
+          if (lightModelClass != null) {
+            lightClassList.add(lightModelClass);
+          }
         }
         return true;
       }, scope);
@@ -79,6 +85,7 @@ public class MlkitShortNamesCache extends PsiShortNamesCache {
   @NotNull
   @Override
   public PsiMethod[] getMethodsByName(@NotNull String name, @NotNull GlobalSearchScope scope) {
+    //TODO(jackqdyulei): implement it to return correct methods.
     return PsiMethod.EMPTY_ARRAY;
   }
 

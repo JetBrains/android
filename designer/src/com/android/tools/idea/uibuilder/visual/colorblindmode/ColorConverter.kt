@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.visual.colorblindmode
 
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import java.awt.image.BufferedImage
 import java.awt.image.DataBufferInt
@@ -38,50 +39,28 @@ class ColorConverter(val mode: ColorBlindMode) : Disposable {
   private var cbmCLut: ColorLut? = null
 
   /**
-   * Ensure that all necessary color lookup table is built.
-   * Encouraged to call it every time before calling [convert]
+   * Pre condition : BufferedImage must be [BufferedImage.TYPE_INT_ARGB].
+   * Returns true if color conversion was successful. False otherwise
    */
-  fun init() {
-    if (removeGammaCLut == null) {
-      ColorConverterLogger.start("Build CLut for ${mode.name}")
-      removeGammaCLut = buildGammaCLut(Function { (it / 255.0).pow(GAMMA) })
-      ColorConverterLogger.end("Build CLut for ${mode.name}")
-    }
-
-    if (cbmCLut == null) {
-      ColorConverterLogger.start("Build gamma CLut for ${mode.name}")
-      cbmCLut = buildColorLut(DIM, mode, removeGammaCLut!!)
-      ColorConverterLogger.end("Build gamma CLut for ${mode.name}")
-    }
-  }
-
-  /**
-   * Pre condition : BufferedImage must be [BufferedImage.TYPE_INT_ARGB]
-   */
-  fun convert(startImage: BufferedImage, postImage: BufferedImage) {
+  fun convert(startImage: BufferedImage, postImage: BufferedImage): Boolean {
     if (cbmCLut == null || removeGammaCLut == null) {
-      throw RuntimeException("Make sure the converter.init is called.")
+      removeGammaCLut = buildGammaCLut(Function { (it / 255.0).pow(GAMMA) })
+      cbmCLut = buildColorLut(DIM, mode, removeGammaCLut!!)
     }
 
-    ColorConverterLogger.start("Apply ${mode.name}")
+    if (startImage.type != BufferedImage.TYPE_INT_ARGB || postImage.type != BufferedImage.TYPE_INT_ARGB) {
+      println("Error:: BufferedImage not supported for color blind mode.")
+      return false
+    }
+
     val inData = (startImage.raster.dataBuffer as DataBufferInt).data
     val outData = (postImage.raster.dataBuffer as DataBufferInt).data
 
     for (i in inData.indices) {
-      outData[i] = convert(inData[i])
+      outData[i] = 0xff shl 24 or cbmCLut!!.interpolate(prepare(inData[i]))
     }
-    ColorConverterLogger.end("Apply ${mode.name}")
 
-    if (DEBUG) {
-      println(ColorConverterLogger.dumpAndClearLog())
-    }
-  }
-
-  /**
-   * Converts a single color. Color input must be [BufferedImage.TYPE_INT_ARGB].
-   */
-  fun convert(color: Int): Int {
-    return 0xff shl 24 or cbmCLut!!.interpolate(prepare(color))
+    return true
   }
 
   /**
@@ -226,39 +205,3 @@ class ColorLut(val lut: IntArray, val dim: Int) {
   }
 }
 
-internal object ColorConverterLogger {
-
-  private val log = HashMap<String, Pair<Long, Long>>()
-
-  internal fun start(name: String) {
-    if (!DEBUG) {
-      return
-    }
-    log[name] = Pair(System.currentTimeMillis(), 0L)
-  }
-
-  internal fun end(name: String) {
-    if (!DEBUG) {
-      return
-    }
-
-    if (!log.containsKey(name)) {
-      return
-      //throw RuntimeException("Start not called : $name")
-    }
-
-    var out = log[name]
-    log[name] = Pair(out!!.first, System.currentTimeMillis())
-  }
-
-  internal fun dumpAndClearLog(): String {
-    val builder = StringBuilder()
-    builder.append("Logging results : \n")
-    for (entry in log) {
-      val elapsed = entry.value.second - entry.value.first
-      builder.append(" - ${entry.key} : $elapsed ms\n")
-    }
-    log.clear()
-    return builder.toString()
-  }
-}

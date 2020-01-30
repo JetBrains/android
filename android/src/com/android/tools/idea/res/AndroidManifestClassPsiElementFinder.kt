@@ -16,9 +16,9 @@
 package com.android.tools.idea.res
 
 import com.android.SdkConstants
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.computeUserDataIfAbsent
-import com.intellij.facet.ProjectFacetManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
@@ -33,7 +33,6 @@ import com.intellij.util.containers.isNullOrEmpty
 import org.jetbrains.android.augment.ManifestClass
 import org.jetbrains.android.dom.manifest.getCustomPermissionGroups
 import org.jetbrains.android.dom.manifest.getCustomPermissions
-import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
 
@@ -72,9 +71,10 @@ class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFin
     }
     val packageName = qualifiedName.dropLast(SUFFIX.length)
 
-    return findAndroidFacetsWithPackageName(packageName).mapNotNull { facet ->
-      getManifestClassForFacet(facet)?.takeIf { PsiSearchScopeUtil.isInScope(scope, it) }
-    }.toTypedArray()
+    return project.getProjectSystem()
+      .getAndroidFacetsWithPackageName(project, packageName, GlobalSearchScope.projectScope(project)).mapNotNull { facet ->
+        getManifestClassForFacet(facet)?.takeIf { PsiSearchScopeUtil.isInScope(scope, it) }
+      }.toTypedArray()
   }
 
   fun getManifestClassForFacet(facet: AndroidFacet): PsiClass? {
@@ -86,7 +86,9 @@ class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFin
   }
 
   override fun findPackage(qualifiedName: String): PsiPackage? {
-    return if (findAndroidFacetsWithPackageName(qualifiedName).isNotEmpty()) {
+    val canFindFacets = project.getProjectSystem().getAndroidFacetsWithPackageName(project, qualifiedName,
+                                                                                   GlobalSearchScope.projectScope(project)).isNotEmpty()
+    return if (canFindFacets) {
       AndroidLightPackage.withName(qualifiedName, project)
     }
     else {
@@ -104,11 +106,6 @@ class AndroidManifestClassPsiElementFinder(val project: Project) : PsiElementFin
     }
 
     return result
-  }
-
-  private fun findAndroidFacetsWithPackageName(packageName: String): List<AndroidFacet> {
-    // TODO(b/110188226): cache this and figure out how to invalidate that cache.
-    return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).filter { getPackageName(it) == packageName }
   }
 
   private fun AndroidFacet.hasManifestClass(): Boolean {

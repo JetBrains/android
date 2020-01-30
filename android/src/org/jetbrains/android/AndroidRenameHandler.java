@@ -47,7 +47,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -104,7 +104,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     }
 
     ArrayList<PsiElement> elementList = new ArrayList<>(elements);
-    Collections.sort(elementList, AndroidResourceUtil.RESOURCE_ELEMENT_COMPARATOR);
+    Collections.sort(elementList, IdeResourcesUtil.RESOURCE_ELEMENT_COMPARATOR);
     return elementList.get(0);
   }
 
@@ -170,7 +170,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
     AndroidFacet facet = AndroidFacet.getInstance(file);
     if (facet != null) {
       // Treat the resource reference as if the user renamed the R field instead.
-      PsiField[] resourceFields = AndroidResourceUtil.findResourceFields(facet, url.type.getName(), url.name, false);
+      PsiField[] resourceFields = IdeResourcesUtil.findResourceFields(facet, url.type.getName(), url.name, false);
       if (resourceFields.length == 1) {
         PsiElement element = resourceFields[0];
         if (element instanceof AndroidLightField) {
@@ -199,7 +199,7 @@ public class AndroidRenameHandler implements RenameHandler, TitledHandler {
       return null;
     }
 
-    if (!AndroidResourceUtil.isInResourceSubdirectory(file, ResourceFolderType.VALUES.getName())) {
+    if (!IdeResourcesUtil.isInResourceSubdirectory(file, ResourceFolderType.VALUES.getName())) {
       return null;
     }
 

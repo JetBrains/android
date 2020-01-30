@@ -25,7 +25,7 @@ import com.intellij.refactoring.safeDelete.SafeDeleteProcessor;
 import com.intellij.refactoring.safeDelete.SafeDeleteProcessorDelegateBase;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.IncorrectOperationException;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,7 +43,7 @@ final class StringResourceSafeDeleteProcessorDelegate extends SafeDeleteProcesso
   }
 
   static boolean handlesElementImpl(@NotNull PsiElement element) {
-    return element instanceof XmlTag && AndroidResourceUtil.isStringResource((XmlTag)element);
+    return element instanceof XmlTag && IdeResourcesUtil.isStringResource((XmlTag)element);
   }
 
   @NotNull
@@ -74,7 +74,7 @@ final class StringResourceSafeDeleteProcessorDelegate extends SafeDeleteProcesso
     assert attribute != null;
 
     elements.add(attribute.getValueElement());
-    elements.addAll(Arrays.asList(AndroidResourceUtil.findResourceFieldsForValueResource(tag, true)));
+    elements.addAll(Arrays.asList(IdeResourcesUtil.findResourceFieldsForValueResource(tag, true)));
     elements.forEach(e -> SafeDeleteProcessor.findGenericElementUsages(e, result, elementsToDelete));
 
     return new NonCodeUsageSearchInfo(SafeDeleteProcessor.getDefaultInsideDeletedCondition(elementsToDelete), elements);

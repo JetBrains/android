@@ -15,18 +15,23 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite;
 
+import com.android.tools.idea.testartifacts.instrumented.testsuite.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener;
+import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCase;
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestSuite;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.intellij.execution.filters.Filter;
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.components.JBScrollPane;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -39,7 +44,13 @@ import org.jetbrains.annotations.Nullable;
  *
  * Note: This view is under development and most of methods are not implemented yet.
  */
-public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListener {
+public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListener, AndroidTestResultsTableListener,
+                                             AndroidTestSuiteDetailsViewListener {
+
+  /**
+   * Minimum height of swing components in ThreeComponentsSplitter container in pixel.
+   */
+  private static final int MIN_COMPONENT_HEIGHT_IN_SPLITTER = 48;
 
   // Those properties are initialized by IntelliJ form editor before the constructor using reflection.
   private JPanel myRootPanel;
@@ -48,17 +59,38 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   private JBLabel myStatusBreakdownText;
   private JPanel myTableViewContainer;
 
+  private final ThreeComponentsSplitter myComponentsSplitter;
   private final AndroidTestResultsTable myTable;
+  private final AndroidTestSuiteDetailsView myDetailsView;
 
   private int scheduledTestCases = 0;
   private int passedTestCases = 0;
   private int failedTestCases = 0;
   private int skippedTestCases = 0;
 
-  public AndroidTestSuiteView() {
-    myTable = new AndroidTestResultsTable();
+  /**
+   * Constructs AndroidTestSuiteView.
+   *
+   * @param parentDisposable a parent disposable which this view's lifespan is tied with.
+   */
+  public AndroidTestSuiteView(@NotNull Disposable parentDisposable) {
+    myTable = new AndroidTestResultsTable(this);
     myTableViewContainer.add(myTable.getComponent());
+
+    myComponentsSplitter = new ThreeComponentsSplitter(/*vertical=*/true,
+                                                       /*onePixelDividers=*/true);
+    myComponentsSplitter.setOpaque(false);
+    myComponentsSplitter.setMinSize(MIN_COMPONENT_HEIGHT_IN_SPLITTER);
+    Disposer.register(this, myComponentsSplitter);
+    myComponentsSplitter.setFirstComponent(myRootPanel);
+
+    myDetailsView = new AndroidTestSuiteDetailsView(this);
+    myDetailsView.getRootPanel().setVisible(false);
+    myComponentsSplitter.setLastComponent(myDetailsView.getRootPanel());
+
     updateProgress();
+
+    Disposer.register(parentDisposable, this);
   }
 
   private void updateProgress() {
@@ -114,6 +146,35 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
   @Override
   public void onTestSuiteFinished(@NotNull AndroidDevice device, @NotNull AndroidTestSuite testSuite) {
     myTable.refreshTable();
+  }
+
+  @Override
+  public void onAndroidTestResultsRowSelected(@NotNull AndroidTestResults selectedResults) {
+    openAndroidTestSuiteDetailsView(selectedResults);
+  }
+
+  @Override
+  public void onAndroidTestSuiteDetailsViewCloseButtonClicked() {
+    closeAndroidTestSuiteDetailsView();
+  }
+
+  private void openAndroidTestSuiteDetailsView(@NotNull AndroidTestResults results) {
+    myDetailsView.setAndroidTestResults(results);
+    myDetailsView.getRootPanel().setVisible(true);
+
+    // ComponentsSplitter doesn't update child components' size automatically when you change its visibility.
+    // So we have to update them manually here otherwise the size can be invalid (e.g. smaller than the min size).
+    myComponentsSplitter.setFirstSize(myComponentsSplitter.getFirstSize());
+    myComponentsSplitter.setLastSize(myComponentsSplitter.getLastSize());
+  }
+
+  private void closeAndroidTestSuiteDetailsView() {
+    myDetailsView.getRootPanel().setVisible(false);
+
+    // ComponentsSplitter doesn't update child components' size automatically when you change its visibility.
+    // So we have to update them manually here otherwise the size can be invalid (e.g. smaller than the min size).
+    myComponentsSplitter.setFirstSize(myComponentsSplitter.getFirstSize());
+    myComponentsSplitter.setLastSize(myComponentsSplitter.getLastSize());
   }
 
   @Override
@@ -180,7 +241,7 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
 
   @Override
   public JComponent getComponent() {
-    return myRootPanel;
+    return myComponentsSplitter;
   }
 
   @Override
@@ -190,4 +251,14 @@ public class AndroidTestSuiteView implements ConsoleView, AndroidTestResultListe
 
   @Override
   public void dispose() { }
+
+  @VisibleForTesting
+  public AndroidTestResultsTable getTableForTesting() {
+    return myTable;
+  }
+
+  @VisibleForTesting
+  public AndroidTestSuiteDetailsView getDetailsViewForTesting() {
+    return myDetailsView;
+  }
 }

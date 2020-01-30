@@ -26,6 +26,7 @@ import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
 import java.nio.file.FileSystem;
@@ -127,7 +128,6 @@ public class AsyncDevicesGetter {
   @NotNull
   @VisibleForTesting
   List<Device> getImpl(@NotNull Collection<VirtualDevice> virtualDevices, @NotNull Collection<ConnectedDevice> connectedDevices) {
-    @SuppressWarnings("UnstableApiUsage")
     Stream<Device> deviceStream = Streams.concat(
       connectedVirtualDeviceStream(connectedDevices, virtualDevices),
       physicalDeviceStream(connectedDevices),
@@ -187,7 +187,7 @@ public class AsyncDevicesGetter {
       return;
     }
 
-    Module module = ((ModuleBasedConfiguration)configuration).getConfigurationModule().getModule();
+    Module module = ((ModuleBasedConfiguration<?, ?>)configuration).getConfigurationModule().getModule();
 
     if (module == null) {
       myChecker = null;
@@ -196,7 +196,7 @@ public class AsyncDevicesGetter {
 
     AndroidFacet facet = facetGetter.apply(module);
 
-    if (facet == null) {
+    if (facet == null || Disposer.isDisposed(facet)) {
       myChecker = null;
       return;
     }

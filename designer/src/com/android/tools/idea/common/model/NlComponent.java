@@ -27,7 +27,7 @@ import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
@@ -59,7 +59,6 @@ import java.util.stream.Stream;
 import javax.swing.Icon;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -378,7 +377,7 @@ public class NlComponent implements NlAttributesHolder {
     String prefix = null;
     if (namespace != null) {
       transferNamespaces(this);
-      prefix = AndroidResourceUtil.ensureNamespaceImported((XmlFile)tag.getContainingFile(), namespace, null);
+      prefix = IdeResourcesUtil.ensureNamespaceImported((XmlFile)tag.getContainingFile(), namespace, null);
     }
     String previous = getAttribute(namespace, attribute);
     if (Objects.equals(previous, value)) {
@@ -488,7 +487,7 @@ public class NlComponent implements NlAttributesHolder {
       return null;
     }
     transferNamespaces(this);
-    return AndroidResourceUtil.ensureNamespaceImported((XmlFile)tag.getContainingFile(), namespace, suggestedPrefix);
+    return IdeResourcesUtil.ensureNamespaceImported((XmlFile)tag.getContainingFile(), namespace, suggestedPrefix);
   }
 
   public boolean isShowing() {
@@ -675,7 +674,7 @@ public class NlComponent implements NlAttributesHolder {
     String idValue = StringUtil.decapitalize(baseName.substring(baseName.lastIndexOf('.') + 1));
 
     Project project = module.getProject();
-    idValue = ResourceHelper.prependResourcePrefix(module, idValue, type);
+    idValue = IdeResourcesUtil.prependResourcePrefix(module, idValue, type);
 
     String nextIdValue = idValue;
     int index = 0;
@@ -826,7 +825,7 @@ public class NlComponent implements NlAttributesHolder {
       if (currentPrefix == null) {
         // The namespace isn't used in the document. Import it.
         XmlFile file = getModel().getFile();
-        String newPrefix = AndroidResourceUtil.ensureNamespaceImported(file, namespace, prefix);
+        String newPrefix = IdeResourcesUtil.ensureNamespaceImported(file, namespace, prefix);
         if (!prefix.equals(newPrefix)) {
           // We imported the namespace, but the prefix used in the new document isn't available
           // so we need to update all attribute references to the new name

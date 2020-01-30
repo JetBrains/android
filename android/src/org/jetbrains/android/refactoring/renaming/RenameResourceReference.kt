@@ -58,10 +58,10 @@ import org.jetbrains.android.augment.ResourceLightField
 import org.jetbrains.android.augment.StyleableAttrFieldUrl
 import org.jetbrains.android.augment.StyleableAttrLightField
 import org.jetbrains.android.util.AndroidBuildCommonUtils.PNG_EXTENSION
-import org.jetbrains.android.util.findStyleableAttrFieldsForAttr
-import org.jetbrains.android.util.findStyleableAttrFieldsForStyleable
-import org.jetbrains.android.util.getResourceElementFromSurroundingValuesTag
-import org.jetbrains.android.util.scheduleNewResolutionAndHighlighting
+import com.android.tools.idea.res.findStyleableAttrFieldsForAttr
+import com.android.tools.idea.res.findStyleableAttrFieldsForStyleable
+import com.android.tools.idea.res.getResourceElementFromSurroundingValuesTag
+import com.android.tools.idea.res.scheduleNewResolutionAndHighlighting
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
 /**

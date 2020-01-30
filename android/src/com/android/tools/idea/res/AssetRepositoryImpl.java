@@ -161,7 +161,7 @@ public class AssetRepositoryImpl extends AssetRepository {
    */
   @Override
   public boolean isFileResource(@NotNull String path) {
-    return ResourceHelper.isFileResource(path);
+    return IdeResourcesUtil.isFileResource(path);
   }
 
   /**

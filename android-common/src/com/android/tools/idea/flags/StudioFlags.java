@@ -196,8 +196,12 @@ public final class StudioFlags {
   private static final FlagGroup ASSET = new FlagGroup(FLAGS, "asset", "Asset Studio");
   public static final Flag<Boolean> ASSET_COPY_MATERIAL_ICONS = Flag.create(
     ASSET, "copy.material.icons", "Allow copying icons to Sdk folder",
-    "Allow the IconPickerDialog in Asset Studio to copy bundle material icons in to the Android/Sdk folder",
+    "Allow the IconPickerDialog in Asset Studio to copy bundled material icons in to the Android/Sdk folder",
     false);
+  public static final Flag<Boolean> ASSET_DOWNLOAD_MATERIAL_ICONS = Flag.create(
+    ASSET, "download.material.icons", "Allow downloading icons to Sdk folder",
+    "Allow the IconPickerDialog in Asset Studio to download any new material icons in to the Android/Sdk folder",
+  false);
   //endregion
 
   //region Layout Editor
@@ -323,11 +327,6 @@ public final class StudioFlags {
     "Enable Visualisation Tool to preview layouts in multiple font sizes at the same time",
     true);
 
-  public static final Flag<Boolean> NELE_NEW_INTERACTION_INTERFACE = Flag.create(
-    NELE, "new.interaction.interface", "New Interaction Interface",
-    "Enable new interaction interface in design surface.",
-    true);
-
   public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
     NELE, "show.source.code.editor", "New Source Code Editor",
     "Enable new source code editor with preview(s) coming as a substitute to Compose and Custom View editors.",
@@ -336,6 +335,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> NELE_TOGGLE_TOOLS_ATTRIBUTES_IN_PREVIEW = Flag.create(
     NELE, "toggle.tools.attributes.preview", "New Toggle for Tools namespaces attributes",
     "Enable the new toggle in the Layout Editor. Allows toggling tools attributes in the Layout preview.",
+    false);
+
+  public static final Flag<Boolean> NELE_SHOW_RECYCLER_VIEW_SETUP_WIZARD = Flag.create(
+    NELE, "recyclerview.setup.wizard", "Show setup wizard for recycler view",
+    "When you right click recycler view in layout editor, you can now see \"Generate Adapter\" " +
+    "that takes you through setup wizard",
     false);
   //endregion
 
@@ -383,6 +388,13 @@ public final class StudioFlags {
     "Delta install",
     "Upon installing, if application is already on device, only send parts of the apks which have changed (the delta).",
     true);
+
+  public static final Flag<Boolean> APPLY_CHANGES_OPTIMISTIC_SWAP = Flag.create(
+    RUNDEBUG,
+    "applychanges.optimisticswap",
+    "Use the 'Apply Changes 2.0' deployment pipeline",
+    "Supports Install-without-Install, Speculative Diff and Structural Redefinition",
+    false);
 
   public static final Flag<Boolean> SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED = Flag.create(
     RUNDEBUG,
@@ -495,6 +507,17 @@ public final class StudioFlags {
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_EDITING_ENABLED = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.editor", "Enable dynamic layout editor",
     "If enabled, users can edit layout properties with live updates on a device while the dynamic layout inspector is running.",
+    false);
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.devbuild.skia", "Use the locally-built skia rendering server",
+    "If enabled and this is a locally-built studio instance, use the locally-built skia server instead of one from the SDK.", false);
+  //endregion
+
+  //region Embedded Emulator
+  private static final FlagGroup EMBEDDED_EMULATOR = new FlagGroup(FLAGS, "embedded.emulator", "Embedded Emulator");
+  public static final Flag<Boolean> EMBEDDED_EMULATOR_ENABLED = Flag.create(
+    EMBEDDED_EMULATOR, "embedded.emulator.enabled", "Enable Embedded Emulator",
+    "Enables the Embedded Emulator tool window",
     false);
   //endregion
 
@@ -799,6 +822,13 @@ public final class StudioFlags {
     "Show Compose Wizards",
     "If enabled, allows adding new Compose Projects/Modules/Activities through the wizards",
     true
+  );
+
+  public static final Flag<Boolean> COMPOSE_ANIMATED_PREVIEW = Flag.create(
+    COMPOSE, "preview.animated.enable",
+    "Enable animated compose preview",
+    "If enabled, a user can switch compose preview to be animated",
+    false
   );
   //endregion
 

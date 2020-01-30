@@ -26,7 +26,7 @@ import static com.android.SdkConstants.VALUE_MATCH_PARENT;
 import static com.android.SdkConstants.VALUE_TRUE;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.google.common.base.MoreObjects.firstNonNull;
-import static org.jetbrains.android.util.AndroidResourceUtil.VALUE_RESOURCE_TYPES;
+import static com.android.tools.idea.res.IdeResourcesUtil.VALUE_RESOURCE_TYPES;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -41,7 +41,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceNamespaceContext;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
@@ -87,7 +87,6 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateFileResourceQuickFix;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -222,7 +221,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       // Retrieve the system prefix depending on the prefix settings ("@android:" or "android:")
       Matcher matcher = (myWithPrefix ? PREFIX_NAMESPACE_COLON : NAMESPACE_COLON).matcher(value);
       if (matcher.matches()) {
-        ResourceNamespaceContext namespacesContext = ResourceHelper.getNamespacesContext(element);
+        ResourceNamespaceContext namespacesContext = IdeResourcesUtil.getNamespacesContext(element);
         namespacePrefix = matcher.group(1);
         if (namespacesContext != null) {
           namespace = ResourceNamespace.fromNamespacePrefix(namespacePrefix,
@@ -236,7 +235,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
         // We don't offer framework resources in completion, unless the string already starts with the framework namespace. But we do offer
         // the right prefix, which will cause the framework resources to show up as follow-up completion. These variants are later handled
         // in createLookupElement below.
-        ResourceNamespace.Resolver resolver = ResourceHelper.getNamespaceResolver(element);
+        ResourceNamespace.Resolver resolver = IdeResourcesUtil.getNamespaceResolver(element);
         String frameworkPrefix = firstNonNull(resolver.uriToPrefix(ResourceNamespace.ANDROID.getXmlNamespaceUri()),
                                               ResourceNamespace.ANDROID.getPackageName());
         result.add(ResourceValue.literal(myWithPrefix || startsWithRefChar
@@ -346,7 +345,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       ResourceReference reference = ((ResourceReferencePsiElement)element).getResourceReference();
       XmlElement xmlElement = context.getXmlElement();
       if (xmlElement != null && resolveResult != null) {
-        ResourceNamespace resolvedNamespace = ResourceHelper.resolveResourceNamespace(xmlElement, resolveResult.getPackage());
+        ResourceNamespace resolvedNamespace = IdeResourcesUtil.resolveResourceNamespace(xmlElement, resolveResult.getPackage());
         return reference.getNamespace().equals(resolvedNamespace) &&
                reference.getResourceType().equals(resolveResult.getType()) &&
                reference.getName().equals(resolveResult.getResourceName());
@@ -419,7 +418,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
     if (type == ResourceType.ID && onlyNamespace != ResourceNamespace.ANDROID && file != null && isNonValuesResourceFile(file)) {
       // TODO: namespaces
-      for (String id : ResourceHelper.findIdsInFile(file)) {
+      for (String id : IdeResourcesUtil.findIdsInFile(file)) {
         result.add(referenceTo(prefix, type.getName(), null, id, explicitResourceType));
       }
     }
@@ -467,7 +466,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
 
     ResourceNamespace.Resolver resolver = firstNonNull(
-      ResourceHelper.getNamespaceResolver(element),
+      IdeResourcesUtil.getNamespaceResolver(element),
       ResourceNamespace.Resolver.EMPTY_RESOLVER);
     // Find the short prefix once for all items.
     String namespacePrefix = resolver.uriToPrefix(namespace.getXmlNamespaceUri());
@@ -494,11 +493,11 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
                                                          Collection<ResourceValue> result,
                                                          boolean explicitResourceType) {
     Collection<String> names =
-      ResourceHelper.getResourceItems(repo, onlyNamespace, type, visibilityLookup, ResourceVisibility.PUBLIC);
+      IdeResourcesUtil.getResourceItems(repo, onlyNamespace, type, visibilityLookup, ResourceVisibility.PUBLIC);
 
     ResourceNamespace.Resolver resolver = ResourceNamespace.Resolver.EMPTY_RESOLVER;
     if (element != null) {
-      resolver = firstNonNull(ResourceHelper.getNamespaceResolver(element), resolver);
+      resolver = firstNonNull(IdeResourcesUtil.getNamespaceResolver(element), resolver);
     }
 
     // Find the short prefix once for all items.
@@ -513,7 +512,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
   }
 
   private static boolean isNonValuesResourceFile(@NotNull PsiFile file) {
-    ResourceFolderType resourceType = ResourceHelper.getFolderType(file.getOriginalFile());
+    ResourceFolderType resourceType = IdeResourcesUtil.getFolderType(file.getOriginalFile());
     return resourceType != null && resourceType != ResourceFolderType.VALUES;
   }
 
@@ -713,7 +712,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
             if (aPackage == null &&
                 resType != null &&
                 resourceName != null &&
-                AndroidResourceUtil.isCorrectAndroidResourceName(resourceName)) {
+                IdeResourcesUtil.isCorrectAndroidResourceName(resourceName)) {
               List<LocalQuickFix> fixes = new ArrayList<>();
 
               ResourceFolderType folderType = FolderTypeRelationship.getNonValuesRelatedFolder(resType);

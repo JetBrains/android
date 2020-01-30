@@ -17,6 +17,7 @@ package com.android.tools.idea.layoutinspector
 
 import com.android.repository.api.RepoManager
 import com.android.repository.api.RepoPackage
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorView
 import com.android.tools.idea.layoutinspector.proto.SkiaParser
 import com.android.tools.idea.layoutinspector.proto.SkiaParserServiceGrpc
@@ -131,7 +132,9 @@ object SkiaParser : SkiaParserService {
   }
 
   private fun findServerInfoForSkpVersion(skpVersion: Int): ServerInfo {
-    // TODO: try devbuild first if appropriate
+    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_USE_DEVBUILD_SKIA_SERVER.get()) {
+      return devbuildServerInfo
+    }
     if (supportedVersionMap == null) {
       readVersionMapping()
     }

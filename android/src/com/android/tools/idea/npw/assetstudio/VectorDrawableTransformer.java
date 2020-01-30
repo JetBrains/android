@@ -21,7 +21,7 @@ import static com.android.utils.XmlUtils.formatFloatValue;
 import static java.lang.Math.min;
 
 import com.android.SdkConstants;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.utils.CharSequences;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.application.options.CodeStyle;
@@ -114,7 +114,7 @@ public class VectorDrawableTransformer {
       }
 
       String originalTintValue = parser.getAttributeValue(ANDROID_URI, "tint");
-      String tintValue = tint == null ? originalTintValue : ResourceHelper.colorToString(tint);
+      String tintValue = tint == null ? originalTintValue : IdeResourcesUtil.colorToString(tint);
 
       String originalAlphaValue = parser.getAttributeValue(ANDROID_URI, "alpha");
       if (originalAlphaValue != null) {

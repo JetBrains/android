@@ -321,13 +321,13 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
     return (parent, handler, executor) -> {
       final ConsoleView consoleView;
       if (StudioFlags.MULTIDEVICE_INSTRUMENTATION_TESTS.get() && DefaultRunExecutor.EXECUTOR_ID.equals(executor.getId())) {
-        consoleView = new AndroidTestSuiteView();
+        consoleView = new AndroidTestSuiteView(parent);
         consoleView.attachToProcess(handler);
       } else {
         AndroidTestConsoleProperties properties = new AndroidTestConsoleProperties(this, executor);
         consoleView = SMTestRunnerConnectionUtil.createAndAttachConsole("Android", handler, properties);
+        Disposer.register(parent, consoleView);
       }
-      Disposer.register(parent, consoleView);
       return consoleView;
     };
   }

@@ -23,7 +23,7 @@ import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,7 +61,7 @@ public class AndroidResourceFileSafeDeleteProcessor extends SafeDeleteProcessorD
     SafeDeleteProcessor.findGenericElementUsages(element, result, allElementsToDelete);
 
     if (element instanceof PsiFile) {
-      final PsiField[] fields = AndroidResourceUtil.findResourceFieldsForFileResource((PsiFile)element, true);
+      final PsiField[] fields = IdeResourcesUtil.findResourceFieldsForFileResource((PsiFile)element, true);
 
       for (PsiField field : fields) {
         SafeDeleteProcessor.findGenericElementUsages(field, result, allElementsToDelete);

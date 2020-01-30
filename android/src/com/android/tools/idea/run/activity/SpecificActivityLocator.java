@@ -38,9 +38,17 @@ public class SpecificActivityLocator extends ActivityLocator {
   @Nullable
   private final String myActivityName;
 
-  public SpecificActivityLocator(@NotNull AndroidFacet facet, @Nullable String activityName) {
+  @NotNull
+  private final GlobalSearchScope mySearchScope;
+
+  public SpecificActivityLocator(@NotNull AndroidFacet facet, @Nullable String activityName, @NotNull GlobalSearchScope searchScope) {
     myFacet = facet;
     myActivityName = activityName;
+    mySearchScope = searchScope;
+  }
+
+  public SpecificActivityLocator(@NotNull AndroidFacet facet, @Nullable String activityName) {
+    this(facet, activityName, GlobalSearchScope.projectScope(facet.getModule().getProject()));
   }
 
   @NotNull
@@ -68,7 +76,7 @@ public class SpecificActivityLocator extends ActivityLocator {
       throw new ActivityLocatorException(AndroidBundle.message("cant.find.activity.class.error"));
     }
 
-    PsiClass c = JavaExecutionUtil.findMainClass(project, myActivityName, GlobalSearchScope.projectScope(project));
+    PsiClass c = JavaExecutionUtil.findMainClass(project, myActivityName, mySearchScope);
     Element element;
     if (c == null || !c.isInheritor(activityClass, true)) {
       element = MergedManifestManager.getSnapshot(module).findActivityAlias(myActivityName);

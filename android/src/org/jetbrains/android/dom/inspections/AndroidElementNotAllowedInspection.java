@@ -1,7 +1,7 @@
 package org.jetbrains.android.dom.inspections;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.codeInsight.daemon.XmlErrorMessages;
 import com.intellij.codeInspection.InspectionManager;
 import com.intellij.codeInspection.LocalInspectionTool;
@@ -104,7 +104,7 @@ public class AndroidElementNotAllowedInspection extends LocalInspectionTool {
   private static boolean isUnknownCustomView(XmlTag tag) {
     PsiFile file = tag.getContainingFile();
     if (file != null) {
-      ResourceFolderType type = ResourceHelper.getFolderType(file);
+      ResourceFolderType type = IdeResourcesUtil.getFolderType(file);
       if (type == ResourceFolderType.LAYOUT && tag.getName().indexOf('.') != -1) {
         return true;
       }

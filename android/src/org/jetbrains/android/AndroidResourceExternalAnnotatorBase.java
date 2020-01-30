@@ -21,7 +21,7 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.GutterIconCache;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.ExternalAnnotator;
 import com.intellij.openapi.diagnostic.Logger;
@@ -151,7 +151,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
                                                                @NotNull PsiElement element,
                                                                @NotNull Configuration configuration) {
     ResourceValue colorValue = resourceResolver.getResolvedResource(reference);
-    Color color = ResourceHelper.resolveColor(resourceResolver, colorValue, facet.getModule().getProject());
+    Color color = IdeResourcesUtil.resolveColor(resourceResolver, colorValue, facet.getModule().getProject());
     if (color == null) {
       return null;
     }

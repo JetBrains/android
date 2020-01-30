@@ -28,11 +28,13 @@ import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
 import com.android.tools.idea.common.surface.SwitchingInteractionHandler
 import com.android.tools.idea.common.util.BuildListener
+import com.android.tools.idea.common.util.ControllableTicker
 import com.android.tools.idea.common.util.setupBuildListener
 import com.android.tools.idea.common.util.setupChangeListener
 import com.android.tools.idea.compose.preview.actions.ForceCompileAndRefreshAction
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
 import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
+import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.configurations.Configuration
@@ -80,6 +82,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import org.jetbrains.kotlin.backend.common.pop
 import java.awt.BorderLayout
+import java.time.Duration
 import java.util.EnumMap
 import java.util.function.Consumer
 import java.util.function.Supplier
@@ -206,6 +209,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       interactionHandler?.let {
         it.selected = if (value) InteractionMode.INTERACTIVE else InteractionMode.DEFAULT
       }
+      if (value) {
+        ticker.start()
+      } else {
+        ticker.stop()
+      }
     }
     get() {
       return interactionHandler?.selected == InteractionMode.INTERACTIVE
@@ -276,7 +284,15 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
     showLoading(message("panel.building"))
   }
 
+  private val ticker = ControllableTicker({
+    surface.models.map { surface.getSceneManager(it) }.filterIsInstance<LayoutlibSceneManager>().forEach {
+      it.executeCallbacks().thenRun(
+        Runnable { it.requestRender() })
+    }
+  }, Duration.ofMillis(30))
+
   init {
+    Disposer.register(this, ticker)
     setupBuildListener(project, object : BuildListener {
       override fun buildSucceeded() {
         val file = psiFilePointer.element
@@ -478,7 +494,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
       .onEach {
         // We call addModel even though the model might not be new. If we try to add an existing model,
         // this will trigger a new render which is exactly what we want.
-        surface.addModel(it).await()
+        surface.addAndRenderModel(it).await()
       }.ifEmpty {
         showModalErrorMessage(message("panel.no.previews.defined"))
       }

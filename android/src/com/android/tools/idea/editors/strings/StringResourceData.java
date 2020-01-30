@@ -39,7 +39,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,7 +100,7 @@ public class StringResourceData {
       return;
     }
 
-    XmlTag stringElement = AndroidResourceUtil.getItemTag(myProject, value);
+    XmlTag stringElement = IdeResourcesUtil.getItemTag(myProject, value);
     assert stringElement != null;
 
     XmlAttribute nameAttribute = stringElement.getAttribute(SdkConstants.ATTR_NAME);

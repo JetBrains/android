@@ -182,6 +182,94 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
     )
   }
 
+  fun testInsertHandler_dont_insert_before_parenthesis() {
+    // Given:
+    myFixture.addFileToProject(
+      "src/com/example/MyViews.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun FoobarOne(first: Int, second: String, third: String? = null) {}
+
+      """.trimIndent()
+    )
+
+    var file = myFixture.addFileToProject(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+        Foobar${caret}()
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+        FoobarOne()
+      }
+      """.trimIndent()
+    )
+
+
+    // Check completion with tab
+    file = myFixture.addFileToProject(
+      "src/com/example/Test2.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+        ${caret}()
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.completeBasic()
+    myFixture.type("Foobar\t")
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+        FoobarOne()
+      }
+      """.trimIndent()
+    )
+  }
+
   fun testInsertHandler_lambda() {
     // Given:
     myFixture.addFileToProject(
@@ -228,6 +316,106 @@ class AndroidComposeCompletionContributorTest : AndroidTestCase() {
       @Composable
       fun HomeScreen() {
         FoobarOne {
+
+        }
+      }
+      """.trimIndent()
+      , true)
+  }
+
+  fun testInsertHandler_lambda_before_curly_braces() {
+    // Given:
+    myFixture.addFileToProject(
+      "src/com/example/MyViews.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun FoobarOne(children: @Composable() () -> Unit) {}
+
+      """.trimIndent()
+    )
+
+    var file = myFixture.addFileToProject(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+      // Space after caret.
+        $caret {
+
+        }
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.type("Foobar")
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+      // Space after caret.
+        FoobarOne {
+
+        }
+      }
+      """.trimIndent()
+      , true)
+
+    // Given:
+    file = myFixture.addFileToProject(
+      "src/com/example/Test2.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+      // No space after caret.
+        $caret{
+
+        }
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.type("Foobar")
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun HomeScreen() {
+      // No space after caret.
+        FoobarOne{
 
         }
       }

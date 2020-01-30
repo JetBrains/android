@@ -30,7 +30,7 @@ import com.android.tools.editor.PanZoomListener;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.RenderSettings;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.startup.ClearResourceCacheAfterFirstBuild;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
@@ -113,8 +113,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
 
   @Nullable private Runnable myCancelPreviousAddModelsRequestTask = null;
 
-  @Nullable private List<NlModel> myModels = null;
-
   /**
    * Contains the editor that is currently being loaded.
    * Once the file is loaded, myPendingEditor will be null.
@@ -144,7 +142,8 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
         Supplier<RenderSettings> renderSettingsProvider = () -> {
           RenderSettings settings = RenderSettings.getProjectSettings(model.getProject());
           boolean showDecoration = VisualizationToolSettings.getInstance().getGlobalState().getShowDecoration();
-          return settings.copy(0.5f, false, showDecoration);
+          // 0.0f makes it spend 50% memory. See document in RenderTask#MIN_DOWNSCALING_FACTOR.
+          return settings.copy(0.0f, false, showDecoration);
         };
         return new LayoutlibSceneManager(model, surface, renderSettingsProvider);
       })
@@ -252,10 +251,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
   @Override
   public void dispose() {
     deactivate();
-    if (myModels != null) {
-      removeAndDisposeModels(myModels);
-      myModels = null;
-    }
+    removeAndDisposeModels(mySurface.getModels());
   }
 
   private void removeAndDisposeModels(@NotNull List<NlModel> models) {
@@ -273,7 +269,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
    * @return true on success. False if the preview update is not possible (e.g. the file for the editor cannot be found).
    */
   public boolean setNextEditor(@NotNull FileEditor editor) {
-    if (ResourceHelper.getFolderType(editor.getFile()) != ResourceFolderType.LAYOUT) {
+    if (IdeResourcesUtil.getFolderType(editor.getFile()) != ResourceFolderType.LAYOUT) {
       return false;
     }
     myPendingEditor = editor;
@@ -390,7 +386,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
               return CompletableFuture.completedFuture(null);
             }
             else {
-              return mySurface.addModel(model);
+              return mySurface.addAndRenderModel(model);
             }
           });
         }
@@ -438,10 +434,7 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
 
     myWorkBench.setFileEditor(null);
 
-    if (myModels != null) {
-      removeAndDisposeModels(myModels);
-      myModels = null;
-    }
+    removeAndDisposeModels(mySurface.getModels());
   }
 
   private void activeModels(@NotNull List<NlModel> models) {
@@ -460,7 +453,6 @@ public class VisualizationForm implements Disposable, ConfigurationSetListener, 
       }
       myWorkBench.setFileEditor(myEditor);
     }
-    myModels = models;
   }
 
   @NotNull

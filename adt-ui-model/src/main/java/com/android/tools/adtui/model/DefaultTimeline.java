@@ -68,7 +68,10 @@ public class DefaultTimeline implements Timeline {
     double mid = min + (max - min) / 2;
     double newMin = mid - (mid - min) * myZoomRatio;
     double newMax = mid + (max - mid) * myZoomRatio;
-    myViewRange.set(newMin, newMax);
+    if (newMin < newMax) {
+      // Only Zoom in when it doesn't collapse to a point or an empty range.
+      myViewRange.set(newMin, newMax);
+    }
   }
 
   @Override

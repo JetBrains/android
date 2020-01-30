@@ -21,7 +21,6 @@ import com.android.build.attribution.data.AnnotationProcessorData
 import com.android.build.attribution.data.PluginBuildData
 import com.android.build.attribution.data.PluginConfigurationData
 import com.android.build.attribution.data.PluginContainer
-import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.ProjectConfigurationData
 import com.android.build.attribution.data.TaskContainer
 import com.android.build.attribution.data.TaskData
@@ -86,7 +85,11 @@ class BuildEventsAnalyzersProxy(
   }
 
   override fun getTotalBuildTimeMs(): Long {
-    return criticalPathAnalyzer.totalBuildTime
+    return criticalPathAnalyzer.buildFinishedTimestamp - criticalPathAnalyzer.buildStartedTimestamp
+  }
+
+  fun getBuildFinishedTimestamp(): Long {
+    return criticalPathAnalyzer.buildFinishedTimestamp
   }
 
   override fun getCriticalPathTasks(): List<TaskData> {

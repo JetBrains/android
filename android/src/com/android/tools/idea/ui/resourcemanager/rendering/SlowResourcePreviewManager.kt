@@ -17,7 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.idea.ui.resourcemanager.ImageCache
-import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.util.concurrency.AppExecutorUtil
@@ -44,9 +44,9 @@ interface SlowResourcePreviewProvider {
   val previewPlaceholder: BufferedImage
 
   /**
-   * Returns a [CompletableFuture] that may return a [BufferedImage] for the given [designAsset].
+   * Returns a [CompletableFuture] that may return a [BufferedImage] for the given [asset].
    */
-  fun getSlowPreview(width: Int, height: Int, designAsset: DesignAsset): CompletableFuture<out BufferedImage?>
+  fun getSlowPreview(width: Int, height: Int, asset: Asset): CompletableFuture<out BufferedImage?>
 }
 
 /**
@@ -70,7 +70,7 @@ class SlowResourcePreviewManager(
 
   override var supportsTransparency: Boolean = true
 
-  override fun getIcon(assetToRender: DesignAsset,
+  override fun getIcon(assetToRender: Asset,
                        width: Int,
                        height: Int,
                        refreshCallback: () -> Unit,
@@ -129,30 +129,30 @@ class SlowResourcePreviewManager(
   }
 
   /**
-   * Returns a rendering of [designAsset] if its already cached otherwise asynchronously render
-   * the [designAsset] at the given [targetSize] and returns [PLACEHOLDER_IMAGE]
+   * Returns a rendering of [asset] if its already cached otherwise asynchronously render
+   * the [asset] at the given [targetSize] and returns [PLACEHOLDER_IMAGE]
    *
-   * @param isStillVisible The isStillVisible of the designAsset in the refreshCallBack used to refresh the correct cell
-   * @param forceImageRender if true, render the [designAsset] even if it's already cached.
+   * @param isStillVisible The isStillVisible of the [asset] in the refreshCallBack used to refresh the correct cell
+   * @param forceImageRender if true, render the [asset] even if it's already cached.
    * @return a placeholder image.
    */
-  private fun fetchImage(designAsset: DesignAsset,
+  private fun fetchImage(asset: Asset,
                          refreshCallBack: () -> Unit,
                          isStillVisible: () -> Boolean,
                          targetSize: Dimension,
                          forceImageRender: Boolean = false): BufferedImage {
-    return imageCache.computeAndGet(designAsset, PLACEHOLDER_IMAGE, forceImageRender, refreshCallBack) {
+    return imageCache.computeAndGet(asset, PLACEHOLDER_IMAGE, forceImageRender, refreshCallBack) {
       if (isStillVisible()) {
         CompletableFuture.supplyAsync(Supplier {
           // Check for visibility again right before rendering.
           if (isStillVisible()) {
-            resourcePreviewProvider.getSlowPreview(targetSize.width, targetSize.height, designAsset)
+            resourcePreviewProvider.getSlowPreview(targetSize.width, targetSize.height, asset)
               .thenApply { image -> image ?: throw Exception("Failed to resolve resource") }
               .thenApply { image -> scaleToFitIfNeeded(image, targetSize) }
               .exceptionally { throwable ->
                 // TODO: Selectively log exceptions. Some of this errors are expected and not worth investigating. Would be better if could
                 //  tell those apart so that we can properly Log them as warnings/errors.
-                LOG.warn("Error while rendering $designAsset", throwable); ERROR_IMAGE
+                LOG.warn("Error while rendering $asset", throwable); ERROR_IMAGE
               }.get()
           }
           else {

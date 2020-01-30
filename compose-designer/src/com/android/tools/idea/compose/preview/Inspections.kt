@@ -104,7 +104,7 @@ class PreviewAnnotationInFunctionWithParametersInspection : BasePreviewAnnotatio
                                              function: KtNamedFunction,
                                              previewAnnotation: KtAnnotationEntry,
                                              functionAnnotations: Map<String, KtAnnotationEntry>) {
-    if (function.valueParameters.isNotEmpty()) {
+    if (function.valueParameters.any { !it.hasDefaultValue() }) {
       holder.registerProblem(previewAnnotation.psiOrParent as PsiElement,
                              message("inspection.no.parameters.description"),
                              ProblemHighlightType.ERROR)

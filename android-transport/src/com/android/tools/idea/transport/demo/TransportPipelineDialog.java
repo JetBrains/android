@@ -53,7 +53,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import kotlin.Unit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -99,6 +98,10 @@ public class TransportPipelineDialog extends DialogWrapper {
     super(project);
     setTitle(TITLE);
     setModal(false);
+
+    // The following line initializes the transport service as a side-effect (or is a no-op if already initialized).
+    // If we don't do this, calls to blocking gRPC stubs later will hang forever.
+    TransportService.getInstance();
 
     myClient = new TransportClient(TransportService.CHANNEL_NAME);
 

@@ -45,6 +45,7 @@ import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
@@ -60,7 +61,7 @@ import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.AssetRepositoryImpl;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -130,7 +131,7 @@ public class RenderTask {
    * Minimum downscaling factor used. The quality can go from [0, 1] but that setting is actually mapped into [MIN_DOWNSCALING_FACTOR, 1]
    * since below MIN_DOWNSCALING_FACTOR the quality is not good enough.
    */
-  private static final float MIN_DOWNSCALING_FACTOR = .7f;
+  private static final float MIN_DOWNSCALING_FACTOR = .5f;
   /**
    * When quality < 1.0, the max allowed size for the rendering is DOWNSCALED_IMAGE_MAX_BYTES * downscalingFactor
    */
@@ -257,7 +258,7 @@ public class RenderTask {
 
   public void setXmlFile(@NotNull XmlFile file) {
     myXmlFile = file;
-    ReadAction.run(() -> getContext().setFolderType(ResourceHelper.getFolderType(file)));
+    ReadAction.run(() -> getContext().setFolderType(IdeResourcesUtil.getFolderType(file)));
   }
 
   @Nullable
@@ -385,7 +386,10 @@ public class RenderTask {
       myImageFactoryDelegate = null;
       myAssetRepository = null;
 
-      clearCompose();
+      // TODO(b/146552571): Fix this by properly managing the session
+      if (!StudioFlags.COMPOSE_ANIMATED_PREVIEW.get()) {
+        clearCompose();
+      }
 
       return null;
     });
@@ -920,9 +924,12 @@ public class RenderTask {
         }).whenComplete((result, ex) -> {
           // After render clean-up. Dispose the GapWorker cache and the Choreographer queued tasks.
           clearGapWorkerCache();
-          RenderService.runAsyncRenderAction(() -> {
-            android.view.Choreographer.releaseInstance();
-          });
+          // TODO(b/146552571): Fix this by properly managing the session
+          if (!StudioFlags.COMPOSE_ANIMATED_PREVIEW.get()) {
+            RenderService.runAsyncRenderAction(() -> {
+              android.view.Choreographer.releaseInstance();
+            });
+          }
         });
       }
       catch (Exception e) {
@@ -1144,7 +1151,7 @@ public class RenderTask {
           }
 
           return CompletableFuture.completedFuture(Collections.emptyMap());
-        });
+        }, AppExecutorUtil.getAppExecutorService());
   }
 
   /**

@@ -680,4 +680,89 @@ class ProguardR8PsiImplUtilTest : ProguardR8TestCase() {
     name = myFixture.moveCaret("keep class |*").parentOfType()!!
     assertThat(name.containsWildcards()).isTrue()
   }
+
+  fun testIsQuotedForFiles() {
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -include file
+        -include "file"
+        -include 'file'
+        -include 'file2
+      """.trimIndent()
+    )
+
+    var file = myFixture.moveCaret("-include fi|le").parentOfType<ProguardR8File>()!!
+    assertThat(file.isQuoted).isFalse()
+
+    file = myFixture.moveCaret("-include \"file|\"").parentOfType()!!
+    assertThat(file.isQuoted).isTrue()
+
+    file = myFixture.moveCaret("include 'fi|le'").parentOfType()!!
+    assertThat(file.isQuoted).isTrue()
+
+    file = myFixture.moveCaret("include 'fil|e2").parentOfType()!!
+    assertThat(file.isQuoted).isTrue()
+  }
+
+  fun testFileCompletion() {
+    myFixture.addFileToProject("myFile.pro", "")
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -include <caret>
+      """.trimIndent()
+    )
+
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).contains("myFile.pro")
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -include "<caret>
+      """.trimIndent()
+    )
+
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).contains("myFile.pro")
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -include '<caret>
+      """.trimIndent()
+    )
+
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).contains("myFile.pro")
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -include "my<caret>File.pro"
+      """.trimIndent()
+    )
+
+    assertThat(myFixture.elementAtCaret).isNotNull()
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -include 'my<caret>File.pro'
+      """.trimIndent()
+    )
+
+    assertThat(myFixture.elementAtCaret).isNotNull()
+
+    myFixture.configureByText(
+      ProguardR8FileType.INSTANCE,
+      """
+        -include "my<caret>File.pro
+      """.trimIndent()
+    )
+
+    assertThat(myFixture.elementAtCaret).isNotNull()
+  }
 }

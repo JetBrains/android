@@ -19,7 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.ResourceUrl;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.utils.SdkUtils;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -203,12 +203,12 @@ public class IncludeReference {
       if (layoutRef != null) {
         ResourceUrl layoutUrl = ResourceUrl.parse(layoutRef);
         if (layoutUrl != null) {
-          ResourceValue resValue = ResourceHelper.resolve(resolver, layoutUrl, rootTag);
+          ResourceValue resValue = IdeResourcesUtil.resolve(resolver, layoutUrl, rootTag);
           if (resValue != null) {
             // TODO: Do some sort of picking based on best configuration.
             // I should make sure I also get a configuration that is compatible with
             // my target include. I could stash it in the include reference.
-            VirtualFile source = ResourceHelper.resolveLayout(resolver, resValue);
+            VirtualFile source = IdeResourcesUtil.resolveLayout(resolver, resValue);
             if (source != null) {
               VirtualFile target = file.getVirtualFile();
               return create(module, source, target);

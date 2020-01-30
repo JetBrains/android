@@ -44,12 +44,18 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
   val tasksDeterminingBuildDuration = ArrayList<TaskData>()
   val pluginsDeterminingBuildDuration = ArrayList<PluginBuildData>()
 
-  var totalBuildTime = 0L
+  var buildStartedTimestamp = Long.MAX_VALUE
+    private set
+
+  var buildFinishedTimestamp = Long.MIN_VALUE
     private set
 
   override fun receiveEvent(event: ProgressEvent) {
-    if (event is FinishEvent && event.displayName == "Run build succeeded") {
-      totalBuildTime = event.result.endTime - event.result.startTime
+    // Since we stopped listening to generic events, we don't get build finished event. But we can calculate the build time from the start
+    // of the first received event and the end of the last received event.
+    if (event is FinishEvent) {
+      buildStartedTimestamp = buildStartedTimestamp.coerceAtMost(event.result.startTime)
+      buildFinishedTimestamp = buildFinishedTimestamp.coerceAtLeast(event.result.endTime)
     }
 
     if (event is TaskFinishEvent && event.result is TaskSuccessResult) {
@@ -342,6 +348,8 @@ class CriticalPathAnalyzer(override val warningsFilter: BuildAttributionWarnings
     dependenciesMap.clear()
     tasksDeterminingBuildDuration.clear()
     pluginsDeterminingBuildDuration.clear()
+    buildStartedTimestamp = Long.MAX_VALUE
+    buildFinishedTimestamp = Long.MIN_VALUE
   }
 
   override fun onBuildSuccess() {

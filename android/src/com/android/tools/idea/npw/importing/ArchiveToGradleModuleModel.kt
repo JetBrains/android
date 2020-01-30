@@ -29,6 +29,7 @@ import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.observable.expressions.bool.BooleanExpression
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.idea.wizard.model.WizardModel
+import com.android.utils.FileUtils
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.UndoConfirmationPolicy
 import com.intellij.openapi.command.WriteCommandAction.writeCommandAction
@@ -43,10 +44,8 @@ import com.intellij.openapi.vfs.LargeFileWriteRequestor
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath
-import org.jetbrains.android.facet.AndroidRootUtil.getModuleDirPath
 import java.io.File
 import java.io.IOException
-import java.nio.file.Paths
 
 @VisibleForTesting
 fun getBuildGradleText(jarName: File) = "configurations.maybeCreate(\"default\")\nartifacts.add(\"default\", file('${jarName.name}'))"
@@ -202,7 +201,8 @@ class ArchiveToGradleModuleModel(
     for (fileDependency in dependencies.files()) {
       val dependencyPath = fileDependency.file().valueAsString() ?: continue
 
-      if (dependencyPath == relativePathString || dependencyPath == archivePathString) {
+      if (FileUtils.toSystemDependentPath(dependencyPath) == relativePathString ||
+          FileUtils.toSystemDependentPath(dependencyPath) == archivePathString) {
         dependencies.remove(fileDependency)
       }
     }

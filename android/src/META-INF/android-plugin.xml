@@ -626,6 +626,12 @@
                       secondary="true"
                       icon="StudioIcons.Shell.ToolWindows.CAPTURES"
                       factoryClass="com.android.tools.idea.profiling.view.CapturesToolWindowFactory"/>
+    <facet.toolWindow id="Emulator"
+                      facetIdList="android,apk"
+                      anchor="right"
+                      icon="StudioIcons.Shell.ToolWindows.EMULATOR"
+                      secondary="true"
+                      factoryClass="com.android.tools.idea.emulator.EmulatorToolWindowFactory"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater"/>
     <projectService serviceImplementation="com.android.tools.idea.project.AndroidProjectBuildNotifications"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.variant.view.BuildVariantView"/>
@@ -995,6 +1001,13 @@
       <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="after"/>
 
       <keyboard-shortcut first-keystroke="alt shift F11" keymap="$default"/>
+    </action>
+  </actions>
+
+  <actions>
+    <action id="ToggleEmulatorWindow" class="com.android.tools.idea.emulator.ToggleEmulatorWindowAction"
+            text="Toggle Emulator Window">
+      <keyboard-shortcut first-keystroke="alt shift e" keymap="$default"/>
     </action>
   </actions>
 

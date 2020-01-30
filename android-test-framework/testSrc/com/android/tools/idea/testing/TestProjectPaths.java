@@ -108,6 +108,7 @@ public final class TestProjectPaths {
   public static final String TRANSITIVE_DEPENDENCIES_PRE30 = "projects/transitiveDependencies_pre30";
   public static final String TWO_JARS = "projects/two_jars";
   public static final String UIBUILDER_PROPERTY = "projects/uibuilder/property";
+  public static final String UI_TOOLING_DEPENDENCY = "projects/uiToolingDependency";
   public static final String UNIT_TESTING = "projects/unitTesting";
   public static final String UNUSED_RESOURCES_GROOVY = "projects/unusedResources";
   public static final String UNUSED_RESOURCES_KTS = "projects/unusedResourcesKotlin";

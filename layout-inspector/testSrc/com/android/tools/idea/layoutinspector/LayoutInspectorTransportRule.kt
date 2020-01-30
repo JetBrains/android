@@ -39,6 +39,7 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Common.AgentData.Status.ATTACHED
 import com.android.tools.profiler.proto.Common.AgentData.Status.UNATTACHABLE
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
 import org.junit.rules.TestRule
 import org.junit.runner.Description
@@ -236,7 +237,7 @@ class LayoutInspectorTransportRule(
     if (!shouldConnectSuccessfully) {
       return
     }
-    startedLatch.await()
+    assertThat(startedLatch.await(30, TimeUnit.SECONDS)).isTrue()
   }
 
   /**
@@ -285,13 +286,13 @@ class LayoutInspectorTransportRule(
       val processDone = CountDownLatch(1)
       inspectorClient.registerProcessChanged { processDone.countDown() }
       inspectorClient.disconnect()
-      processDone.await()
+      assertThat(processDone.await(30, TimeUnit.SECONDS)).isTrue()
       waitForUnsetSettings()
     }
   }
 
   private fun waitForUnsetSettings() {
-    unsetSettingsLatch.await()
+    assertThat(unsetSettingsLatch.await(30, TimeUnit.SECONDS)).isTrue()
   }
 
   private fun createComponentTreeEvent(rootView: ViewNode): Common.Event {
