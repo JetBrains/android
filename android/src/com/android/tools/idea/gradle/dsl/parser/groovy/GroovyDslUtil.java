@@ -759,10 +759,10 @@ public final class GroovyDslUtil {
       return null;
     }
 
-    String str = name + " = 1";
+    String str = name + " 1";
     GrExpression expression = factory.createExpressionFromText(str);
-    if (expression instanceof GrAssignmentExpression) {
-      return ((GrAssignmentExpression)expression).getLValue();
+    if (expression instanceof GrApplicationStatement) {
+      return ((GrApplicationStatement)expression).getInvokedExpression();
     }
     else {
       return null;
