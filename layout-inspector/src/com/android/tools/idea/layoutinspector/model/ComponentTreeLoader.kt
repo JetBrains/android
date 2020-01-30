@@ -29,6 +29,7 @@ import com.intellij.util.ui.UIUtil
 import java.awt.Image
 import java.awt.Rectangle
 import java.awt.image.BufferedImage
+import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.io.ByteArrayInputStream
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
@@ -171,7 +172,7 @@ private class ComponentTreeLoaderImpl(
         return image
       }
       @Suppress("UndesirableClassUsage")
-      val result = image ?: BufferedImage(bounds.width, bounds.height, (view.image as BufferedImage).type)
+      val result = image ?: BufferedImage(bounds.width, bounds.height, TYPE_INT_ARGB)
       // Combine the images...
       val g = result.graphics
       UIUtil.drawImage(g, view.image!!, offset.x + view.x - bounds.x, offset.y + view.y - bounds.y, null)
