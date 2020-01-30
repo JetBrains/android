@@ -88,7 +88,6 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   private final Function<Project, PropertiesComponent> myGetProperties;
 
   private final AnAction myRunOnMultipleDevicesAction;
-  private final AnAction myOpenAvdManagerAction;
   private final Clock myClock;
 
   @SuppressWarnings("unused")
@@ -110,8 +109,6 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     myGetProperties = getProperties;
 
     myRunOnMultipleDevicesAction = new RunOnMultipleDevicesAction();
-    myOpenAvdManagerAction = ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID);
-
     myClock = clock;
   }
 
@@ -123,12 +120,6 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @VisibleForTesting
   final AnAction getRunOnMultipleDevicesAction() {
     return myRunOnMultipleDevicesAction;
-  }
-
-  @NotNull
-  @VisibleForTesting
-  final AnAction getOpenAvdManagerAction() {
-    return myOpenAvdManagerAction;
   }
 
   @NotNull
@@ -277,10 +268,12 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       group.addSeparator();
     }
 
-    group.add(myRunOnMultipleDevicesAction);
-    group.add(myOpenAvdManagerAction);
+    ActionManager manager = ActionManager.getInstance();
 
-    AnAction action = ActionManager.getInstance().getAction("DeveloperServices.ConnectionAssistant");
+    group.add(myRunOnMultipleDevicesAction);
+    group.add(manager.getAction(RunAndroidAvdManagerAction.ID));
+
+    AnAction action = manager.getAction("DeveloperServices.ConnectionAssistant");
 
     if (action == null) {
       return group;

@@ -30,6 +30,7 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -46,6 +47,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import javax.swing.JComponent;
+import org.jetbrains.android.actions.RunAndroidAvdManagerAction;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -286,7 +288,11 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     action.update(myEvent);
     Object actualChildren = Arrays.asList(action.createPopupActionGroup(Mockito.mock(JComponent.class), myContext).getChildren(null));
 
-    assertEquals(actualChildren, Arrays.asList(action.getRunOnMultipleDevicesAction(), action.getOpenAvdManagerAction()));
+    Object expectedChildren = Arrays.asList(
+      action.getRunOnMultipleDevicesAction(),
+      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
+
+    assertEquals(actualChildren, expectedChildren);
   }
 
   @Test
@@ -313,7 +319,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       SelectDeviceAction.newSelectDeviceAction(action, myProject, builder.build()),
       Separator.getInstance(),
       action.getRunOnMultipleDevicesAction(),
-      action.getOpenAvdManagerAction());
+      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
   }
@@ -343,7 +349,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       SelectDeviceAction.newSelectDeviceAction(action, myProject, builder.build()),
       Separator.getInstance(),
       action.getRunOnMultipleDevicesAction(),
-      action.getOpenAvdManagerAction());
+      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
   }
@@ -383,7 +389,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       SelectDeviceAction.newSelectDeviceAction(action, myProject, virtualDeviceBuilder.build()),
       Separator.getInstance(),
       action.getRunOnMultipleDevicesAction(),
-      action.getOpenAvdManagerAction());
+      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
   }
@@ -413,7 +419,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       SelectDeviceAction.newSelectDeviceAction(action, myProject, builder.build()),
       Separator.getInstance(),
       action.getRunOnMultipleDevicesAction(),
-      action.getOpenAvdManagerAction());
+      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
   }
@@ -445,7 +451,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       SelectDeviceAction.newSelectDeviceAction(action, myProject, builder.build()),
       Separator.getInstance(),
       action.getRunOnMultipleDevicesAction(),
-      action.getOpenAvdManagerAction());
+      ActionManager.getInstance().getAction(RunAndroidAvdManagerAction.ID));
 
     assertEquals(expectedChildren, actualChildren);
   }
