@@ -1459,7 +1459,6 @@ class ProductFlavorModelTest : GradleFileModelTestCase() {
                  defaultConfig.testInstrumentationRunnerArguments())
   }
 
-  @Ignore("TODO(b/148375441): Disabled until we figure out the kotlin map story")
   @Test
   fun testAddAndApplyMapElements() {
     writeToBuildFile(PRODUCT_FLAVOR_MODEL_ADD_AND_APPLY_MAP_ELEMENTS)
