@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.gradle.dsl.model.dependencies
 
+import com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_ADD_NON_IDENTIFIER_CONFIGURATION_EXPECTED
 import com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_ALL_DEPENDENCIES
 import com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_KOTLIN_DEPENDENCIES
+import com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_NON_IDENTIFIER_CONFIGURATION
 import com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_REMOVE_JAR_DEPENDENCIES
+import com.android.tools.idea.gradle.dsl.TestFileName.DEPENDENCIES_SET_NON_IDENTIFIER_CONFIGURATION_EXPECTED
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileDependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.FileTreeDependencyModel
@@ -155,5 +158,44 @@ class DependenciesTest : GradleFileModelTestCase() {
       assertThat(dep.configurationName(), equalTo("implementation"))
       assertThat(dep.compactNotation(), equalTo("org.jetbrains.kotlin:kotlin-android"))
     }
+  }
+
+  @Test
+  fun testAddNonIdentifierConfiguration() {
+    writeToBuildFile(DEPENDENCIES_NON_IDENTIFIER_CONFIGURATION)
+
+    val buildModel = gradleBuildModel
+
+    val dependencies = buildModel.dependencies()
+    dependencies.addArtifact("dotted.buildtypeImplementation", "org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.3.1")
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, DEPENDENCIES_ADD_NON_IDENTIFIER_CONFIGURATION_EXPECTED)
+
+    val artifacts = buildModel.dependencies().artifacts()
+    assertSize(2, artifacts)
+    assertThat(artifacts[0].configurationName(), equalTo("implementation"))
+    assertThat(artifacts[0].compactNotation(), equalTo("com.android.support:appcompat-v7:+"))
+    assertThat(artifacts[1].configurationName(), equalTo("dotted.buildtypeImplementation"))
+    assertThat(artifacts[1].compactNotation(), equalTo("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.3.1"))
+  }
+
+  @Test
+  fun testSetNonIdentifierConfiguration() {
+    writeToBuildFile(DEPENDENCIES_NON_IDENTIFIER_CONFIGURATION)
+
+    val buildModel = gradleBuildModel
+
+    var artifacts = buildModel.dependencies().artifacts()
+    assertSize(1, artifacts)
+    artifacts[0].setConfigurationName("dotted.buildtypeImplementation")
+
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, DEPENDENCIES_SET_NON_IDENTIFIER_CONFIGURATION_EXPECTED)
+
+    artifacts = buildModel.dependencies().artifacts()
+    assertSize(1, artifacts)
+    assertThat(artifacts[0].configurationName(), equalTo("dotted.buildtypeImplementation"))
+    assertThat(artifacts[0].compactNotation(), equalTo("com.android.support:appcompat-v7:+"))
   }
 }
