@@ -883,6 +883,11 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareAidlFile() {
+    checkCreateTemplate("other", "AidlFile", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewFolders() {
     checkCreateTemplate("other", "AidlFolder", ActivityCreationMode.WITHOUT_PROJECT, withNewLocation("foo"))
     checkCreateTemplate("other", "AssetsFolder", ActivityCreationMode.WITHOUT_PROJECT, withNewLocation("src/main/assets"))
@@ -907,8 +912,18 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareLayoutResourceFile() {
+    checkCreateTemplate("other", "LayoutResourceFile", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewAppActionsResourceFile() {
     checkCreateTemplate("other", "AppActionsResourceFile")
+  }
+
+  @TemplateCheck
+  fun testCompareAppActionsResourceFile() {
+    checkCreateTemplate("other", "AppActionsResourceFile", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
   }
 
   @TemplateCheck
@@ -964,6 +979,11 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testNewValueResourceFile() {
     checkCreateTemplate("other", "ValueResourceFile")
+  }
+
+  @TemplateCheck
+  fun testCompareValueResourceFile() {
+    checkCreateTemplate("other", "ValueResourceFile", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
   }
 
   open fun testAllTemplatesCovered() {
