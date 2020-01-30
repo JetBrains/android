@@ -15,7 +15,25 @@
  */
 package com.android.tools.idea.mlkit;
 
+import com.android.tools.mlkit.MetadataExtractor;
+import com.android.tools.mlkit.ModelData;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import com.android.tools.mlkit.MetadataExtractor;
+import com.android.tools.mlkit.ModelData;
+import com.android.tools.mlkit.Param;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Stores metadata of model file used by the light model class generator.
@@ -24,9 +42,51 @@ public class MlModelMetadata {
   public final String myModelFileUrl;
   public final String myClassName;
 
+  @Nullable
+  private final ModelData myModelData;
+
+  private static final Logger LOG = Logger.getInstance(MlModelMetadata.class);
+
   public MlModelMetadata(@NotNull String modelFileUrl, @NotNull String className) {
     myModelFileUrl = modelFileUrl;
     myClassName = className;
+
+    ByteBuffer byteBuffer = null;
+    try {
+      // Load model as ByteBuffer
+      VirtualFile modelFile = VirtualFileManager.getInstance().findFileByUrl(modelFileUrl);
+      if (modelFile != null) {
+        byte[] data = modelFile.contentsToByteArray();
+        byteBuffer = ByteBuffer.wrap(data);
+      }
+    } catch (IOException e) {
+      LOG.error("IO Exception when loading model: " + modelFileUrl, e);
+    }
+    myModelData = byteBuffer != null
+                  ? ModelData.buildFrom(new MetadataExtractor(byteBuffer))
+                  : null;
+  }
+
+  public boolean isValidModel() {
+    return myModelData != null;
+  }
+
+  @NotNull
+  public List<Param> getInputParams() {
+    if (isValidModel()) {
+      return myModelData.getInputs();
+    }
+
+    return Arrays.asList();
+  }
+
+  @NotNull
+  public List<Param> getOutputParams() {
+    if (isValidModel()) {
+      return myModelData.getOutputs();
+    }
+
+    return Arrays.asList();
   }
 
   @Override

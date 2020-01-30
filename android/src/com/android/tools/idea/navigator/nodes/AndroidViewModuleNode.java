@@ -90,23 +90,6 @@ public abstract class AndroidViewModuleNode extends ProjectViewModuleNode {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (o == this) {
-      return true;
-    }
-    // All flavors of AndroidViewModuleNode representing the same module are considered equal (http://b/70635980).
-    if (!(o instanceof AndroidViewModuleNode)) {
-      return false;
-    }
-    return Comparing.equal(getEqualityObject(), ((AndroidViewModuleNode)o).getEqualityObject());
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(getEqualityObject());
-  }
-
-  @Override
   public void update(@NotNull PresentationData presentation) {
     Module module = getValue();
     if (module == null || module.isDisposed()) {

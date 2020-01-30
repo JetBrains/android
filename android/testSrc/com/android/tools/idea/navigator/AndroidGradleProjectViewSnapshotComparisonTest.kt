@@ -50,7 +50,6 @@ class AndroidGradleProjectViewSnapshotComparisonTest : AndroidGradleTestCase(), 
     assertIsEqualToSnapshot(text)
   }
 
-  // TODO(b/121345405): Fix test multi-flavor source set support.
   // TODO(b/141846471): Fix the order of nodes representing multiple folders or merge them by package.
   fun testMultiFlavor() {
     val text = importSyncAndDumpProject(TestProjectPaths.MULTI_FLAVOR)

@@ -37,10 +37,14 @@ import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.util.concurrent.CompletableFuture
 
 private val RECTANGLE = Rectangle2D.Float(10f, 20f, 80f, 120f)
+private val IMAGE_RECTANGLE = Rectangle2D.Float(15f, 25f, 60f, 100f)
 private const val SCALE = 1.5
 @Suppress("UndesirableClassUsage")
 private val IMAGE = BufferedImage(5, 5, TYPE_INT_ARGB)
 private const val FRAME_THICKNESS = 1.5f
+private val FRAME_COLOR = Color.RED
+private val TEXT_COLOR = Color.BLUE
+private val HIGHLIGHT_COLOR = Color.GREEN
 
 class DrawCommandTest : NavTestCase() {
   fun testDrawPlaceholder() {
@@ -67,41 +71,62 @@ class DrawCommandTest : NavTestCase() {
   }
 
   fun testDrawFragmentWithPlaceholder() {
-    val command = DrawFragment(SwingRectangle(RECTANGLE), Scale(SCALE), null)
-    verifyDrawCommand(command) { inOrder, g -> verifyDrawFragment(inOrder, g, RECTANGLE, SCALE) }
+    testDrawFragment(null, null)
   }
 
   fun testDrawHighlightedFragment() {
-    val highlightColor = Color.RED
-    val command = DrawFragment(SwingRectangle(RECTANGLE), Scale(SCALE), highlightColor)
-    verifyDrawCommand(command) { inOrder, g -> verifyDrawFragment(inOrder, g, RECTANGLE, SCALE, highlightColor) }
+    testDrawFragment(HIGHLIGHT_COLOR, null)
   }
 
   fun testDrawFragmentWithPreviewUnavailable() {
-    val image = RefinableImage()
-    val command = DrawFragment(SwingRectangle(RECTANGLE), Scale(SCALE), null, image)
-    verifyDrawCommand(command) { inOrder, g -> verifyDrawFragment(inOrder, g, RECTANGLE, SCALE, null, image) }
+    testDrawFragment(null, RefinableImage())
   }
 
   fun testDrawFragmentWithLoading() {
-    val image = RefinableImage(null, CompletableFuture())
-    val command = DrawFragment(SwingRectangle(RECTANGLE), Scale(SCALE), null, image)
-    verifyDrawCommand(command) { inOrder, g -> verifyDrawFragment(inOrder, g, RECTANGLE, SCALE, null, image) }
+    testDrawFragment(null, RefinableImage(null, CompletableFuture()))
   }
 
   fun testDrawFragmentWithImage() {
-    val image = RefinableImage(IMAGE)
-    val command = DrawFragment(SwingRectangle(RECTANGLE), Scale(SCALE), null, image)
-    verifyDrawCommand(command) { inOrder, g -> verifyDrawFragment(inOrder, g, RECTANGLE, SCALE, null, image) }
+    testDrawFragment(null, RefinableImage(IMAGE))
+  }
+
+  private fun testDrawFragment(highlightColor: Color?, image: RefinableImage?) {
+    val command = DrawFragment(SwingRectangle(RECTANGLE), Scale(SCALE), highlightColor, image)
+    verifyDrawCommand(command) { inOrder, g -> verifyDrawFragment(inOrder, g, RECTANGLE, SCALE, highlightColor, image) }
   }
 
   fun testDrawNestedGraph() {
-    val frameColor = Color.RED
-    val textColor = Color.BLUE
     val text = "navigation_graph.xml"
-    val command = DrawNestedGraph(SwingRectangle(RECTANGLE), Scale(SCALE), frameColor, SwingLength(FRAME_THICKNESS), text, textColor)
+    val command = DrawNestedGraph(SwingRectangle(RECTANGLE), Scale(SCALE),
+                                  FRAME_COLOR, SwingLength(FRAME_THICKNESS),
+                                  text, TEXT_COLOR)
     verifyDrawCommand(command) { inOrder, g ->
-      verifyDrawNestedGraph(inOrder, g, RECTANGLE, SCALE, frameColor, FRAME_THICKNESS, text, textColor)
+      verifyDrawNestedGraph(inOrder, g, RECTANGLE, SCALE, FRAME_COLOR, FRAME_THICKNESS, text, TEXT_COLOR)
+    }
+  }
+
+  fun testDrawActivityWithPlaceholder() {
+    testDrawActivity(null)
+  }
+
+  fun testDrawActivityWithPreviewUnavailable() {
+    testDrawActivity(RefinableImage())
+  }
+
+  fun testDrawActivityWithLoading() {
+    testDrawActivity(RefinableImage(null, CompletableFuture()))
+  }
+
+  fun testDrawActivityWithImage() {
+    testDrawActivity(RefinableImage(IMAGE))
+  }
+
+  private fun testDrawActivity(image: RefinableImage?) {
+    val command = DrawActivity(
+      SwingRectangle(RECTANGLE), SwingRectangle(IMAGE_RECTANGLE), Scale(SCALE), FRAME_COLOR, SwingLength(FRAME_THICKNESS), TEXT_COLOR,
+      image)
+    verifyDrawCommand(command) { inOrder, g ->
+      verifyDrawActivity(inOrder, g, RECTANGLE, IMAGE_RECTANGLE, SCALE, FRAME_COLOR, FRAME_THICKNESS, TEXT_COLOR, image)
     }
   }
 

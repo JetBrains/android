@@ -118,7 +118,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
                                           @NotNull AndroidProject androidProject,
                                           @NotNull String selectedVariantName,
                                           @NotNull IdeDependenciesFactory dependenciesFactory) {
-    return create(moduleName, rootDirPath, androidProject, selectedVariantName, dependenciesFactory, null, null);
+    return create(moduleName, rootDirPath, androidProject, selectedVariantName, dependenciesFactory, null, Collections.emptyList());
   }
 
   public static AndroidModuleModel create(@NotNull String moduleName,
@@ -143,7 +143,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
                                           @NotNull String variantName,
                                           @NotNull IdeDependenciesFactory dependenciesFactory,
                                           @Nullable Collection<Variant> variantsToAdd,
-                                          @Nullable ProjectSyncIssues syncIssues) {
+                                          @NotNull Collection<SyncIssue> syncIssues) {
     IdeAndroidProject ideAndroidProject = IdeAndroidProjectImpl.create(androidProject, dependenciesFactory, variantsToAdd, syncIssues);
     return new AndroidModuleModel(moduleName, rootDirPath, ideAndroidProject, variantName);
   }

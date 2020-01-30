@@ -59,7 +59,7 @@ import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -202,7 +202,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     String fileName;
     List<String> dirNames;
     if (resName != null && ApplicationManager.getApplication().isUnitTestMode()) {
-      fileName = AndroidResourceUtil.getDefaultResourceFileName(type);
+      fileName = IdeResourcesUtil.getDefaultResourceFileName(type);
       assert fileName != null;
       resourceDir = ResourceFolderManager.getInstance(facet).getPrimaryFolder();
       assert resourceDir != null;
@@ -231,7 +231,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
     String finalValue = value;
     String finalResName = resName;
 
-    if (AndroidResourceUtil.createValueResource(project, resourceDir, finalResName, type, fileName, dirNames, finalValue)) {
+    if (IdeResourcesUtil.createValueResource(project, resourceDir, finalResName, type, fileName, dirNames, finalValue)) {
       doAddStringResource(editor, file, finalResName, element, type, facet, aPackage);
       PsiDocumentManager.getInstance(project).commitAllDocuments();
       UndoUtil.markPsiFileForUndo(file);
@@ -347,7 +347,7 @@ public class AndroidAddStringResourceAction extends AbstractIntentionAction impl
       getContainingInheritorOf(element, CLASS_V4_FRAGMENT.oldName()) != null ||
       getContainingInheritorOf(element, CLASS_V4_FRAGMENT.newName()) != null;
 
-    final String rJavaFieldName = AndroidResourceUtil.getRJavaFieldName(resName);
+    final String rJavaFieldName = IdeResourcesUtil.getRJavaFieldName(resName);
     final String field = aPackage + ".R." + resType.getName() + '.' + rJavaFieldName;
     final String methodName = getGetterNameForResourceType(resType, element);
     assert methodName != null;

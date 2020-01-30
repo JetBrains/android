@@ -62,7 +62,7 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
 import com.android.tools.idea.res.ResourceFolderRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.StateList;
 import com.android.tools.idea.res.StateListState;
@@ -594,7 +594,7 @@ public class AndroidJavaDocRenderer {
 
         AndroidFacet facet = AndroidFacet.getInstance(myModule);
         if (facet != null) {
-          VirtualFile layout = ResourceHelper.pickAnyLayoutFile(facet);
+          VirtualFile layout = IdeResourcesUtil.pickAnyLayoutFile(facet);
           if (layout != null) {
             Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layout);
             myResourceResolver = configuration.getResourceResolver();
@@ -705,7 +705,7 @@ public class AndroidJavaDocRenderer {
           // look at the resolution chain and figure out the type of the resolved value,
           // and if appropriate, append a customized rendering.
           if (value.startsWith("#")) {
-            Color color = ResourceHelper.parseColor(value);
+            Color color = IdeResourcesUtil.parseColor(value);
             if (color != null) {
               found = true;
               ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.COLOR, myModule, myConfiguration);
@@ -716,7 +716,7 @@ public class AndroidJavaDocRenderer {
               builder.newline();
             }
           } else if (value.endsWith(DOT_PNG)) {
-            if (ResourceHelper.isFileResource(value)) {
+            if (IdeResourcesUtil.isFileResource(value)) {
               found = true;
               ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.DRAWABLE, myModule, myConfiguration);
               assert renderer != null;
@@ -981,7 +981,7 @@ public class AndroidJavaDocRenderer {
         return;
       }
 
-      StateList stateList = ResourceHelper.resolveStateList(resolver, resolvedValue, myModule.getProject());
+      StateList stateList = IdeResourcesUtil.resolveStateList(resolver, resolvedValue, myModule.getProject());
       if (stateList != null) {
         List<StateListState> states = stateList.getStates();
         if (states.isEmpty()) {
@@ -1049,8 +1049,8 @@ public class AndroidJavaDocRenderer {
 
     private void renderDrawableToHtml(@NotNull HtmlBuilder builder, @NotNull String result, @NotNull Density density,
                                       @NotNull ResourceValue resolvedValue) {
-      if (ResourceHelper.isFileResource(result)) {
-        VirtualFile file = toVirtualFile(ResourceHelper.toFileResourcePathString(result));
+      if (IdeResourcesUtil.isFileResource(result)) {
+        VirtualFile file = toVirtualFile(IdeResourcesUtil.toFileResourcePathString(result));
         if (file == null) {
           renderError(builder, result);
         }
@@ -1191,7 +1191,7 @@ public class AndroidJavaDocRenderer {
       float alpha = 1.0f;
       if (alphaValue != null) {
         try {
-          alpha = Float.parseFloat(ResourceHelper.resolveStringValue(resolver, alphaValue));
+          alpha = Float.parseFloat(IdeResourcesUtil.resolveStringValue(resolver, alphaValue));
         }
         catch (NumberFormatException ignored) { }
       }
@@ -1230,7 +1230,7 @@ public class AndroidJavaDocRenderer {
         return;
       }
 
-      StateList stateList = ResourceHelper.resolveStateList(resolver, resourceValue, myModule.getProject());
+      StateList stateList = IdeResourcesUtil.resolveStateList(resolver, resourceValue, myModule.getProject());
       if (stateList != null) {
         List<StateListState> states = stateList.getStates();
         if (states.isEmpty()) {
@@ -1288,14 +1288,14 @@ public class AndroidJavaDocRenderer {
     }
 
     private void renderColorToHtml(@NotNull HtmlBuilder builder, @Nullable String colorString, float alpha) {
-      Color color = ResourceHelper.parseColor(colorString);
+      Color color = IdeResourcesUtil.parseColor(colorString);
       if (color == null) {
         // user error, they have a value that's not a color
         renderError(builder, colorString);
         return;
       }
       int combinedAlpha = (int)(color.getAlpha() * alpha);
-      color = ColorUtil.toAlpha(color, ResourceHelper.clamp(combinedAlpha, 0, 255));
+      color = ColorUtil.toAlpha(color, IdeResourcesUtil.clamp(combinedAlpha, 0, 255));
       renderColorToHtml(builder, color);
     }
 
@@ -1333,7 +1333,7 @@ public class AndroidJavaDocRenderer {
       // vertical-align:middle on divs)
       builder.addHtml("<table style=\"" + css + "\" border=\"0\"><tr height=\"" + height + "\">");
       builder.addHtml("<td align=\"center\" valign=\"middle\" height=\"" + height + "\" style=\"color:" + foregroundColor + "\">");
-      builder.addHtml(ResourceHelper.colorToString(displayColor));
+      builder.addHtml(IdeResourcesUtil.colorToString(displayColor));
       builder.addHtml("</td></tr></table>");
     }
   }

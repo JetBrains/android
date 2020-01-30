@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.visual;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.uibuilder.editor.NlPreviewManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.DataManager;
@@ -39,6 +39,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.openapi.wm.ToolWindowType;
+import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -69,6 +70,11 @@ import org.jetbrains.annotations.Nullable;
  * removed after we enable split editor.
  */
 public class VisualizationManager implements ProjectComponent {
+  /**
+   * The default width for first time open.
+   */
+  private static final int DEFAULT_WINDOW_WIDTH = 500;
+
   private final MergingUpdateQueue myToolWindowUpdateQueue;
 
   private final Project myProject;
@@ -125,6 +131,12 @@ public class VisualizationManager implements ProjectComponent {
         }
 
         final ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(toolWindowId);
+        if (VisualizationToolSettings.getInstance().getGlobalState().isFirstTimeOpen() && window instanceof ToolWindowEx) {
+          ToolWindowEx windowEx = (ToolWindowEx)window;
+          int width = window.getComponent().getWidth();
+          windowEx.stretchWidth(DEFAULT_WINDOW_WIDTH - width);
+        }
+        VisualizationToolSettings.getInstance().getGlobalState().setFirstTimeOpen(false);
         if (window != null && window.isAvailable()) {
           final boolean visible = window.isVisible();
           VisualizationToolSettings.getInstance().getGlobalState().setVisible(visible);
@@ -325,7 +337,7 @@ public class VisualizationManager implements ProjectComponent {
     return Arrays.stream(myFileEditorManager.getSelectedEditors())
       .filter(editor -> {
         VirtualFile editorFile = editor.getFile();
-        ResourceFolderType type = ResourceHelper.getFolderType(editorFile);
+        ResourceFolderType type = IdeResourcesUtil.getFolderType(editorFile);
         return type == ResourceFolderType.LAYOUT;
       })
       .findFirst()
@@ -387,7 +399,7 @@ public class VisualizationManager implements ProjectComponent {
         VirtualFile newVirtualFile = newEditor.getFile();
         if (newVirtualFile != null) {
           PsiFile psiFile = PsiManager.getInstance(myProject).findFile(newVirtualFile);
-          if (ResourceHelper.getFolderType(psiFile) == ResourceFolderType.LAYOUT) {
+          if (IdeResourcesUtil.getFolderType(psiFile) == ResourceFolderType.LAYOUT) {
             // Visualization tool only works for layout files.
             editorForLayout = newEditor;
           }

@@ -32,6 +32,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestCase
 import com.intellij.testFramework.fixtures.IdeaTestFixtureFactory
+import com.intellij.util.concurrency.EdtExecutorService
 import org.jetbrains.ide.PooledThreadExecutor
 import java.sql.DriverManager
 
@@ -287,9 +288,9 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     val columns = schema.tables.first().columns
     assertEquals(SqliteAffinity.INTEGER, columns.first { it.name == "column0" }.affinity)
     assertEquals(SqliteAffinity.TEXT, columns.first { it.name == "column1" }.affinity)
-    assertEquals(SqliteAffinity.TEXT, columns.first { it.name == "column2" }.affinity)
+    assertEquals(SqliteAffinity.BLOB, columns.first { it.name == "column2" }.affinity)
     assertEquals(SqliteAffinity.REAL, columns.first { it.name == "column3" }.affinity)
-    assertEquals(SqliteAffinity.REAL, columns.first { it.name == "column4" }.affinity)
+    assertEquals(SqliteAffinity.NUMERIC, columns.first { it.name == "column4" }.affinity)
   }
 
   fun testNotNull() {
@@ -307,6 +308,207 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     val col1 = schema.tables.first().columns.find { it.name == "col1" }
     assertFalse(pk!!.isNullable)
     assertTrue(col1!!.isNullable)
+  }
+
+  fun testReadSchemaTabNameRequiresEscaping() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table''Name", listOf("c1"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    assertThat(schema.tables.count()).isEqualTo(1)
+    val table = schema.tables.find { it.name == "table''Name" }!!
+    assertSize(1, table.columns)
+    assertEquals("c1", table.columns.first().name)
+  }
+
+  fun testReadSchemaTabNameRequiresEscaping1() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table'Name", listOf("c1"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    assertThat(schema.tables.count()).isEqualTo(1)
+    val table = schema.tables.find { it.name == "table'Name" }!!
+    assertSize(1, table.columns)
+    assertEquals("c1", table.columns.first().name)
+  }
+
+  fun testReadSchemaTabNameRequiresEscaping2() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table`Name", listOf("c1"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    assertThat(schema.tables.count()).isEqualTo(1)
+    val table = schema.tables.find { it.name == "table`Name" }!!
+    assertSize(1, table.columns)
+    assertEquals("c1", table.columns.first().name)
+  }
+
+  fun testReadSchemaTabNameRequiresEscaping3() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table\'Name", listOf("c1"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    assertThat(schema.tables.count()).isEqualTo(1)
+    val table = schema.tables.find { it.name == "table\'Name" }!!
+    assertSize(1, table.columns)
+    assertEquals("c1", table.columns.first().name)
+  }
+
+  fun testReadSchemaTabNameRequiresEscaping4() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table\"Name", listOf("c1"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    assertThat(schema.tables.count()).isEqualTo(1)
+    val table = schema.tables.find { it.name == "table\"Name" }!!
+    assertSize(1, table.columns)
+    assertEquals("c1", table.columns.first().name)
+  }
+
+  fun testReadSchemaTabNameRequiresEscaping5() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table Name", listOf("c1"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    assertThat(schema.tables.count()).isEqualTo(1)
+    val table = schema.tables.find { it.name == "table Name" }!!
+    assertSize(1, table.columns)
+    assertEquals("c1", table.columns.first().name)
+  }
+
+  fun testReadSchemaColNameRequiresEscaping() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col''Name"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    assertThat(schema.tables.count()).isEqualTo(1)
+    val table = schema.tables.find { it.name == "tableName" }!!
+    assertSize(1, table.columns)
+    assertEquals("col''Name", table.columns.first().name)
+  }
+
+  fun testReadSchemaColNameRequiresEscaping1() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col'Name"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    assertThat(schema.tables.count()).isEqualTo(1)
+    val table = schema.tables.find { it.name == "tableName" }!!
+    assertSize(1, table.columns)
+    assertEquals("col'Name", table.columns.first().name)
+  }
+
+  fun testReadSchemaColNameRequiresEscaping2() {
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col`Name"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    assertThat(schema.tables.count()).isEqualTo(1)
+    val table = schema.tables.find { it.name == "tableName" }!!
+    assertSize(1, table.columns)
+    assertEquals("col`Name", table.columns.first().name)
+  }
+
+  fun testReadSchemaColNameRequiresEscaping3() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col\'Name"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    assertThat(schema.tables.count()).isEqualTo(1)
+    val table = schema.tables.find { it.name == "tableName" }!!
+    assertSize(1, table.columns)
+    assertEquals("col\'Name", table.columns.first().name)
+  }
+
+  fun testReadSchemaColNameRequiresEscaping4() {
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col\"Name"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    assertThat(schema.tables.count()).isEqualTo(1)
+    val table = schema.tables.find { it.name == "tableName" }!!
+    assertSize(1, table.columns)
+    assertEquals("col\"Name", table.columns.first().name)
+  }
+
+  fun testReadSchemaColNameRequiresEscaping5() {
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("col Name"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    val schema = pumpEventsAndWaitForFuture(customConnection!!.readSchema())
+
+    // Assert
+    assertThat(schema.tables.count()).isEqualTo(1)
+    val table = schema.tables.find { it.name == "tableName" }!!
+    assertSize(1, table.columns)
+    assertEquals("col Name", table.columns.first().name)
   }
 
   private fun SqliteResultSet.hasColumn(name: String, affinity: SqliteAffinity) : Boolean {

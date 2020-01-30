@@ -25,7 +25,9 @@ import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalLibrary
 import com.android.projectmodel.Library
 import com.android.projectmodel.RecursiveResourceFolder
+import com.android.tools.idea.model.AndroidManifestIndex
 import com.android.tools.idea.model.AndroidModel
+import com.android.tools.idea.model.queryPackageNameFromManifestIndex
 import com.android.tools.idea.navigator.getSubmodules
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.CapabilityNotSupported
@@ -44,13 +46,17 @@ import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toPathString
 import com.android.utils.reflection.qualifiedName
 import com.google.common.collect.ImmutableList
-import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleOrderEntry
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.OrderRootType
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
@@ -63,6 +69,7 @@ import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
 private val PACKAGE_NAME = Key.create<CachedValue<String?>>("merged.manifest.package.name")
+private val LOG: Logger get() = logger(::LOG)
 
 /** Creates a map for the given pairs, filtering out null values. */
 private fun <K, V> notNullMapOf(vararg pairs: Pair<K, V?>): Map<K, V> {
@@ -190,12 +197,38 @@ class DefaultModuleSystem(override val module: Module) :
   }
 
   override fun getPackageName(): String? {
-    val facet = AndroidFacet.getInstance(module)!!
+    val facet = AndroidFacet.getInstance(module) ?: return null
+    var rawPackageName: String? = null
 
+    if (AndroidManifestIndex.indexEnabled()) {
+      rawPackageName = DumbService.getInstance(module.project)
+        .runReadActionInSmartMode(Computable { getPackageNameFromIndex(facet) })
+    }
+
+    return rawPackageName ?: getPackageNameByParsingPrimaryManifest(facet)
+  }
+
+  private fun getPackageNameByParsingPrimaryManifest(facet: AndroidFacet): String? {
     val cachedValue = facet.cachedValueFromPrimaryManifest {
       packageName.nullize(true)
     }
     return facet.putUserDataIfAbsent(PACKAGE_NAME, cachedValue).value
+  }
+
+  private fun getPackageNameFromIndex(facet: AndroidFacet): String? {
+    if (DumbService.isDumb(module.project)) {
+      return null
+    }
+    return try {
+      facet.queryPackageNameFromManifestIndex()
+    }
+    catch (e: IndexNotReadyException) {
+      // TODO(147116755): runReadActionInSmartMode doesn't work if we already have read access.
+      //  We need to refactor the callers of this to require a *smart*
+      //  read action, at which point we can remove this try-catch.
+      LOG.debug(e)
+      null
+    }
   }
 
   override fun getManifestOverrides(): ManifestOverrides {

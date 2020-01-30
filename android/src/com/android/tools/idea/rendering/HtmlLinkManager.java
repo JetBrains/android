@@ -35,7 +35,6 @@ import static com.android.tools.idea.layoutlib.LayoutLibrary.LAYOUTLIB_STANDARD_
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -108,7 +107,7 @@ import java.util.regex.Pattern;
 import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -847,7 +846,7 @@ public class HtmlLinkManager {
     WriteCommandAction<Void> action = new WriteCommandAction<Void>(project, "Assign Preview Layout", file) {
       @Override
       protected void run(@NotNull Result<Void> result) throws Throwable {
-        AndroidResourceUtil.ensureNamespaceImported(file, TOOLS_URI, null);
+        IdeResourcesUtil.ensureNamespaceImported(file, TOOLS_URI, null);
         Collection<XmlTag> xmlTags = PsiTreeUtil.findChildrenOfType(file, XmlTag.class);
         for (XmlTag tag : xmlTags) {
           if (tag.getName().equals(VIEW_FRAGMENT)) {

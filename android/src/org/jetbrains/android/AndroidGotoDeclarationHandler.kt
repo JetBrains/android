@@ -34,7 +34,7 @@ import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.dom.manifest.ManifestElementWithRequiredName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidUtils
-import org.jetbrains.android.util.requiresDynamicFeatureModuleResources
+import com.android.tools.idea.res.requiresDynamicFeatureModuleResources
 import java.util.ArrayList
 
 /**

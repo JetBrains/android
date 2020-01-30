@@ -15,13 +15,11 @@
  */
 package org.jetbrains.android;
 
-import static com.android.SdkConstants.TAG_ITEM;
-
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.XmlRecursiveElementWalkingVisitor;
@@ -32,7 +30,6 @@ import com.intellij.psi.xml.XmlTag;
 import java.awt.Color;
 import org.jetbrains.android.dom.manifest.ManifestDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,7 +46,7 @@ public class AndroidXMLResourceExternalAnnotator extends AndroidResourceExternal
       return null;
     }
     FileAnnotationInfo annotationInfo = new FileAnnotationInfo(facet, file, editor);
-    if (AndroidResourceUtil.isInResourceSubdirectory(file, SdkConstants.FD_RES_VALUES)) {
+    if (IdeResourcesUtil.isInResourceSubdirectory(file, SdkConstants.FD_RES_VALUES)) {
       // Only look at XMLTag contents
       file.accept(new XmlRecursiveElementWalkingVisitor() {
         @Override
@@ -62,7 +59,7 @@ public class AndroidXMLResourceExternalAnnotator extends AndroidResourceExternal
         }
       });
     }
-    else if (AndroidResourceUtil.isInResourceSubdirectory(file, null) || ManifestDomFileDescription.isManifestFile((XmlFile)file)) {
+    else if (IdeResourcesUtil.isInResourceSubdirectory(file, null) || ManifestDomFileDescription.isManifestFile((XmlFile)file)) {
       // Only look at XMLAttributeValues
       file.accept(new XmlRecursiveElementWalkingVisitor() {
         @Override
@@ -95,7 +92,7 @@ public class AndroidXMLResourceExternalAnnotator extends AndroidResourceExternal
     if (resourceUrl == null) {
       if (value.startsWith("#")) {
         // Is an inline color
-        Color color = ResourceHelper.parseColor(value);
+        Color color = IdeResourcesUtil.parseColor(value);
         if (color == null) {
           return null;
         }
@@ -103,7 +100,7 @@ public class AndroidXMLResourceExternalAnnotator extends AndroidResourceExternal
       }
     }
     else {
-      ResourceReference reference = ResourceHelper.resolve(resourceUrl, element);
+      ResourceReference reference = IdeResourcesUtil.resolve(resourceUrl, element);
       if (reference == null) {
         return null;
       }

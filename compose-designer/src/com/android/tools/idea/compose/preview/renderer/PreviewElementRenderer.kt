@@ -23,8 +23,10 @@ import com.android.tools.idea.compose.preview.PreviewElement
 import com.android.tools.idea.compose.preview.toPreviewXmlString
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.util.concurrency.AppExecutorUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.image.BufferedImage
@@ -36,9 +38,10 @@ import java.util.function.Supplier
  * Renders a single [PreviewElement] and returns a [CompletableFuture] containing the result or null if the preview could not be rendered.
  * This method will render the element asynchronously and will return immediately.
  */
-fun renderPreviewElement(facet: AndroidFacet,
+@VisibleForTesting
+fun renderPreviewElementForResult(facet: AndroidFacet,
                          previewElement: PreviewElement,
-                         executor: Executor = AppExecutorUtil.getAppExecutorService()): CompletableFuture<BufferedImage?> {
+                         executor: Executor = AppExecutorUtil.getAppExecutorService()): CompletableFuture<RenderResult?> {
   val project = facet.module.project
 
   val file = ComposeAdapterLightVirtualFile("singlePreviewElement.xml", previewElement.toPreviewXmlString())
@@ -52,12 +55,25 @@ fun renderPreviewElement(facet: AndroidFacet,
     .withRenderingMode(SessionParams.RenderingMode.SHRINK)
     .build()
 
-  val renderedImageFuture = CompletableFuture.supplyAsync(Supplier<RenderTask> { renderTaskFuture.get() },
+  val renderResultFuture = CompletableFuture.supplyAsync(Supplier<RenderTask> { renderTaskFuture.get() },
                                                           executor)
     .thenCompose { it.render() }
-    .thenApply { if (it.renderResult.isSuccess && it.hasImage() && it.logger.brokenClasses.isEmpty()) it.renderedImage.copy else null }
+    .thenApply { if (it.renderResult.isSuccess && it.logger.brokenClasses.isEmpty()) it else null }
 
-  CompletableFuture.allOf(renderTaskFuture, renderedImageFuture).handle { _, _ -> renderTaskFuture.get().dispose() }
+  CompletableFuture.allOf(renderTaskFuture, renderResultFuture).handle { _, _ -> renderTaskFuture.get().dispose() }
 
-  return renderedImageFuture
+  return renderResultFuture
+}
+
+/**
+ * Renders a single [PreviewElement] and returns a [CompletableFuture] containing the result or null if the preview could not be rendered.
+ * This method will render the element asynchronously and will return immediately.
+ */
+fun renderPreviewElement(facet: AndroidFacet,
+                         previewElement: PreviewElement,
+                         executor: Executor = AppExecutorUtil.getAppExecutorService()): CompletableFuture<BufferedImage?> {
+  return renderPreviewElementForResult(facet, previewElement, executor)
+    .thenApply {
+      if (it != null && it.hasImage()) it.renderedImage.copy else null
+    }
 }

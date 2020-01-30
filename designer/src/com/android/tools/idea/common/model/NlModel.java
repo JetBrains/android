@@ -39,7 +39,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.RefreshRenderAction;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -569,7 +569,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     while (element != null) {
       if (element instanceof XmlAttribute) {
         XmlAttribute attribute = (XmlAttribute)element;
-        ResourceNamespace namespace = ResourceHelper.resolveResourceNamespace(attribute, attribute.getNamespacePrefix());
+        ResourceNamespace namespace = IdeResourcesUtil.resolveResourceNamespace(attribute, attribute.getNamespacePrefix());
         if (namespace == null) {
           return null;
         }

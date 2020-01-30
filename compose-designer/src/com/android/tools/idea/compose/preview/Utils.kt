@@ -81,17 +81,19 @@ const val HEIGHT_PARAMETER = "heightDp"
 /**
  * Generates the XML string wrapper for one [PreviewElement].
  * @param matchParent when true, the component will take the maximum available space at the parent.
+ * @param paintBounds when true, it instructs the `ComposeViewAdapter` to paint the `LayoutNode` into the Canvas. For debugging purposes.
  */
-internal fun PreviewElement.toPreviewXmlString(matchParent: Boolean = false) =
+internal fun PreviewElement.toPreviewXmlString(matchParent: Boolean = false, paintBounds: Boolean = false) =
+  //language=XML
   """
     <$COMPOSE_VIEW_ADAPTER
       xmlns:tools="http://schemas.android.com/tools"
-      xmlns:aapt="http://schemas.android.com/aapt"
       xmlns:android="http://schemas.android.com/apk/res/android"
       android:layout_width="${dimensionToString(configuration.width,
                                                 if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)}"
       android:layout_height="${dimensionToString(configuration.height,
                                                  if (matchParent) SdkConstants.VALUE_MATCH_PARENT else VALUE_WRAP_CONTENT)}"
+      tools:paintBounds="$paintBounds"
       $COMPOSABLE_NAME_ATTR="$composableMethodFqn" />
   """.trimIndent()
 

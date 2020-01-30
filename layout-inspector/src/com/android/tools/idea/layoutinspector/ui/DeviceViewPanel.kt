@@ -167,7 +167,7 @@ class DeviceViewPanel(
                 origLayout.layoutContainer(parent)
                 val bounds = scrollPane.viewport.extentSize
                 val size = scrollPane.viewport.view.preferredSize
-                Point((size.width - bounds.width) / 2, (size.height - bounds.height) / 2)
+                Point((size.width - bounds.width).coerceAtLeast(0) / 2, (size.height - bounds.height).coerceAtLeast(0) / 2)
               }
               else -> {
                 val position = SwingUtilities.convertPoint(viewport, Point(viewport.width/2, viewport.height/2), contentPanel)

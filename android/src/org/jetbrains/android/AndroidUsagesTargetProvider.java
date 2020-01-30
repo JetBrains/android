@@ -22,7 +22,7 @@ import com.intellij.psi.xml.XmlTokenType;
 import com.intellij.usages.UsageTarget;
 import com.intellij.usages.UsageTargetProvider;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,7 +49,7 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
         // can assume the correct resource if any. The allowed matches are:
         // XmlTag of a values resource. eg. <col${caret}or name="... />
         // XmlValue of a values resource if it is not a reference to another resource. eg. <color name="foo">#12${caret}3456</color>
-        resourceReferencePsiElement = AndroidResourceUtil.getResourceElementFromSurroundingValuesTag(contextElement);
+        resourceReferencePsiElement = IdeResourcesUtil.getResourceElementFromSurroundingValuesTag(contextElement);
       }
       if (resourceReferencePsiElement == null) {
         return UsageTarget.EMPTY_ARRAY;
@@ -104,7 +104,7 @@ public class AndroidUsagesTargetProvider implements UsageTargetProvider {
       return null;
     }
 
-    if (!AndroidResourceUtil.isInResourceSubdirectory(file, ResourceFolderType.VALUES.getName())) {
+    if (!IdeResourcesUtil.isInResourceSubdirectory(file, ResourceFolderType.VALUES.getName())) {
       return null;
     }
 

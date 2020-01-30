@@ -245,7 +245,7 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
         myCategoriesBox.addItemListener(myCategoriesBoxListener);
       }
       return null;
-    }, metadataUrlProvider, iconsUrlProvider);
+    }, metadataUrlProvider, iconsUrlProvider, getDisposable());
   }
 
   private void createUIComponents() {

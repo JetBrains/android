@@ -29,7 +29,7 @@ import com.intellij.ui.components.dialog
 import com.intellij.ui.layout.panel
 import com.intellij.usageView.UsageInfo
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper
-import org.jetbrains.android.util.isIdDeclaration
+import com.android.tools.idea.res.isIdDeclaration
 import org.jetbrains.annotations.TestOnly
 import java.awt.Component
 import java.awt.event.ActionEvent

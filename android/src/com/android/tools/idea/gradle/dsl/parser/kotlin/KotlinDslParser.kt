@@ -487,7 +487,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
     isLiteral : Boolean = false
   ) : GradleDslExpression? {
     when (methodName) {
-      "mapOf" -> return getExpressionMap(parentElement, psiElement, name, argumentsList.arguments)
+      "mapOf", "mutableMapOf" -> return getExpressionMap(parentElement, psiElement, name, argumentsList.arguments)
       "listOf", "mutableListOf" -> return getExpressionList(parentElement, psiElement, name, argumentsList.arguments, isLiteral, false)
       "setOf", "mutableSetOf" -> return getExpressionList(parentElement, psiElement, name, argumentsList.arguments, isLiteral, true)
       "kotlin" -> return GradleDslLiteral(parentElement, psiElement, name, psiElement, false)

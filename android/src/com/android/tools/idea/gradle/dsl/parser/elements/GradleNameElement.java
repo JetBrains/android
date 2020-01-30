@@ -52,9 +52,6 @@ public class GradleNameElement {
   @NotNull
   public static final Pattern INDEX_PATTERN = Pattern.compile("\\[(.+?)\\]|(.+?)(?=\\[)");
 
-  @NotNull
-  private static final Pattern SPACES = Pattern.compile("\\s+");
-
   @Nullable
   private PsiElement myNameElement;
   @Nullable
@@ -261,10 +258,6 @@ public class GradleNameElement {
       name = myFakeName;
     }
 
-    if (name != null) {
-      // Remove whitespace
-      name = SPACES.matcher(name).replaceAll("");
-    }
     myName = name;
     return name;
   }

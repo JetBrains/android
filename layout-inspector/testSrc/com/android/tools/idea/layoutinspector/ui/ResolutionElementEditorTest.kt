@@ -27,9 +27,9 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.ResolutionStackModel
 import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyItem
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertiesModel
-import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
+import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
@@ -37,19 +37,26 @@ import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
 import com.android.tools.property.panel.impl.ui.PropertyTextField
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.ui.laf.IntelliJLaf
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.util.ui.UIUtil
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 import java.awt.Component
 import java.awt.Container
+import java.awt.Font
 import java.awt.event.ActionEvent
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.swing.JComponent
+import javax.swing.LookAndFeel
+import javax.swing.UIManager
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/ui"
 private const val DIFF_THRESHOLD = 0.5
@@ -57,22 +64,38 @@ private const val DIFF_THRESHOLD = 0.5
 @RunsInEdt
 class ResolutionElementEditorTest {
   private val projectRule = AndroidProjectRule.withSdk()
+  private var laf: LookAndFeel? = null
+  private var font: Font? = null
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(EdtRule())!!
 
+  @Before
+  fun storeLAF() {
+    laf = UIManager.getLookAndFeel()
+    font = UIManager.getFont("Label.font")
+  }
+
+  @After
+  fun restoreLAF() {
+    setLookAndFeel(laf!!, font!!)
+    laf = null
+    font = null
+  }
+
   @Test
   fun testPaint() {
+    setLookAndFeel(IntelliJLaf(), UIUtil.getFontWithFallback("Ariel", 0, 13))
     val editors = createEditors()
     checkImage(editors, "Closed")
 
     editors[0].editorModel.isExpandedTableItem = true
     checkImage(editors, "Open")
 
-    setExpandLabel(editors[0], 0, true)
+    expandFirstLabel(editors[0], true)
     checkImage(editors, "OpenWithDetails")
 
-    setExpandLabel(editors[1], 0, true)
+    expandFirstLabel(editors[1], true)
     checkImage(editors, "OpenWithTwoDetails")
   }
 
@@ -88,11 +111,11 @@ class ResolutionElementEditorTest {
     assertThat(editor.isCustomHeight).isTrue()
     assertThat(updateCount).isEqualTo(0)
 
-    setExpandLabel(editor, 0, true)
+    expandFirstLabel(editor, true)
     assertThat(editor.isCustomHeight).isTrue()
     assertThat(updateCount).isEqualTo(1)
 
-    setExpandLabel(editor, 0, false)
+    expandFirstLabel(editor, false)
     assertThat(editor.isCustomHeight).isTrue()
     assertThat(updateCount).isEqualTo(2)
 
@@ -133,9 +156,9 @@ class ResolutionElementEditorTest {
     }
   }
 
-  private fun setExpandLabel(editor: ResolutionElementEditor, expandIndex: Int, open: Boolean) {
+  private fun expandFirstLabel(editor: ResolutionElementEditor, open: Boolean) {
     val keyStroke = if (open) KeyStrokes.RIGHT else KeyStrokes.LEFT
-    val link = findLinkComponent(editor, expandIndex)!!
+    val link = findFirstLinkComponent(editor)!!
     val action = link.getActionForKeyStroke(keyStroke)!!
     val event = ActionEvent(link, ActionEvent.ACTION_PERFORMED, "open")
     action.actionPerformed(event)
@@ -166,6 +189,15 @@ class ResolutionElementEditorTest {
     return ResolutionElementEditor(model, editorModel, editorComponent)
   }
 
-  private fun findLinkComponent(editor: ResolutionElementEditor, index: Int): JComponent? =
-    flatten(editor).filter { (it as? JComponent)?.actionMap?.get("open") != null }[index] as JComponent?
+  private fun setLookAndFeel(laf: LookAndFeel, defaultFont: Font) {
+    UIManager.setLookAndFeel(laf)
+    val defaults = UIManager.getDefaults()
+    defaults["TextField.font"] = defaultFont
+    defaults["Label.font"] = defaultFont
+    defaults["Panel.font"] = defaultFont
+    defaults["TabbedPane.font"] = defaultFont
+  }
+
+  private fun findFirstLinkComponent(editor: ResolutionElementEditor): JComponent? =
+    flatten(editor).filter { (it as? JComponent)?.actionMap?.get("open") != null }[0] as JComponent?
 }

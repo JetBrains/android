@@ -172,12 +172,12 @@ PROJECT             : testWithCompositeBuild
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.core:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
             LibraryLevel        : project
@@ -187,12 +187,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
-        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.lifecycle:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
             LibraryLevel        : project
@@ -202,6 +203,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -210,6 +212,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -218,6 +221,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -226,12 +230,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/res [-]
-        LIBRARY             : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar
             LibraryLevel        : project
@@ -241,6 +246,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -249,6 +255,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:appcompat-v7:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -257,6 +264,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
             LibraryLevel        : project
@@ -266,12 +274,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/res [-]
-        LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: com.android.support:collections:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:collections:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
             LibraryLevel        : project
@@ -281,6 +290,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
             LibraryLevel        : project
@@ -290,6 +300,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:customview:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -298,6 +309,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:customview:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:documentfile:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -306,6 +318,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:drawerlayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -314,6 +327,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
             LibraryLevel        : project
@@ -323,6 +337,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:loader:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -331,6 +346,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:loader:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -339,6 +355,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:print:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -347,6 +364,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:print:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
             LibraryLevel        : project
@@ -356,12 +374,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/res [-]
-        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:support-annotations:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
             LibraryLevel        : project
@@ -371,6 +390,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
             LibraryLevel        : project
@@ -380,6 +400,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:support-core-utils:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -388,6 +409,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:support-fragment:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -396,6 +418,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
@@ -405,6 +428,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -413,6 +437,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
             LibraryLevel        : project
@@ -422,6 +447,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:viewpager:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -430,40 +456,41 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
+        LIBRARY             : Gradle: org.jetbrains:annotations:13.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains:annotations:13.0@jar [=]
+            Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY         : TestCompositeLib1-lib
         ORDER_ENTRY         : TestCompositeLib3-lib
@@ -624,12 +651,12 @@ PROJECT             : testWithCompositeBuild
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.core:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
             LibraryLevel        : project
@@ -639,12 +666,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
-        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.lifecycle:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
             LibraryLevel        : project
@@ -654,6 +682,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -662,6 +691,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -670,6 +700,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -678,6 +709,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -686,6 +718,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:appcompat-v7:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -694,6 +727,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
             LibraryLevel        : project
@@ -703,12 +737,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/res [-]
-        LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: com.android.support:collections:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:collections:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
             LibraryLevel        : project
@@ -718,6 +753,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
             LibraryLevel        : project
@@ -727,6 +763,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:customview:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -735,6 +772,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:customview:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:documentfile:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -743,6 +781,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:drawerlayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -751,6 +790,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
             LibraryLevel        : project
@@ -760,6 +800,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:loader:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -768,6 +809,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:loader:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -776,6 +818,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:print:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -784,6 +827,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:print:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
             LibraryLevel        : project
@@ -793,12 +837,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/res [-]
-        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:support-annotations:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
             LibraryLevel        : project
@@ -808,6 +853,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
             LibraryLevel        : project
@@ -817,6 +863,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:support-core-utils:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -825,6 +872,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:support-fragment:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -833,6 +881,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
@@ -842,6 +891,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -850,6 +900,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
             LibraryLevel        : project
@@ -859,6 +910,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:viewpager:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -867,40 +919,41 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
+        LIBRARY             : Gradle: org.jetbrains:annotations:13.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains:annotations:13.0@jar [=]
+            Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY         : TestCompositeLib3-lib
         ORDER_ENTRY         : composite2
@@ -1078,12 +1131,12 @@ PROJECT             : testWithCompositeBuild
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.core:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
             LibraryLevel        : project
@@ -1093,12 +1146,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
-        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.lifecycle:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
             LibraryLevel        : project
@@ -1108,6 +1162,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1116,6 +1171,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1124,6 +1180,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1132,12 +1189,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/res [-]
-        LIBRARY             : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar
             LibraryLevel        : project
@@ -1147,6 +1205,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1155,6 +1214,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:appcompat-v7:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1163,6 +1223,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
             LibraryLevel        : project
@@ -1172,12 +1233,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/res [-]
-        LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: com.android.support:collections:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:collections:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
             LibraryLevel        : project
@@ -1187,6 +1249,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
             LibraryLevel        : project
@@ -1196,6 +1259,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:customview:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1204,6 +1268,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:customview:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:documentfile:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1212,6 +1277,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:drawerlayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1220,6 +1286,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
             LibraryLevel        : project
@@ -1229,6 +1296,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:loader:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1237,6 +1305,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:loader:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1245,6 +1314,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:print:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1253,6 +1323,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:print:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
             LibraryLevel        : project
@@ -1262,12 +1333,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/res [-]
-        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:support-annotations:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
             LibraryLevel        : project
@@ -1277,6 +1349,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
             LibraryLevel        : project
@@ -1286,6 +1359,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:support-core-utils:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1294,6 +1368,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:support-fragment:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1302,6 +1377,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
@@ -1311,6 +1387,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1319,6 +1396,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
             LibraryLevel        : project
@@ -1328,6 +1406,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:viewpager:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1336,40 +1415,41 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
+        LIBRARY             : Gradle: org.jetbrains:annotations:13.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains:annotations:13.0@jar [=]
+            Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY         : TestCompositeLib3-lib
         ORDER_ENTRY         : composite4
@@ -1482,12 +1562,12 @@ PROJECT             : testWithCompositeBuild
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.core:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
             LibraryLevel        : project
@@ -1497,12 +1577,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
-        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.lifecycle:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
             LibraryLevel        : project
@@ -1512,6 +1593,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1520,6 +1602,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1528,6 +1611,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1536,6 +1620,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1544,6 +1629,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:appcompat-v7:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1552,6 +1638,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
             LibraryLevel        : project
@@ -1561,12 +1648,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/res [-]
-        LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: com.android.support:collections:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:collections:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
             LibraryLevel        : project
@@ -1576,6 +1664,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
             LibraryLevel        : project
@@ -1585,6 +1674,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:customview:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1593,6 +1683,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:customview:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:documentfile:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1601,6 +1692,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:drawerlayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1609,6 +1701,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
             LibraryLevel        : project
@@ -1618,6 +1711,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:loader:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1626,6 +1720,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:loader:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1634,6 +1729,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:print:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1642,6 +1738,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:print:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
             LibraryLevel        : project
@@ -1651,12 +1748,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/res [-]
-        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:support-annotations:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
             LibraryLevel        : project
@@ -1666,6 +1764,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
             LibraryLevel        : project
@@ -1675,6 +1774,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:support-core-utils:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1683,6 +1783,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:support-fragment:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1691,6 +1792,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
@@ -1700,6 +1802,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1708,6 +1811,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
             LibraryLevel        : project
@@ -1717,6 +1821,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:viewpager:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1725,6 +1830,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
         ORDER_ENTRY         : composite4
     MODULE              : composite2
         - ModuleGroupPath   : composite2
@@ -1949,12 +2055,12 @@ PROJECT             : testWithCompositeBuild
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.core:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
             LibraryLevel        : project
@@ -1964,12 +2070,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
-        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.lifecycle:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
             LibraryLevel        : project
@@ -1979,6 +2086,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1987,6 +2095,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -1995,6 +2104,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2003,12 +2113,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/res [-]
-        LIBRARY             : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support.constraint:constraint-layout-solver:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/constraint/constraint-layout-solver/<VERSION>/constraint-layout-solver-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar
             LibraryLevel        : project
@@ -2018,6 +2129,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support.constraint:constraint-layout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/constraint-layout-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2026,6 +2138,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:appcompat-v7:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2034,6 +2147,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
             LibraryLevel        : project
@@ -2043,12 +2157,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/res [-]
-        LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: com.android.support:collections:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:collections:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
             LibraryLevel        : project
@@ -2058,6 +2173,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
             LibraryLevel        : project
@@ -2067,6 +2183,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:customview:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2075,6 +2192,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:customview:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:documentfile:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2083,6 +2201,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:drawerlayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2091,6 +2210,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
             LibraryLevel        : project
@@ -2100,6 +2220,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:loader:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2108,6 +2229,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:loader:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2116,6 +2238,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:print:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2124,6 +2247,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:print:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
             LibraryLevel        : project
@@ -2133,12 +2257,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/res [-]
-        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:support-annotations:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
             LibraryLevel        : project
@@ -2148,6 +2273,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
             LibraryLevel        : project
@@ -2157,6 +2283,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:support-core-utils:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2165,6 +2292,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:support-fragment:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2173,6 +2301,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
@@ -2182,6 +2311,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2190,6 +2320,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
             LibraryLevel        : project
@@ -2199,6 +2330,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:viewpager:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2207,40 +2339,41 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
+        LIBRARY             : Gradle: org.jetbrains:annotations:13.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains:annotations:13.0@jar [=]
+            Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/
         ORDER_ENTRY         : TestCompositeLib1-lib
         ORDER_ENTRY         : TestCompositeLib3-lib
@@ -2402,12 +2535,12 @@ PROJECT             : testWithCompositeBuild
             HomePath            : <ANDROID_SDK>
             VersionString       : java version "<JDK_VERSION>"
         ORDER_ENTRY         : <Module source>
-        LIBRARY             : Gradle: android.arch.core:common:<VERSION>@jar
+        LIBRARY             : Gradle: android.arch.core:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.core:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.core:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/core/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.core:runtime:<VERSION>@aar
             LibraryLevel        : project
@@ -2417,12 +2550,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.core:runtime:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
-        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: android.arch.lifecycle:common:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: android.arch.lifecycle:common:<VERSION>@jar [=]
+            Name                : Gradle: android.arch.lifecycle:common:<VERSION> [=]
             *CLASSES            : jar://<M2>/android/arch/lifecycle/common/1.1.1/common-<VERSION>.jar!/
         LIBRARY             : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar
             LibraryLevel        : project
@@ -2432,6 +2566,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:livedata-core:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-core-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2440,6 +2575,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:livedata:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/livedata-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2448,6 +2584,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:runtime:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/runtime-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2456,6 +2593,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: android.arch.lifecycle:viewmodel:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewmodel-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2464,6 +2602,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:animated-vector-drawable:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/animated-vector-drawable-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:appcompat-v7:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2472,6 +2611,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:appcompat-v7:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/appcompat-v7-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar
             LibraryLevel        : project
@@ -2481,12 +2621,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:asynclayoutinflater:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/res [-]
-        LIBRARY             : Gradle: com.android.support:collections:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/asynclayoutinflater-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: com.android.support:collections:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:collections:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:collections:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar
             LibraryLevel        : project
@@ -2496,6 +2637,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:coordinatorlayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/coordinatorlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:cursoradapter:<VERSION>@aar
             LibraryLevel        : project
@@ -2505,6 +2647,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:cursoradapter:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/cursoradapter-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:customview:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2513,6 +2656,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:customview:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/customview-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:documentfile:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2521,6 +2665,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:documentfile:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/documentfile-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:drawerlayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2529,6 +2674,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:drawerlayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/drawerlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:interpolator:<VERSION>@aar
             LibraryLevel        : project
@@ -2538,6 +2684,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:interpolator:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/interpolator-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:loader:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2546,6 +2693,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:loader:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/loader-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2554,6 +2702,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:localbroadcastmanager:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/localbroadcastmanager-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:print:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2562,6 +2711,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:print:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/print-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar
             LibraryLevel        : project
@@ -2571,12 +2721,13 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:slidingpanelayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/res [-]
-        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/slidingpanelayout-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: com.android.support:support-annotations:<VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: com.android.support:support-annotations:<VERSION>@jar [=]
+            Name                : Gradle: com.android.support:support-annotations:<VERSION> [=]
             *CLASSES            : jar://<M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar!/
         LIBRARY             : Gradle: com.android.support:support-compat:<VERSION>@aar
             LibraryLevel        : project
@@ -2586,6 +2737,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-compat:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/res
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-compat-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-core-ui:<VERSION>@aar
             LibraryLevel        : project
@@ -2595,6 +2747,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-core-ui:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-ui-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:support-core-utils:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2603,6 +2756,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-core-utils:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-core-utils-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:support-fragment:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2611,6 +2765,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-fragment:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-fragment-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar
             LibraryLevel        : project
@@ -2620,6 +2775,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:support-vector-drawable:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/support-vector-drawable-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2628,6 +2784,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:swiperefreshlayout:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/AndroidManifest.xml
             *ANNOTATIONS        : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/swiperefreshlayout-<VERSION>/annotations.zip!/
         LIBRARY             : Gradle: com.android.support:versionedparcelable:<VERSION>@aar
             LibraryLevel        : project
@@ -2637,6 +2794,7 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:versionedparcelable:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-<VERSION>/res [-]
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/versionedparcelable-<VERSION>/AndroidManifest.xml
         LIBRARY             : Gradle: com.android.support:viewpager:<VERSION>@aar
             LibraryLevel        : project
             IsModuleLevel       : false
@@ -2645,38 +2803,39 @@ PROJECT             : testWithCompositeBuild
             Name                : Gradle: com.android.support:viewpager:<VERSION>@aar [=]
             *CLASSES            : jar://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/jars/classes.jar!/
             *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/res [-]
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar
+            *CLASSES            : file://<GRADLE>/caches/transforms-2/files-2.1/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/viewpager-<VERSION>/AndroidManifest.xml
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-android-extensions-runtime:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-android-extensions-runtime/<KOTLIN_VERSION>/kotlin-android-extensions-runtime-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar
+        LIBRARY             : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION>@jar [=]
+            Name                : Gradle: org.jetbrains.kotlin:kotlin-stdlib:<KOTLIN_VERSION> [=]
             *CLASSES            : jar://<M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar!/
-        LIBRARY             : Gradle: org.jetbrains:annotations:13.0@jar
+        LIBRARY             : Gradle: org.jetbrains:annotations:13.0
             LibraryLevel        : project
             IsModuleLevel       : false
             Scope               : Compile
             IsExported          : false
-            Name                : Gradle: org.jetbrains:annotations:13.0@jar [=]
+            Name                : Gradle: org.jetbrains:annotations:13.0 [=]
             *CLASSES            : jar://<M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar!/

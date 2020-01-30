@@ -69,6 +69,7 @@ class CustomViewVisualStateTracker(
     }
   }
 
+  @get:Synchronized
   var notificationsState: CustomViewPreviewManager.NotificationsState = CustomViewPreviewManager.NotificationsState.NO_NOTIFICATIONS
     private set(value) {
       if (value != field) {
@@ -77,6 +78,7 @@ class CustomViewVisualStateTracker(
       }
     }
 
+  @get:Synchronized
   var previewState: PreviewState = PreviewState.OK
     private set(value) {
       if (value != field) {
@@ -91,16 +93,19 @@ class CustomViewVisualStateTracker(
     onPreviewStateChanged(previewState)
   }
 
+  @Synchronized
   fun setFileState(s: FileState) {
     fileState = s
     recalculateStates()
   }
 
+  @Synchronized
   fun setBuildState(s: BuildState) {
     buildState = s
     recalculateStates()
   }
 
+  @Synchronized
   fun setVisualState(s: VisualState) {
     visualState = s
     recalculateStates()

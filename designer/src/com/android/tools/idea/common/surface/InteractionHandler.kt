@@ -109,8 +109,6 @@ interface InteractionHandler {
 
   /**
    * Get Cursor by [InteractionManager] when there is no active [Interaction].
-   *
-   * TODO (b/142953949): Remove those 3 arguments when StudioFlags.NELE_NEW_INTERACTION_INTERFACE is removed.
    */
   fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,
                                  @SwingCoordinate mouseY: Int,
@@ -180,19 +178,15 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
   override fun hoverWhenNoInteraction(@SwingCoordinate mouseX: Int,
                                       @SwingCoordinate mouseY: Int,
                                       @JdkConstants.InputEventMask modifiersEx: Int) {
-    if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
-      // b/142953949: Before refactoring the hover is done when updating cursor. Use a flag to make the old behavior as same as before when
-      // flag is not enabled.
-      val sceneView = surface.getSceneView(mouseX, mouseY)
-      if (sceneView != null) {
-        val context = sceneView.context
-        context.setMouseLocation(mouseX, mouseY)
-        sceneView.scene.mouseHover(context, getAndroidXDip(sceneView, mouseX), getAndroidYDip(sceneView, mouseY), modifiersEx)
-        cursorWhenNoInteraction = sceneView.scene.mouseCursor
-      }
-      else {
-        cursorWhenNoInteraction = null
-      }
+    val sceneView = surface.getSceneView(mouseX, mouseY)
+    if (sceneView != null) {
+      val context = sceneView.context
+      context.setMouseLocation(mouseX, mouseY)
+      sceneView.scene.mouseHover(context, getAndroidXDip(sceneView, mouseX), getAndroidYDip(sceneView, mouseY), modifiersEx)
+      cursorWhenNoInteraction = sceneView.scene.mouseCursor
+    }
+    else {
+      cursorWhenNoInteraction = null
     }
     for (layer in surface.layers) {
       layer.onHover(mouseX, mouseY)
@@ -252,18 +246,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface) : Inte
   override fun getCursorWhenNoInteraction(@SwingCoordinate mouseX: Int,
                                           @SwingCoordinate mouseY: Int,
                                           @JdkConstants.InputEventMask modifiersEx: Int): Cursor? {
-    if (StudioFlags.NELE_NEW_INTERACTION_INTERFACE.get()) {
-      return cursorWhenNoInteraction
-    }
-    else {
-      // b/142953949: Before refactoring the hover is done when updating cursor. Use a flag to make the old behavior as same as before when
-      // flag is not enabled.
-      val sceneView = surface.getSceneView(mouseX, mouseY) ?: return null
-      val context = sceneView.context
-      context.setMouseLocation(mouseX, mouseY)
-      sceneView.scene.mouseHover(context, getAndroidXDip(sceneView, mouseX), getAndroidYDip(sceneView, mouseY), modifiersEx)
-      return sceneView.scene.mouseCursor
-    }
+    return cursorWhenNoInteraction
   }
 }
 

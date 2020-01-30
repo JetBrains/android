@@ -195,6 +195,14 @@ public class NavDesignSurface extends DesignSurface {
     }
   }
 
+  @NotNull
+  @Override
+  public CompletableFuture<Void> requestRender() {
+    // TODO: According to the document of this function, we should implement NavSceneManager#requestLayoutAndRender() and use it here.
+    SceneManager manager = Iterables.getFirst(getSceneManagers(), null);
+    return manager != null ? manager.requestRender() : CompletableFuture.completedFuture(null);
+  }
+
   @Override
   public void dispose() {
     Future<?> future = getScheduleRef().get();
@@ -790,17 +798,20 @@ public class NavDesignSurface extends DesignSurface {
 
 
   /*
-   * If the newly selected item is not visible, update the current navigation so that it is visible
+   * If none of the newly selected item are visible, update the current navigation so that the first one is visible.
    */
   private void updateCurrentNavigation(@NotNull List<NlComponent> selection) {
-    if (selection.size() != 1) {
+    if (selection.isEmpty()) {
       return;
     }
 
-    NlComponent selected = selection.get(0);
-    if (getSelectableComponents().contains(selected)) {
-      return;
+    for(NlComponent selected: selection) {
+      if (getSelectableComponents().contains(selected)) {
+        return;
+      }
     }
+
+    NlComponent selected = selection.get(0);
 
     NlComponent next = selected.getParent();
     if (next == null) {

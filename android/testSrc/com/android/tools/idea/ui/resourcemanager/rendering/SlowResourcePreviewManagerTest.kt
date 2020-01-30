@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.resourcemanager.rendering
 import com.android.resources.ResourceType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.ImageCacheRule
+import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
@@ -101,7 +102,7 @@ private object TestSlowPreviewProvider : SlowResourcePreviewProvider {
     }
   }
 
-  override fun getSlowPreview(width: Int, height: Int, designAsset: DesignAsset): CompletableFuture<out BufferedImage?> {
+  override fun getSlowPreview(width: Int, height: Int, asset: Asset): CompletableFuture<out BufferedImage?> {
     return CompletableFuture.completedFuture(createTestImage())
   }
 }

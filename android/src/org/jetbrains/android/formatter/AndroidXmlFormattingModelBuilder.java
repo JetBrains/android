@@ -1,7 +1,7 @@
 package org.jetbrains.android.formatter;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.formatting.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.xml.XmlFormattingModelBuilder;
@@ -39,7 +39,7 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
     return new ColorStateListDomFileDescription().isMyFile(xmlFile, null) ||
            new DrawableStateListDomFileDescription().isMyFile(xmlFile, null) ||
            ManifestDomFileDescription.isManifestFile(xmlFile) ||
-           ResourceHelper.getFolderType(xmlFile) != null;
+           IdeResourcesUtil.getFolderType(xmlFile) != null;
   }
 
   @NotNull
@@ -104,7 +104,7 @@ public class AndroidXmlFormattingModelBuilder implements CustomFormattingModelBu
       return settings.MANIFEST_SETTINGS;
     }
 
-    ResourceFolderType type = ResourceHelper.getFolderType(xmlFile);
+    ResourceFolderType type = IdeResourcesUtil.getFolderType(xmlFile);
 
     if (type == null) {
       return null;

@@ -80,6 +80,7 @@ import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.idea.wizard.template.ApiTemplateData
 import com.android.tools.idea.wizard.template.BooleanParameter
+import com.android.tools.idea.wizard.template.EnumParameter
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.Recipe
@@ -88,6 +89,8 @@ import com.android.tools.idea.wizard.template.TemplateData
 import com.android.tools.idea.wizard.template.ThemesData
 import com.android.tools.idea.wizard.template.Thumb
 import com.android.tools.idea.wizard.template.WizardParameterData
+import com.android.tools.idea.wizard.template.impl.other.appWidget.Placement
+import com.android.tools.idea.wizard.template.impl.other.appWidget.Resizeable
 import com.google.common.base.Charsets.UTF_8
 import com.google.common.io.Files
 import com.intellij.openapi.application.runWriteAction
@@ -315,13 +318,21 @@ data class ProjectChecker(
       (newTemplate.parameters.find { it.name == "Class Name" } as StringParameter?)?.value = activityState.getString(ATTR_CLASS_NAME)
       (newTemplate.parameters.find { it.name == "Generate a Layout File" } as BooleanParameter?)?.value = generateLayout!!
       (newTemplate.parameters.find { it.name == "Launcher Activity" } as BooleanParameter?)?.value = isLauncher!!
+      @Suppress("UNCHECKED_CAST")
+      (newTemplate.parameters.find { it.name == "Placement" } as EnumParameter<Placement>?)?.value =
+        Placement.valueOf(activityState.getString("placement"))
+      @Suppress("UNCHECKED_CAST")
+      (newTemplate.parameters.find { it.name == "Resizeable" } as EnumParameter<Resizeable>?)?.value =
+        Resizeable.valueOf(activityState.getString("resizeable"))
       // TODO: More generalized way of overriding the parameters
       val overrideBooleanParameters = listOf(
         "multipleScreens" to "Split settings hierarchy into separate sub-screens",
         "isThingsLauncher" to "Launch activity automatically on boot",
         "isEnabled" to "Enabled",
         "isExported" to "Exported",
-        "includeHelper" to "Include helper start methods?"
+        "includeHelper" to "Include helper start methods?",
+        "isInteractive" to "Interactive",
+        "configurable" to "Configuration Screen"
       )
       overrideBooleanParameters.forEach {(id, name) ->
         activityState[id]?.let { value ->
@@ -329,6 +340,7 @@ data class ProjectChecker(
             value as Boolean
         }
       }
+
       runWriteAction {
         newTemplate.render(context, executor)
       }

@@ -22,7 +22,7 @@ import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.lint.detector.api.Issue;
 import com.android.tools.lint.detector.api.LintFix;
 import com.google.common.collect.Lists;
@@ -58,9 +58,9 @@ public abstract class AndroidLintApiInspection extends AndroidLintInspectionBase
       boolean isXml = false;
       if (file instanceof XmlFile) {
         isXml = true;
-        ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+        ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
         if (folderType != null) {
-          FolderConfiguration config = ResourceHelper.getFolderConfiguration(file);
+          FolderConfiguration config = IdeResourcesUtil.getFolderConfiguration(file);
           if (config != null) {
             config.setVersionQualifier(new VersionQualifier(api));
             String folder = config.getFolderName(folderType);

@@ -95,6 +95,7 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/lint:intellij.lint[module]",
+        "//tools/base/lint:studio.android.sdktools.lint-checks[module]",
     ],
 )
 

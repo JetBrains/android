@@ -57,7 +57,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidTargetData;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -238,7 +238,7 @@ public class ResolutionUtils {
         // not an android value
         return -1;
       }
-      return apiLookup.getFieldVersion("android/R$" + resUrl.type, AndroidResourceUtil.getFieldNameByResourceName(resUrl.name));
+      return apiLookup.getFieldVersion("android/R$" + resUrl.type, IdeResourcesUtil.getFieldNameByResourceName(resUrl.name));
     }
   }
 

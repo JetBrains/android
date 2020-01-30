@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_BUILD_MODEL_
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_SINGLE_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_WITH_ALLPROJECTS_BLOCK;
 import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_WITH_BUILDSCRIPT_REPOSITORIES;
+import static com.android.tools.idea.gradle.dsl.TestFileName.GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_WITH_BUILDSCRIPT_REPOSITORIES_EXPECTED;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.gradle.dsl.api.BuildScriptModel;
@@ -41,6 +42,9 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
     buildModel.removeRepositoriesBlocks();
     repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(0);
+
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, "");
   }
 
   @Test
@@ -52,6 +56,9 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
     buildModel.removeRepositoriesBlocks();
     repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(0);
+
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, "");
   }
 
   @Test
@@ -70,6 +77,9 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
     buildscript = buildModel.buildscript();
     repositories = buildscript.repositories().repositories();
     assertThat(repositories).hasSize(2);
+
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, GRADLE_BUILD_MODEL_IMPL_REMOVE_REPOSITORIES_WITH_BUILDSCRIPT_REPOSITORIES_EXPECTED);
   }
 
   @Test
@@ -82,5 +92,8 @@ public class GradleBuildModelImplTest extends GradleFileModelTestCase {
     buildModel.removeRepositoriesBlocks();
     repositories = buildModel.repositories().repositories();
     assertThat(repositories).hasSize(0);
+
+    applyChanges(buildModel);
+    verifyFileContents(myBuildFile, "");
   }
 }

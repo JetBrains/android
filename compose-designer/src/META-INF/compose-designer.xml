@@ -59,6 +59,8 @@
 
     <deadCode implementation="com.android.tools.idea.compose.preview.PreviewEntryPoint" />
 
+    <postStartupActivity implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationStartupActivity" />
+    <configurationType implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationType"/>
     <runConfigurationProducer
         implementation="com.android.tools.idea.compose.preview.runconfiguration.ComposePreviewRunConfigurationProducer"/>
     <runLineMarkerContributor

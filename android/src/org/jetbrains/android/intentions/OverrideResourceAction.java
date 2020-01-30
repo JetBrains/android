@@ -25,7 +25,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.utils.Pair;
 import com.google.common.annotations.VisibleForTesting;
@@ -64,7 +64,6 @@ import org.jetbrains.android.actions.CreateResourceDirectoryDialog;
 import org.jetbrains.android.actions.ElementCreatingValidator;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,7 +97,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
   @Override
   public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
     if (file instanceof XmlFile && file.isValid() && AndroidFacet.getInstance(file) != null) {
-      ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+      ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
       if (folderType == null) {
         return false;
       } else if (folderType != ResourceFolderType.VALUES) {
@@ -113,7 +112,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
 
   public boolean isAvailable(@Nullable XmlTag tag, PsiFile file) {
     if (file instanceof XmlFile && file.isValid() && AndroidFacet.getInstance(file) != null) {
-      ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+      ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
       if (folderType == null) {
         return false;
       } else if (folderType != ResourceFolderType.VALUES) {
@@ -122,7 +121,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
         // In value files, you can invoke this action if the caret is on or inside an element (other than the
         // root <resources> tag). Only accept the element if it has a known type with a known name.
         if (tag != null && tag.getAttributeValue(ATTR_NAME) != null) {
-          return AndroidResourceUtil.getResourceTypeForResourceTag(tag) != null;
+          return IdeResourcesUtil.getResourceTypeForResourceTag(tag) != null;
         }
       }
     }
@@ -132,7 +131,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
 
   @Override
   public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-    ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
     if (folderType == null) {
       // shouldn't happen; we checked in isAvailable
       return;
@@ -184,7 +183,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       return; // shouldn't happen; we checked in isAvailable
     }
     String name = tag.getAttributeValue(ATTR_NAME);
-    ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(tag);
+    ResourceType type = IdeResourcesUtil.getResourceTypeForResourceTag(tag);
     if (name == null || type == null) {
       return; // shouldn't happen; we checked in isAvailable
     }
@@ -192,7 +191,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       dir = selectFolderDir(project, resFolder.getVirtualFile(), ResourceFolderType.VALUES);
     }
     if (dir != null) {
-      String value = ResourceHelper.getTextContent(tag).trim();
+      String value = IdeResourcesUtil.getTextContent(tag).trim();
       createValueResource(project, resFolder, file, dir, name, value, type, tag.getText(), open);
     }
   }
@@ -248,14 +247,14 @@ public class OverrideResourceAction extends AbstractIntentionAction {
       @Override
       protected void run(@NotNull Result<Void> result) {
         List<ResourceElement> elements = Lists.newArrayListWithExpectedSize(1);
-        // AndroidResourceUtil.createValueResource will create a new resource value in the given resource
+        // AndroidResourcesIdeUtil.createValueResource will create a new resource value in the given resource
         // folder (and record the corresponding tags added in the elements list passed into it).
         // However, it only creates a new element and sets the name attribute on it; it does not
         // transfer attributes, child content etc. Therefore, we use this utility method first to
         // create the corresponding tag, and then *afterwards* we will replace the tag with a text copy
         // from the resource tag we are overriding. We do this all under a single write lock such
         // that it becomes a single atomic operation.
-        AndroidResourceUtil.createValueResource(project, resDir.getVirtualFile(), resName, type, filename, dirNames, value, elements);
+        IdeResourcesUtil.createValueResource(project, resDir.getVirtualFile(), resName, type, filename, dirNames, value, elements);
         if (elements.size() == 1) {
           final XmlTag tag = elements.get(0).getXmlTag();
           if (tag != null && tag.isValid()) {
@@ -302,7 +301,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
         return; // Should not happen
       }
       XmlFile xmlFile = (XmlFile)configuration.getPsiFile();
-      ResourceFolderType folderType = ResourceHelper.getFolderType(xmlFile);
+      ResourceFolderType folderType = IdeResourcesUtil.getFolderType(xmlFile);
       if (folderType == null) {
         folderType = ResourceFolderType.LAYOUT;
       }
@@ -326,7 +325,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     if (module == null) {
       return;
     }
-    ResourceFolderType folderType = ResourceHelper.getFolderType(xmlFile);
+    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(xmlFile);
     if (folderType == null || folderType == ResourceFolderType.VALUES) {
       return;
     }
@@ -543,7 +542,7 @@ public class OverrideResourceAction extends AbstractIntentionAction {
     public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
       PsiFile file = startElement.getContainingFile();
       if (file instanceof XmlFile) {
-        ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+        ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
         if (folderType != null) {
           if (folderType != ResourceFolderType.VALUES) {
             forkResourceFile((XmlFile)file, myFolder, true);

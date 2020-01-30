@@ -37,7 +37,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -85,7 +85,7 @@ public class ResourceNameConverter extends ResolvingConverter<String> implements
       LocalResourceManager resourceManager = ModuleResourceManagers.getInstance(facet).getLocalResourceManager();
       ResourceFolderType fileResType = resourceManager.getFileResourceFolderType(tag.getContainingFile());
       if (ResourceFolderType.VALUES == fileResType) {
-        ResourceType type = AndroidResourceUtil.getResourceTypeForResourceTag(tag);
+        ResourceType type = IdeResourcesUtil.getResourceTypeForResourceTag(tag);
         if (type != null) {
           // TODO(lukeegan): Refactor this to accept other namespaces so that framework resources appear in FindUsages
           return new ResourceReferencePsiElement(new ResourceReference(ResourceNamespace.TODO(), type, s), context.getPsiManager(), false);

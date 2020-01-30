@@ -49,6 +49,7 @@ import com.android.ide.common.gradle.model.stubs.ProductFlavorContainerStub
 import com.android.ide.common.gradle.model.stubs.ProductFlavorStub
 import com.android.ide.common.gradle.model.stubs.SourceProviderContainerStub
 import com.android.ide.common.gradle.model.stubs.SourceProviderStub
+import com.android.ide.common.gradle.model.stubs.VariantBuildInformationStub
 import com.android.ide.common.gradle.model.stubs.VariantStub
 import com.android.ide.common.gradle.model.stubs.VectorDrawablesOptionsStub
 import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub
@@ -74,6 +75,7 @@ import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
+import com.google.common.collect.ImmutableList
 import com.google.common.truth.TruthJUnit.assume
 import com.intellij.externalSystem.JavaProjectData
 import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager
@@ -575,7 +577,19 @@ fun AndroidProjectStubBuilder.buildAndroidProjectStub(): AndroidProjectStub {
     true,
     projectType,
     true,
-    AndroidGradlePluginProjectFlagsStub()
+    AndroidGradlePluginProjectFlagsStub(),
+    listOf("debug", "release")
+      .map { variantName ->
+        VariantBuildInformationStub(
+          variantName,
+          "assemble".appendCapitalized(variantName),
+          buildPath.resolve("output/apk/$variantName/output.json").absolutePath,
+          "bundle".takeIf { supportsBundleTask && projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variantName),
+          buildPath.resolve("intermediates/bundle_ide_model/$variantName/output.json").absolutePath,
+          "extractApksFor".takeIf { projectType == AndroidProjectTypes.PROJECT_TYPE_APP }?.appendCapitalized(variantName),
+          buildPath.resolve("intermediates/apk_from_bundle_ide_model/$variantName/output.json").absolutePath
+        )
+      }
   )
 }
 
@@ -773,7 +787,7 @@ private fun createAndroidModuleDataNode(
           androidProjectStub,
           IdeDependenciesFactory(),
           null,
-          null),
+          ImmutableList.of()),
         selectedVariantName
       ),
       null

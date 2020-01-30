@@ -32,8 +32,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.usageView.UsageInfo
 import com.intellij.util.Processor
-import org.jetbrains.android.util.findStyleableAttrFieldsForAttr
-import org.jetbrains.android.util.findStyleableAttrFieldsForStyleable
+import com.android.tools.idea.res.findStyleableAttrFieldsForAttr
+import com.android.tools.idea.res.findStyleableAttrFieldsForStyleable
 
 /**
  * Provides a custom [FindUsagesHandler] that understands how to search for all relevant Android Resources.

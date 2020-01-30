@@ -39,21 +39,22 @@ class JdbcSqliteResultSet(
    * It's safe to use [LazyThreadSafetyMode.NONE] because the property is accessed from a [SequentialTaskExecutor] with a single thread.
    */
   private val _columns: List<SqliteColumn> by lazy(LazyThreadSafetyMode.NONE) {
-    val preparedStatement = connection.resolvePreparedStatement(sqliteStatement)
-    val resultSet = preparedStatement.executeQuery()
+    connection.resolvePreparedStatement(sqliteStatement).use { preparedStatement ->
+      preparedStatement.executeQuery().use {
+        val metaData = it.metaData
+        (1..metaData.columnCount).map { i ->
+          val tableName = metaData.getTableName(i)
+          val columnName = metaData.getColumnName(i)
 
-    val metaData = resultSet.metaData
-    (1..metaData.columnCount).map { i ->
-      val tableName = metaData.getTableName(i)
-      val columnName = metaData.getColumnName(i)
-
-      val keyColumnsNames = connection.getColumnNamesInPrimaryKey(tableName)
-      SqliteColumn(
-        metaData.getColumnName(i),
-        SqliteAffinity.fromJDBCType(JDBCType.valueOf(metaData.getColumnType(i))),
-        metaData.isNullable(i) == 1,
-        keyColumnsNames.contains(columnName)
-      )
+          val keyColumnsNames = connection.getColumnNamesInPrimaryKey(tableName)
+          SqliteColumn(
+            metaData.getColumnName(i),
+            SqliteAffinity.fromJDBCType(JDBCType.valueOf(metaData.getColumnType(i))),
+            metaData.isNullable(i) == 1,
+            keyColumnsNames.contains(columnName)
+          )
+        }
+      }
     }
   }
 
@@ -62,16 +63,17 @@ class JdbcSqliteResultSet(
     check(!connection.isClosed) { "The connection has been closed." }
 
     val countQuery = "SELECT COUNT(*) FROM (${sqliteStatement.sqliteStatementText})"
-    val preparedStatement = connection.resolvePreparedStatement(SqliteStatement(countQuery, sqliteStatement.parametersValues))
-    val resultSet = preparedStatement.executeQuery()
+    connection.resolvePreparedStatement(SqliteStatement(countQuery, sqliteStatement.parametersValues)).use { preparedStatement ->
+      preparedStatement.executeQuery().use {
+        it.next()
+        val count = it.getInt(1)
 
-    resultSet.next()
-    val count = resultSet.getInt(1)
+        it.close()
+        preparedStatement.close()
 
-    resultSet.close()
-    preparedStatement.close()
-
-    count
+        count
+      }
+    }
   }
 
   override val columns get() = service.sequentialTaskExecutor.executeAsync { _columns }
@@ -87,18 +89,18 @@ class JdbcSqliteResultSet(
       check(!connection.isClosed) { "The connection has been closed." }
 
       val limitOffsetQuery = "SELECT * FROM (${sqliteStatement.sqliteStatementText}) LIMIT $rowOffset, $rowBatchSize"
-      val preparedStatement = connection.resolvePreparedStatement(SqliteStatement(limitOffsetQuery, sqliteStatement.parametersValues))
-      val resultSet = preparedStatement.executeQuery()
+      connection.resolvePreparedStatement(SqliteStatement(limitOffsetQuery, sqliteStatement.parametersValues)).use { preparedStatement ->
+        preparedStatement.executeQuery().use {
+          val rows = ArrayList<SqliteRow>()
+          while (it.next()) {
+            rows.add(createCurrentRow(it))
+          }
 
-      val rows = ArrayList<SqliteRow>()
-      while (resultSet.next()) {
-        rows.add(createCurrentRow(resultSet))
+          preparedStatement.close()
+
+          rows
+        }
       }
-
-      resultSet.close()
-      preparedStatement.close()
-
-      rows
     }
   }
 

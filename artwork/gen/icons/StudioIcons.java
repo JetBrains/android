@@ -636,6 +636,9 @@ public class StudioIcons {
       public static final Icon VISUAL_ASSETS = load("/studio/icons/shell/tool-windows/visual-assets.svg"); // 13x13
       public static final Icon WINDOW_TOGGLE = load("/studio/icons/shell/tool-windows/window-toggle.svg"); // 16x16
       public static final Icon WINDOW_TOGGLED = load("/studio/icons/shell/tool-windows/window-toggled.svg"); // 16x16
+
+      // Placeholder for now just reusing icon for DEVICE_EXPLORER:
+      public static final Icon EMULATOR = load("/studio/icons/shell/tool-windows/device-explorer.svg"); // 13x13
     }
 
     public static class Toolbar {

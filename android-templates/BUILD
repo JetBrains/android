@@ -82,5 +82,6 @@ iml_module(
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
         "//tools/adt/idea/lint:intellij.lint[module, test]",
+        "//tools/base/lint:studio.android.sdktools.lint-checks[module, test]",
     ],
 )

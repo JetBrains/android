@@ -30,8 +30,8 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiManager
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.isResourceDirectory
-import org.jetbrains.android.util.isResourceSubdirectory
+import com.android.tools.idea.res.isResourceDirectory
+import com.android.tools.idea.res.isResourceSubdirectory
 
 /**
  * Opens the [ResourceExplorer] and select the current [VirtualFile] if available and is

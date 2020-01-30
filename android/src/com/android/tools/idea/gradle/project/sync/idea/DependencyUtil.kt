@@ -154,16 +154,16 @@ fun DataNode<ModuleData>.setupAndroidDependenciesForModule(
   // First set up any extra sdk libraries as these should really be in the SDK.
   getExtraSdkLibraries(projectDataNode, this, androidModel.androidProject.bootClasspath).forEach { sdkLibraryDependency ->
     sdkLibraryDependency.order = orderIndex++
-    val newNode = createChild(ProjectKeys.LIBRARY_DEPENDENCY, sdkLibraryDependency)
+    createChild(ProjectKeys.LIBRARY_DEPENDENCY, sdkLibraryDependency)
   }
 
   processedModuleDependencies.forEach { (_, moduleDependencyData) ->
     moduleDependencyData.order = orderIndex++
-    val newNode = createChild(ProjectKeys.MODULE_DEPENDENCY, moduleDependencyData)
+    createChild(ProjectKeys.MODULE_DEPENDENCY, moduleDependencyData)
   }
   processedLibraries.forEach { (_, libraryDependencyData) ->
     libraryDependencyData.order = orderIndex++
-    val newNode = createChild(ProjectKeys.LIBRARY_DEPENDENCY, libraryDependencyData)
+    createChild(ProjectKeys.LIBRARY_DEPENDENCY, libraryDependencyData)
   }
 }
 
@@ -204,15 +204,10 @@ private fun convertToLibraryName(library: Library, projectBasePath: String): Str
  * co-ordinate string that will match the ones that would be set up in the IDE for non-android modules.
  *
  * Current this method removes any @jar from the end of the coordinate since IDEA defaults to this and doesn't display
- * it. It also converts the packaging de-limiter from '@' to ':'.
+ * it.
  */
 private fun convertMavenCoordinateStringToIdeLibraryName(mavenCoordinate: String) : String {
-  val mavenCoordinateWithoutSuffix = mavenCoordinate // mavenCoordinate.removeSuffix("@jar")
-  val atIndex = mavenCoordinateWithoutSuffix.lastIndexOf('@')
-  return if (atIndex != -1)
-    mavenCoordinateWithoutSuffix.replaceRange(atIndex, atIndex + 1, "@")
-  else
-    mavenCoordinateWithoutSuffix
+  return mavenCoordinate.removeSuffix("@jar")
 }
 
 /**
@@ -302,6 +297,8 @@ private fun setupAndroidDependenciesForArtifact(
       LIBRARY_ANDROID -> {
         libraryData.addPath(BINARY, library.compileJarFile)
         libraryData.addPath(BINARY, library.resFolder)
+        // TODO: Should this be binary? Do we need the platform to allow custom types here?
+        libraryData.addPath(BINARY, library.manifest)
         library.localJars.forEach { localJar ->
           libraryData.addPath(BINARY, localJar)
         }

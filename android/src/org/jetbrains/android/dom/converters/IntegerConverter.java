@@ -17,7 +17,7 @@ package org.jetbrains.android.dom.converters;
 
 import com.intellij.util.xml.ConvertContext;
 import com.intellij.util.xml.ResolvingConverter;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,7 +42,7 @@ public class IntegerConverter extends ResolvingConverter<String> {
 
   @Override
   public String fromString(@Nullable @NonNls String s, ConvertContext context) {
-    if (s == null || AndroidResourceUtil.isIdDeclaration(s) || AndroidResourceUtil.isIdReference(s)) {
+    if (s == null || IdeResourcesUtil.isIdDeclaration(s) || IdeResourcesUtil.isIdReference(s)) {
       return s;
     }
     try {

@@ -31,7 +31,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlTag;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.android.facet.ResourceFolderManager;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -120,7 +120,7 @@ public abstract class WidgetCreator {
     VirtualFile primaryResourceDir = ResourceFolderManager.getInstance(model.getFacet()).getPrimaryFolder();
     FolderConfiguration configForFolder = FolderConfiguration.getConfigForFolder(ResourceFolderType.VALUES.getName());
     if (primaryResourceDir != null && configForFolder != null) {
-      AndroidResourceUtil.createValueResource(
+      IdeResourcesUtil.createValueResource(
         model.getProject(),
         primaryResourceDir,
         colorName,

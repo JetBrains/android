@@ -20,8 +20,9 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.adtui.font.FontUtil;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.IdeResourceNameValidator;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.ui.TextFieldWithBooleanBoxKt;
 import com.android.tools.idea.ui.TextFieldWithColorPickerKt;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.openapi.application.ApplicationManager;
@@ -51,7 +52,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -108,7 +108,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     myFolderType = folderType;
     if (chooseName) {
       setChangeNameVisible(true);
-      resourceName = ResourceHelper.prependResourcePrefix(module, resourceName, folderType);
+      resourceName = IdeResourcesUtil.prependResourcePrefix(module, resourceName, folderType);
     }
     if (!StringUtil.isEmpty(resourceName)) {
       myNameField.setText(resourceName);
@@ -116,9 +116,12 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
 
     if (resourceType == ResourceType.COLOR) {
       // For Color values, we want a TextField with a ColorPicker so we wrap the TextField with a custom component.
-      Color defaultColor = ResourceHelper.parseColor(resourceValue);
+      Color defaultColor = IdeResourcesUtil.parseColor(resourceValue);
       myValueFieldContainer.removeAll();
       myValueFieldContainer.add(TextFieldWithColorPickerKt.wrapWithColorPickerIcon(myValueField, defaultColor));
+    } else if (resourceType == ResourceType.BOOL) {
+      myValueFieldContainer.removeAll();
+      myValueFieldContainer.add(TextFieldWithBooleanBoxKt.wrapWithBooleanCheckBox(myValueField, Boolean.parseBoolean(resourceValue)));
     }
 
     if (chooseValue) {
@@ -163,7 +166,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
                                                    modulesSet.size() == 1 ? AndroidFacet.getInstance(modulesSet.iterator().next()) : null);
 
     if (defaultFile == null) {
-      final String defaultFileName = AndroidResourceUtil.getDefaultResourceFileName(myResourceType);
+      final String defaultFileName = IdeResourcesUtil.getDefaultResourceFileName(myResourceType);
 
       if (defaultFileName != null) {
         myFileNameCombo.getEditor().setItem(defaultFileName);
@@ -201,7 +204,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     if (myModule == null) {
       myModuleCombo.setSelectedModule(getRootModule());
     }
-    String defaultFileName = AndroidResourceUtil.getDefaultResourceFileName(myResourceType);
+    String defaultFileName = IdeResourcesUtil.getDefaultResourceFileName(myResourceType);
     if (defaultFileName != null) {
       myFileNameCombo.getEditor().setItem(defaultFileName);
     }
@@ -276,7 +279,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     if (myNameField.isVisible() && resourceName.isEmpty()) {
       return new ValidationInfo("specify resource name", myNameField);
     }
-    else if (myNameField.isVisible() && !AndroidResourceUtil.isCorrectAndroidResourceName(resourceName)) {
+    else if (myNameField.isVisible() && !IdeResourcesUtil.isCorrectAndroidResourceName(resourceName)) {
       return new ValidationInfo(resourceName + " is not correct resource name", myNameField);
     }
     else if (fileName.isEmpty()) {
@@ -291,7 +294,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     else if (directoryNames.isEmpty()) {
       return new ValidationInfo("choose directories", myDirectoriesPanel);
     }
-    else if (resourceName.equals(ResourceHelper.prependResourcePrefix(myModule, null, myFolderType))) {
+    else if (resourceName.equals(IdeResourcesUtil.prependResourcePrefix(myModule, null, myFolderType))) {
       return new ValidationInfo("specify more than resource prefix", myNameField);
     }
 
@@ -315,7 +318,7 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
         // If the value is already populated, the user probably don't want to change it
         // (e.g extracting a string resources), so we focus the name field
         myValueFieldContainer.isVisible() && !myValueField.getText().isEmpty()
-        || name.equals(ResourceHelper.prependResourcePrefix(myModule, null, myFolderType))) {
+        || name.equals(IdeResourcesUtil.prependResourcePrefix(myModule, null, myFolderType))) {
       return myNameField;
     }
     else if (myValueFieldContainer.isVisible()) {

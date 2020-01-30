@@ -672,6 +672,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareAppWidget() {
+    checkCreateTemplate("other", "AppWidget", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareAppWidgetWithKotlin() {
+    checkCreateTemplate("other", "AppWidget", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testNewBlankFragment() {
     checkCreateTemplate("fragments", "BlankFragment")
   }
@@ -922,6 +932,16 @@ open class TemplateTest : TemplateTestBase() {
   }
 
   @TemplateCheck
+  fun testCompareAutomotiveMessagingService() {
+    checkCreateTemplate("other", "AutomotiveMessagingService", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareAutomotiveMessagingServiceWithKotlin() {
+    checkCreateTemplate("other", "AutomotiveMessagingService", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
+  }
+
+  @TemplateCheck
   fun testWatchFaceService() {
     checkCreateTemplate("other", "WatchFaceService")
   }
@@ -929,6 +949,16 @@ open class TemplateTest : TemplateTestBase() {
   @TemplateCheck
   fun testWatchFaceServiceWithKotlin() {
     checkCreateTemplate("other", "WatchFaceService", ActivityCreationMode.WITH_PROJECT, withKotlin)
+  }
+
+  @TemplateCheck
+  fun testCompareWatchFaceService() {
+    checkCreateTemplate("other", "WatchFaceService", ActivityCreationMode.WITHOUT_PROJECT, withNewRenderingContext)
+  }
+
+  @TemplateCheck
+  fun testCompareWatchFaceServiceWithKotlin() {
+    checkCreateTemplate("other", "WatchFaceService", ActivityCreationMode.WITHOUT_PROJECT, withKotlin, withNewRenderingContext)
   }
 
   @TemplateCheck

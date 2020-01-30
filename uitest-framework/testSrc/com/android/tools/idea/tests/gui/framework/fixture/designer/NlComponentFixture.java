@@ -29,6 +29,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.util.ui.JBUI;
 import java.awt.Point;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
@@ -53,6 +54,7 @@ import org.jetbrains.annotations.NotNull;
 public class NlComponentFixture {
   private static final long TIMEOUT_FOR_WRITE_IN_SECONDS = 10;
   private static final long TIMEOUT_FOR_SCENE_COMPONENT_AMIMATION_SECONDS = 5;
+  private static final int MINIMUM_ANCHOR_GAP = JBUI.scale(6) * 2; // Based on DrawAnchor.java
   private final Robot myRobot;
   private final NlComponent myComponent;
   private final DesignSurface mySurface;
@@ -100,7 +102,11 @@ public class NlComponentFixture {
   private Point getBottomCenterPoint(@NotNull SceneComponent component) {
     SceneView sceneView = mySurface.getFocusedSceneView();
     int midX = Coordinates.getSwingXDip(sceneView, component.getCenterX());
+    int yDiff = (component.getDrawY() + component.getDrawHeight()) - component.getCenterY();
     int bottomY = Coordinates.getSwingYDip(sceneView, component.getDrawY() + component.getDrawHeight());
+    if (yDiff < MINIMUM_ANCHOR_GAP) {
+      bottomY = Coordinates.getSwingYDip(sceneView, component.getCenterY() + MINIMUM_ANCHOR_GAP);
+    }
     return convertToViewport(midX, bottomY);
   }
 
@@ -119,7 +125,11 @@ public class NlComponentFixture {
   public Point getTopCenterPoint(@NotNull SceneComponent component) {
     SceneView sceneView = mySurface.getFocusedSceneView();
     int midX = Coordinates.getSwingXDip(sceneView, component.getCenterX());
+    int yDiff = component.getCenterY() - component.getDrawY();
     int topY = Coordinates.getSwingYDip(sceneView, component.getDrawY());
+    if (yDiff < MINIMUM_ANCHOR_GAP) {
+      topY = Coordinates.getSwingYDip(sceneView, component.getCenterY() - MINIMUM_ANCHOR_GAP);
+    }
     return convertToViewport(midX, topY);
   }
 
@@ -138,7 +148,11 @@ public class NlComponentFixture {
   private Point getLeftCenterPoint(@NotNull SceneComponent component) {
     SceneView sceneView = mySurface.getFocusedSceneView();
     int leftX = Coordinates.getSwingXDip(sceneView, component.getDrawX());
+    int xDiff = component.getCenterX() - component.getDrawX();
     int midY = Coordinates.getSwingYDip(sceneView, component.getCenterY());
+    if (xDiff < MINIMUM_ANCHOR_GAP) {
+      leftX = Coordinates.getSwingXDip(sceneView, component.getCenterX() - MINIMUM_ANCHOR_GAP);
+    }
     return convertToViewport(leftX, midY);
   }
 
@@ -149,7 +163,11 @@ public class NlComponentFixture {
   private Point getRightCenterPoint(@NotNull SceneComponent component) {
     SceneView sceneView = mySurface.getFocusedSceneView();
     int rightX = Coordinates.getSwingXDip(sceneView, component.getDrawX() + component.getDrawWidth());
+    int xDiff = (component.getDrawX() + component.getDrawWidth()) - component.getCenterX();
     int midY = Coordinates.getSwingYDip(sceneView, component.getCenterY());
+    if (xDiff < MINIMUM_ANCHOR_GAP) {
+      rightX = Coordinates.getSwingXDip(sceneView, component.getCenterX() + MINIMUM_ANCHOR_GAP);
+    }
     return convertToViewport(rightX, midY);
   }
 
@@ -199,6 +217,7 @@ public class NlComponentFixture {
 
   @NotNull
   public NlComponentFixture createConstraintFromBottomToTopOf(@NotNull NlComponentFixture destination) {
+    myRobot.click(mySurface, getMidPoint());
     myDragAndDrop.drag(mySurface, getBottomCenterPoint(mySceneComponent));
     myDragAndDrop.drop(mySurface, destination.getTopCenterPoint(destination.mySceneComponent));
     waitForWrite(SdkConstants.ATTR_LAYOUT_BOTTOM_TO_TOP_OF, destination);
@@ -214,6 +233,7 @@ public class NlComponentFixture {
     }
     Point parentBottomCenterPoint = getBottomCenterPoint(parent);
     Point bottomCenterPoint = getBottomCenterPoint(mySceneComponent);
+    myRobot.click(mySurface, getMidPoint());
     myDragAndDrop.drag(mySurface, bottomCenterPoint);
     SceneView sceneView = mySurface.getFocusedSceneView();
     // Drop the constraint beyond the limit of the scene view to ensure it connects to the parent layout
@@ -232,6 +252,7 @@ public class NlComponentFixture {
     }
     Point parentTopCenterPoint = getTopCenterPoint(parent);
     Point topCenterPoint = getTopCenterPoint(mySceneComponent);
+    myRobot.click(mySurface, getMidPoint());
     myDragAndDrop.drag(mySurface, topCenterPoint);
     // Drop the constraint beyond the limit of the scene view to ensure it connects to the parent layout
     // and not a component that would be sitting right on the edge
@@ -249,6 +270,7 @@ public class NlComponentFixture {
     }
     Point parentLeftCenterPoint = getLeftCenterPoint(parent);
     Point leftCenterPoint = getLeftCenterPoint(mySceneComponent);
+    myRobot.click(mySurface, getMidPoint());
     myDragAndDrop.drag(mySurface, leftCenterPoint);
     // Drop the constraint beyond the limit of the scene view to ensure it connects to the parent layout
     // and not a component that would be sitting right on the edge
@@ -266,6 +288,7 @@ public class NlComponentFixture {
     }
     Point parentRightCenterPoint = getRightCenterPoint(parent);
     Point rightCenterPoint = getRightCenterPoint(mySceneComponent);
+    myRobot.click(mySurface, getMidPoint());
     myDragAndDrop.drag(mySurface, rightCenterPoint);
     SceneView sceneView = mySurface.getFocusedSceneView();
     // Drop the constraint beyond the limit of the scene view to ensure it connects to the parent layout

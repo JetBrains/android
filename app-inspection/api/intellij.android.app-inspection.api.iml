@@ -23,5 +23,6 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="library" name="jsr305" level="project" />
   </component>
 </module>

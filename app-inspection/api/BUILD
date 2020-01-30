@@ -48,5 +48,6 @@ iml_module(
         "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/idea/.idea/libraries:truth[test]",
+        "//tools/idea/.idea/libraries:jsr305",
     ],
 )

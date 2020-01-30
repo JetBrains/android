@@ -94,7 +94,7 @@ public class ActionBarIconGenerator extends IconGenerator {
           break;
       }
       asset.opacityPercent().set(opacityPercent);
-      options.image = new TransformedImageAsset(asset, ICON_SIZE, scaleFactor, color, getGraphicGeneratorContext());
+      options.image = new TransformedImageAsset(asset, ICON_SIZE, scaleFactor, color, getGraphicGeneratorContext(), myLineSeparator);
     }
 
     return options;

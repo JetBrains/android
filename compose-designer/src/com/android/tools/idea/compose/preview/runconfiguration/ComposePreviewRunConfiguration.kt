@@ -30,7 +30,9 @@ open class ComposePreviewRunConfiguration(project: Project, factory: Configurati
 
   init {
     // This class is open just to be inherited in the tests, and the derived class is available when it needs to be accessed
+    // TODO(b/144500928): limit the search to the library scope. We currently use the global scope because SpecificActivityLaunch.State only
+    //                    accepts either project or global scope.
     @Suppress("LeakingThis")
-    setLaunchActivity("androidx.ui.tooling.preview.PreviewActivity")
+    setLaunchActivity("androidx.ui.tooling.preview.PreviewActivity", true)
   }
 }

@@ -42,7 +42,7 @@ import com.intellij.psi.xml.XmlElement
 import com.intellij.util.containers.toArray
 import org.jetbrains.android.dom.resources.ResourceValue
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.util.getDeclaringAttributeValue
+import com.android.tools.idea.res.getDeclaringAttributeValue
 
 object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
   override fun getGotoDeclarationFileBasedTargets(resourceReference: ResourceReference, context: PsiElement): Array<PsiFile> {

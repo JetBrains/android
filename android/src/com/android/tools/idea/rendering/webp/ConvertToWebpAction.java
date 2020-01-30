@@ -77,7 +77,7 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -150,7 +150,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
         return folderType == ResourceFolderType.DRAWABLE || folderType == ResourceFolderType.MIPMAP;
       }
 
-      return AndroidResourceUtil.isLocalResourceDirectory(file, project);
+      return IdeResourcesUtil.isLocalResourceDirectory(file, project);
     }
 
     return false;

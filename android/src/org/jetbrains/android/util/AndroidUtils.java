@@ -26,10 +26,9 @@ import com.android.sdklib.internal.project.ProjectProperties;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.utils.TraceUtils;
@@ -884,7 +883,7 @@ public class AndroidUtils {
    */
   @Nullable
   public static String getRootTagName(@NotNull PsiFile file) {
-    ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
     if (folderType == ResourceFolderType.XML || folderType == ResourceFolderType.MENU || folderType == ResourceFolderType.DRAWABLE) {
       if (file instanceof XmlFile) {
         XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(((XmlFile)file));

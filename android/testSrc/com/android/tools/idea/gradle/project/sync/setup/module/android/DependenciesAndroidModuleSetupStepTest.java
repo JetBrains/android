@@ -154,7 +154,7 @@ public class DependenciesAndroidModuleSetupStepTest extends PlatformTestCase {
   @NotNull
   private static LibraryDependency createFakeLibraryDependency(@NotNull File jarsFolderPath) {
     File path = new File(jarsFolderPath, "myLibrary.jar");
-    return new LibraryDependency(path, "Gradle: __local_aars__:" + path + "@jar", COMPILE, ImmutableList.of());
+    return new LibraryDependency(path, "Gradle: __local_aars__:" + path, COMPILE, ImmutableList.of());
   }
 
   @NotNull

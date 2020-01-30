@@ -32,7 +32,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -83,7 +83,7 @@ public class CreateXmlResourceDialog extends DialogWrapper {
     if (resourceName.isEmpty()) {
       Messages.showErrorDialog(panel, "Resource name is not specified", CommonBundle.getErrorTitle());
     }
-    else if (!AndroidResourceUtil.isCorrectAndroidResourceName(resourceName)) {
+    else if (!IdeResourcesUtil.isCorrectAndroidResourceName(resourceName)) {
       Messages.showErrorDialog(panel, resourceName + " is not correct resource name", CommonBundle.getErrorTitle());
     }
     else if (fileName.isEmpty()) {
@@ -170,7 +170,7 @@ public class CreateXmlResourceDialog extends DialogWrapper {
         return new ValidationInfo(AndroidBundle.message("not.resource.file.error", FileUtil.toSystemDependentName(resFile.getPath())));
       }
 
-      for (ResourceElement element : AndroidResourceUtil.getValueResourcesFromElement(resourceType, resources)) {
+      for (ResourceElement element : IdeResourcesUtil.getValueResourcesFromElement(resourceType, resources)) {
         if (resourceName.equals(element.getName().getStringValue()) && !StringUtil.equals(resourceValue, element.getStringValue())) {
           return new ValidationInfo("resource '" + resourceName + "' already exists in " + FileUtil.toSystemDependentName(
             resFile.getPath()) + "with a different value.");

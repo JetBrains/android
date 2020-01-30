@@ -26,24 +26,35 @@ import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.repository.api.LocalPackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.impl.meta.RepositoryPackages;
+import com.android.repository.testframework.FakePackage;
+import com.android.repository.testframework.FakeRepoManager;
+import com.android.repository.testframework.MockFileOp;
 import com.android.sdklib.IAndroidTarget;
+import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -61,6 +72,7 @@ public class IdeSdksTest extends PlatformTestCase {
   private File myAndroidSdkPath;
   private EmbeddedDistributionPaths myEmbeddedDistributionPaths;
   private IdeSdks myIdeSdks;
+  private AndroidSdks myAndroidSdks;
 
   @Override
   protected void setUp() throws Exception {
@@ -78,7 +90,8 @@ public class IdeSdksTest extends PlatformTestCase {
 
     Jdks jdks = new Jdks(myIdeInfo);
     myEmbeddedDistributionPaths = EmbeddedDistributionPaths.getInstance();
-    myIdeSdks = new IdeSdks(new AndroidSdks(jdks, myIdeInfo), jdks, myEmbeddedDistributionPaths, myIdeInfo);
+    myAndroidSdks = new AndroidSdks(jdks, myIdeInfo);
+    myIdeSdks = new IdeSdks(myAndroidSdks, jdks, myEmbeddedDistributionPaths, myIdeInfo);
     IdeSdks.removeJdksOn(getTestRootDisposable());
     Sdks.allowAccessToSdk(getTestRootDisposable());
   }
@@ -86,6 +99,8 @@ public class IdeSdksTest extends PlatformTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
+      myAndroidSdks = null;
+      myIdeSdks = null;
       AndroidTestCaseHelper.removeExistingAndroidSdks();
     }
     finally {
@@ -108,15 +123,18 @@ public class IdeSdksTest extends PlatformTestCase {
   }
 
   public void testGetAndroidNdkPath() {
-    myIdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
+    FakePackage.FakeLocalPackage value = new FakePackage.FakeLocalPackage("ndk;21.0.0");
+    setupSdkData(ImmutableList.of(value));
 
     File ndkPath = myIdeSdks.getAndroidNdkPath();
+    String osPrefix = SystemInfo.isWindows ? "C:" : "";
     assertThat(ndkPath.getAbsolutePath())
-      .matches(Pattern.quote(myAndroidSdkPath.getPath() + toSystemDependentName("/ndk/")) + "[0-9.]+");
+      .matches(osPrefix + Pattern.quote(toSystemDependentName("/sdk/ndk/")) + "[0-9.]+");
   }
 
   public void testGetAndroidNdkPathWithPredicate() {
-    myIdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
+    FakePackage.FakeLocalPackage value = new FakePackage.FakeLocalPackage("ndk;21.0.0");
+    setupSdkData(ImmutableList.of(value));
 
     File ndkPath = myIdeSdks.getAndroidNdkPath(revision -> false);
     assertThat(ndkPath).isNull();
@@ -246,4 +264,12 @@ public class IdeSdksTest extends PlatformTestCase {
     assertThat(myIdeSdks.isUsingEnvVariableJdk()).isTrue();
   }
 
+  private void setupSdkData(ImmutableList<LocalPackage> localPackages) {
+    RepositoryPackages packages = new RepositoryPackages(localPackages, Collections.emptyList());
+    RepoManager repoManager = new FakeRepoManager(packages);
+    AndroidSdkHandler androidSdkHandler = new AndroidSdkHandler(null, null, new MockFileOp(), repoManager);
+    AndroidSdkData androidSdkData = mock(AndroidSdkData.class);
+    doReturn(androidSdkHandler).when(androidSdkData).getSdkHandler();
+    myAndroidSdks.setSdkData(androidSdkData);
+  }
 }

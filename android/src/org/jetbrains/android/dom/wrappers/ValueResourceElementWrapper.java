@@ -41,7 +41,7 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import org.jetbrains.android.dom.resources.Attr;
 import org.jetbrains.android.dom.resources.ResourceElement;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -392,7 +392,7 @@ public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceE
   public String getName() {
     String value = myWrappedElement.getValue();
     if (value.startsWith(SdkConstants.NEW_ID_PREFIX)) {
-      return AndroidResourceUtil.getResourceNameByReferenceText(value);
+      return IdeResourcesUtil.getResourceNameByReferenceText(value);
     }
     return ((NavigationItem)myWrappedElement).getName();
   }
@@ -400,7 +400,7 @@ public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceE
   @Override
   @Nullable
   public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
-    if (AndroidResourceUtil.isIdDeclaration(myWrappedElement)) {
+    if (IdeResourcesUtil.isIdDeclaration(myWrappedElement)) {
       XmlAttribute attribute = (XmlAttribute)myWrappedElement.getParent();
       attribute.setValue(name);
     }

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcemanager
 
-import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import com.intellij.openapi.Disposable
@@ -41,14 +41,14 @@ private val LARGE_MAXIMUM_CACHE_WEIGHT_BYTES = (100 * 1024.0.pow(2)).toLong() //
  * @see CacheBuilder.softValues
  */
 class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
-                                     private val objectToImage: Cache<DesignAsset, BufferedImage>
+                                     private val objectToImage: Cache<Asset, BufferedImage>
 ) : Disposable {
   companion object {
     private val largeObjectToImage by lazy { createObjectToImageCache(5, LARGE_MAXIMUM_CACHE_WEIGHT_BYTES) }
     private val smallObjectToImage by lazy { createObjectToImageCache(1, SMALL_MAXIMUM_CACHE_WEIGHT_BYTES) }
 
     /**
-     * Returns an ImageCache that uses an image pool of size [LARGE_MAXIMUM_CACHE_WEIGHT_BYTES] to store previews for a given [DesignAsset]
+     * Returns an ImageCache that uses an image pool of size [LARGE_MAXIMUM_CACHE_WEIGHT_BYTES] to store previews for a given [Asset]
      *
      * @param parentDisposable Used to dispose of the returned [ImageCache], used as the parent disposable for the default
      * [MergingUpdateQueue] when the [mergingUpdateQueue] parameter is null.
@@ -59,7 +59,7 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
     ) = ImageCache(mergingUpdateQueue, largeObjectToImage).apply { Disposer.register(parentDisposable, this) }
 
     /**
-     * Returns an ImageCache that uses an image pool of size [SMALL_MAXIMUM_CACHE_WEIGHT_BYTES] to store previews for a given [DesignAsset]
+     * Returns an ImageCache that uses an image pool of size [SMALL_MAXIMUM_CACHE_WEIGHT_BYTES] to store previews for a given [Asset]
      *
      * @param parentDisposable Used to dispose of the returned [ImageCache], used as the parent disposable for the default
      * [MergingUpdateQueue] when the [mergingUpdateQueue] parameter is null.
@@ -70,13 +70,13 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
     ) = ImageCache(mergingUpdateQueue, smallObjectToImage).apply { Disposer.register(parentDisposable, this) }
   }
 
-  private val pendingFutures = HashMap<DesignAsset, CompletableFuture<*>?>()
+  private val pendingFutures = HashMap<Asset, CompletableFuture<*>?>()
 
   private val updateQueue = mergingUpdateQueue ?: MergingUpdateQueue("queue", 3000, true, MergingUpdateQueue.ANY_COMPONENT, this, null,
                                                                      false)
 
   @Async.Schedule
-  private fun runOrQueue(asset: DesignAsset,
+  private fun runOrQueue(asset: Asset,
                          executeImmediately: Boolean = false,
                          runnable: () -> Unit) {
     // We map to null to mark that the computation for asset has started and avoid any new computation.
@@ -97,8 +97,8 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
     }
   }
 
-  fun clear(designAsset: DesignAsset) {
-    objectToImage.invalidate(designAsset)
+  fun clear(asset: Asset) {
+    objectToImage.invalidate(asset)
   }
 
   fun clear() {
@@ -116,7 +116,7 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
    *
    * Once the image is cached, [onImageCached] is invoked on [executor] (or the EDT if none is provided)
    */
-  fun computeAndGet(@Async.Schedule key: DesignAsset,
+  fun computeAndGet(@Async.Schedule key: Asset,
                     placeholder: BufferedImage,
                     forceComputation: Boolean,
                     onImageCached: () -> Unit = {},
@@ -135,7 +135,7 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
 
 
   private fun startComputation(computationFutureProvider: () -> CompletableFuture<out BufferedImage?>,
-                               @Async.Execute key: DesignAsset,
+                               @Async.Execute key: Asset,
                                onImageCached: () -> Unit,
                                executor: Executor) {
     val future = computationFutureProvider()
@@ -156,10 +156,10 @@ class ImageCache private constructor(mergingUpdateQueue: MergingUpdateQueue?,
   }
 }
 
-private fun createObjectToImageCache(duration: Long, size: Long): Cache<DesignAsset, BufferedImage> =
+private fun createObjectToImageCache(duration: Long, size: Long): Cache<Asset, BufferedImage> =
   CacheBuilder.newBuilder()
     .expireAfterAccess(duration, TimeUnit.MINUTES)
     .softValues()
-    .weigher<DesignAsset, BufferedImage> { _, image -> image.raster.dataBuffer.size * Integer.BYTES }
+    .weigher<Asset, BufferedImage> { _, image -> image.raster.dataBuffer.size * Integer.BYTES }
     .maximumWeight(size)
-    .build<DesignAsset, BufferedImage>()
+    .build<Asset, BufferedImage>()

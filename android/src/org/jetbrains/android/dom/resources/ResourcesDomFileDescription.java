@@ -20,7 +20,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.util.xml.DomFileDescription;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +41,7 @@ public class ResourcesDomFileDescription extends DomFileDescription<Resources> {
     return ApplicationManager.getApplication().runReadAction(new Computable<Boolean>() {
       @Override
       public Boolean compute() {
-        return AndroidResourceUtil.isInResourceSubdirectory(file, "values");
+        return IdeResourcesUtil.isInResourceSubdirectory(file, "values");
       }
     });
   }

@@ -55,8 +55,12 @@ class HeapAnalysisTest {
     tmpFolder.delete()
   }
 
+  /**
+   * Get the contents of the baseline file, with system-dependent line endings
+   */
   private fun getBaselineContents(path: Path): String {
     return String(Files.readAllBytes(path), StandardCharsets.UTF_8)
+      .replace(Regex("(\r\n|\n)"), System.lineSeparator())
   }
 
   private fun getBaselinePath(fileName: String) =

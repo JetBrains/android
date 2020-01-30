@@ -16,7 +16,7 @@
 package org.jetbrains.android;
 
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.testing.DisposerExplorer;
 import com.android.tools.idea.testing.Sdks;
@@ -227,7 +227,7 @@ public abstract class AndroidTestBase extends UsefulTestCase {
    */
   public static void appendSourceDescription(@NotNull StringBuilder sb, @Nullable PsiFile file, int offset, @Nullable Segment segment) {
     if (file != null && segment != null) {
-      if (ResourceHelper.getFolderType(file) != null) {
+      if (IdeResourcesUtil.getFolderType(file) != null) {
         assertNotNull(file.getParent());
         sb.append(file.getParent().getName());
         sb.append("/");

@@ -47,10 +47,9 @@ interface KotlinDslNameConverter: GradleDslNameConverter {
   }
 
   @JvmDefault
-  override fun convertReferenceToExternalText(context: GradleDslElement, referenceText: String): String {
+  override fun convertReferenceToExternalText(context: GradleDslElement, referenceText: String, forInjection: Boolean): String {
     return when (context) {
-      // TODO(karimai): no need to use casting.
-      is GradleDslSimpleExpression -> convertToExternalTextValue(context, context.dslFile, referenceText)
+      is GradleDslSimpleExpression -> convertToExternalTextValue(context, context.dslFile, referenceText, forInjection)
       else -> referenceText
     }
   }

@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.res.ResourceHelper.resolveStringValue;
+import static com.android.tools.idea.res.IdeResourcesUtil.resolveStringValue;
 
 /**
  * Utility functions

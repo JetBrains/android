@@ -22,7 +22,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.util.AndroidResourceUtil;
+import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +44,7 @@ public class SetAttributeFix extends WriteCommandAction<Void> {
   @Override
   protected void run(@NotNull Result<Void> result) throws Throwable {
     if (myNamespace != null && myValue != null) {
-      AndroidResourceUtil.ensureNamespaceImported((XmlFile)myTag.getContainingFile(), myNamespace, null);
+      IdeResourcesUtil.ensureNamespaceImported((XmlFile)myTag.getContainingFile(), myNamespace, null);
     }
     myTag.setAttribute(myAttribute, myNamespace, myValue);
   }

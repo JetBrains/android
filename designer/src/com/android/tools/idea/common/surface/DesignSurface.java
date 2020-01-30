@@ -163,6 +163,9 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     }
   };
 
+  @NotNull
+  private final List<CompletableFuture<Void>> myRenderFutures = new ArrayList<>();
+
   protected final IssueModel myIssueModel = new IssueModel();
   private final IssuePanel myIssuePanel;
   private final Object myErrorQueueLock = new Object();
@@ -403,13 +406,14 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * Add an {@link NlModel} to DesignSurface and return the associated SceneManager.
-   * If it is added before then nothing happens.
+   * Add an {@link NlModel} to DesignSurface and return the created {@link SceneManager}.
+   * If it is added before then it just returns the associated {@link SceneManager} which created before.
    *
    * @param model the added {@link NlModel}
+   * @see #addAndRenderModel(NlModel)
    */
   @NotNull
-  private SceneManager addModelImpl(@NotNull NlModel model) {
+  private SceneManager addModel(@NotNull NlModel model) {
     SceneManager manager = getSceneManager(model);
     // No need to add same model twice.
     if (manager != null) {
@@ -436,13 +440,15 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * Add an {@link NlModel} to DesignSurface and refreshes the rendering of the model. If the model was already part of the surface, only
    * the refresh will be triggered.
+   * The callback {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} is triggered after rendering.
    * The method returns a {@link CompletableFuture} that will complete when the render of the new model has finished.
    *
    * @param model the added {@link NlModel}
+   * @see #addModel(NlModel)
    */
   @NotNull
-  public CompletableFuture<Void> addModel(@NotNull NlModel model) {
-    SceneManager modelSceneManager = addModelImpl(model);
+  public final CompletableFuture<Void> addAndRenderModel(@NotNull NlModel model) {
+    SceneManager modelSceneManager = addModel(model);
 
     // We probably do not need to request a render for all models but it is currently the
     // only point subclasses can override to disable the layoutlib render behaviour.
@@ -450,10 +456,33 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       .whenCompleteAsync((result, ex) -> {
         reactivateInteractionManager();
 
+        // TODO(b/147225165): The tasks depends on model inflating callback should be moved to ModelListener#modelDerivedDataChanged.
         for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
           listener.modelChanged(this, model);
         }
       }, EdtExecutorService.getInstance());
+  }
+
+  /**
+   * Add an {@link NlModel} to DesignSurface and return the created {@link SceneManager}.
+   * If it is added before then it just returns the associated {@link SceneManager} which created before.
+   * This function trigger {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)} callback immediately.
+   * In the opposite, {@link #addAndRenderModel(NlModel)} triggers {@link DesignSurfaceListener#modelChanged(DesignSurface, NlModel)}
+   * when render is completed.
+   *
+   * TODO(b/147225165): Remove #addAndRenderModel function and rename this function as #addModel
+   *
+   * @param model the added {@link NlModel}
+   * @see #addModel(NlModel)
+   * @see #addAndRenderModel(NlModel)
+   */
+  @NotNull
+  public final SceneManager addModelWithoutRender(@NotNull NlModel model) {
+    SceneManager manager = addModel(model);
+    for (DesignSurfaceListener listener : ImmutableList.copyOf(myListeners)) {
+      listener.modelChanged(this, model);
+    }
+    return manager;
   }
 
   /**
@@ -504,7 +533,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   /**
    * Sets the current {@link NlModel} to DesignSurface.
    *
-   * @see #addModel(NlModel)
+   * @see #addAndRenderModel(NlModel)
    * @see #removeModel(NlModel)
    */
   public CompletableFuture<Void> setModel(@Nullable NlModel model) {
@@ -521,7 +550,7 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
       return CompletableFuture.completedFuture(null);
     }
 
-    addModelImpl(model);
+    addModel(model);
     zoomToFit();
 
     return requestRender()
@@ -555,6 +584,10 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     for (NlModel model : getModels()) {
       model.getConfiguration().removeListener(myConfigurationListener);
       model.removeListener(myModelListener);
+    }
+
+    if (myRepaintTimer.isRunning()) {
+      myRepaintTimer.stop();
     }
   }
 
@@ -1541,8 +1574,8 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
   }
 
   /**
-   * Invalidates all models and request a render of the layout. This will re-inflate the layout and render it.
-   * The result {@link ListenableFuture} will notify when the render has completed.
+   * Invalidates all models and request a render of the layout. This will re-inflate the {@link NlModel}s and render them sequentially.
+   * The result {@link ListenableFuture} will notify when all the renderings have completed.
    */
   @NotNull
   public CompletableFuture<Void> requestRender() {
@@ -1550,10 +1583,42 @@ public abstract class DesignSurface extends EditorDesignSurface implements Dispo
     if (managers.isEmpty()) {
       return CompletableFuture.completedFuture(null);
     }
+    return requestSequentialRender();
+  }
 
-    return CompletableFuture.allOf(managers.stream()
-                                     .map(manager -> manager.requestRender())
-                                     .toArray(CompletableFuture[]::new));
+  @NotNull
+  private CompletableFuture<Void> requestSequentialRender() {
+    CompletableFuture<Void> callback = new CompletableFuture<>();
+    synchronized (myRenderFutures) {
+      if (!myRenderFutures.isEmpty()) {
+        // TODO: This may make the rendered previews not match the last status of NlModel if the modifications happen during rendering.
+        //       Similar case happens in LayoutlibSceneManager#requestRender function, both need to be fixed.
+        myRenderFutures.add(callback);
+        return callback;
+      }
+      else {
+        myRenderFutures.add(callback);
+      }
+    }
+
+    // Cascading the CompletableFuture to make them executing sequentially.
+    CompletableFuture<Void> renderFuture = CompletableFuture.completedFuture(null);
+    for (SceneManager manager : getSceneManagers()) {
+      renderFuture = renderFuture.thenCompose(it -> {
+        CompletableFuture<Void> future = manager.requestLayoutAndRender(false);
+        invalidate();
+        return future;
+      });
+    }
+    renderFuture.thenRun(() -> {
+      synchronized (myRenderFutures) {
+        myRenderFutures.forEach(future -> future.complete(null));
+        myRenderFutures.clear();
+      }
+      callback.complete(null);
+    });
+
+    return callback;
   }
 
   @NotNull

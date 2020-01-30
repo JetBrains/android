@@ -193,10 +193,7 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
     if (skipIfNull && buildAttributionManager == null) {
       return;
     }
-    // Don't listen to transform events due to b/136194724
-    operation
-      .addProgressListener(buildAttributionManager, OperationType.GENERIC, OperationType.PROJECT_CONFIGURATION, OperationType.TASK,
-                           OperationType.TEST);
+    operation.addProgressListener(buildAttributionManager, OperationType.PROJECT_CONFIGURATION, OperationType.TASK, OperationType.TEST);
     buildAttributionManager.onBuildStart();
   }
 

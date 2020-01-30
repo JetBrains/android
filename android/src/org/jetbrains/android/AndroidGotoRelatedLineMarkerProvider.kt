@@ -48,8 +48,8 @@ import org.jetbrains.android.dom.manifest.Manifest
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.util.AndroidUtils
-import org.jetbrains.android.util.findResourceFields
-import org.jetbrains.android.util.getReferredResourceOrManifestField
+import com.android.tools.idea.res.findResourceFields
+import com.android.tools.idea.res.getReferredResourceOrManifestField
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.KotlinIcons

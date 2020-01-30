@@ -21,6 +21,7 @@ import com.android.testutils.MockitoKt.refEq
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFutureException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
+import com.android.tools.idea.lang.androidSql.parser.AndroidSqlLexer
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
 import com.android.tools.idea.sqlite.databaseConnection.jdbc.JdbcDatabaseConnection
@@ -989,30 +990,35 @@ class TableControllerTest : PlatformTestCase() {
 
   fun testUpdateCellOnRealDbIsSuccessfulWith_rowid_() {
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("c1"))
-    testUpdateWorksOnCustomDatabase(customSqliteFile, "UPDATE tableName SET c1 = ? WHERE _rowid_ = ?")
+    testUpdateWorksOnCustomDatabase(customSqliteFile, "tableName", "c1","UPDATE tableName SET c1 = ? WHERE _rowid_ = ?")
   }
 
   fun testUpdateCellOnRealDbIsSuccessfulWithRowid() {
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("c1", "_rowid_"))
-    testUpdateWorksOnCustomDatabase(customSqliteFile, "UPDATE tableName SET c1 = ? WHERE rowid = ?")
+    testUpdateWorksOnCustomDatabase(customSqliteFile, "tableName", "c1","UPDATE tableName SET c1 = ? WHERE rowid = ?")
   }
 
   fun testUpdateCellOnRealDbIsSuccessfulWithOid() {
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("c1", "_rowid_", "rowid"))
-    testUpdateWorksOnCustomDatabase(customSqliteFile, "UPDATE tableName SET c1 = ? WHERE oid = ?")
+    testUpdateWorksOnCustomDatabase(customSqliteFile, "tableName", "c1","UPDATE tableName SET c1 = ? WHERE oid = ?")
   }
 
   fun testUpdateCellOnRealDbIsSuccessfulWithPrimaryKey() {
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("c1"), listOf("pk"), true)
-    testUpdateWorksOnCustomDatabase(customSqliteFile, "UPDATE tableName SET c1 = ? WHERE pk = ?")
+    testUpdateWorksOnCustomDatabase(customSqliteFile, "tableName", "c1","UPDATE tableName SET c1 = ? WHERE pk = ?")
   }
 
   fun testUpdateCellOnRealDbIsSuccessfulWithMultiplePrimaryKeys() {
     val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("c1"), listOf("pk1", "pk2"), true)
-    testUpdateWorksOnCustomDatabase(customSqliteFile, "UPDATE tableName SET c1 = ? WHERE pk1 = ? AND pk2 = ?")
+    testUpdateWorksOnCustomDatabase(customSqliteFile, "tableName",  "c1","UPDATE tableName SET c1 = ? WHERE pk1 = ? AND pk2 = ?")
   }
 
-  // TODO (b/145917163) add tests for names that require escaping
+  fun testEscaping() {
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "table'Name", listOf("c`1"), listOf("p\"k1", "p'k2"))
+    testUpdateWorksOnCustomDatabase(
+      customSqliteFile, "table'Name", "c`1", "UPDATE `table'Name` SET `c``1` = ? WHERE `p\"k1` = ? AND `p'k2` = ?"
+    )
+  }
 
   fun testUpdateCellFailsWhenNoRowIdAndNoPrimaryKey() {
     // Prepare
@@ -1056,15 +1062,15 @@ class TableControllerTest : PlatformTestCase() {
     assertEquals(originalValue, value)
   }
 
-  private fun testUpdateWorksOnCustomDatabase(databaseFile: VirtualFile, expectedSqliteStatement: String) {
+  private fun testUpdateWorksOnCustomDatabase(databaseFile: VirtualFile, targetTableName: String, targetColumnName: String, expectedSqliteStatement: String) {
     // Prepare
     customDatabaseConnection = pumpEventsAndWaitForFuture(
       getSqliteJdbcService(databaseFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
     )
 
     val schema = pumpEventsAndWaitForFuture(customDatabaseConnection!!.readSchema())
-    val targetTable = schema.tables.find { it.name == "tableName" }!!
-    val targetCol = targetTable.columns.find { it.name == "c1" }!!
+    val targetTable = schema.tables.find { it.name == targetTableName }!!
+    val targetCol = targetTable.columns.find { it.name == targetColumnName }!!
 
     val originalResultSet = pumpEventsAndWaitForFuture(
       customDatabaseConnection!!.execute(SqliteStatement(selectAllAndRowIdFromTable(targetTable)))
@@ -1080,7 +1086,7 @@ class TableControllerTest : PlatformTestCase() {
       tableView,
       targetTable,
       databaseConnectionWrapper,
-      SqliteStatement("SELECT * FROM tableName"),
+      SqliteStatement("SELECT * FROM ${AndroidSqlLexer.getValidName(targetTableName)}"),
       edtExecutor
     )
     Disposer.register(testRootDisposable, tableController)
@@ -1091,7 +1097,9 @@ class TableControllerTest : PlatformTestCase() {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
     // Assert
-    val sqliteResultSet = pumpEventsAndWaitForFuture(customDatabaseConnection!!.execute(SqliteStatement("SELECT * FROM tableName")))
+    val sqliteResultSet = pumpEventsAndWaitForFuture(customDatabaseConnection!!.execute(
+      SqliteStatement("SELECT * FROM ${AndroidSqlLexer.getValidName(targetTableName)}")
+    ))
     val rows = pumpEventsAndWaitForFuture(sqliteResultSet?.getRowBatch(0, 1))
     val value = rows.first().values.first { it.column.name == targetCol.name }.value as String
     assertEquals("test value", value)
