@@ -40,6 +40,7 @@ import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.project.Project;
 import icons.StudioIcons;
+import java.awt.Component;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.time.Clock;
@@ -275,6 +276,25 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     // Assert
     assertEquals("Pixel 3 XL API 28", myPresentation.getText());
+  }
+
+  @Test
+  public void createCustomComponent() {
+    // Arrange
+    DeviceAndSnapshotComboBoxAction action = new DeviceAndSnapshotComboBoxAction(() -> false, project -> null, project -> null, myClock);
+
+    myPresentation.setIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
+
+    // noinspection DialogTitleCapitalization
+    myPresentation.setText(
+      "Pixel 2 API 29 (Failed to parse properties from /usr/local/google/home/juancnuno/.android/avd/Pixel_2_API_29.avd/config.ini)",
+      false);
+
+    // Act
+    Component component = action.createCustomComponent(myPresentation, i -> i);
+
+    // Assert
+    assertEquals(253, component.getPreferredSize().width);
   }
 
   @Test

@@ -57,6 +57,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -206,13 +207,19 @@ public class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @NotNull
   @Override
   public final JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull String place) {
+    return createCustomComponent(presentation, JBUI::scale);
+  }
+
+  @NotNull
+  @VisibleForTesting
+  final JComponent createCustomComponent(@NotNull Presentation presentation, @NotNull IntUnaryOperator scale) {
     JComponent panel = new JPanel(null);
     GroupLayout layout = new GroupLayout(panel);
     Component button = createComboBoxButton(presentation);
 
     Group horizontalGroup = layout.createSequentialGroup()
-      .addComponent(button, 0, JBUI.scale(GroupLayout.DEFAULT_SIZE), JBUI.scale(Short.MAX_VALUE))
-      .addGap(JBUI.scale(3));
+      .addComponent(button, 0, scale.applyAsInt(GroupLayout.DEFAULT_SIZE), scale.applyAsInt(250))
+      .addGap(scale.applyAsInt(3));
 
     Group verticalGroup = layout.createParallelGroup()
       .addComponent(button);
