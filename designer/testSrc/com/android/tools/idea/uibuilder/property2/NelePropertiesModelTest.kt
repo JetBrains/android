@@ -32,7 +32,7 @@ import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.truth.Truth.assertThat
-import com.intellij.util.toArray
+import com.intellij.util.containers.toArray
 import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
@@ -166,16 +166,16 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     val textView = nlModel.find(TEXT_VIEW)!!
-    val view = nlModel.surface.currentSceneView!!
+    val view = nlModel.surface.focusedSceneView!!
     val manager = view.sceneManager as SyncLayoutlibSceneManager
     val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE,
-                                    null, "", "", model, null, listOf(textView))
+                                    null, "", "", model, listOf(textView))
     manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     model.surface = nlModel.surface
     waitUntilEventsProcessed(model)
 
     // test
-    assertThat(model.provideDefaultValue(property)?.value).isEqualTo("?attr/textAppearanceSmall")
+    assertThat(model.provideDefaultValue(property)).isEqualTo("@android:style/TextAppearance.Small")
   }
 
   fun testPropertyValuesChangesAfterRendering() {
@@ -185,14 +185,14 @@ class NelePropertiesModelTest: LayoutTestCase() {
     val model = createModel()
     val nlModel = createNlModel(TEXT_VIEW)
     val textView = nlModel.find(TEXT_VIEW)!!
-    val view = nlModel.surface.currentSceneView!!
+    val view = nlModel.surface.focusedSceneView!!
     val manager = view.sceneManager as SyncLayoutlibSceneManager
-    val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, null, "", "", model, null, listOf(textView))
+    val property = NelePropertyItem(ANDROID_URI, ATTR_TEXT_APPEARANCE, NelePropertyType.STYLE, null, "", "", model, listOf(textView))
     manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceSmall")
     model.surface = nlModel.surface
     nlModel.surface.selectionModel.setSelection(listOf(textView))
     waitUntilEventsProcessed(model)
-    assertThat(model.provideDefaultValue(property)?.value).isEqualTo("?attr/textAppearanceSmall")
+    assertThat(model.provideDefaultValue(property)).isEqualTo("@android:style/TextAppearance.Small")
     model.addListener(listener)
 
     // Value changed should not be reported if the default values are unchanged
@@ -201,7 +201,7 @@ class NelePropertiesModelTest: LayoutTestCase() {
     verify(listener, never()).propertyValuesChanged(model)
 
     // Value changed notification is expected since the default values have changed
-    manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "?attr/textAppearanceLarge")
+    manager.putDefaultPropertyValue(textView, ResourceNamespace.ANDROID, ATTR_TEXT_APPEARANCE, "@android:style/TextAppearance.Large")
     manager.fireRenderCompleted()
     UIUtil.dispatchAllInvocationEvents()
     verify(listener).propertyValuesChanged(model)

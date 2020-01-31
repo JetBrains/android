@@ -15,9 +15,10 @@
  */
 package com.android.tools.idea.databinding.renamer;
 
+import static com.android.SdkConstants.NEW_ID_PREFIX;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.databinding.psiclass.LightBindingClass.LightDataBindingField;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.codeStyle.NameUtil;
@@ -26,12 +27,11 @@ import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.refactoring.rename.naming.AutomaticRenamer;
 import com.intellij.refactoring.rename.naming.NameSuggester;
+import java.util.Locale;
 import org.jetbrains.android.dom.wrappers.ValueResourceElementWrapper;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.android.SdkConstants.NEW_ID_PREFIX;
 
 /**
  * Renames resource IDs when Java fields derived from those resources are renamed.
@@ -80,7 +80,7 @@ public class DataBindingRenamer extends AutomaticRenamer {
                                          @NotNull String newFieldName, @NotNull String oldFieldName) {
     if (element instanceof ValueResourceElementWrapper) {
       String[] words = NameUtil.splitNameIntoWords(newFieldName);
-      return NEW_ID_PREFIX + StringUtil.toLowerCase(String.join("_", words));
+      return SdkConstants.NEW_ID_PREFIX + String.join("_", words).toLowerCase(Locale.US);
     }
     return super.suggestNameForElement(element, suggester, newFieldName, oldFieldName);
   }

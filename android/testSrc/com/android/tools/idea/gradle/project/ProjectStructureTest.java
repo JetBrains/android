@@ -28,7 +28,7 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.ThrowableComputable;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
 /**
  * Tests for {@link ProjectStructure}.
  */
-public class ProjectStructureTest extends JavaProjectTestCase {
+public class ProjectStructureTest extends PlatformTestCase {
   private ProjectStructure myProjectStructure;
 
   @Override
@@ -60,7 +60,7 @@ public class ProjectStructureTest extends JavaProjectTestCase {
     createJavaModule("javaLib", true /* buildable */);
 
     // Method to test:
-    myProjectStructure.analyzeProjectStructure(new EmptyProgressIndicator());
+    myProjectStructure.analyzeProjectStructure();
 
     // Verify that the app modules where properly identified.
     ImmutableList<Module> appModules = myProjectStructure.getAppModules();
@@ -104,7 +104,7 @@ public class ProjectStructureTest extends JavaProjectTestCase {
     Module leaf3 = createJavaModule("leaf3", false /* not buildable */);
 
     // Method to test:
-    myProjectStructure.analyzeProjectStructure(new EmptyProgressIndicator());
+    myProjectStructure.analyzeProjectStructure();
 
     // Verify that app and leaf modules are returned.
     ImmutableList<Module> leafModules = myProjectStructure.getLeafModules();
@@ -134,7 +134,7 @@ public class ProjectStructureTest extends JavaProjectTestCase {
     });
 
     // Method to test:
-    myProjectStructure.analyzeProjectStructure(new EmptyProgressIndicator());
+    myProjectStructure.analyzeProjectStructure();
 
     // Verify that the app modules where properly identified.
     ImmutableList<Module> appModules = myProjectStructure.getAppModules();

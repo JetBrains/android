@@ -16,18 +16,24 @@
 package org.jetbrains.android.refactoring;
 
 import com.android.annotations.NonNull;
+import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.lint.AndroidLintAppCompatCustomViewInspection;
+import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.testing.AndroidTestUtils;
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.intention.IntentionAction;
 import com.intellij.codeInspection.SmartHashMap;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.migration.MigrationMapEntry;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
@@ -268,32 +274,6 @@ public class MigrateToAppCompatTest extends AndroidTestCase {
       // note that we also add an AndroidManifest.xml with the appcompat package.
       addModuleWithAndroidFacet(projectBuilder, modules, "appcompat", PROJECT_TYPE_APP);
     }
-  }
-
-  public void testMigrationQuickFix() throws Exception {
-    myFixture.enableInspections(new AndroidLintAppCompatCustomViewInspection());
-    myFixture.copyFileToProject(BASE_PATH + "appcompat_manifest.xml",
-                                "additionalModules/appcompat/AndroidManifest.xml");
-    myFixture.copyFileToProject(BASE_PATH + "theme_material_manifest.xml", "AndroidManifest.xml");
-    VirtualFile file = myFixture.copyFileToProject(
-      BASE_PATH + "CustomView_highlighted.java", "src/p1/p2/CustomView.java");
-    myFixture.configureFromExistingVirtualFile(file);
-    myFixture.doHighlighting();
-    myFixture.checkHighlighting(true, false, false);
-    IntentionAction action =
-      AndroidTestUtils.getIntentionAction(myFixture, AndroidBundle.message("android.refactoring.migratetoappcompat"));
-    assertNotNull(action);
-    // Note: For a refactoring this should always be false.
-    assertFalse(action.startInWriteAction());
-
-    new WriteCommandAction(myFixture.getProject(), "") {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        action.invoke(myFixture.getProject(), myFixture.getEditor(), myFixture.getFile());
-      }
-    }.execute();
-
-    myFixture.checkResultByFile("src/p1/p2/CustomView.java", BASE_PATH + "CustomView_after.java", true);
   }
 
   /**

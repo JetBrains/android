@@ -33,34 +33,28 @@ import static com.android.SdkConstants.TOOLS_NS_NAME_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.tools.idea.uibuilder.property.NlProperties.STARRED_PROP;
 import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
-import com.android.tools.property.ptable.StarState;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.projectsystem.AndroidModuleSystem;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.projectsystem.LightResourceClassService;
-import com.android.tools.idea.projectsystem.ProjectSystemService;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.TestProjectSystem;
+import com.android.tools.property.ptable.StarState;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Table;
-import com.intellij.openapi.module.Module;
+import com.intellij.openapi.extensions.Extensions;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.testFramework.PlatformTestUtil;
 import java.util.List;
 import java.util.stream.Collectors;
+import com.intellij.testFramework.ServiceContainerUtil;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
-import org.mockito.ArgumentMatcher;
-import org.mockito.Mockito;
 
 public class NlPropertiesTest extends PropertyTestCase {
   private static final String APPCOMPAT_IMAGE_VIEW = "android.support.v7.widget.AppCompatImageView";
@@ -434,17 +428,9 @@ public class NlPropertiesTest extends PropertyTestCase {
   private void setUpAppCompat() {
     GradleVersion gradleVersion = GradleVersion.parse(String.format("%1$d.0.0", MOST_RECENT_API_LEVEL));
     GradleCoordinate appCompatCoordinate = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate(gradleVersion.toString());
-    ProjectSystemService projectSystemService = mock(ProjectSystemService.class);
-    AndroidProjectSystem androidProjectSystem = mock(AndroidProjectSystem.class);
-    AndroidModuleSystem androidModuleSystem = mock(AndroidModuleSystem.class);
-    LightResourceClassService lightResourceClassService = mock(LightResourceClassService.class, Mockito.RETURNS_SMART_NULLS);
-    when(projectSystemService.getProjectSystem()).thenReturn(androidProjectSystem);
-    when(androidProjectSystem.getModuleSystem(any(Module.class))).thenReturn(androidModuleSystem);
-    when(androidProjectSystem.getLightResourceClassService()).thenReturn(lightResourceClassService);
-    ArgumentMatcher<GradleCoordinate> appCompatMatcher =
-      arg ->  arg instanceof GradleCoordinate && arg.isSameArtifact(appCompatCoordinate);
-    when(androidModuleSystem.getResolvedDependency(argThat(appCompatMatcher))).thenReturn(appCompatCoordinate);
-    replaceProjectService(ProjectSystemService.class, projectSystemService);
+
+    TestProjectSystem projectSystem = new TestProjectSystem(getProject(), ImmutableList.of(appCompatCoordinate));
+    ServiceContainerUtil.registerExtension(getProject(), ProjectSystemUtil.getEP_NAME(), projectSystem, getTestRootDisposable());
     myFixture.addFileToProject("src/android/support/v7/app/AppCompatImageView.java", APPCOMPAT_ACTIVITY);
     myFixture.addFileToProject("src/android/support/v7/widget/AppCompatImageView.java", APPCOMPAT_IMAGE_VIEW_SOURCE);
     myFixture.addFileToProject("src/android/support/v7/widget/AppCompatTextView.java", APPCOMPAT_TEXT_VIEW_SOURCE);

@@ -54,11 +54,11 @@ public class CreateNewAppModuleWithDefaultsTest {
   public void createNewAppModuleWithDefaults() throws Exception {
     guiTest.importSimpleApplication()
            .openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-           .chooseModuleType("Phone & Tablet Module")
-           .clickNextToStep("Phone & Tablet Module")
-           .setModuleName("application_module")
-           .clickNextToStep("Add an Activity to Mobile")
-           .chooseActivity("Add No Activity")
+           .clickNextPhoneAndTabletModule()
+           .enterModuleName("application_module")
+           .wizard()
+           .clickNext()
+           .chooseActivity("No Activity")
            .clickFinish()
            .waitForGradleProjectSyncToFinish(Wait.seconds(30));
     assertAbout(file()).that(guiTest.getProjectPath("application_module")).isDirectory();

@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
-import com.android.builder.model.AndroidProject
+import com.android.ide.common.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.android.tools.idea.gradle.structure.model.helpers.*
 import com.android.tools.idea.gradle.structure.model.meta.*
 import com.intellij.pom.java.LanguageLevel
 
-object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, AndroidProject, AndroidModel> {
-  override fun getResolved(model: PsAndroidModule): AndroidProject? = model.resolvedModel?.androidProject
+object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, IdeAndroidProject, AndroidModel> {
+  override fun getResolved(model: PsAndroidModule): IdeAndroidProject? = model.resolvedModel?.androidProject
 
   override fun getParsed(model: PsAndroidModule): AndroidModel? = model.parsedModel?.android()
 
@@ -35,6 +35,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, AndroidProjec
 
   val compileSdkVersion: SimpleProperty<PsAndroidModule, String> = property(
     "Compile Sdk Version",
+    preferredVariableName = { "compileSdkVersion" },
     resolvedValueGetter = { compileTarget },
     parsedPropertyGetter = { compileSdkVersion() },
     getter = { asString() },
@@ -46,6 +47,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, AndroidProjec
 
   val buildToolsVersion: SimpleProperty<PsAndroidModule, String> = property(
     "Build Tools Version",
+    preferredVariableName = { "buildToolsVersion" },
     resolvedValueGetter = { buildToolsVersion },
     parsedPropertyGetter = { buildToolsVersion() },
     getter = { asString() },
@@ -57,6 +59,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, AndroidProjec
 
   val sourceCompatibility: SimpleProperty<PsAndroidModule, LanguageLevel> = property(
     "Source Compatibility",
+    preferredVariableName = { "sourceCompatibility" },
     resolvedValueGetter = { LanguageLevel.parse(javaCompileOptions.sourceCompatibility) },
     parsedPropertyGetter = { compileOptions().sourceCompatibility() },
     getter = { asLanguageLevel() },
@@ -68,6 +71,7 @@ object AndroidModuleDescriptors : ModelDescriptor<PsAndroidModule, AndroidProjec
 
   val targetCompatibility: SimpleProperty<PsAndroidModule, LanguageLevel> = property(
     "Target Compatibility",
+    preferredVariableName = { "targetCompatibility" },
     resolvedValueGetter = { LanguageLevel.parse(javaCompileOptions.targetCompatibility) },
     parsedPropertyGetter = { compileOptions().targetCompatibility() },
     getter = { asLanguageLevel() },

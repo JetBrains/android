@@ -92,14 +92,19 @@ internal class DeclaredDependenciesPanel(
           dependenciesTableModel.reset(event.dependency.value)
         }
         else -> {
+          val selectedKeys = dependenciesTable.selection.map { it.toText() to it.joinedConfigurationNames }.toSet()
           dependenciesTableModel.reset()
+          val newSelection = dependenciesTableModel.items.filter { selectedKeys.contains(it.toText() to it.joinedConfigurationNames) }
+          if (newSelection != dependenciesTable.selection) dependenciesTable.selection = newSelection
         }
       }
     }
 
     dependenciesTable.selectionModel.addListSelectionListener {
-      updateDetailsAndIssues()
-      notifySelectionChanged()
+      if (!it.valueIsAdjusting) {
+        updateDetailsAndIssues()
+        notifySelectionChanged()
+      }
     }
     dependenciesTable.selectFirstRow()
 

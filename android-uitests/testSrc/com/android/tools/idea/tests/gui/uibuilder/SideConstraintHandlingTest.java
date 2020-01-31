@@ -32,6 +32,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class SideConstraintHandlingTest {
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
    * Verifies the UI for adding side constraints for a ConstraintLayout in the layout editor.
@@ -58,6 +59,8 @@ public class SideConstraintHandlingTest {
     EditorFixture editor = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest")
                                   .getEditor()
                                   .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN);
+    guiTest.ideFrame().closeProjectPanel();
+
     NlEditorFixture layoutEditor = editor.getLayoutEditor(true);
 
     layoutEditor

@@ -15,15 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
+import static com.intellij.openapi.externalSystem.model.ProjectKeys.LIBRARY_DEPENDENCY;
+
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
-import com.android.tools.idea.gradle.project.model.*;
-import com.android.tools.idea.gradle.project.sync.idea.data.model.ImportedModule;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.ProjectCleanupModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.model.SyncIssuesModel;
 import com.intellij.openapi.externalSystem.model.Key;
 import org.jetbrains.annotations.NotNull;
-
-import static com.intellij.openapi.externalSystem.model.ProjectKeys.LIBRARY_DEPENDENCY;
 
 /**
  * These keys determine the order in which the {@code ProjectDataService}s are invoked. The order is:
@@ -70,11 +72,6 @@ public final class AndroidProjectKeys {
   @NotNull
   public static final Key<ProjectCleanupModel>
     PROJECT_CLEANUP_MODEL = Key.create(ProjectCleanupModel.class, SYNC_ISSUES.getProcessingWeight() + 10);
-
-  @NotNull
-  public static final Key<ImportedModule> IMPORTED_MODULE =
-    Key.create(ImportedModule.class, PROJECT_CLEANUP_MODEL.getProcessingWeight() + 10);
-
 
   private AndroidProjectKeys() {
   }

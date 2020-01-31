@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.cpu;
 
-import com.android.tools.profiler.proto.CpuProfiler;
+import com.android.tools.profiler.proto.Cpu;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -64,7 +64,7 @@ public class CpuCaptureMetadata {
     STOP_FAILED_CANNOT_READ_FILE
     ;
 
-    public static CaptureStatus fromStopStatus(CpuProfiler.CpuProfilingAppStopResponse.Status status) {
+    public static CaptureStatus fromStopStatus(Cpu.TraceStopStatus.Status status) {
       switch (status) {
         case NO_ONGOING_PROFILING:
           return STOP_FAILED_NO_GOING_PROFILING;

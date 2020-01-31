@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.parser.elements;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.psi.PsiElement;

@@ -16,38 +16,13 @@
 package com.android.tools.idea.editors.theme;
 
 import com.android.tools.idea.ui.MaterialColors;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import java.awt.Color;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
-import java.util.List;
-
 @SuppressWarnings({"UseJBColor"})
 public class MaterialColorUtils {
-
-  private static final ImmutableMap<Color, Color> PRIMARY_DARK_COLORS_MAP = ImmutableMap.<Color, Color>builder()
-    .put(MaterialColors.RED_500, MaterialColors.RED_700)
-    .put(MaterialColors.PINK_500, MaterialColors.PINK_700)
-    .put(MaterialColors.PURPLE_500, MaterialColors.PURPLE_700)
-    .put(MaterialColors.DEEP_PURPLE_500, MaterialColors.DEEP_PURPLE_700)
-    .put(MaterialColors.INDIGO_500, MaterialColors.INDIGO_700)
-    .put(MaterialColors.BLUE_500, MaterialColors.BLUE_700)
-    .put(MaterialColors.LIGHT_BLUE_500, MaterialColors.LIGHT_BLUE_700)
-    .put(MaterialColors.CYAN_500, MaterialColors.CYAN_700)
-    .put(MaterialColors.TEAL_500, MaterialColors.TEAL_700)
-    .put(MaterialColors.GREEN_500, MaterialColors.GREEN_700)
-    .put(MaterialColors.LIGHT_GREEN_500, MaterialColors.LIGHT_GREEN_700)
-    .put(MaterialColors.LIME_500, MaterialColors.LIME_700)
-    .put(MaterialColors.YELLOW_500, MaterialColors.YELLOW_700)
-    .put(MaterialColors.AMBER_500, MaterialColors.AMBER_700)
-    .put(MaterialColors.ORANGE_500, MaterialColors.ORANGE_700)
-    .put(MaterialColors.DEEP_ORANGE_500, MaterialColors.DEEP_ORANGE_700)
-    .put(MaterialColors.BROWN_500, MaterialColors.BROWN_700)
-    .put(MaterialColors.GRAY_500, MaterialColors.GRAY_700)
-    .put(MaterialColors.BLUE_GRAY_500, MaterialColors.BLUE_GRAY_700)
-    .build();
 
   private static final ImmutableMap<Color, String> MATERIAL_NAMES_MAP = ImmutableMap.<Color, String>builder()
     .put(MaterialColors.RED_50, "Material Red 50")
@@ -307,72 +282,6 @@ public class MaterialColorUtils {
     .put(Color.BLACK, "Black")
     .put(Color.WHITE, "White")
     .build();
-
-  private static final ImmutableList<Color> PRIMARY_COLORS_LIST = ImmutableList.copyOf(PRIMARY_DARK_COLORS_MAP.keySet());
-
-  @NotNull
-  public static List<Color> suggestPrimaryColors() {
-    return PRIMARY_COLORS_LIST;
-  }
-
-  /**
-   * Method that suggests accent colors for a given primary color based on the material guidelines and classical color theory
-   * <a href="http://www.tigercolor.com/color-lab/color-theory/color-harmonies.htm">Complementary, Analogous and Triad combinations</a>
-   * <a href="https://en.wikipedia.org/wiki/Monochromatic_color">Monochromatic colors</a>
-   * For each hue (complementary, analogous, triad or monochromatic), two colors are suggested as accents:
-   * <ul>
-   * <li>75% saturation and 100% brightness</li>
-   * <li>100% saturation and original brightness of the color</li>
-   * </ul>
-   */
-  @NotNull
-  public static List<Color> suggestAccentColors(@NotNull Color primaryColor) {
-    ImmutableList.Builder<Color> builder = ImmutableList.builder();
-    if (AccentSuggestionsUtils.isMaterialPrimary(primaryColor)) {
-      builder.addAll(AccentSuggestionsUtils.getMonochromaticAccents(primaryColor));
-      builder.addAll(AccentSuggestionsUtils.getAssociatedAccents(primaryColor));
-      builder.addAll(AccentSuggestionsUtils.getComplementaryAccents(primaryColor));
-      builder.addAll(AccentSuggestionsUtils.getTriadAccents(primaryColor));
-    }
-    else {
-      float[] hsv = Color.RGBtoHSB(primaryColor.getRed(), primaryColor.getGreen(), primaryColor.getBlue(), null);
-
-      // If the primaryColor's brightness is too low, we set it to a higher value (0.6) to have a bright accent color
-      hsv[2] = Math.max(0.6f, hsv[2]);
-
-      // Monochromatic
-      builder.add(Color.getHSBColor(hsv[0], 0.75f, 1));
-      builder.add(Color.getHSBColor(hsv[0], 1, hsv[2]));
-      // Analogous
-      float associatedHue1 = (hsv[0] + 0.125f) % 1;
-      builder.add(Color.getHSBColor(associatedHue1, 0.75f, 1));
-      builder.add(Color.getHSBColor(associatedHue1, 1, hsv[2]));
-      float associatedHue2 = (hsv[0] + 0.875f) % 1;
-      builder.add(Color.getHSBColor(associatedHue2, 0.75f, 1));
-      builder.add(Color.getHSBColor(associatedHue2, 1, hsv[2]));
-      // Complementary
-      float complementaryHue = (hsv[0] + 0.5f) % 1;
-      builder.add(Color.getHSBColor(complementaryHue, 0.75f, 1));
-      builder.add(Color.getHSBColor(complementaryHue, 1, hsv[2]));
-      // Triad
-      float triadHue1 = (hsv[0] + 0.625f) % 1;
-      builder.add(Color.getHSBColor(triadHue1, 0.75f, 1));
-      builder.add(Color.getHSBColor(triadHue1, 1, hsv[2]));
-      float triadHue2 = (hsv[0] + 0.375f) % 1;
-      builder.add(Color.getHSBColor(triadHue2, 0.75f, 1));
-      builder.add(Color.getHSBColor(triadHue2, 1, hsv[2]));
-    }
-    return builder.build();
-  }
-
-  @NotNull
-  public static List<Color> suggestPrimaryDarkColors(@NotNull Color primaryColor) {
-    Color suggestedColor = PRIMARY_DARK_COLORS_MAP.get(primaryColor);
-    if (suggestedColor == null) {
-      suggestedColor = primaryColor.darker();
-    }
-    return ImmutableList.of(suggestedColor);
-  }
 
   /**
    * @return the material name for a given color

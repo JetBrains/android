@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.uibuilder.property2.testutils
 
-import com.android.SdkConstants.*
+import com.android.SdkConstants.ATTR_CONTEXT
+import com.android.SdkConstants.LINEAR_LAYOUT
+import com.android.SdkConstants.NEW_ID_PREFIX
+import com.android.SdkConstants.TOOLS_URI
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.ide.common.resources.stripPrefixFromId
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.idea.uibuilder.property2.NelePropertiesModel
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.NelePropertyType
+import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 
 /**
@@ -62,7 +66,7 @@ abstract class PropertyTestCase : MinApiLayoutTestCase() {
     val nlModel = builder.build()
     val result = mutableListOf<NlComponent>()
     for (descriptor in descriptors) {
-      result.add(nlModel.find(NlComponent.stripId(descriptor.id)!!)!!)
+      result.add(nlModel.find(stripPrefixFromId(descriptor.id!!))!!)
     }
     return result
   }
@@ -83,10 +87,10 @@ abstract class PropertyTestCase : MinApiLayoutTestCase() {
     val frameworkResourceManager = resourceManagers.frameworkResourceManager
     val definition =
         frameworkResourceManager?.attributeDefinitions?.getAttrDefinition(ResourceReference.attr(ResourceNamespace.ANDROID, attrName))
-    return NelePropertyItem(attrNamespace, attrName, type, definition, "", "", model, null, components)
+    return NelePropertyItem(attrNamespace, attrName, type, definition, "", "", model, components)
   }
 
   fun getSceneManager(property: NelePropertyItem): SyncLayoutlibSceneManager {
-    return property.model.surface!!.currentSceneView!!.sceneManager as SyncLayoutlibSceneManager
+    return property.model.surface!!.focusedSceneView!!.sceneManager as SyncLayoutlibSceneManager
   }
 }

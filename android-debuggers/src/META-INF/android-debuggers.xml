@@ -17,6 +17,30 @@
   <extensions defaultExtensionNs="com.intellij">
     <fileType name="SQLite" implementationClass="com.android.tools.idea.editors.sqlite.SqliteFileType"/>
     <fileTypeDetector implementation="com.android.tools.idea.editors.sqlite.SqliteFileTypeDetector" />
-    <fileEditorProvider implementation="com.android.tools.idea.editors.sqlite.SqliteEditorProvider"/>
+    <applicationService serviceImplementation="com.android.tools.idea.sqlite.ui.SqliteEditorViewFactoryImpl"/>
+    <elementDescriptionProvider implementation="com.android.tools.idea.sqlite.sqlLanguage.AndroidSqlFakePsiElementDescriptionProvider"/>
+
+    <annotator language="JAVA" implementationClass="com.android.tools.idea.SqliteQueryAnnotator"/>
+    <annotator language="kotlin" implementationClass="com.android.tools.idea.SqliteQueryAnnotator"/>
+
+    <projectService
+        serviceInterface="com.android.tools.idea.sqliteExplorer.SqliteExplorerProjectService"
+        serviceImplementation="com.android.tools.idea.sqliteExplorer.SqliteExplorerProjectServiceImpl" />
+
+    <facet.toolWindow id="Sqlite Explorer"
+                      facetIdList="android"
+                      anchor="bottom"
+                      secondary="true"
+                      conditionClass="com.android.tools.idea.sqliteExplorer.SqliteExplorerToolWindowCondition"
+                      icon="StudioIcons.Shell.ToolWindows.DEVICE_EXPLORER"
+                      factoryClass="com.android.tools.idea.sqliteExplorer.SqliteExplorerToolWindowFactory"/>
+
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.explorer">
+    <fileHandler implementation="com.android.tools.idea.SqliteFileHandler"/>
+  </extensions>
+  <extensions defaultExtensionNs="com.android.tools.idea.lang">
+    <androidSql.contextProvider implementation="com.android.tools.idea.sqlite.sqlLanguage.SqliteSchemaContext$Provider" />
   </extensions>
 </idea-plugin>

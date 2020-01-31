@@ -42,6 +42,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -55,12 +56,14 @@ import com.intellij.psi.PsiManager;
 import gnu.trove.TObjectLongHashMap;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.io.input.CharSequenceInputStream;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
@@ -88,8 +91,7 @@ final class MergedManifestInfo {
    * find or parse the primary manifest, then myDomDocument will be null.
    */
   @Nullable private final Document myDomDocument;
-  @Nullable private final ImmutableList<VirtualFile> myFiles;
-  @NotNull private final TObjectLongHashMap<VirtualFile> myLastModifiedMap;
+  @NotNull private final ModificationStamps myModificationStamps;
   private final long mySyncTimestamp;
   @Nullable private final ImmutableList<MergingReport.Record> myLoggingRecords;
   @Nullable private final Actions myActions;
@@ -116,25 +118,72 @@ final class MergedManifestInfo {
     }
   }
 
+  /** A record of the VFS and PSI modification stamps of a set of files at a given point in time. */
+  private static class ModificationStamps {
+    @NotNull private final ImmutableList<VirtualFile> files;
+    /**
+     * A mapping from PsiFile (or VirtualFile if the corresponding PsiFile is unavailable) to its modification stamp at this point in time.
+     */
+    @NotNull private final TObjectLongHashMap<Object> modificationStamps;
+
+    private ModificationStamps(@NotNull ImmutableList<VirtualFile> files, @NotNull TObjectLongHashMap<Object> modificationStamps) {
+      this.files = files;
+      this.modificationStamps = modificationStamps;
+    }
+
+    @NotNull
+    public static ModificationStamps forFiles(@NotNull Project project, @NotNull List<VirtualFile> files) {
+      ImmutableList.Builder<VirtualFile> fileListBuilder = ImmutableList.builder();
+      TObjectLongHashMap<Object> modificationStamps = new TObjectLongHashMap<>();
+      PsiManager psiManager = PsiManager.getInstance(project);
+      for (VirtualFile file : files) {
+        fileListBuilder.add(file);
+        try {
+          PsiFile psiFile = psiManager.findFile(file);
+          if (psiFile == null) {
+            // TODO(b/137394236): When does this happen? Should we just ignore these files?
+            modificationStamps.put(file, file.getModificationStamp());
+          } else {
+            modificationStamps.put(psiFile, psiFile.getModificationStamp());
+          }
+          // TODO(b/137394236): We should probably allow this exception to propagate up the call
+          //  stack, since the result should no longer be needed.
+        } catch (ProcessCanceledException ignore) {}
+      }
+      return new ModificationStamps(fileListBuilder.build(), modificationStamps);
+    }
+
+    @NotNull
+    public ImmutableList<VirtualFile> getFiles() {
+      return files;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      if (!(other instanceof ModificationStamps)) {
+        return false;
+      }
+      return modificationStamps.equals(((ModificationStamps)other).modificationStamps);
+    }
+
+    @Override
+    public int hashCode() {
+      return modificationStamps.hashCode();
+    }
+  }
+
   private MergedManifestInfo(@NotNull AndroidFacet facet,
                              @Nullable Document domDocument,
-                             @NotNull TObjectLongHashMap<VirtualFile> lastModifiedMap,
+                             @NotNull ModificationStamps modificationStamps,
                              long syncTimestamp,
                              @Nullable ImmutableList<MergingReport.Record> loggingRecords,
                              @Nullable Actions actions) {
     myFacet = facet;
     myDomDocument = domDocument;
-    myLastModifiedMap = lastModifiedMap;
+    myModificationStamps = modificationStamps;
     mySyncTimestamp = syncTimestamp;
     myLoggingRecords = loggingRecords;
     myActions = actions;
-
-    ImmutableList.Builder<VirtualFile> files = ImmutableList.builder();
-    lastModifiedMap.forEachKey(file -> {
-      files.add(file);
-      return true;
-    });
-    myFiles = files.build();
   }
 
   /**
@@ -147,7 +196,7 @@ final class MergedManifestInfo {
     long syncTimestamp = SyncTimestampUtil.getLastSyncTimestamp(project);
 
     MergedManifestContributors contributors = MergedManifestContributors.determineFor(facet);
-    TObjectLongHashMap<VirtualFile> lastModified = getFileModificationStamps(project, contributors.allFiles);
+    ModificationStamps modificationStamps = ModificationStamps.forFiles(project, contributors.allFiles);
 
     Document document = null;
     ImmutableList<MergingReport.Record> loggingRecords = null;
@@ -171,7 +220,7 @@ final class MergedManifestInfo {
       }
     }
 
-    return new MergedManifestInfo(facet, document, lastModified, syncTimestamp, loggingRecords, actions);
+    return new MergedManifestInfo(facet, document, modificationStamps, syncTimestamp, loggingRecords, actions);
   }
 
   @Slow
@@ -195,7 +244,7 @@ final class MergedManifestInfo {
         return new ParsedMergeResult(doc.getXml(), mergingReport.getLoggingRecords(), mergingReport.getActions());
       }
       else {
-        LOG.warn("getMergedManifest failed " + mergingReport.getReportString());
+        LOG.warn("getMergedManifestSupplier failed " + mergingReport.getReportString());
         return new ParsedMergeResult(null, mergingReport.getLoggingRecords(), mergingReport.getActions());
       }
     }
@@ -208,7 +257,7 @@ final class MergedManifestInfo {
       if (ex.getCause() instanceof SAXParseException) {
         return null;
       }
-      LOG.warn("getMergedManifest exception", ex);
+      LOG.warn("getMergedManifestSupplier exception", ex);
     }
     return null;
   }
@@ -233,26 +282,7 @@ final class MergedManifestInfo {
     }
     // TODO(b/128854237): We should use something backed with an iterator here so that we can early
     //  return without computing all the files we might care about first.
-    return myLastModifiedMap.equals(getFileModificationStamps(myFacet.getModule().getProject(), manifests.allFiles));
-  }
-
-  @NotNull
-  private static TObjectLongHashMap<VirtualFile> getFileModificationStamps(@NotNull Project project, @NotNull Iterable<VirtualFile> files) {
-    TObjectLongHashMap<VirtualFile> modificationStamps = new TObjectLongHashMap<>();
-    for (VirtualFile file : files) {
-      modificationStamps.put(file, getFileModificationStamp(project, file));
-    }
-    return modificationStamps;
-  }
-
-  private static long getFileModificationStamp(@NotNull Project project, @NotNull VirtualFile file) {
-    try {
-      PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-      return psiFile == null ? file.getModificationStamp() : psiFile.getModificationStamp();
-    }
-    catch (ProcessCanceledException ignore) {
-      return 0L;
-    }
+    return myModificationStamps.equals(ModificationStamps.forFiles(myFacet.getModule().getProject(), manifests.allFiles));
   }
 
   /**
@@ -266,7 +296,7 @@ final class MergedManifestInfo {
 
   @Nullable
   public ImmutableList<VirtualFile> getFiles() {
-    return myFiles;
+    return myModificationStamps.getFiles();
   }
 
   @NotNull
@@ -356,7 +386,7 @@ final class MergedManifestInfo {
       String versionNameSuffix = Joiner.on("").skipNulls().join(flavorVersionNameSuffix, getVersionNameSuffix(buildType));
       if (!Strings.isNullOrEmpty(versionName) || !Strings.isNullOrEmpty(versionNameSuffix)) {
         if (Strings.isNullOrEmpty(versionName)) {
-          Manifest manifest = facet.getManifest();
+          Manifest manifest = Manifest.getMainManifest(facet);
           if (manifest != null) {
             versionName = manifest.getXmlTag().getAttributeValue(SdkConstants.ATTR_VERSION_NAME, ANDROID_URI);
           }
@@ -375,10 +405,11 @@ final class MergedManifestInfo {
 
     Module module = facet.getModule();
     Project project = module.getProject();
+    FileDocumentManager fileDocumentManager = FileDocumentManager.getInstance();
 
     manifestMergerInvoker.withFileStreamProvider(new ManifestMerger2.FileStreamProvider() {
       @Override
-      protected InputStream getInputStream(@NotNull File file) throws FileNotFoundException {
+      protected InputStream getInputStream(@NotNull File file) throws IOException {
         VirtualFile vFile;
         if (file == mainManifestFile) {
           // Some tests use VirtualFile files (e.g. temp:///src/AndroidManifest.xml) for the main manifest
@@ -399,7 +430,7 @@ final class MergedManifestInfo {
         if (!libManifests.isEmpty()) {
           Module moduleContainingManifest = getAndroidModuleForManifest(vFile);
           if (moduleContainingManifest != null && !module.equals(moduleContainingManifest)) {
-            MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(moduleContainingManifest);
+            MergedManifestSnapshot manifest = MergedManifestManager.getFreshSnapshotInCallingThread(moduleContainingManifest);
 
             Document document = manifest.getDocument();
             if (document != null) { // normally the case, but can fail on merge fail
@@ -412,20 +443,17 @@ final class MergedManifestInfo {
           }
         }
 
-        try {
-          PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);
-          if (psiFile != null) {
-            String text = psiFile.getText();
-            return new ByteArrayInputStream(text.getBytes(UTF_8));
-          }
+        // If it exists, read from the in-memory document for this file.
+        // This ensures that we pick up any unsaved edits.
+        com.intellij.openapi.editor.Document document = fileDocumentManager.getCachedDocument(vFile);
+        if (document != null) {
+          return new CharSequenceInputStream(document.getCharsSequence(), UTF_8);
         }
-        catch (ProcessCanceledException ignore) {
-          // During startup we may receive a progress canceled exception here,
-          // but we don't *need* to read from PSI; we can read directly from
-          // disk. PSI is useful when the file has been modified, but that's not
-          // the case in the typical scenario where we hit process canceled.
-        }
-        return super.getInputStream(file);
+
+        // Read from the VirtualFile (instead of the java.io.File) because the VFS
+        // caches file contents on disk. This could matter if the original file resides
+        // on a network file system, for example.
+        return vFile.getInputStream();
       }
 
       @Nullable
@@ -448,7 +476,7 @@ final class MergedManifestInfo {
             continue;
           }
 
-          List<VirtualFile> manifestFiles = IdeaSourceProvider.getManifestFiles(androidFacet);
+          Collection<VirtualFile> manifestFiles = IdeaSourceProvider.getManifestFiles(androidFacet);
           for (VirtualFile manifestFile : manifestFiles) {
             if (vFile.equals(manifestFile)) {
               return m;

@@ -25,10 +25,7 @@ import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStu
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.util.PositionInFile;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.google.wireless.android.sdk.stats.GradleSyncIssue;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.module.Module;
@@ -79,7 +76,7 @@ public class ExternalNdkBuildIssuesReporterTest extends AndroidGradleTestCase {
 
   public void testReportWithWarning() throws Exception {
     loadSimpleApplication();
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = myModules.getAppModule();
 
@@ -123,7 +120,7 @@ public class ExternalNdkBuildIssuesReporterTest extends AndroidGradleTestCase {
     }
 
     loadSimpleApplication();
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Module appModule = myModules.getAppModule();
 

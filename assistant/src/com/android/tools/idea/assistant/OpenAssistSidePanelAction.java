@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.assistant;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -25,6 +25,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
 import icons.StudioIcons;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Triggers the creation of the Developer Services side panel.
@@ -34,27 +35,26 @@ public class OpenAssistSidePanelAction extends AnAction {
   public static final String TOOL_WINDOW_TITLE = "Assistant";
 
   @Override
-  public void actionPerformed(AnActionEvent event) {
+  public void actionPerformed(@NotNull AnActionEvent event) {
     final Project thisProject = event.getProject();
     final String actionId = ActionManager.getInstance().getId(this);
 
+    assert thisProject != null;
     openWindow(actionId, thisProject);
   }
 
   /**
    * Opens the assistant associated with the given actionId at the end of event thread
    */
-  public final void openWindow(String actionId, Project project) {
-    ApplicationManager.getApplication().invokeLater(() -> {
-      openWindowNow(actionId, project);
-    });
+  public final void openWindow(@NotNull String actionId, @NotNull Project project) {
+    ApplicationManager.getApplication().invokeLater(() -> openWindowNow(actionId, project));
   }
 
   /**
    * Opens the assistant associated with the given actionId
    */
   @VisibleForTesting
-  public void openWindowNow(String actionId, Project project) {
+  public void openWindowNow(@NotNull String actionId, @NotNull Project project) {
     AssistToolWindowFactory factory = new AssistToolWindowFactory(actionId);
     ToolWindowManager toolWindowManager = ToolWindowManager.getInstance(project);
     ToolWindow toolWindow = toolWindowManager.getToolWindow(TOOL_WINDOW_TITLE);

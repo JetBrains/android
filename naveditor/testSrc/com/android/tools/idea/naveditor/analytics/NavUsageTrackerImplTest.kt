@@ -20,16 +20,15 @@ import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.testFramework.fixtures.BareTestFixtureTestCase
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertSame
+import org.jetbrains.android.AndroidTestCase
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import org.mockito.Mockito.mock
 import java.util.concurrent.Executor
 import java.util.function.Consumer
 
-class NavUsageTrackerImplTest : BareTestFixtureTestCase() {
+class NavUsageTrackerImplTest : AndroidTestCase() {
   @JvmField
   @Rule
   val edtRule = EdtRule()
@@ -38,8 +37,10 @@ class NavUsageTrackerImplTest : BareTestFixtureTestCase() {
   @RunsInEdt
   fun testLogEvent() {
     lateinit var eventProto: AndroidStudioEvent
+    val model = mock(NlModel::class.java)
+    Mockito.`when`(model.facet).thenReturn(myFacet)
     val logger = Consumer { event: AndroidStudioEvent.Builder -> eventProto = event.build() }
-    val tracker = NavUsageTrackerImpl(Executor { it.run() }, mock(NlModel::class.java), logger)
+    val tracker = NavUsageTrackerImpl(Executor { it.run() }, model, logger)
     val event = NavEditorEvent.newBuilder().build()
     tracker.logEvent(event)
     assertEquals(AndroidStudioEvent.EventKind.NAV_EDITOR_EVENT, eventProto.kind)

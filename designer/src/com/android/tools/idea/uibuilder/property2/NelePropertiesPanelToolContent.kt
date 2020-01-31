@@ -21,16 +21,22 @@ import com.android.tools.adtui.workbench.ToolWindowCallback
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesView
+import com.android.tools.idea.uibuilder.property2.inspector.InspectorSection
 import com.android.tools.idea.uibuilder.property2.support.ToggleShowResolvedValueAction
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.property.panel.api.PropertiesPanel
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
+import java.awt.Component
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import javax.swing.JPanel
+
+fun getPropertiesToolContent(component: Component?): NelePropertiesPanelToolContent? =
+  ToolContent.getToolContent(component) as? NelePropertiesPanelToolContent
 
 /**
  * Create the models and views for the properties tool content.
@@ -76,9 +82,14 @@ class NelePropertiesPanelToolContent(facet: AndroidFacet, parentDisposable: Disp
 
   override fun getFilterKeyListener() = filterKeyListener
 
+  override fun getGearActions(): List<AnAction> =
+    InspectorSection.values().map { it.action }
+
+  fun firePropertiesGenerated() = componentModel.firePropertiesGenerated()
+
   private fun createFilterKeyListener() = object : KeyAdapter() {
     override fun keyPressed(event: KeyEvent) {
-      if (!properties.filter.isEmpty() && event.keyCode == KeyEvent.VK_ENTER && event.modifiers == 0 && properties.enterInFilter()) {
+      if (properties.filter.isNotEmpty() && event.keyCode == KeyEvent.VK_ENTER && event.modifiers == 0 && properties.enterInFilter()) {
         event.consume()
       }
     }

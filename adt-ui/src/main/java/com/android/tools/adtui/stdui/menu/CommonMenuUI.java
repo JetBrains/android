@@ -17,7 +17,7 @@ package com.android.tools.adtui.stdui.menu;
 
 import com.android.tools.adtui.stdui.StandardColors;
 import com.android.tools.adtui.stdui.StandardDimensions;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +41,7 @@ public class CommonMenuUI extends BasicMenuUI {
 
   @NotNull
   private static final IconUIResource ARROW_ICON =
-    new IconUIResource(new ImageIcon(new BufferedImage(JBUIScale.scale(16), JBUIScale.scale(16), BufferedImage.TYPE_INT_ARGB)));
+    new IconUIResource(new ImageIcon(new BufferedImage(JBUI.scale(16), JBUI.scale(16), BufferedImage.TYPE_INT_ARGB)));
 
   @Override
   public void installUI(@NotNull JComponent component) {
@@ -119,13 +119,13 @@ public class CommonMenuUI extends BasicMenuUI {
     MenuItemLayoutHelper.addMaxWidth(layoutHelper.getArrowSize(), 0, result);
 
     // Calculate the result height
-    result.height = MenuItemLayoutHelper.max(layoutHelper.getCheckSize().getHeight(),
-                                             layoutHelper.getLabelSize().getHeight(),
-                                             layoutHelper.getAccSize().getHeight(),
-                                             layoutHelper.getArrowSize().getHeight(),
-                                             // STUDIO customization
-                                             // Make the menu at least as short as the spec height
-                                             (int)StandardDimensions.INSTANCE.getMENU_HEIGHT());
+    result.height = CommonMenuLayoutHelper.max(layoutHelper.getCheckSize().getHeight(),
+                                               layoutHelper.getLabelSize().getHeight(),
+                                               layoutHelper.getAccSize().getHeight(),
+                                               layoutHelper.getArrowSize().getHeight(),
+                                               // STUDIO customization
+                                               // Make the menu at least as short as the spec height
+                                               (int)StandardDimensions.INSTANCE.getMENU_HEIGHT());
 
     // Take into account menu item insets
     Insets insets = layoutHelper.getMenuItem().getInsets();

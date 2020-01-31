@@ -53,7 +53,7 @@ public class CreateResourceTest {
 
     editor.invokeQuickfixAction("Create layout resource file");
 
-    CreateResourceFileDialogFixture dialog = CreateResourceFileDialogFixture.find(guiTest.robot());
+    CreateResourceFileDialogFixture dialog = CreateResourceFileDialogFixture.find(guiTest.ideFrame());
     // Should automatically prepend library prefix lib1:
     dialog.requireName("lib1_x.xml");
     dialog.clickCancel();
@@ -67,7 +67,7 @@ public class CreateResourceTest {
 
     editor.invokeQuickfixAction("Create layout resource file");
 
-    dialog = CreateResourceFileDialogFixture.find(guiTest.robot());
+    dialog = CreateResourceFileDialogFixture.find(guiTest.ideFrame());
     // Should automatically prepend library prefix lib1:
     dialog.requireName("lib1_y.xml");
     dialog.clickCancel();

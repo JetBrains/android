@@ -36,11 +36,6 @@ public class IDEASyncAveragePerfTest extends GradleSyncPerformanceTestCase {
   }
 
   @Override
-  protected boolean useNewSyncInfrastructure() {
-    return false;
-  }
-
-  @Override
   protected boolean useSingleVariantSyncInfrastructure() {
     return false;
   }

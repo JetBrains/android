@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.dom;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.resources.ResourceFolderType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;

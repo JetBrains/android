@@ -2,7 +2,7 @@ package org.jetbrains.android.inspections.lint;
 
 import static org.jetbrains.android.inspections.lint.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX;
 
-import com.android.builder.model.LintOptions;
+import com.android.ide.common.gradle.model.IdeLintOptions;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.editors.strings.StringsVirtualFile;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
@@ -260,7 +260,7 @@ class AndroidLintGlobalInspectionContext implements GlobalInspectionContextExten
       if (model != null) {
         GradleVersion version = model.getModelVersion();
         if (version != null && version.isAtLeast(2, 3, 0, "beta", 2, true)) {
-          LintOptions options = model.getAndroidProject().getLintOptions();
+          IdeLintOptions options = model.getAndroidProject().getLintOptions();
           try {
             if (options.getSeverityOverrides() != null) {
               severityModule = module;

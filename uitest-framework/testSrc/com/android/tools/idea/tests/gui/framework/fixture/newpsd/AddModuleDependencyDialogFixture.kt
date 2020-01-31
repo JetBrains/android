@@ -15,38 +15,42 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
+import com.android.tools.idea.tests.gui.framework.DialogContainerFixture
 import com.android.tools.idea.tests.gui.framework.GuiTests
-import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
 import com.android.tools.idea.tests.gui.framework.findByType
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import org.fest.swing.core.Robot
-import org.fest.swing.fixture.ContainerFixture
+import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JTreeFixture
+import javax.swing.JComboBox
 import javax.swing.JDialog
 import javax.swing.JTree
 
 class AddModuleDependencyDialogFixture private constructor(
-  override val container: JDialog,
-  override val ideFrameFixture: IdeFrameFixture
-) : IdeFrameContainerFixture, ContainerFixture<JDialog> {
+  val container: JDialog,
+  val robot: Robot
+) : DialogContainerFixture {
 
   override fun target(): JDialog = container
-  override fun robot(): Robot = ideFrameFixture.robot()
+  override fun robot(): Robot = robot
+  override fun maybeRestoreLostFocus() = Unit
 
   fun toggleModule(moduleName: String) {
     val tree = JTreeFixture(robot(), robot().finder().findByType<JTree>(container))
     tree.clickPath(moduleName)
   }
 
+  fun findConfigurationCombo(): JComboBoxFixture =
+    EditorComboBoxFixture(robot(), robot().finder().findByName(container, "configuration", JComboBox::class.java, true))
+
   fun clickOk() = clickOkAndWaitDialogDisappear()
 
   fun clickCancel() = clickCancelAndWaitDialogDisappear()
 
   companion object {
-    fun find(ideFrameFixture: IdeFrameFixture, title: String): AddModuleDependencyDialogFixture {
-      val dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog::class.java, title))
-      return AddModuleDependencyDialogFixture(dialog, ideFrameFixture)
+    fun find(robot: Robot, title: String): AddModuleDependencyDialogFixture {
+      val dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog::class.java, title))
+      return AddModuleDependencyDialogFixture(dialog, robot)
     }
   }
 }

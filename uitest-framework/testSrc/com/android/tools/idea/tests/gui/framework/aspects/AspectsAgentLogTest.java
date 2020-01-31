@@ -17,14 +17,18 @@ package com.android.tools.idea.tests.gui.framework.aspects;
 
 import static org.junit.Assert.fail;
 
-import com.android.tools.idea.tests.gui.framework.AspectsAgentLogger;
+import com.android.tools.idea.tests.gui.framework.RunIn;
+import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.testGuiFramework.launcher.GuiTestOptions;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -32,17 +36,19 @@ import java.util.Set;
 import org.junit.Test;
 
 /**
- * Test to run after all GUI tests of {@link com.android.tools.idea.tests.gui.framework.TestGroup.DEFAULT} runs. While these tests log the
- * aspects agent violations to a file, this test reads the log and fail in case there are any violations. Therefore, it's very important to
- * run after all DEFAULT tests run.
+ * A test that fails when the aspects-agent log has violations not in the baseline.
+ * The log is written during UI tests, so this should run after them.
+ * <p>
+ * The baseline for grandfathered violations is in tools/adt/idea/android-uitests/aspects_baseline.txt
  */
+@RunIn(TestGroup.UNRELIABLE)
 public class AspectsAgentLogTest {
 
   private static final Logger LOGGER = Logger.getInstance(AspectsAgentLogTest.class);
 
   @Test
   public void checkForViolations() throws IOException {
-    File aspectsLog = AspectsAgentLogger.getAspectsAgentLog();
+    File aspectsLog = AspectsAgentLogUtil.getAspectsAgentLog();
     if (aspectsLog == null) {
       LOGGER.info("The aspects agent log was not checked.");
       return;
@@ -92,6 +98,35 @@ public class AspectsAgentLogTest {
     }
     else {
       LOGGER.info("No aspects agent violations found. Congratulations!");
+    }
+  }
+
+  @Test
+  public void filterBaselineMethods() throws IOException {
+    File activeStackTraces = AspectsAgentLogUtil.getAspectsActiveStackTracesLog();
+    if (activeStackTraces == null) {
+      LOGGER.info("The aspects agent active stacktraces were not checked.");
+      return;
+    }
+    // Create a set with the stacktraces that were hit in the current run of UI tests.
+    Set<String> generatedBaseline = new HashSet<>(Files.readAllLines(activeStackTraces.toPath()));
+
+    // Create a set with the stacktraces currently whitelisted in the baseline.
+    Set<String> currentBaseline = new HashSet<>(Files.readAllLines(Paths.get(GuiTestOptions.INSTANCE.getAspectsAgentBaseline())));
+
+    // Check whether we can remove some of the stacktraces from the baseline.
+    currentBaseline.removeAll(generatedBaseline);
+    if (!currentBaseline.isEmpty()) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("The following stack traces can probably be removed from the aspects agent baseline:\n");
+      currentBaseline.forEach((stacktrace -> {
+        sb.append(stacktrace);
+        sb.append("\n");
+      }));
+      LOGGER.warn(sb.toString());
+    }
+    else {
+      LOGGER.info("Baseline is up to date.");
     }
   }
 }

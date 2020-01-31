@@ -1,10 +1,9 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.refactoring;
 
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 
@@ -113,7 +112,7 @@ public class AndroidExtractStyleTest extends AndroidTestCase {
       for (XmlAttribute attribute : extractableAttributes) {
         names.add(attribute.getName());
       }
-      final String[] extractableAttributeNames = ArrayUtilRt.toStringArray(names);
+      final String[] extractableAttributeNames = ArrayUtil.toStringArray(names);
       Arrays.sort(extractableAttributeNames);
 
       assertTrue(

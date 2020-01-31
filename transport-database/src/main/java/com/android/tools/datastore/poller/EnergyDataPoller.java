@@ -32,6 +32,7 @@ import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
 import io.grpc.StatusRuntimeException;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -92,7 +93,7 @@ public final class EnergyDataPoller extends PollRunner {
       getLog().debug("Unable to parse CPU frequency files.", e);
     }
 
-    myCpuConfig = new CpuConfig(response, myLogService);
+    myCpuConfig = new CpuConfig(response.getCpuCoreConfig(), myLogService);
   }
 
   // TODO: Remove this temporary function once we're not creating fake data anymore
@@ -117,28 +118,29 @@ public final class EnergyDataPoller extends PollRunner {
   }
 
   private void addLatestEvents(@NotNull EnergyProfiler.EnergyRequest request) {
-    for (EnergyProfiler.EnergyEvent event : myEnergyService.getEvents(request).getEventsList()) {
+    for (Common.Event event : myEnergyService.getEvents(request).getEventsList()) {
       // Location-related events.
-      if (event.hasLocationUpdateRequested()) {
+      if (event.getEnergyEvent().hasLocationUpdateRequested()) {
         myBatteryModel.handleEvent(
           event.getTimestamp(),
           BatteryModel.Event.LOCATION_REGISTER,
           new PowerProfile.LocationEvent(
-            event.getEventId(), PowerProfile.LocationType.from(event.getLocationUpdateRequested().getRequest().getProvider())));
+            event.getGroupId(),
+            PowerProfile.LocationType.from(event.getEnergyEvent().getLocationUpdateRequested().getRequest().getProvider())));
       }
-      if (event.hasLocationChanged()) {
+      if (event.getEnergyEvent().hasLocationChanged()) {
         myBatteryModel.handleEvent(
           event.getTimestamp(),
           BatteryModel.Event.LOCATION_UPDATE,
           new PowerProfile.LocationEvent(
-            event.getEventId(), PowerProfile.LocationType.from(event.getLocationChanged().getLocation().getProvider())));
+            event.getGroupId(), PowerProfile.LocationType.from(event.getEnergyEvent().getLocationChanged().getLocation().getProvider())));
       }
-      if (event.hasLocationUpdateRemoved()) {
+      if (event.getEnergyEvent().hasLocationUpdateRemoved()) {
         myBatteryModel.handleEvent(
           event.getTimestamp(),
           BatteryModel.Event.LOCATION_UNREGISTER,
           new PowerProfile.LocationEvent(
-            event.getEventId(), PowerProfile.LocationType.NONE));
+            event.getGroupId(), PowerProfile.LocationType.NONE));
       }
 
       myEnergyTable.insertOrReplace(mySession, event);
@@ -184,11 +186,12 @@ public final class EnergyDataPoller extends PollRunner {
         try {
           // TODO: Test on single core phones to see if they report data via "cpu0" or "cpu".
           myCpuConfig = new CpuConfig(
-            myCpuService.getCpuCoreConfig(CpuProfiler.CpuCoreConfigRequest.newBuilder().setDeviceId(mySession.getStreamId()).build()),
+            myCpuService.getCpuCoreConfig(CpuProfiler.CpuCoreConfigRequest.newBuilder().setDeviceId(mySession.getStreamId()).build())
+              .getCpuCoreConfig(),
             myLogService);
         }
         catch (StatusRuntimeException e) {
-          getLog().debug(String.format("Unable to parse CPU frequency files. Retries remaining: %d", myCpuConfigRetries), e);
+          getLog().debug(String.format(Locale.US, "Unable to parse CPU frequency files. Retries remaining: %d", myCpuConfigRetries), e);
         }
       }
 

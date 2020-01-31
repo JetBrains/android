@@ -31,7 +31,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.run.activity.ActivityLocatorUtils;
-import com.android.tools.lint.checks.PermissionHolder;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.module.Module;
@@ -50,7 +49,7 @@ import org.w3c.dom.Node;
 /**
  * An immutable snapshot of the merged manifests at a point in time.
  */
-public final class MergedManifestSnapshot {
+public class MergedManifestSnapshot {
   private final long myCreationTimeMs = Clock.getTime();
   private final Module myModule;
   @Nullable private final String myPackageName;
@@ -70,11 +69,12 @@ public final class MergedManifestSnapshot {
   @NotNull private final ImmutableMap<String, XmlNode.NodeKey> myNodeKeys;
   @Nullable private final Document myDocument;
   @NotNull private final ImmutableList<VirtualFile> myFiles;
-  @NotNull private final MergedManifestSnapshotFactory.ModulePermissions myHolder;
+  @NotNull private final ImmutablePermissionHolder myPermissions;
   private final boolean myAppHasCode;
   private final ImmutableList<Element> myActivities;
   private final ImmutableList<Element> myActivityAliases;
   private final ImmutableList<Element> myServices;
+  private final boolean myIsValid;
 
 
   MergedManifestSnapshot(@NotNull Module module,
@@ -92,7 +92,7 @@ public final class MergedManifestSnapshot {
                          @Nullable Boolean isDebuggable,
                          @Nullable Document document,
                          @Nullable ImmutableList<VirtualFile> manifestFiles,
-                         @NotNull MergedManifestSnapshotFactory.ModulePermissions permissionsHolder,
+                         @NotNull ImmutablePermissionHolder permissions,
                          boolean appHasCode,
                          @NotNull ImmutableList<Element> activities,
                          @NotNull ImmutableList<Element> activityAliases,
@@ -114,13 +114,14 @@ public final class MergedManifestSnapshot {
     myIsDebuggable = isDebuggable;
     myDocument = document;
     myFiles = manifestFiles != null ? manifestFiles : ImmutableList.of();
-    myHolder = permissionsHolder;
+    myPermissions = permissions;
     myAppHasCode = appHasCode;
     myActivities = activities;
     myActivityAliases = activityAliases;
     myServices = services;
     myLoggingRecords = loggingRecords;
     myActions = actions;
+    myIsValid = loggingRecords.stream().anyMatch(record -> record.getSeverity() == MergingReport.Record.Severity.ERROR);
 
     if (actions != null) {
       ImmutableMap.Builder<String, XmlNode.NodeKey> nodeKeysBuilder = ImmutableMap.builder();
@@ -135,6 +136,14 @@ public final class MergedManifestSnapshot {
     }
   }
 
+  /**
+   * Returns true if the manifest merger encountered any errors when computing this snapshot,
+   * indicating that this snapshot contains dummy values that may not represent the merged
+   * manifest accurately.
+   */
+  public boolean isValid() {
+    return myIsValid;
+  }
 
   long getCreationTimestamp() {
     return myCreationTimeMs;
@@ -280,8 +289,8 @@ public final class MergedManifestSnapshot {
   }
 
   @NotNull
-  public PermissionHolder getPermissionHolder() {
-    return myHolder;
+  public ImmutablePermissionHolder getPermissionHolder() {
+    return myPermissions;
   }
 
   @NotNull

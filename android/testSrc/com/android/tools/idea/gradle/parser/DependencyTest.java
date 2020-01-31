@@ -18,11 +18,11 @@ package com.android.tools.idea.gradle.parser;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.IdeaTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
 import java.util.Map;
 
-public class DependencyTest extends IdeaTestCase {
+public class DependencyTest extends PlatformTestCase {
 
   public void testMavenMatching() throws Exception {
     Dependency one = new Dependency(Dependency.Scope.COMPILE, Dependency.Type.EXTERNAL, "com.foo:artifact:1.0.0@jar");

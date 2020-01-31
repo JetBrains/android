@@ -30,6 +30,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
+import java.util.Collection;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
 import org.jetbrains.annotations.Nls;
@@ -95,7 +96,7 @@ public class CreateMissingClassQuickFix implements LocalQuickFix {
       return;
     }
 
-    final List<IdeaSourceProvider> providerList = IdeaSourceProvider.getCurrentSourceProviders(facet);
+    final Collection<IdeaSourceProvider> providerList = IdeaSourceProvider.getCurrentSourceProviders(facet);
     final List<VirtualFile> javaDirectories = Lists.newArrayList();
     for (IdeaSourceProvider provider : providerList) {
       javaDirectories.addAll(provider.getJavaDirectories());

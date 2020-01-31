@@ -28,6 +28,7 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.actions.CreateClassAction;
 import com.android.tools.idea.actions.MakeIdeaModuleAction;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.stats.AndroidStudioUsageTracker;
 import com.android.tools.idea.stats.GcPauseWatcher;
 import com.android.tools.idea.testartifacts.junit.AndroidJUnitConfigurationProducer;
@@ -42,7 +43,6 @@ import com.intellij.execution.junit.JUnitConfigurationType;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.plugins.PluginManagerCore;
-import com.intellij.internal.statistic.persistence.UsageStatisticsPersistenceComponent;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -83,7 +83,11 @@ public class AndroidStudioInitializer implements Runnable {
     setUpNewFilePopupActions();
     setUpMakeActions();
     disableGroovyLanguageInjection();
-    setUpNewProjectActions();
+
+    if (StudioFlags.CUSTOM_JAVA_NEW_CLASS_DIALOG.get()) {
+      replaceNewClassDialog();
+    }
+
     setupAnalytics();
     disableIdeaJUnitConfigurations();
     hideRarelyUsedIntellijActions();
@@ -100,6 +104,11 @@ public class AndroidStudioInitializer implements Runnable {
 
   private static void setupResourceManagerActions() {
     replaceAction("Images.ShowThumbnails", new ShowFileInResourceManagerAction());
+    // Move the ShowServicesAction to the end of the queue by re-registering it, since it will always consume the shortcut event.
+    // TODO(144579193): Remove this workaround when it's no longer necessary.
+    //  Eg: When ShowServicesAction can decide whether it's enabled or not.
+    AnAction servicesAction = ActionManager.getInstance().getAction("ServiceView.ShowServices");
+    replaceAction("ServiceView.ShowServices", servicesAction);
   }
 
   /*
@@ -225,12 +234,12 @@ public class AndroidStudioInitializer implements Runnable {
     });
   }
 
-  private static void setUpNewProjectActions() {
+  private static void replaceNewClassDialog() {
     replaceAction("NewClass", new CreateClassAction());
 
     // Update the text for the file creation templates.
     FileTemplateManager fileTemplateManager = FileTemplateManager.getDefaultInstance();
-    for (String templateName : new String[]{"Class", "Interface", "Enum", "AnnotationType"}) {
+    for (String templateName : new String[]{"Singleton", "Class", "Interface", "Enum", "AnnotationType"}) {
       FileTemplate template = fileTemplateManager.getInternalTemplate(templateName);
       template.setText(fileTemplateManager.getJ2eeTemplate(templateName).getText());
     }

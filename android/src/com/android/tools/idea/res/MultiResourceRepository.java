@@ -22,7 +22,7 @@ import com.android.ide.common.resources.ResourceTable;
 import com.android.ide.common.resources.SingleNamespaceResourceRepository;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.resources.aar.AarResourceRepository;
-import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
@@ -30,15 +30,15 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.SetMultimap;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
 import java.util.Set;
 import javax.annotation.concurrent.GuardedBy;
 import org.jetbrains.annotations.NotNull;
@@ -53,20 +53,24 @@ import org.jetbrains.annotations.Nullable;
  * <p>In the resource repository hierarchy, MultiResourceRepository is an internal node, never a leaf.
  */
 @SuppressWarnings("InstanceGuardedByStatic") // TODO: The whole locking scheme for resource repositories needs to be reworked.
-public abstract class MultiResourceRepository extends LocalResourceRepository {
+public abstract class MultiResourceRepository extends LocalResourceRepository implements Disposable {
+  private static final Logger LOG = Logger.getInstance(MultiResourceRepository.class);
+
   @GuardedBy("ITEM_MAP_LOCK")
-  private ImmutableList<LocalResourceRepository> myLocalResources;
+  @NotNull private ImmutableList<LocalResourceRepository> myLocalResources = ImmutableList.of();
   @GuardedBy("ITEM_MAP_LOCK")
-  private ImmutableList<AarResourceRepository> myLibraryResources;
+  @NotNull private ImmutableList<AarResourceRepository> myLibraryResources = ImmutableList.of();
   /** A concatenation of {@link #myLocalResources} and {@link #myLibraryResources}. */
   @GuardedBy("ITEM_MAP_LOCK")
-  private ImmutableList<ResourceRepository> myChildren;
+  @NotNull private ImmutableList<ResourceRepository> myChildren = ImmutableList.of();
   /** Leaf resource repositories keyed by namespace. */
   @GuardedBy("ITEM_MAP_LOCK")
-  private ImmutableListMultimap<ResourceNamespace, SingleNamespaceResourceRepository> myLeafsByNamespace;
+  @NotNull private ImmutableListMultimap<ResourceNamespace, SingleNamespaceResourceRepository> myLeafsByNamespace =
+      ImmutableListMultimap.of();
   /** Contained single-namespace resource repositories keyed by namespace. */
   @GuardedBy("ITEM_MAP_LOCK")
-  private ImmutableListMultimap<ResourceNamespace, SingleNamespaceResourceRepository> myRepositoriesByNamespace;
+  @NotNull private ImmutableListMultimap<ResourceNamespace, SingleNamespaceResourceRepository> myRepositoriesByNamespace =
+      ImmutableListMultimap.of();
 
   @GuardedBy("ITEM_MAP_LOCK")
   private long[] myModificationCounts;
@@ -77,28 +81,23 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   @GuardedBy("ITEM_MAP_LOCK")
   private final ResourceTable myCachedMaps = new ResourceTable();
 
-  @GuardedBy("ITEM_MAP_LOCK")
-  private Map<String, DataBindingLayoutInfo> myDataBindingResourceFiles = new HashMap<>();
-
-  @GuardedBy("ITEM_MAP_LOCK")
-  private long myDataBindingResourceFilesModificationCount = Long.MIN_VALUE;
-
   MultiResourceRepository(@NotNull String displayName) {
     super(displayName);
   }
 
   protected void setChildren(@NotNull List<? extends LocalResourceRepository> localResources,
-                             @NotNull Collection<? extends AarResourceRepository> libraryResources) {
+                             @NotNull Collection<? extends AarResourceRepository> libraryResources,
+                             @NotNull Collection<? extends ResourceRepository> otherResources) {
     synchronized (ITEM_MAP_LOCK) {
-      if (myLocalResources != null) {
-        for (LocalResourceRepository child : myLocalResources) {
-          child.removeParent(this);
-        }
+      for (LocalResourceRepository child : myLocalResources) {
+        child.removeParent(this);
       }
       setModificationCount(ourModificationCounter.incrementAndGet());
       myLocalResources = ImmutableList.copyOf(localResources);
       myLibraryResources = ImmutableList.copyOf(libraryResources);
-      myChildren = ImmutableList.<ResourceRepository>builder().addAll(myLocalResources).addAll(myLibraryResources).build();
+      int size = myLocalResources.size() + myLibraryResources.size() + otherResources.size();
+      myChildren = ImmutableList.<ResourceRepository>builderWithExpectedSize(size)
+          .addAll(myLocalResources).addAll(myLibraryResources).addAll(otherResources).build();
 
       ImmutableListMultimap.Builder<ResourceNamespace, SingleNamespaceResourceRepository> mapBuilder = ImmutableListMultimap.builder();
       computeLeafs(this, mapBuilder);
@@ -219,41 +218,6 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   }
 
   @Override
-  @Nullable
-  public DataBindingLayoutInfo getDataBindingLayoutInfo(String layoutName) {
-    synchronized (ITEM_MAP_LOCK) {
-      for (LocalResourceRepository child : myLocalResources) {
-        DataBindingLayoutInfo info = child.getDataBindingLayoutInfo(layoutName);
-        if (info != null) {
-          return info;
-        }
-      }
-      return null;
-    }
-  }
-
-  @Override
-  @NotNull
-  public Map<String, DataBindingLayoutInfo> getDataBindingResourceFiles() {
-    synchronized (ITEM_MAP_LOCK) {
-      long modificationCount = getModificationCount();
-      if (myDataBindingResourceFilesModificationCount == modificationCount) {
-        return myDataBindingResourceFiles;
-      }
-      Map<String, DataBindingLayoutInfo> selected = new HashMap<>();
-      for (LocalResourceRepository child : myLocalResources) {
-        Map<String, DataBindingLayoutInfo> childFiles = child.getDataBindingResourceFiles();
-        if (childFiles != null) {
-          selected.putAll(childFiles);
-        }
-      }
-      myDataBindingResourceFiles = Collections.unmodifiableMap(selected);
-      myDataBindingResourceFilesModificationCount = modificationCount;
-      return myDataBindingResourceFiles;
-    }
-  }
-
-  @Override
   @NotNull
   public Set<ResourceNamespace> getNamespaces() {
     synchronized (ITEM_MAP_LOCK) {
@@ -307,6 +271,8 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
         return ArrayListMultimap.create(repositoriesForNamespace.get(0).getResources(namespace, type));
       } else {
         // Merge all items of the given type.
+        Stopwatch stopwatch = LOG.isDebugEnabled() ? Stopwatch.createStarted() : null;
+
         map = ArrayListMultimap.create();
         SetMultimap<String, String> seenQualifiers = HashMultimap.create();
         for (ResourceRepository child : repositoriesForNamespace) {
@@ -323,6 +289,15 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
               seenQualifiers.put(name, qualifiers);
             }
           }
+        }
+
+        if (stopwatch != null) {
+          LOG.debug(String.format(Locale.US,
+                                  "Merged %d resources of type %s in %s for %s.",
+                                  map.size(),
+                                  type,
+                                  stopwatch,
+                                  getClass().getSimpleName()));
         }
       }
 
@@ -405,8 +380,7 @@ public abstract class MultiResourceRepository extends LocalResourceRepository {
   }
 
   @Override
-  @VisibleForTesting
-  public boolean isScanPending(@NotNull PsiFile psiFile) {
+  boolean isScanPending(@NotNull PsiFile psiFile) {
     synchronized (ITEM_MAP_LOCK) {
       assert ApplicationManager.getApplication().isUnitTestMode();
       for (LocalResourceRepository child : myLocalResources) {

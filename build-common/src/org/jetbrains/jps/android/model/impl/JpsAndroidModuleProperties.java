@@ -16,13 +16,13 @@
 package org.jetbrains.jps.android.model.impl;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
-import static org.jetbrains.android.util.AndroidCommonUtils.ARCHITECTURE_ATTRIBUTE;
-import static org.jetbrains.android.util.AndroidCommonUtils.DIRECTORY_FOR_LOGS_NAME;
-import static org.jetbrains.android.util.AndroidCommonUtils.INCLUDE_ASSETS_FROM_LIBRARIES_ELEMENT_NAME;
-import static org.jetbrains.android.util.AndroidCommonUtils.ITEM_ELEMENT;
-import static org.jetbrains.android.util.AndroidCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL;
-import static org.jetbrains.android.util.AndroidCommonUtils.TARGET_FILE_NAME_ATTRIBUTE;
-import static org.jetbrains.android.util.AndroidCommonUtils.URL_ATTRIBUTE;
+import static org.jetbrains.android.util.AndroidBuildCommonUtils.ARCHITECTURE_ATTRIBUTE;
+import static org.jetbrains.android.util.AndroidBuildCommonUtils.DIRECTORY_FOR_LOGS_NAME;
+import static org.jetbrains.android.util.AndroidBuildCommonUtils.INCLUDE_ASSETS_FROM_LIBRARIES_ELEMENT_NAME;
+import static org.jetbrains.android.util.AndroidBuildCommonUtils.ITEM_ELEMENT;
+import static org.jetbrains.android.util.AndroidBuildCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL;
+import static org.jetbrains.android.util.AndroidBuildCommonUtils.TARGET_FILE_NAME_ATTRIBUTE;
+import static org.jetbrains.android.util.AndroidBuildCommonUtils.URL_ATTRIBUTE;
 
 import com.android.SdkConstants;
 import com.google.common.collect.Lists;

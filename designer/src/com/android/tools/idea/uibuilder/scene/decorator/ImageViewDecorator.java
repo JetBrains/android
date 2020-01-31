@@ -18,17 +18,20 @@ package com.android.tools.idea.uibuilder.scene.decorator;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.decorator.SceneDecorator;
+import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawRegion;
-import com.android.tools.idea.common.scene.decorator.SceneDecorator;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.ColorTheme;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
 import java.awt.geom.Rectangle2D;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Decorator and Draw for ImageView

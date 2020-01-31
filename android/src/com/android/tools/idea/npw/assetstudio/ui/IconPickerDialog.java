@@ -36,8 +36,8 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
@@ -87,7 +87,7 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
   private static final String ALL_CATEGORY = ICON_CATEGORIES[0];
 
   private static final int COLUMN_NUMBER = 6;
-  private static final int ICON_ROW_HEIGHT = JBUIScale.scale(48 + 16);
+  private static final int ICON_ROW_HEIGHT = JBUI.scale(48 + 16);
 
   /**
    * A mapping of all categories to their target icons.
@@ -276,7 +276,7 @@ public final class IconPickerDialog extends DialogWrapper implements DataProvide
   static String[] getCategoryNames() {
     return Arrays.stream(ICON_CATEGORIES)
                  .map(category -> category.equals("av") ? "Audio/Video" : StringUtil.capitalize(category))
-                 .collect(Collectors.toList()).toArray(EMPTY_STRING_ARRAY);
+                 .collect(Collectors.toList()).toArray(ArrayUtil.EMPTY_STRING_ARRAY);
   }
 
   private void createUIComponents() {

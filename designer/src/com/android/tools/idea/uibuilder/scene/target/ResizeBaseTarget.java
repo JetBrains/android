@@ -31,6 +31,7 @@ import com.android.tools.idea.uibuilder.scene.draw.DrawResize;
 import com.intellij.openapi.util.text.StringUtil;
 import java.awt.Cursor;
 import java.util.List;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -130,7 +131,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public Cursor getMouseCursor() {
+  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifiersEx) {
     switch (myType) {
       case LEFT:
         return Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR);
@@ -219,7 +220,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
     AttributesTransaction attributes = component.startAttributeTransaction();
     updateAttributes(attributes, x, y);
     attributes.apply();
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
   }
 
   @Override
@@ -228,7 +229,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
     ComponentModification modification = new ComponentModification(component, "Resize " + StringUtil.getShortName(component.getTagName()));
     updateAttributes(modification, x, y);
     modification.commit();
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
   }
 
   /**
@@ -245,7 +246,7 @@ public abstract class ResizeBaseTarget extends BaseTarget {
     component.fireLiveChangeEvent();
 
     myComponent.setDragging(false);
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
   }
 
   @Override

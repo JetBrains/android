@@ -39,6 +39,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.util.containers.Stack;
+import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.Attributes;
@@ -100,7 +101,7 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
   @NotNull private final Module myModule;
   @NotNull private final File myRootPath;
   @NotNull private final ServiceContext myContext;
-  @NotNull private final Stack<String> myTagStack = new Stack<>();
+  @NotNull private final Stack<String> myTagStack = new Stack<String>();
 
   @NotNull private ServicePanelBuilder myPanelBuilder;
 
@@ -217,7 +218,8 @@ import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE;
                              @Nullable Collection<File> targetFiles) {
     RenderingContext context = null;
     try {
-      File moduleRoot = new File(myModule.getModuleFilePath()).getParentFile();
+      File moduleRoot = AndroidRootUtil.findModuleRootFolderPath(myModule);
+      assert moduleRoot != null;
       // @formatter:off
       context = RenderingContext.Builder
         .newContext(myRootPath, myModule.getProject())

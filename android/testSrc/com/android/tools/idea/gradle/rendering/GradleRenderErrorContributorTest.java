@@ -32,6 +32,7 @@ import com.intellij.mock.MockPsiManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.psi.PsiFile;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -42,7 +43,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class GradleRenderErrorContributorTest extends JavaProjectTestCase {
+public class GradleRenderErrorContributorTest extends PlatformTestCase {
   private GradleRenderErrorContributor.GradleProvider myProvider;
   private RenderErrorModel myRenderErrorModel;
   private IdeDependenciesFactory myDependenciesFactory;
@@ -116,8 +117,7 @@ public class GradleRenderErrorContributorTest extends JavaProjectTestCase {
     // https://code.google.com/p/android/issues/detail?id=170841
     androidProject.setModelVersion("1.2.2");
 
-    AndroidModuleModel model =
-      new AndroidModuleModel(androidProject.getName(), root, androidProject, "debug", myDependenciesFactory);
+    AndroidModuleModel model = AndroidModuleModel.create(androidProject.getName(), root, androidProject, "debug", myDependenciesFactory);
     facet.setModel(model);
     model = AndroidModuleModel.get(myModule);
 

@@ -30,6 +30,7 @@ import java.io.File
 private const val ROOT_FOLDER = "../.."
 private const val LEGACY_FOLDER = "$ROOT_FOLDER/prebuilts/tools/common/m2/repository/com/android/support/"
 private const val ANDROIDX_FOLDER = "$ROOT_FOLDER/prebuilts/tools/common/m2/repository/androidx/"
+private const val GOOGLE_FOLDER = "$ROOT_FOLDER/prebuilts/tools/common/m2/repository/com/google/android/"
 
 /**
  * Adds a dependency from prebuilts to an existing test fixture.
@@ -63,11 +64,14 @@ object Dependencies {
       val root = File(PathManager.getHomePath())
       val legacyFolder = root.resolve(LEGACY_FOLDER)
       val androidFolder = root.resolve(ANDROIDX_FOLDER)
+      val googleFolder = root.resolve(GOOGLE_FOLDER)
       val legacyFile = legacyFolder.resolve(dependency)
       val androidxFile = androidFolder.resolve(dependency)
+      val googleFile = googleFolder.resolve(dependency)
       when {
         androidxFile.exists() -> loadLatestVersion(map(androidxFile))
         legacyFile.exists() -> loadLatestVersion(map(legacyFile))
+        googleFile.exists() -> loadLatestVersion(map(googleFile))
         else -> error("Dependency not found in prebuilts: $dependency")
       }
     }
@@ -80,6 +84,8 @@ object Dependencies {
         else -> original
       }
 
+    // TODO(b/135483675): Read the pom file and load all transitive dependencies as well.
+    // TODO: Also update the API above such that Androidx only will have to specify the artifactId. Not: "appcompat/appcompat"
     private fun loadLatestVersion(folder: File) {
       val name = folder.name
       val version = folder.list().map { GradleVersion.parse(it) }.max() ?: error("No versions found in folder: ${folder.path}")

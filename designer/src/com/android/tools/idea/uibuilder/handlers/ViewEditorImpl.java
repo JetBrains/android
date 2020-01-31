@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.uibuilder.handlers;
 
-import com.android.annotations.VisibleForTesting;
+import static com.android.tools.lint.checks.AnnotationDetector.RESTRICT_TO_ANNOTATION;
+
+import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.common.api.InsertType;
@@ -24,26 +27,43 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
-import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.ui.resourcechooser.ChooseResourceDialog;
+import com.android.tools.idea.res.ResourceHelper;
+import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
+import com.android.tools.idea.ui.resourcecommon.ResourcePickerDialog;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.ArrayUtil;
+import java.awt.Dimension;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
+import org.jetbrains.android.uipreview.ChooseClassDialog;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import com.intellij.util.ArrayUtilRt;
 import java.util.concurrent.CompletableFuture;
 import org.jetbrains.android.uipreview.ChooseClassDialog;
@@ -55,8 +75,6 @@ import java.util.*;
 import java.util.List;
 import java.util.function.Predicate;
 import org.jetbrains.ide.PooledThreadExecutor;
-
-import static com.android.tools.lint.checks.AnnotationDetector.RESTRICT_TO_ANNOTATION;
 
 /**
  * Implementation of the {@link ViewEditor} abstraction presented
@@ -199,16 +217,18 @@ public class ViewEditorImpl extends ViewEditor {
   @Override
   public String displayResourceInput(@NotNull String title, @NotNull EnumSet<ResourceType> types, boolean includeSampleData) {
     NlModel model = myModel;
-    ChooseResourceDialog dialog = ChooseResourceDialog.builder()
-      .setModule(model.getModule())
-      .setTypes(types)
-      .setConfiguration(model.getConfiguration())
-      .setShowSampleDataPicker(includeSampleData)
-      .build();
-
-    if (!title.isEmpty()) {
-      dialog.setTitle(title);
-    }
+    ResourcePickerDialog dialog = ResourceChooserHelperKt.createResourcePickerDialog(
+      title.isEmpty() ? "Pick a Resource" : title,
+      null,
+      model.getFacet(),
+      types,
+      null,
+      false,
+      includeSampleData,
+      model.getVirtualFile(),
+      model.getFile(),
+      null
+    );
 
     dialog.show();
 
@@ -230,7 +250,7 @@ public class ViewEditorImpl extends ViewEditor {
                                   @Nullable Predicate<String> filter,
                                   @Nullable String currentValue) {
     Module module = myModel.getModule();
-    String[] superTypesArray = ArrayUtilRt.toStringArray(superTypes);
+    String[] superTypesArray = ArrayUtil.toStringArray(superTypes);
 
     Predicate<PsiClass> psiFilter = ChooseClassDialog.getIsPublicAndUnrestrictedFilter();
     if (filter == null) {
@@ -281,7 +301,14 @@ public class ViewEditorImpl extends ViewEditor {
 
   @Override
   public void openResourceFile(@NotNull String resourceId) {
-    DesignSurfaceHelper.openResource(myConfiguration, resourceId, myModel.getVirtualFile());
+    ResourceResolver resourceResolver = myConfiguration.getResourceResolver();
+    ResourceValue resValue = resourceResolver.findResValue(resourceId, false);
+
+    VirtualFile file = ResourceHelper.resolveLayout(resourceResolver, resValue);
+    if (file == null) {
+      return;
+    }
+    LayoutNavigationManager.getInstance(myConfiguration.getModule().getProject()).pushFile(myModel.getVirtualFile(), file);
   }
 
   /**

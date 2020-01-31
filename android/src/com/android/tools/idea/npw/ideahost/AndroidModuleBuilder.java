@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.npw.ideahost;
 
+import static com.android.tools.idea.npw.module.ChooseModuleTypeStepKt.createWithDefaultGallery;
+
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.ProjectSyncInvoker;
 import com.android.tools.idea.npw.module.ChooseModuleTypeStep;
@@ -166,7 +168,7 @@ public final class AndroidModuleBuilder extends ModuleBuilder implements WizardD
     }
     else {
       ChooseModuleTypeStep chooseModuleTypeStep =
-        ChooseModuleTypeStep.createWithDefaultGallery(project, new ProjectSyncInvoker.DefaultProjectSyncInvoker());
+        createWithDefaultGallery(project, null, new ProjectSyncInvoker.DefaultProjectSyncInvoker());
       builder.addStep(chooseModuleTypeStep);
     }
     myWizardAdapter = new IdeaWizardAdapter(hostWizard, builder.build());

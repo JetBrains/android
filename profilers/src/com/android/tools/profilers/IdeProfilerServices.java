@@ -23,6 +23,7 @@ import com.android.tools.profilers.stacktrace.NativeFrameSymbolizer;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -41,6 +42,12 @@ public interface IdeProfilerServices {
    */
   @NotNull
   Executor getPoolExecutor();
+
+  /**
+   * @return all classes that belong to the current project (excluding dependent libraries).
+   */
+  @NotNull
+  Set<String> getAllProjectClasses();
 
   /**
    * Saves a file to the file system and have IDE internal state reflect this file addition.
@@ -135,13 +142,6 @@ public interface IdeProfilerServices {
                                  @NotNull Function<T, String> listBoxPresentationAdapter);
 
   /**
-   * Returns an implementation of a {@link TracePreProcessor}, used by CPU profiler.
-   * TODO (b/118134245): Extract CPU specific models to a separate interface (e.g. CpuProfilerServices).
-   */
-  @NotNull
-  TracePreProcessor getSimpleperfTracePreProcessor();
-
-  /**
    * Returns the profiling configurations saved by the user for a project.
    */
   List<ProfilingConfiguration> getUserCpuProfilerConfigs();
@@ -164,12 +164,8 @@ public interface IdeProfilerServices {
   void showNotification(@NotNull Notification notification);
 
   /**
-   * Wraps the supplied expection in a NoPiiException that is then sent to the crash report.
-   * This function should only be called when we are sure there is no PII within the exception message.
-   * The NoPiiException uploads the full exception message to the crash report site. This can then be
-   * to diagnose and root cause issues.
-   *
-   * @param t throwable to be wrapped. The exception should not contain PII within the message.
+   * Returns a list of symbol directories for a specific arch type.
    */
-  void reportNoPiiException(@NotNull Throwable t);
+  @NotNull
+  List<String> getNativeSymbolsDirectories();
 }

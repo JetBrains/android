@@ -20,9 +20,7 @@ import static com.android.tools.idea.gradle.eclipse.GradleImport.IMPORT_SUMMARY_
 import static com.android.tools.idea.templates.TemplateUtils.openEditor;
 import static com.android.tools.idea.util.ToolWindows.activateProjectView;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_IMPORT_ADT_MODULE;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
 
-import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
@@ -52,7 +50,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Importer which can import an ADT project as a Gradle project (it will first
  * run the Eclipse importer, which generates a Gradle project, and then it will
- * delegate to {@link org.jetbrains.plugins.gradle.service.project.wizard.JavaGradleProjectImportBuilder}
+ * delegate to {@link org.jetbrains.plugins.gradle.service.project.wizard.GradleProjectImportBuilder}
  * to perform the IntelliJ model import.
  */
 public class AdtImportBuilder extends ProjectImportBuilder<String> {
@@ -93,12 +91,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
         }
       }
     }
-    try {
-      importer.importProjects(projects);
-    }
-    catch (IOException ioe) {
-      // pass: the errors are written into the import error list shown in the warnings panel
-    }
+    importer.importProjects(projects);
     return importer;
   }
 
@@ -179,12 +172,11 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
       GradleProjectImporter importer = GradleProjectImporter.getInstance();
       if (myCreateProject) {
         GradleProjectImporter.Request request = new GradleProjectImporter.Request(project);
-        Project newProject = importer.importProjectNoSync(project.getName(), destDir, request);
-        GradleProjectInfo.getInstance(newProject).setSkipStartupActivity(true);
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(newProject, TRIGGER_PROJECT_NEW, syncListener);
+        request.isNewProject = true;
+        importer.importProjectNoSync(request);
       }
       else {
-        GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_IMPORT_ADT_MODULE, syncListener);
+        GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_IMPORT_ADT_MODULE, syncListener);
       }
     }
     catch (Throwable e) {
@@ -195,12 +187,7 @@ public class AdtImportBuilder extends ProjectImportBuilder<String> {
   }
 
   public void readProjects() {
-    try {
-      myImporter.importProjects(Collections.singletonList(mySelectedProject));
-    }
-    catch (IOException e) {
-      // Ignore I/O warnings; they are also logged to the warnings panel we display
-    }
+    myImporter.importProjects(Collections.singletonList(mySelectedProject));
   }
 
   private static void openSummary(Project project) {

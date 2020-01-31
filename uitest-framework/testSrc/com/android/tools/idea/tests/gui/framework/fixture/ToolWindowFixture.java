@@ -23,6 +23,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.content.Content;
 import com.intellij.util.ui.UIUtil;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.swing.JComponent;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
@@ -161,6 +162,13 @@ public abstract class ToolWindowFixture {
 
   public void close() {
     GuiTask.execute(() -> myToolWindow.getContentManager().removeAllContents(true));
+  }
+
+  public void hide() {
+    // Hiding the window might involve some animation, so we wait until it's actually hidden.
+    AtomicBoolean waitingForWindowToHide = new AtomicBoolean(false);
+    GuiTask.execute(() -> myToolWindow.hide(() -> waitingForWindowToHide.set(true)));
+    Wait.seconds(2).expecting(String.format("ToolWindow '%s' to hide", myToolWindowId)).until(waitingForWindowToHide::get);
   }
 
   @NotNull

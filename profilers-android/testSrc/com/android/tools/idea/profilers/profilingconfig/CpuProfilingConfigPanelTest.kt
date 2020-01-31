@@ -42,11 +42,15 @@ class CpuProfilingConfigPanelTest {
   private lateinit var myConfigPanel: CpuProfilingConfigPanel
   private lateinit var myConfiguration: ProfilingConfiguration
 
-  @Before
-  fun setUp() {
-    myConfigPanel = CpuProfilingConfigPanel(AndroidVersion.VersionCodes.O)
+  fun setUp(deviceApiLevel: Int) {
+    myConfigPanel = CpuProfilingConfigPanel(deviceApiLevel)
     myConfiguration = ProfilingConfiguration("myConfig", Cpu.CpuTraceType.ART, Cpu.CpuTraceMode.SAMPLED)
     myConfigPanel.setConfiguration(myConfiguration, false)
+  }
+
+  @Before
+  fun setUp() {
+    setUp(AndroidVersion.VersionCodes.O);
   }
 
   @Test
@@ -154,6 +158,26 @@ class CpuProfilingConfigPanelTest {
     fileSizeButtonValidation(treeWalker, false)
     sampleSizeValidation(treeWalker, true)
     liveAllocationValidation(treeWalker, true)
+  }
+
+  @Test
+  fun sizeBufferEnabledOnlyForArtInPreO() {
+    setUp(AndroidVersion.VersionCodes.N);
+
+    myConfigPanel.setConfiguration(ProfilingConfiguration("Test", Cpu.CpuTraceType.ART, Cpu.CpuTraceMode.SAMPLED),
+                                   false)
+    val treeWalker = TreeWalker(myConfigPanel.component)
+    fileSizeButtonValidation(treeWalker, true)
+
+    myConfigPanel.setConfiguration(
+      ProfilingConfiguration("Test", Cpu.CpuTraceType.ART, Cpu.CpuTraceMode.INSTRUMENTED), false)
+    fileSizeButtonValidation(treeWalker, true)
+    myConfigPanel.setConfiguration(
+      ProfilingConfiguration("Test", Cpu.CpuTraceType.SIMPLEPERF, Cpu.CpuTraceMode.SAMPLED), false)
+    fileSizeButtonValidation(treeWalker, false)
+    myConfigPanel.setConfiguration(
+      ProfilingConfiguration("Test", Cpu.CpuTraceType.ATRACE, Cpu.CpuTraceMode.UNSPECIFIED_MODE), false)
+    fileSizeButtonValidation(treeWalker, false)
   }
 
   @Test

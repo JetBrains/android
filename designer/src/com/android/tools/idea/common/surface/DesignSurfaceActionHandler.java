@@ -15,11 +15,10 @@
  */
 package com.android.tools.idea.common.surface;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.model.*;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.intellij.ide.CopyProvider;
 import com.intellij.ide.CutProvider;
 import com.intellij.ide.DeleteProvider;
@@ -46,7 +45,6 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
   @NotNull
   protected abstract DataFlavor getFlavor();
 
-  @VisibleForTesting
   protected DesignSurfaceActionHandler(@NotNull DesignSurface surface, @NotNull CopyPasteManager copyPasteManager) {
     mySurface = surface;
     myCopyPasteManager = copyPasteManager;
@@ -112,10 +110,10 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
   }
 
   @Nullable
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
+  @VisibleForTesting
   public abstract NlComponent getPasteTarget();
 
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
+  @VisibleForTesting
   public abstract boolean canHandleChildren(@NotNull NlComponent component,
                                      @NotNull List<NlComponent> pasted);
 
@@ -197,9 +195,7 @@ public abstract class DesignSurfaceActionHandler implements DeleteProvider, CutP
       return null;
     }
     try {
-      return (DnDTransferItem)contents.getTransferData(mySurface instanceof NlDesignSurface
-                                                       ? ItemTransferable.DESIGNER_FLAVOR
-                                                       : ItemTransferable.NAV_FLAVOR);
+      return (DnDTransferItem)contents.getTransferData(getFlavor());
     }
     catch (UnsupportedFlavorException | IOException e) {
       return null;

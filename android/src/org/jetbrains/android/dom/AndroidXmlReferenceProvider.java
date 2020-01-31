@@ -2,6 +2,8 @@
 package org.jetbrains.android.dom;
 
 import com.android.SdkConstants;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ScopeType;
 import com.intellij.codeInsight.completion.JavaLookupElementBuilder;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.module.Module;
@@ -170,7 +172,7 @@ public class AndroidXmlReferenceProvider extends PsiReferenceProvider {
 
       return myIsPackage ?
              facade.findPackage(value) :
-             facade.findClass(value, myModule.getModuleWithDependenciesAndLibrariesScope(false));
+             facade.findClass(value, ProjectSystemUtil.getModuleSystem(myModule).getResolveScope(ScopeType.MAIN));
     }
 
     @NotNull

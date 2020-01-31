@@ -24,7 +24,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.*;
 /**
  * Tests for {@link JavaFacetModuleSetupStep}.
  */
-public class JavaFacetModuleSetupStepTest extends JavaProjectTestCase {
+public class JavaFacetModuleSetupStepTest extends PlatformTestCase {
   private IdeModifiableModelsProvider myModelsProvider;
   private JavaFacetModuleSetupStep mySetupStep;
 
@@ -131,12 +131,5 @@ public class JavaFacetModuleSetupStepTest extends JavaProjectTestCase {
     JavaFacet facet = findJavaFacet(module);
     assertNotNull(facet);
     assertNull(facet.getJavaModuleModel());
-  }
-
-  public void testInvokeOnSkippedSync() {
-    // Make sure this step is called even when sync was skipped.
-    // JavaFacetModuleSetup is necessary because we need JavaModuleModel in AndroidJunitPatcher,
-    // when changing the classpath before running a test so we can add resources of java libraries to it
-    assertTrue(mySetupStep.invokeOnSkippedSync());
   }
 }

@@ -1,5 +1,7 @@
 package org.jetbrains.android.refactoring;
 
+import com.android.resources.ResourceType;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.intellij.codeInsight.TargetElementUtil;
 import com.intellij.lang.Language;
 import com.intellij.lang.refactoring.InlineActionHandler;
@@ -10,11 +12,10 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlTag;
-import org.jetbrains.android.dom.converters.AndroidResourceReferenceBase;
+import org.jetbrains.android.dom.wrappers.LazyValueResourceElementWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.ErrorReporter;
 import org.jetbrains.android.util.HintBasedErrorReporter;
-import org.jetbrains.android.util.ProjectBasedErrorReporter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -37,6 +38,9 @@ public class AndroidInlineStyleHandler extends InlineActionHandler {
 
   @Override
   public boolean canInlineElement(PsiElement element) {
+    if (element instanceof ResourceReferencePsiElement) {
+      return ((ResourceReferencePsiElement)element).getResourceReference().getResourceType().equals(ResourceType.STYLE);
+    }
     return element != null &&
            AndroidFacet.getInstance(element) != null &&
            AndroidInlineUtil.getInlinableStyleDataFromContext(element) != null;
@@ -44,21 +48,16 @@ public class AndroidInlineStyleHandler extends InlineActionHandler {
 
   @Override
   public void inlineElement(Project project, final Editor editor, PsiElement element) {
-    final AndroidInlineUtil.MyStyleData data = AndroidInlineUtil.getInlinableStyleDataFromContext(element);
+    PsiReference psiReference = TargetElementUtil.findReference(editor);
+    if (psiReference == null) {
+      return;
+    }
+    PsiElement destination = element instanceof LazyValueResourceElementWrapper? element : psiReference.getElement();
+    final AndroidInlineUtil.MyStyleData data = AndroidInlineUtil.getInlinableStyleDataFromContext(destination);
 
     if (data != null) {
-      final ErrorReporter reporter = editor != null
-                                     ? new HintBasedErrorReporter(editor)
-                                     : new ProjectBasedErrorReporter(project);
-      StyleUsageData usageData = null;
-
-      if (editor != null) {
-        final PsiReference reference = TargetElementUtil.findReference(editor);
-
-        if (reference instanceof AndroidResourceReferenceBase) {
-          usageData = getUsageDataFromEditor(reference);
-        }
-      }
+      final ErrorReporter reporter = new HintBasedErrorReporter(editor);
+      StyleUsageData usageData = getUsageDataFromEditor(psiReference);
       AndroidInlineUtil.doInlineStyleDeclaration(project, data, usageData, reporter, ourTestConfig);
     }
   }

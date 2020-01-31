@@ -15,17 +15,21 @@
  */
 package com.android.tools.idea.sdk.install.patch;
 
-import com.android.repository.api.*;
+import com.android.repository.api.ConstantSourceProvider;
+import com.android.repository.api.ProgressIndicator;
+import com.android.repository.api.RemotePackage;
+import com.android.repository.api.RepoManager;
+import com.android.repository.api.Repository;
+import com.android.repository.api.SchemaModule;
 import com.android.repository.impl.meta.SchemaModuleUtil;
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.testframework.MockFileOp;
 import com.google.common.collect.ImmutableList;
 import com.intellij.util.PathUtil;
-import java.awt.*;
+import java.awt.Component;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import javax.xml.bind.JAXBException;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
@@ -109,7 +113,7 @@ public class PatchInstallerTest extends TestCase {
 
   private static RemotePackage getRemotePackage(@NotNull RepoManager repoManager, @NotNull ProgressIndicator progress)
     throws JAXBException {
-    InputStream remoteInput = new ByteArrayInputStream(REMOTE.getBytes(StandardCharsets.UTF_8));
+    InputStream remoteInput = new ByteArrayInputStream(REMOTE.getBytes());
     ImmutableList<SchemaModule<?>> modules = ImmutableList.of(RepoManager.getGenericModule());
     Repository r = (Repository) SchemaModuleUtil.unmarshal(remoteInput, modules, true, progress);
     RemotePackage p = r.getRemotePackage().get(0);

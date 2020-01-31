@@ -19,7 +19,6 @@ import com.android.tools.idea.ui.resourcechooser.groups.ResourceChooserGroup;
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.util.ArrayUtil;
-import com.intellij.util.ArrayUtilRt;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -64,7 +63,7 @@ class ResourceTreeContentProvider extends AbstractTreeStructure {
 
       return items;
     }
-    return ArrayUtilRt.EMPTY_OBJECT_ARRAY;
+    return ArrayUtil.EMPTY_OBJECT_ARRAY;
   }
 
   @Override

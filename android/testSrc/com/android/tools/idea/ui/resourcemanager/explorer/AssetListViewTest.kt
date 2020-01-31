@@ -16,9 +16,8 @@
 package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.resources.ResourceType
-import com.android.tools.idea.ui.resourcemanager.explorer.AssetListView
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockVirtualFile
 import com.intellij.ui.speedSearch.SpeedSearch
@@ -104,7 +103,7 @@ class AssetListViewTest {
   }
 
   private fun createMockAssetSet(name: String) =
-    DesignAssetSet(name, listOf(
+    ResourceAssetSet(name, listOf(
       DesignAsset(MockVirtualFile("$name.png"), emptyList(), ResourceType.DRAWABLE)
     ))
 

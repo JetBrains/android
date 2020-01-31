@@ -17,9 +17,7 @@ package com.android.tools.idea.lint;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.api.ResourceValue;
-import com.android.ide.common.resources.DataFile;
 import com.android.ide.common.resources.ResourceItem;
-import com.android.ide.common.resources.ResourceMergerItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.resources.configuration.VersionQualifier;
 import com.android.ide.common.util.PathString;
@@ -46,6 +44,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiBinaryExpression;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
@@ -54,12 +57,7 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import org.jetbrains.kotlin.idea.KotlinLanguage;
 
 public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBase {
   public AndroidLintObsoleteSdkIntInspection() {
@@ -82,6 +80,8 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
           return new AndroidLintQuickFix[]{
             new AndroidLintQuickFix.LocalFixWrappee(new SimplifyBooleanExpressionFix(subExpression, constant))
           };
+        } else if (startElement.getLanguage() == KotlinLanguage.INSTANCE) {
+          return new AndroidLintQuickFix[]{ new RemoveSdkCheckFix(constant) };
         }
       } else {
         // Merge resource folder
@@ -118,8 +118,8 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
     private final AndroidVersion minSdkVersion;
     List<VirtualFile> sourceFolders;
 
-    public MergeResourceFolderFix(@NotNull AndroidFacet facet, @NotNull VirtualFile dir, @NotNull String destFolderName,
-                                  AndroidVersion minSdkVersion) {
+    MergeResourceFolderFix(@NotNull AndroidFacet facet, @NotNull VirtualFile dir, @NotNull String destFolderName,
+                           AndroidVersion minSdkVersion) {
       this.facet = facet;
       this.dir = dir;
       this.destFolderName = destFolderName;
@@ -225,9 +225,6 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
       // Not using the ResourceRepository.accept method here because ResourceHelper.getSourceAsVirtualFile
       // is a potentially long running operation.
       for (ResourceItem item : repository.getAllResources()) {
-        if (item instanceof ResourceMergerItem && ((ResourceMergerItem)item).getSourceType() == DataFile.FileType.GENERATED_FILES) {
-          continue;
-        }
         FolderConfiguration configuration = item.getConfiguration();
         if (oldConfig.equals(configuration)) {
           VirtualFile sourceFile = ResourceHelper.getSourceAsVirtualFile(item);
@@ -248,12 +245,6 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
       try {
         VirtualFile destDir = res.findOrCreateChildData(requestor, targetDir);
         for (ResourceItem item : srcItems) {
-          if (item instanceof ResourceMergerItem && ((ResourceMergerItem)item).getSourceType() == DataFile.FileType.GENERATED_FILES) {
-            continue;
-          }
-
-          boolean isInDest = destFolderResources.containsEntry(item.getName(), item.getType());
-
           PathString source = item.getSource();
           // Already checked above.
           if (source != null) {
@@ -269,7 +260,7 @@ public class AndroidLintObsoleteSdkIntInspection extends AndroidLintInspectionBa
 
               String fileName = source.getFileName();
               List<String> dirNames = Collections.singletonList(targetDir);
-              if (isInDest) {
+              if (destFolderResources.containsEntry(item.getName(), item.getType())) {
                 AndroidResourceUtil.changeValueResource(project, res, item.getName(), item.getType(), textValue, fileName, dirNames,
                                                         false);
               }

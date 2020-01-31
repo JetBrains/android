@@ -25,7 +25,8 @@ import java.util.concurrent.CompletableFuture
 
 /**
  * Interface to extend the rendering capabilities of the resources explorer
- * for arbitrary type of files.
+ * for arbitrary type of files. Use the [DesignAssetRendererManager] to
+ * get a instance of a renderer for a given [VirtualFile].
  */
 interface DesignAssetRenderer {
 
@@ -52,17 +53,31 @@ class DesignAssetRendererManager private constructor() {
     }
   }
 
+  /**
+   * Returns a renderer for the given [file]. If not renderer is found, it falls back
+   * on a renderer that always returns a null image.
+   */
   fun getViewer(file: VirtualFile): DesignAssetRenderer {
     return EP_NAME.extensions.firstOrNull { it.isFileSupported(file) } ?: NullDesignAssetRenderer
   }
 
+  /**
+   * Returns true if a renderer for the given [file] is available.
+   */
   fun hasViewer(file: VirtualFile): Boolean = getViewer(file) != NullDesignAssetRenderer
 
+  /**
+   * Returns the shared instance of a renderer of class [T].
+   */
   fun <T : DesignAssetRenderer> getViewer(clazz: Class<T>): T? {
     return EP_NAME.findExtension(clazz)
   }
 }
 
+/**
+ * A renderer that always returns null and used as a fallback when
+ * no renderer are available for a given file.
+ */
 private object NullDesignAssetRenderer : DesignAssetRenderer {
   override fun isFileSupported(file: VirtualFile) = false
   override fun getImage(file: VirtualFile, module: Module?, dimension: Dimension): CompletableFuture<out Image?> =

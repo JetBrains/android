@@ -19,36 +19,59 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
+import com.android.tools.idea.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Manages the start/stop of a proxy layer that run services bridging between the transport database and device daemon.
  */
-public final class TransportProxy {
+public class TransportProxy {
+
+  public interface ProxyCommandHandler {
+    Transport.ExecuteResponse execute(Commands.Command command);
+
+    // Returns true if the registered proxy command handler should handle the command, false if the proxy should delegate to the device.
+    default boolean shouldHandle(Commands.Command command) {
+      return true;
+    }
+  }
 
   private Server myProxyServer;
   @NotNull private final List<ServiceProxy> myProxyServices;
-  @NotNull private final Map<Commands.Command.CommandType, Function<Commands.Command, Transport.ExecuteResponse>> myProxyHandlers;
   @NotNull private IDevice myDevice;
   @NotNull private ManagedChannel myTransportChannel;
   @NotNull private final TransportServiceProxy myProxyService;
+  @NotNull private final LinkedBlockingDeque<Common.Event> myProxyEventQueue = new LinkedBlockingDeque<>();
+  // General file/byte cache used in the proxy layer.
+  @NotNull private final Map<String, ByteString> myProxyBytesCache = Collections.synchronizedMap(new HashMap<>());
 
-  public TransportProxy(@NotNull IDevice ddmlibDevice, @NotNull Common.Device tranportDevice, @NotNull ManagedChannel transportChannel) {
+  public TransportProxy(@NotNull IDevice ddmlibDevice, @NotNull Common.Device transportDevice, @NotNull ManagedChannel transportChannel) {
     myDevice = ddmlibDevice;
     myTransportChannel = transportChannel;
     myProxyServices = new LinkedList<>();
-    myProxyHandlers = new HashMap<>();
-    myProxyService = new TransportServiceProxy(ddmlibDevice, tranportDevice, transportChannel);
+    myProxyService = new TransportServiceProxy(ddmlibDevice, transportDevice, transportChannel, myProxyEventQueue, myProxyBytesCache);
+  }
+
+  @NotNull
+  public BlockingDeque<Common.Event> getEventQueue() {
+    return myProxyEventQueue;
+  }
+
+  @NotNull
+  public Map<String, ByteString> getBytesCache() {
+    return myProxyBytesCache;
   }
 
   public void registerProxyService(ServiceProxy proxyService) {
@@ -60,8 +83,16 @@ public final class TransportProxy {
    * from the device directly. e.g. pre-O memory allocation tracking and cpu traces.
    */
   public void registerProxyCommandHandler(Commands.Command.CommandType commandType,
-                                          Function<Commands.Command, Transport.ExecuteResponse> handler) {
+                                          ProxyCommandHandler handler) {
     myProxyService.registerCommandHandler(commandType, handler);
+  }
+
+  public void registerEventPreprocessor(TransportEventPreprocessor eventPreprocessor) {
+    myProxyService.registerEventPreprocessor(eventPreprocessor);
+  }
+
+  public void registerDataPreprocessor(TransportBytesPreprocessor dataPreprocessor) {
+    myProxyService.registerDataPreprocessor(dataPreprocessor);
   }
 
   /**

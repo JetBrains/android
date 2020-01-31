@@ -41,7 +41,7 @@ object GuiTestOptions {
   fun getAspectsAgentJar(): String =
     getSystemProperty("aspects.agent.jar", "${TestUtils.getWorkspaceRoot()}/prebuilts/tools/common/aspects-agent/aspects_agent.jar")
   fun getAspectsAgentRules(): String =
-    getSystemProperty("aspects.agent.rules", "${TestUtils.getWorkspaceRoot()}/tools/adt/idea/android-uitests/default_aspect_rules.txt")
+    getSystemProperty("aspects.agent.rules", "${TestUtils.getWorkspaceRoot()}/tools/adt/idea/android-uitests/default_aspect_rules.json")
   fun getAspectsAgentBaseline(): String =
     getSystemProperty("aspects.agent.baseline", "${TestUtils.getWorkspaceRoot()}/tools/adt/idea/android-uitests/aspects_baseline.txt")
   fun getAspectsBaselineExportPath(): String = getSystemProperty("aspects.baseline.export.path", "")

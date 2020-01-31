@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.assetstudio;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.repository.api.InstallerFactory;
 import com.android.repository.api.LocalPackage;
 import com.android.repository.api.RepoManager;
@@ -41,6 +40,7 @@ import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;

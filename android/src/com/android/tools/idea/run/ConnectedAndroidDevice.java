@@ -23,6 +23,7 @@ import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.tools.idea.avdmanager.AvdManagerConnection;
 import com.android.tools.idea.ddms.DeviceNameRendererEx;
 import com.android.tools.idea.ddms.DevicePropertyUtil;
+import com.android.tools.idea.run.util.LaunchUtils;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -34,12 +35,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class ConnectedAndroidDevice implements AndroidDevice {
   private static final ExtensionPointName<DeviceNameRendererEx> EP_NAME = ExtensionPointName.create("com.android.run.deviceNameRenderer");
@@ -154,7 +154,8 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
       return true;
     }
 
-    renderer.setIcon(myDevice.isEmulator() ? StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE : StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
+    renderer
+      .setIcon(myDevice.isEmulator() ? StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE : StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
 
     IDevice.DeviceState state = myDevice.getState();
     if (state != IDevice.DeviceState.ONLINE) {
@@ -181,7 +182,8 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
         renderer.append(" (" + build + ")", SimpleTextAttributes.GRAY_ATTRIBUTES);
       }
       return true;
-    } else {
+    }
+    else {
       renderer.append("...");
       return false;
     }
@@ -285,5 +287,10 @@ public final class ConnectedAndroidDevice implements AndroidDevice {
   private boolean isDispatchThread() {
     Application application = ApplicationManager.getApplication();
     return application != null && application.isDispatchThread();
+  }
+
+  @Override
+  public boolean isDebuggable() {
+    return LaunchUtils.isDebuggableDevice(myDevice);
   }
 }

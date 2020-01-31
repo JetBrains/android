@@ -2,11 +2,14 @@ package org.jetbrains.android.dom
 
 import com.android.SdkConstants
 import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.resources.ResourceType
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.moveCaret
-import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.codeInsight.completion.CompletionType
@@ -14,10 +17,12 @@ import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
+import com.intellij.codeInsight.template.impl.LiveTemplateCompletionContributor
 import com.intellij.codeInspection.LocalInspectionTool
 import com.intellij.codeInspection.deadCode.UnusedDeclarationInspection
 import com.intellij.lang.documentation.DocumentationProvider
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
+import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiDocumentManager
@@ -26,6 +31,8 @@ import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiPolyVariantReference
+import com.intellij.psi.util.parentOfType
+import com.intellij.psi.xml.XmlTag
 import com.intellij.spellchecker.inspections.SpellCheckingInspection
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.PsiTestUtil
@@ -275,6 +282,73 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     return "res/layout/$testFileName"
   }
 
+  fun testStylesItemReferenceAndroid() {
+    val psiFile = myFixture.addFileToProject("res/values/styles.xml",
+      //language=XML
+      """
+      <resources>
+        <style name="TextAppearance.Theme.PlainText">
+          <item name="android:textStyle"/>
+        </style>
+      </resources>""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    myFixture.moveCaret("android:textS|tyle")
+    val fakePsiElement = myFixture.elementAtCaret
+    assertThat(fakePsiElement).isInstanceOf(ResourceReferencePsiElement::class.java)
+    assertThat((fakePsiElement as ResourceReferencePsiElement).resourceReference)
+      .isEqualTo(ResourceReference(ResourceNamespace.ANDROID, ResourceType.ATTR, "textStyle"))
+  }
+
+  fun testStylesItemReferenceResAuto() {
+    myFixture.addFileToProject("res/values/coordinatorlayout_attrs.xml", coordinatorLayoutResources)
+    val psiFile = myFixture.addFileToProject("res/values/styles.xml",
+      //language=XML
+      """
+      <resources>
+        <style name="TextAppearance.Theme.PlainText">
+          <item name="layout_behavior"/>
+        </style>
+      </resources>""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    myFixture.moveCaret("la|yout_behavior")
+    val fakePsiElement = myFixture.elementAtCaret
+    assertThat(fakePsiElement).isInstanceOf(ResourceReferencePsiElement::class.java)
+    assertThat((fakePsiElement as ResourceReferencePsiElement).resourceReference)
+      .isEqualTo(ResourceReference(ResourceNamespace.RES_AUTO, ResourceType.ATTR, "layout_behavior"))
+  }
+
+  fun testStylesItemCompletionAndroid() {
+    val psiFile = myFixture.addFileToProject("res/values/styles.xml",
+      //language=XML
+      """
+      <resources>
+        <style name="TextAppearance.Theme.PlainText">
+          <item name="layout_wid"/>
+        </style>
+      </resources>""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    myFixture.moveCaret("layout_wid|")
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).contains("android:layout_width")
+  }
+
+  fun testStylesItemCompletionResAuto() {
+    myFixture.addFileToProject("res/values/coordinatorlayout_attrs.xml", coordinatorLayoutResources)
+    val psiFile = myFixture.addFileToProject("res/values/styles.xml",
+      //language=xml
+      """
+      <resources>
+        <style name="TextAppearance.Theme.PlainText">
+          <item name="layout_be"/>
+        </style>
+      </resources>
+      """.trimIndent())
+    myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
+    myFixture.moveCaret("layout_be|")
+    myFixture.completeBasic()
+    assertThat(myFixture.lookupElementStrings).contains("layout_behavior")
+  }
+
   fun testAttributeNameCompletion1() {
     doTestCompletionVariants("an1.xml", "layout_weight", "layout_width")
   }
@@ -309,6 +383,48 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     UsefulTestCase.assertSameElements(
       lookupElementStrings, "android:layout_above", "android:layout_alignBaseline",
       "android:layout_alignBottom", "android:layout_alignEnd", "android:layout_alignLeft")
+  }
+
+  fun testLiveTemplateAttributeCompletion() {
+    LiveTemplateCompletionContributor.setShowTemplatesInTests(true, myFixture.testRootDisposable)
+    val virtualFile = myFixture.addFileToProject(
+      "res/layout/layout.xml",
+      //language=XML
+      """
+        <LinearLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                ${caret}
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+        </LinearLayout>
+      """.trimIndent()).virtualFile
+    myFixture.configureFromExistingVirtualFile(virtualFile)
+    myFixture.type("too")
+    myFixture.completeBasic()
+    val lookupElementStrings = myFixture.lookupElementStrings
+    assertThat(lookupElementStrings).contains("toolsNs")
+  }
+
+  fun testLiveTemplateTagCompletion() {
+    LiveTemplateCompletionContributor.setShowTemplatesInTests(true, myFixture.testRootDisposable)
+    val virtualFile = myFixture.addFileToProject(
+      "res/layout/layout.xml",
+      //language=XML
+      """
+        <LinearLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                ${caret}
+        </LinearLayout>
+      """.trimIndent()).virtualFile
+    myFixture.configureFromExistingVirtualFile(virtualFile)
+    myFixture.type("too")
+    myFixture.completeBasic()
+    val lookupElementStrings = myFixture.lookupElementStrings
+    assertThat(lookupElementStrings).doesNotContain("toolsNs")
   }
 
   fun testOpenDrawerAttributeNameCompletion() {
@@ -1292,26 +1408,6 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     myFixture.checkResultByFile("res/layout/unknown.xml", myTestFolder + '/'.toString() + getTestName(true) + "_layout_after.xml", true)
   }
 
-  fun testAndroidPrefixCompletion1() {
-    doTestAndroidPrefixCompletion("android:")
-  }
-
-  fun testAndroidPrefixCompletion2() {
-    doTestAndroidPrefixCompletion("android:")
-  }
-
-  fun testAndroidPrefixCompletion3() {
-    doTestAndroidPrefixCompletion(null)
-  }
-
-  fun testAndroidPrefixCompletion4() {
-    doTestAndroidPrefixCompletion("andr:")
-  }
-
-  fun testAndroidPrefixCompletion5() {
-    doTestAndroidPrefixCompletion(null)
-  }
-
   fun testCreateResourceFromUsage1() {
     val virtualFile = copyFileToProject(getTestName(true) + ".xml")
     doCreateFileResourceFromUsage(virtualFile)
@@ -1427,6 +1523,97 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
                           provider.generateDoc(docTargetElement, originalElement))
   }
 
+  fun testAttributeValueAttrCompletionDocumentation() {
+    val file = myFixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      //language=XML
+      """<LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:orientation="vertical"
+            android:layout_width="${caret}"
+            android:layout_height="match_parent">
+        </LinearLayout>""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.complete(CompletionType.BASIC)
+
+    assertThat(myFixture.lookupElementStrings)
+      .containsExactlyElementsIn(listOf("match_parent", "wrap_content", "@android:", "@dimen/myDimen", "fill_parent"))
+
+    val lookup = myFixture.lookup
+    var matchParentElement: LookupElement? = null
+    var fillParentElement: LookupElement? = null
+
+    for (element in lookup.items) {
+      when (element.lookupString) {
+        "match_parent" -> matchParentElement = element
+        "fill_parent" -> fillParentElement = element
+      }
+    }
+
+    lookup.currentItem = matchParentElement
+    var ref = myFixture.file.findReferenceAt(myFixture.editor.caretModel.offset)!!
+    var docTargetElement = DocumentationManager.getInstance(project).findTargetElement(
+      myFixture.editor, myFixture.file, ref.element)
+    var documentationProvider = DocumentationManager.getProviderFromElement(docTargetElement)
+    assertThat(documentationProvider.generateDoc(docTargetElement, ref.element)).isEqualTo(
+      """The view should be as big as its parent (minus padding).
+                 Introduced in API Level 8.""".trimIndent())
+
+    lookup.currentItem = fillParentElement
+    ref = myFixture.file.findReferenceAt(myFixture.editor.caretModel.offset)!!
+    docTargetElement = DocumentationManager.getInstance(project).findTargetElement(
+      myFixture.editor, myFixture.file, ref.element)
+    documentationProvider = DocumentationManager.getProviderFromElement(docTargetElement)
+    assertThat(documentationProvider.generateDoc(docTargetElement, ref.element)).isEqualTo(
+      """The view should be as big as its parent (minus padding).
+                 This constant is deprecated starting from API Level 8 and
+                 is replaced by {@code match_parent}.""".trimIndent())
+  }
+
+  fun testAttributeValueColorCompletionDocumentation() {
+    myFixture.addFileToProject(
+      "res/values/colors.xml",
+      """<resources>
+        <color name="colorPrimary">#008577</color>
+      </resources>
+      """.trimIndent())
+    val file = myFixture.addFileToProject(
+      "res/layout/activity_main.xml",
+      //language=XML
+      """<LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <Button
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:shadowColor="${caret}">
+        </LinearLayout>""".trimIndent())
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.complete(CompletionType.BASIC)
+
+    assertThat(myFixture.lookupElementStrings).contains("@color/colorPrimary")
+    var colorElement: LookupElement? = null
+    val lookup = myFixture.lookup
+    for (element in lookup.items) {
+      when (element.lookupString) {
+        "@color/colorPrimary" -> colorElement = element
+      }
+    }
+
+    lookup.currentItem = colorElement
+    val ref = myFixture.file.findReferenceAt(myFixture.editor.caretModel.offset)!!
+    val docTargetElement = DocumentationManager.getInstance(project).findTargetElement(
+      myFixture.editor, myFixture.file, ref.element)
+    val documentationProvider = DocumentationManager.getProviderFromElement(docTargetElement)
+    assertThat(documentationProvider.generateDoc(docTargetElement, ref.element)).isEqualTo(
+      """<html><body><table style="background-color:rgb(0,133,119);width:200px;text-align:center;vertical-align:middle;" border="0">""" +
+        """<tr height="100"><td align="center" valign="middle" height="100" style="color:black">#008577</td></tr></table><BR/>""" +
+        """@color/colorPrimary => #008577<BR/></body></html>""")
+  }
+
+
   fun testDimenUnitsCompletion2() {
     doTestCompletionVariants(getTestName(true) + ".xml", "@android:", "@dimen/myDimen")
   }
@@ -1476,6 +1663,19 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     runWriteCommandAction(null) { actions[0].invoke(project, myFixture.editor, myFixture.file) }
 
     myFixture.checkResultByFile("$myTestFolder/onClickIntentionWithContext.xml")
+    myFixture.checkResultByFile("src/p1/p2/Activity1.kt", "$myTestFolder/OnClickActivityWithLayout_after.kt", false)
+  }
+
+  fun testOnClickQuickFixKotlinNoContext() {
+    enableInspection(AndroidMissingOnClickHandlerInspection::class.java)
+    myFixture.copyFileToProject("$myTestFolder/OnClickActivityWithLayout.kt", "src/p1/p2/Activity1.kt")
+    val file = copyFileToProject("onClickIntention.xml")
+    myFixture.configureFromExistingVirtualFile(file)
+    val actions = highlightAndFindQuickFixes(AndroidMissingOnClickHandlerInspection.MyQuickFix::class.java)
+    TestCase.assertEquals(1, actions.size)
+    runWriteCommandAction(null) { actions[0].invoke(project, myFixture.editor, myFixture.file) }
+
+    myFixture.checkResultByFile("$myTestFolder/onClickIntention.xml")
     myFixture.checkResultByFile("src/p1/p2/Activity1.kt", "$myTestFolder/OnClickActivityWithLayout_after.kt", false)
   }
 
@@ -1739,6 +1939,16 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     val textAgain = TargetElementUtil.findReference(myFixture.editor, myFixture.editor.caretModel.offset)
     assertThat(textAgain).isNotNull()
     assertThat(textAgain!!.canonicalText).isEqualTo("textView")
+
+    //Add leading whitespace to an id in the constraint_referenced_ids
+    myFixture.moveCaret("app:constraint_referenced_ids=\"textView,|")
+    myFixture.type("  ")
+    PsiDocumentManager.getInstance(myFixture.project).commitAllDocuments()
+    myFixture.moveCaret("app:constraint_referenced_ids=\"textView,  edit|Text\"")
+    val secondId = TargetElementUtil.findReference(myFixture.editor, myFixture.editor.caretModel.offset)
+    assertThat(secondId).isNotNull()
+    assertThat(secondId?.rangeInElement).isEqualTo(TextRange(12, 20))
+    assertThat(secondId!!.canonicalText).isEqualTo("editText")
   }
 
   fun testConstraintReferencedCompletion() {

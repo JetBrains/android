@@ -20,6 +20,9 @@ import com.android.testutils.VirtualTimeScheduler;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.analytics.*;
 import com.android.tools.idea.common.SyncNlModel;
+import com.android.tools.idea.common.fixtures.KeyEventBuilder;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
 import com.android.tools.idea.common.fixtures.MouseEventBuilder;
 import com.android.tools.idea.common.model.NlComponent;
@@ -36,10 +39,13 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -209,6 +215,16 @@ public class LayoutTestUtilities {
     verify(dropEvent, times(1)).dropComplete(true);
   }
 
+  public static void releaseKey(@NotNull InteractionManager manager, int keyCode) {
+    Object listener = manager.getListener();
+    assertTrue(listener instanceof KeyListener);
+    KeyListener keyListener = (KeyListener)listener;
+    JComponent layeredPane = manager.getSurface().getLayeredPane();
+    keyListener.keyReleased(new KeyEventBuilder(keyCode, KeyEvent.CHAR_UNDEFINED)
+                              .withSource(layeredPane)
+                              .build());
+  }
+
   public static ScreenView createScreen(SyncNlModel model) {
     return createScreen(model, 1, 0, 0);
   }
@@ -239,7 +255,7 @@ public class LayoutTestUtilities {
     when(surface.getSelectionModel()).thenReturn(selectionModel);
     when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
     when(surface.getScale()).thenReturn(0.5);
-    when(surface.getSelectionAsTransferable()).thenCallRealMethod();
+    when(surface.getSelectionAsTransferable()).thenReturn(new ItemTransferable(new DnDTransferItem(0, ImmutableList.of())));
     doAnswer(inv -> listeners.add(inv.getArgument(0))).when(surface).addListener(any(DesignSurfaceListener.class));
     doAnswer(inv -> listeners.remove((DesignSurfaceListener)inv.getArgument(0))).when(surface).removeListener(any(DesignSurfaceListener.class));
     selectionModel.addListener((model, selection) -> listeners.forEach(listener -> listener.componentSelectionChanged(surface, selection)));
@@ -248,12 +264,6 @@ public class LayoutTestUtilities {
       when(((NlDesignSurface)surface).getSceneMode()).thenReturn(SceneMode.BLUEPRINT_ONLY);
     }
     return surface;
-  }
-
-  public static InteractionManager createManager(DesignSurface surface) {
-    InteractionManager manager = new InteractionManager(surface);
-    manager.startListening();
-    return manager;
   }
 
   public static DropTargetContext createDropTargetContext() {

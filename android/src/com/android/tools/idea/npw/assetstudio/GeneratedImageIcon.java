@@ -27,10 +27,10 @@ public class GeneratedImageIcon extends GeneratedIcon {
   @NotNull private final BufferedImage image;
 
   public GeneratedImageIcon(@NotNull String name, @Nullable PathString outputPath, @NotNull IconCategory category, @NotNull Density density,
-                            @NotNull BufferedImage image) {
-    super(name, outputPath, category);
+                            @NotNull AnnotatedImage annotatedImage) {
+    super(name, outputPath, category, annotatedImage.getErrorMessage());
     this.density = density;
-    this.image = image;
+    this.image = annotatedImage.getImage();
   }
 
   @NotNull

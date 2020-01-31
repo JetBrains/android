@@ -139,7 +139,7 @@ public class SceneSelectionTest extends SceneTest {
     componentList = myScreen.getScreen().getSelectionModel().getSelection();
     assertEquals(1, componentList.size());
     assertEquals(myScene.getSceneComponent("button").getNlComponent(), componentList.get(0));
-    myScene.updateModifiers(InputEvent.SHIFT_DOWN_MASK);
+    myInteraction.setModifiersEx(InputEvent.SHIFT_DOWN_MASK);
     myInteraction.mouseDown("button2");
     myInteraction.mouseRelease("button2");
     componentList = myScreen.getScreen().getSelectionModel().getSelection();

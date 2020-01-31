@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoryModel
+import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
 import com.android.tools.idea.gradle.structure.model.meta.DslText
 import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepository
@@ -75,9 +76,6 @@ abstract class PsModule protected constructor(
     this.parsedModel = parsedModel
     this.parentModule = parentModule
 
-    myParsedDependencies?.let {
-      fireDependenciesReloadedEvent()
-    }
     myParsedDependencies = null
     myVariables?.refresh()
   }
@@ -89,7 +87,10 @@ abstract class PsModule protected constructor(
   protected abstract fun resetDependencies()
   protected abstract fun findLibraryDependencies(group: String?, name: String): List<PsDeclaredLibraryDependency>
 
-  fun addLibraryDependency(library: ParsedValue.Set.Parsed<String>, scopeName: String) {
+  protected abstract fun maybeAddConfiguration(configurationName: String)
+  protected abstract fun maybeRemoveConfiguration(configurationName: String)
+
+  fun addLibraryDependency(library: ParsedValue.Set.Parsed<String>, configurationName: String) {
     // Update/reset the "parsed" model.
     val compactNotation =
       library.dslText.let {
@@ -101,22 +102,24 @@ abstract class PsModule protected constructor(
         }
       }
 
-    addLibraryDependencyToParsedModel(scopeName, compactNotation)
+    addLibraryDependencyToParsedModel(configurationName, compactNotation)
+    maybeAddConfiguration(configurationName)
 
     resetDependencies()
 
     val spec = PsArtifactDependencySpec.create(compactNotation)!!
     fireDependencyAddedEvent(
-      lazy { dependencies.findLibraryDependencies(spec.group, spec.name).firstOrNull { it.configurationName == scopeName } })
+      lazy { dependencies.findLibraryDependencies(spec.group, spec.name).firstOrNull { it.configurationName == configurationName } })
     isModified = true
   }
 
-  fun addJarFileDependency(filePath: String, scopeName: String) {
-    addJarFileDependencyToParsedModel(scopeName, filePath)
+  fun addJarFileDependency(filePath: String, configurationName: String) {
+    addJarFileDependencyToParsedModel(configurationName, filePath)
+    maybeAddConfiguration(configurationName)
 
     resetDependencies()
 
-    fireDependencyAddedEvent(lazy { dependencies.findJarDependencies(filePath).firstOrNull { it.configurationName == scopeName } })
+    fireDependencyAddedEvent(lazy { dependencies.findJarDependencies(filePath).firstOrNull { it.configurationName == configurationName } })
     isModified = true
   }
 
@@ -124,27 +127,31 @@ abstract class PsModule protected constructor(
     dirPath: String,
     includes: Collection<String>,
     excludes: Collection<String>,
-    scopeName: String
+    configurationName: String
   ) {
-    addJarFileTreeDependencyToParsedModel(scopeName, dirPath, includes, excludes)
+    addJarFileTreeDependencyToParsedModel(configurationName, dirPath, includes, excludes)
+    maybeAddConfiguration(configurationName)
 
     resetDependencies()
 
-    fireDependencyAddedEvent(lazy { dependencies.findJarDependencies(dirPath).firstOrNull { it.configurationName == scopeName } })
+    fireDependencyAddedEvent(lazy { dependencies.findJarDependencies(dirPath).firstOrNull { it.configurationName == configurationName } })
     isModified = true
   }
 
-  fun addModuleDependency(modulePath: String, scopeName: String) {
+  fun addModuleDependency(modulePath: String, configurationName: String) {
     // Update/reset the "parsed" model.
-    addModuleDependencyToParsedModel(scopeName, modulePath)
+    addModuleDependencyToParsedModel(configurationName, modulePath)
+    maybeAddConfiguration(configurationName)
 
     resetDependencies()
 
-    fireDependencyAddedEvent(lazy { dependencies.findModuleDependencies(modulePath).firstOrNull { it.configurationName == scopeName } })
+    fireDependencyAddedEvent(
+      lazy { dependencies.findModuleDependencies(modulePath).firstOrNull { it.configurationName == configurationName } })
     isModified = true
   }
 
   fun removeDependency(dependency: PsDeclaredDependency) {
+    maybeRemoveConfiguration(dependency.configurationName)
     removeDependencyFromParsedModel(dependency)
 
     resetDependencies()
@@ -154,13 +161,15 @@ abstract class PsModule protected constructor(
   }
 
   fun modifyDependencyConfiguration(dependency: PsDeclaredDependency, newConfigurationName: String) {
+    maybeRemoveConfiguration(dependency.configurationName)
     dependency.parsedModel.setConfigurationName(newConfigurationName)
+    maybeAddConfiguration(newConfigurationName)
 
     fireDependencyModifiedEvent(lazy { dependency } )
     isModified = true
   }
 
-  private fun findVersionedLibraryDependenciesWithScope(
+  private fun findVersionedLibraryDependenciesWithConfiguration(
     spec: PsArtifactDependencySpec,
     configurationName: String
   ): List<PsDeclaredLibraryDependency> {
@@ -178,7 +187,7 @@ abstract class PsModule protected constructor(
 
     // Usually there should be only one item in the matchingDependencies list. However, if there are duplicate entries in the config file
     // it might differ. We update all of them.
-    val matchingDependencies = findVersionedLibraryDependenciesWithScope(spec, configurationName)
+    val matchingDependencies = findVersionedLibraryDependenciesWithConfiguration(spec, configurationName)
     for (dependency in matchingDependencies) {
       val parsedDependency = dependency.parsedModel
       assert(parsedDependency is ArtifactDependencyModel)
@@ -302,7 +311,7 @@ abstract class PsModule protected constructor(
     dependenciesChangeEventDispatcher.multicaster.dependencyChanged(DependencyAddedEvent(dependency))
   }
 
-  private fun fireDependenciesReloadedEvent() {
+  fun fireDependenciesReloadedEvent() {
     dependenciesChangeEventDispatcher.multicaster.dependencyChanged(DependenciesReloadedEvent())
   }
 

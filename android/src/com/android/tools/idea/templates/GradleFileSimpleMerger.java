@@ -173,8 +173,17 @@ public class GradleFileSimpleMerger {
     }
 
     private Ast parseValue() {
+      return parseValue(false);
+    }
+
+    private Ast parseValue(boolean withAssignment) {
       if (myType == GroovyTokenTypes.mASSIGN) {
-        return parseValueList();
+        next();
+        if (myType == GroovyTokenTypes.mLBRACK) {
+          return parseValueList();
+        } else {
+          return parseValue(true);
+        }
       }
       else if (myType == GroovyElementTypes.STRING_SQ ||
                myType == GroovyElementTypes.STRING_TSQ ||
@@ -190,18 +199,14 @@ public class GradleFileSimpleMerger {
         String value = myLexer.getTokenText();
         next();
         skipNewLine();
-        return new ValueAst(value);
+        return new ValueAst(value, withAssignment);
       }
       return parseUnknown();
     }
 
     private Ast parseValueList() {
       LexerPosition pos = myLexer.getCurrentPosition();
-      assert myType == GroovyTokenTypes.mASSIGN;
-      next();
-      if (myType != GroovyTokenTypes.mLBRACK) {
-        return restoreAndParseUnknown(pos);
-      }
+      assert myType == GroovyTokenTypes.mLBRACK;
       next();
       List<String> values = Lists.newArrayListWithCapacity(10);
       if (!findStringLiteral(values)) {
@@ -395,7 +400,9 @@ public class GradleFileSimpleMerger {
 
       Ast first = other;
       Ast similar = other.find(myId);
-      if (similar instanceof AstNode) {
+      // Excluding the case myId equals "apply" because the apply plugin syntax
+      // expects one line per plugin instead of being merged.
+      if (similar instanceof AstNode && !myId.equals(APPLY)) {
         first = other.remove(similar);
         AstNode node = (AstNode) similar;
         if (myParam == null) {
@@ -408,15 +415,29 @@ public class GradleFileSimpleMerger {
           myParam.merge(context, node.myParam);
         }
       }
+      else if (isInsertionPositionForApplyPlugin(other)) {
+        insertApplyPlugin((AstNode) other);
+        return;
+      }
       else if (similar != null) {
         getLogger().warn("Cannot merge AstNode with a non AstNode");
       }
+
       if (myNext != null && first != null) {
         myNext.merge(context, first);
       }
       else if (first != null) {
         myNext = first;
       }
+    }
+
+    private boolean isInsertionPositionForApplyPlugin(@NotNull Ast other) {
+      return myNext != null &&
+               myNext.myId != null &&
+               myNext.myId.equals(ANDROID) &&
+               other.myId != null &&
+               other.myId.equals(APPLY) &&
+               this != other;
     }
 
     @Override
@@ -472,6 +493,14 @@ public class GradleFileSimpleMerger {
         prev = node;
         node.myNext = null;
       }
+    }
+
+    private void insertApplyPlugin(@NotNull AstNode other) {
+      assert myId != null && myId.equals(APPLY);
+      assert myNext != null && myNext.myId != null && myNext.myId.equals(ANDROID);
+      assert other.myId != null && other.myId.equals(APPLY);
+      other.myNext = myNext;
+      myNext = other;
     }
 
     /**
@@ -541,13 +570,22 @@ public class GradleFileSimpleMerger {
    */
   private static class ValueAst extends Ast {
     private String myValue;
+    private boolean myWithAssignment;
 
     public ValueAst(@NotNull String value) {
       myValue = value;
     }
 
+    public ValueAst(@NotNull String value, boolean withAssignment) {
+      myValue = value;
+      myWithAssignment = withAssignment;
+    }
+
     @Override
     public void print(@NotNull PrintContext context) {
+      if (myWithAssignment) {
+        context.append("= ");
+      }
       context.append(myValue).append("\n");
     }
 

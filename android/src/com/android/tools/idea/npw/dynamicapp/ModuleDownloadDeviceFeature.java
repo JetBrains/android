@@ -86,7 +86,7 @@ public class ModuleDownloadDeviceFeature {
     // Invoke listeners when close button is pressed
     myRemoveFeatureLinkLabel.setListener((aSource, aLinkData) -> myListeners.forEach(x -> x.removeFeatureInvoked()), null);
 
-    deviceFeatureValueTrim = new TrimExpression(myModel.deviceFeatureValue());
+    deviceFeatureValueTrim = new TrimExpression(myModel.deviceFeatureValue);
     // isActive && device feature value is empty
     BooleanExpression isInvalidExpression =
       new AndExpression(isActive, new IsEmptyExpression(deviceFeatureValueTrim));
@@ -103,8 +103,8 @@ public class ModuleDownloadDeviceFeature {
       else {
         return new Validator.Result(Validator.Severity.ERROR, String.format("Illegal character '%c' in %s '%s'",
                                                                             value.charAt(illegalCharIdx),
-                                                                            myModel.deviceFeatureType(),
-                                                                            myModel.deviceFeatureValue()));
+                                                                            myModel.deviceFeatureType,
+                                                                            myModel.deviceFeatureValue));
       }
     });
   }
@@ -263,8 +263,8 @@ public class ModuleDownloadDeviceFeature {
         myBindingsListeners.releaseAll();
       }
       else {
-        myBindings.bindTwoWay(myFeatureNameComboSelectedItem, myModel.deviceFeatureType());
-        myBindings.bindTwoWay(myDeviceFeatureValueComboTextProperty, myModel.deviceFeatureValue());
+        myBindings.bindTwoWay(myFeatureNameComboSelectedItem, myModel.deviceFeatureType);
+        myBindings.bindTwoWay(myDeviceFeatureValueComboTextProperty, myModel.deviceFeatureValue);
 
         // Ensure that each item in the "feature type" combo box has its own
         // backing (temporary) property, so that when switching item in the combo
@@ -275,11 +275,11 @@ public class ModuleDownloadDeviceFeature {
         for (DeviceFeatureKind value : DeviceFeatureKind.values()) {
           StringProperty tempProp = value.newStringValueProperty();
           tempValues.add(tempProp);
-          myBindings.bind(tempProp, myDeviceFeatureValueComboTextProperty, myModel.deviceFeatureType().isEqualTo(value));
+          myBindings.bind(tempProp, myDeviceFeatureValueComboTextProperty, myModel.deviceFeatureType.isEqualTo(value));
         }
 
         // Restore UI value from temporary property when a "device feature type" item is selected
-        myBindingsListeners.listenAndFire(myModel.deviceFeatureType(), value -> {
+        myBindingsListeners.listenAndFire(myModel.deviceFeatureType, value -> {
           int index = 0;
           for (DeviceFeatureKind featureType : DeviceFeatureKind.values()) {
             if (value == featureType) {

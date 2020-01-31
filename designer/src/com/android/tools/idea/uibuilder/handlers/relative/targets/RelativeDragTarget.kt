@@ -79,7 +79,7 @@ class RelativeDragTarget : DragBaseTarget() {
     }
 
     if (myChangedComponent) {
-      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+      myComponent.scene.markNeedsLayout(Scene.IMMEDIATE_LAYOUT)
     }
   }
 }

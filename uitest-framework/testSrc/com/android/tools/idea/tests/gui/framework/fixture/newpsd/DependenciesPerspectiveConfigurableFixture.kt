@@ -16,22 +16,22 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.gradle.structure.configurables.DEPENDENCIES_VIEW
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import org.fest.swing.core.Robot
 import java.awt.Container
 
 class DependenciesPerspectiveConfigurableFixture(
-    ideFrameFixture: IdeFrameFixture,
-    container: Container
-) : BasePerspectiveConfigurableFixture(ideFrameFixture, container) {
+  robot: Robot,
+  container: Container
+) : BasePerspectiveConfigurableFixture(robot, container) {
 
   fun findDependenciesPanel(): DependenciesFixture =
-    DependenciesFixture(ideFrameFixture, container)
+    DependenciesFixture(robot, container)
 
 }
 
 fun ProjectStructureDialogFixture.selectDependenciesConfigurable(): DependenciesPerspectiveConfigurableFixture {
   selectConfigurable("Dependencies")
   return DependenciesPerspectiveConfigurableFixture(
-      ideFrameFixture,
-      findConfigurable(DEPENDENCIES_VIEW))
+    robot(),
+    findConfigurable(DEPENDENCIES_VIEW))
 }

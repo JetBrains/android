@@ -15,23 +15,26 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.builder.model.SyncIssue;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.issues.SyncIssueRegister;
+import com.android.tools.idea.gradle.project.sync.issues.SyncIssues;
 import com.google.common.collect.ImmutableList;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link AndroidModuleSetup}.
  */
-public class AndroidModuleSetupTest extends JavaProjectTestCase {
+public class AndroidModuleSetupTest extends PlatformTestCase {
   @Mock private AndroidModuleModel myAndroidModel;
   @Mock private AndroidModuleSetupStep mySetupStep1;
   @Mock private AndroidModuleSetupStep mySetupStep2;
@@ -45,22 +48,13 @@ public class AndroidModuleSetupTest extends JavaProjectTestCase {
     super.setUp();
     initMocks(this);
     myModuleSetup = new AndroidModuleSetup(mySetupStep1, mySetupStep2);
-    when(mySetupStep1.invokeOnSkippedSync()).thenReturn(true); // Only mySetupStep1 can be invoked when sync is skipped.
     when(myModuleSetupContext.getModule()).thenReturn(myModule);
     when(myAndroidModel.getAndroidProject()).thenReturn(myAndroidProject);
     when(myAndroidProject.getSyncIssues()).thenReturn(ImmutableList.of());
   }
 
-  public void testSetUpAndroidModuleWithSyncSkipped() {
-    myModuleSetup.setUpModule(myModuleSetupContext, myAndroidModel, true /* sync skipped */);
-
-    // Only 'mySetupStep1' should be invoked when sync is skipped.
-    verify(mySetupStep1, times(1)).setUpModule(myModuleSetupContext, myAndroidModel);
-    verify(mySetupStep2, times(0)).setUpModule(myModuleSetupContext, myAndroidModel);
-  }
-
   public void testSetUpAndroidModuleWithSyncNotSkipped() {
-    myModuleSetup.setUpModule(myModuleSetupContext, myAndroidModel, false /* sync not skipped */);
+    myModuleSetup.setUpModule(myModuleSetupContext, myAndroidModel);
 
     // Only 'mySetupStep1' should be invoked when sync is skipped.
     verify(mySetupStep1, times(1)).setUpModule(myModuleSetupContext, myAndroidModel);
@@ -71,19 +65,8 @@ public class AndroidModuleSetupTest extends JavaProjectTestCase {
     SyncIssue syncIssue = mock(SyncIssue.class);
     when(myAndroidProject.getSyncIssues()).thenReturn(ImmutableList.of(syncIssue));
 
-    myModuleSetup.setUpModule(myModuleSetupContext, myAndroidModel, false /* sync not skipped */);
-    SyncIssueRegister register = SyncIssueRegister.getInstance(myProject);
-    register.seal();
-    assertThat(register.get()).containsExactly(myModule, ImmutableList.of(syncIssue));
-  }
-
-  public void testSetUpAndroidModuleRegistersSyncIssuesSkipped() {
-    SyncIssue syncIssue = mock(SyncIssue.class);
-    when(myAndroidProject.getSyncIssues()).thenReturn(ImmutableList.of(syncIssue));
-
-    myModuleSetup.setUpModule(myModuleSetupContext, myAndroidModel, true /* sync skipped */);
-    SyncIssueRegister register = SyncIssueRegister.getInstance(myProject);
-    register.seal();
-    assertThat(register.get()).containsExactly(myModule, ImmutableList.of(syncIssue));
+    myModuleSetup.setUpModule(myModuleSetupContext, myAndroidModel);
+    SyncIssues.seal(myProject);
+    assertThat(SyncIssues.forModule(myModule)).containsExactly(syncIssue);
   }
 }

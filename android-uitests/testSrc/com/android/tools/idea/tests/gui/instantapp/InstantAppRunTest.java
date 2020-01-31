@@ -35,8 +35,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.AvdManagerD
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture.SystemImage;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import com.intellij.util.containers.ContainerUtil;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -168,7 +168,7 @@ public class InstantAppRunTest {
 
   @NotNull
   private ProcessBuilder prepareAdbInstall(@NotNull File adb, @NotNull File... apkFiles) {
-    List<String> cmdLine = ContainerUtil.newArrayList();
+    List<String> cmdLine = new ArrayList<>();
     cmdLine.add(adb.getAbsolutePath());
     cmdLine.add("install-multiple");
     cmdLine.add("-t");
@@ -222,7 +222,7 @@ public class InstantAppRunTest {
 
   @NotNull
   private ProcessBuilder prepareAdbInstantAppLaunchIntent(@NotNull File adb) {
-    List<String> cmdLine = ContainerUtil.newArrayList();
+    List<String> cmdLine = new ArrayList<>();
     cmdLine.add(adb.getAbsolutePath());
     cmdLine.add("shell");
     cmdLine.add("am");

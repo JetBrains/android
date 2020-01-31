@@ -17,7 +17,6 @@ package com.android.tools.idea.editors.strings;
 
 import com.android.tools.idea.editors.strings.table.StringResourceTable;
 import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.DeleteHandler;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -29,6 +28,7 @@ import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.safeDelete.SafeDeleteDialog;
 import com.intellij.refactoring.safeDelete.SafeDeleteProcessor;
 import com.intellij.refactoring.util.CommonRefactoringUtil;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -60,7 +60,7 @@ final class RemoveKeysAction extends AnAction {
     PsiElement[] keys = Arrays.stream(table.getSelectedModelRowIndices())
                               .mapToObj(index -> model.getStringResourceAt(index).getKey())
                               .flatMap(key -> repository.getItems(key).stream())
-                              .map(item -> LocalResourceRepository.getItemTag(project, item))
+                              .map(item -> AndroidResourceUtil.getItemTag(project, item))
                               .toArray(PsiElement[]::new);
 
     if (keys.length == 0) {

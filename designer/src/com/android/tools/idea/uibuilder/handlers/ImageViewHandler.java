@@ -41,8 +41,8 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.ComponentAssistantViewAction;
+import com.android.tools.idea.res.PredefinedSampleDataResourceRepository;
 import com.android.tools.idea.res.SampleDataResourceItem;
-import com.android.tools.idea.res.SampleDataResourceRepository;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.api.XmlType;
@@ -119,7 +119,7 @@ public class ImageViewHandler extends ViewHandler {
   }
 
   private boolean showImageChooser(@NotNull ViewEditor editor, @NotNull NlComponent component) {
-    String src = editor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE), true);
+    String src = editor.displayResourceInput(EnumSet.of(ResourceType.DRAWABLE, ResourceType.MIPMAP), true);
     if (src != null) {
       // If the selected item was a sample data item, set in the tools attributes src and not in the regular attribute
       if (src.startsWith(SAMPLE_PREFIX) || src.startsWith(TOOLS_SAMPLE_PREFIX )) {
@@ -194,7 +194,7 @@ public class ImageViewHandler extends ViewHandler {
   @NotNull
   private static String getResourcePrefix(ResourceNamespace namespace) {
     String prefix;
-    if (SampleDataResourceRepository.PREDEFINED_SAMPLES_NS.equals(namespace)) {
+    if (PredefinedSampleDataResourceRepository.NAMESPACE.equals(namespace)) {
       prefix = TOOLS_SAMPLE_PREFIX;
     }
     else if (ResourceNamespace.TODO().equals(namespace)) {

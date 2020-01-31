@@ -18,7 +18,6 @@ package com.android.tools.idea.uibuilder.palette;
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -230,7 +229,7 @@ public class DependencyManager implements Disposable {
     }
 
     // It does not depend on androidx. Check default to using androidx unless the module already depends on android.support
-    return !DependencyManagementUtil.dependsOnOldSupportLib(myModule) && StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get();
+    return !DependencyManagementUtil.dependsOnOldSupportLib(myModule);
   }
 
   public interface DependencyChangeListener {

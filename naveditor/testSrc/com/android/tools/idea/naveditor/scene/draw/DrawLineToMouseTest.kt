@@ -45,7 +45,7 @@ class DrawLineToMouseTest : TestCase() {
     val g = mock<Graphics2D>(Graphics2D::class.java)
     `when`<Graphics>(g.create()).thenReturn(g)
 
-    val drawLineToMouse = DrawLineToMouse(0, CENTER)
+    val drawLineToMouse = DrawLineToMouse(CENTER)
 
     val inOrder = inOrder(g)
     drawLineToMouse.paint(g, sceneContext)

@@ -15,17 +15,17 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
-import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
 import com.android.tools.idea.tests.gui.framework.findByType
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
-import com.android.tools.idea.tests.gui.framework.robot
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.SimpleColoredComponent
+import org.fest.swing.core.Robot
 import org.fest.swing.edt.GuiQuery
+import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.fixture.JComboBoxFixture
 import org.fest.swing.fixture.JTextComponentFixture
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.awt.Container
+import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.JList
 import javax.swing.JTextField
@@ -33,48 +33,56 @@ import javax.swing.JTextField
 private val REFERENCE_JLIST = GuiQuery.get { JList<Any>() }
 
 class PropertyEditorFixture(
-  override val ideFrameFixture: IdeFrameFixture,
-  override val container: Container
-) : IdeFrameContainerFixture {
+  val robot: Robot,
+  val container: Container
+) : ContainerFixture<Container> {
+  override fun target(): Container = container
+  override fun robot(): Robot = robot
+
 
   fun selectItem(text: String) {
-    val comboBoxFixture = createComboBoxFicture()
+    val comboBoxFixture = createComboBoxFixture()
     comboBoxFixture.selectItem(text)
   }
 
   fun selectItemWithKeyboard(text: String, andTab: Boolean = false) {
-    val comboBoxFixture = createComboBoxFicture()
+    val comboBoxFixture = createComboBoxFixture()
     comboBoxFixture.focus()
     val contents = comboBoxFixture.contents()
     val index = contents.indexOf(text)
     if (index < 0) throw IllegalStateException("'$text' not found. Available items: ${contents.joinToString()}")
     robot().pressAndReleaseKey(KeyEvent.VK_DOWN, KeyEvent.ALT_DOWN_MASK)
-    waitForIdle()
     for (i in 0..index) {
       robot().pressAndReleaseKey(KeyEvent.VK_DOWN)
-      waitForIdle()
     }
     if (andTab) robot().pressAndReleaseKey(KeyEvent.VK_TAB) else robot().pressAndReleaseKey(KeyEvent.VK_ENTER)
-    waitForIdle()
   }
 
   fun enterText(text: String) {
     val comboBox = JComboBoxFixture(
       robot(),
       robot().finder().findByType<ComboBox<*>>(container))
+    comboBox.selectAllText()
     comboBox.enterText(text)
     robot().type(9.toChar())
   }
 
   fun getText(): String {
-    val textFiexture = JTextComponentFixture(
+    val textFixture = JTextComponentFixture(
       robot(),
       robot().finder().findByType<JTextField>(
         robot().finder().findByType<ComboBox<*>>(container)))
-    return textFiexture.text().orEmpty()
+    return textFixture.text().orEmpty()
   }
 
-  private fun createComboBoxFicture(): JComboBoxFixture {
+  fun invokeExtractVariable(): ExtractVariableFixture {
+    val comboBoxFixture = createComboBoxFixture()
+    comboBoxFixture.focus()
+    robot().pressAndReleaseKey(KeyEvent.VK_ENTER, InputEvent.SHIFT_MASK)
+    return ExtractVariableFixture.find(robot())
+  }
+
+  private fun createComboBoxFixture(): JComboBoxFixture {
     val comboBoxFixture = JComboBoxFixture(robot(), robot().finder().findByType<ComboBox<*>>(
         container))
     comboBoxFixture.replaceCellReader { comboBox, index ->

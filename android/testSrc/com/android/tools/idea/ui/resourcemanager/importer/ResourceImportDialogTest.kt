@@ -19,11 +19,11 @@ import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.NightModeQualifier
 import com.android.resources.Density
 import com.android.resources.NightMode
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import com.android.tools.idea.ui.resourcemanager.model.StaticStringMapper
 import com.android.tools.idea.ui.resourcemanager.model.getDesignAssets
-import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
 import com.intellij.openapi.application.runInEdt
@@ -40,14 +40,19 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.Description
 import java.io.File
+import javax.swing.JButton
 import javax.swing.JComboBox
+import javax.swing.JComponent
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JTextField
 import javax.swing.UIManager
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class ResourceImportDialogTest {
 
@@ -94,7 +99,7 @@ class ResourceImportDialogTest {
     val content = resourceImportDialog.root.viewport.view as JPanel
     val fileRows = findComponentsOfType(content, FileImportRow::class.java)
     val firstAssetSet = dialogViewModel.assetSets.first()
-    val firstAsset = firstAssetSet.designAssets.first()
+    val firstAsset = firstAssetSet.assets.first()
 
     val row0 = fileRows[0]
     val parent = row0.parent as JPanel
@@ -105,7 +110,7 @@ class ResourceImportDialogTest {
 
     // Check that the view has been removed and that the asset has been removed from the model.
     assertFalse(parent.components.contains(row0))
-    assertFalse(dialogViewModel.assetSets.first().designAssets.contains(firstAsset))
+    assertFalse(dialogViewModel.assetSets.first().assets.contains(firstAsset))
 
     // Check that a label with the assetSet name is still present.
     assertEquals(1, findComponentsOfType(content, JBTextField::class.java).filter { it.text.equals(firstAssetSet.name, true) }.size)
@@ -130,7 +135,7 @@ class ResourceImportDialogTest {
     val content = resourceImportDialog.root.viewport.view as JPanel
     val fileRows = findComponentsOfType(content, FileImportRow::class.java)
     val firstAssetSet = dialogViewModel.assetSets.first()
-    val firstAsset = firstAssetSet.designAssets.first()
+    val firstAsset = firstAssetSet.assets.first()
 
     val row0 = fileRows[0]
     val parent = row0.parent as JPanel
@@ -140,7 +145,7 @@ class ResourceImportDialogTest {
 
     // Check that the view has been removed and that the asset has been removed from the model.
     assertFalse(parent.components.contains(row0))
-    assertFalse(dialogViewModel.assetSets.first().designAssets.contains(firstAsset))
+    assertFalse(dialogViewModel.assetSets.first().assets.contains(firstAsset))
 
     // Check that a label with the assetSet name is still present.
     assertEquals(1, findComponentsOfType(content, JBTextField::class.java).filter { it.text.equals(firstAssetSet.name, true) }.size)
@@ -160,6 +165,26 @@ class ResourceImportDialogTest {
     assertNull(findComponentsOfType(content, JLabel::class.java).firstOrNull { it.text.equals(firstAssetSet.name, true) })
   }
 
+  @Test
+  fun checkCantGoNextIfError() {
+    val content = resourceImportDialog.root.viewport.view as JPanel
+    val combos = findComponentsOfType(content, JTextField::class.java)
+    assertEquals(1, combos.size)
+    combos[0].text = "inv%alid"
+
+    var parent: JComponent? = resourceImportDialog.cancelButton.parent as? JComponent
+    var nextButton: JComponent? = null
+    while (parent != null && nextButton == null) {
+      nextButton = findComponentsOfType(parent, JButton::class.java).firstOrNull {
+        it.text == "Next"
+      }
+      parent = parent.parent as? JComponent
+    }
+    assertNotNull(nextButton)
+    assertFalse(nextButton.isEnabled)
+    combos[0].text = "valid"
+    assertTrue(nextButton.isEnabled)
+  }
 
   @After
   fun tearDown() {
@@ -189,7 +214,7 @@ private val staticRule = AndroidProjectRule.onDisk()
 fun main(vararg args: String) {
   staticRule.before(Description.createSuiteDescription(
     ResourceImportDialogTest::class.java))
-  staticRule.fixture.testDataPath = getTestDataDirectory() + "/designAssets"
+  staticRule.fixture.testDataPath = getTestDataDirectory() + "/assets"
   runInEdt {
     UIManager.setLookAndFeel(DarculaLaf())
     JFrame().apply {

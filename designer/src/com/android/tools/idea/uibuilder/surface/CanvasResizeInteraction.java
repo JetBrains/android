@@ -44,6 +44,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.reference.SoftReference;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -187,9 +188,9 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int startMask) {
+  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
     myPerfDebugHelper.start("[Original Resize] - begin");
-    super.begin(x, y, startMask);
+    super.begin(x, y, modifiersEx);
     myCurrentX = x;
     myCurrentY = y;
 
@@ -338,7 +339,7 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
     myPerfDebugHelper.start("[Original Resize] - update");
     if (myOriginalDevice.isScreenRound()) {
       // Force aspect preservation
@@ -352,7 +353,7 @@ public class CanvasResizeInteraction extends Interaction {
       }
     }
 
-    super.update(x, y, modifiers);
+    super.update(x, y, modifiersEx);
     myCurrentX = x;
     myCurrentY = y;
 
@@ -375,9 +376,9 @@ public class CanvasResizeInteraction extends Interaction {
   }
 
   @Override
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx, boolean canceled) {
     myPerfDebugHelper.start("[Original Resize] - end");
-    super.end(x, y, modifiers, canceled);
+    super.end(x, y, modifiersEx, canceled);
 
     // Set the surface in resize mode so it doesn't try to re-center the screen views all the time
     myDesignSurface.setResizeMode(false);
@@ -634,7 +635,7 @@ public class CanvasResizeInteraction extends Interaction {
         graphics.dispose();
         myOrientationImage = image;
       }
-      StartupUiUtil.drawImage(g2d, image, null, 0, 0);
+      UIUtil.drawImage(g2d, image, null, 0, 0);
     }
 
     public synchronized void reset() {
@@ -715,7 +716,7 @@ public class CanvasResizeInteraction extends Interaction {
         graphics.dispose();
         buckets.put(screenSizeBucket, new SoftReference<>(bucket));
       }
-      StartupUiUtil.drawImage(g2d, bucket, null, 0, 0);
+      UIUtil.drawImage(g2d, bucket, null, 0, 0);
     }
 
     @NotNull

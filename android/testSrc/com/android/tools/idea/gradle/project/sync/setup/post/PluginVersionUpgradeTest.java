@@ -22,12 +22,11 @@ import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.ForcedPlugi
 import com.android.tools.idea.gradle.project.sync.setup.post.upgrade.RecommendedPluginVersionUpgradeStep;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
-import static com.android.builder.model.AndroidProject.GENERATION_ORIGINAL;
 import static com.android.tools.idea.testing.Facets.createAndAddAndroidFacet;
 import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -35,7 +34,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link PluginVersionUpgrade}.
  */
-public class PluginVersionUpgradeTest extends JavaProjectTestCase {
+public class PluginVersionUpgradeTest extends PlatformTestCase {
   @Mock RecommendedPluginVersionUpgradeStep myUpgradeStep1;
   @Mock RecommendedPluginVersionUpgradeStep myUpgradeStep2;
   @Mock RecommendedPluginVersionUpgradeStep myUpgradeStep3;
@@ -63,7 +62,7 @@ public class PluginVersionUpgradeTest extends JavaProjectTestCase {
 
   public void testCheckAndPerformUpgradeWhenUpgradeIsPerformed() {
     Module module = getModule();
-    simulateAndroidModule(module, GENERATION_ORIGINAL);
+    simulateAndroidModule(module);
 
 
     AndroidPluginInfo pluginInfo = new AndroidPluginInfo(module, null, null);
@@ -86,7 +85,7 @@ public class PluginVersionUpgradeTest extends JavaProjectTestCase {
 
   public void testCheckAndPerformUpgradeWhenUpgradeIsNotPerformed() {
     Module module = getModule();
-    simulateAndroidModule(module, GENERATION_ORIGINAL);
+    simulateAndroidModule(module);
 
     AndroidPluginInfo pluginInfo = new AndroidPluginInfo(module, null, null);
     Project project = getProject();
@@ -104,9 +103,8 @@ public class PluginVersionUpgradeTest extends JavaProjectTestCase {
     verify(myUpgradeStep3, times(1)).checkUpgradable(project, pluginInfo);
   }
 
-  private static void simulateAndroidModule(@NotNull Module module, int pluginGeneration) {
+  private static void simulateAndroidModule(@NotNull Module module) {
     IdeAndroidProject androidProject = mock(IdeAndroidProject.class);
-    when(androidProject.getPluginGeneration()).thenReturn(pluginGeneration);
 
     AndroidModuleModel androidModel = mock(AndroidModuleModel.class);
     when(androidModel.getAndroidProject()).thenReturn(androidProject);

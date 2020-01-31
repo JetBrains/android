@@ -22,7 +22,9 @@ import com.android.ide.common.util.AssetUtil;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
+import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.google.common.util.concurrent.Futures;
+import com.intellij.util.ExceptionUtil;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -57,7 +59,7 @@ public final class TransformedImageAsset {
   /**
    * Initializes a new transformed image asset.
    *
-   * @param asset the source image asset, also supplies opacity factor, and trimming flag
+   * @param asset the source image or text asset, also supplies opacity factor, and trimming flag
    * @param targetSize the size of the transformed image
    * @param scaleFactor the scale factor to be applied to the image
    * @param tint the tint to apply to the image, or null to preserve original colors
@@ -68,10 +70,11 @@ public final class TransformedImageAsset {
                                double scaleFactor,
                                @Nullable Color tint,
                                @NotNull GraphicGeneratorContext context) {
-    myDrawableFuture = asset instanceof ImageAsset ? ((ImageAsset)asset).getXmlDrawable() : null;
+    myDrawableFuture = asset instanceof ImageAsset ? ((ImageAsset)asset).getXmlDrawable() :
+                       asset instanceof TextAsset ? ((TextAsset)asset).getXmlDrawable() : null;
     myImageFuture = myDrawableFuture == null ? asset.toImage() : null;
-    myTint = tint;
-    myOpacity = asset.opacityPercent().get() / 100.;
+    myTint = asset instanceof TextAsset && asset.color().equals(tint) ? null : tint;
+    myOpacity = asset instanceof TextAsset ? 1 : asset.opacityPercent().get() / 100.;
     myIsTrimmed = asset.trimmed().get();
     myTargetSize = targetSize;
     myScaleFactor = scaleFactor;
@@ -129,18 +132,36 @@ public final class TransformedImageAsset {
         try {
           return future.get();
         }
-        catch (InterruptedException | ExecutionException e) {
-          // Ignore to fall through to the dummy image creation.
+        catch (ExecutionException e) {
+          ExceptionUtil.rethrow(e.getCause());
+        }
+        catch (InterruptedException ignore) {
         }
       }
     }
 
     // Transform bitmap image.
-    BufferedImage sourceImage = getTrimmedImage();
-    if (sourceImage == null) {
-      sourceImage = AssetStudioUtils.createDummyImage();
+    BufferedImage trimmedImage = getTrimmedImage();
+    if (trimmedImage == null) {
+      return createErrorImage(imageSize);
     }
 
+    return applyScaleTintAndOpacity(imageSize, trimmedImage);
+  }
+
+  /**
+   * Creates an image that is used as placeholder in case of rendering errors.
+   *
+   * @param imageSize the size of the placeholder image
+   * @return the created image
+   */
+  @NotNull
+  public BufferedImage createErrorImage(@NotNull Dimension imageSize) {
+    return applyScaleTintAndOpacity(imageSize, AssetStudioUtils.createDummyImage());
+  }
+
+  @NotNull
+  private BufferedImage applyScaleTintAndOpacity(@NotNull Dimension imageSize, @NotNull BufferedImage sourceImage) {
     double scaleFactor = Math.min(imageSize.getWidth() * myScaleFactor / sourceImage.getWidth(),
                                   imageSize.getHeight() * myScaleFactor / sourceImage.getHeight());
     int width = roundToInt(sourceImage.getWidth() * scaleFactor);
@@ -156,7 +177,6 @@ public final class TransformedImageAsset {
     AssetUtil.drawEffects(g, scaledImage, x, y, effects);
 
     g.dispose();
-
     return outImage;
   }
 

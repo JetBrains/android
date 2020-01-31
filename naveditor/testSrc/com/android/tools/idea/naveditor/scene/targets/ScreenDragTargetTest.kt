@@ -17,7 +17,6 @@ package com.android.tools.idea.naveditor.scene.targets
 
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
@@ -45,14 +44,14 @@ class ScreenDragTargetTest : NavTestCase() {
     }
     val surface = model.surface as NavDesignSurface
     val view = NavView(surface, surface.sceneManager!!)
-    `when`<SceneView>(surface.currentSceneView).thenReturn(view)
+    `when`<SceneView>(surface.focusedSceneView).thenReturn(view)
     `when`<SceneView>(surface.getSceneView(anyInt(), anyInt())).thenReturn(view)
 
     val scene = model.surface.scene!!
     scene.layout(0, SceneContext.get())
 
     val component = scene.getSceneComponent("fragment1")!!
-    val interactionManager = InteractionManager(surface)
+    val interactionManager = surface.interactionManager
     try {
       interactionManager.startListening()
 

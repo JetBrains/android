@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.run.tasks;
 
+import static com.android.utils.FileUtils.join;
+
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.IDevice;
@@ -34,18 +36,15 @@ import com.google.common.collect.ImmutableSet;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.command.impl.DummyProject;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.utils.FileUtils.join;
+import org.jetbrains.android.AndroidTestCase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ConnectDebuggerTaskTest extends AndroidTestCase {
 
@@ -112,9 +111,7 @@ public class ConnectDebuggerTaskTest extends AndroidTestCase {
     myDevice = deviceOptional.get();
 
     // Add process handlers for the fake device associated with our test application's application id
-    AndroidProcessHandler processHandler = new AndroidProcessHandler.Builder(DummyProject.getInstance())
-      .setApplicationId(TEST_APP_ID)
-      .build();
+    AndroidProcessHandler processHandler = new AndroidProcessHandler(DummyProject.getInstance(), TEST_APP_ID);
 
     processHandler.addTargetDevice(myDevice);
     myConsolePrinter = new ProcessHandlerConsolePrinter(processHandler);

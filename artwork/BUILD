@@ -10,6 +10,7 @@ iml_module(
     ],
     bundle_data = [":device-art-resources"],
     iml_files = ["intellij.android.artwork.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     # do not sort: must match IML order
     resources = [
         "resources",
@@ -17,7 +18,7 @@ iml_module(
     ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
-    deps = ["//tools/idea/platform/util:intellij.platform.util[module]"],
+    deps = ["//tools/idea/platform/util:intellij.platform.util.ui[module]"],
 )
 
 filegroup(

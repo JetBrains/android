@@ -38,7 +38,7 @@ import java.util.List;
  */
 public class CheckSdkOperation extends InstallOperation<File, File> {
   private static final String ERROR_CANT_EXECUTE = "%1$s file is not a valid executable";
-  private static final String ERROR_NO_TOOLS_DIR = "SDK tools directory is missing";
+  private static final String ERROR_NO_EMULATOR_DIR = "SDK emulator directory is missing";
   private static final String MESSAGE_CANT_RUN_TOOL;
   private static final String ERROR_CANT_RUN_TOOL;
   private static final String URL_MISSING_LIBRARIES = "https://developer.android.com/studio/troubleshoot.html#linux-libraries";
@@ -112,10 +112,7 @@ public class CheckSdkOperation extends InstallOperation<File, File> {
   protected File perform(@NotNull ProgressIndicator indicator, @NotNull File file) throws WizardException, InstallationCancelledException {
     File tool = new File(file, SdkConstants.FD_EMULATOR + File.separator + TOOL_NAME);
     if (!tool.isFile()) {
-      tool = new File(file, SdkConstants.FD_TOOLS + File.separator + TOOL_NAME);
-    }
-    if (!tool.isFile()) {
-      throw new WizardException(ERROR_NO_TOOLS_DIR);
+      throw new WizardException(ERROR_NO_EMULATOR_DIR);
     }
     if (!checkExecutePermission(tool)) {
       throw new WizardException(String.format(ERROR_CANT_EXECUTE, tool.getAbsoluteFile()));

@@ -15,37 +15,59 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import com.android.ddmlib.allocations.AllocationsParserTest;
+import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
+import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerTestUtils;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Rule;
-import org.junit.Test;
-
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.*;
+import org.jetbrains.annotations.NotNull;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class LegacyAllocationCaptureObjectTest {
 
+  @NotNull private final FakeTimer myTimer = new FakeTimer();
+  @NotNull private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
 
   @NotNull private final FakeIdeProfilerServices myIdeProfilerServices = new FakeIdeProfilerServices();
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("LegacyAllocationCaptureObjectTest", myService);
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("LegacyAllocationCaptureObjectTest", myTransportService, myService);
+
+  @Test
+  public void testFailedAllocationsInfo() {
+    AllocationsInfo testInfo = AllocationsInfo.newBuilder().setSuccess(false).build();
+    LegacyAllocationCaptureObject capture =
+      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
+                                        ProfilersTestData.SESSION_DATA,
+                                        testInfo,
+                                        myIdeProfilerServices.getFeatureTracker());
+
+    capture.load(null, null);
+    assertTrue(capture.isDoneLoading());
+    assertTrue(capture.isError());
+  }
 
   /**
    * This is a high-level test that validates the generation of allocation tracking MemoryObjects hierarchy based on fake allocation events.
@@ -57,9 +79,11 @@ public class LegacyAllocationCaptureObjectTest {
     long startTimeNs = TimeUnit.MILLISECONDS.toNanos(3);
     long endTimeNs = TimeUnit.MILLISECONDS.toNanos(8);
 
-    AllocationsInfo testInfo = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
+    AllocationsInfo testInfo = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).setSuccess(true).build();
     LegacyAllocationCaptureObject capture =
-      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA, testInfo,
+      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
+                                        ProfilersTestData.SESSION_DATA,
+                                        testInfo,
                                         myIdeProfilerServices.getFeatureTracker());
 
     // Verify values associated with the AllocationsInfo object.
@@ -68,7 +92,6 @@ public class LegacyAllocationCaptureObjectTest {
 
     final CountDownLatch loadLatch = new CountDownLatch(1);
     final CountDownLatch doneLatch = new CountDownLatch(1);
-    myService.setExplicitAllocationEvents(MemoryProfiler.LegacyAllocationEventsResponse.Status.NOT_READY, Collections.emptyList());
     new Thread(() -> {
       loadLatch.countDown();
       capture.load(null, null);
@@ -77,17 +100,22 @@ public class LegacyAllocationCaptureObjectTest {
 
     loadLatch.await();
 
-    int stackId1 = 1;
-    int stackId2 = 2;
-    myService.addExplicitAllocationClass(0, "test.klass0");
-    myService.addExplicitAllocationClass(1, "test.klass1");
-    myService.addExplicitAllocationStack("test.klass0", "testMethod0", 3, stackId1);
-    myService.addExplicitAllocationStack("test.klass1", "testMethod1", 7, stackId2);
-    LegacyAllocationEvent event1 =
-      LegacyAllocationEvent.newBuilder().setCaptureTime(startTimeNs).setClassId(0).setStackId(stackId2).build();
-    LegacyAllocationEvent event2 =
-      LegacyAllocationEvent.newBuilder().setCaptureTime(startTimeNs).setClassId(1).setStackId(stackId1).build();
-    myService.setExplicitAllocationEvents(LegacyAllocationEventsResponse.Status.SUCCESS, Arrays.asList(event1, event2));
+    ByteBuffer buffer = AllocationsParserTest.putAllocationInfo(new String[]{"test.klass0", "test.klass1"}, // class names
+                                                                new String[]{"testMethod0", "testMethod1"}, // method names
+                                                                new String[]{"test1.java", "test2.java"}, // file names
+                                                                new int[][]{  // allocation events (size, thread id, class id, stack depth
+                                                                  {0, 0, 0, 1},
+                                                                  {0, 0, 1, 1}
+                                                                },
+                                                                new short[][][]{ // stack info (class id, method id, file id, line number)
+                                                                  {
+                                                                    {1, 1, 0, 7},
+                                                                  },
+                                                                  {
+                                                                    {0, 0, 1, 3},
+                                                                  }
+                                                                });
+    myTransportService.addFile(Long.toString(startTimeNs), ByteString.copyFrom(buffer));
     doneLatch.await();
 
     assertTrue(capture.isDoneLoading());
@@ -97,7 +125,7 @@ public class LegacyAllocationCaptureObjectTest {
     Collection<HeapSet> heaps = capture.getHeapSets();
     assertEquals(1, heaps.size());
 
-    HeapSet defaultHeap = heaps.stream().filter(heap -> "default" .equals(heap.getName())).findFirst().orElse(null);
+    HeapSet defaultHeap = heaps.stream().filter(heap -> "default".equals(heap.getName())).findFirst().orElse(null);
     assertNotNull(defaultHeap);
     defaultHeap.getChildrenClassifierSets(); // expand the children
 
@@ -120,27 +148,6 @@ public class LegacyAllocationCaptureObjectTest {
     verifyStackFrame(frame1, "test.klass0", "testMethod0", 3);
   }
 
-  @Test
-  public void testLoadingFailure() throws Exception {
-    long startTimeNs = TimeUnit.MILLISECONDS.toNanos(3);
-    long endTimeNs = TimeUnit.MILLISECONDS.toNanos(8);
-
-    AllocationsInfo testInfo1 = AllocationsInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
-    LegacyAllocationCaptureObject capture =
-      new LegacyAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA, testInfo1,
-                                        myIdeProfilerServices.getFeatureTracker());
-
-    assertFalse(capture.isDoneLoading());
-    assertFalse(capture.isError());
-
-    myService.setExplicitAllocationEvents(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN, Collections.emptyList());
-    capture.load(null, null);
-
-    assertTrue(capture.isDoneLoading());
-    assertTrue(capture.isError());
-    capture.getHeapSets().forEach(heapSet -> assertEquals(0, heapSet.getInstancesCount()));
-  }
-
   private static void verifyInstance(InstanceObject instance,
                                      String className,
                                      int depth,
@@ -155,7 +162,7 @@ public class LegacyAllocationCaptureObjectTest {
     assertEquals(frameCount, instance.getAllocationCallStack().getFullStack().getFramesCount());
   }
 
-  private static void verifyStackFrame(MemoryProfiler.AllocationStack.StackFrame frame, String klass, String method, int line) {
+  private static void verifyStackFrame(Memory.AllocationStack.StackFrame frame, String klass, String method, int line) {
     assertEquals(klass, frame.getClassName());
     assertEquals(method, frame.getMethodName());
     assertEquals(line, frame.getLineNumber());

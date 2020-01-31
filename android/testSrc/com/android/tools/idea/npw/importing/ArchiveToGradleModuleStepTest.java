@@ -122,13 +122,13 @@ public class ArchiveToGradleModuleStepTest extends AndroidGradleTestCase {
   }
 
   public void testInitialiseNameFromPath() {
-    myModel.archive().set("");
-    myModel.gradlePath().set("");
+    myModel.archive.set("");
+    myModel.gradlePath.set("");
     myInvokeStrategy.updateAllSteps();
 
-    myModel.archive().set("/some/path/modulename.jar");
+    myModel.archive.set("/some/path/modulename.jar");
     myInvokeStrategy.updateAllSteps();
 
-    assertEquals("modulename", myModel.gradlePath().get());
+    assertEquals("modulename", myModel.gradlePath.get());
   }
 }

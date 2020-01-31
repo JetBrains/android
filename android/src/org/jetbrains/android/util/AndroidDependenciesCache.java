@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.util;
 
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_DYNAMIC_FEATURE;
@@ -13,10 +12,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.reference.SoftReference;
 import com.intellij.util.containers.ContainerUtil;
-import java.util.HashSet;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -77,7 +72,7 @@ public class AndroidDependenciesCache {
     List<WeakReference<AndroidFacet>> refs = listRef.get();
 
     if (refs == null) {
-      final List<AndroidFacet> facets = new ArrayList<>();
+      List<AndroidFacet> facets = new ArrayList<>();
       collectAllAndroidDependencies(module, androidLibrariesOnly, facets, new HashSet<>());
 
       refs = ContainerUtil.map(ContainerUtil.reverse(facets), facet -> new WeakReference<>(facet));

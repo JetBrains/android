@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.facet.gradle;
 
-import com.android.tools.idea.IdeInfo;
+import static com.intellij.util.xmlb.XmlSerializer.deserializeInto;
+import static com.intellij.util.xmlb.XmlSerializer.serializeInto;
+
 import com.intellij.facet.FacetConfiguration;
 import com.intellij.facet.ui.FacetEditorContext;
 import com.intellij.facet.ui.FacetEditorTab;
@@ -25,10 +27,6 @@ import com.intellij.openapi.util.WriteExternalException;
 import org.jdom.Element;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.xmlb.XmlSerializer.deserializeInto;
-import static com.intellij.util.xmlb.XmlSerializer.serializeInto;
 
 /**
  * Configuration options for the Android-Gradle facet. In Android Studio, these options <em>cannot</em> be directly changed by users.
@@ -42,10 +40,6 @@ public class GradleFacetConfiguration implements FacetConfiguration {
   @Override
   public FacetEditorTab[] createEditorTabs(FacetEditorContext editorContext,
                                            FacetValidatorsManager validatorsManager) {
-    if (!IdeInfo.getInstance().isAndroidStudio() && isNotEmpty(GRADLE_PROJECT_PATH)) {
-      // IntelliJ only
-      return new FacetEditorTab[]{new GradleFacetEditorTab(editorContext.getProject(), GRADLE_PROJECT_PATH)};
-    }
     return new FacetEditorTab[0];
   }
 

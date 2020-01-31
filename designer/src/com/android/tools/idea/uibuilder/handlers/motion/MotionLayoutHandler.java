@@ -16,8 +16,9 @@
 package com.android.tools.idea.uibuilder.handlers.motion;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlComponentDelegate;
+import com.android.tools.idea.common.scene.Placeholder;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.common.scene.target.ComponentAssistantViewAction;
@@ -26,29 +27,55 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Interaction;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.api.AccessoryPanelInterface;
+import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.actions.ViewAction;
 import com.android.tools.idea.uibuilder.handlers.assistant.MotionLayoutAssistantPanel;
-import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler;
+import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintPlaceholder;
+import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutComponentNotchProvider;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutNotchProvider;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierAnchorTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.BarrierTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintResizeTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineAnchorTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineCycleTarget;
+import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineTarget;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionAccessoryPanel;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionAttributePanel;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionLayoutInterface;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory;
+import com.android.tools.idea.uibuilder.scene.target.ResizeBaseTarget;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
-import com.android.utils.Pair;
 import com.google.common.collect.ImmutableList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Locale;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_BARRIER_DIRECTION;
+import static com.android.SdkConstants.ATTR_GUIDELINE_ORIENTATION_VERTICAL;
+import static com.android.SdkConstants.ATTR_ORIENTATION;
 import static com.android.SdkConstants.ATTR_TRANSITION_SHOW_PATHS;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT_BARRIER;
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE;
+import static com.android.SdkConstants.GRAVITY_VALUE_BOTTOM;
+import static com.android.SdkConstants.GRAVITY_VALUE_TOP;
+import static com.android.SdkConstants.SHERPA_URI;
 
-public class MotionLayoutHandler extends ConstraintLayoutHandler implements NlComponentDelegate {
+public class MotionLayoutHandler extends ViewGroupHandler /* implements NlComponentDelegate */ {
+  private static final boolean DEBUG = false;
+
+  // This is used to efficiently test if they are horizontal or vertical.
+  private static HashSet<String> ourHorizontalBarriers = new HashSet<>(Arrays.asList(GRAVITY_VALUE_TOP, GRAVITY_VALUE_BOTTOM));
 
   @Override
   @NotNull
@@ -62,7 +89,7 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler implements NlCo
       return null;
     }
 
-    return (context) -> new MotionLayoutAssistantPanel(surface, context.getComponent(), context.getDoClose());
+    return (context) -> new MotionLayoutAssistantPanel(surface, context.getComponent());
   }
 
   @NotNull
@@ -78,11 +105,76 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler implements NlCo
     );
   }
 
+  @NotNull
+  @Override
+  public List<Target> createChildTargets(@NotNull SceneComponent parentComponent, @NotNull SceneComponent childComponent) {
+    ImmutableList.Builder<Target> listBuilder = new ImmutableList.Builder<>();
+
+    NlComponent nlComponent = childComponent.getAuthoritativeNlComponent();
+
+    ViewInfo vi = NlComponentHelperKt.getViewInfo(nlComponent);
+    if (vi != null) {
+      if (NlComponentHelperKt.isOrHasSuperclass(nlComponent, CONSTRAINT_LAYOUT_GUIDELINE)) {
+        String orientation = nlComponent.getAttribute(ANDROID_URI, ATTR_ORIENTATION);
+
+        boolean isHorizontal = true;
+        if (orientation != null && orientation.equalsIgnoreCase(ATTR_GUIDELINE_ORIENTATION_VERTICAL)) {
+          isHorizontal = false;
+        }
+
+        listBuilder
+          .add(new GuidelineTarget(isHorizontal))
+          .add(isHorizontal ? new GuidelineAnchorTarget(AnchorTarget.Type.TOP, true)
+                            : new GuidelineAnchorTarget(AnchorTarget.Type.LEFT, false))
+          .add(new GuidelineCycleTarget(isHorizontal));
+        return listBuilder.build();
+      }
+
+      if (NlComponentHelperKt.isOrHasSuperclass(nlComponent, CONSTRAINT_LAYOUT_BARRIER)) {
+        @NonNls String side = nlComponent.getAttribute(SHERPA_URI, ATTR_BARRIER_DIRECTION);
+        boolean isHorizontal = (side == null || ourHorizontalBarriers.contains(side.toLowerCase(Locale.ROOT)));
+        listBuilder
+          .add(new BarrierAnchorTarget(isHorizontal ? AnchorTarget.Type.TOP : AnchorTarget.Type.RIGHT, BarrierTarget.parseDirection(side)))
+          .add(new BarrierTarget(BarrierTarget.parseDirection(side)));
+        return listBuilder.build();
+      }
+    }
+
+    childComponent.setNotchProvider(new ConstraintLayoutComponentNotchProvider());
+
+    listBuilder.add(
+      new ConstraintDragTarget(),
+      new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_TOP),
+      new ConstraintResizeTarget(ResizeBaseTarget.Type.LEFT_BOTTOM),
+      new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_TOP),
+      new ConstraintResizeTarget(ResizeBaseTarget.Type.RIGHT_BOTTOM),
+      new ConstraintAnchorTarget(AnchorTarget.Type.LEFT, false),
+      new ConstraintAnchorTarget(AnchorTarget.Type.TOP, false),
+      new ConstraintAnchorTarget(AnchorTarget.Type.RIGHT, false),
+      new ConstraintAnchorTarget(AnchorTarget.Type.BOTTOM, false)
+    );
+
+    int baseline = NlComponentHelperKt.getBaseline(childComponent.getNlComponent());
+    ViewInfo info = NlComponentHelperKt.getViewInfo(childComponent.getNlComponent());
+    if (baseline <= 0 && info != null) {
+      baseline = info.getBaseLine();
+    }
+    if (baseline > 0) {
+      listBuilder.add(new ConstraintAnchorTarget(AnchorTarget.Type.BASELINE, false));
+    }
+
+    return listBuilder.build();
+  }
+
+  @Override
+  public List<Placeholder> getPlaceholders(@NotNull SceneComponent component) {
+    return ImmutableList.of(new ConstraintPlaceholder(component));
+  }
+
   @Override
   public boolean addPopupMenuActions(@NotNull SceneComponent component, @NotNull List<ViewAction> actions) {
-    MotionLayoutTimelinePanel panel = getTimeline(component.getNlComponent());
-    if (panel == null || panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_START
-      || panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_END) {
+    MotionLayoutInterface panel = getTimeline(component.getNlComponent());
+    if (panel == null || panel.showPopupMenuActions()) {
       super.addPopupMenuActions(component, actions);
     }
 
@@ -107,47 +199,39 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler implements NlCo
                                                       @NotNull AccessoryPanel.Type type,
                                                       @NotNull NlComponent parent,
                                                       @NotNull AccessoryPanelVisibility panelVisibility) {
-    switch (type) {
-      case SOUTH_PANEL: return new MotionLayoutTimelinePanel(surface, parent, panelVisibility);
-      case EAST_PANEL: return new MotionLayoutAttributePanel(parent, panelVisibility);
+    if (true) {
+      switch (type) {
+        case SOUTH_PANEL:
+          if (DEBUG) {
+            Debug.println("SOUTH PANEL");
+          }
+          return new MotionAccessoryPanel(surface, parent, panelVisibility);
+         //return new MotionLayoutTimelinePanel(surface, parent, panelVisibility);
+        case EAST_PANEL:
+          if (DEBUG) {
+            Debug.println("EAST PANEL");
+          }
+          return  new MotionAttributePanel(parent, panelVisibility);
+        //return  new MotionLayoutAttributePanel(parent, panelVisibility);
+      }
+    } else {
+      switch (type) {
+        case SOUTH_PANEL:
+          return new MotionAccessoryPanel(surface, parent, panelVisibility);
+        case EAST_PANEL:
+          return new MotionAccessoryPanel(surface, parent, panelVisibility);
+      }
     }
      throw new IllegalArgumentException("Unsupported type");
   }
 
   @Override
   public Interaction createInteraction(@NotNull ScreenView screenView, @NotNull NlComponent component) {
-    return new MotionLayoutSceneInteraction(screenView, component);
+    return super.createInteraction(screenView, component);
+//    return new MotionLayoutSceneInteraction(screenView, component);
   }
 
-  @NotNull
-  @Override
-  public List<Target> createChildTargets(@NotNull SceneComponent parentComponent, @NotNull SceneComponent childComponent) {
-    MotionLayoutTimelinePanel panel = getTimeline(childComponent.getNlComponent());
-    if (panel != null) {
-      if (panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_PLAY
-          || panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_PAUSE
-          || panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_TRANSITION
-          || panel.getCurrentState() == MotionLayoutTimelinePanel.State.TL_UNKNOWN) {
-        ImmutableList.Builder<Target> listBuilder = new ImmutableList.Builder<>();
-        listBuilder.add(
-          new ConstraintDragTarget()
-        );
-        return listBuilder.build();
-      }
-    }
-    return super.createChildTargets(parentComponent, childComponent);
-  }
-
-  /////////////////////////////////////////////////////////////////////////////////////////////////
-  // Delegation of NlComponent
-  /////////////////////////////////////////////////////////////////////////////////////////////////
-
-  @Override
-  public NlComponentDelegate getNlComponentDelegate() {
-    return this;
-  }
-
-  public static MotionLayoutTimelinePanel getTimeline(@NotNull NlComponent component) {
+  public static MotionLayoutInterface getTimeline(@NotNull NlComponent component) {
     Object property = component.getClientProperty(MotionLayoutTimelinePanel.TIMELINE);
     if (property == null && component.getParent() != null) {
       // need to grab the timeline from the MotionLayout component...
@@ -159,102 +243,5 @@ public class MotionLayoutHandler extends ConstraintLayoutHandler implements NlCo
     }
     return (MotionLayoutTimelinePanel) property;
   }
-
-  @Override
-  public boolean handlesAttribute(@NotNull NlComponent component, @Nullable String namespace, @NotNull String attribute) {
-    MotionLayoutTimelinePanel panel = getTimeline(component);
-    if (panel == null) {
-      return false;
-    }
-    return panel.getNlComponentDelegate().handlesAttribute(component, namespace, attribute);
-  }
-
-  @Override
-  public boolean handlesAttributes(NlComponent component) {
-    MotionLayoutTimelinePanel panel = getTimeline(component);
-    if (panel == null) {
-      return false;
-    }
-    return panel.getNlComponentDelegate().handlesAttributes(component);
-  }
-
-  @Override
-  public boolean handlesApply(ComponentModification modification) {
-    MotionLayoutTimelinePanel panel = getTimeline(modification.getComponent());
-    if (panel == null) {
-      return false;
-    }
-    return panel.getNlComponentDelegate().handlesApply(modification);
-  }
-
-  @Override
-  public boolean handlesCommit(ComponentModification modification) {
-    MotionLayoutTimelinePanel panel = getTimeline(modification.getComponent());
-    if (panel == null) {
-      return false;
-    }
-    return panel.getNlComponentDelegate().handlesCommit(modification);
-  }
-
-  @Override
-  public String getAttribute(@NotNull NlComponent component, @Nullable String namespace, @NotNull String attribute) {
-    MotionLayoutTimelinePanel panel = getTimeline(component);
-    if (panel == null) {
-      return null;
-    }
-    return panel.getNlComponentDelegate().getAttribute(component, namespace, attribute);
-  }
-
-  @Override
-  public List<AttributeSnapshot> getAttributes(NlComponent component) {
-    MotionLayoutTimelinePanel panel = getTimeline(component);
-    if (panel == null) {
-      return Collections.emptyList();
-    }
-    return panel.getNlComponentDelegate().getAttributes(component);
-  }
-
-  @Override
-  public void apply(ComponentModification modification) {
-    MotionLayoutTimelinePanel panel = getTimeline(modification.getComponent());
-    if (panel != null) {
-      panel.getNlComponentDelegate().apply(modification);
-    }
-  }
-
-  @Override
-  public void commit(ComponentModification modification) {
-    MotionLayoutTimelinePanel panel = getTimeline(modification.getComponent());
-    if (panel != null) {
-      panel.getNlComponentDelegate().commit(modification);
-    }
-  }
-
-  @Override
-  public void setAttribute(NlComponent component, String namespace, String attribute, String value) {
-    ComponentModification modification = new ComponentModification(component, "Set Attribute " + attribute);
-    MotionLayoutTimelinePanel panel = getTimeline(modification.getComponent());
-    if (panel != null) {
-      modification.setAttribute(namespace, attribute, value);
-      panel.getNlComponentDelegate().commit(modification);
-    }
-  }
-
-  @Override
-  public void clearCaches() {
-    // nothing here
-  }
-
-  @Override
-  public void willRemoveChild(@NotNull NlComponent component) {
-    // nmothing here
-  }
-
-  @Override
-  public boolean commitToMotionScene(Pair<String, String> key) {
-    return false;
-  }
-
-  /////////////////////////////////////////////////////////////////////////////////////////////////
 
 }

@@ -17,6 +17,7 @@
 package com.android.tools.idea.npw.assetstudio.assets;
 
 import com.android.SdkConstants;
+import com.android.annotations.concurrency.Slow;
 import com.android.tools.pixelprobe.Image;
 import com.android.tools.pixelprobe.Layer;
 import com.android.tools.pixelprobe.PixelProbe;
@@ -24,17 +25,27 @@ import com.android.tools.pixelprobe.ShapeInfo;
 import com.android.tools.pixelprobe.decoder.Decoder;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColorUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-import java.awt.geom.*;
-import java.io.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Paint;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Area;
+import java.awt.geom.Path2D;
+import java.awt.geom.PathIterator;
+import java.awt.geom.Rectangle2D;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Loads a layered image from a file and converts it to a Vector Drawable XML representation.
@@ -56,6 +67,7 @@ class LayeredImageConverter {
    *
    * @throws IOException If an error occur while parsing the file
    */
+  @Slow
   @NotNull
   String toVectorDrawableXml(@NotNull File path) throws IOException {
     FileInputStream in = new FileInputStream(path);

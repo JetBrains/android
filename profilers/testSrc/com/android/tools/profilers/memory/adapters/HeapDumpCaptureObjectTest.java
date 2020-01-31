@@ -15,10 +15,20 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
+import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetWithName;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import com.android.testutils.TestUtils;
 import com.android.tools.adtui.model.FakeTimer;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.perflib.heap.SnapshotBuilder;
-import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
@@ -26,34 +36,42 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
+import com.android.tools.profilers.memory.adapters.instancefilters.ActivityFragmentLeakInstanceFilter;
+import com.android.tools.profilers.memory.adapters.instancefilters.CaptureObjectInstanceFilter;
+import com.google.common.truth.Truth;
+import java.io.File;
+import java.io.FileInputStream;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-
-import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetWithName;
-import static org.junit.Assert.*;
-
 public class HeapDumpCaptureObjectTest {
 
+  @NotNull private final FakeTimer myTimer = new FakeTimer();
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
+  @NotNull private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
 
   @NotNull private final FakeIdeProfilerServices myIdeProfilerServices = new FakeIdeProfilerServices();
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("HeapDumpCaptureObjectTest", myService);
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("HeapDumpCaptureObjectTest", myTransportService, myService);
 
   private MemoryProfilerStage myStage;
 
   @Before
   public void setUp() {
-    myStage = new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, new FakeTimer()),
+    myStage = new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer),
                                       new FakeCaptureObjectLoader());
   }
 
@@ -66,10 +84,10 @@ public class HeapDumpCaptureObjectTest {
   public void testHeapDumpObjectsGeneration() throws Exception {
     long startTimeNs = 3;
     long endTimeNs = 8;
-    MemoryProfiler.HeapDumpInfo dumpInfo =
-      MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
+    HeapDumpInfo dumpInfo =
+      HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     HeapDumpCaptureObject capture =
-      new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA,
+      new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA,
                                 dumpInfo, null, myIdeProfilerServices.getFeatureTracker(), myStage);
 
     // Verify values associated with the HeapDumpInfo object.
@@ -78,16 +96,6 @@ public class HeapDumpCaptureObjectTest {
     assertFalse(capture.isDoneLoading());
     assertFalse(capture.isError());
 
-    final CountDownLatch loadLatch = new CountDownLatch(1);
-    final CountDownLatch doneLatch = new CountDownLatch(1);
-    myService.setExplicitDumpDataStatus(MemoryProfiler.DumpDataResponse.Status.NOT_READY);
-    new Thread(() -> {
-      loadLatch.countDown();
-      capture.load(null, null);
-      doneLatch.countDown();
-    }).start();
-
-    loadLatch.await();
     // Load in a simple Snapshot and verify the MemoryObject hierarchy:
     // - 1 holds reference to 2
     // - single root object in default heap
@@ -95,10 +103,8 @@ public class HeapDumpCaptureObjectTest {
       .addReferences(1, 2)
       .addRoot(1);
     byte[] buffer = snapshotBuilder.getByteBuffer();
-    myService.setExplicitSnapshotBuffer(buffer);
-    myService.setExplicitDumpDataStatus(MemoryProfiler.DumpDataResponse.Status.SUCCESS);
-    doneLatch.await();
-
+    myTransportService.addFile(Long.toString(startTimeNs), ByteString.copyFrom(buffer));
+    capture.load(null, null);
     assertTrue(capture.isDoneLoading());
     assertFalse(capture.isError());
 
@@ -106,11 +112,11 @@ public class HeapDumpCaptureObjectTest {
     assertEquals(1, heaps.size()); // default heap should not show up if it doesn't contain anything
 
     // "default" heap only contains roots, no ClassObjects
-    HeapSet defaultHeap = heaps.stream().filter(heap -> "default" .equals(heap.getName())).findFirst().orElse(null);
+    HeapSet defaultHeap = heaps.stream().filter(heap -> "default".equals(heap.getName())).findFirst().orElse(null);
     assertNull(defaultHeap);
 
     // "testHeap" contains the reference, softreference classes, plus a unique class for each instance we created (2).
-    HeapSet testHeap = heaps.stream().filter(heap -> "testHeap" .equals(heap.getName())).findFirst().orElse(null);
+    HeapSet testHeap = heaps.stream().filter(heap -> "testHeap".equals(heap.getName())).findFirst().orElse(null);
     assertEquals(testHeap.getName(), "testHeap");
     assertEquals(6, testHeap.getInstancesCount());
 
@@ -120,9 +126,9 @@ public class HeapDumpCaptureObjectTest {
     List<ClassifierSet> classSets = classClassifier.getFilteredClassifierSets();
     assertEquals(3, classSets.size());
     assertTrue(classSets.stream().allMatch(classifier -> classifier instanceof ClassSet));
-    assertTrue(classSets.stream().anyMatch(classifier -> "java.lang.Class" .equals(((ClassSet)classifier).getClassEntry().getClassName())));
-    assertTrue(classSets.stream().anyMatch(classifier -> "Class0" .equals(((ClassSet)classifier).getClassEntry().getClassName())));
-    assertTrue(classSets.stream().anyMatch(classifier -> "Class1" .equals(((ClassSet)classifier).getClassEntry().getClassName())));
+    assertTrue(classSets.stream().anyMatch(classifier -> "java.lang.Class".equals(((ClassSet)classifier).getClassEntry().getClassName())));
+    assertTrue(classSets.stream().anyMatch(classifier -> "Class0".equals(((ClassSet)classifier).getClassEntry().getClassName())));
+    assertTrue(classSets.stream().anyMatch(classifier -> "Class1".equals(((ClassSet)classifier).getClassEntry().getClassName())));
 
     InstanceObject instance0 = findChildClassSetWithName(classClassifier, "Class0").getInstancesStream().findFirst().orElse(null);
     InstanceObject instance1 = findChildClassSetWithName(classClassifier, "Class1").getInstancesStream().findFirst().orElse(null);
@@ -139,10 +145,11 @@ public class HeapDumpCaptureObjectTest {
   public void testDefaultHeapShowsUpWhenItIsNonEmpty() throws Exception {
     long startTimeNs = 3;
     long endTimeNs = 8;
-    MemoryProfiler.HeapDumpInfo dumpInfo =
-      MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
+    HeapDumpInfo dumpInfo =
+      HeapDumpInfo.newBuilder().setStartTime(startTimeNs).setEndTime(endTimeNs).build();
     HeapDumpCaptureObject capture =
-      new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA, dumpInfo, null,
+      new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA, dumpInfo,
+                                null,
                                 myIdeProfilerServices.getFeatureTracker(), myStage);
 
     // Verify values associated with the HeapDumpInfo object.
@@ -151,16 +158,6 @@ public class HeapDumpCaptureObjectTest {
     assertFalse(capture.isDoneLoading());
     assertFalse(capture.isError());
 
-    final CountDownLatch loadLatch = new CountDownLatch(1);
-    final CountDownLatch doneLatch = new CountDownLatch(1);
-    myService.setExplicitDumpDataStatus(MemoryProfiler.DumpDataResponse.Status.NOT_READY);
-    new Thread(() -> {
-      loadLatch.countDown();
-      capture.load(null, null);
-      doneLatch.countDown();
-    }).start();
-
-    loadLatch.await();
     // Load in a simple Snapshot and verify the MemoryObject hierarchy:
     // - 1 holds reference to 2
     // - single root object in default heap
@@ -168,9 +165,8 @@ public class HeapDumpCaptureObjectTest {
       .addReferences(1, 2).setDefaultHeapInstanceCount(1)
       .addRoot(1);
     byte[] buffer = snapshotBuilder.getByteBuffer();
-    myService.setExplicitSnapshotBuffer(buffer);
-    myService.setExplicitDumpDataStatus(MemoryProfiler.DumpDataResponse.Status.SUCCESS);
-    doneLatch.await();
+    myTransportService.addFile(Long.toString(startTimeNs), ByteString.copyFrom(buffer));
+    capture.load(null, null);
 
     assertTrue(capture.isDoneLoading());
     assertFalse(capture.isError());
@@ -178,26 +174,71 @@ public class HeapDumpCaptureObjectTest {
     Collection<HeapSet> heaps = capture.getHeapSets();
     assertEquals(2, heaps.size());
 
-    HeapSet defaultHeap = heaps.stream().filter(heap -> "default" .equals(heap.getName())).findFirst().orElse(null);
+    HeapSet defaultHeap = heaps.stream().filter(heap -> "default".equals(heap.getName())).findFirst().orElse(null);
     assertNotNull(defaultHeap);
   }
 
   @Test
   public void testLoadingFailure() throws Exception {
-    MemoryProfiler.HeapDumpInfo dumpInfo = MemoryProfiler.HeapDumpInfo.newBuilder().setStartTime(3).setEndTime(8).build();
+    HeapDumpInfo dumpInfo = HeapDumpInfo.newBuilder().setStartTime(3).setEndTime(8).build();
     HeapDumpCaptureObject capture =
-      new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA, dumpInfo, null,
+      new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA, dumpInfo,
+                                null,
                                 myIdeProfilerServices.getFeatureTracker(), myStage);
 
     assertFalse(capture.isDoneLoading());
     assertFalse(capture.isError());
-
-    myService.setExplicitDumpDataStatus(MemoryProfiler.DumpDataResponse.Status.FAILURE_UNKNOWN);
     capture.load(null, null);
 
     assertTrue(capture.isDoneLoading());
     assertTrue(capture.isError());
     assertEquals(0, capture.getHeapSets().size());
+  }
+
+  @Test
+  public void testHeapDumpActivityLeak() throws Exception {
+    HeapDumpInfo dumpInfo = HeapDumpInfo.newBuilder().setStartTime(0).setEndTime(1).build();
+    HeapDumpCaptureObject capture =
+      new HeapDumpCaptureObject(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA,
+                                dumpInfo, null, myIdeProfilerServices.getFeatureTracker(), myStage);
+
+    File hprof = TestUtils.getWorkspaceFile("tools/adt/idea/profilers/testData/hprofs/displayingbitmaps_leakedActivity.hprof");
+    FileInputStream inputStream = new FileInputStream(hprof);
+    MappedByteBuffer buffer = inputStream.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, inputStream.getChannel().size());
+    buffer.load();
+
+    myTransportService.addFile(Long.toString(0), ByteString.copyFrom(buffer));
+    capture.load(null, null);
+    assertTrue(capture.isDoneLoading());
+    assertFalse(capture.isError());
+
+    long allInstanceCount = capture.getInstances().count();
+    Truth.assertThat(allInstanceCount).isGreaterThan(7L);
+    Set<CaptureObjectInstanceFilter> filters = capture.getSupportedInstanceFilters();
+    Optional<CaptureObjectInstanceFilter> leakFilter =
+      filters.stream().filter(filter -> filter instanceof ActivityFragmentLeakInstanceFilter).findAny();
+    Truth.assertThat(leakFilter.isPresent()).isTrue();
+
+    CountDownLatch addFilterLatch = new CountDownLatch(1);
+    capture.addInstanceFilter(leakFilter.get(), Runnable::run);
+    // Wait for the filter to finish running on the off-main-thread executor.
+    capture.getInstanceFilterExecutor().submit(addFilterLatch::countDown);
+    addFilterLatch.await();
+    List<InstanceObject> filtredInstances = capture.getInstances().collect(Collectors.toList());
+    Truth.assertThat(filtredInstances).hasSize(7);
+    Truth.assertThat(filtredInstances.stream().filter(
+      instance -> instance.getClassEntry().getSimpleClassName().equals("ImageDetailActivity")).count()).isEqualTo(1);
+    Truth.assertThat(filtredInstances.stream().filter(
+      instance -> instance.getClassEntry().getSimpleClassName().equals("ImageCache$RetainFragment")).count()).isEqualTo(1);
+    Truth.assertThat(filtredInstances.stream().filter(
+      instance -> instance.getClassEntry().getSimpleClassName().equals("ImageDetailFragment")).count()).isEqualTo(5);
+
+    CountDownLatch removeFilterLatch = new CountDownLatch(1);
+    capture.removeInstanceFilter(leakFilter.get(), Runnable::run);
+    // Wait for the filter to finish running on the off-main-thread executor.
+    capture.getInstanceFilterExecutor().submit(removeFilterLatch::countDown);
+    removeFilterLatch.await();
+    Truth.assertThat(capture.getInstances().count()).isEqualTo(allInstanceCount);
   }
 
   private static void verifyInstance(@NotNull InstanceObject instance,

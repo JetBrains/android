@@ -34,6 +34,7 @@ import com.android.tools.idea.naveditor.actions.DeepLinkToolbarAction
 import com.android.tools.idea.naveditor.actions.EditExistingAction
 import com.android.tools.idea.naveditor.actions.NestedGraphToolbarAction
 import com.android.tools.idea.naveditor.actions.ReturnToSourceAction
+import com.android.tools.idea.naveditor.actions.ScrollToDestinationAction
 import com.android.tools.idea.naveditor.actions.StartDestinationAction
 import com.android.tools.idea.naveditor.actions.StartDestinationToolbarAction
 import com.android.tools.idea.naveditor.actions.ToDestinationAction
@@ -149,6 +150,7 @@ open class NavActionManager(surface: NavDesignSurface) : ActionManager<NavDesign
     group.add(createAddActionGroup(component))
     group.add(createNestedGraphGroup(listOf(component)))
     group.add(StartDestinationAction(component))
+    group.add(ScrollToDestinationAction(mySurface, component))
 
     group.addSeparator()
     addCutCopyPasteDeleteGroup(group)

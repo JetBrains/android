@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.compiler.artifact;
 
 import com.intellij.facet.FacetModel;
@@ -60,7 +59,7 @@ public class AndroidApplicationArtifactType extends ArtifactType {
   @NotNull
   @Override
   public List<? extends ArtifactTemplate> getNewArtifactTemplates(@NotNull PackagingElementResolvingContext context) {
-    final List<AndroidFacet> facets = new ArrayList<>();
+    final List<AndroidFacet> facets = new ArrayList<AndroidFacet>();
 
     for (Module module : context.getModulesProvider().getModules()) {
       final FacetModel facetModel = context.getModulesProvider().getFacetModel(module);

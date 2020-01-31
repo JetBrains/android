@@ -35,7 +35,8 @@ import java.util.Set;
 import static com.android.tools.idea.gradle.util.GradleUtil.getNativeAndroidProject;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.executeProjectChangeAction;
 
-final class ProjectStructureCleanupStep extends ProjectCleanupStep {
+public class ProjectStructureCleanupStep extends ProjectCleanupStep {
+
   @Override
   public void cleanUpProject(@NotNull Project project,
                              @NotNull IdeModifiableModelsProvider ideModifiableModelsProvider,

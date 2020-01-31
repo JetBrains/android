@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.tests.gui.gradle;
 
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.backupGlobalGradlePropertiesFile;
+import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.restoreGlobalGradlePropertiesFile;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.File;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.Nullable;
 import org.junit.After;
 import org.junit.Before;
@@ -28,22 +32,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.backupGlobalGradlePropertiesFile;
-import static com.android.tools.idea.tests.gui.gradle.UserGradlePropertiesUtil.restoreGlobalGradlePropertiesFile;
-
 @RunWith(GuiTestRemoteRunner.class)
 public class ModifyMinSdkAndSyncTest {
   @Nullable private File myBackupProperties;
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
-
-  @Before
-  public void skipSourceGenerationOnSync() {
-    GradleExperimentalSettings.getInstance().SKIP_SOURCE_GEN_ON_PROJECT_SYNC = true;
-  }
 
   /**
    * Generate a backup copy of user gradle.properties since some tests in this class make changes to the proxy that could

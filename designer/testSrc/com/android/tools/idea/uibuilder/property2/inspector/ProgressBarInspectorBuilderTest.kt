@@ -51,7 +51,7 @@ class ProgressBarInspectorBuilderTest {
   fun testNotApplicableWhenRequiredPropertyIsMissing() {
     val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
     val builder = ProgressBarInspectorBuilder(util.editorProvider)
-    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
+    val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     for (missing in ProgressBarInspectorBuilder.REQUIRED_PROPERTIES) {
       addRequiredProperties(util)
       util.removeProperty(ANDROID_URI, missing)
@@ -64,10 +64,10 @@ class ProgressBarInspectorBuilderTest {
   fun testAvailableWithRequiredPropertiesPresent() {
     val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
     val builder = ProgressBarInspectorBuilder(util.editorProvider)
-    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
+    val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
-    util.checkTitle(0, "Common Attributes")
+    util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, "", ATTR_STYLE)
     util.checkEditor(2, ANDROID_URI, ATTR_PROGRESS_DRAWABLE)
     util.checkEditor(3, ANDROID_URI, ATTR_INDETERMINATE_DRAWABLE)
@@ -81,11 +81,11 @@ class ProgressBarInspectorBuilderTest {
   fun testOptionalPropertiesPresent() {
     val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
     val builder = ProgressBarInspectorBuilder(util.editorProvider)
-    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
+    val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     addOptionalProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
-    util.checkTitle(0, "Common Attributes")
+    util.checkTitle(0, InspectorSection.COMMON.title)
     util.checkEditor(1, "", ATTR_STYLE)
     util.checkEditor(2, ANDROID_URI, ATTR_PROGRESS_DRAWABLE)
     util.checkEditor(3, ANDROID_URI, ATTR_INDETERMINATE_DRAWABLE)
@@ -101,7 +101,7 @@ class ProgressBarInspectorBuilderTest {
   fun testInitialHiddenLines() {
     val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
     val builder = ProgressBarInspectorBuilder(util.editorProvider)
-    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
+    val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     addOptionalProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }
@@ -112,7 +112,7 @@ class ProgressBarInspectorBuilderTest {
   fun testInitialHiddenLinesWithIndeterminateOn() {
     val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
     val builder = ProgressBarInspectorBuilder(util.editorProvider)
-    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
+    val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     addOptionalProperties(util)
     util.properties[ANDROID_URI, ATTR_INDETERMINATE].value = VALUE_TRUE
@@ -125,7 +125,7 @@ class ProgressBarInspectorBuilderTest {
   fun testInitialHiddenLinesWithIndeterminateOff() {
     val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
     val builder = ProgressBarInspectorBuilder(util.editorProvider)
-    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
+    val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     addOptionalProperties(util)
     util.properties[ANDROID_URI, ATTR_INDETERMINATE].value = VALUE_FALSE
@@ -139,7 +139,7 @@ class ProgressBarInspectorBuilderTest {
     // setup
     val util = InspectorTestUtil(projectRule, PROGRESS_BAR)
     val builder = ProgressBarInspectorBuilder(util.editorProvider)
-    val generator = BasicAttributesInspectorBuilder.TitleGenerator(util.inspector)
+    val generator = CommonAttributesInspectorBuilder.TitleGenerator(util.inspector)
     addRequiredProperties(util)
     addOptionalProperties(util)
     builder.attachToInspector(util.inspector, util.properties) { generator.title }

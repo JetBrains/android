@@ -20,8 +20,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.CharsetToolkit;
 import com.intellij.util.io.URLUtil;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;

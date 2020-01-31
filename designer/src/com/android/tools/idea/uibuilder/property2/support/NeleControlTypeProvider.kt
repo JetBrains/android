@@ -34,7 +34,12 @@ open class NeleControlTypeProvider(val enumSupportProvider: EnumSupportProvider<
         ControlType.FLAG_EDITOR
 
       enumSupportProvider(property) != null ->
-        ControlType.COMBO_BOX
+        when (property.type) {
+          NelePropertyType.DESTINATION,
+          NelePropertyType.CLASS_NAME,
+          NelePropertyType.NAVIGATION -> ControlType.DROPDOWN
+          else -> ControlType.COMBO_BOX
+        }
 
       property.type == NelePropertyType.THREE_STATE_BOOLEAN ->
         ControlType.THREE_STATE_BOOLEAN

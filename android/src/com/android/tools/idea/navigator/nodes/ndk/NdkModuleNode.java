@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.navigator.nodes.ndk;
 
+import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
+import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
+import static com.intellij.openapi.util.text.StringUtil.trimEnd;
+import static com.intellij.openapi.util.text.StringUtil.trimStart;
+
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.NativeArtifact;
 import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkVariant;
+import com.android.tools.idea.navigator.AndroidProjectViewPane;
 import com.android.tools.idea.navigator.nodes.AndroidViewModuleNode;
 import com.android.tools.idea.navigator.nodes.ndk.includes.utils.LexicalIncludePaths;
 import com.android.tools.idea.navigator.nodes.ndk.includes.view.NativeIncludes;
@@ -33,27 +39,25 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
-import static com.android.tools.idea.flags.StudioFlags.ENABLE_ENHANCED_NATIVE_HEADER_SUPPORT;
-import static com.android.tools.idea.gradle.util.GradleUtil.getModuleIcon;
-import static com.intellij.openapi.util.text.StringUtil.trimEnd;
-import static com.intellij.openapi.util.text.StringUtil.trimStart;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class NdkModuleNode extends AndroidViewModuleNode {
-  public NdkModuleNode(@NotNull Project project, @NotNull Module value, @NotNull ViewSettings settings) {
-    super(project, value, settings);
+  public NdkModuleNode(
+    @NotNull Project project,
+    @NotNull Module value,
+    @NotNull AndroidProjectViewPane projectViewPane,
+    @NotNull ViewSettings settings) {
+    super(project, value, projectViewPane, settings);
   }
 
   @Override
   @NotNull
-  public Collection<AbstractTreeNode<?>> getChildren() {
+  protected Collection<AbstractTreeNode<?>> getModuleChildren() {
     Module module = getValue();
     if (module == null) {
       return Collections.emptyList();

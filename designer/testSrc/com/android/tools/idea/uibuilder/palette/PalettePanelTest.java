@@ -74,6 +74,7 @@ import com.intellij.openapi.wm.IdeFrame;
 import com.intellij.openapi.wm.WindowManager;
 import com.intellij.openapi.wm.ex.StatusBarEx;
 import com.intellij.openapi.wm.ex.WindowManagerEx;
+import com.intellij.testFramework.PlatformTestUtil;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -194,6 +195,7 @@ public class PalettePanelTest extends LayoutTestCase {
   public void testDownloadClick() {
     setUpLayoutDesignSurface();
     myPanel.setFilter("floating");
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
 
     ItemList itemList = myPanel.getItemList();
     int x = itemList.getWidth() - 10;
@@ -229,6 +231,8 @@ public class PalettePanelTest extends LayoutTestCase {
     myFixture.addFileToProject("src/a/b/MyWebView.java", widget);
     setUpLayoutDesignSurface();
     myPanel.setFilter("%");
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
+
     assertThat(myPanel.getCategoryList().getItemsCount()).isEqualTo(1);
     assertThat(myPanel.getItemList().getItemsCount()).isEqualTo(0);
   }
@@ -307,7 +311,7 @@ public class PalettePanelTest extends LayoutTestCase {
       JList<Palette.Item> list = myPanel.getItemList();
       TransferHandler handler = list.getTransferHandler();
       assertFalse(imitateDragAndDrop(handler, list));
-      verify(statusBar).notifyProgressByBalloon(eq(MessageType.WARNING), eq("Dragging from the Palette is not available while indices are updating."), isNull(), isNull());
+      verify(statusBar).notifyProgressByBalloon(eq(MessageType.WARNING), eq("Dragging from the Palette is not available while indices are updating."));
     }
     finally {
       DumbServiceImpl.getInstance(getProject()).setDumb(false);
@@ -499,6 +503,7 @@ public class PalettePanelTest extends LayoutTestCase {
     catch (Exception e) {
       fail(e.getMessage());
     }
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
     return surface;
   }
 

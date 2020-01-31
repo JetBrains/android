@@ -3,7 +3,7 @@
   <grid id="27dc6" binding="myPanel" layout-manager="GridLayoutManager" row-count="7" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="5" right="0"/>
     <constraints>
-      <xy x="20" y="20" width="288" height="400"/>
+      <xy x="20" y="20" width="323" height="400"/>
     </constraints>
     <properties/>
     <border type="none"/>
@@ -70,17 +70,8 @@
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <labelFor value="94d5"/>
           <text value="Resource &amp;value:"/>
         </properties>
-      </component>
-      <component id="94d5" class="javax.swing.JTextField" binding="myValueField">
-        <constraints>
-          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-            <preferred-size width="150" height="-1"/>
-          </grid>
-        </constraints>
-        <properties/>
       </component>
       <component id="bb5b8" class="javax.swing.JComboBox" binding="myFileNameCombo">
         <constraints>
@@ -105,6 +96,18 @@
         </constraints>
         <properties/>
       </component>
+      <grid id="d5d05" binding="myValueFieldContainer" custom-create="true" layout-manager="BorderLayout" hgap="0" vgap="0">
+        <constraints>
+          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false">
+            <preferred-size width="150" height="-1"/>
+          </grid>
+        </constraints>
+        <properties>
+          <enabled value="true"/>
+        </properties>
+        <border type="none"/>
+        <children/>
+      </grid>
     </children>
   </grid>
 </form>

@@ -87,7 +87,7 @@ class TargetModulesPanel extends ToolWindowPanel {
 
     myTreeBuilder = new TargetModulesTreeBuilder(myTree, treeModel, context.getUiSettings());
 
-    JScrollPane scrollPane = setUp(myTreeBuilder);
+    JScrollPane scrollPane = setUp(myTreeBuilder, "targetModules");
     add(scrollPane, BorderLayout.CENTER);
 
     myHyperlinkSupport = new NodeHyperlinkSupport<>(myTree, TargetAndroidModuleNode.class, myContext, false);
@@ -120,7 +120,7 @@ class TargetModulesPanel extends ToolWindowPanel {
     }
   }
 
-  void displayTargetModules(@NotNull List<AbstractDependencyNode<? extends PsBaseDependency>> dependencyNodes) {
+  void displayTargetModules(@NotNull List<AbstractDependencyNode<?, ? extends PsBaseDependency>> dependencyNodes) {
     myTreeBuilder.displayTargetModules(dependencyNodes);
   }
 

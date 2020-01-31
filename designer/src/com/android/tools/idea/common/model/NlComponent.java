@@ -15,14 +15,19 @@
  */
 package com.android.tools.idea.common.model;
 
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_ID;
+import static com.android.SdkConstants.NEW_ID_PREFIX;
+import static com.android.SdkConstants.XMLNS;
+import static com.android.SdkConstants.XMLNS_PREFIX;
+import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
+
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceHelper;
-import com.android.tools.idea.uibuilder.model.AttributesHelperKt;
-import com.android.tools.idea.uibuilder.model.QualifiedName;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -41,17 +46,21 @@ import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Stream;
+import javax.swing.Icon;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import java.util.*;
-import java.util.stream.Stream;
-
-import static com.android.SdkConstants.*;
 
 /**
  * Represents a component editable in the UI builder. A component has properties,
@@ -96,6 +105,8 @@ public class NlComponent implements NlAttributesHolder {
     return myDelegate;
   }
 
+  /** @Deprecated Please dont use this anymore. */
+  // TODO(b/140254908) Remove the NlComponentDelegate completely.
   public void setDelegate(@Nullable NlComponentDelegate delegate) {
     myDelegate = delegate;
   }
@@ -322,26 +333,13 @@ public class NlComponent implements NlAttributesHolder {
   public String getId() {
     String id = myCurrentTransaction != null ? myCurrentTransaction.getAndroidAttribute(ATTR_ID) : resolveAttribute(ANDROID_URI, ATTR_ID);
 
-    return stripId(id);
+    return id != null ? stripPrefixFromId(id) : null;
   }
 
   public void clearTransaction() {
     if (myCurrentTransaction != null) {
       myCurrentTransaction.finishTransaction();
     }
-  }
-
-  @Nullable
-  public static String stripId(@Nullable String id) {
-    if (id != null) {
-      if (id.startsWith(NEW_ID_PREFIX)) {
-        return id.substring(NEW_ID_PREFIX.length());
-      }
-      else if (id.startsWith(ID_PREFIX)) {
-        return id.substring(ID_PREFIX.length());
-      }
-    }
-    return null;
   }
 
   @Nullable
@@ -965,5 +963,8 @@ public class NlComponent implements NlAttributesHolder {
     public void postCreateFromTransferrable(DnDTransferComponent dndComponent) {}
 
     public abstract boolean maybeHandleDeletion(@NotNull Collection<NlComponent> children);
+
+    @NotNull
+    public abstract Icon getIcon();
   }
 }

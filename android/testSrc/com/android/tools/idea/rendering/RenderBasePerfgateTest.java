@@ -23,9 +23,12 @@ import static com.android.tools.idea.rendering.PerfgateRenderUtil.sRenderTimeBen
 import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.mock;
 
+import com.android.flags.junit.RestoreFlagRule;
 import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
 import com.android.tools.perflogger.Metric;
 import com.android.tools.perflogger.Metric.MetricSample;
 import com.google.common.util.concurrent.Futures;
@@ -73,6 +76,7 @@ public class RenderBasePerfgateTest extends AndroidTestCase {
     try {
       RenderTestUtil.afterRenderTestCase();
     } finally {
+      FrameworkResourceRepositoryManager.getInstance().clearCache();
       super.tearDown();
     }
   }

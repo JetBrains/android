@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -49,13 +50,14 @@ abstract public class SceneManager implements Disposable {
   @SuppressWarnings("NullableProblems")
   @NotNull private SceneView mySceneView;
   @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
-  public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface, @NotNull RenderSettings renderSettings) {
+
+  public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface, @NotNull Supplier<RenderSettings> renderSettingsProvider) {
     myModel = model;
     myDesignSurface = surface;
     Disposer.register(model, this);
 
-    myScene = new Scene(this, myDesignSurface, renderSettings);
-    }
+    myScene = new Scene(this, myDesignSurface, renderSettingsProvider.get().getUseLiveRendering());
+  }
 
   /**
    * Create the SceneView
@@ -241,6 +243,9 @@ abstract public class SceneManager implements Disposable {
   public abstract CompletableFuture<Void> requestRender();
 
   public void requestLayoutAndRender(boolean animate) {}
+
+  @NotNull
+  public abstract CompletableFuture<Void> requestLayout(boolean animate);
 
   public abstract void layout(boolean animate);
 

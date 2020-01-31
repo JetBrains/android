@@ -15,32 +15,24 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
-import com.android.tools.idea.structure.dialog.SidePanel
+import com.android.tools.idea.tests.gui.framework.DialogContainerFixture
 import com.android.tools.idea.tests.gui.framework.GuiTests
-import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
-import com.android.tools.idea.tests.gui.framework.find
 import com.android.tools.idea.tests.gui.framework.findByType
-import com.android.tools.idea.tests.gui.framework.finder
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import org.fest.swing.core.Robot
-import org.fest.swing.fixture.ContainerFixture
-import org.fest.swing.fixture.JListFixture
 import org.fest.swing.fixture.JTextComponentFixture
-import org.fest.swing.timing.Wait
-import java.awt.Container
-import java.util.Arrays
 import javax.swing.JDialog
 import javax.swing.JTextField
 
 class InputNameDialogFixture(
-    override val container: JDialog,
-    override val ideFrameFixture: IdeFrameFixture,
-    private val okWait: () -> Unit
-) : IdeFrameContainerFixture, ContainerFixture<JDialog> {
+  val container: JDialog,
+  val robot: Robot,
+  private val okWait: () -> Unit
+) : DialogContainerFixture {
 
   override fun target(): JDialog = container
-  override fun robot(): Robot = ideFrameFixture.robot()
+  override fun robot(): Robot = robot
+  override fun maybeRestoreLostFocus()= Unit
 
   fun type(text: String) {
     JTextComponentFixture(robot(), robot ().finder().findByType<JTextField>(container)).setText(text)
@@ -51,9 +43,9 @@ class InputNameDialogFixture(
   fun clickCancel() = clickCancelAndWaitDialogDisappear()
 
   companion object {
-    fun find(ideFrameFixture: IdeFrameFixture, title: String, okWait: () -> Unit): InputNameDialogFixture {
-      val dialog = GuiTests.waitUntilShowing(ideFrameFixture.robot(), Matchers.byTitle(JDialog::class.java, title))
-      return InputNameDialogFixture(dialog, ideFrameFixture, okWait)
+    fun find(robot: Robot, title: String, okWait: () -> Unit): InputNameDialogFixture {
+      val dialog = GuiTests.waitUntilShowing(robot, Matchers.byTitle(JDialog::class.java, title))
+      return InputNameDialogFixture(dialog, robot, okWait)
     }
   }
 }

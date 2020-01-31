@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.android.SdkConstants;
@@ -84,7 +83,7 @@ public class AndroidManifestMergingBuilder
       return false;
     }
     File manifestFile = null;
-    final List<File> libManifests = new ArrayList<>();
+    final List<File> libManifests = new ArrayList<File>();
     final List<AndroidManifestMergingTarget.MyRootDescriptor> roots =
       context.getProjectDescriptor().getBuildRootIndex().getTargetRoots(target, context);
 
@@ -110,7 +109,7 @@ public class AndroidManifestMergingBuilder
                                                  "[" + module.getName() + "] Cannot perform manifest merging"));
       return false;
     }
-    final List<String> srcPaths = new ArrayList<>();
+    final List<String> srcPaths = new ArrayList<String>();
     srcPaths.add(manifestFile.getPath());
 
     for (File libManifest : libManifests) {

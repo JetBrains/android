@@ -15,24 +15,26 @@
  */
 package com.android.tools.idea.layoutinspector.common
 
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.rendering.api.ResourceReference
+import com.android.resources.ResourceType
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Resource
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.StringEntry
 
-class StringTable(strings: List<StringEntry>, private val moduleNamespaceId: Int) {
+class StringTable(strings: List<StringEntry>) {
   private val table = strings.associateBy({ it.id }, { it.str })
 
   operator fun get(id: Int): String = table[id].orEmpty()
 
-  operator fun get(resource: Resource?): String {
+  operator fun get(resource: Resource?): ResourceReference? {
     if (resource == null) {
-      return ""
+      return null
     }
-    val type = table[resource.type] ?: return ""
-    val namespace = table[resource.namespace] ?: return ""
-    val name = table[resource.name] ?: return ""
-    if (resource.namespace == moduleNamespaceId || namespace.isEmpty()) {
-      return "@$type/$name"
-    }
-    return "@$namespace:$type/$name"
+    val type = table[resource.type] ?: return null
+    val namespace = table[resource.namespace] ?: return null
+    val name = table[resource.name] ?: return null
+    val resNamespace = ResourceNamespace.fromPackageName(namespace)
+    val resType = ResourceType.fromFolderName(type) ?: return null
+    return ResourceReference(resNamespace, resType, name)
   }
 }

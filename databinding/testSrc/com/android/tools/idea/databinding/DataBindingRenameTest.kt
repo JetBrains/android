@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.databinding
 
-import com.android.ide.common.blame.Message
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_ANDROID_X
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_DATA_BINDING_SUPPORT
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
@@ -24,7 +23,6 @@ import com.google.common.collect.Lists
 import com.intellij.ide.DataManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.refactoring.actions.RenameElementAction
@@ -71,12 +69,8 @@ class DataBindingRenameTest(private val dataBindingMode: DataBindingMode) {
                          else -> PROJECT_WITH_DATA_BINDING_ANDROID_X
                        })
 
-    // Temporary fix until test model can detect dependencies properly.
-    val assembleDebug = myProjectRule.invokeTasks("assembleDebug")
-    assertTrue(StringUtil.join(assembleDebug.getCompilerMessages(Message.Kind.ERROR), "\n"), assembleDebug.isBuildSuccessful)
-
     val syncState = GradleSyncState.getInstance(myProjectRule.project)
-    assertFalse(syncState.isSyncNeeded.toBoolean())
+    assertFalse(syncState.isSyncNeeded().toBoolean())
     assertEquals(ModuleDataBinding.getInstance(myProjectRule.androidFacet).dataBindingMode,
                  dataBindingMode)
 

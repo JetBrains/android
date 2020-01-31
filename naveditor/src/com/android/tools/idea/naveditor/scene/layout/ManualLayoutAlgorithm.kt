@@ -21,9 +21,9 @@ import com.android.SdkConstants.ATTR_ID
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.NAVIGATION_PREFIX
 import com.android.SdkConstants.TAG_INCLUDE
+import com.android.ide.common.resources.stripPrefixFromId
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.scene.SceneComponent
-import com.android.tools.idea.naveditor.editor.NavEditor
 import com.android.tools.idea.naveditor.model.idPath
 import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.isInclude
@@ -37,16 +37,11 @@ import com.intellij.openapi.command.undo.BasicUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
-import com.intellij.psi.util.PsiUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
-import org.jetbrains.android.dom.navigation.NavigationDomFileDescription
 
 const val SKIP_PERSISTED_LAYOUT = "skipPersistedLayout"
 
@@ -67,20 +62,6 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
       }
       return result
     }
-
-  init {
-    val connection = module.project.messageBus.connect(sceneManager)
-    connection.subscribe(FileEditorManagerListener.Before.FILE_EDITOR_MANAGER, object : FileEditorManagerListener.Before {
-      override fun beforeFileClosed(source: FileEditorManager, file: VirtualFile) {
-        if ((PsiUtil.getPsiFile(module.project, file) as? XmlFile)?.let { NavigationDomFileDescription.isNavFile(it) } == true) {
-          for (editor in source.getAllEditors(file).filterIsInstance<NavEditor>()) {
-            val layoutPositions = storage.state[file.name] ?: continue
-            editor.component.surface.model?.let { rectifyIds(it.components.flatMap { c -> c.children }, layoutPositions) }
-          }
-        }
-      }
-    })
-  }
 
   @VisibleForTesting
   constructor(state: LayoutPositions, module: Module, sceneManager: NavSceneManager)
@@ -133,7 +114,7 @@ class ManualLayoutAlgorithm(private val module: Module, private val sceneManager
     setPosition(tag, positions)
     for ((id, position) in positions.myPositions) {
       for (subtag in tag.subTags) {
-        var subtagId = NlComponent.stripId(subtag.getAttributeValue(ATTR_ID, ANDROID_URI))
+        var subtagId = subtag.getAttributeValue(ATTR_ID, ANDROID_URI)?.let(::stripPrefixFromId)
         if (subtagId == null && subtag.name == TAG_INCLUDE) {
           subtagId = subtag.getAttributeValue(ATTR_GRAPH, AUTO_URI)?.substring(NAVIGATION_PREFIX.length)
         }

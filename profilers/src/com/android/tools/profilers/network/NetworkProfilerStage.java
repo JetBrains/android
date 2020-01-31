@@ -23,8 +23,8 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.EaseOutModel;
 import com.android.tools.adtui.model.Interpolatable;
 import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.SelectionListener;
-import com.android.tools.adtui.model.SelectionModel;
+import com.android.tools.adtui.model.RangeSelectionListener;
+import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.formatter.BaseAxisFormatter;
@@ -69,7 +69,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   private final ClampedAxisComponentModel myConnectionsAxis;
   private final EventMonitor myEventMonitor;
   private final StackTraceModel myStackTraceModel;
-  private final SelectionModel mySelectionModel;
+  private final RangeSelectionModel myRangeSelectionModel;
   private final HttpDataFetcher myHttpDataFetcher;
   private final EaseOutModel myInstructionsEaseOutModel;
 
@@ -91,11 +91,11 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
 
     myStackTraceModel = new StackTraceModel(profilers.getIdeServices().getCodeNavigator());
 
-    mySelectionModel = new SelectionModel(timeline.getSelectionRange());
+    myRangeSelectionModel = new RangeSelectionModel(timeline.getSelectionRange());
     profilers.addDependency(myAspectObserver)
-      .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
-    mySelectionModel.setSelectionEnabled(profilers.isAgentAttached());
-    mySelectionModel.addListener(new SelectionListener() {
+      .onChange(ProfilerAspect.AGENT, () -> myRangeSelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
+    myRangeSelectionModel.setSelectionEnabled(profilers.isAgentAttached());
+    myRangeSelectionModel.addListener(new RangeSelectionListener() {
       @Override
       public void selectionCreated() {
         setProfilerMode(ProfilerMode.EXPANDED);
@@ -131,8 +131,8 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
   }
 
   @NotNull
-  public SelectionModel getSelectionModel() {
-    return mySelectionModel;
+  public RangeSelectionModel getRangeSelectionModel() {
+    return myRangeSelectionModel;
   }
 
   @NotNull
@@ -195,7 +195,7 @@ public class NetworkProfilerStage extends Stage implements CodeNavigator.Listene
 
     getStudioProfilers().getIdeServices().getCodeNavigator().removeListener(this);
 
-    mySelectionModel.clearListeners();
+    myRangeSelectionModel.clearListeners();
   }
 
   @NotNull

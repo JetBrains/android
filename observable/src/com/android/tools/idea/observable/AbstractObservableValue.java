@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.observable;
 
+import com.google.common.collect.ImmutableList;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -60,17 +61,24 @@ public abstract class AbstractObservableValue<T> implements ObservableValue<T> {
       return;
     }
 
-    for (InvalidationListener listener : myListeners) {
+    ImmutableList<InvalidationListener> listenersSnapshot = ImmutableList.copyOf(myListeners);
+    ImmutableList<WeakReference<InvalidationListener>> weakListenersSnapshot = ImmutableList.copyOf(myWeakListeners);
+
+    for (InvalidationListener listener : listenersSnapshot) {
       listener.onInvalidated();
+    }
+
+    for (WeakReference<InvalidationListener> reference : weakListenersSnapshot) {
+      InvalidationListener listener = reference.get();
+      if (listener != null) {
+        listener.onInvalidated();
+      }
     }
 
     Iterator<WeakReference<InvalidationListener>> it = myWeakListeners.iterator();
     while (it.hasNext()) {
       InvalidationListener listener = it.next().get();
-      if (listener != null) {
-        listener.onInvalidated();
-      }
-      else {
+      if (listener == null) {
         it.remove();
       }
     }

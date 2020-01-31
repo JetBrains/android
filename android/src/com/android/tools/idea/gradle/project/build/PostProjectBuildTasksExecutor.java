@@ -169,7 +169,6 @@ public class PostProjectBuildTasksExecutor {
 
       if (isSyncNeeded(buildMode, errorCount)) {
         GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_BUILD_SYNC_NEEDED_AFTER_BUILD);
-        request.generateSourcesOnSuccess = false;
         // Start sync once other events have finished (b/76017112).
         runWhenEventsFinished(() -> GradleSyncInvoker.getInstance().requestProjectSync(myProject, request));
       }
@@ -178,15 +177,22 @@ public class PostProjectBuildTasksExecutor {
         setSyncRequestedDuringBuild(myProject, null);
         // Sync was invoked while the project was built. Now that the build is finished, request a full sync after previous events have
         // finished (b/76017112).
-        runWhenEventsFinished(() -> GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_USER_REQUEST_WHILE_BUILDING));
+        runWhenEventsFinished(() -> GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_USER_REQUEST_WHILE_BUILDING));
       }
     }
   }
 
   private boolean isSyncNeeded(@Nullable BuildMode buildMode, int errorCount) {
-    // The project build is doing a MAKE, has zero errors and the previous Gradle sync failed. It is likely that if the
+    // Never sync if the build had errors, this will pull the focus of the Build tool window from build and make it much
+    // harder to see what went wrong, especially if the resulting sync succeeds.
+    if (errorCount != 0) {
+      return false;
+    }
+
+
+    // The project build is doing a MAKE and the previous Gradle sync failed. It is likely that if the
     // project build is successful, Gradle sync will be successful too.
-    if (DEFAULT_BUILD_MODE.equals(buildMode) && GradleSyncState.getInstance(myProject).lastSyncFailed() && errorCount == 0) {
+    if (DEFAULT_BUILD_MODE.equals(buildMode) && GradleSyncState.getInstance(myProject).lastSyncFailed()) {
       return true;
     }
 

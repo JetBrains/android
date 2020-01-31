@@ -31,6 +31,7 @@ import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.ddmlib.IShellOutputReceiver;
 import com.android.sdklib.AndroidVersion;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Transport;
@@ -48,6 +49,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -68,7 +70,8 @@ public class TransportServiceProxyTest {
     Common.Device transportMockDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
     TransportServiceProxy proxy =
       new TransportServiceProxy(mockDevice, transportMockDevice,
-                                startNamedChannel("testBindServiceContainsAllMethods", new FakeTransportService()));
+                                startNamedChannel("testBindServiceContainsAllMethods", new FakeTransportService()),
+                                new LinkedBlockingDeque<>(), new HashMap<>());
 
     ServerServiceDefinition serverDefinition = proxy.getServiceDefinition();
     Collection<MethodDescriptor<?, ?>> allMethods = TransportServiceGrpc.getServiceDescriptor().getMethods();
@@ -115,7 +118,8 @@ public class TransportServiceProxyTest {
 
     TransportServiceProxy proxy =
       new TransportServiceProxy(mockDevice, transportMockDevice,
-                                startNamedChannel("testClientsWithNullDescriptionsNotCached", new FakeTransportService()));
+                                startNamedChannel("testClientsWithNullDescriptionsNotCached", new FakeTransportService()),
+                                new LinkedBlockingDeque<>(), new HashMap<>());
     Map<Client, Common.Process> cachedProcesses = proxy.getCachedProcesses();
     assertThat(cachedProcesses.size()).isEqualTo(1);
     Map.Entry<Client, Common.Process> cachedProcess = cachedProcesses.entrySet().iterator().next();
@@ -137,7 +141,7 @@ public class TransportServiceProxyTest {
     FakeTransportService thruService = new FakeTransportService();
     ManagedChannel thruChannel = startNamedChannel("testEventStreaming", thruService);
     TransportServiceProxy proxy =
-      new TransportServiceProxy(mockDevice, transportMockDevice, thruChannel);
+      new TransportServiceProxy(mockDevice, transportMockDevice, thruChannel, new LinkedBlockingDeque<>(), new HashMap<>());
     List<Common.Event> receivedEvents = new ArrayList<>();
     // We should expect six events: two process starts events, followed by event1 and event2, then process ends events.
     CountDownLatch latch = new CountDownLatch(1);
@@ -196,7 +200,7 @@ public class TransportServiceProxyTest {
     FakeTransportService thruService = new FakeTransportService();
     TransportServiceProxy proxy =
       new TransportServiceProxy(mockDevice, transportMockDevice,
-                                startNamedChannel("testProxyCommandHandlers", thruService));
+                                startNamedChannel("testProxyCommandHandlers", thruService), new LinkedBlockingDeque<>(), new HashMap<>());
 
     CountDownLatch latch = new CountDownLatch(1);
     proxy.registerCommandHandler(ECHO, cmd -> {
@@ -221,6 +225,115 @@ public class TransportServiceProxyTest {
     catch (InterruptedException ignored) {
     }
     assertThat(thruService.myLastCommandType).isEqualTo(BEGIN_SESSION);
+  }
+
+  @Test
+  public void testProxyEventPreprocessors() throws Exception {
+    Client client = createMockClient(1, "test", "testClientDescription");
+    IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.O, new Client[]{client});
+    Common.Device transportMockDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
+    FakeTransportService thruService = new FakeTransportService();
+    ManagedChannel thruChannel = startNamedChannel("testEventPreprocessors", thruService);
+    TransportServiceProxy proxy =
+      new TransportServiceProxy(mockDevice, transportMockDevice, thruChannel, new LinkedBlockingDeque<>(), new HashMap<>());
+
+    CountDownLatch latch = new CountDownLatch(1);
+    List<Common.Event> receivedEvents = new ArrayList<>();
+    List<Common.Event> preprocessedEvents = new ArrayList<>();
+    Common.Event generatedEvent = Common.Event.getDefaultInstance();
+    proxy.registerEventPreprocessor(new TransportEventPreprocessor() {
+      @Override
+      public boolean shouldPreprocess(Common.Event event) {
+        return event.getKind() == Common.Event.Kind.ECHO;
+      }
+
+      @Override
+      public Iterable<Common.Event> preprocessEvent(Common.Event event) {
+        preprocessedEvents.add(event);
+        latch.countDown();
+        return Collections.singletonList(generatedEvent);
+      }
+    });
+    proxy.getEvents(Transport.GetEventsRequest.getDefaultInstance(), new StreamObserver<Common.Event>() {
+      @Override
+      public void onNext(Common.Event event) {
+        receivedEvents.add(event);
+      }
+
+      @Override
+      public void onError(Throwable throwable) {
+        assert false;
+      }
+
+      @Override
+      public void onCompleted() {}
+    });
+    Common.Event eventToPreprocess = Common.Event.newBuilder().setPid(1).setKind(Common.Event.Kind.ECHO).setIsEnded(true).build();
+    Common.Event eventToIgnore = Common.Event.newBuilder().setPid(1).setIsEnded(true).build();
+    // Add eventToIgnore before eventToPreprocess because the latch-based synchronization is count on eventToPreprocess.
+    // If eventToIgnore is added after, the service may stop before the event is sent, or the assertion is checked before
+    // the event is received or recorded.
+    thruService.addEvents(eventToIgnore, eventToPreprocess);
+    thruService.stopEventThread();
+    thruChannel.shutdownNow();
+    proxy.disconnect();
+    latch.await();
+    assertThat(receivedEvents).containsAllOf(eventToPreprocess, eventToIgnore, generatedEvent);
+    assertThat(preprocessedEvents).containsExactly(eventToPreprocess);
+  }
+
+  @Test
+  public void testProxyDataPreprocessor() throws Exception {
+    //Setup
+    Client client = createMockClient(1, "test", "testClientDescription");
+    IDevice mockDevice = createMockDevice(AndroidVersion.VersionCodes.O, new Client[]{client});
+    Common.Device transportMockDevice = TransportServiceProxy.transportDeviceFromIDevice(mockDevice);
+    FakeTransportService thruService = new FakeTransportService();
+    ManagedChannel thruChannel = startNamedChannel("testProxyDataPreprocessor", thruService);
+    TransportServiceProxy proxy =
+      new TransportServiceProxy(mockDevice, transportMockDevice, thruChannel, new LinkedBlockingDeque<>(), new HashMap<>());
+    // Fake Data Preprocessor.
+    List<ByteString> receivedData = new ArrayList<>();
+    TransportBytesPreprocessor preprocessor = new TransportBytesPreprocessor() {
+      @Override
+      public boolean shouldPreprocess(Transport.BytesRequest request) {
+        return request.getId().equals("1");
+      }
+
+      @NotNull
+      @Override
+      public ByteString preprocessBytes(String id, ByteString event) {
+        return ByteString.copyFromUtf8("WORLD");
+      }
+    };
+    proxy.registerDataPreprocessor(preprocessor);
+
+    // Handle returning data to proxy service.
+    Transport.BytesRequest.Builder request = Transport.BytesRequest.newBuilder();
+    StreamObserver<Transport.BytesResponse> validation = new StreamObserver<Transport.BytesResponse>() {
+      @Override
+      public void onNext(Transport.BytesResponse response) {
+        receivedData.add(response.getContents());
+      }
+
+      @Override
+      public void onError(Throwable throwable) { assert false;}
+
+      @Override
+      public void onCompleted() {}
+    };
+
+    // Run test.
+    proxy.getBytes(request.build(), validation);
+    request.setId("1");
+    proxy.getBytes(request.build(), validation);
+    // Clean up
+    thruService.stopEventThread();
+    thruChannel.shutdownNow();
+    proxy.disconnect();
+    // Validate
+    assertThat(receivedData.get(0)).isEqualTo(FakeTransportService.TEST_BYTES);
+    assertThat(receivedData.get(1)).isEqualTo(preprocessor.preprocessBytes("1", FakeTransportService.TEST_BYTES));
   }
 
   /**
@@ -272,6 +385,7 @@ public class TransportServiceProxyTest {
     final LinkedBlockingDeque<Common.Event> myEventQueue = new LinkedBlockingDeque<>();
     @Nullable private Thread myEventThread;
     @Nullable private Commands.Command.CommandType myLastCommandType;
+    static final ByteString TEST_BYTES = ByteString.copyFromUtf8("Hello");
 
     @Override
     public void getCurrentTime(TimeRequest request, StreamObserver<TimeResponse> responseObserver) {
@@ -296,6 +410,12 @@ public class TransportServiceProxyTest {
         responseObserver.onCompleted();
       });
       myEventThread.start();
+    }
+
+    @Override
+    public void getBytes(Transport.BytesRequest request, StreamObserver<Transport.BytesResponse> responseObserver) {
+      responseObserver.onNext(Transport.BytesResponse.newBuilder().setContents(TEST_BYTES).build());
+      responseObserver.onCompleted();
     }
 
     @Override

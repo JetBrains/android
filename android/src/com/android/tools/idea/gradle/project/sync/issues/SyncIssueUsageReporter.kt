@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.compatibility.version.BuildFil
 import com.android.tools.idea.gradle.project.sync.errors.NdkIntegrationDeprecatedErrorHandler
 import com.android.tools.idea.gradle.project.sync.hyperlink.AddGoogleMavenRepositoryHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.BuildProjectHyperlink
+import com.android.tools.idea.gradle.project.sync.hyperlink.ConfirmSHA256FromGradleWrapperHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.CreateGradleWrapperHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.DeleteFileAndSyncHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.DisableOfflineModeHyperlink
@@ -58,7 +59,6 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.UpdatePluginHyperlin
 import com.android.tools.idea.gradle.project.sync.hyperlink.UpgradeAppenginePluginVersionHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.UseEmbeddedJdkHyperlink
 import com.android.tools.idea.gradle.project.sync.hyperlink.UseJavaHomeAsJdkHyperlink
-import com.android.tools.idea.gradle.project.sync.setup.post.project.SdkToolsVersionSetupStep
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
@@ -129,7 +129,6 @@ private fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.Grad
       is InstallNdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_NDK_HYPERLINK
       is InstallPlatformHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_PLATFORM_HYPERLINK
       is InstallSdkPackageHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_SDK_PACKAGE_HYPERLINK
-      is SdkToolsVersionSetupStep.InstallSdkToolsHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.INSTALL_SDK_TOOLS_HYPERLINK
       is OpenAndroidSdkManagerHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_ANDROID_SDK_MANAGER_HYPERLINK
       is BuildFileComponentVersionReader.OpenBuildFileHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_BUILD_FILE_HYPERLINK
       is OpenFileHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.OPEN_FILE_HYPERLINK
@@ -157,11 +156,12 @@ private fun NotificationHyperlink.toSyncIssueQuickFix(): AndroidStudioEvent.Grad
       is UseEmbeddedJdkHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.USE_EMBEDDED_JDK_HYPERLINK
       is DeleteFileAndSyncHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.DELETE_FILE_HYPERLINK
       is RemoveSHA256FromGradleWrapperHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.REMOVE_DISTRIBUTIONSHA256SUM_FROM_WRAPPER_HYPERLINK
+      is ConfirmSHA256FromGradleWrapperHyperlink -> AndroidStudioEvent.GradleSyncQuickFix.CONFIRM_DISTRIBUTIONSHA256SUM_FROM_WRAPPER_HYPERLINK
       else -> null.also { LOG.warn("Unknown quick fix class: ${javaClass.canonicalName}") }
     }
 
 @Suppress("DEPRECATION")
-private fun Int.toGradleSyncIssueType(): AndroidStudioEvent.GradleSyncIssueType? =
+fun Int.toGradleSyncIssueType(): AndroidStudioEvent.GradleSyncIssueType? =
     when (this) {
       SyncIssue.TYPE_PLUGIN_OBSOLETE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_PLUGIN_OBSOLETE
       SyncIssue.TYPE_UNRESOLVED_DEPENDENCY -> AndroidStudioEvent.GradleSyncIssueType.TYPE_UNRESOLVED_DEPENDENCY
@@ -193,7 +193,9 @@ private fun Int.toGradleSyncIssueType(): AndroidStudioEvent.GradleSyncIssueType?
       SyncIssue.TYPE_INCOMPATIBLE_PLUGIN -> AndroidStudioEvent.GradleSyncIssueType.TYPE_INCOMPATIBLE_PLUGIN
       SyncIssue.TYPE_DEPRECATED_DSL -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_DSL
       SyncIssue.TYPE_DEPRECATED_CONFIGURATION -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_CONFIGURATION
-      // NOTE: SyncIssue.TYPE_DEPRECATED_DSL_VALUE is ignored since it has the same id as TYPE_DEPRECATED_CONFIGURATION.
+      // NOTE: SyncIssue.TYPE_DEPRECATED_DSL_VALUE is not handled since it has the same value as SyncIssue.TYPE_DEPRECATED_CONFIGURATION
+      // (see http://issuetracker.google.com/138278313). Also because of this bug, from this statement forward, the actual values of the
+      // types on the two sides do not exactly match.
       // SyncIssue.TYPE_DEPRECATED_DSL_VALUE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_DEPRECATED_DSLVALUE
       SyncIssue.TYPE_MIN_SDK_VERSION_IN_MANIFEST -> AndroidStudioEvent.GradleSyncIssueType.TYPE_MIN_SDK_VERSION_IN_MANIFEST
       SyncIssue.TYPE_TARGET_SDK_VERSION_IN_MANIFEST -> AndroidStudioEvent.GradleSyncIssueType.TYPE_TARGET_SDK_VERSION_IN_MANIFEST
@@ -202,7 +204,12 @@ private fun Int.toGradleSyncIssueType(): AndroidStudioEvent.GradleSyncIssueType?
       SyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD -> AndroidStudioEvent.GradleSyncIssueType.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OLD
       SyncIssue.TYPE_SIGNING_CONFIG_DECLARED_IN_DYNAMIC_FEATURE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_SIGNING_CONFIG_DECLARED_IN_DYNAMIC_FEATURE
       SyncIssue.TYPE_SDK_NOT_SET -> AndroidStudioEvent.GradleSyncIssueType.TYPE_SDK_NOT_SET
+      SyncIssue.TYPE_AMBIGUOUS_BUILD_TYPE_DEFAULT -> AndroidStudioEvent.GradleSyncIssueType.TYPE_AMBIGUOUS_BUILD_TYPE_DEFAULT
+      SyncIssue.TYPE_AMBIGUOUS_PRODUCT_FLAVOR_DEFAULT -> AndroidStudioEvent.GradleSyncIssueType.TYPE_AMBIGUOUS_PRODUCT_FLAVOR_DEFAULT
+      SyncIssue.TYPE_COMPILE_SDK_VERSION_NOT_SET -> AndroidStudioEvent.GradleSyncIssueType.TYPE_COMPILE_SDK_VERSION_NOT_SET
+      SyncIssue.TYPE_ANDROID_X_PROPERTY_NOT_ENABLED -> AndroidStudioEvent.GradleSyncIssueType.TYPE_ANDROID_X_PROPERTY_NOT_ENABLED
+      SyncIssue.TYPE_USING_DEPRECATED_CONFIGURATION -> AndroidStudioEvent.GradleSyncIssueType.TYPE_USING_DEPRECATED_CONFIGURATION
+      SyncIssue.TYPE_USING_DEPRECATED_DSL_VALUE -> AndroidStudioEvent.GradleSyncIssueType.TYPE_USING_DEPRECATED_DSL_VALUE
       else -> null.also { LOG.warn("Unknown sync issue type: $this") }
     }
-
 

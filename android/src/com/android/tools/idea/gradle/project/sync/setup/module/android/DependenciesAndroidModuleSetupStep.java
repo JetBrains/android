@@ -15,9 +15,23 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.android;
 
-import com.android.builder.model.AndroidProject;
+import static com.android.SdkConstants.FD_JARS;
+import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.roots.DependencyScope.TEST;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.util.io.FileUtil.filesEqual;
+import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
+import static com.intellij.openapi.util.io.FileUtil.isAncestor;
+import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+
 import com.android.builder.model.SyncIssue;
-import com.android.tools.idea.gradle.LibraryFilePaths;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.issues.UnresolvedDependenciesReporter;
@@ -38,34 +52,27 @@ import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.DependencyScope;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleOrderEntry;
-import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
-import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
-
-import static com.android.SdkConstants.FD_JARS;
-import static com.android.tools.idea.gradle.util.ContentEntries.findParentContentEntry;
-import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.roots.DependencyScope.TEST;
-import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.util.io.FileUtil.isAncestor;
-import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
+import kotlin.io.FilesKt;
+import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
+import org.jetbrains.android.sdk.AndroidSdkData;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemDependent;
+import org.jetbrains.annotations.SystemIndependent;
 
 public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
+  private static final String GRADLE_LOCAL_LIBRARY_PREFIX = "Gradle: __local_aars__:";
+
   @NotNull private final DependenciesExtractor myDependenciesExtractor;
   @NotNull private final AndroidModuleDependenciesSetup myDependenciesSetup;
 
   public DependenciesAndroidModuleSetupStep() {
-    this(DependenciesExtractor.getInstance(), new AndroidModuleDependenciesSetup(LibraryFilePaths.getInstance()));
+    this(DependenciesExtractor.getInstance(), new AndroidModuleDependenciesSetup());
   }
 
   @VisibleForTesting
@@ -148,6 +155,7 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
                                       @NotNull LibraryDependency dependency,
                                       @NotNull AndroidModuleModel moduleModel) {
     String name = dependency.getName();
+    name = maybeAdjustLocalLibraryName(name, module.getProject().getBasePath());
     DependencyScope scope = dependency.getScope();
     myDependenciesSetup.setUpLibraryDependency(module, modelsProvider, name, scope, dependency.getArtifactPath(),
                                                dependency.getBinaryPaths(), getExported(moduleModel));
@@ -171,6 +179,29 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
   }
 
   /**
+   * Attempts to shorten the library name by making paths relative and makes paths system independent.
+   * <p>Name shortening is required becasue the maximum allowed file name length is 256 characters and .jar files located in deep
+   * directories in CI environments may exceed this limit.
+   */
+  @NotNull
+  @VisibleForTesting
+  static String maybeAdjustLocalLibraryName(String name, @Nullable @SystemIndependent String basePath) {
+    if (name.startsWith(GRADLE_LOCAL_LIBRARY_PREFIX)) {
+      @SystemDependent String prefixStripped = name.substring(GRADLE_LOCAL_LIBRARY_PREFIX.length());
+      File artifactFile = new File(prefixStripped);
+      if (basePath != null) {
+        File root = new File(toSystemDependentName(basePath));
+        File maybeRelative = FilesKt.relativeToOrSelf(artifactFile, root);
+        if (!filesEqual(maybeRelative, artifactFile)) {
+          artifactFile = new File("." + File.separator + maybeRelative.toString());
+        }
+      }
+      name = GRADLE_LOCAL_LIBRARY_PREFIX + toSystemIndependentName(artifactFile.getPath());
+    }
+    return name;
+  }
+
+  /**
    * Sets the 'useLibrary' libraries or SDK add-ons as library dependencies.
    * <p>
    * These libraries are set at the project level, which makes it impossible to add them to a IDE SDK definition because the IDE SDK is
@@ -181,7 +212,7 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
                                                   @NotNull IdeModifiableModelsProvider modelsProvider,
                                                   @NotNull AndroidModuleModel androidModuleModel) {
     ModifiableRootModel moduleModel = modelsProvider.getModifiableRootModel(module);
-    AndroidProject androidProject = androidModuleModel.getAndroidProject();
+    IdeAndroidProject androidProject = androidModuleModel.getAndroidProject();
     Sdk sdk = moduleModel.getSdk();
     assert sdk != null; // If we got here, SDK will *NOT* be null.
 
@@ -212,7 +243,7 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
       if (isNotEmpty(library) && !currentIdeSdkFilePaths.contains(library)) {
         // Library is not in the SDK IDE definition. Add it as library and make the module depend on it.
         File binaryPath = new File(library);
-        String name = binaryPath.isFile() ? FileUtilRt.getNameWithoutExtension(binaryPath.getName()) : sanitizeFileName(library);
+        String name = binaryPath.isFile() ? getNameWithoutExtension(binaryPath) : sanitizeFileName(library);
         // Include compile target as part of the name, to ensure the library name is unique to this Android platform.
 
         name = name + "-" + suffix; // e.g. maps-android-23, effects-android-23 (it follows the library naming convention: library-version
@@ -223,11 +254,6 @@ public class DependenciesAndroidModuleSetupStep extends AndroidModuleSetupStep {
 
   @Override
   public boolean invokeOnBuildVariantChange() {
-    return true;
-  }
-
-  @Override
-  public boolean invokeOnSkippedSync() {
     return true;
   }
 }

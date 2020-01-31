@@ -16,14 +16,12 @@
 package com.android.tools.idea.wizard.dynamic;
 
 import com.android.tools.adtui.ImageComponent;
-import com.android.tools.idea.ui.wizard.deprecated.StudioWizardLayout;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
@@ -145,7 +143,7 @@ public class WizardStepHeaderPanel extends JPanel {
     boolean hasDescription = descriptionLabel != null;
     int anchor = hasDescription ? GridConstraints.ANCHOR_SOUTHWEST : GridConstraints.ANCHOR_WEST;
     titleLabel.setForeground(getForeground());
-    titleLabel.setFont(titleLabel.getFont().deriveFont(JBUIScale.scale(24f)));
+    titleLabel.setFont(titleLabel.getFont().deriveFont(JBUI.scale(24f)));
     add(titleLabel, createHeaderLabelGridConstraints(0, column, anchor));
     if (hasDescription) {
       descriptionLabel.setForeground(getForeground());

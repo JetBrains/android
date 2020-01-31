@@ -21,6 +21,7 @@ import com.android.tools.apk.analyzer.internal.ArchiveTreeNode;
 import com.android.tools.idea.apk.viewer.arsc.ArscViewer;
 import com.android.tools.idea.apk.viewer.dex.DexFileViewer;
 import com.android.tools.idea.apk.viewer.diff.ApkDiffPanel;
+import com.android.tools.idea.log.LogWrapper;
 import com.google.common.base.Charsets;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
@@ -133,7 +134,7 @@ public class ApkEditor extends UserDataHolderBase implements FileEditor, ApkView
       // this temporary copy is destroyed while disposing the archive, see #disposeArchive
       Path copyOfApk = Files.createTempFile(apkVirtualFile.getNameWithoutExtension(), "." + apkVirtualFile.getExtension());
       Files.copy(VfsUtilCore.virtualToIoFile(apkVirtualFile).toPath(), copyOfApk, StandardCopyOption.REPLACE_EXISTING);
-      myArchiveContext = Archives.open(copyOfApk);
+      myArchiveContext = Archives.open(copyOfApk, new LogWrapper(getLog()));
       myApkViewPanel = new ApkViewPanel(myProject, new ApkParser(myArchiveContext, ApkSizeCalculator.getDefault()));
       myApkViewPanel.setListener(this);
       mySplitter.setFirstComponent(myApkViewPanel.getContainer());

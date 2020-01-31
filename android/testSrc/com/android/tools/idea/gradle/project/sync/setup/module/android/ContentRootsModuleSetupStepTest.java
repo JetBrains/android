@@ -32,7 +32,7 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.android.tools.idea.util.FileExtensions.toIoFile;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.mockito.Mockito.*;
@@ -50,7 +51,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link ContentRootsModuleSetupStep}.
  */
-public class ContentRootsModuleSetupStepTest extends JavaProjectTestCase {
+public class ContentRootsModuleSetupStepTest extends PlatformTestCase {
   @Mock private AndroidContentEntriesSetup.Factory myFactory;
   @Mock private AndroidContentEntriesSetup mySetup;
   @Mock private AndroidModuleModel myAndroidModel;
@@ -71,7 +72,7 @@ public class ContentRootsModuleSetupStepTest extends JavaProjectTestCase {
     when(myAndroidProject.getBuildFolder()).thenReturn(virtualToIoFile(buildFolder));
 
     when(myAndroidModel.getAndroidProject()).thenReturn(myAndroidProject);
-    when(myAndroidModel.getRootDir()).thenReturn(myModuleFolder);
+    when(myAndroidModel.getRootDirPath()).thenReturn(toIoFile(myModuleFolder));
     when(myAndroidModel.getRootDirPath()).thenReturn(virtualToIoFile(myModuleFolder));
 
     addContentRoots("a", "b", "c");

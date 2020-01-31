@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.npw.assetstudio.wizard;
 
-import static com.android.tools.adtui.validation.ValidatorPanel.truncateMessage;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
+import static com.android.tools.idea.npw.project.AndroidPackageUtils.getModuleTemplates;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.annotations.concurrency.WorkerThread;
@@ -29,7 +29,6 @@ import com.android.tools.idea.npw.assetstudio.VectorIconGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.VectorAsset;
 import com.android.tools.idea.npw.assetstudio.ui.VectorAssetBrowser;
 import com.android.tools.idea.npw.assetstudio.ui.VectorIconButton;
-import com.android.tools.idea.npw.project.AndroidPackageUtils;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.ObservableValue;
@@ -42,6 +41,7 @@ import com.android.tools.idea.observable.core.IntProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.expressions.optional.AsOptionalExpression;
@@ -55,17 +55,17 @@ import com.android.tools.idea.observable.ui.SliderValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.ui.VectorImageComponent;
+import com.android.tools.idea.util.SwingWorker;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.ui.ColorPanel;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.concurrency.SwingWorker;
 import com.intellij.util.ui.JBUI;
 import java.awt.Color;
 import java.awt.event.ActionListener;
@@ -192,7 +192,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myOpacityPercent = new SliderValueProperty(myOpacitySlider);
     myAutoMirrored = new SelectedProperty(myEnableAutoMirroredCheckBox);
 
-    myValidatorPanel = new ValidatorPanel(this, myPanel);
+    myValidatorPanel = new ValidatorPanel(this, myPanel, "Conversion Issues", "Encountered Issues:");
 
     ActionListener assetListener = actionEvent -> renderPreviews();
     myClipartAssetButton.addAssetListener(assetListener);
@@ -260,14 +260,15 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     myListeners.listenAndFire(myActiveAsset, () -> {
       myActiveAssetBindings.releaseAll();
 
-      ObjectProperty<File> fileProperty = myActiveAsset.get().path();
+      VectorAsset activeAsset = myActiveAsset.get();
+      OptionalValueProperty<File> fileProperty = activeAsset.path();
       myActiveAssetBindings.bind(myOutputName, Expression.create(() -> {
-        File file = fileProperty.get();
-        if (!file.exists() || file.isDirectory()) {
+        File file = fileProperty.getValueOrNull();
+        if (file == null || !file.exists() || file.isDirectory()) {
           return DEFAULT_OUTPUT_NAME;
         }
 
-          String name = FileUtilRt.getNameWithoutExtension(file.getName()).toLowerCase(Locale.getDefault());
+        String name = FileUtil.getNameWithoutExtension(file).toLowerCase(Locale.getDefault());
         if (!name.startsWith(ICON_PREFIX)) {
           name = ICON_PREFIX + AndroidResourceUtil.getValidResourceFileName(name);
         }
@@ -275,11 +276,11 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       }, fileProperty));
 
       myListeners.release(drawableListener);
-      ObjectProperty<VectorAsset.VectorDrawableInfo> vectorDrawableInfo = myActiveAsset.get().getVectorDrawableInfo();
+      ObjectProperty<VectorAsset.VectorDrawableInfo> vectorDrawableInfo = activeAsset.getVectorDrawableInfo();
       myListeners.listenAndFire(vectorDrawableInfo, drawableListener);
 
       myValidatorPanel.registerValidator(myOutputName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name)));
-      myValidatorPanel.registerValidator(myAssetValidityState, validity -> truncateMessage(validity, 3));
+      myValidatorPanel.registerValidator(myAssetValidityState, validity -> validity);
       EnabledProperty widthEnabled = new EnabledProperty(myWidthTextField);
       ObservableValue<String> widthForValidation =
           Expression.create(() -> widthEnabled.get() ? widthText.get() : "24", widthText, widthEnabled);
@@ -290,16 +291,17 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       myValidatorPanel.registerValidator(heightForValidation, new SizeValidator("Height has to be a positive number"));
 
       if (myAssetSourceType.get() == AssetSourceType.CLIP_ART) {
-        myActiveAssetBindings.bind(ObjectProperty.wrap(myActiveAsset.get().color()), myColor);
+        myActiveAssetBindings.bind(ObjectProperty.wrap(activeAsset.color()), myColor);
       }
-      myActiveAssetBindings.bind(myActiveAsset.get().opacityPercent(), myOpacityPercent);
-      myActiveAssetBindings.bind(myActiveAsset.get().autoMirrored(), myAutoMirrored);
-      myActiveAssetBindings.bind(myActiveAsset.get().outputWidth(), Expression.create(() -> myWidth.get(), myWidth));
-      myActiveAssetBindings.bind(myActiveAsset.get().outputHeight(), Expression.create(() -> myHeight.get(), myHeight));
-    });
+      myActiveAssetBindings.bind(activeAsset.opacityPercent(), myOpacityPercent);
+      myActiveAssetBindings.bind(activeAsset.autoMirrored(), myAutoMirrored);
+      myActiveAssetBindings.bind(activeAsset.outputWidth(), Expression.create(() -> myWidth.get(), myWidth));
+      myActiveAssetBindings.bind(activeAsset.outputHeight(), Expression.create(() -> myHeight.get(), myHeight));
 
-    myListeners.listenAll(myActiveAsset, myWidth, myHeight, myColor, myOpacityPercent, myAutoMirrored)
-        .with(this::renderPreviews);
+      myListeners.listenAll(myActiveAsset, activeAsset.outputWidth(), activeAsset.outputHeight(), activeAsset.color(),
+                            activeAsset.opacityPercent(), activeAsset.autoMirrored())
+          .with(this::renderPreviews);
+    });
 
     myGeneralBindings.bind(myIconGenerator.sourceAsset(), new AsOptionalExpression<>(myActiveAsset));
     myGeneralBindings.bind(myIconGenerator.outputName(), myOutputName);
@@ -329,7 +331,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
   @Override
   @NotNull
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
-    return Collections.singletonList(new ConfirmGenerateIconsStep(getModel(), AndroidPackageUtils.getModuleTemplates(myFacet, null)));
+    return Collections.singletonList(new ConfirmGenerateIconsStep(getModel(), getModuleTemplates(myFacet, null)));
   }
 
   @Override
@@ -368,8 +370,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
     state.set(OUTPUT_NAME_PROPERTY, myOutputName.get(), DEFAULT_OUTPUT_NAME);
     state.set(ASSET_SOURCE_TYPE_PROPERTY, myAssetSourceType.get(), DEFAULT_ASSET_SOURCE_TYPE);
     state.setChild(CLIPART_ASSET_PROPERTY, myClipartAssetButton.getState());
-    File file = myFileBrowser.getAsset().path().get();
-    state.set(SOURCE_FILE_PROPERTY, file.getPath(), getProjectPath());
+    File file = myFileBrowser.getAsset().path().getValueOrNull();
+    state.set(SOURCE_FILE_PROPERTY, file == null ? getProjectPath() : file.getPath(), getProjectPath());
     state.set(COLOR_PROPERTY, myColor.get(), DEFAULT_COLOR);
     state.set(OPACITY_PERCENT_PROPERTY, myOpacityPercent.get(), 100);
     state.set(AUTO_MIRRORED_PROPERTY, myAutoMirrored.get(), false);
@@ -385,7 +387,7 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
         myAssetSourceType.set(state.get(ASSET_SOURCE_TYPE_PROPERTY, DEFAULT_ASSET_SOURCE_TYPE));
         PersistentStateUtil.load(myClipartAssetButton, state.getChild(CLIPART_ASSET_PROPERTY));
         String path = state.get(SOURCE_FILE_PROPERTY, getProjectPath());
-        myFileBrowser.getAsset().path().set(new File(path));
+        myFileBrowser.getAsset().path().setValue(new File(path));
         myColor.set(state.get(COLOR_PROPERTY, DEFAULT_COLOR));
         myOpacityPercent.set(state.get(OPACITY_PERCENT_PROPERTY, 100));
         myAutoMirrored.set(state.get(AUTO_MIRRORED_PROPERTY, false));
@@ -427,8 +429,8 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
    * Call {@link #enqueueUpdate()} in order to kick-start the generation of a new preview.
    */
   private final class VectorPreviewUpdater {
-    @Nullable private SwingWorker myCurrentWorker;
-    @Nullable private SwingWorker myEnqueuedWorker;
+    @Nullable private SwingWorker<VectorAsset.Preview> myCurrentWorker;
+    @Nullable private SwingWorker<VectorAsset.Preview> myEnqueuedWorker;
 
     /**
      * Updates the image preview asynchronously. If an update is already in process, then a new update
@@ -446,57 +448,74 @@ public final class NewVectorAssetStep extends ModelWizardStep<GenerateIconsModel
       }
 
       if (myCurrentWorker == null) {
-        myCurrentWorker = createWorker(previewWidth);
+        myCurrentWorker = new Worker(previewWidth);
         myCurrentWorker.start();
       }
       else if (myEnqueuedWorker == null) {
-        myEnqueuedWorker = createWorker(previewWidth);
+        myEnqueuedWorker = new Worker(previewWidth);
       }
     }
 
-    private SwingWorker createWorker(int previewWidth) {
-      return new SwingWorker() {
-        VectorAsset.Preview myPreview;
-        VectorAsset myAsset = myActiveAsset.get();
-        File myAssetFile = myAsset.path().get();
-        VectorAsset.VectorDrawableInfo myVectorDrawableInfo = myAsset.getVectorDrawableInfo().get();
-        VdOverrideInfo myOverrideInfo = myAsset.createOverrideInfo();
+    private class Worker extends SwingWorker<VectorAsset.Preview> {
+      @Nullable VectorAsset.Preview myPreview;
+      @NotNull final VectorAsset myAsset;
+      @Nullable final File myAssetFile;
+      // For some strange reason, possibly a JVM bug, changing "volatile" to "final" results in
+      // myVectorDrawableInfo being null inside the construct method.
+      // TODO: Investigate why this is happening.
+      @NotNull volatile VectorAsset.VectorDrawableInfo myVectorDrawableInfo;
+      @NotNull final VdOverrideInfo myOverrideInfo;
+      private int myPreviewWidth;
 
-        @WorkerThread
-        @Override
-        @Nullable
-        public Object construct() {
-          try {
-            myPreview = VectorAsset.generatePreview(myVectorDrawableInfo, previewWidth, myOverrideInfo);
-          } catch (Throwable t) {
-            Logger.getInstance(getClass()).error(t);
-            myPreview = new VectorAsset.Preview("Internal error generating preview for " + myAssetFile.getName());
-          }
-          return null;
+      @UiThread
+      Worker(int previewWidth) {
+        ApplicationManager.getApplication().assertIsDispatchThread();
+        myPreviewWidth = previewWidth;
+        myAsset = myActiveAsset.get();
+        myAssetFile = myAsset.path().getValueOrNull();
+        myVectorDrawableInfo = myAsset.getVectorDrawableInfo().get();
+        myOverrideInfo = myAsset.createOverrideInfo();
+      }
+
+      @WorkerThread
+      @Override
+      @NotNull
+      public VectorAsset.Preview construct() {
+        try {
+          myPreview = VectorAsset.generatePreview(myVectorDrawableInfo, myPreviewWidth, myOverrideInfo);
+        } catch (Throwable t) {
+          Logger.getInstance(getClass()).error(t);
+          String message = myAssetFile == null ?
+                           "Internal error generating preview" :
+                           "Internal error generating preview for " + myAssetFile.getName();
+          myPreview = new VectorAsset.Preview(message);
+        }
+        return myPreview;
+      }
+
+      @UiThread
+      @Override
+      public void finished() {
+        ApplicationManager.getApplication().assertIsDispatchThread();
+        assert myPreview != null;
+
+        // Update the preview image if it corresponds to the current state.
+        if (myAsset.equals(myActiveAsset.get()) &&
+            myAsset.isCurrentFile(myAssetFile) &&
+            myVectorDrawableInfo.equals(myAsset.getVectorDrawableInfo().get()) &&
+            myOverrideInfo.equals(myAsset.createOverrideInfo())) {
+          myAssetValidityState.set(myPreview.getValidityState());
+          BufferedImage image = myPreview.getImage();
+          myImagePreview.setIcon(image == null ? null : new ImageIcon(image));
         }
 
-        @UiThread
-        @Override
-        public void finished() {
-          assert myPreview != null;
-          // Update the preview image if it corresponds to the current state.
-          if (myAsset.equals(myActiveAsset.get()) &&
-              myAsset.isCurrentFile(myAssetFile) &&
-              myVectorDrawableInfo.equals(myAsset.getVectorDrawableInfo().get()) &&
-              myOverrideInfo.equals(myAsset.createOverrideInfo())) {
-            myAssetValidityState.set(myPreview.getValidityState());
-            BufferedImage image = myPreview.getImage();
-            myImagePreview.setIcon(image == null ? null : new ImageIcon(image));
-          }
-
-          myCurrentWorker = null;
-          if (myEnqueuedWorker != null) {
-            myCurrentWorker = myEnqueuedWorker;
-            myEnqueuedWorker = null;
-            myCurrentWorker.start();
-          }
+        myCurrentWorker = null;
+        if (myEnqueuedWorker != null) {
+          myCurrentWorker = myEnqueuedWorker;
+          myEnqueuedWorker = null;
+          myCurrentWorker.start();
         }
-      };
+      }
     }
   }
 

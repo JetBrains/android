@@ -150,7 +150,7 @@ public class NlPreviewFixture extends ToolWindowFixture {
   public String getPixelColor(@NotNull Point p) {
     NlDesignSurface surface = myDesignSurfaceFixture.target();
 
-    SceneView view = surface.getCurrentSceneView();
+    SceneView view = surface.getFocusedSceneView();
 
     Point centerLeftPoint = translate(surface, p.x, p.y);
 

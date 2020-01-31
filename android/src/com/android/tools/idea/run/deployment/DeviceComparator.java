@@ -19,10 +19,11 @@ import java.util.Comparator;
 import org.jetbrains.annotations.NotNull;
 
 final class DeviceComparator implements Comparator<Device> {
-  private static final Comparator<Device> COMPARATOR = Comparator.comparing(Device::isConnected, Comparator.reverseOrder())
-    .thenComparing(Device::isValid, Comparator.reverseOrder())
-    .thenComparing(DeviceComparator::getType)
-    .thenComparing(Device::getName);
+  private static final Comparator<Device> COMPARATOR =
+    Comparator.comparing(Device::getConnectionTime, Comparator.nullsLast(Comparator.reverseOrder()))
+      .thenComparing(Device::isValid, Comparator.reverseOrder())
+      .thenComparing(DeviceComparator::getType)
+      .thenComparing(Device::getName);
 
   @NotNull
   private static Type getType(@NotNull Device device) {

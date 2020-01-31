@@ -18,9 +18,10 @@ package com.android.tools.idea.layoutinspector.ui
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.InspectorView
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import java.awt.BorderLayout
 import javax.swing.JPanel
@@ -28,13 +29,14 @@ import javax.swing.JPanel
 /**
  * Main (center) panel of the layout inspector
  */
-class InspectorPanel(val project: Project) : JPanel(BorderLayout()) {
-  private val deviceViewPanel: DeviceViewPanel
+class InspectorPanel(val project: Project, toolName: String, disposableParent: Disposable) : JPanel(BorderLayout()) {
+  val deviceViewPanel: DeviceViewPanel
 
   init {
-    val workbench = WorkBench<LayoutInspector>(project, "Layout Inspector", null)
-    val layoutInspector = LayoutInspector(InspectorModel(InspectorView("", "empty", 0, 0, 1, 1)))
-    deviceViewPanel = DeviceViewPanel(layoutInspector)
+    val workbench = WorkBench<LayoutInspector>(project, toolName, null, disposableParent)
+    val viewSettings = DeviceViewSettings()
+    val layoutInspector = LayoutInspector(InspectorModel(project, ViewNode.EMPTY))
+    deviceViewPanel = DeviceViewPanel(layoutInspector, viewSettings)
     workbench.init(deviceViewPanel, layoutInspector, listOf(
       LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition()))
     add(workbench, BorderLayout.CENTER)

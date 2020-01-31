@@ -15,8 +15,9 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data.service;
 
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
+
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.android.tools.idea.gradle.project.sync.setup.module.idea.JavaModuleSetup;
 import com.android.tools.idea.gradle.project.sync.setup.module.java.JavaModuleCleanupStep;
@@ -26,12 +27,9 @@ import com.intellij.openapi.externalSystem.model.Key;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import org.jetbrains.annotations.NotNull;
-
 import java.util.Collection;
 import java.util.Map;
-
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
+import org.jetbrains.annotations.NotNull;
 
 public class JavaModuleModelDataService extends ModuleModelDataService<JavaModuleModel> {
   @NotNull private final ModuleSetupContext.Factory myModuleSetupContextFactory;
@@ -63,12 +61,11 @@ public class JavaModuleModelDataService extends ModuleModelDataService<JavaModul
                             @NotNull Project project,
                             @NotNull IdeModifiableModelsProvider modelsProvider,
                             @NotNull Map<String, JavaModuleModel> modelsByModuleName) {
-    boolean syncSkipped = GradleSyncState.getInstance(project).isSyncSkipped();
     for (Module module : modelsProvider.getModules()) {
       JavaModuleModel javaModuleModel = modelsByModuleName.get(module.getName());
       if (javaModuleModel != null) {
         ModuleSetupContext context = myModuleSetupContextFactory.create(module, modelsProvider);
-        myModuleSetup.setUpModule(context, javaModuleModel, syncSkipped);
+        myModuleSetup.setUpModule(context, javaModuleModel);
       }
       else {
         onModelNotFound(module, modelsProvider);

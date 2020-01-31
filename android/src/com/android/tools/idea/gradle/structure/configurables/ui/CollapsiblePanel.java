@@ -39,10 +39,6 @@ public class CollapsiblePanel extends JPanel {
   private JComponent myContents;
   private boolean myExpanded;
 
-  public CollapsiblePanel() {
-    this("");
-  }
-
   public CollapsiblePanel(@NotNull String title) {
     super(new BorderLayout());
 

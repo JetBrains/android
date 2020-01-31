@@ -287,7 +287,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     VirtualFile project1 = createGradleProjectToImport(dir, module(1));
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
     assert project1 != null && project2 != null : "Something wrong with the setup";
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.<String>emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project2, getProject()));
     assertEquals(2, projects.size());
@@ -301,7 +301,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
   public void testMissingRequiredProjects() throws IOException {
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
     assert project2 != null : "Something wrong with the setup";
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2)), Collections.<String>emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project2, getProject()));
     assertEquals(2, projects.size());
@@ -329,7 +329,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     VirtualFile project1 = createGradleProjectToImport(dir, module(1));
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
     VirtualFile project3 = createGradleProjectToImport(dir, module(3), module(2));
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.<String>emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project3, getProject()));
     assertEquals(3, projects.size());
@@ -345,7 +345,7 @@ public final class GradleModuleImportTest extends AndroidTestBase {
     VirtualFile project1 = createGradleProjectToImport(dir, module(1), module(3));
     VirtualFile project2 = createGradleProjectToImport(dir, module(2), module(1));
     VirtualFile project3 = createGradleProjectToImport(dir, module(3), module(2));
-    configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.emptySet());
+    configureTopLevelProject(dir, Arrays.asList(module(1), module(2), module(3)), Collections.<String>emptySet());
 
     Map<String, VirtualFile> projects = moduleListToMap(GradleModuleImporter.getRelatedProjects(project3, getProject()));
     assertEquals(3, projects.size());
@@ -364,7 +364,8 @@ public final class GradleModuleImportTest extends AndroidTestBase {
         myFixture.tearDown();
         myFixture = null;
       }
-      Project[] openProjects = ProjectManagerEx.getInstanceEx().getOpenProjects();
+      ProjectManagerEx projectManager = ProjectManagerEx.getInstanceEx();
+      Project[] openProjects = projectManager.getOpenProjects();
       if (openProjects.length > 0) {
         final Project project = openProjects[0];
         ApplicationManager.getApplication().runWriteAction(new Runnable() {

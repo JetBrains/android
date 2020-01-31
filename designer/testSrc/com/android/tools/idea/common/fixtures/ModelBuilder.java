@@ -36,11 +36,15 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
+import com.android.tools.idea.common.surface.InteractionManager;
 import com.android.tools.idea.uibuilder.adaptiveicon.ShapeMenuAction;
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.android.utils.XmlUtils;
+import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
@@ -83,6 +87,7 @@ public class ModelBuilder {
   private final Class<? extends DesignSurface> mySurfaceClass;
   @NotNull private final Consumer<NlComponent> myComponentConsumer;
   private Device myDevice;
+  private String myModelDisplayName;
 
   public ModelBuilder(@NotNull AndroidFacet facet,
                       @NotNull CodeInsightTestFixture fixture,
@@ -145,6 +150,12 @@ public class ModelBuilder {
     return this;
   }
 
+  @NotNull
+  public ModelBuilder setModelDisplayName(@NotNull String displayName) {
+    myModelDisplayName = displayName;
+    return this;
+  }
+
   public SyncNlModel build() {
     // Creates a design-time version of a model
     final Project project = myFacet.getModule().getProject();
@@ -175,12 +186,11 @@ public class ModelBuilder {
       XmlDocument document = xmlFile.getDocument();
       assertNotNull(document);
 
-      DesignSurface surface = createSurface(mySurfaceClass);
+      DesignSurface surface = createSurface(project, mySurfaceClass);
       when(surface.getComponentRegistrar()).thenReturn(myComponentConsumer);
-      SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myFacet, xmlFile.getVirtualFile());
-      Disposer.register(project, surface);
+      SyncNlModel model = SyncNlModel.create(surface, myFixture.getProject(), myModelDisplayName, myFacet, xmlFile.getVirtualFile());
       when(surface.getModel()).thenReturn(model);
-      when(surface.getConfiguration()).thenReturn(model.getConfiguration());
+      when(surface.getConfigurations()).thenReturn(ImmutableList.of(model.getConfiguration()));
       when(surface.getSceneScalingFactor()).thenCallRealMethod();
 
       // TODO: NlDesignSurface should not be referenced from here.
@@ -192,7 +202,7 @@ public class ModelBuilder {
 
       SceneManager sceneManager = myManagerFactory.apply(model);
       when(surface.getSceneManager()).thenReturn(sceneManager);
-      when(surface.getCurrentSceneView()).thenReturn(sceneManager.getSceneView());
+      when(surface.getFocusedSceneView()).thenReturn(sceneManager.getSceneView());
       if (myDevice != null) {
         model.getConfiguration().setDevice(myDevice, true);
       }
@@ -219,9 +229,10 @@ public class ModelBuilder {
     return null;
   }
 
-  public static DesignSurface createSurface(Class<? extends DesignSurface> surfaceClass) {
+  public static DesignSurface createSurface(Disposable disposableParent, Class<? extends DesignSurface> surfaceClass) {
     JComponent layeredPane = new JPanel();
     DesignSurface surface = mock(surfaceClass);
+    Disposer.register(disposableParent, surface);
     List<DesignSurfaceListener> listeners = new ArrayList<>();
     when(surface.getLayeredPane()).thenReturn(layeredPane);
     SelectionModel selectionModel = new SelectionModel();
@@ -229,6 +240,10 @@ public class ModelBuilder {
     when(surface.getSize()).thenReturn(new Dimension(1000, 1000));
     when(surface.getScale()).thenReturn(0.5);
     when(surface.getSelectionAsTransferable()).thenCallRealMethod();
+    when(surface.getInteractionManager()).thenReturn(new InteractionManager(surface));
+    if (surface instanceof NlDesignSurface) {
+      when(surface.getAnalyticsManager()).thenReturn(new NlAnalyticsManager(surface));
+    }
     doAnswer(inv -> listeners.add(inv.getArgument(0))).when(surface).addListener(any(DesignSurfaceListener.class));
     doAnswer(inv -> listeners.remove((DesignSurfaceListener)inv.getArgument(0))).when(surface).removeListener(any(DesignSurfaceListener.class));
     selectionModel.addListener((model, selection) -> listeners.forEach(listener -> listener.componentSelectionChanged(surface, selection)));

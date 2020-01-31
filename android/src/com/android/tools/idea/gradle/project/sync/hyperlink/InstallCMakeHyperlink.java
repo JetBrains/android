@@ -108,7 +108,7 @@ public class InstallCMakeHyperlink extends NotificationHyperlink {
           // Found: Trigger installation of the package.
           ModelWizardDialog dialog = createDialogForPaths(project, ImmutableList.of(cmakePackage.getPath()), true);
           if (dialog != null && dialog.showAndGet()) {
-            GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_CMAKE_INSTALLED);
+            GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_CMAKE_INSTALLED);
           }
           return;
         }

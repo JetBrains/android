@@ -17,7 +17,7 @@
 package com.android.tools.idea.gradle.eclipse;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.repository.Revision;
 import com.android.utils.SdkUtils;
@@ -230,7 +230,7 @@ public class ImportSummary {
   public void reportMoved(@NonNull ImportModule module, @NonNull File from, @NonNull File to) {
     Map<File, File> map = myMoved.get(module);
     if (map == null) {
-      map = new LinkedHashMap<>(); // preserve insert order
+      map = new LinkedHashMap<File, File>(); // preserve insert order
       myMoved.put(module, map);
     }
     map.put(from, to);
@@ -298,7 +298,7 @@ public class ImportSummary {
         if (modules.size() > 1) {
           sb.append("From ").append(module).append(":\n");
         }
-        List<String> sorted = new ArrayList<>(myNotMigrated.get(module));
+        List<String> sorted = new ArrayList<String>(myNotMigrated.get(module));
         Collections.sort(sorted);
         for (String path : sorted) {
           sb.append("* ").append(path).append("\n");
@@ -356,7 +356,7 @@ public class ImportSummary {
           sb.append("In ").append(module.getOriginalName()).append(":\n");
         }
         Map<File, File> map = myMoved.get(module);
-        List<File> sorted = new ArrayList<>(map.keySet());
+        List<File> sorted = new ArrayList<File>(map.keySet());
         Collections.sort(sorted);
         for (File from : sorted) {
           sb.append("* ");

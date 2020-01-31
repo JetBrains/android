@@ -15,17 +15,19 @@
  */
 package com.android.tools.idea.uibuilder.handlers.constraint.draw;
 
-import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.scene.SceneContext;
+import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 import com.android.tools.idea.common.scene.draw.DrawRegion;
 import com.android.tools.idea.common.scene.target.AnchorTarget;
 import com.android.tools.idea.uibuilder.handlers.constraint.animation.Animation;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
+import java.awt.AlphaComposite;
+import java.awt.Color;
+import java.awt.Composite;
+import java.awt.Graphics2D;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
 
 /**
  * Draws an Anchor

@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.FN_SETTINGS_GRADLE;
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
 import static com.android.tools.idea.gradle.util.ContentEntries.findChildContentEntries;
@@ -31,6 +30,7 @@ import static com.android.tools.idea.testing.TestProjectPaths.CUSTOM_BUILD_SCRIP
 import static com.android.tools.idea.testing.TestProjectPaths.DEPENDENT_MODULES;
 import static com.android.tools.idea.testing.TestProjectPaths.HELLO_JNI;
 import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_GRADLE_DSL;
+import static com.android.tools.idea.testing.TestProjectPaths.KOTLIN_KAPT;
 import static com.android.tools.idea.testing.TestProjectPaths.NESTED_MODULE;
 import static com.android.tools.idea.testing.TestProjectPaths.PURE_JAVA_PROJECT;
 import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION;
@@ -55,6 +55,8 @@ import static com.intellij.pom.java.LanguageLevel.JDK_1_7;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
@@ -78,9 +80,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
-import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.android.tools.idea.gradle.project.sync.precheck.PreSyncCheckResult;
-import com.android.tools.idea.gradle.task.AndroidGradleTaskManager;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
@@ -104,7 +104,6 @@ import com.intellij.openapi.externalSystem.model.project.ExternalModuleBuildClas
 import com.intellij.openapi.externalSystem.model.project.ExternalProjectBuildClasspathPojo;
 import com.intellij.openapi.externalSystem.model.project.ModuleData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
 import com.intellij.openapi.externalSystem.settings.AbstractExternalSystemLocalSettings;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
@@ -126,6 +125,7 @@ import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Proxy;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -146,10 +146,14 @@ import org.mockito.ArgumentCaptor;
  * Integration tests for 'Gradle Sync'.
  */
 public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
+  private IdeComponents myIdeComponents;
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
     Project project = getProject();
+
+    myIdeComponents = new IdeComponents(project, getTestRootDisposable());
 
     GradleProjectSettings projectSettings = new GradleProjectSettings();
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
@@ -165,14 +169,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
       }
 
       // Regression test: check the model doesn't hold on to dynamic proxies for Gradle Tooling API classes.
-      Object model;
-      if (useNewSyncInfrastructure()) {
-        model = new CachedProjectModels.Loader().loadFromDisk(getProject());
-      }
-      else {
-        model = DataNodeCaches.getInstance(getProject()).getCachedProjectData();
-      }
-
+      Object model = DataNodeCaches.getInstance(getProject()).getCachedProjectData();
       if (model != null) {
         LeakHunter.checkLeak(model, Proxy.class, o -> Arrays.stream(
                 o.getClass().getInterfaces()).anyMatch(clazz -> clazz.getName().contains("gradle.tooling")));
@@ -181,11 +178,6 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     finally {
       super.tearDown();
     }
-  }
-
-  @Override
-  protected boolean useNewSyncInfrastructure() {
-    return false;
   }
 
   @Override
@@ -201,10 +193,9 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   // https://code.google.com/p/android/issues/detail?id=233038
   public void testLoadPlainJavaProject() throws Exception {
     prepareProjectForImport(PURE_JAVA_PROJECT);
-    Project project = getProject();
-    importProject(project.getName(), getBaseDirPath(project));
+    importProject();
 
-    Module[] modules = ModuleManager.getInstance(project).getModules();
+    Module[] modules = ModuleManager.getInstance(getProject()).getModules();
     for (Module module : modules) {
       ContentEntry[] entries = ModuleRootManager.getInstance(module).getContentEntries();
       assertThat(entries).named(module.getName() + " should have content entries").isNotEmpty();
@@ -457,8 +448,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     File centralBuildParentDirPath = centralBuildDirPath.getParentFile();
     delete(centralBuildParentDirPath);
 
-    Project project = getProject();
-    importProject(project.getName(), getBaseDirPath(project));
+    importProject();
     Module app = myModules.getAppModule();
 
     // Now we have to make sure that if project import was successful, the build folder (with custom path) is excluded in the IDE (to
@@ -491,7 +481,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
   }
 
   public void testGradleSyncActionAfterFailedSync() {
-    IdeInfo ideInfo = IdeComponents.mockApplicationService(IdeInfo.class, getTestRootDisposable());
+    IdeInfo ideInfo = myIdeComponents.mockApplicationService(IdeInfo.class);
     when(ideInfo.isAndroidStudio()).thenReturn(true);
 
     SyncProjectAction action = new SyncProjectAction();
@@ -538,13 +528,13 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     // Verify sync issues are reported properly.
     List<NotificationData> messages = syncMessages.getNotifications();
-    assertThat(messages).hasSize(4);
-    NotificationData message = messages.get(0);
-
-    assertEquals(ERROR, message.getNotificationCategory());
-    assertEquals("Unresolved dependencies", message.getTitle());
-    assertThat(message.getMessage())
-            .contains("Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:");
+    List<NotificationData> relevantMessages = messages.stream()
+      .filter(m -> m.getNotificationCategory().equals(ERROR) &&
+                   m.getTitle().equals("Unresolved dependencies") &&
+                   m.getMessage().contains(
+                     "Unable to resolve dependency for ':app@paidQa/compileClasspath': Could not resolve project :lib.\nAffected Modules:"))
+      .collect(toList());
+    assertThat(relevantMessages).isNotEmpty();
   }
 
   public void testSyncWithAARDependencyAddsSources() throws Exception {
@@ -620,6 +610,40 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     for (Module module : modules) {
       ContentEntry[] entries = ModuleRootManager.getInstance(module).getContentEntries();
       assertThat(entries).named(module.getName() + " should have content entries").isNotEmpty();
+    }
+  }
+
+  public void testSyncGetsGradlePluginModel() throws Exception {
+    loadProject(SIMPLE_APPLICATION);
+
+    Module[] modules = ModuleManager.getInstance(getProject()).getModules();
+    assertSize(2, modules);
+    for (Module module : modules) {
+      GradleFacet gradleFacet = GradleFacet.getInstance(module);
+      if (module.getName().equals("app")) {
+        assertThat(gradleFacet).isNotNull();
+        Collection<String> plugins = gradleFacet.getGradleModuleModel().getGradlePlugins();
+        // The main project module will not contain a list of plugins
+        List<String> expectedPlugins = new ArrayList<>(Arrays.asList(
+          "com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin",
+          "org.gradle.buildinit.plugins.BuildInitPlugin",
+          "org.gradle.buildinit.plugins.WrapperPlugin",
+          "org.gradle.api.plugins.HelpTasksPlugin",
+          "com.android.build.gradle.api.AndroidBasePlugin",
+          "org.gradle.language.base.plugins.LifecycleBasePlugin",
+          "org.gradle.api.plugins.BasePlugin",
+          "org.gradle.api.plugins.ReportingBasePlugin",
+          "org.gradle.api.plugins.JavaBasePlugin",
+          "com.android.build.gradle.AppPlugin",
+          "org.gradle.plugins.ide.idea.IdeaPlugin",
+          "com.android.build.gradle.internal.plugins.AppPlugin",
+          "com.android.build.gradle.internal.plugins.VersionCheckPlugin"
+        ));
+        assertThat(plugins).containsExactlyElementsIn(expectedPlugins);
+      }
+      else {
+        assertThat(gradleFacet).isNull();
+      }
     }
   }
 
@@ -717,10 +741,12 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     ExternalSystemTaskId taskId = mock(ExternalSystemTaskId.class);
     when(taskId.findProject()).thenReturn(project);
 
+/* b/137231583
     // Verify that the task "help" can be found and executed.
     assertTrue(new AndroidGradleTaskManager().executeTasks(taskId, singletonList("help"), project.getBasePath(), null, null,
-            new ExternalSystemTaskNotificationListenerAdapter() {
-            }));
+                                                           new ExternalSystemTaskNotificationListenerAdapter() {
+                                                           }));
+b/137231583 */
   }
 
   public void testNDKModelRefreshedWithModifiedCMakeLists() throws Exception {
@@ -756,7 +782,7 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
 
     // Make sure the error is processed in sync view
     ArgumentCaptor<BuildEvent> buildEventCaptor = ArgumentCaptor.forClass(BuildEvent.class);
-    verify(spyViewManager, times(2)).onEvent(buildEventCaptor.capture());
+    verify(spyViewManager, times(2)).onEvent(any(Object.class), buildEventCaptor.capture());
     List<BuildEvent> buildEvents = buildEventCaptor.getAllValues();
     assertSize(2, buildEvents);
     assertThat(buildEvents.get(0)).isInstanceOf(StartBuildEvent.class);
@@ -764,6 +790,43 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     FinishBuildEvent finishEvent = (FinishBuildEvent)buildEvents.get(1);
     assertThat(finishEvent.getResult()).isInstanceOf(FailureResult.class);
     assertEquals(errorMessage, finishEvent.getMessage());
+  }
+
+  public void testFinishBuildEventOnlyCreatedOnce() throws Exception {
+    Project project = getProject();
+    // Spy on SyncView manager to capture the build events.
+    SyncViewManager spyViewManager = spy(ServiceManager.getService(project, SyncViewManager.class));
+    myIdeComponents.replaceProjectService(SyncViewManager.class, spyViewManager);
+
+    // Invoke Gradle sync.
+    loadSimpleApplication();
+
+    ArgumentCaptor<BuildEvent> buildEventCaptor = ArgumentCaptor.forClass(BuildEvent.class);
+    verify(spyViewManager, atLeastOnce()).onEvent(any(Object.class), buildEventCaptor.capture());
+
+    // Verify that FinishBuildEvent was created only once.
+    List<BuildEvent> buildEvents = buildEventCaptor.getAllValues().stream().filter(FinishBuildEvent.class::isInstance).collect(toList());
+    assertThat(buildEvents).hasSize(1);
+    assertThat(buildEvents.get(0).getMessage()).isEqualTo("successful");
+  }
+
+  public void testStartAndFinishBuildEventHasSameBuildId() throws Exception {
+    Project project = getProject();
+    // Spy on SyncView manager to capture the build events.
+    SyncViewManager spyViewManager = spy(ServiceManager.getService(project, SyncViewManager.class));
+    myIdeComponents.replaceProjectService(SyncViewManager.class, spyViewManager);
+
+    // Invoke Gradle sync.
+    loadSimpleApplication();
+
+    ArgumentCaptor<Object> startIdCaptor = ArgumentCaptor.forClass(Object.class);
+    ArgumentCaptor<Object> finishIdCaptor = ArgumentCaptor.forClass(Object.class);
+
+    verify(spyViewManager).onEvent(startIdCaptor.capture(), any(StartBuildEvent.class));
+    verify(spyViewManager).onEvent(finishIdCaptor.capture(), any(FinishBuildEvent.class));
+
+    // Verify that start build event and finish build event are created for the same build id.
+    assertEquals(finishIdCaptor.getValue(), startIdCaptor.getValue());
   }
 
   public void testContentRootDataNodeWithBuildSrcModule() throws Exception {
@@ -787,6 +850,45 @@ public class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCase {
     Collection<DataNode<ContentRootData>> contentRootData = ExternalSystemApiUtil.findAll(moduleData, ProjectKeys.CONTENT_ROOT);
     assertThat(contentRootData).hasSize(1);
     assertThat(contentRootData.iterator().next().getData().getRootPath()).isEqualTo(buildSrcDir.getPath());
+  }
+
+  public void testViewBindingOptionsAreCorrectlyVisibleFromIDE() throws Exception {
+    loadSimpleApplication();
+
+    // Default option value should be false.
+    assertFalse(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getViewBindingOptions().isEnabled());
+
+    // Change the option in the build file and re-sync
+    File appBuildFile = getBuildFilePath("app");
+    appendToFile(appBuildFile, "\nandroid { viewBinding { enabled true }\n}");
+    requestSyncAndWait();
+
+    // Check that the new option is visible from the IDE.
+    assertTrue(AndroidModuleModel.get(myModules.getAppModule()).getAndroidProject().getViewBindingOptions().isEnabled());
+  }
+
+  public void testProjectSyncIssuesAreCorrectlyReported() throws Exception {
+    loadProject(HELLO_JNI);
+
+    File appBuildFile = getBuildFilePath("app");
+
+    // Set the ndkVersion to something that doesn't exist.
+    appendToFile(appBuildFile, "android.ndkVersion 'i am a good version'");
+
+    String expectedFailure = requestSyncAndGetExpectedFailure();
+
+    assertThat(expectedFailure).isEqualTo("setup project failed: Sync issues found!\n" +
+                                          "Module 'app':\nRequested NDK version 'i am a good version' could not be parsed\n");
+  }
+
+  public void testKaptIsEnabled() throws Exception {
+    loadProject(KOTLIN_KAPT);
+
+    GradleModuleModel appModel = GradleFacet.getInstance(getModule("app")).getGradleModuleModel();
+    assertTrue(appModel.isKaptEnabled());
+
+    GradleModuleModel rootModel = GradleFacet.getInstance(getModule("lib")).getGradleModuleModel();
+    assertFalse(rootModel.isKaptEnabled());
   }
 
   @NotNull

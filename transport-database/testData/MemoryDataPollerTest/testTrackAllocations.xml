@@ -108,11 +108,15 @@ enabled: true
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/TrackAllocations" Class="class com.android.tools.profiler.proto.MemoryProfiler$TrackAllocationsResponse">
-        <Message>status: SUCCESS
+        <Message>status {
+  status: SUCCESS
+}
 </Message>
         <clazz>class com.android.tools.profiler.proto.MemoryProfiler$TrackAllocationsResponse</clazz>
         <functionCalled>profiler.proto.MemoryService/TrackAllocations</functionCalled>
-        <message>status: SUCCESS
+        <message>status {
+  status: SUCCESS
+}
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/StopMonitoringApp" Class="class com.android.tools.profiler.proto.MemoryProfiler$MemoryStopRequest">

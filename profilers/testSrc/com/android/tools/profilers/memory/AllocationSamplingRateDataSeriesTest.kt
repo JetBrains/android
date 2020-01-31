@@ -15,88 +15,139 @@
  */
 package com.android.tools.profilers.memory
 
+import com.android.tools.adtui.model.FakeTimer
 import com.google.common.truth.Truth.assertThat
 
 import com.android.tools.adtui.model.Range
+import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData
 import com.android.tools.profiler.proto.MemoryProfiler
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import java.util.concurrent.TimeUnit
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
+import java.util.Arrays
 
-class AllocationSamplingRateDataSeriesTest {
 
+@RunWith(Parameterized::class)
+class AllocationSamplingRateDataSeriesTest(private val useUnifiedEvents: Boolean) {
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters
+    fun useNewEventPipelineParameter(): Collection<Boolean> {
+      return Arrays.asList(false, true)
+    }
+
+    val TIMESTAMP1 = 1000L
+    val TIMESTAMP2 = 2000L
+    val TIMESTAMP3 = 3000L
+    val SAMPLING_RATE1 = MemoryAllocSamplingData.newBuilder().apply { samplingNumInterval = 1 }.build()
+    val SAMPLING_RATE2 = MemoryAllocSamplingData.newBuilder().apply { samplingNumInterval = 2 }.build()
+    val SAMPLING_RATE3 = MemoryAllocSamplingData.newBuilder().apply { samplingNumInterval = 3 }.build()
+  }
+
+  private val myTimer = FakeTimer()
+  private val myTransportService = FakeTransportService(myTimer)
   private val myService = FakeMemoryService()
 
   @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("AllocationSamplingRateDataSeriesTest", myService)
+  var myGrpcChannel = FakeGrpcChannel("AllocationSamplingRateDataSeriesTest", myTransportService, myService)
   private val myProfilerClient = ProfilerClient(myGrpcChannel.name)
 
   @Test
   fun testGetDataForXRange() {
-    val memoryData = MemoryProfiler.MemoryData.newBuilder()
-      .setEndTimestamp(1)
-      .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder().setTimestamp(1000).setSamplingRate(
-        MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(1).build()
-      ))
-      .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder().setTimestamp(2000).setSamplingRate(
-        MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(2).build()
-      ))
-      .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder().setTimestamp(3000).setSamplingRate(
-        MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(3).build()
-      ))
-      .build()
-    myService.setMemoryData(memoryData)
+    if (useUnifiedEvents) {
+      myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.streamId,
+                                          ProfilersTestData.generateMemoryAllocSamplingData(
+                                            ProfilersTestData.SESSION_DATA, TIMESTAMP1, SAMPLING_RATE1).build())
+      myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.streamId,
+                                          ProfilersTestData.generateMemoryAllocSamplingData(
+                                            ProfilersTestData.SESSION_DATA, TIMESTAMP2, SAMPLING_RATE2).build())
+      myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.streamId,
+                                          ProfilersTestData.generateMemoryAllocSamplingData(
+                                            ProfilersTestData.SESSION_DATA, TIMESTAMP3, SAMPLING_RATE3).build())
+    }
+    else {
+      val memoryData = MemoryProfiler.MemoryData.newBuilder()
+        .setEndTimestamp(1)
+        .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
+                                      .setTimestamp(TIMESTAMP1).setSamplingRate(SAMPLING_RATE1))
+        .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
+                                      .setTimestamp(TIMESTAMP2).setSamplingRate(SAMPLING_RATE2))
+        .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
+                                      .setTimestamp(TIMESTAMP3).setSamplingRate(SAMPLING_RATE3))
+        .build()
+      myService.setMemoryData(memoryData)
+    }
 
-    val series = AllocationSamplingRateDataSeries(myProfilerClient.memoryClient, ProfilersTestData.SESSION_DATA)
-    val dataList = series.getDataForXRange(Range(0.0, java.lang.Double.MAX_VALUE))
+    val series = AllocationSamplingRateDataSeries(myProfilerClient, ProfilersTestData.SESSION_DATA, useUnifiedEvents)
+    val dataList = series.getDataForRange(Range(0.0, java.lang.Double.MAX_VALUE))
 
     assertThat(dataList.size).isEqualTo(3)
     var data = dataList[0]
     assertThat(data.x).isEqualTo(1)
     assertThat(data.value.durationUs).isEqualTo(1)
-    assertThat(data.value.previousRateEvent).isNull()
-    assertThat(data.value.currentRateEvent.samplingRate.samplingNumInterval).isEqualTo(1)
+    assertThat(data.value.previousRate).isNull()
+    assertThat(data.value.currentRate.samplingNumInterval).isEqualTo(1)
 
     data = dataList[1]
     assertThat(data.x).isEqualTo(2)
     assertThat(data.value.durationUs).isEqualTo(1)
-    assertThat(data.value.previousRateEvent!!.samplingRate.samplingNumInterval).isEqualTo(1)
-    assertThat(data.value.currentRateEvent.samplingRate.samplingNumInterval).isEqualTo(2)
+    assertThat(data.value.previousRate!!.samplingNumInterval).isEqualTo(1)
+    assertThat(data.value.currentRate.samplingNumInterval).isEqualTo(2)
 
     data = dataList[2]
     assertThat(data.x).isEqualTo(3)
-    assertThat(data.value.durationUs).isEqualTo(TimeUnit.NANOSECONDS.toMicros(java.lang.Long.MAX_VALUE))
-    assertThat(data.value.previousRateEvent!!.samplingRate.samplingNumInterval).isEqualTo(2)
-    assertThat(data.value.currentRateEvent.samplingRate.samplingNumInterval).isEqualTo(3)
+    assertThat(data.value.durationUs).isEqualTo(java.lang.Long.MAX_VALUE)
+    assertThat(data.value.previousRate!!.samplingNumInterval).isEqualTo(2)
+    assertThat(data.value.currentRate.samplingNumInterval).isEqualTo(3)
   }
 
   @Test
   fun testGetDataForXRangeNotReturnEventsBeforeRangeMin() {
-    val memoryData = MemoryProfiler.MemoryData.newBuilder()
-      .setEndTimestamp(1)
-      .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder().setTimestamp(1000).setSamplingRate(
-        MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(1).build()
-      ))
-      .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder().setTimestamp(2000).setSamplingRate(
-        MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(2).build()
-      ))
-      .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder().setTimestamp(3000).setSamplingRate(
-        MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(3).build()
-      ))
-      .build()
-    myService.setMemoryData(memoryData)
+    if (useUnifiedEvents) {
+      myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.streamId,
+                                          ProfilersTestData.generateMemoryAllocSamplingData(
+                                            ProfilersTestData.SESSION_DATA, TIMESTAMP1, SAMPLING_RATE1).build())
+      myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.streamId,
+                                          ProfilersTestData.generateMemoryAllocSamplingData(
+                                            ProfilersTestData.SESSION_DATA, TIMESTAMP2, SAMPLING_RATE2).build())
+      myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.streamId,
+                                          ProfilersTestData.generateMemoryAllocSamplingData(
+                                            ProfilersTestData.SESSION_DATA, TIMESTAMP3, SAMPLING_RATE3).build())
+    }
+    else {
+      val memoryData = MemoryProfiler.MemoryData.newBuilder()
+        .setEndTimestamp(1)
+        .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
+                                      .setTimestamp(TIMESTAMP1).setSamplingRate(SAMPLING_RATE1))
+        .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
+                                      .setTimestamp(TIMESTAMP2).setSamplingRate(SAMPLING_RATE2))
+        .addAllocSamplingRateEvents(MemoryProfiler.AllocationSamplingRateEvent.newBuilder()
+                                      .setTimestamp(TIMESTAMP3).setSamplingRate(SAMPLING_RATE3))
+        .build()
+      myService.setMemoryData(memoryData)
+    }
 
-    val series = AllocationSamplingRateDataSeries(myProfilerClient.memoryClient, ProfilersTestData.SESSION_DATA)
-    val dataList = series.getDataForXRange(Range(4.0, java.lang.Double.MAX_VALUE))
+    val series = AllocationSamplingRateDataSeries(myProfilerClient, ProfilersTestData.SESSION_DATA, useUnifiedEvents)
+    val dataList = series.getDataForRange(Range(4.0, java.lang.Double.MAX_VALUE))
 
     assertThat(dataList.size).isEqualTo(1)
     val data = dataList[0]
     assertThat(data.x).isEqualTo(TimeUnit.NANOSECONDS.toMicros(3000))
-    assertThat(data.value.durationUs).isEqualTo(TimeUnit.NANOSECONDS.toMicros(java.lang.Long.MAX_VALUE))
-    assertThat(data.value.previousRateEvent!!.samplingRate.samplingNumInterval).isEqualTo(2)
-    assertThat(data.value.currentRateEvent.samplingRate.samplingNumInterval).isEqualTo(3)
+    assertThat(data.value.durationUs).isEqualTo(java.lang.Long.MAX_VALUE)
+
+    if (useUnifiedEvents) {
+      // New pipeline correctly queries -1/+1 data. so here we don't get the event at t=2 as the previous rate event.
+      assertThat(data.value.previousRate).isNull()
+    }
+    else {
+      assertThat(data.value.previousRate!!.samplingNumInterval).isEqualTo(2)
+    }
+    assertThat(data.value.currentRate.samplingNumInterval).isEqualTo(3)
   }
 }

@@ -98,4 +98,14 @@ class AtraceFrameTest {
     assertThat(expected.min).isWithin(DELTA).of(actual.min)
     assertThat(expected.max).isWithin(DELTA).of(actual.max)
   }
+
+  @Test
+  fun testStoringSlices() {
+    val bitmapsProcess = myModel.processes[TEST_PID] ?: error("No process for pid $TEST_PID")
+    val frame = AtraceFrame(bitmapsProcess.threads[0].id, ::convertTimeStamps, SECONDS_TO_US.toLong() * 1, AtraceFrame.FrameThread.MAIN)
+    val frameRange = Range(1.0, 2.0)
+    val slice = bitmapsProcess.threads[0].slices[0]
+    frame.addSlice(slice, frameRange)
+    assertThat(frame.slices.contains(slice))
+  }
 }

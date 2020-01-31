@@ -62,27 +62,12 @@ public class EmbeddedDistributionPaths {
       if (localGMaven.isDirectory()) {
         repoPaths.add(localGMaven);
       }
-      File prebuiltOfflineM2 =
-        new File(toCanonicalPath(getIdeHomePath() + toSystemDependentName("/../../prebuilts/tools/common/offline-m2")));
-      getLog().info("Looking for embedded Maven repo at '" + prebuiltOfflineM2.getPath() + "'");
-      if (prebuiltOfflineM2.isDirectory()) {
-        repoPaths.add(prebuiltOfflineM2);
-      }
     }
 
     // Add locally published offline studio repo
     File localOfflineRepoPath = new File(PathManager.getHomePath() + toSystemDependentName("/../../out/studio/repo"));
     if (localOfflineRepoPath.isDirectory()) {
       repoPaths.add(localOfflineRepoPath);
-    }
-
-    if (StudioFlags.SHIPPED_SYNC_ENABLED.get()) {
-      // Add a repo generated from/for New Project Wizard projects
-      File npwRepoPath = new File(PathManager.getHomePath() +
-                                  toSystemDependentName("/../adt/idea/android/testData/nosyncbuilder/offline_repo"));
-      if (npwRepoPath.isDirectory()) {
-        repoPaths.add(npwRepoPath);
-      }
     }
 
     return ImmutableList.copyOf(repoPaths);
@@ -105,16 +90,11 @@ public class EmbeddedDistributionPaths {
 
   @NotNull
   public File findEmbeddedProfilerTransform(@NotNull AndroidVersion version) {
-    String path = "plugins/android/resources/profilers-transform.jar";
-    File file = new File(PathManager.getHomePath(), path);
+    File file = new File(PathManager.getHomePath(), "plugins/android/resources/profilers-transform.jar");
     if (file.exists()) {
       return file;
     }
-    AndroidProfilerDownloader.makeSureProfilerIsInPlace();
-    File dir = AndroidProfilerDownloader.getHostDir(path);
-    if (dir.exists()) {
-      return dir;
-    }
+
     // Development build
     String relativePath = toSystemDependentName("/../../bazel-genfiles/tools/base/profiler/transform/profilers-transform.jar");
     return new File(PathManager.getHomePath() + relativePath);
@@ -232,6 +212,9 @@ public class EmbeddedDistributionPaths {
     String jdkDevPath = System.getProperty("studio.dev.jdk", ideHomePath + "/../../prebuilts/studio/jdk");
     String relativePath = toSystemDependentName(jdkDevPath);
     jdkRootPath = new File(toCanonicalPath(relativePath));
+    if (SystemInfo.isJavaVersionAtLeast(11, 0, 0)) {
+      jdkRootPath = new File(jdkRootPath, "jdk11");
+    }
     if (SystemInfo.isWindows) {
       jdkRootPath = new File(jdkRootPath, "win64");
     }

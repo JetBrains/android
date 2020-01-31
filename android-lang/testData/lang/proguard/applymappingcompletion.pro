@@ -1,0 +1,1 @@
+-applymapping a<caret>

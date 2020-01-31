@@ -15,8 +15,15 @@
  */
 package com.android.tools.idea.gradle.npw.project;
 
+import static com.android.SdkConstants.FD_AIDL;
+import static com.android.SdkConstants.FD_JAVA;
+import static com.android.SdkConstants.FD_MAIN;
+import static com.android.SdkConstants.FD_RESOURCES;
+import static com.android.SdkConstants.FD_SOURCES;
+import static com.android.SdkConstants.FD_TEST;
+
 import com.android.builder.model.SourceProvider;
-import com.android.tools.idea.npw.model.NewModuleModel;
+import com.android.tools.idea.npw.module.ModuleModelKt;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.android.tools.idea.projectsystem.NamedModuleTemplate;
 import com.google.common.collect.ImmutableList;
@@ -26,17 +33,16 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.IdeaSourceProvider;
+import org.jetbrains.android.facet.SourceProviderManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.java.JavaModuleSourceRootTypes;
-
-import java.io.File;
-import java.util.Collections;
-import java.util.List;
-
-import static com.android.SdkConstants.*;
 
 /**
  * Project paths for a Gradle Android project.
@@ -121,7 +127,7 @@ public class GradleAndroidModuleTemplate implements AndroidModuleTemplate {
    */
   public static NamedModuleTemplate createDefaultTemplateAt(@NotNull String projectPath, @NotNull String moduleName) {
     // Note: Module name may have ":", needs to be converted to a path
-    File moduleRoot = NewModuleModel.getModuleRoot(projectPath, moduleName);
+    File moduleRoot = ModuleModelKt.getModuleRoot(projectPath, moduleName);
     File baseSrcDir = new File(moduleRoot, FD_SOURCES);
     File baseFlavorDir = new File(baseSrcDir, FD_MAIN);
     GradleAndroidModuleTemplate paths = new GradleAndroidModuleTemplate();
@@ -139,9 +145,10 @@ public class GradleAndroidModuleTemplate implements AndroidModuleTemplate {
    * to instantiate an instance of this class.
    */
   @NotNull
-  private static List<SourceProvider> getSourceProviders(@NotNull AndroidFacet androidFacet, @Nullable VirtualFile targetDirectory) {
+  private static Collection<SourceProvider> getSourceProviders(@NotNull AndroidFacet androidFacet, @Nullable VirtualFile targetDirectory) {
     if (targetDirectory != null) {
-      return IdeaSourceProvider.getSourceProvidersForFile(androidFacet, targetDirectory, androidFacet.getMainSourceProvider());
+      return IdeaSourceProvider.getSourceProvidersForFile(androidFacet, targetDirectory,
+                                                          SourceProviderManager.getInstance(androidFacet).getMainSourceProvider());
     }
     else {
       return IdeaSourceProvider.getAllSourceProviders(androidFacet);

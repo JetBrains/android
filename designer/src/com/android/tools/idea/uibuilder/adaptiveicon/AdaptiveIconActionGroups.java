@@ -15,10 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.adaptiveicon;
 
-import com.android.tools.adtui.actions.ZoomInAction;
-import com.android.tools.adtui.actions.ZoomLabelAction;
-import com.android.tools.adtui.actions.ZoomOutAction;
-import com.android.tools.adtui.actions.ZoomToFitAction;
 import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -42,6 +38,7 @@ public class AdaptiveIconActionGroups extends ToolbarActionGroups {
       group.add(new DensityMenuAction(model));
     }
     group.add(new ShapeMenuAction((NlDesignSurface)mySurface));
+    // TODO(b/136258816): Update to support multi-model
     group.add(new ThemeMenuAction(mySurface::getConfiguration));
     return group;
   }
@@ -50,12 +47,7 @@ public class AdaptiveIconActionGroups extends ToolbarActionGroups {
   @Override
   protected ActionGroup getNorthEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
-
-    group.add(ZoomOutAction.INSTANCE);
-    group.add(ZoomLabelAction.INSTANCE);
-    group.add(ZoomInAction.INSTANCE);
-    group.add(ZoomToFitAction.INSTANCE);
-
+    group.addAll(getZoomActions());
     return group;
   }
 }

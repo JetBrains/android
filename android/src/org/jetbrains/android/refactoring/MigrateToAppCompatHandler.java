@@ -15,6 +15,8 @@
  */
 package org.jetbrains.android.refactoring;
 
+import static java.util.Collections.emptySet;
+
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
@@ -23,8 +25,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.refactoring.RefactoringActionHandler;
 import org.jetbrains.annotations.NotNull;
-
-import static java.util.Collections.emptySet;
 
 public class MigrateToAppCompatHandler implements RefactoringActionHandler {
   @Override
@@ -37,9 +37,7 @@ public class MigrateToAppCompatHandler implements RefactoringActionHandler {
 
     MigrateToAppCompatProcessor processor;
     if (ApplicationManager.getApplication().isUnitTestMode()) {
-      //noinspection TestOnlyProblems
-      processor = new MigrateToAppCompatProcessor(project, MigrateToAppCompatProcessor.buildMigrationMap(project),
-                                                  (artifact, version) -> new AppCompatStyleMigration(emptySet(), emptySet()));
+      processor = new MigrateToAppCompatProcessor(project, (artifact, version) -> new AppCompatStyleMigration(emptySet(), emptySet()));
     }
     else {
       processor = new MigrateToAppCompatProcessor(project);

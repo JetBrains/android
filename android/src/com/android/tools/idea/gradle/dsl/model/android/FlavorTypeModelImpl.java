@@ -28,8 +28,11 @@ import com.android.tools.idea.gradle.dsl.model.GradleDslBlockModel;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelBuilder;
 import com.android.tools.idea.gradle.dsl.model.ext.GradlePropertyModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.android.AbstractFlavorTypeDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslBlockElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList;
+import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
@@ -302,20 +305,41 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
                                                                           @NotNull String name,
                                                                           @NotNull String value) {
     GradleNameElement nameElement = GradleNameElement.create(elementName);
-    GradleDslExpressionList expressionList = new GradleDslExpressionList(myDslElement, nameElement, false);
+    // For kts build files, buildConfigField and resValue are declared in callExpression psiElements and are expected to be converted to
+    // GradleDslMethodCall instead of GradleDslExpressionList (as of in Groovy).
+    // Currently we can, at this level, find if we are dealing with a Groovy or Kts model by checking ${myDslElement) : if this is
+    // a AbstractFlavorTypeDslElement and has a methodName => it's a KTS based mode, otherwise, it's Groovy.
+    // TODO(karimai) : this is just a workaround, find a better way of separating use cases.
+    GradleDslExpressionList expressionList;
+    GradleDslMethodCall expressionCall = null;
+    if (myDslElement instanceof AbstractFlavorTypeDslElement && ((AbstractFlavorTypeDslElement)myDslElement).getMethodName() != null) {
+       expressionCall = new GradleDslMethodCall(myDslElement, nameElement, elementName);
+      expressionList = new GradleDslExpressionList(expressionCall, nameElement, false);
+      expressionCall.setParsedArgumentList(expressionList);
+    }
+    else {
+      expressionList = new GradleDslExpressionList(myDslElement, nameElement, false);
+    }
     T newValue = producer.apply(expressionList);
     assert newValue != null;
     newValue.type().setValue(type);
     newValue.name().setValue(name);
     newValue.value().setValue(value);
-    myDslElement.setNewElement(expressionList);
-
+    if (expressionCall == null) {
+      myDslElement.setNewElement(expressionList);
+    }
+    else {
+      myDslElement.setNewElement(expressionCall);
+    }
     return newValue;
   }
 
   protected <T> List<T> getTypeNameValuesElements(@NotNull Function<GradleDslExpressionList, T> producer, @NotNull String elementName) {
     List<T> result = Lists.newArrayList();
     for (GradleDslElement element : myDslElement.getPropertyElementsByName(elementName)) {
+      if (element instanceof GradleDslMethodCall) {
+        element = ((GradleDslMethodCall)element).getArgumentsElement();
+      }
       if (element instanceof GradleDslExpressionList) {
         GradleDslExpressionList list = (GradleDslExpressionList)element;
         T value = producer.apply(list);
@@ -333,18 +357,22 @@ public abstract class FlavorTypeModelImpl extends GradleDslBlockModel implements
                                                                        @NotNull String name,
                                                                        @NotNull String value) {
     for (GradleDslElement element : myDslElement.getPropertyElementsByName(elementName)) {
-      if (element instanceof GradleDslExpressionList) {
-        GradleDslExpressionList list = (GradleDslExpressionList)element;
-        T typeNameValueElement = producer.apply(list);
-        assert typeNameValueElement != null;
-        String oldType = typeNameValueElement.type().getValue(STRING_TYPE);
-        String oldName = typeNameValueElement.name().getValue(STRING_TYPE);
-        String oldValue = typeNameValueElement.value().getValue(STRING_TYPE);
-        if (oldType != null && oldType.equals(type) &&
-            oldName != null && oldName.equals(name) &&
-            oldValue != null && oldValue.equals(value)) {
-          return typeNameValueElement;
-        }
+      GradleDslExpressionList list = null;
+      if (element instanceof GradleDslMethodCall) {
+        list = ((GradleDslMethodCall)element).getArgumentsElement();
+      }
+      else if (element instanceof GradleDslExpressionList) {
+        list = (GradleDslExpressionList)element;
+      }
+      T typeNameValueElement = producer.apply(list);
+      assert typeNameValueElement != null;
+      String oldType = typeNameValueElement.type().getValue(STRING_TYPE);
+      String oldName = typeNameValueElement.name().getValue(STRING_TYPE);
+      String oldValue = typeNameValueElement.value().getValue(STRING_TYPE);
+      if (oldType != null && oldType.equals(type) &&
+          oldName != null && oldName.equals(name) &&
+          oldValue != null && oldValue.equals(value)) {
+        return typeNameValueElement;
       }
     }
     return null;

@@ -15,16 +15,16 @@
  */
 package com.android.tools.profilers.network;
 
-import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
-import static com.android.tools.profiler.proto.NetworkProfiler.SpeedData;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME;
+import static com.android.tools.profiler.proto.NetworkProfiler.NetworkProfilerData;
+import static com.android.tools.profiler.proto.NetworkProfiler.SpeedData;
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertFalse;
 
+import com.android.tools.adtui.RangeSelectionComponent;
 import com.android.tools.adtui.RangeTooltipComponent;
-import com.android.tools.adtui.SelectionComponent;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.FakeTimer;
@@ -32,11 +32,11 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.swing.FakeKeyboard;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.NetworkProfiler;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.StudioProfilers;
@@ -112,8 +112,8 @@ public class NetworkProfilerStageViewTest {
 
     TreeWalker stageWalker = new TreeWalker(stageView.getComponent());
     LineChart lineChart = (LineChart)stageWalker.descendantStream().filter(LineChart.class::isInstance).findFirst().get();
-    SelectionComponent selectionComponent =
-      (SelectionComponent)stageWalker.descendantStream().filter(SelectionComponent.class::isInstance).findFirst().get();
+    RangeSelectionComponent rangeSelectionComponent =
+      (RangeSelectionComponent)stageWalker.descendantStream().filter(RangeSelectionComponent.class::isInstance).findFirst().get();
 
     ConnectionsView connectionsView = stageView.getConnectionsView();
     TreeWalker connectionsViewWalker = new TreeWalker(connectionsView.getComponent());
@@ -135,7 +135,7 @@ public class NetworkProfilerStageViewTest {
     assertThat(stageView.getStage().getProfilerMode()).isEqualTo(ProfilerMode.EXPANDED);
     assertThat(connectionsViewWalker.ancestorStream().allMatch(Component::isVisible)).isTrue();
 
-    myFakeUi.keyboard.setFocus(selectionComponent);
+    myFakeUi.keyboard.setFocus(rangeSelectionComponent);
     myFakeUi.keyboard.press(FakeKeyboard.Key.ESC);
     assertThat(connectionsViewWalker.ancestorStream().allMatch(Component::isVisible)).isFalse();
   }

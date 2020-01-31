@@ -15,15 +15,15 @@
  */
 package com.android.tools.idea.common.error;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.utils.HtmlBuilder;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.JBColor;
+import com.intellij.util.ui.JBHtmlEditorKit;
 import com.intellij.ui.RoundedLineBorder;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.JBHtmlEditorKit;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;

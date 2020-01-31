@@ -25,10 +25,10 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.SimpleNode
 
 class TargetTransitiveDependencyNode(
-  models: List<ReverseDependency.Transitive>,
+  override val models: List<ReverseDependency.Transitive>,
   val spec: PsArtifactDependencySpec,
   uiSettings: PsUISettings
-) : AbstractPsModelNode<ReverseDependency.Transitive>(models, uiSettings) {
+) : AbstractPsModelNode<ReverseDependency.Transitive>(uiSettings) {
 
   override fun update(presentation: PresentationData) {
     super.update(presentation)
@@ -42,6 +42,7 @@ class TargetTransitiveDependencyNode(
 
   init {
     autoExpandNode = false
+    updateNameAndIcon()
   }
 
   override fun getChildren(): Array<SimpleNode> {

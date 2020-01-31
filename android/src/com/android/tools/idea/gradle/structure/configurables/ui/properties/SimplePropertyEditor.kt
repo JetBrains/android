@@ -131,6 +131,7 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
           knownValueRenderers = possibleValues
           knownValues to possibleValues
         }.invokeLater { (knownValues, possibleValues) ->
+          if (disposed) return@invokeLater
           setKnownValues(
             (possibleValues.keys.toList().map { it.annotated() } +
              availableVariables?.filter { knownValues.isSuitableVariable(it) }.orEmpty()
@@ -261,16 +262,16 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
       return JLabel().apply {
         if (extensionAction != null) {
           isFocusable = ScreenReader.isActive()
-          icon = StudioIcons.Common.PROPERTY_UNBOUND
+          icon = StudioIcons.Common.PROPERTY_UNBOUND_LARGE
           toolTipText = extensionAction.tooltip + " (Shift+Enter)"
           addFocusListener(object : FocusListener {
             override fun focusLost(e: FocusEvent) {
-              icon = StudioIcons.Common.PROPERTY_UNBOUND
+              icon = StudioIcons.Common.PROPERTY_UNBOUND_LARGE
 
             }
 
             override fun focusGained(e: FocusEvent) {
-              icon = StudioIcons.Common.PROPERTY_UNBOUND_FOCUS
+              icon = StudioIcons.Common.PROPERTY_UNBOUND_FOCUS_LARGE
             }
           })
           addMouseListener(object : MouseAdapter() {

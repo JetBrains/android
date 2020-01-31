@@ -16,10 +16,11 @@
 package com.android.tools.datastore;
 
 import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURABLE;
+import static com.android.tools.idea.flags.StudioFlags.PROFILER_UNIFIED_PIPELINE;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.datastore.database.DataStoreTable;
+import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.service.CpuService;
 import com.android.tools.datastore.service.EnergyService;
 import com.android.tools.datastore.service.EventService;
@@ -37,9 +38,9 @@ import com.android.tools.profiler.proto.NetworkServiceGrpc;
 import com.android.tools.profiler.proto.ProfilerServiceGrpc;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.TransportServiceGrpc;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerDbStats;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import io.grpc.Channel;
 import io.grpc.ManagedChannel;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -121,7 +122,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   private final List<ServicePassThrough> myServices = new ArrayList<>();
   private final Consumer<Runnable> myFetchExecutor;
   @NotNull
-  private Consumer<Throwable> myNoPiiExceptionHanlder;
+  private Consumer<Throwable> myNoPiiExceptionHandler;
   private TransportService myTransportService;
   private final ServerInterceptor myInterceptor;
   /**
@@ -154,7 +155,9 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     myInterceptor = interceptor;
     myDatastoreDirectory = datastoreDirectory;
     myServerBuilder = InProcessServerBuilder.forName(serviceName).directExecutor();
-    myNoPiiExceptionHanlder = (t) -> getLogger().error(t);
+    // Calling set with null resets the exception handler to the default exception handler.
+    // getLogger().error(exception);
+    setNoPiiExceptionHandler(null);
     createPollers();
     myServer = myServerBuilder.build();
     try {
@@ -169,8 +172,16 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     DataStoreTable.addDataStoreErrorCallback(this);
   }
 
-  public void setNoPiiExceptionHanlder(@NotNull Consumer<Throwable> noPiiExceptionHanlder) {
-    myNoPiiExceptionHanlder = noPiiExceptionHanlder;
+  /**
+   * @param noPiiExceptionHandler Consumer of the throwable error to report. Otherwise null to reset the exception handler back to default.
+   */
+  public void setNoPiiExceptionHandler(@Nullable Consumer<Throwable> noPiiExceptionHandler) {
+    if (noPiiExceptionHandler == null) {
+      myNoPiiExceptionHandler = (t) -> getLogger().error(t);
+    }
+    else {
+      myNoPiiExceptionHandler = noPiiExceptionHandler;
+    }
   }
 
   @VisibleForTesting
@@ -183,12 +194,15 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
    * and registered as the set of features the datastore supports.
    */
   public void createPollers() {
-    myTransportService = new TransportService(this, myFetchExecutor);
+    // TODO b/73538507 shared between all services to support inserting file content into generic byte cache (e.g. importing hprof)
+    // We should be able to keep this inside TransportService after legacy pipeline removal.
+    UnifiedEventsTable unifiedTable = new UnifiedEventsTable();
+    myTransportService = new TransportService(this, unifiedTable, myFetchExecutor, !PROFILER_UNIFIED_PIPELINE.get());
     registerService(myTransportService);
     registerService(new ProfilerService(this, myLogService));
     registerService(new EventService(this, myFetchExecutor));
     registerService(new CpuService(this, myFetchExecutor, myLogService));
-    registerService(new MemoryService(this, myFetchExecutor, myLogService));
+    registerService(new MemoryService(this, unifiedTable, myFetchExecutor, myLogService));
     registerService(new NetworkService(this, myFetchExecutor));
     registerService(new EnergyService(this, myFetchExecutor, myLogService));
   }
@@ -212,7 +226,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     namespaces.forEach(namespace -> {
       assert !namespace.myNamespace.isEmpty();
       DataStoreDatabase db = myDatabases.computeIfAbsent(namespace, backingNamespace -> createDatabase(
-        myDatastoreDirectory + backingNamespace.myNamespace, backingNamespace.myCharacteristic, myNoPiiExceptionHanlder));
+        myDatastoreDirectory + backingNamespace.myNamespace, backingNamespace.myCharacteristic, myNoPiiExceptionHandler));
       service.setBackingStore(namespace, db.getConnection());
     });
 
@@ -242,7 +256,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   /**
    * Disconnect from the specified channel.
    */
-  public void disconnect(@NotNull long streamId) {
+  public void disconnect(long streamId) {
     if (myConnectedClients.containsKey(streamId)) {
       DataStoreClient client = myConnectedClients.remove(streamId);
       // Shutdown instead of shutdown now so that the client have a chance to receive all the remaining events that need to be streamed
@@ -262,7 +276,6 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     myDatabases.forEach((name, db) -> db.disconnect());
     DataStoreTable.removeDataStoreErrorCallback(this);
   }
-
 
   @VisibleForTesting
   List<ServicePassThrough> getRegisteredServices() {
@@ -299,7 +312,12 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
 
   @Override
   public void onDataStoreError(Throwable t) {
-    myNoPiiExceptionHanlder.accept(t);
+    myNoPiiExceptionHandler.accept(t);
+  }
+
+  @NotNull
+  public LogService getLogService() {
+    return myLogService;
   }
 
   /**

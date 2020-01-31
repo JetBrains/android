@@ -15,11 +15,17 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import org.fest.swing.core.Robot
 import java.awt.Container
 
 open class ModulePropertiesFixture constructor(
-  override val ideFrameFixture: IdeFrameFixture,
-  override val container: Container
+  val robot: Robot,
+  val container: Container
 ) : ConfigPanelFixture() {
+  override fun target(): Container = container
+  override fun robot(): Robot = robot
+
+  fun compileSdkVersion(): PropertyEditorFixture = findEditor("Compile Sdk Version")
+  fun sourceCompatibility(): PropertyEditorFixture = findEditor("Source Compatibility")
+  fun targetCompatibility(): PropertyEditorFixture = findEditor("Target Compatibility")
 }

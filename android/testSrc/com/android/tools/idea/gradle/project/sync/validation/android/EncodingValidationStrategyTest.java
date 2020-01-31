@@ -15,6 +15,17 @@
  */
 package com.android.tools.idea.gradle.project.sync.validation.android;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
+import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
+import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
@@ -23,13 +34,8 @@ import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.encoding.EncodingProjectManager;
-import org.mockito.Mock;
-
 import java.nio.charset.Charset;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link EncodingValidationStrategy}.
@@ -56,7 +62,8 @@ public class EncodingValidationStrategyTest extends AndroidGradleTestCase {
 
     AndroidProjectStub androidProject = new AndroidProjectStub("app");
     androidProject.getJavaCompileOptions().setEncoding(modelEncoding);
-    when(androidModel.getAndroidProject()).thenReturn(androidProject);
+    when(androidModel.getAndroidProject())
+      .thenAnswer(invocation -> IdeAndroidProjectImpl.create(androidProject, new IdeDependenciesFactory(), null, null));
 
     myStrategy.validate(mock(Module.class), androidModel);
 

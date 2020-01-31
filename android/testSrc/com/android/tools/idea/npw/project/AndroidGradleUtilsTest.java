@@ -23,12 +23,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static com.android.tools.idea.npw.project.AndroidGradleModuleUtils.setGradleWrapperExecutable;
+import static com.intellij.testFramework.UsefulTestCase.assertDoesntExist;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.IOException;
 
-import static com.android.tools.idea.npw.project.AndroidGradleModuleUtils.setGradleWrapperExecutable;
-import static com.intellij.testFramework.UsefulTestCase.assertDoesntExist;
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
 /**
  * Tests for {@link AndroidGradleModuleUtils}

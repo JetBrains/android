@@ -15,18 +15,18 @@
  */
 package com.android.tools.idea.uibuilder.property;
 
-import static com.android.SdkConstants.ANDROID_ID_PREFIX;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
-import static com.android.SdkConstants.ID_PREFIX;
 import static com.android.SdkConstants.NEW_ID_PREFIX;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.PREFIX_THEME_REF;
+import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.property.PropertiesManager;
 import com.android.tools.idea.uibuilder.property2.support.NeleIdRenameProcessor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
@@ -48,22 +48,7 @@ public class NlIdPropertyItem extends NlPropertyItem {
   @Nullable
   @Override
   public String getValue() {
-    return stripIdPrefix(super.getValue());
-  }
-
-  /**
-   * Like {@link com.android.tools.lint.detector.api.LintUtils#stripIdPrefix(String)} but doesn't return "" for a null id
-   */
-  private static String stripIdPrefix(@Nullable String id) {
-    if (id != null) {
-      if (id.startsWith(NEW_ID_PREFIX)) {
-        return id.substring(NEW_ID_PREFIX.length());
-      }
-      else if (id.startsWith(ID_PREFIX)) {
-        return id.substring(ID_PREFIX.length());
-      }
-    }
-    return id;
+    return super.getValue() != null ? stripPrefixFromId(super.getValue()) : null;
   }
 
   @Nullable
@@ -73,16 +58,19 @@ public class NlIdPropertyItem extends NlPropertyItem {
   }
 
   @Override
-  public void setValue(Object value) {
-    String newId = value != null ? stripIdPrefix(value.toString()) : "";
+  public void setValue(@Nullable Object value) {
+    String newValue = value != null ? value.toString() : null;
+    String newId = newValue != null ? stripPrefixFromId(newValue) : "";
     String oldId = getValue();
     XmlTag tag = getTag();
-    String newValue = !StringUtil.isEmpty(newId) && !newId.startsWith(ANDROID_ID_PREFIX) ? NEW_ID_PREFIX + newId : newId;
+    if (newValue != null && !newValue.isEmpty() && !newValue.startsWith(PREFIX_RESOURCE_REF) && !newValue.startsWith(PREFIX_THEME_REF)) {
+      newValue = NEW_ID_PREFIX + newValue;
+    }
 
     if (oldId != null
+        && newValue != null
         && !oldId.isEmpty()
         && !newId.isEmpty()
-        && newValue != null
         && !oldId.equals(newId)
         && tag != null
         && tag.isValid()) {

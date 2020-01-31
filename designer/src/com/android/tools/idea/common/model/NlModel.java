@@ -18,6 +18,7 @@ package com.android.tools.idea.common.model;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 import static com.android.tools.idea.common.model.NlComponentUtil.isDescendant;
+import static com.google.common.base.Verify.verifyNotNull;
 import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 
 import com.android.annotations.concurrency.Slow;
@@ -44,7 +45,6 @@ import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.ResourceNotificationManager.ResourceChangeListener;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.idea.uibuilder.editor.NlPreviewForm;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
@@ -82,6 +82,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -93,6 +94,8 @@ import org.jetbrains.annotations.Nullable;
  * Model for an XML file
  */
 public class NlModel implements Disposable, ResourceChangeListener, ModificationTracker {
+  public static final int DELAY_AFTER_TYPING_MS = 250;
+
   private static final boolean CHECK_MODEL_INTEGRITY = false;
   private final Set<String> myPendingIds = Sets.newHashSet();
 
@@ -101,6 +104,8 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
 
   private final Configuration myConfiguration;
   private final ListenerCollection<ModelListener> myListeners = ListenerCollection.createWithDirectExecutor();
+  /** Model name. This can be used when multiple models are displayed at the same time */
+  private final String myModelDisplayName;
   private NlComponent myRootComponent;
   private LintAnnotationsModel myLintAnnotationsModel;
   private final long myId;
@@ -114,6 +119,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   private ChangeType myModificationTrigger;
 
   /**
+   * {@link LayoutlibSceneManager} requires the file from model to be an {@link XmlFile} to be able to render it. This is true in case of
+   * layout file and some others as well. However, we want to use model to render other file types (e.g. Java and Kotlin source files that
+   * contain custom Android {@link View}s)that do not have explicit conversion to {@link XmlFile} (but might have implicit). This provider should
+   * provide us with {@link XmlFile} representation of the VirtualFile fed to the model.
+   */
+  private final BiFunction<Project, VirtualFile, XmlFile> myXmlFileProvider;
+
+  /**
    * Returns the responsible for registering an {@link NlComponent} to enhance it with layout-specific properties and methods.
    */
   @NotNull private final Consumer<NlComponent> myComponentRegistrar;
@@ -121,29 +134,67 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
   @Slow
   @NotNull
   public static NlModel create(@Nullable Disposable parent,
+                               @Nullable String modelDisplayName,
                                @NotNull AndroidFacet facet,
                                @NotNull VirtualFile file,
                                @NotNull ConfigurationManager configurationManager,
                                @NotNull Consumer<NlComponent> componentRegistrar) {
-    return new NlModel(parent, facet, file, configurationManager.getConfiguration(file), componentRegistrar);
+    return create(parent, modelDisplayName, facet, file, configurationManager.getConfiguration(file), componentRegistrar);
   }
 
   @Slow
   @NotNull
   public static NlModel create(@Nullable Disposable parent,
+                               @Nullable String modelDisplayName,
                                @NotNull AndroidFacet facet,
                                @NotNull VirtualFile file,
                                @NotNull Consumer<NlComponent> componentRegistrar) {
-    return create(parent, facet, file, ConfigurationManager.getOrCreateInstance(facet), componentRegistrar);
+    return create(parent, modelDisplayName, facet, file, ConfigurationManager.getOrCreateInstance(facet), componentRegistrar);
   }
 
-  @VisibleForTesting
+  @Slow
+  @NotNull
+  public static NlModel create(@Nullable Disposable parent,
+                               @Nullable String modelDisplayName,
+                               @NotNull AndroidFacet facet,
+                               @NotNull VirtualFile file,
+                               @NotNull Configuration configuration,
+                               @NotNull Consumer<NlComponent> componentRegistrar) {
+    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar);
+  }
+
+  @Slow
+  @NotNull
+  public static NlModel create(@Nullable Disposable parent,
+                               @Nullable String modelDisplayName,
+                               @NotNull AndroidFacet facet,
+                               @NotNull VirtualFile file,
+                               @NotNull Configuration configuration,
+                               @NotNull Consumer<NlComponent> componentRegistrar,
+                               @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider) {
+    return new NlModel(parent, modelDisplayName, facet, file, configuration, componentRegistrar, xmlFileProvider);
+  }
+
   protected NlModel(@Nullable Disposable parent,
+                    @Nullable String modelDisplayName,
                     @NotNull AndroidFacet facet,
                     @NotNull VirtualFile file,
                     @NotNull Configuration configuration,
                     @NotNull Consumer<NlComponent> componentRegistrar) {
+    this(parent, modelDisplayName, facet, file, configuration, componentRegistrar, NlModel::getDefaultXmlFile);
+  }
+
+  @VisibleForTesting
+  protected NlModel(@Nullable Disposable parent,
+                    @Nullable String modelDisplayName,
+                    @NotNull AndroidFacet facet,
+                    @NotNull VirtualFile file,
+                    @NotNull Configuration configuration,
+                    @NotNull Consumer<NlComponent> componentRegistrar,
+                    @NotNull BiFunction<Project, VirtualFile, XmlFile> xmlFileProvider) {
     myFacet = facet;
+    myXmlFileProvider = xmlFileProvider;
+    myModelDisplayName = modelDisplayName;
     myFile = file;
     myConfiguration = configuration;
     myComponentRegistrar = componentRegistrar;
@@ -153,7 +204,7 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
       Disposer.register(parent, this);
     }
     myType = DesignerEditorFileTypeKt.typeOf(getFile());
-    myUpdateQueue = new MergingUpdateQueue("android.layout.preview.edit", NlPreviewForm.DELAY_AFTER_TYPING_MS,
+    myUpdateQueue = new MergingUpdateQueue("android.layout.preview.edit", DELAY_AFTER_TYPING_MS,
                                            true, null, null, null, SWING_THREAD);
     myUpdateQueue.setRestartTimerOnAdd(true);
   }
@@ -225,11 +276,16 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return myFile;
   }
 
+  /** Returns the {@code XmlFile} PSI representation of {@code virtualFile} in {@code project}. */
+  @NotNull
+  private static XmlFile getDefaultXmlFile(Project project, VirtualFile virtualFile) {
+    XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(project, virtualFile);
+    return verifyNotNull(file);
+  }
+
   @NotNull
   public XmlFile getFile() {
-    XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(getProject(), myFile);
-    assert file != null;
-    return file;
+    return myXmlFileProvider.apply(getProject(), myFile);
   }
 
   @NotNull
@@ -981,6 +1037,15 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     addComponents(toAdd, receiver, before, insertType, surface, null);
   }
 
+  public void addComponents(@NotNull List<NlComponent> componentToAdd,
+                            @NotNull NlComponent receiver,
+                            @Nullable NlComponent before,
+                            @NotNull InsertType insertType,
+                            @Nullable DesignSurface surface,
+                            @Nullable Runnable attributeUpdatingTask) {
+    addComponents(componentToAdd, receiver, before, insertType, surface, attributeUpdatingTask, null);
+  }
+
   /**
    * Adds components to the specified receiver before the given sibling.
    * If insertType is a move the components specified should be components from this model.
@@ -990,16 +1055,19 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                             @Nullable NlComponent before,
                             @NotNull InsertType insertType,
                             @Nullable DesignSurface surface,
-                            @Nullable Runnable attributeUpdatingTask) {
+                            @Nullable Runnable attributeUpdatingTask,
+                            @Nullable String groupId) {
     // Fix for b/124381110
     // The components may be added by addComponentInWriteCommand after this method returns.
     // Make a copy of the components such that the caller can change the list without causing problems.
     ImmutableList<NlComponent> toAdd = ImmutableList.copyOf(componentToAdd);
-    if (!canAddComponents(toAdd, receiver, before)) {
+
+    // Note: we don't really need to check for dependencies if all we do is moving existing components.
+    if (!canAddComponents(toAdd, receiver, before, insertType == InsertType.MOVE_WITHIN)) {
       return;
     }
 
-    Runnable callback = () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask);
+    Runnable callback = () -> addComponentInWriteCommand(toAdd, receiver, before, insertType, surface, attributeUpdatingTask, groupId);
     NlDependencyManager.getInstance().addDependenciesAsync(toAdd, getFacet(), "Adding Components...", callback);
   }
 
@@ -1008,9 +1076,10 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
                                           @Nullable NlComponent before,
                                           @NotNull InsertType insertType,
                                           @Nullable DesignSurface surface,
-                                          @Nullable Runnable attributeUpdatingTask) {
+                                          @Nullable Runnable attributeUpdatingTask,
+                                          @Nullable String groupId) {
     DumbService.getInstance(getProject()).runWhenSmart(() -> {
-      NlWriteCommandActionUtil.run(toAdd, generateAddComponentsDescription(toAdd, insertType), () -> {
+      NlWriteCommandActionUtil.run(toAdd, generateAddComponentsDescription(toAdd, insertType), groupId, () -> {
         if (attributeUpdatingTask != null) {
           // Update the attribute before adding components, if need.
           attributeUpdatingTask.run();
@@ -1100,6 +1169,11 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
     return myId;
   }
 
+  @Nullable
+  public String getModelDisplayName() {
+    return myModelDisplayName;
+  }
+
   @Override
   public void dispose() {
     boolean shouldDeactivate;
@@ -1134,13 +1208,14 @@ public class NlModel implements Disposable, ResourceChangeListener, Modification
           notifyModifiedViaUpdateQueue(ChangeType.EDIT);
           break;
         case IMAGE_RESOURCE_CHANGED:
-          RefreshRenderAction.clearCache(getConfiguration());
+          RefreshRenderAction.clearCache(ImmutableList.of(getConfiguration()));
           notifyModified(ChangeType.RESOURCE_CHANGED);
           break;
         case GRADLE_SYNC:
         case PROJECT_BUILD:
         case VARIANT_CHANGED:
         case SDK_CHANGED:
+          RefreshRenderAction.clearCache(ImmutableList.of(getConfiguration()));
           notifyModified(ChangeType.BUILD);
           break;
         case CONFIGURATION_CHANGED:

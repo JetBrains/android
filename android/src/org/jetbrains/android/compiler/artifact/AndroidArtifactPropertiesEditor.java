@@ -40,7 +40,7 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
   private JPanel myKeyStoreButtonsPanel;
   private JPanel myProGuardPanel;
   private ProGuardConfigFilesPanel myProGuardConfigFilesPanel;
-  private ComboBox<AndroidArtifactSigningMode> myTypeCombo;
+  private ComboBox myTypeCombo;
 
   private final Artifact myArtifact;
   private final Project myProject;
@@ -57,7 +57,8 @@ public class AndroidArtifactPropertiesEditor extends ArtifactPropertiesEditor im
 
     myTypeCombo.setRenderer(SimpleListCellRenderer.create("", AndroidArtifactPropertiesEditor::getPresentableText));
 
-    myTypeCombo.setModel(new EnumComboBoxModel<>(AndroidArtifactSigningMode.class));
+    //noinspection unchecked
+    myTypeCombo.setModel(new EnumComboBoxModel<AndroidArtifactSigningMode>(AndroidArtifactSigningMode.class));
     myTypeCombo.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {

@@ -27,11 +27,12 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
+import javax.swing.JComponent;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AndroidInheritingClassBrowser extends AndroidClassBrowserBase {
+public class AndroidInheritingClassBrowser<T extends JComponent> extends AndroidClassBrowserBase<T> {
   private final String myBaseClassName;
 
   public AndroidInheritingClassBrowser(@NotNull Project project,

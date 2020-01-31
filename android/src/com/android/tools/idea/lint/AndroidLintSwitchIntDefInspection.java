@@ -18,17 +18,27 @@ package com.android.tools.idea.lint;
 import com.android.tools.lint.checks.AnnotationDetector;
 import com.android.tools.lint.detector.api.LintFix;
 import com.android.tools.lint.detector.api.TextFormat;
+import com.intellij.codeInsight.FileModificationService;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiCodeBlock;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiStatement;
+import com.intellij.psi.PsiSwitchStatement;
 import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.util.PsiTreeUtil;
+import java.util.List;
 import org.jetbrains.android.inspections.lint.AndroidLintInspectionBase;
 import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
+import org.jetbrains.kotlin.idea.core.ShortenReferences;
+import org.jetbrains.kotlin.psi.KtPsiFactory;
+import org.jetbrains.kotlin.psi.KtWhenEntry;
+import org.jetbrains.kotlin.psi.KtWhenExpression;
 
 public class AndroidLintSwitchIntDefInspection extends AndroidLintInspectionBase {
   public AndroidLintSwitchIntDefInspection() {
@@ -49,6 +59,9 @@ public class AndroidLintSwitchIntDefInspection extends AndroidLintInspectionBase
         public void apply(@NotNull PsiElement startElement,
                           @NotNull PsiElement endElement,
                           @NotNull AndroidQuickfixContexts.Context context) {
+          if (!FileModificationService.getInstance().preparePsiElementForWrite(startElement)) {
+            return;
+          }
           if (startElement.getParent() instanceof PsiSwitchStatement) {
             PsiSwitchStatement switchStatement = (PsiSwitchStatement)startElement.getParent();
             Project project = switchStatement.getProject();
@@ -70,6 +83,22 @@ public class AndroidLintSwitchIntDefInspection extends AndroidLintInspectionBase
             }
 
             CodeStyleManager.getInstance(project).reformat(switchStatement);
+          }
+          else {
+              // Kotlin
+            KtWhenExpression when = PsiTreeUtil.getParentOfType(startElement, KtWhenExpression.class, false);
+            if (when != null) {
+              Project project = when.getProject();
+              KtPsiFactory factory = new KtPsiFactory(project);
+              PsiElement anchor = when.getCloseBrace();
+              for (String constant : missingCases) {
+                // The list we get from lint is using raw formatting, surrounding constants like `this`
+                constant = TextFormat.RAW.convertTo(constant, TextFormat.TEXT);
+                KtWhenEntry caseStatement = factory.createWhenEntry(constant + "-> { TODO() }");
+                ((PsiElement)when).addBefore(caseStatement, anchor);
+                ShortenReferences.DEFAULT.process(when);
+              }
+            }
           }
         }
 

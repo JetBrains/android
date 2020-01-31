@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables
 
+import com.android.annotations.concurrency.UiThread
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener
 import com.android.tools.idea.gradle.structure.GradleResolver
 import com.android.tools.idea.gradle.structure.configurables.suggestions.SuggestionsPerspectiveConfigurable
@@ -31,8 +32,10 @@ import com.android.tools.idea.gradle.structure.model.PsIssueType
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.PsPath
 import com.android.tools.idea.gradle.structure.model.PsProjectImpl
+import com.android.tools.idea.gradle.structure.model.PsResolvedModuleModel
 import com.android.tools.idea.gradle.structure.model.repositories.search.ArtifactRepositorySearchService
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
+import com.google.common.util.concurrent.ListenableFuture
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -61,6 +64,7 @@ class PsContextImpl constructor(
   private val gradleSyncEventDispatcher = EventDispatcher.create(
     GradleSyncListener::class.java)
   private var disableSync: Boolean = false
+  private var disposed: Boolean = false
 
   override var selectedModule: String? = null; private set
 
@@ -121,17 +125,23 @@ class PsContextImpl constructor(
     analyzerDaemon.recreateUpdateIssues()
   }
 
+  private var future: ListenableFuture<List<PsResolvedModuleModel>>? = null
+
+  @UiThread
   private fun requestGradleModels() {
     if (disableResolveModels) return
     val project = this.project.ideProject
-    gradleSyncEventDispatcher.multicaster.syncStarted(project, false, false)
+    gradleSyncEventDispatcher.multicaster.syncStarted(project)
+    future?.cancel(true)
     gradleSync
       .requestProjectResolved(project, this)
-      .handleFailureOnEdt {ex ->
+      .also { future = it }
+      .handleFailureOnEdt { ex ->
         LOG.warn("PSD failed to fetch Gradle models.", ex)
         gradleSyncEventDispatcher.multicaster.syncFailed(project, ex?.let { e -> ExceptionUtil.getRootCause(e).message }.orEmpty())
       }
       .continueOnEdt {
+        if (disposed) return@continueOnEdt
         LOG.info("PSD fetched (${it.size} Gradle model(s). Refreshing the UI model.")
         this.project.refreshFrom(it)
         gradleSyncEventDispatcher.multicaster.syncSucceeded(project)
@@ -147,7 +157,10 @@ class PsContextImpl constructor(
     selectedModule = moduleName
   }
 
-  override fun dispose() {}
+  override fun dispose() {
+    future?.cancel(true)
+    disposed = true
+  }
 
   /**
    * Gets a [ArtifactRepositorySearchService] that searches the repositories configured for `module`. The results are cached and
@@ -159,6 +172,7 @@ class PsContextImpl constructor(
   override fun applyRunAndReparse(runnable: () -> Boolean) {
     disableSync = true
     try {
+      future?.cancel(true)
       project.applyRunAndReparse(runnable)
     }
     finally {
@@ -177,6 +191,7 @@ class PsContextImpl constructor(
       mainConfigurable.navigateTo(place, false)
     }
 
+    future?.cancel(true)
     if (project.isModified) {
       val validationIssues =
         project.modules.asSequence().flatMap { analyzerDaemon.validate(it) }.filter { it.severity == PsIssue.Severity.ERROR }.toList()

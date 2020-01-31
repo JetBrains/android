@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.project.sync.errors.SyncErrorHandler;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.mockito.Mock;
@@ -31,7 +32,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleNotificationExtension}.
  */
-public class GradleNotificationExtensionTest extends JavaProjectTestCase {
+public class GradleNotificationExtensionTest extends PlatformTestCase {
   @Mock private SyncErrorHandler myHandler1;
   @Mock private SyncErrorHandler myHandler2;
   @Mock private GradleSyncMessages mySyncMessages;
@@ -58,7 +59,6 @@ public class GradleNotificationExtensionTest extends JavaProjectTestCase {
 
     myNotificationExtension.customize(myNotification, myProject, error);
 
-    verify(mySyncMessages, times(1)).removeProjectMessages();
     verify(myHandler1, times(1)).handleError(error, myNotification, myProject);
     verify(myHandler2, never()).handleError(error, myNotification, myProject);
   }

@@ -16,18 +16,14 @@
 package com.android.tools.idea.naveditor.surface;
 
 import static com.android.SdkConstants.ATTR_GRAPH;
-import static com.android.annotations.VisibleForTesting.Visibility;
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_CLASS;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_INCLUDE;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_LAYOUT;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.ACTIVATE_NESTED;
 import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.OPEN_FILE;
-import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.SELECT_DESIGN_TAB;
-import static com.google.wireless.android.sdk.stats.NavEditorEvent.NavEditorEventType.SELECT_XML_TAB;
 
 import com.android.SdkConstants;
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceResolver;
@@ -36,9 +32,11 @@ import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.AndroidStudioKotlinPluginUtils;
 import com.android.tools.idea.common.editor.DesignerEditorPanel;
 import com.android.tools.idea.common.model.Coordinates;
+import com.android.tools.idea.common.model.DnDTransferComponent;
+import com.android.tools.idea.common.model.DnDTransferItem;
+import com.android.tools.idea.common.model.ItemTransferable;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.common.scene.LerpDouble;
 import com.android.tools.idea.common.scene.LerpPoint;
 import com.android.tools.idea.common.scene.LerpValue;
@@ -56,7 +54,6 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ConfigurationStateManager;
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
-import com.android.tools.idea.naveditor.editor.NavEditor;
 import com.android.tools.idea.naveditor.model.ActionType;
 import com.android.tools.idea.naveditor.model.NavComponentHelper;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
@@ -68,7 +65,10 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.android.utils.ImmutableCollectors;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -79,8 +79,6 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
-import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -94,7 +92,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.reference.SoftReference;
 import com.intellij.ui.JBColor;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Dimension;
@@ -106,7 +103,6 @@ import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -130,6 +126,8 @@ import org.jetbrains.annotations.TestOnly;
 public class NavDesignSurface extends DesignSurface {
   private static final int SCROLL_DURATION_MS = 300;
   private static final Object CONNECTION_CLIENT_PROPERTY_KEY = new Object();
+  private static final String FAILED_DEPENDENCY = "Failed to add navigation dependency";
+  private static final String FAILED_DEPENDENCY_TITLE = "Failed to Add Dependency";
 
   private NlComponent myCurrentNavigation;
   @VisibleForTesting
@@ -137,7 +135,6 @@ public class NavDesignSurface extends DesignSurface {
   private DesignerEditorPanel myEditorPanel;
 
   private static final WeakHashMap<AndroidFacet, SoftReference<ConfigurationManager>> ourConfigurationManagers = new WeakHashMap<>();
-  private static final Set<Project> PROJECTS_WITH_LISTENERS = ContainerUtil.createWeakSet();
 
   private static final List<GradleCoordinate> NAVIGATION_DEPENDENCIES = ImmutableList.of(
     GoogleMavenArtifactId.NAVIGATION_FRAGMENT.getCoordinate("+"),
@@ -164,7 +161,7 @@ public class NavDesignSurface extends DesignSurface {
    * {@code editorPanel} should only be null in tests
    */
   public NavDesignSurface(@NotNull Project project, @Nullable DesignerEditorPanel editorPanel, @NotNull Disposable parentDisposable) {
-    super(project, new SelectionModel(), parentDisposable);
+    super(project, parentDisposable, surface -> new NavActionManager((NavDesignSurface)surface), true);
     setBackground(JBColor.white);
 
     // TODO: add nav-specific issues
@@ -179,22 +176,7 @@ public class NavDesignSurface extends DesignSurface {
       }
     });
 
-    synchronized (PROJECTS_WITH_LISTENERS) {
-      if (!PROJECTS_WITH_LISTENERS.contains(project)) {
-        PROJECTS_WITH_LISTENERS.add(project);
-        project.getMessageBus().connect().subscribe(FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
-          @Override
-          public void selectionChanged(@NotNull FileEditorManagerEvent event) {
-            // skip the initial opening
-            if (event.getOldEditor() != null && event.getNewEditor() != null) {
-              NavUsageTracker.Companion.getInstance(getModel())
-                .createEvent(event.getNewEditor() instanceof NavEditor ? SELECT_DESIGN_TAB : SELECT_XML_TAB)
-                .log();
-            }
-          }
-        });
-      }
-    }
+    getSelectionModel().addListener((unused, selection) -> updateCurrentNavigation(selection));
   }
 
   @Override
@@ -217,7 +199,7 @@ public class NavDesignSurface extends DesignSurface {
         if (scene != null) {
           SceneComponent sceneComponent = scene.getSceneComponent(selection);
           if (sceneComponent != null) {
-            Point2D.Float p2d = NavActionHelperKt.getAnyPoint(sceneComponent, SceneContext.get(getCurrentSceneView()));
+            Point2D.Float p2d = NavActionHelperKt.getAnyPoint(sceneComponent, SceneContext.get(getFocusedSceneView()));
             if (p2d != null) {
               return new Point((int)p2d.x, (int)p2d.y);
             }
@@ -234,18 +216,14 @@ public class NavDesignSurface extends DesignSurface {
   }
 
   @Override
-  public void forceUserRequestedRefresh() {
+  public CompletableFuture<Void> forceUserRequestedRefresh() {
+    // Ignored for nav editor
+    return CompletableFuture.completedFuture(null);
   }
 
   @NotNull
   @Override
-  protected NavActionManager createActionManager() {
-    return new NavActionManager(this);
-  }
-
-  @NotNull
-  @Override
-  public Rectangle getRenderableBoundsOfSceneView(@NotNull SceneView sceneView, @Nullable Rectangle rectangle) {
+  public Rectangle getRenderableBoundsForInvisibleComponents(@NotNull SceneView sceneView, @Nullable Rectangle rectangle) {
     Rectangle viewRect = myScrollPane.getViewport().getViewRect();
     if (rectangle == null) {
       rectangle = new Rectangle();
@@ -286,7 +264,7 @@ public class NavDesignSurface extends DesignSurface {
       // If it didn't work, it's probably because the nav library isn't included. Prompt for it to be added.
       else if (requestAddDependency(facet)) {
         ListenableFuture<?> syncResult = ProjectSystemUtil.getSyncManager(getProject())
-          .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true);
+          .syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED);
         // When sync is done, try to create the schema again.
         Futures.addCallback(syncResult, new FutureCallback<Object>() {
           @Override
@@ -342,9 +320,15 @@ public class NavDesignSurface extends DesignSurface {
       myEditorPanel.putClientProperty(CONNECTION_CLIENT_PROPERTY_KEY, connection);
       connection.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, syncFailedListener);
     }
-    ApplicationManager.getApplication().invokeLater(() -> Messages.showErrorDialog(
-      getProject(), "Failed to add navigation library dependency", "Failed to Add Dependency"));
-    result.completeExceptionally(new Exception("Failed to add nav library dependency"));
+    ApplicationManager.getApplication().invokeLater(() -> onFailedToAddDependency());
+    result.completeExceptionally(new Exception(FAILED_DEPENDENCY));
+  }
+
+  private void onFailedToAddDependency() {
+    Messages.showErrorDialog(getProject(), FAILED_DEPENDENCY, FAILED_DEPENDENCY_TITLE);
+    if (myEditorPanel != null) {
+      myEditorPanel.getWorkBench().loadingStopped(FAILED_DEPENDENCY);
+    }
   }
 
   private boolean requestAddDependency(@NotNull AndroidFacet facet) {
@@ -423,6 +407,19 @@ public class NavDesignSurface extends DesignSurface {
     requestRender();
   }
 
+  @Override
+  @NotNull
+  public ItemTransferable getSelectionAsTransferable() {
+    NlModel model = getModel();
+
+    ImmutableList<DnDTransferComponent> components =
+      getSelectionModel().getSelection().stream()
+        .map(component -> new DnDTransferComponent(component.getTagName(), component.getTagDeprecated().getText(), 0, 0))
+        .collect(
+          ImmutableCollectors.toImmutableList());
+    return new ItemTransferable(new DnDTransferItem(model != null ? model.getId() : 0, components));
+  }
+
   @NotNull
   public NlComponent getCurrentNavigation() {
     if (!validateCurrentNavigation()) {
@@ -456,7 +453,6 @@ public class NavDesignSurface extends DesignSurface {
     myCurrentNavigation = currentNavigation;
     //noinspection ConstantConditions  If the model is not null (which it must be if we're here), the sceneManager will also not be null.
     getSceneManager().update();
-    getSelectionModel().clear();
     getSceneManager().layout(false);
     zoomToFit();
     currentNavigation.getModel().notifyModified(NlModel.ChangeType.UPDATE_HIERARCHY);
@@ -472,7 +468,7 @@ public class NavDesignSurface extends DesignSurface {
   @NotNull
   @Override
   public Dimension getContentSize(@Nullable Dimension dimension) {
-    SceneView view = getCurrentSceneView();
+    SceneView view = getFocusedSceneView();
     if (view == null) {
       Dimension dim = dimension == null ? new Dimension() : dimension;
       dim.setSize(0, 0);
@@ -490,7 +486,7 @@ public class NavDesignSurface extends DesignSurface {
   @Override
   @NotNull
   protected Dimension getPreferredContentSize(int availableWidth, int availableHeight) {
-    SceneView view = getCurrentSceneView();
+    SceneView view = getFocusedSceneView();
     if (view == null) {
       return new Dimension(0, 0);
     }
@@ -572,7 +568,7 @@ public class NavDesignSurface extends DesignSurface {
       metricsEventType = ACTIVATE_LAYOUT;
     }
     if (id != null) {
-      Configuration configuration = getConfiguration();
+      Configuration configuration = Iterables.getOnlyElement(getConfigurations(), null);
       ResourceResolver resolver = configuration != null ? configuration.getResourceResolver() : null;
       ResourceValue value = resolver != null ? resolver.findResValue(id, false) : null;
       String fileName = value != null ? value.getValue() : null;
@@ -613,7 +609,7 @@ public class NavDesignSurface extends DesignSurface {
     return (component) -> NavComponentHelper.INSTANCE.registerComponent(component);
   }
 
-  @VisibleForTesting(visibility = Visibility.PROTECTED)
+  @VisibleForTesting
   @Nullable
   @Override
   public Interaction doCreateInteractionOnClick(int mouseX, int mouseY, @NotNull SceneView view) {
@@ -653,7 +649,7 @@ public class NavDesignSurface extends DesignSurface {
   @Override
   public void scrollToCenter(@NotNull List<NlComponent> list) {
     Scene scene = getScene();
-    SceneView view = getCurrentSceneView();
+    SceneView view = getFocusedSceneView();
     if (list.isEmpty() || scene == null || view == null) {
       return;
     }
@@ -694,6 +690,11 @@ public class NavDesignSurface extends DesignSurface {
     });
 
     getScheduleRef().set(AppExecutorUtil.getAppScheduledExecutorService().scheduleWithFixedDelay(action, 0, 10, TimeUnit.MILLISECONDS));
+  }
+
+  @Override
+  public boolean isResizeAvailable() {
+    return false;
   }
 
   @VisibleForTesting
@@ -755,8 +756,6 @@ public class NavDesignSurface extends DesignSurface {
       myCurrentNavigation = match;
       getSelectionModel().setSelection((ImmutableList.of(myCurrentNavigation)));
     }
-
-    zoomToFit();
   }
 
   @NotNull
@@ -815,5 +814,33 @@ public class NavDesignSurface extends DesignSurface {
                                      (component.getParent() != null && component.getParent().getParent() == root) ||
                                      NavComponentHelperKt.getActionType(component, root) == ActionType.EXIT_DESTINATION))
     ).collect(Collectors.toList());
+  }
+
+
+  /*
+   * If the newly selected item is not visible, update the current navigation so that it is visible
+   */
+  private void updateCurrentNavigation(@NotNull List<NlComponent> selection) {
+    if (selection.size() != 1) {
+      return;
+    }
+
+    NlComponent selected = selection.get(0);
+    if (getSelectableComponents().contains(selected)) {
+      return;
+    }
+
+    NlComponent next = selected.getParent();
+    if (next == null) {
+      next = selected;
+    }
+
+    while (next != null && !NavComponentHelperKt.isNavigation(next)) {
+      next = next.getParent();
+    }
+
+    if (next != null) {
+      setCurrentNavigation(next);
+    }
   }
 }

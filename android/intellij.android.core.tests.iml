@@ -2,6 +2,9 @@
 <module type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
+    <content url="file://$MODULE_DIR$/testResources">
+      <sourceFolder url="file://$MODULE_DIR$/testResources" type="java-test-resource" />
+    </content>
     <content url="file://$MODULE_DIR$/testSrc">
       <sourceFolder url="file://$MODULE_DIR$/testSrc" isTestSource="true" />
     </content>
@@ -17,7 +20,6 @@
     <orderEntry type="module" module-name="intellij.android.adt.ui" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.ui.model" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="easymock" level="project" />
-    <orderEntry type="library" scope="TEST" name="Objenesis" level="project" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="module" module-name="intellij.java.testFramework" scope="TEST" />
@@ -36,7 +38,7 @@
     <orderEntry type="module" module-name="intellij.gradle" scope="TEST" />
     <orderEntry type="module" module-name="intellij.gradle.tests" scope="TEST" />
     <orderEntry type="module" module-name="intellij.groovy.psi" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.layoutlibLoader" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.layoutlib-loader" scope="TEST" />
     <orderEntry type="module" module-name="intellij.properties.psi" scope="TEST" />
     <orderEntry type="module" module-name="intellij.platform.diff.impl" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="dexlib2" level="project" />
@@ -54,7 +56,7 @@
     <orderEntry type="module" module-name="android.sdktools.fakeadbserver" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.adt.branding" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.sdkUpdates" scope="TEST" />
-    <orderEntry type="module" module-name="android.sdktools.java-lib-model" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.gradle-tooling" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="equalsverifier" level="project" />
     <orderEntry type="module" module-name="android.sdktools.analyzer" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.sdk-common" scope="TEST" />
@@ -74,9 +76,9 @@
     <orderEntry type="module" module-name="intellij.platform.credentialStore" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.lang" scope="TEST" />
     <orderEntry type="module-library">
-      <library name="instantapps-api-1.5">
+      <library name="instantapps-api">
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/instantapps-api-1.5.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/instantapps-api-1.8.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -96,7 +98,6 @@
     </orderEntry>
     <orderEntry type="library" name="protobuf" level="project" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="library" scope="TEST" name="nosyncbuilder" level="project" />
     <orderEntry type="library" scope="TEST" name="jimfs" level="project" />
     <orderEntry type="module" module-name="intellij.android.kotlin.extensions" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.kotlin.idea" scope="TEST" />
@@ -104,9 +105,11 @@
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.perf-logger" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.databinding" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.resourcesAar" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.resources-base" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="kotlin-plugin-android-compile-deps" level="project" />
     <orderEntry type="library" scope="TEST" name="NanoXML" level="project" />
-    <orderEntry type="module" module-name="intellij.android.plugin" scope="RUNTIME" />
-    <orderEntry type="module" module-name="intellij.android.resourcesAar.tests" scope="RUNTIME" />
+    <orderEntry type="library" name="studio-proto" level="project" />
+    <orderEntry type="module" module-name="intellij.android.debuggers" />
+    <orderEntry type="module" module-name="intellij.platform.objectSerializer" scope="TEST" />
   </component>
 </module>

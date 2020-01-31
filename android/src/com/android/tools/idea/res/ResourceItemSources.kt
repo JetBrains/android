@@ -15,53 +15,59 @@
  */
 package com.android.tools.idea.res
 
-import com.android.ide.common.resources.ResourceFile
 import com.android.ide.common.resources.ResourceItem
-import com.android.ide.common.resources.ResourceMerger
-import com.android.ide.common.resources.ResourceMergerItem
 import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceFolderType
+import com.android.tools.idea.resources.base.Base128OutputStream
+import com.android.tools.idea.resources.base.BasicResourceItem
+import com.android.tools.idea.resources.base.RepositoryConfiguration
+import com.android.tools.idea.resources.base.ResourceSourceFile
 import com.google.common.collect.ArrayListMultimap
-import com.google.common.collect.ListMultimap
-import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
+import com.intellij.util.containers.ObjectIntHashMap
+import java.io.IOException
 
 /**
- * Represents a resource file from which [ResourceItem]s are crated by [ResourceFolderRepository].
+ * Represents a resource file from which [ResourceItem]s are created by [ResourceFolderRepository].
  *
- * This is a common abstraction for [PsiResourceFile] (used by [PsiResourceItem]) and [ResourceFile] (used by [ResourceMergerItem]), needed
- * by [ResourceFolderRepository] which needs to deal with both types of [ResourceItem]s as it transitions from DOM parsing to PSI parsing
- * of resource files.
+ * This is a common interface implemented by [PsiResourceFile] and [VfsResourceFile].
  */
-sealed class ResourceItemSource<T : ResourceItem> : Iterable<T> {
-  abstract val folderConfiguration: FolderConfiguration
-  abstract val folderType: ResourceFolderType?
-  abstract val virtualFile: VirtualFile?
-  abstract fun addItem(item: T)
-  abstract fun removeItem(item: T)
-  abstract fun isSourceOf(item: ResourceItem): Boolean
+internal interface ResourceItemSource<T : ResourceItem> : Iterable<T> {
+  val virtualFile: VirtualFile?
+  val configuration: RepositoryConfiguration
+  val folderType: ResourceFolderType?
+
+  @JvmDefault
+  val repository: ResourceFolderRepository
+    get() = configuration.repository as ResourceFolderRepository
+
+  @JvmDefault
+  val folderConfiguration: FolderConfiguration
+    get() = configuration.folderConfiguration
+
+  fun addItem(item: T)
 }
 
 /** The [ResourceItemSource] of [PsiResourceItem]s. */
-class PsiResourceFile constructor(
+internal class PsiResourceFile(
   private var _psiFile: PsiFile,
   items: Iterable<PsiResourceItem>,
   private var _resourceFolderType: ResourceFolderType?,
-  private var _folderConfiguration: FolderConfiguration
-) : ResourceItemSource<PsiResourceItem>() {
+  override var configuration: RepositoryConfiguration
+) : ResourceItemSource<PsiResourceItem> {
 
-  private val _items: ListMultimap<String, PsiResourceItem> = ArrayListMultimap.create<String, PsiResourceItem>()
+  private val _items = ArrayListMultimap.create<String, PsiResourceItem>()
 
   init {
     items.forEach(this::addItem)
   }
 
   override val folderType get() = _resourceFolderType
-  override val folderConfiguration get() = _folderConfiguration
   override val virtualFile: VirtualFile? get() = _psiFile.virtualFile
   override fun iterator(): Iterator<PsiResourceItem> = _items.values().iterator()
-  override fun isSourceOf(item: ResourceItem): Boolean = (item as? PsiResourceItem)?.sourceFile == this
+  fun isSourceOf(item: ResourceItem): Boolean = (item as? PsiResourceItem)?.sourceFile == this
 
   override fun addItem(item: PsiResourceItem) {
     // Setting the source first is important, since an item's key gets the folder configuration from the source (i.e. this).
@@ -69,35 +75,53 @@ class PsiResourceFile constructor(
     _items.put(item.key, item)
   }
 
-  override fun removeItem(item: PsiResourceItem) {
+  fun removeItem(item: PsiResourceItem) {
     item.sourceFile = null
     _items.remove(item.key, item)
   }
 
-  var dataBindingLayoutInfo: DefaultDataBindingLayoutInfo? = null
   val name = _psiFile.name
   val psiFile get() = _psiFile
 
-  fun setPsiFile(psiFile: PsiFile, folderConfiguration: FolderConfiguration) {
+  fun setPsiFile(psiFile: PsiFile, configuration: RepositoryConfiguration) {
     this._psiFile = psiFile
-    this._folderConfiguration = folderConfiguration
     this._resourceFolderType = getFolderType(psiFile)
+    this.configuration = configuration
   }
 }
 
 /**
- * The [ResourceItemSource] of [ResourceMergerItem]s.
- *
- * Implements the IDE-specific interface of [ResourceItemSource] by wrapping a [ResourceFile] from the non-IDE [ResourceMerger] subsystem.
+ * The [ResourceItemSource] of [BasicResourceItem]s.
  */
-internal class ResourceFileAdapter(
-  val resourceFile: ResourceFile
-) : ResourceItemSource<ResourceMergerItem>() {
-  override val folderConfiguration get() = resourceFile.folderConfiguration
-  override val folderType get() = getFolderType(resourceFile)
-  override val virtualFile get() = VfsUtil.findFileByIoFile(resourceFile.file, false)
-  override fun iterator(): Iterator<ResourceMergerItem> = resourceFile.items.iterator()
-  override fun addItem(item: ResourceMergerItem) = resourceFile.addItem(item)
-  override fun removeItem(item: ResourceMergerItem) = resourceFile.removeItem(item)
-  override fun isSourceOf(item: ResourceItem): Boolean = (item as? ResourceMergerItem)?.sourceFile == resourceFile
+internal class VfsResourceFile(
+    override val virtualFile: VirtualFile?, override val configuration: RepositoryConfiguration
+) : ResourceSourceFile, ResourceItemSource<BasicResourceItem> {
+
+  private val items = ArrayList<BasicResourceItem>()
+
+  override val folderType get() = getFolderType(virtualFile)
+
+  override val repository: ResourceFolderRepository
+    get() = configuration.repository as ResourceFolderRepository
+
+  override fun iterator(): Iterator<BasicResourceItem> = items.iterator()
+
+  override fun addItem(item: BasicResourceItem) {
+    items.add(item)
+  }
+
+  override val relativePath: String?
+    get() = virtualFile?.let { VfsUtilCore.getRelativePath(it, repository.resourceDir) }
+
+  fun isValid(): Boolean = virtualFile != null
+
+  /**
+   * Serializes the object to the given stream without the contained resource items.
+   */
+  @Throws(IOException::class)
+  override fun serialize(stream: Base128OutputStream, configIndexes: ObjectIntHashMap<String>) {
+    stream.writeString(relativePath)
+    stream.writeInt(configIndexes[configuration.folderConfiguration.qualifierString])
+    stream.write(FileTimeStampLengthHasher.hash(virtualFile))
+  }
 }

@@ -15,25 +15,27 @@
  */
 package com.android.tools.idea.projectsystem;
 
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem;
 import com.android.tools.idea.testing.IdeComponents;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+public class GradleProjectSystemTest extends PlatformTestCase {
 
-public class GradleProjectSystemTest extends JavaProjectTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    IdeComponents.mockProjectService(myProject, GradleDependencyManager.class, getTestRootDisposable());
-    IdeComponents.mockProjectService(myProject, GradleProjectBuilder.class, getTestRootDisposable());
+    IdeComponents ideComponents = new IdeComponents(myProject);
+    ideComponents.mockProjectService(GradleDependencyManager.class);
+    ideComponents.mockProjectService(GradleProjectBuilder.class);
 
-    GradleProjectInfo gradleProjectInfo = IdeComponents.mockProjectService(myProject, GradleProjectInfo.class, getTestRootDisposable());
+    GradleProjectInfo gradleProjectInfo = ideComponents.mockProjectService(GradleProjectInfo.class);
     when(gradleProjectInfo.isBuildWithGradle()).thenReturn(true);
   }
 

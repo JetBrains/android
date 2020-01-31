@@ -31,6 +31,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.nio.file.Paths;
@@ -60,7 +61,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleTaskFinder}.
  */
-public class GradleTaskFinderTest extends JavaProjectTestCase {
+public class GradleTaskFinderTest extends PlatformTestCase {
   @Mock private AndroidModuleModel myAndroidModel;
   @Mock private IdeAndroidProject myIdeAndroidProject;
   @Mock private IdeVariant myIdeVariant;
@@ -328,7 +329,7 @@ public class GradleTaskFinderTest extends JavaProjectTestCase {
 
     String gradlePath = GRADLE_PATH_SEPARATOR + module.getName();
     GradleProject gradleProjectStub = new GradleProjectStub(emptyList(), gradlePath, getBaseDirPath(module.getProject()));
-    GradleModuleModel model = new GradleModuleModel(module.getName(), gradleProjectStub, emptyList(), null, null, null);
+    GradleModuleModel model = new GradleModuleModel(module.getName(), gradleProjectStub, emptyList(), null, null, null, null);
 
     gradleFacet.setGradleModuleModel(model);
   }

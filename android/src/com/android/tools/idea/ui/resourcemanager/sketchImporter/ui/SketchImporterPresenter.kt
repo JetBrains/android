@@ -20,27 +20,23 @@ import com.android.resources.Density
 import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.importer.DesignAssetImporter
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.rendering.AssetPreviewManager
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.SketchLibrary
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.builders.ResourceFileGenerator
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.builders.SketchToStudioConverter.getResources
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.AssetModel
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.ColorAssetModel
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.DrawableAssetModel
 import com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.StudioResourcesModel
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.document.SketchDocument
-import com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.LightVirtualFile
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.SourceProviderManager
 import java.awt.Color
 import java.awt.event.ItemEvent
 
-private fun LightVirtualFile.toAsset(name: String) = DesignAssetSet(name, listOf(
+private fun LightVirtualFile.toAsset(name: String) = ResourceAssetSet(name, listOf(
   DesignAsset(this, listOf(DensityQualifier(Density.ANYDPI)), ResourceType.DRAWABLE)))
 
 private const val DEFAULT_IMPORT_ALL = true
@@ -121,7 +117,7 @@ class SketchImporterPresenter(private val sketchImporterView: SketchImporterView
       return
 
     val virtualFile = drawableFileGenerator.generateColorsFile(colors.toMutableList())
-    val resFolder = facet.mainSourceProvider.resDirectories.let { resDirs ->
+    val resFolder = SourceProviderManager.getInstance(facet).mainSourceProvider.resDirectories.let { resDirs ->
       resDirs.firstOrNull { it.exists() }
       ?: resDirs.first().also { it.createNewFile() }
     }
@@ -164,7 +160,7 @@ abstract class ResourcesPresenter(
   private val drawableFileGenerator = com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.builders.ResourceFileGenerator(
     project)
   abstract val resources: com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.StudioResourcesModel
-  protected abstract val filesToDrawableAssets: Map<DesignAssetSet, com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.DrawableAssetModel>
+  protected abstract val filesToDrawableAssets: Map<ResourceAssetSet, com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.DrawableAssetModel>
   protected abstract val colorsToColorAssets: Map<Pair<Color, String>, com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.ColorAssetModel>
 
   /**
@@ -173,7 +169,7 @@ abstract class ResourcesPresenter(
   abstract fun populateView()
 
   /**
-   * @return a mapping from [DesignAssetSet] assets to [DrawableAssetModel] based on the content in the [StudioResourcesModel].
+   * @return a mapping from [ResourceAssetSet] assets to [DrawableAssetModel] based on the content in the [StudioResourcesModel].
    */
   protected fun generateDrawableFiles() = resources.drawableAssets?.associate {
     drawableFileGenerator.generateDrawableFile(it).toAsset(it.name) to it
@@ -182,12 +178,12 @@ abstract class ResourcesPresenter(
   /**
    * Filter only the files that are exportable (unless the importAll marker is set).
    */
-  fun getDisplayableDrawables(): List<DesignAssetSet> {
+  fun getDisplayableDrawables(): List<ResourceAssetSet> {
     val files = filesToDrawableAssets.keys
     return if (importAll) files.toList() else files.filter { filesToDrawableAssets[it]?.isExportable ?: false }
   }
 
-  fun getSelectedDrawables(): List<DesignAssetSet> {
+  fun getSelectedDrawables(): List<ResourceAssetSet> {
     return view.getSelectedDrawables()
   }
 
@@ -213,7 +209,7 @@ abstract class ResourcesPresenter(
   /**
    * Get options associated with an asset.
    */
-  fun getAsset(file: DesignAssetSet): com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.AssetModel? = filesToDrawableAssets[file]
+  fun getAsset(file: ResourceAssetSet): com.android.tools.idea.ui.resourcemanager.sketchImporter.converter.models.AssetModel? = filesToDrawableAssets[file]
 }
 
 class PagePresenter(private val sketchPage: com.android.tools.idea.ui.resourcemanager.sketchImporter.parser.pages.SketchPage,

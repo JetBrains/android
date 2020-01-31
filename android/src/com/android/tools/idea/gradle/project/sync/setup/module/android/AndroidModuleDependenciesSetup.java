@@ -44,12 +44,6 @@ import org.jetbrains.plugins.gradle.util.GradleConstants;
 class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
   private static final Logger LOG = Logger.getInstance(AndroidModuleDependenciesSetup.class);
 
-  @NotNull private final LibraryFilePaths myLibraryFilePaths;
-
-  AndroidModuleDependenciesSetup(@NotNull LibraryFilePaths libraryFilePaths) {
-    myLibraryFilePaths = libraryFilePaths;
-  }
-
   void setUpLibraryDependency(@NotNull Module module,
                               @NotNull IdeModifiableModelsProvider modelsProvider,
                               @NotNull String libraryName,
@@ -98,11 +92,12 @@ class AndroidModuleDependenciesSetup extends ModuleDependenciesSetup {
       // If the 'Guava' library was already defined when setting up 'app', it won't have source attachments. When setting up 'util' we may
       // have source attachments, but the library may have been already created. Here we just add the "source" paths if they were not already
       // set.
-      File sourceJarPath = myLibraryFilePaths.findSourceJarPath(artifactPath);
+      LibraryFilePaths libraryFilePaths = LibraryFilePaths.getInstance(module.getProject());
+      File sourceJarPath = libraryFilePaths.findSourceJarPath(libraryName, artifactPath);
       if (sourceJarPath != null) {
         updateLibraryRootTypePaths(library, SOURCES, modelsProvider, sourceJarPath);
       }
-      File javadocJarPath = myLibraryFilePaths.findJavadocJarPath(artifactPath);
+      File javadocJarPath = libraryFilePaths.findJavadocJarPath(libraryName, artifactPath);
       if (javadocJarPath != null) {
         updateLibraryRootTypePaths(library, JavadocOrderRootType.getInstance(), modelsProvider, javadocJarPath);
       }

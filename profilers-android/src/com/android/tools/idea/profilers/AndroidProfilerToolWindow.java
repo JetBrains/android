@@ -89,7 +89,7 @@ public class AndroidProfilerToolWindow implements Disposable {
     myProject = project;
 
     myIdeProfilerServices = new IntellijProfilerServices(myProject);
-    Disposer.register(myProject, myIdeProfilerServices);
+    Disposer.register(this, myIdeProfilerServices);
     myPanel = new JPanel(new BorderLayout());
     if (!tryInitializeProfilers()) {
       myIdeProfilerServices.getFeatureTracker().trackProfilerInitializationFailed();
@@ -269,8 +269,6 @@ public class AndroidProfilerToolWindow implements Disposable {
                            @NotNull IntellijProfilerServices ideProfilerServices) {
       myProject = project;
       myWindow = window;
-
-      service.getDataStoreService().setNoPiiExceptionHanlder(ideProfilerServices::reportNoPiiException);
       ProfilerClient client = new ProfilerClient(service.getChannelName());
       myProfilers = new StudioProfilers(client, ideProfilerServices);
       IntellijCodeNavigator navigator = (IntellijCodeNavigator)ideProfilerServices.getCodeNavigator();

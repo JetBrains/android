@@ -17,7 +17,7 @@ package com.android.tools.idea.project;
 
 import com.android.tools.idea.apk.debugging.ApkDebugging;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 
 import java.util.List;
@@ -31,7 +31,7 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests for {@link AndroidProjectInfo}.
  */
-public class AndroidProjectInfoTest extends JavaProjectTestCase {
+public class AndroidProjectInfoTest extends PlatformTestCase {
   private AndroidProjectInfo myProjectInfo;
 
   @Override

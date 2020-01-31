@@ -33,15 +33,14 @@ import static com.intellij.openapi.module.ModuleUtilCore.getModuleDirPath;
  * Tests for {@link AndroidPackageUtils}.
  */
 public final class AndroidPackageUtilsTest extends AndroidGradleTestCase {
-
   public void testGetPackageForPath() throws Exception {
     loadProject(PROJECT_WITH_APPAND_LIB);
 
     File javaSrcDir = new File(getModuleDirPath(myAndroidFacet.getModule()), "src/main/java");
-    AndroidModuleTemplate AndroidModuleTemplate = Mockito.mock(AndroidModuleTemplate.class);
-    Mockito.when(AndroidModuleTemplate.getSrcDirectory(null)).thenReturn(javaSrcDir);
+    AndroidModuleTemplate androidModuleTemplate = Mockito.mock(AndroidModuleTemplate.class);
+    Mockito.when(androidModuleTemplate.getSrcDirectory(null)).thenReturn(javaSrcDir);
 
-    NamedModuleTemplate moduleTemplate = new NamedModuleTemplate("main", AndroidModuleTemplate);
+    NamedModuleTemplate moduleTemplate = new NamedModuleTemplate("main", androidModuleTemplate);
     String defaultPackage = getModel().getApplicationId();
 
     // Anything inside the Java src directory should return the "local package"

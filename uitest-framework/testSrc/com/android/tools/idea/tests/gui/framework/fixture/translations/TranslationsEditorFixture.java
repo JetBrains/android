@@ -30,6 +30,7 @@ import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBLoadingPanel;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.swing.AbstractButton;
@@ -47,6 +48,7 @@ import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class TranslationsEditorFixture {
   private final Robot myRobot;
@@ -157,8 +159,29 @@ public final class TranslationsEditorFixture {
   @NotNull
   public List<String> locales() {
     return GuiQuery.get(() -> IntStream.range(StringResourceTableModel.FIXED_COLUMN_COUNT, myTable.getColumnCount())
-                                       .mapToObj(myTable::getColumnName)
-                                       .collect(Collectors.toList()));
+      .mapToObj(myTable::getColumnName)
+      .collect(Collectors.toList()));
+  }
+
+  @Nullable
+  public TableCell cell(@NotNull String key, @NotNull String resourceFolder, int viewColumnIndex) {
+    OptionalInt optionalViewRowIndex = GuiQuery.get(() -> row(key, resourceFolder));
+
+    if (!optionalViewRowIndex.isPresent()) {
+      return null;
+    }
+
+    return TableCell.row(optionalViewRowIndex.getAsInt()).column(viewColumnIndex);
+  }
+
+  @NotNull
+  private OptionalInt row(@NotNull String key, @NotNull String resourceFolder) {
+    FrozenColumnTable target = getTable().target();
+
+    return IntStream.range(0, target.getRowCount())
+      .filter(viewRowIndex -> target.getValueAt(viewRowIndex, StringResourceTableModel.KEY_COLUMN).equals(key) &&
+                              target.getValueAt(viewRowIndex, StringResourceTableModel.RESOURCE_FOLDER_COLUMN).equals(resourceFolder))
+      .findFirst();
   }
 
   public void waitUntilTableValueAtEquals(@NotNull TableCell cell, @NotNull Object value) {
@@ -170,7 +193,7 @@ public final class TranslationsEditorFixture {
   }
 
   @NotNull
-  public SimpleColoredComponent getCellRenderer(int viewRowIndex, int viewColumnIndex) {
+  public SimpleColoredComponent getCellRenderer(@NotNull TableCell cell) {
     return GuiQuery.get(() -> {
       FrozenColumnTable target = getTable().target();
       int columnCount = target.getFrozenColumnCount();
@@ -178,17 +201,17 @@ public final class TranslationsEditorFixture {
       JTable table;
       int columnIndex;
 
-      if (viewColumnIndex < columnCount) {
+      if (cell.column < columnCount) {
         table = target.getFrozenTable();
-        columnIndex = viewColumnIndex;
+        columnIndex = cell.column;
       }
       else {
         table = target.getScrollableTable();
-        columnIndex = viewColumnIndex - columnCount;
+        columnIndex = cell.column - columnCount;
       }
 
-      TableCellRenderer renderer = table.getCellRenderer(viewRowIndex, columnIndex);
-      return new SimpleColoredComponent((com.intellij.ui.SimpleColoredComponent)table.prepareRenderer(renderer, viewRowIndex, columnIndex));
+      TableCellRenderer renderer = table.getCellRenderer(cell.row, columnIndex);
+      return new SimpleColoredComponent((com.intellij.ui.SimpleColoredComponent)table.prepareRenderer(renderer, cell.row, columnIndex));
     });
   }
 

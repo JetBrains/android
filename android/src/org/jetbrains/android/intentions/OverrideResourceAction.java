@@ -17,7 +17,7 @@ package org.jetbrains.android.intentions;
 
 import static com.android.SdkConstants.ATTR_NAME;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;

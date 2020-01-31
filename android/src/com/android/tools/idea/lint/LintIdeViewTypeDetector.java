@@ -27,6 +27,7 @@ import com.android.tools.lint.detector.api.Scope;
 
 import java.util.Collection;
 import java.util.Collections;
+import org.jetbrains.android.util.AndroidResourceUtil;
 
 public class LintIdeViewTypeDetector extends ViewTypeDetector {
   static final Implementation IMPLEMENTATION = new Implementation(
@@ -39,7 +40,7 @@ public class LintIdeViewTypeDetector extends ViewTypeDetector {
     ResourceRepository projectResources = context.getClient().getResourceRepository(context.getMainProject(), true, false);
     assert projectResources instanceof LocalResourceRepository : projectResources;
     LocalResourceRepository repository = (LocalResourceRepository)projectResources;
-    String viewTag = repository.getViewTag(item);
+    String viewTag = AndroidResourceUtil.getViewTag(item);
     if (viewTag != null) {
       return Collections.singleton(viewTag);
     }

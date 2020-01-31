@@ -16,6 +16,8 @@
 package com.android.tools.idea.gradle.structure.model.android
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.util.TypeReference
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency
 import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
@@ -35,24 +37,26 @@ import com.android.tools.idea.gradle.structure.model.meta.asString
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.gradle.structure.model.meta.property
 import com.android.tools.idea.gradle.structure.model.toLibraryKey
+import com.google.common.base.CaseFormat
 import kotlin.reflect.KProperty
 
 open class PsDeclaredLibraryAndroidDependency(
-  parent: PsAndroidModule,
-  containers: Collection<PsAndroidArtifact>,
-  final override val parsedModel: ArtifactDependencyModel
-) : PsLibraryAndroidDependency(parent, containers),
+  parent: PsAndroidModule
+) : PsLibraryAndroidDependency(parent),
     PsDeclaredDependency, PsDeclaredLibraryDependency {
+  final override lateinit var parsedModel: ArtifactDependencyModel ; private set
   override val descriptor by Descriptor
-  private val nameResolvedProperty = parsedModel.name()
-  private val groupResolvedProperty = parsedModel.group()
-  private val versionResolvedProperty = parsedModel.version()
   override val spec: PsArtifactDependencySpec
     get() = PsArtifactDependencySpec.create(
-      groupResolvedProperty.toString(),
-      nameResolvedProperty.forceString(),
-      versionResolvedProperty.toString()
+      parsedModel.group().toString(),
+      parsedModel.name().forceString(),
+      parsedModel.version().toString()
     )
+
+  fun init(parsedModel: ArtifactDependencyModel) {
+    this.parsedModel = parsedModel
+  }
+
   override val isDeclared: Boolean = true
   final override val configurationName: String get() = parsedModel.configurationName()
   override val joinedConfigurationNames: String get() = configurationName
@@ -88,9 +92,14 @@ open class PsDeclaredLibraryAndroidDependency(
       })
     }
 
-    private const val MAX_ARTIFACTS_TO_REQUEST = 50  // Note: we do not expect more than one result per repository.
+    private fun preferredVariableName (model: ArtifactDependencyModel): String {
+      val name = model.name().getValue(GradlePropertyModel.STRING_TYPE) ?: return "var"
+      return CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, "$name-version")
+    }
+
     val version: ModelSimpleProperty<PsDeclaredLibraryAndroidDependency, String> = property(
       "Version",
+      preferredVariableName = { preferredVariableName(this.parsedModel) },
       resolvedValueGetter = { null },
       parsedPropertyGetter = { this.version() },
       getter = { asString() },
@@ -110,7 +119,7 @@ open class PsResolvedLibraryAndroidDependency(
   override val spec: PsArtifactDependencySpec,
   val artifact: PsAndroidArtifact,
   override val declaredDependencies: List<PsDeclaredLibraryAndroidDependency>
-) : PsLibraryAndroidDependency(parent, listOf(artifact)), PsResolvedDependency, PsResolvedLibraryDependency {
+) : PsLibraryAndroidDependency(parent), PsResolvedDependency, PsResolvedLibraryDependency {
   internal val pomDependencies = mutableListOf<PsArtifactDependencySpec>()
   override val isDeclared: Boolean get() = !declaredDependencies.isEmpty()
 
@@ -129,9 +138,8 @@ open class PsResolvedLibraryAndroidDependency(
 }
 
 abstract class PsLibraryAndroidDependency internal constructor(
-  parent: PsAndroidModule,
-  containers: Collection<PsAndroidArtifact>
-) : PsAndroidDependency(parent, containers), PsLibraryDependency {
+  parent: PsAndroidModule
+) : PsAndroidDependency(parent), PsLibraryDependency {
 
   override val name: String get() = spec.name
 

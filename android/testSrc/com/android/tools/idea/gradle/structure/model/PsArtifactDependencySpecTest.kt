@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.structure.configurables.ui.PsUISettings
 import com.android.tools.idea.testing.IdeComponents
-import com.intellij.testFramework.JavaProjectTestCase
+import com.intellij.testFramework.PlatformTestCase
 import org.gradle.tooling.model.GradleModuleVersion
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -28,12 +28,12 @@ import org.mockito.Mockito.mock
 /**
  * Tests for [PsArtifactDependencySpec].
  */
-class PsArtifactDependencySpecTest : JavaProjectTestCase() {
+class PsArtifactDependencySpecTest : PlatformTestCase() {
 
   @Throws(Exception::class)
   override fun setUp() {
     super.setUp()
-    IdeComponents.mockProjectService(myProject, PsUISettings::class.java, testRootDisposable)
+    IdeComponents(myProject).mockProjectService(PsUISettings::class.java)
   }
 
   fun testCreate_empty() {

@@ -17,6 +17,7 @@ package com.android.tools.idea.assistant.view;
 
 import com.android.tools.idea.assistant.AssistActionStateManager;
 import com.android.tools.idea.assistant.DefaultTutorialBundle;
+import com.android.tools.idea.assistant.PanelFactory;
 import com.android.tools.idea.assistant.datamodel.ActionData;
 import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.StepElementData;
@@ -37,15 +38,47 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Image;
+import java.awt.Insets;
+import java.awt.RenderingHints;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.io.IOException;
 import java.io.InputStream;
-import org.jetbrains.annotations.NotNull;
-
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import javax.imageio.ImageIO;
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.ImageIcon;
+import javax.swing.JEditorPane;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.border.AbstractBorder;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
@@ -66,9 +99,9 @@ public class TutorialStep extends JPanel {
   private static final int IMAGE_PADDING = 10;
 
   private final int myIndex;
-  private final StepData myStep;
-  private final JPanel myContents;
-  private final Project myProject;
+  @NotNull private final StepData myStep;
+  @NotNull private final JPanel myContents;
+  @NotNull private final Project myProject;
 
   private static Logger getLog() {
     return Logger.getInstance(TutorialStep.class);
@@ -86,12 +119,26 @@ public class TutorialStep extends JPanel {
     if (!hideStepIndex) {
       initStepNumber();
     }
-    initLabel();
+    if (!myStep.getLabel().isEmpty()) {
+      initLabel();
+    }
     initStepContentsContainer();
 
-    for (StepElementData element : step.getStepElements()) {
+    populateStepContents(listener);
+
+    setBorder(myStep.getBorder());
+  }
+
+  /**
+   * Create visual representations of elements in the tutorial step and populate the panel
+   */
+  private void populateStepContents(@NotNull ActionListener listener) {
+    Map<String, JPanel> panelMap = new HashMap<>();
+
+    for (StepElementData element : myStep.getStepElements()) {
       // element is a wrapping node to preserve order in a heterogeneous list,
       // hence switching over type.
+      boolean addedNewComponent = false;
       switch (element.getType()) {
         case SECTION:
           // TODO: Make a custom inner class to handle this.
@@ -102,22 +149,14 @@ public class TutorialStep extends JPanel {
           // HACK ALERT: Without a margin on the outer html container, the contents are set to a height of zero on theme change.
           UIUtils.setHtml(section, element.getSection(), ".as-shim { margin-top: 1px; }");
           myContents.add(section);
+          addedNewComponent = true;
           break;
         case ACTION:
-          if (element.getAction() != null) {
-            ActionData action = element.getAction();
-            Optional<AssistActionStateManager>
-              stateManager =
-              Arrays.stream(AssistActionStateManager.EP_NAME.getExtensions()).filter(s -> s.getId().equals(action.getKey())).findFirst();
-            myContents
-              .add(new StatefulButton(element.getAction(), listener, stateManager.orElse(null), project));
-          }
-          else {
-            getLog().warn("Found action element with no action definition: " + element.toString());
-          }
+          addedNewComponent = handleActionElement(listener, panelMap, element);
           break;
         case CODE:
           myContents.add(new CodePane(element));
+          addedNewComponent = true;
           break;
         case IMAGE:
           DefaultTutorialBundle.Image imageElement = element.getImage();
@@ -125,9 +164,16 @@ public class TutorialStep extends JPanel {
             getLog().error("Image element has no image.");
             continue;
           }
-          try (InputStream imageStream = getClass().getResourceAsStream(imageElement.getSource())) {
+
+          String imageSource = imageElement.getSource();
+          if (imageSource == null) {
+            getLog().error("Image has no source.");
+            continue;
+          }
+
+          try (InputStream imageStream = getClass().getResourceAsStream(imageSource)) {
             if (imageStream == null) {
-              getLog().error("Cannot load image: " + imageElement.getSource());
+              getLog().error("Cannot load image: " + imageSource);
               continue;
             }
             ImageIcon imageIcon = new ImageIcon(ImageIO.read(imageStream));
@@ -139,17 +185,73 @@ public class TutorialStep extends JPanel {
             containerPanel.setBorder(new JBEmptyBorder(IMAGE_PADDING, 0, IMAGE_PADDING, 0));
             containerPanel.add(new JLabel(imageIcon));
             myContents.add(containerPanel);
+            addedNewComponent = true;
           }
           catch (IOException e) {
-            getLog().error("Cannot load image: " + imageElement.getSource(), e);
+            getLog().error("Cannot load image: " + imageSource, e);
           }
+          break;
+        case PANEL:
+          String factoryId = Objects.requireNonNull(element.getPanel()).getFactoryId();
+
+          PanelFactory panelFactory = PanelFactory.EP_NAME.getExtensionList().stream()
+            .filter(factory -> factory.getId().equals(factoryId))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("No PanelFactory exists for " + factoryId));
+
+          myContents.add(panelFactory.create(myProject));
           break;
         default:
           getLog().error("Found a StepElement of unknown type. " + element.toString());
       }
+
       // Add 5px spacing between elements.
-      myContents.add(Box.createRigidArea(new Dimension(0, 5)));
+      if (addedNewComponent) {
+        myContents.add(Box.createRigidArea(new Dimension(0, 5)));
+      }
     }
+  }
+
+  private boolean handleActionElement(@NotNull ActionListener listener,
+                                      @NotNull Map<String, JPanel> panelMap,
+                                      @NotNull StepElementData element) {
+    boolean addedNewComponent = false;
+    if (element.getAction() != null) {
+      ActionData action = element.getAction();
+      Optional<AssistActionStateManager>
+        stateManager =
+        Arrays.stream(AssistActionStateManager.EP_NAME.getExtensions()).filter(s -> s.getId().equals(action.getKey())).findFirst();
+      StatefulButton actionButton = new StatefulButton(action, listener, stateManager.orElse(null), myProject);
+
+      String groupName = element.getAction().getActionArgument();
+      if (groupName == null) {
+        // Simply insert the button itself if it's not part of a group
+        myContents.add(actionButton);
+        addedNewComponent = true;
+      }
+      else {
+        // Otherwise, have a JPanel as a wrapper for the buttons so we can display them on the same row
+        JPanel panel = panelMap.get(groupName);
+
+        if (panel == null) {
+          FlowLayout layout = new FlowLayout(FlowLayout.LEFT);
+          layout.setVgap(0);
+          layout.setHgap(0);
+          panel = new JPanel(layout);
+          panel.setOpaque(false);
+          panelMap.put(groupName, panel);
+          myContents.add(panel);
+          addedNewComponent = true;
+        }
+
+        panel.add(actionButton);
+      }
+    }
+    else {
+      getLog().warn("Found action element with no action definition: " + element.toString());
+    }
+
+    return addedNewComponent;
   }
 
   /**
@@ -249,7 +351,7 @@ public class TutorialStep extends JPanel {
     }
 
     @Override
-    public void mouseClicked(EditorMouseEvent e) {
+    public void mouseClicked(@NotNull EditorMouseEvent e) {
       if (!myIsTextSelectedOnMousePressed && isNothingSelected()) {
         selectAllText();
         e.consume();
@@ -257,7 +359,7 @@ public class TutorialStep extends JPanel {
     }
 
     @Override
-    public void mousePressed(EditorMouseEvent e) {
+    public void mousePressed(@NotNull EditorMouseEvent e) {
       myIsTextSelectedOnMousePressed = isAnythingSelected();
       if (myIsTextSelectedOnMousePressed) {
         // This disables drag and drop, but ensures developers aren't required to click again to clear the selection before trying to select
@@ -334,7 +436,7 @@ public class TutorialStep extends JPanel {
     // so we cache the value (which should be the same across instantiations) each time the scrollpane is created.
     private int myScrollBarHeight = 0;
 
-    public CodePane(StepElementData element) {
+    private CodePane(@NotNull StepElementData element) {
       // Default to JAVA rather than PLAIN_TEXT display for better support for quoted strings and properties.
       super(element.getCode() != null ? element.getCode() : "", myProject,
             element.getCodeType() != null ? element.getCodeType() : StdFileTypes.JAVA);
@@ -405,7 +507,7 @@ public class TutorialStep extends JPanel {
         public void keyReleased(KeyEvent e) {
           if (e.getKeyChar() != KeyEvent.VK_TAB) return;
 
-          if (e.getModifiers() == KeyEvent.SHIFT_MASK) {
+          if (e.getModifiers() == InputEvent.SHIFT_MASK) {
             editor.getContentComponent().transferFocusBackward();
             return;
           }
@@ -461,12 +563,12 @@ public class TutorialStep extends JPanel {
      */
     class CodeMouseWheelListener implements MouseWheelListener {
 
-      private JScrollBar myScrollBar;
+      @NotNull private JScrollBar myScrollBar;
       private int myLastScrollOffset = 0;
-      private JScrollPane myParentScrollPane;
-      private JScrollPane currentScrollPane;
+      @Nullable private JScrollPane myParentScrollPane;
+      @NotNull private JScrollPane currentScrollPane;
 
-      public CodeMouseWheelListener(JScrollPane scroll) {
+      CodeMouseWheelListener(@NotNull JScrollPane scroll) {
         currentScrollPane = scroll;
         myScrollBar = currentScrollPane.getVerticalScrollBar();
       }

@@ -57,6 +57,6 @@ fun installedEnvironments(sdkManager: RepoManager, targets: Collection<IAndroidT
   return InstalledEnvironments(
       androidSdks = apisMap.map { ValueDescriptor(value = it.key, description = it.value) },
       compiledApis = compiledApisMap.map { ValueDescriptor(value = it.key, description = it.value) },
-      buildTools = buildToolsMap.map { ValueDescriptor(value = it, description = it) }
+      buildTools = buildToolsMap.map { ValueDescriptor(value = it, description = null) }
   )
 }

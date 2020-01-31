@@ -13,43 +13,68 @@
 // limitations under the License.
 package com.android.tools.profilers.energy;
 
-import com.android.tools.adtui.model.LineChartModel;
-import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.DataSeries;
 import com.android.tools.adtui.model.RangedContinuousSeries;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergySample;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Energy;
 import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.UnifiedEventDataSeries;
 import org.jetbrains.annotations.NotNull;
 
-public class DetailedEnergyUsage extends LineChartModel {
+public class DetailedEnergyUsage extends EnergyUsage {
 
   @NotNull private final RangedContinuousSeries myCpuUsageSeries;
   @NotNull private final RangedContinuousSeries myNetworkUsageSeries;
   @NotNull private final RangedContinuousSeries myLocationUsageSeries;
-  @NotNull private final Range myUsageRange;
 
   public DetailedEnergyUsage(@NotNull StudioProfilers profilers) {
-    myUsageRange = new Range(0, EnergyMonitor.MAX_EXPECTED_USAGE);
+    super(profilers);
 
-    EnergyUsageDataSeries locationDataSeries =
-      new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession(), EnergySample::getLocationUsage);
+    DataSeries<Long> locationDataSeries;
+    DataSeries<Long> networkDataSeries;
+    DataSeries<Long> cpuDataSeries;
+    if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      long streamId = profilers.getSession().getStreamId();
+      int pid = profilers.getSession().getPid();
+      // TODO(b/133430804): investigate ways to not query database multiple times.
+      cpuDataSeries = new UnifiedEventDataSeries<>(
+        profilers.getClient().getTransportClient(),
+        streamId,
+        pid,
+        Common.Event.Kind.ENERGY_USAGE,
+        UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+        UnifiedEventDataSeries.fromFieldToDataExtractor(event -> (long)event.getEnergyUsage().getCpuUsage()));
+      networkDataSeries = new UnifiedEventDataSeries<>(
+        profilers.getClient().getTransportClient(),
+        streamId,
+        pid,
+        Common.Event.Kind.ENERGY_USAGE,
+        UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+        UnifiedEventDataSeries.fromFieldToDataExtractor(event -> (long)event.getEnergyUsage().getNetworkUsage()));
+      locationDataSeries = new UnifiedEventDataSeries<>(
+        profilers.getClient().getTransportClient(),
+        streamId,
+        pid,
+        Common.Event.Kind.ENERGY_USAGE,
+        UnifiedEventDataSeries.DEFAULT_GROUP_ID,
+        UnifiedEventDataSeries.fromFieldToDataExtractor(event -> (long)event.getEnergyUsage().getLocationUsage()));
+    }
+    else {
+      cpuDataSeries =
+        new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession(), Energy.EnergyUsageData::getCpuUsage);
+      networkDataSeries = new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession(), Energy.EnergyUsageData::getNetworkUsage);
+      locationDataSeries =
+        new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession(), Energy.EnergyUsageData::getLocationUsage);
+    }
+
     myLocationUsageSeries =
-      new RangedContinuousSeries("Location", profilers.getTimeline().getViewRange(), myUsageRange, locationDataSeries);
+      new RangedContinuousSeries("Location", profilers.getTimeline().getViewRange(), getUsageRange(), locationDataSeries);
     add(myLocationUsageSeries);
-
-    EnergyUsageDataSeries networkDataSeries =
-      new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession(), EnergySample::getNetworkUsage);
-    myNetworkUsageSeries = new RangedContinuousSeries("Network", profilers.getTimeline().getViewRange(), myUsageRange, networkDataSeries);
+    myNetworkUsageSeries =
+      new RangedContinuousSeries("Network", profilers.getTimeline().getViewRange(), getUsageRange(), networkDataSeries);
     add(myNetworkUsageSeries);
-
-    EnergyUsageDataSeries cpuDataSeries =
-      new EnergyUsageDataSeries(profilers.getClient(), profilers.getSession(), EnergySample::getCpuUsage);
-    myCpuUsageSeries = new RangedContinuousSeries("CPU", profilers.getTimeline().getViewRange(), myUsageRange, cpuDataSeries);
+    myCpuUsageSeries = new RangedContinuousSeries("CPU", profilers.getTimeline().getViewRange(), getUsageRange(), cpuDataSeries);
     add(myCpuUsageSeries);
-  }
-
-  @NotNull
-  public Range getUsageRange() {
-    return myUsageRange;
   }
 
   @NotNull

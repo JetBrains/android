@@ -34,7 +34,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.actions.CreateResourceFileAction;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -134,7 +134,7 @@ public class IncludeTagCreator extends SimpleViewCreator {
     LayoutlibSceneManager manager = (LayoutlibSceneManager)surface.getSceneManager();
 
     if (manager != null) {
-      NlModel model = NlModel.create(newFile.getProject(), facet, newFile.getVirtualFile(), surface.getComponentRegistrar());
+      NlModel model = NlModel.create(newFile.getProject(), null, facet, newFile.getVirtualFile(), surface.getComponentRegistrar());
       manager.addRenderListener(new RenderListener() {
         @Override
         public void onRenderCompleted() {
@@ -156,14 +156,14 @@ public class IncludeTagCreator extends SimpleViewCreator {
   }
 
   /**
-   * Call {@link AndroidCommonUtils#getResourceName(String, String)} with {@link ResourceType#LAYOUT}.
+   * Call {@link AndroidBuildCommonUtils#getResourceName(String, String)} with {@link ResourceType#LAYOUT}.
    *
    * @param newFile file to get the resource name from
    * @return the resource name
    */
   @NotNull
   private static String getResourceName(@NotNull XmlFile newFile) {
-    return AndroidCommonUtils.getResourceName(
+    return AndroidBuildCommonUtils.getResourceName(
       ResourceType.LAYOUT.getName(),
       newFile.getName());
   }

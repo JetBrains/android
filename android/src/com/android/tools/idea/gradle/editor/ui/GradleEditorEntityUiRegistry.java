@@ -23,9 +23,7 @@ import com.intellij.openapi.util.NotNullLazyValue;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * {@link GradleEditorEntityUi} registry.
@@ -58,7 +56,7 @@ public class GradleEditorEntityUiRegistry {
       }
     });
     if (candidates.isEmpty()) {
-      return Collections.singletonList(myDummyUi);
+      return Collections.<GradleEditorEntityUi<?>>singletonList(myDummyUi);
     }
 
     ExternalSystemApiUtil.orderAwareSort(candidates);

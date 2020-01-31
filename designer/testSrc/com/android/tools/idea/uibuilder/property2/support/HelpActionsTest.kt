@@ -94,7 +94,7 @@ class HelpActionsTest {
     val context = SimpleDataContext.getSimpleContext(HelpSupport.PROPERTY_ITEM.name, util.properties[ANDROID_URI, ATTR_TEXT])
     val event = AnActionEvent.createFromDataContext("", null, context)
     HelpActions.help.actionPerformed(event)
-    verify(manager).showJavaDocInfo(eq(tag), eq(tag), eq(true), isNull(), eq(EXPECTED_TEXT_TOOLTIP), false)
+    verify(manager).showJavaDocInfo(eq(tag), eq(tag), eq(true), isNull(), eq(EXPECTED_TEXT_TOOLTIP), eq(true))
   }
 
   @Test

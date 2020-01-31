@@ -15,8 +15,6 @@
  */
 package com.android.tools.datastore.service;
 
-import static com.android.tools.idea.flags.StudioFlags.PROFILER_UNIFIED_PIPELINE;
-
 import com.android.tools.datastore.DataStoreService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.DataStoreTable;
@@ -30,6 +28,7 @@ import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
 import com.android.tools.profiler.proto.Common.StreamData;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
 import com.android.tools.profiler.proto.Transport.BytesRequest;
 import com.android.tools.profiler.proto.Transport.BytesResponse;
@@ -71,6 +70,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
   @NotNull private final UnifiedEventsTable myTable;
   @NotNull private final DeviceProcessTable myLegacyTable;
   @NotNull private final DataStoreService myService;
+  private final boolean myLegacyPipelineForProfilers;
   /**
    * A mapping of active channels to pollers. This mapping allows us to keep track of active pollers for a channel, and clean up pollers
    * when channels are closed.
@@ -83,13 +83,15 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
   @VisibleForTesting final AtomicInteger myNextCommandId = new AtomicInteger();
 
   public TransportService(@NotNull DataStoreService service,
-                          Consumer<Runnable> fetchExecutor) {
+                          @NotNull UnifiedEventsTable unifiedTable,
+                          Consumer<Runnable> fetchExecutor,
+                          boolean legacyPipelineForProfilers) {
     myService = service;
     myFetchExecutor = fetchExecutor;
-    myTable = new UnifiedEventsTable();
+    myTable = unifiedTable;
     myLegacyTable = new DeviceProcessTable();
+    myLegacyPipelineForProfilers = legacyPipelineForProfilers;
   }
-
 
   @NotNull
   @Override
@@ -102,7 +104,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     assert namespace == DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE;
     myTable.initialize(connection);
 
-    if (!PROFILER_UNIFIED_PIPELINE.get()) {
+    if (myLegacyPipelineForProfilers) {
       myLegacyTable.initialize(connection);
     }
   }
@@ -123,7 +125,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     DataStoreTable.addDataStoreErrorCallback(unifiedPoller);
     myFetchExecutor.accept(unifiedPoller);
 
-    if (!PROFILER_UNIFIED_PIPELINE.get()) {
+    if (myLegacyPipelineForProfilers && stream.getType() == Stream.Type.DEVICE) {
       DeviceProcessPoller legacyPoller = new DeviceProcessPoller(myLegacyTable, stub);
       myLegacyPollers.put(channel, legacyPoller);
       myFetchExecutor.accept(legacyPoller);
@@ -216,7 +218,9 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
 
     if (response == null && client != null) {
       response = client.getBytes(request);
-      myTable.insertBytes(streamId, request.getId(), response);
+      if (!response.getContents().isEmpty()) {
+        myTable.insertBytes(streamId, request.getId(), response);
+      }
     }
     else if (response == null) {
       response = BytesResponse.getDefaultInstance();
@@ -233,8 +237,9 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     TransportServiceGrpc.TransportServiceBlockingStub client = myService.getTransportClient(streamId);
     if (client != null) {
       Commands.Command command = request.getCommand();
-      request = request.toBuilder().setCommand(command.toBuilder().setCommandId(myNextCommandId.incrementAndGet())).build();
-      responseObserver.onNext(client.execute(request));
+      int commandId = myNextCommandId.incrementAndGet();
+      request = request.toBuilder().setCommand(command.toBuilder().setCommandId(commandId)).build();
+      responseObserver.onNext(client.execute(request).toBuilder().setCommandId(commandId).build());
     }
     else {
       responseObserver.onNext(ExecuteResponse.getDefaultInstance());
@@ -248,6 +253,18 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     Collection<EventGroup> events = myTable.queryUnifiedEventGroups(request);
     response.addAllGroups(events);
     responseObserver.onNext(response.build());
+    responseObserver.onCompleted();
+  }
+
+  @Override
+  public void deleteEvents(Transport.DeleteEventsRequest request, StreamObserver<Transport.DeleteEventsResponse> responseObserver) {
+    myTable.deleteEvents(request.getStreamId(),
+                         request.getPid(),
+                         request.getGroupId(),
+                         request.getKind(),
+                         request.getFromTimestamp(),
+                         request.getToTimestamp());
+    responseObserver.onNext(Transport.DeleteEventsResponse.getDefaultInstance());
     responseObserver.onCompleted();
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.common.scene.target
 
+import com.android.tools.adtui.ui.AdtUiCursors
 import com.android.tools.idea.common.api.InsertType
 import com.android.tools.idea.common.model.AndroidDpCoordinate
 import com.android.tools.idea.common.scene.NonPlaceholderDragTarget
@@ -22,27 +23,29 @@ import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.Region
 import com.android.tools.idea.common.scene.Scene
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.TemporarySceneComponent
+import com.android.tools.idea.common.scene.draw.ColorSet
 import com.android.tools.idea.common.scene.draw.DisplayList
 import com.android.tools.idea.common.scene.draw.DrawRegion
 import com.android.tools.idea.uibuilder.api.actions.ToggleAutoConnectAction
-import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintLayoutHandler
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawBottom
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawLeft
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawRight
 import com.android.tools.idea.uibuilder.handlers.relative.targets.drawTop
-import com.android.tools.idea.uibuilder.model.viewHandler
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.intellij.ui.JBColor
+import org.intellij.lang.annotations.JdkConstants
 import java.awt.Color
 import java.awt.Cursor
 import java.awt.Graphics2D
 import java.awt.Point
 import java.awt.Stroke
+import java.awt.event.InputEvent
+import kotlin.math.abs
 
 private const val DEBUG_RENDERER = false
 
@@ -53,12 +56,17 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
   : BaseTarget() {
 
   /**
-   * list of dragged components. The first entry is the one which user start dragging.
+   * List of dragged components. The first entry is the one which user start dragging.
    */
   private lateinit var draggedComponents: List<SceneComponent>
 
   /**
-   * list of initial positions of dragged components
+   * List of new selected components. This is a list of new selection after mouse interaction.
+   */
+  private var newSelectedComponents: List<SceneComponent> = emptyList()
+
+  /**
+   * List of initial positions of dragged components
    */
   private lateinit var initialPositions: List<Point>
 
@@ -281,7 +289,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
           continue
         }
 
-        if (ph.snap(left, top, right, bottom, retPoint)) {
+        if (ph.snap(SnappingInfo(left, top, right, bottom), retPoint)) {
           val distance = retPoint.distance(xDouble, yDouble)
           if (distance < currentDistance || ph.region.level > currentPlaceholderLevel) {
             targetPlaceholder = ph
@@ -318,7 +326,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       if (myComponent.scene.isLiveRenderingEnabled) {
         myComponent.authoritativeNlComponent.fireLiveChangeEvent()
       }
-      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+      myComponent.scene.markNeedsLayout(Scene.IMMEDIATE_LAYOUT)
     }
     else {
       if (currentSnappedPlaceholder?.dominate == true) {
@@ -327,31 +335,38 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       else {
         draggedComponents.forEachIndexed { index, it -> it.setPosition(mouseX - offsets[index].x, mouseY - offsets[index].y) }
       }
-      myComponent.scene.needsLayout(Scene.NO_LAYOUT)
+      myComponent.scene.markNeedsLayout(Scene.NO_LAYOUT)
     }
     return ph
   }
 
   override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, unused: List<Target>) {
     if (!myComponent.isDragging) {
-      // Ignore double clicking case.
-      return
-    }
-    draggedComponents.forEach { it.isDragging = false }
-    val ph = snap(x, y)
-    if (ph != null) {
-      // TODO: Makes Notch works when dragging from other layouts to Constraint Layout.
-      if (ToggleAutoConnectAction.isAutoconnectOn()) {
-        targetSnapper.applyNotches(draggedComponents[0].authoritativeNlComponent.startAttributeTransaction())
+      val isClicked = abs(x - firstMouse.x) <= 1 && abs(y - firstMouse.y) <= 1
+      if (isClicked) {
+        // If the component is not being dragged and the mouse position almost not changed,
+        // it means that the user clicked the component without dragging.
+        newSelectedComponents = listOf(myComponent)
       }
-      applyPlaceholder(ph)
     }
     else {
-      draggedComponents.forEachIndexed { index, sceneComponent ->
-        sceneComponent.setPosition(firstMouse.x - offsets[index].x, firstMouse.y - offsets[index].y)
+      draggedComponents.forEach { it.isDragging = false }
+      val ph = snap(x, y)
+      if (ph != null) {
+        // TODO: Makes Notch works when dragging from other layouts to Constraint Layout.
+        if (ToggleAutoConnectAction.isAutoconnectOn()) {
+          targetSnapper.applyNotches(draggedComponents[0].authoritativeNlComponent.startAttributeTransaction())
+        }
+        applyPlaceholder(ph)
       }
+      else {
+        draggedComponents.forEachIndexed { index, sceneComponent ->
+          sceneComponent.setPosition(firstMouse.x - offsets[index].x, firstMouse.y - offsets[index].y)
+        }
+      }
+      newSelectedComponents = draggedComponents
     }
-
+    draggedComponents = emptyList()
     currentSnappedPlaceholder = null
     placeholderHosts = emptySet()
   }
@@ -378,7 +393,7 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
     }
     model.addComponents(componentsToAdd, parent, anchor, insertType, myComponent.scene.designSurface) {
       attributesTransactions.forEach { it.commit() }
-      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+      myComponent.scene.markNeedsLayout(Scene.IMMEDIATE_LAYOUT)
     }
   }
 
@@ -400,21 +415,27 @@ class CommonDragTarget @JvmOverloads constructor(sceneComponent: SceneComponent,
       component.isDragging = false
       // Rollback the transaction. Some attributes may be changed due to live rendering.
       val nlComponent = component.authoritativeNlComponent
-      if (liveRendered && nlComponent.parent?.viewHandler is ConstraintLayoutHandler) {
-        nlComponent.startAttributeTransaction().rollback()
+      if (nlComponent.startAttributeTransaction().rollback()) {
+        // Has pending value means it has live change, fire live change event since it is changed back.
         nlComponent.fireLiveChangeEvent()
       }
     }
-    myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
+    newSelectedComponents = draggedComponents
+    draggedComponents = emptyList()
+    myComponent.scene.markNeedsLayout(Scene.ANIMATED_LAYOUT)
   }
 
-  override fun newSelection(): List<SceneComponent> = draggedComponents
+  override fun newSelection(): List<SceneComponent> = newSelectedComponents
 
-  override fun getMouseCursor(): Cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+  override fun getMouseCursor(@JdkConstants.InputEventMask modifiersEx: Int): Cursor? {
+    return if ((modifiersEx and InputEvent.ALT_DOWN_MASK) != 0 && myComponent.isSelected) AdtUiCursors.MOVE
+           else Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+  }
 
   override fun isHittable() = if (myComponent.isSelected) myComponent.canShowBaseline() || !myComponent.isDragging else true
 
   companion object {
+
     /**
      * Determine if the [Target] could be replaced by [CommonDragTarget]
      */

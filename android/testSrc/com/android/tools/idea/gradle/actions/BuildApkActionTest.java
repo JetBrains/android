@@ -30,6 +30,7 @@ import com.android.tools.idea.testing.Facets;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.module.Module;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.gradle.tooling.model.GradleProject;
@@ -48,7 +49,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link BuildApkAction}.
  */
-public class BuildApkActionTest extends JavaProjectTestCase {
+public class BuildApkActionTest extends PlatformTestCase {
   @Mock private GradleProjectInfo myGradleProjectInfo;
   @Mock private GradleBuildInvoker myBuildInvoker;
   @Mock private ProjectStructure myProjectStructure;
@@ -125,7 +126,7 @@ public class BuildApkActionTest extends JavaProjectTestCase {
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradlePath;
 
     GradleProject gradleProjectStub = new GradleProjectStub(emptyList(), gradlePath, getBaseDirPath(module.getProject()));
-    GradleModuleModel model = new GradleModuleModel(module.getName(), gradleProjectStub, emptyList(), null, null, null);
+    GradleModuleModel model = new GradleModuleModel(module.getName(), gradleProjectStub, emptyList(), null, null, null, null);
 
     gradleFacet.setGradleModuleModel(model);
   }

@@ -16,29 +16,47 @@
 package com.android.tools.idea.layoutinspector.tree
 
 import com.android.tools.adtui.workbench.ToolContent
+import com.android.tools.componenttree.api.ComponentTreeBuilder
+import com.android.tools.componenttree.api.ComponentTreeModel
+import com.android.tools.componenttree.api.ComponentTreeSelectionModel
+import com.android.tools.componenttree.api.ViewNodeType
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.SkiaParser
+import com.android.tools.idea.layoutinspector.common.StringTable
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.InspectorView
-import com.intellij.ui.components.JBScrollPane
-import com.intellij.ui.treeStructure.Tree
-import java.util.Enumeration
-import javax.swing.tree.DefaultTreeModel
-import javax.swing.tree.TreeNode
-import javax.swing.tree.TreePath
-import javax.swing.tree.TreeSelectionModel
+import com.android.tools.idea.layoutinspector.model.ViewNode
+import com.android.tools.idea.layoutinspector.resource.ResourceLookup
+import com.android.tools.idea.layoutinspector.transport.InspectorClient
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.ComponentTreeEvent
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.LayoutInspectorEvent
+import com.android.tools.layoutinspector.proto.LayoutInspectorProto.View
+import com.android.tools.profiler.proto.Common
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
+import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
+import java.awt.Image
+import java.util.Collections
+import javax.swing.Icon
+import javax.swing.JComponent
 
 class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
   private var layoutInspector: LayoutInspector? = null
-  private val tree = Tree()
-  private val contentPane = JBScrollPane(tree)
+  private var client: InspectorClient? = null
+  private val componentTree: JComponent
+  private val componentTreeModel: ComponentTreeModel
+  private val componentTreeSelectionModel: ComponentTreeSelectionModel
 
   init {
-    tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
-    tree.addTreeSelectionListener { e ->
-      (e.newLeadSelectionPath?.lastPathComponent as MyTreeNode?)?.let {
-        layoutInspector?.layoutInspectorModel?.selection = it.root
-      }
-    }
+    val (tree, model, selectionModel) = ComponentTreeBuilder()
+      .withNodeType(InspectorViewNodeType())
+      .withInvokeLaterOption { ApplicationManager.getApplication().invokeLater(it) }
+      .build()
+    componentTree = tree
+    componentTreeModel = model
+    componentTreeSelectionModel = selectionModel
+    selectionModel.addSelectionListener { layoutInspector?.layoutInspectorModel?.selection = it.firstOrNull() as? ViewNode }
   }
 
   // TODO: There probably can only be 1 layout inspector per project. Do we need to handle changes?
@@ -48,99 +66,160 @@ class LayoutInspectorTreePanel : ToolContent<LayoutInspector> {
     layoutInspector = toolContext
     layoutInspector?.modelChangeListeners?.add(this::modelChanged)
     layoutInspector?.layoutInspectorModel?.modificationListeners?.add(this::modelModified)
-    layoutInspector?.layoutInspectorModel?.modificationListeners?.add { _, new ->
-      if (new != null) {
-        tree.model = DefaultTreeModel(MyTreeNode(new, null))
-      }
-    }
+    client = layoutInspector?.client
+    client?.register(Common.Event.EventGroupIds.COMPONENT_TREE, ::loadComponentTree)
+    client?.registerProcessEnded(::clearComponentTree)
     if (toolContext != null) {
       modelChanged(toolContext.layoutInspectorModel, toolContext.layoutInspectorModel)
     }
   }
 
-  override fun getComponent() = contentPane
+  override fun getComponent() = componentTree
 
   override fun dispose() {
   }
 
-  private fun modelModified(old: InspectorView?, new: InspectorView?) {
-    layoutInspector?.let { inspector ->
-      tree.model = DefaultTreeModel(MyTreeNode(inspector.layoutInspectorModel.root, null))
+  private fun clearComponentTree() {
+    val application = ApplicationManager.getApplication()
+    application.invokeLater {
+      val emptyRoot = ViewNode.EMPTY
+      layoutInspector?.layoutInspectorModel?.update(emptyRoot)
     }
   }
 
-  private fun modelChanged(old: InspectorModel, new: InspectorModel) {
-    tree.model = DefaultTreeModel(MyTreeNode(new.root, null))
-    old.selectionListeners.remove(this::selectionChanged)
-    new.selectionListeners.add(this::selectionChanged)
-  }
+  private var loadInProgress = false
 
-  private fun selectionChanged(old: InspectorView?, new: InspectorView?) {
-    if (new == null) {
-      tree.clearSelection()
-      return
-    }
-    tree.selectionPath = (tree.model.root as MyTreeNode).findPath(new)
-  }
-
-  private class MyTreeNode(val root: InspectorView, val _parent: MyTreeNode?) : TreeNode {
-    val _children = root.children.values.map { MyTreeNode(it, this) }
-
-    override fun children(): Enumeration<*> {
-      return _children.toEnumeration()
-    }
-
-    override fun isLeaf() = root.children.isEmpty()
-
-    override fun getChildCount() = root.children.size
-
-    override fun getParent() = _parent
-
-    override fun getChildAt(childIndex: Int) = _children[childIndex]
-
-    override fun getIndex(node: TreeNode?) = _children.indexOf(node)
-
-    override fun getAllowsChildren() = true
-
-    override fun toString() = "${root.id}: ${root.type}"
-
-    fun findPath(target: InspectorView) : TreePath? {
-      val nodes = mutableListOf<MyTreeNode>()
-      if (findPathInternal(target, nodes)) {
-        return TreePath(nodes.reversed().toTypedArray())
+  private fun loadComponentTree(event: LayoutInspectorEvent) {
+    synchronized(loadInProgress) {
+      if (loadInProgress) {
+        return
       }
-      return null
+      loadInProgress = true
+    }
+    val application = ApplicationManager.getApplication()
+    application.executeOnPooledThread {
+      val loader = ComponentTreeLoader(event.tree, layoutInspector?.layoutInspectorModel?.resourceLookup)
+      val root = loader.loadRootView()
+      val bytes = client?.getPayload(event.tree.payloadId) ?: return@executeOnPooledThread
+      var viewRoot: InspectorView? = null
+      if (bytes.isNotEmpty()) {
+        viewRoot = SkiaParser.getViewTree(bytes)
+      }
+      if (viewRoot != null) {
+        val imageLoader = ComponentImageLoader(root, viewRoot)
+        imageLoader.loadImages()
+      }
+
+      application.invokeLater {
+        layoutInspector?.layoutInspectorModel?.update(root)
+        loadInProgress = false
+      }
+    }
+  }
+
+  class ComponentImageLoader(root: ViewNode, viewRoot: InspectorView) {
+    private val nodeMap = root.flatten().associateBy { it.drawId }
+    private val viewMap = viewRoot.flatten().associateBy { it.id.toLong() }
+
+    fun loadImages() {
+      for ((drawId, node) in nodeMap) {
+        val view = viewMap[drawId] ?: continue
+        node.imageBottom = view.image
+        addChildNodeImages(node, view)
+      }
     }
 
-    fun findPathInternal(target: InspectorView, collector: MutableList<MyTreeNode>): Boolean {
-      if (root == target) {
-        collector.add(this)
-        return true
-      }
-      for (child in _children) {
-        if (child.findPathInternal(target, collector)) {
-          collector.add(this)
-          return true
+    private fun addChildNodeImages(node: ViewNode, view: InspectorView) {
+      var beforeChildren = true
+      for (child in view.children.values) {
+        val isChildNode = view.id != child.id && nodeMap.containsKey(child.id.toLong())
+        when {
+          isChildNode -> beforeChildren = false
+          beforeChildren -> node.imageBottom = combine(node.imageBottom, child)
+          else -> node.imageTop = combine(node.imageTop, child)
+        }
+        if (!isChildNode) {
+          // Some Skia views are several levels deep:
+          addChildNodeImages(node, child)
         }
       }
-      return false
+    }
+
+    private fun combine(image: Image?, view: InspectorView): Image? =
+      when {
+        view.image == null -> image
+        image == null -> view.image
+        else -> {
+          // Combine the images...
+          val g = image.graphics
+          UIUtil.drawImage(g, view.image!!, 0, 0, null)
+          g.dispose()
+          image
+        }
+      }
+  }
+
+  private class ComponentTreeLoader(private val tree: ComponentTreeEvent, private val resourceLookup: ResourceLookup?) {
+    val stringTable = StringTable(tree.stringList)
+
+    fun loadRootView(): ViewNode {
+      resourceLookup?.updateConfiguration(tree.resources, stringTable)
+      return loadView(tree.root, null)
+    }
+
+    fun loadView(view: View, parent: ViewNode?): ViewNode {
+      val qualifiedName = "${stringTable[view.packageName]}.${stringTable[view.className]}"
+      val viewId = stringTable[view.viewId]
+      val textValue = stringTable[view.textValue]
+      val layout = stringTable[view.layout]
+      val x = view.x + (parent?.x ?: 0)
+      val y = view.y + (parent?.y ?: 0)
+      val node = ViewNode(view.drawId, qualifiedName, layout, x, y, view.width, view.height, viewId, textValue)
+      view.subViewList.map { loadView(it, node) }.forEach {
+        node.children.add(it)
+        it.parent = node
+      }
+      return node
     }
   }
-}
 
-private fun <T> List<T>.toEnumeration(): Enumeration<T> {
-  return object : Enumeration<T> {
-    var count = 0
-
-    override fun hasMoreElements(): Boolean {
-      return count < size
+  @Suppress("UNUSED_PARAMETER")
+  private fun modelModified(oldView: ViewNode?, newView: ViewNode?, structuralChange: Boolean) {
+    if (structuralChange) {
+      componentTreeModel.treeRoot = newView
     }
+  }
 
-    override fun nextElement(): T {
-      if (count < size) {
-        return get(count++)
-      }
-      throw IndexOutOfBoundsException("$count >= $size")
+  private fun modelChanged(oldView: InspectorModel, newView: InspectorModel) {
+    componentTreeModel.treeRoot = newView.root
+    oldView.selectionListeners.remove(this::selectionChanged)
+    newView.selectionListeners.add(this::selectionChanged)
+  }
+
+  @Suppress("UNUSED_PARAMETER")
+  private fun selectionChanged(oldView: ViewNode?, newView: ViewNode?) {
+    if (newView == null) {
+      componentTreeSelectionModel.selection = emptyList()
     }
+    else {
+      componentTreeSelectionModel.selection = Collections.singletonList(newView)
+    }
+  }
+
+  private class InspectorViewNodeType : ViewNodeType<ViewNode>() {
+    override val clazz = ViewNode::class.java
+
+    override fun tagNameOf(node: ViewNode) = node.qualifiedName
+
+    override fun idOf(node: ViewNode) = node.viewId?.name
+
+    override fun textValueOf(node: ViewNode) = node.textValue
+
+    override fun iconOf(node: ViewNode): Icon =
+      AndroidDomElementDescriptorProvider.getIconForViewTag(node.unqualifiedName) ?: StudioIcons.LayoutEditor.Palette.UNKNOWN_VIEW
+
+    override fun parentOf(node: ViewNode) = node.parent
+
+    override fun childrenOf(node: ViewNode) = node.children
   }
 }

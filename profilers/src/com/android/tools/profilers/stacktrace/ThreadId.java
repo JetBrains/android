@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.stacktrace;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 public class ThreadId {

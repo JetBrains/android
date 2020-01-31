@@ -22,7 +22,7 @@ import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.gradle.tooling.model.GradleProject;
 import org.mockito.Mock;
 
@@ -38,7 +38,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link GradleModuleModelDataService}.
  */
-public class GradleModuleModelDataServiceTest extends JavaProjectTestCase {
+public class GradleModuleModelDataServiceTest extends PlatformTestCase {
   @Mock private GradleModuleSetup myModuleSetup;
 
   private IdeModifiableModelsProvider myModelsProvider;
@@ -62,7 +62,7 @@ public class GradleModuleModelDataServiceTest extends JavaProjectTestCase {
     Module appModule = createModule(appModuleName);
 
     GradleProject gradleProjectStub = new GradleProjectStub(emptyList(), ":app", getBaseDirPath(getProject()));
-    GradleModuleModel model = new GradleModuleModel(appModuleName, gradleProjectStub, emptyList(), null, null, null);
+    GradleModuleModel model = new GradleModuleModel(appModuleName, gradleProjectStub, emptyList(), null, null, null, null);
 
     DataNode<GradleModuleModel> dataNode = new DataNode<>(GRADLE_MODULE_MODEL, model, null);
     Collection<DataNode<GradleModuleModel>> dataNodes = Collections.singleton(dataNode);

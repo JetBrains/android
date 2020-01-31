@@ -25,16 +25,18 @@ import java.util.function.Consumer
 
 class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   companion object {
-    val SESSION_1_1_1 = 0
-    val SESSION_1_1_2 = 1
-    val SESSION_1_1_3 = 2
-    val SESSION_1_1_4 = 3
-    val SESSION_2_1_5 = 4
-    val SESSION_2_1_6 = 5
-    val PROCESS_2_1_10 = 6 // Added to ensure filtering works properly.
-    val SESSION_1_2_7 = 7
-    val SESSION_2_2_8 = 8
-    val SESSION_2_2_9 = 9
+    const val SESSION_1_1_1 = 0
+    const val SESSION_1_1_2 = 1
+    const val SESSION_1_1_3 = 2
+    const val SESSION_1_1_4 = 3
+    const val SESSION_2_1_5 = 4
+    const val SESSION_2_1_6 = 5
+    const val PROCESS_2_1_10 = 6 // Added to ensure filtering works properly.
+    const val SESSION_1_2_7 = 7
+    const val SESSION_2_2_8 = 8
+    const val SESSION_2_2_9 = 9
+    const val SESSION_3_3_1 = 10
+    const val SESSION_3_3_3 = 11
   }
 
   // List of events to generate in the database. This list is broken up by event id to make things easier to validate.
@@ -47,7 +49,9 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
                              eventBuilder(Common.Event.Kind.PROCESS, true, 2, 1, -1, 10),
                              eventBuilder(Common.Event.Kind.SESSION, false, 1, 2, 6, 7),
                              eventBuilder(Common.Event.Kind.SESSION, false, 2, 2, 7, 8),
-                             eventBuilder(Common.Event.Kind.SESSION, true, 2, 2, 7, 9))
+                             eventBuilder(Common.Event.Kind.SESSION, true, 2, 2, 7, 9),
+                             eventBuilder(Common.Event.Kind.SESSION, false, 3, 3, -1, 1),
+                             eventBuilder(Common.Event.Kind.SESSION, true, 3, 3, -1, 3))
 
   override fun createTable(): UnifiedEventsTable {
     return UnifiedEventsTable()
@@ -57,6 +61,7 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
     val events = mutableListOf(Common.Event.newBuilder().build())
     return mutableListOf(
       (Consumer { it.insertUnifiedEvent(1, events[0]) }),
+      (Consumer { it.deleteEvents(1, 1, 1, Common.Event.Kind.SESSION, 1, 1) }),
       (Consumer {
         it.queryUnifiedEventGroups(
           GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION).setStreamId(1).setPid(1).setToTimestamp(
@@ -105,6 +110,18 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
     assertThat(eventResult).containsExactlyElementsIn(listOf(event))
   }
 
+  @Test
+  fun deleteEvents() {
+    val eventCount = 5
+    insertData(eventCount, true)
+    assertThat(table.queryUnifiedEvents()).hasSize(eventCount)
+
+    // Delete inserted events 1 by 1.
+    for (i in eventCount - 1 downTo 0) {
+      table.deleteEvents(1, 1, i + 1L, Common.Event.Kind.SESSION, i + 1L, i + 1L)
+      assertThat(table.queryUnifiedEvents()).hasSize(i)
+    }
+  }
 
   @Test
   fun queryEvents() {
@@ -131,9 +148,8 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
   @Test
   fun filterKindFromTimestamp() {
     validateFilter(GetEventGroupsRequest.newBuilder().setKind(Common.Event.Kind.SESSION)
-                     .setFromTimestamp(3).build(),
-                   SESSION_1_1_2, // Expected due to -1
-                   SESSION_1_1_3,
+                     .setFromTimestamp(4).build(),
+                   SESSION_1_1_3, // Expected due to -1
                    SESSION_1_1_4,
                    SESSION_1_2_7,
                    SESSION_2_1_5,
@@ -149,7 +165,9 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
                    SESSION_1_1_1,
                    SESSION_1_1_2,
                    SESSION_1_1_3,
-                   SESSION_1_1_4) // Expected due to +1
+                   SESSION_1_1_4, // Expected due to +1
+                   SESSION_3_3_1,
+                   SESSION_3_3_3)
     // SESSION_2_1_5 Groups that start after our to timestamp are also not expected.
   }
 
@@ -162,7 +180,9 @@ class UnifiedEventsTableTest : DatabaseTest<UnifiedEventsTable>() {
                    SESSION_1_1_3,
                    SESSION_1_1_4,
                    SESSION_2_1_5,
-                   SESSION_2_1_6)
+                   SESSION_2_1_6,
+                   SESSION_3_3_1,
+                   SESSION_3_3_3)
   }
 
   @Test

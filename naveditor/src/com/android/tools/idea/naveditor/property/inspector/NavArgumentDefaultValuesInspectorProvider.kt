@@ -106,10 +106,10 @@ class NavArgumentDefaultValuesInspectorProvider : InspectorProvider<NavPropertie
       table.rowHeight = NAV_ARGUMENTS_ROW_HEIGHT
       table.minimumSize = Dimension(0, 36)
       table.emptyText.text = if (components.size == 1 && components[0].isNavigation) {
-        "No start destination arguments"
+        "No Start Destination Arguments"
       }
       else {
-        "No arguments"
+        "No Arguments"
       }
       table.isOpaque = false
 

@@ -19,7 +19,12 @@ import com.android.SdkConstants;
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
+import com.android.utils.concurrency.AsyncSupplier;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.codeHighlighting.BackgroundEditorHighlighter;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.application.ApplicationManager;
@@ -30,6 +35,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.ui.EditorNotifications;
+import com.intellij.util.concurrency.EdtExecutorService;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +48,8 @@ import java.beans.PropertyChangeListener;
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
 
 public class ManifestEditor extends UserDataHolderBase implements FileEditor {
+  private volatile boolean showingStaleManifest;
+  private volatile boolean failedToComputeFreshManifest;
 
   private final AndroidFacet myFacet;
   private JPanel myLazyContainer;
@@ -97,9 +106,69 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
   }
 
   private void reload() {
-    if (mySelected) {
-      myManifestPanel.setManifestSnapshot(MergedManifestManager.getSnapshot(myFacet), mySelectedFile);
+    if (!mySelected) {
+      return;
     }
+    AsyncSupplier<MergedManifestSnapshot> supplier = MergedManifestManager.getMergedManifestSupplier(myFacet.getModule());
+    ListenableFuture<MergedManifestSnapshot> mergedManifest = supplier.get();
+    if (mergedManifest.isDone()) {
+      showFreshManifest(Futures.getUnchecked(mergedManifest));
+      return;
+    }
+    MergedManifestSnapshot cachedManifest = supplier.getNow();
+    if (cachedManifest != null) {
+      // If we've already computed the merged manifest before and the snapshot's just stale,
+      // we can show that to the user while we compute a fresh one in the background.
+      showStaleManifest(cachedManifest);
+    }
+    else {
+      // Otherwise, the best we can do is to throw up a loading spinner.
+      myManifestPanel.startLoading();
+    }
+    Futures.addCallback(mergedManifest, new FutureCallback<MergedManifestSnapshot>() {
+      @Override
+      public void onSuccess(MergedManifestSnapshot result) {
+        showFreshManifest(result);
+      }
+
+      @Override
+      public void onFailure(@Nullable Throwable t) {
+        showLoadingError();
+      }
+    }, EdtExecutorService.getInstance());
+  }
+
+  private void showStaleManifest(MergedManifestSnapshot manifest) {
+    showingStaleManifest = true;
+    myManifestPanel.showManifest(manifest, mySelectedFile, false);
+    EditorNotifications.getInstance(myFacet.getModule().getProject()).updateNotifications(mySelectedFile);
+  }
+
+  private void showFreshManifest(MergedManifestSnapshot manifest) {
+    if (showingStaleManifest || failedToComputeFreshManifest) {
+      showingStaleManifest = false;
+      failedToComputeFreshManifest = false;
+      EditorNotifications.getInstance(myFacet.getModule().getProject()).updateNotifications(mySelectedFile);
+    }
+    myManifestPanel.showManifest(manifest, mySelectedFile, true);
+  }
+
+  private void showLoadingError() {
+    failedToComputeFreshManifest = true;
+    if (showingStaleManifest) {
+      EditorNotifications.getInstance(myFacet.getModule().getProject()).updateNotifications(mySelectedFile);
+    }
+    else {
+      myManifestPanel.showLoadingError();
+    }
+  }
+
+  public boolean isShowingStaleManifest() {
+    return showingStaleManifest;
+  }
+
+  public boolean failedToComputeFreshManifest() {
+    return failedToComputeFreshManifest;
   }
 
   @NotNull
@@ -140,7 +209,7 @@ public class ManifestEditor extends UserDataHolderBase implements FileEditor {
 
     final Project project = myFacet.getModule().getProject();
     if (myManifestPanel == null) {
-      myManifestPanel = new ManifestPanel(myFacet);
+      myManifestPanel = new ManifestPanel(myFacet, this);
       myLazyContainer.add(myManifestPanel);
       // Parts of the merged manifest come from the project's build model, so we want to know
       // if that changes so we can get the latest values.

@@ -15,63 +15,109 @@
  */
 package com.android.tools.profilers.memory;
 
+import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
+import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
+import java.util.Arrays;
+import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import static org.junit.Assert.assertEquals;
 
-public class AllocationInfosDataSeriesTest {
+@RunWith(Parameterized.class)
+public final class AllocationInfosDataSeriesTest {
+  @Parameterized.Parameters
+  public static Collection<Boolean> useNewEventPipelineParameter() {
+    return Arrays.asList(false, true);
+  }
 
+  private final FakeTimer myTimer = new FakeTimer();
+  private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
   private final FakeMemoryService myService = new FakeMemoryService();
-
   @NotNull private final FakeIdeProfilerServices myIdeProfilerServices = new FakeIdeProfilerServices();
 
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocationInfosDataSeriesTest", myService);
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocationInfosDataSeriesTest", myTransportService, myService);
+
+  private MemoryProfilerStage myStage;
+
+  private final boolean myNewEventPipeline;
+
+  public AllocationInfosDataSeriesTest(boolean useNewEventPipeline) {
+    myNewEventPipeline = useNewEventPipeline;
+    myIdeProfilerServices.enableEventsPipeline(useNewEventPipeline);
+  }
+
+  @Before
+  public void setUp() {
+    myStage =
+      new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, new FakeTimer()),
+                              new FakeCaptureObjectLoader());
+  }
 
   @Test
-  public void testGetDataForXRange() throws Exception {
-    MemoryData memoryData = MemoryData.newBuilder()
-      .setEndTimestamp(1)
-      .addAllocationsInfo(
-        AllocationsInfo.newBuilder()
-          .setStartTime(TimeUnit.MICROSECONDS.toNanos(2)).setEndTime(TimeUnit.MICROSECONDS.toNanos(7)).setLegacy(true))
-      .addAllocationsInfo(
-        AllocationsInfo.newBuilder()
-          .setStartTime(TimeUnit.MICROSECONDS.toNanos(17)).setEndTime(Long.MAX_VALUE).setLegacy(true))
+  public void testGetDataForXRange() {
+    long startTimeUs1 = 2;
+    long endTimeUs1 = 7;
+    long startTimeUs2 = 17;
+    AllocationsInfo info1 = AllocationsInfo.newBuilder()
+      .setStartTime(TimeUnit.MICROSECONDS.toNanos(startTimeUs1)).setEndTime(TimeUnit.MICROSECONDS.toNanos(endTimeUs1)).setLegacy(true)
       .build();
-    myService.setMemoryData(memoryData);
+    AllocationsInfo info2 = AllocationsInfo.newBuilder()
+      .setStartTime(TimeUnit.MICROSECONDS.toNanos(startTimeUs2)).setEndTime(Long.MAX_VALUE).setLegacy(true).build();
+
+    if (myNewEventPipeline) {
+      myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(),
+                                          ProfilersTestData.generateMemoryAllocationInfoData(info1.getStartTime(),
+                                                                                             ProfilersTestData.SESSION_DATA.getPid(),
+                                                                                             info1).build());
+      myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(),
+                                          ProfilersTestData.generateMemoryAllocationInfoData(info2.getStartTime(),
+                                                                                             ProfilersTestData.SESSION_DATA.getPid(),
+                                                                                             info2).build());
+    }
+    else {
+      MemoryData memoryData = MemoryData.newBuilder()
+        .addAllocationsInfo(info1)
+        .addAllocationsInfo(info2)
+        .build();
+      myService.setMemoryData(memoryData);
+    }
 
     AllocationInfosDataSeries series =
-      new AllocationInfosDataSeries(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(), ProfilersTestData.SESSION_DATA,
-                                    myIdeProfilerServices.getFeatureTracker(), null);
-    List<SeriesData<CaptureDurationData<CaptureObject>>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
+      new AllocationInfosDataSeries(new ProfilerClient(myGrpcChannel.getName()), ProfilersTestData.SESSION_DATA,
+                                    myIdeProfilerServices.getFeatureTracker(), myStage);
+    List<SeriesData<CaptureDurationData<CaptureObject>>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
 
     assertEquals(2, dataList.size());
     SeriesData<CaptureDurationData<CaptureObject>> data1 = dataList.get(0);
-    assertEquals(2, data1.x);
-    assertEquals(5, data1.value.getDurationUs());
+    assertEquals(startTimeUs1, data1.x);
+    assertEquals(endTimeUs1 - startTimeUs1, data1.value.getDurationUs());
     CaptureObject capture1 = data1.value.getCaptureEntry().getCaptureObject();
-    assertEquals(TimeUnit.MICROSECONDS.toNanos(2), capture1.getStartTimeNs());
-    assertEquals(TimeUnit.MICROSECONDS.toNanos(7), capture1.getEndTimeNs());
+    assertEquals(TimeUnit.MICROSECONDS.toNanos(startTimeUs1), capture1.getStartTimeNs());
+    assertEquals(TimeUnit.MICROSECONDS.toNanos(endTimeUs1), capture1.getEndTimeNs());
 
     SeriesData<CaptureDurationData<CaptureObject>> data2 = dataList.get(1);
-    assertEquals(17, data2.x);
+    assertEquals(startTimeUs2, data2.x);
     assertEquals(Long.MAX_VALUE, data2.value.getDurationUs());
     CaptureObject capture2 = data2.value.getCaptureEntry().getCaptureObject();
-    assertEquals(TimeUnit.MICROSECONDS.toNanos(17), capture2.getStartTimeNs());
+    assertEquals(TimeUnit.MICROSECONDS.toNanos(startTimeUs2), capture2.getStartTimeNs());
     assertEquals(Long.MAX_VALUE, capture2.getEndTimeNs());
   }
 }

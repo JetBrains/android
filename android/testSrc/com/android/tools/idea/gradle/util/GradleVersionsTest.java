@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.util;
 
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
@@ -58,7 +57,7 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
     assertEquals(expected, gradleVersion.toString());
 
     // double-check GradleSyncState, just in case
-    GradleVersion gradleVersionFromSync = GradleSyncState.getInstance(project).getSummary().getGradleVersion();
+    GradleVersion gradleVersionFromSync = GradleSyncState.getInstance(project).getLastSyncedGradleVersion();
     assertNotNull(gradleVersionFromSync);
     assertEquals(expected, GradleVersions.removeTimestampFromGradleVersion(gradleVersionFromSync.toString()));
   }
@@ -69,11 +68,7 @@ public class GradleVersionsTest extends AndroidGradleTestCase {
 
     GradleSyncState syncState = createMockGradleSyncState();
     when(syncState.isSyncNeeded()).thenReturn(NO);
-    GradleSyncSummary summary = mock(GradleSyncSummary.class);
-    when(syncState.getSummary()).thenReturn(summary);
-
-    // Simulate Gradle SyncState returns null.
-    when(summary.getGradleVersion()).thenReturn(null);
+    when(syncState.getLastSyncedGradleVersion()).thenReturn(null);
 
     simulateGettingGradleSettings();
 

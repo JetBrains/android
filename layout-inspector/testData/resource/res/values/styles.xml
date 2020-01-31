@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <style name="AppTheme" parent="android:Theme.Material.Light">
+    <item name="android:colorBackgroundFloating">@color/yellowBackground</item>
+  </style>
+
+  <style name="MyTextStyle" parent="TextAppearance.Material.Body1">
+    <item name="android:textColor">@color/textBlueIndirect</item>
+  </style>
+
+  <style name="MyTextStyle.Extra">
+    <item name="android:textColor">#888800</item>
+  </style>
+</resources>

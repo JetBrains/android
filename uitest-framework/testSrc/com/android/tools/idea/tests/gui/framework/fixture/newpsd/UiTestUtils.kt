@@ -15,11 +15,9 @@ package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.adtui.HtmlLabel
 import com.android.tools.idea.tests.gui.framework.GuiTests
-import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
 import com.android.tools.idea.tests.gui.framework.find
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.matcher
-import com.android.tools.idea.tests.gui.framework.robot
 import com.intellij.diagnostic.ThreadDumper
 import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -28,6 +26,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBList
 import org.fest.swing.core.GenericTypeMatcher
 import org.fest.swing.exception.WaitTimedOutError
+import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.timing.Wait
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import sun.awt.PeerEvent
@@ -94,7 +93,7 @@ fun waitForIdle() {
   }
 }
 
-internal fun IdeFrameContainerFixture.clickToolButton(titlePrefix: String) {
+internal fun ContainerFixture<*>.clickToolButton(titlePrefix: String) {
   fun ActionButton.matches() = toolTipText?.startsWith(titlePrefix) ?: false
   // Find the topmost tool button. (List/Map editors may contains similar buttons)
   val button =
@@ -102,9 +101,9 @@ internal fun IdeFrameContainerFixture.clickToolButton(titlePrefix: String) {
       robot(),
       robot()
         .finder()
-        .findAll(container, matcher<ActionButton> { it.matches() })
+        .findAll(target(), matcher<ActionButton> { it.matches() })
         .minBy { button -> generateSequence<Container>(button) { it.parent }.count() }
-      ?: robot().finder().find<ActionButton>(container) { it.matches() })
+      ?: robot().finder().find<ActionButton>(target()) { it.matches() })
   Wait.seconds(1).expecting("Enabled").until { button.isEnabled }
   button.click()
 }
@@ -112,7 +111,7 @@ internal fun IdeFrameContainerFixture.clickToolButton(titlePrefix: String) {
 /**
  * Returns the popup list being displayed, assuming there is one and it is the only one.
  */
-internal fun IdeFrameContainerFixture.getList(): JBList<*> {
+internal fun ContainerFixture<*>.getList(): JBList<*> {
   return GuiTests.waitUntilShowingAndEnabled<JBList<*>>(robot(), null, object : GenericTypeMatcher<JBList<*>>(JBList::class.java) {
     override fun isMatching(list: JBList<*>): Boolean {
       return list.javaClass.name == "com.intellij.ui.popup.list.ListPopupImpl\$MyList"

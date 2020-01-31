@@ -34,7 +34,7 @@ public class GradleEditorEntityGroup implements Disposable {
   @NotNull private final List<GradleEditorEntity> myEntitiesView;
 
   public GradleEditorEntityGroup(@NotNull String name) {
-    this(name, Collections.emptyList());
+    this(name, Collections.<GradleEditorEntity>emptyList());
   }
 
   public GradleEditorEntityGroup(@NotNull String name, @NotNull Iterable<GradleEditorEntity> entities) {

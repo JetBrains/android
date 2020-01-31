@@ -1,4 +1,18 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2010 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.actions;
 
 import com.android.resources.ResourceFolderType;
@@ -9,11 +23,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.ReadonlyStatusHandler;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
@@ -136,7 +150,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
     if (element == null) {
       return null;
     }
-    Module module = ModuleUtilCore.findModuleForFile(directory.getVirtualFile(), project);
+    Module module = ModuleUtil.findModuleForFile(directory.getVirtualFile(), project);
     if (module != null) {
       final AndroidFacet facet = AndroidFacet.getInstance(module);
       assert facet != null;
@@ -147,7 +161,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
         if ((AndroidFileTemplateProvider.ACTIVITY.equals(templateName) || AndroidFileTemplateProvider.FRAGMENT.equals(templateName)) &&
             createLayoutFile) {
           final boolean isActivity = AndroidFileTemplateProvider.ACTIVITY.equals(templateName);
-          final Manifest manifest = facet.getManifest();
+          final Manifest manifest = Manifest.getMainManifest(facet);
           final String appPackage = manifest != null ? manifest.getPackage().getValue() : null;
 
           if (appPackage != null && !appPackage.isEmpty()) {
@@ -192,7 +206,7 @@ public class NewAndroidComponentDialog extends DialogWrapper {
       final PsiCodeBlock body = onCreateMethod.getBody();
 
       if (body != null) {
-        final String fieldName = AndroidResourceUtil.getRJavaFieldName(FileUtilRt.getNameWithoutExtension(layoutFileName));
+        final String fieldName = AndroidResourceUtil.getRJavaFieldName(FileUtil.getNameWithoutExtension(layoutFileName));
         final String layoutFieldRef = appPackage + ".R.layout." + fieldName;
 
         if (activity) {

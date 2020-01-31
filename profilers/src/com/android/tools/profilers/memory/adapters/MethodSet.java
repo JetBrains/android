@@ -15,8 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
-import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
+import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.google.common.base.Strings;
 import com.intellij.openapi.util.text.StringUtil;
@@ -115,9 +114,9 @@ public class MethodSet extends ClassifierSet {
             AllocationStack.StackFrameWrapper fullStack = stack.getFullStack();
             AllocationStack.StackFrame stackFrame = fullStack.getFrames(frameIndex);
             return new MethodSetInfo(myCaptureObject, stackFrame.getClassName(), stackFrame.getMethodName());
-          case SMALL_STACK:
-            AllocationStack.SmallFrameWrapper smallStack = stack.getSmallStack();
-            AllocationStack.SmallFrame smallFrame = smallStack.getFrames(frameIndex);
+          case ENCODED_STACK:
+            AllocationStack.EncodedFrameWrapper smallStack = stack.getEncodedStack();
+            AllocationStack.EncodedFrame smallFrame = smallStack.getFrames(frameIndex);
             return new MethodSetInfo(myCaptureObject, smallFrame.getMethodId());
           default:
             throw new UnsupportedOperationException();
@@ -229,7 +228,7 @@ public class MethodSet extends ClassifierSet {
       }
 
       assert myMethodId != INVALID_METHOD_ID;
-      StackFrameInfoResponse frameInfo = myCaptureObject.getStackFrameInfoResponse(myMethodId);
+      AllocationStack.StackFrame frameInfo = myCaptureObject.getStackFrame(myMethodId);
       assert frameInfo != null;
       myClassName = frameInfo.getClassName();
       myMethodName = frameInfo.getMethodName();

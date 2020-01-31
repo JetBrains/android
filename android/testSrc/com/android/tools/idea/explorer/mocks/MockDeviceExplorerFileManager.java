@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.explorer.mocks;
 
+import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.DeviceExplorerFileManager;
 import com.android.tools.idea.explorer.DeviceExplorerFileManagerImpl;
-import com.android.tools.idea.concurrent.FutureCallbackExecutor;
 import com.android.tools.idea.explorer.FutureValuesTracker;
 import com.android.tools.idea.explorer.fs.DeviceFileEntry;
 import com.android.tools.idea.explorer.fs.DeviceFileSystem;
@@ -31,15 +31,14 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.io.PathKt;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class MockDeviceExplorerFileManager implements DeviceExplorerFileManager, Disposable {
   private static final Logger LOGGER = Logger.getInstance(MockDeviceExplorerFileManager.class);

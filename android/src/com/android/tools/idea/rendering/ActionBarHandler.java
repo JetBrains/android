@@ -38,6 +38,7 @@ import com.intellij.psi.PsiCompiledElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
+import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -121,7 +122,7 @@ public class ActionBarHandler extends ActionBarCallback {
             myMenus.add(new ResourceReference(namespace, ResourceType.MENU, name));
           }
         } else {
-          String fqn = xmlFile == null ? null : AndroidPsiUtils.getDeclaredContextFqcn(module, xmlFile);
+          String fqn = xmlFile == null ? null : AndroidUtils.getDeclaredContextFqcn(module, xmlFile);
           if (fqn != null) {
             Project project = xmlFile.getProject();
             DumbService.getInstance(project).smartInvokeLater(() -> {

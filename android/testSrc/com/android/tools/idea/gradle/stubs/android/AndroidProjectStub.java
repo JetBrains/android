@@ -18,12 +18,14 @@ package com.android.tools.idea.gradle.stubs.android;
 import com.android.SdkConstants;
 import com.android.annotations.NonNull;
 import com.android.builder.model.*;
-import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeVariant;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
+import com.android.ide.common.gradle.model.stubs.AndroidGradlePluginProjectFlagsStub;
+import com.android.ide.common.gradle.model.stubs.ViewBindingOptionsStub;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.stubs.FileStructure;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,7 +36,7 @@ import java.util.function.Consumer;
 
 import static org.mockito.Mockito.mock;
 
-public class AndroidProjectStub implements IdeAndroidProject {
+public class AndroidProjectStub implements AndroidProject {
   private static final Collection<String> NO_UNRESOLVED_DEPENDENCIES = ImmutableList.of();
 
   @NotNull private final Map<String, BuildTypeContainer> myBuildTypes = Maps.newHashMap();
@@ -53,6 +55,7 @@ public class AndroidProjectStub implements IdeAndroidProject {
   @NotNull private final File myBuildFile;
 
   @NotNull private final JavaCompileOptionsStub myJavaCompileOptions = new JavaCompileOptionsStub();
+  @NotNull private final ViewBindingOptionsStub myViewBindingOptions = new ViewBindingOptionsStub();
 
   @NotNull private String myModelVersion = SdkConstants.GRADLE_PLUGIN_MINIMUM_VERSION + "-SNAPSHOT";
   @Nullable private VariantStub myFirstVariant;
@@ -86,26 +89,22 @@ public class AndroidProjectStub implements IdeAndroidProject {
   }
 
   @Nullable
-  @Override
   public GradleVersion getParsedModelVersion() {
     return null;
   }
 
-  @Override
   public void forEachVariant(@NotNull Consumer<IdeVariant> action) {
     for (IdeVariant next : myVariants.values()) {
       action.accept(next);
     }
   }
 
-  @Override
   public void addVariants(@NotNull Collection<Variant> variants, @NotNull IdeDependenciesFactory factory) {
     for (Variant variant : variants) {
       addVariant(variant.getName());
     }
   }
 
-  @Override
   public void addSyncIssues(@NotNull Collection<SyncIssue> syncIssues) {
     mySyncIssues.addAll(syncIssues);
   }
@@ -119,6 +118,12 @@ public class AndroidProjectStub implements IdeAndroidProject {
   @NotNull
   public String getName() {
     return myName;
+  }
+
+  @Nullable
+  @Override
+  public String getGroupId() {
+    return null;
   }
 
   @Override
@@ -362,8 +367,20 @@ public class AndroidProjectStub implements IdeAndroidProject {
 
   @NonNull
   @Override
+  public AndroidGradlePluginProjectFlags getFlags() {
+    return new AndroidGradlePluginProjectFlagsStub(ImmutableMap.of());
+  }
+
+  @NonNull
+  @Override
   public Collection<String> getDynamicFeatures() {
     return ImmutableList.of();
+  }
+
+  @NonNull
+  @Override
+  public ViewBindingOptions getViewBindingOptions() {
+    return myViewBindingOptions;
   }
 
   public AndroidProjectStub setPluginGeneration(int pluginGeneration) {

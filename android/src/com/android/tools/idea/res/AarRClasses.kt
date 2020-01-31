@@ -23,25 +23,28 @@ import com.android.ide.common.symbols.SymbolJavaType
 import com.android.ide.common.symbols.SymbolTable
 import com.android.ide.common.symbols.canonicalizeValueResourceName
 import com.android.resources.ResourceType
+import com.google.common.collect.ImmutableList
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiManager
-import com.intellij.psi.PsiType
 import org.jetbrains.android.augment.AndroidLightField.FieldModifier
 import org.jetbrains.android.augment.InnerRClassBase
 import org.jetbrains.android.augment.InnerRClassBase.buildResourceFields
 import java.io.File
 import java.io.IOException
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * Top-level R class for an AARv2 used in namespaced mode, backed by the AAR [ResourceRepository] that's assumed not to change.
  *
  * It only contains entries for resources included in the library itself, not any of its dependencies.
  */
-class NamespacedAarRClass(
+class SmallAarRClass(
   psiManager: PsiManager,
   library: Library,
   private val packageName: String,
@@ -57,7 +60,7 @@ class NamespacedAarRClass(
 
   override fun doGetInnerClasses(): Array<PsiClass> {
     return aarResources.getResourceTypes(resourceNamespace)
-      .mapNotNull { if (it.hasInnerClass) NamespacedAarInnerRClass(this, it, resourceNamespace, aarResources) else null }
+      .mapNotNull { if (it.hasInnerClass) SmallAarInnerRClass(this, it, resourceNamespace, aarResources) else null }
       .toTypedArray()
   }
 
@@ -65,9 +68,9 @@ class NamespacedAarRClass(
 }
 
 /**
- * Implementation of [InnerRClassBase] used by [NamespacedAarRClass].
+ * Implementation of [InnerRClassBase] used by [SmallAarRClass].
  */
-private class NamespacedAarInnerRClass(
+private class SmallAarInnerRClass(
   parent: PsiClass,
   resourceType: ResourceType,
   private val resourceNamespace: ResourceNamespace,
@@ -94,75 +97,100 @@ private class NamespacedAarInnerRClass(
  * It contains entries for resources present in the AAR as well as all its dependencies, which is how the build system generates the R class
  * from the symbol file at build time.
  */
-class NonNamespacedAarRClass(
+class TransitiveAarRClass(
   psiManager: PsiManager,
   library: Library,
   private val packageName: String,
-  symbolFile: File
+  private val symbolFile: File
 ) : AndroidRClassBase(psiManager, packageName) {
 
   init {
     setModuleInfo(library)
   }
 
+  private val parsingLock = ReentrantLock()
+
   override fun getQualifiedName(): String? = "$packageName.R"
 
-  /**
-   * [SymbolTable] read from the symbol file or an empty one if we failed to find or parse it.
-   */
-  private val symbolTable: SymbolTable = symbolFile.takeIf { it.exists() }?.let {
-    try {
-      SymbolIo.readFromAaptNoValues(it, packageName)
+  override fun getInnerClasses(): Array<PsiClass> {
+    return if (myClassCache.hasUpToDateValue()) {
+      myClassCache.value
     }
-    catch (e: IOException) {
-      LOG.warn("Failed to build R class from ${symbolFile.path}", e)
-      null
+    else {
+      // Make sure we don't start parsing symbolFile from multiple threads in parallel.
+      parsingLock.withLock {
+        myClassCache.value
+      }
     }
-  } ?: SymbolTable.builder().build()
+  }
 
   override fun doGetInnerClasses(): Array<out PsiClass> {
+    val symbolTable = symbolFile.takeIf { it.exists() }?.let {
+      try {
+        LOG.debug { "Parsing ${symbolFile.path}" }
+        SymbolIo.readFromAaptNoValues(it, packageName)
+      }
+      catch (e: IOException) {
+        LOG.warn("Failed to build R class from ${symbolFile.path}", e)
+        null
+      }
+    } ?: SymbolTable.builder().build()
+
     return symbolTable
              .resourceTypes
-             .map { NonNamespacedInnerRClass(this, it, symbolTable) }
+             .map { TransitiveAarInnerRClass(this, it, symbolTable) }
              .toTypedArray()
   }
 
   companion object {
-    private val LOG: Logger = Logger.getInstance(NonNamespacedAarRClass::class.java)
+    private val LOG: Logger = Logger.getInstance(TransitiveAarRClass::class.java)
   }
 
   override fun getInnerClassesDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)
 }
 
 /**
- * Implementation of [InnerRClassBase] used by [NonNamespacedAarRClass].
+ * Implementation of [InnerRClassBase] used by [TransitiveAarRClass].
+ *
+ * It eagerly computes names and types of fields and releases the [SymbolTable].
  */
-private class NonNamespacedInnerRClass(
+private class TransitiveAarInnerRClass(
   parent: PsiClass,
   resourceType: ResourceType,
-  private val symbolTable: SymbolTable
+  symbolTable: SymbolTable
 ) : InnerRClassBase(parent, resourceType) {
+
+  private val intFields: ImmutableList<String>
+  private val intArrayFields: ImmutableList<String>
+
+  init {
+    val intFieldsBuilder = ImmutableList.builder<String>()
+    val intArrayFieldsBuilder = ImmutableList.builder<String>()
+    for (symbol in symbolTable.getSymbolByResourceType(resourceType)) {
+      when (symbol.javaType) {
+        SymbolJavaType.INT -> intFieldsBuilder.add(symbol.canonicalName)
+        SymbolJavaType.INT_LIST -> {
+          intArrayFieldsBuilder .add( symbol.canonicalName)
+          (symbol as? Symbol.StyleableSymbol)?.children?.forEach {
+            intFieldsBuilder.add(symbol.canonicalName + "_" + canonicalizeValueResourceName(it))
+          }
+        }
+        else -> error("Unknown symbol type ${symbol.javaType}")
+      }
+    }
+
+    intFields = intFieldsBuilder.build()
+    intArrayFields = intArrayFieldsBuilder.build()
+  }
 
   override fun doGetFields(): Array<PsiField> {
     return buildResourceFields(
-      symbolTable.getSymbolByResourceType(resourceType).fold(HashMap<String, PsiType>()) { map, symbol ->
-          map[symbol.canonicalName] = symbol.javaType.toPsiType()
-          if (symbol is Symbol.StyleableSymbol) {
-            for (childName in symbol.children) {
-              map["${symbol.canonicalName}_${canonicalizeValueResourceName(childName)}"] = PsiType.INT
-            }
-          }
-          map
-        },
+      intFields,
+      intArrayFields,
       resourceType,
       this,
       FieldModifier.NON_FINAL
     )
-  }
-
-  private fun SymbolJavaType.toPsiType() = when (this) {
-    SymbolJavaType.INT -> PsiType.INT
-    SymbolJavaType.INT_LIST -> InnerRClassBase.INT_ARRAY
   }
 
   override fun getFieldsDependencies(): Array<Any> = arrayOf(ModificationTracker.NEVER_CHANGED)

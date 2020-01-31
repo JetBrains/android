@@ -11,14 +11,27 @@ iml_module(
     test_data = [
         "//tools/idea:platform-build-info",
     ],
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
+        "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
+        "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
+        "//tools/idea/java/manifest:intellij.java.manifest",
+        "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
+        "//tools/idea:intellij.java.ui.tests",
+        "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
+        "//tools/idea/java/plugin:intellij.java.plugin",
+        "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
+        "//tools/idea/java/ide-customization:intellij.java.ide.customization",
+        "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
@@ -41,7 +54,7 @@ iml_module(
         "//tools/idea/xml/dom-openapi:intellij.xml.dom[module, test]",
         "//tools/adt/idea/android/lib:spantable[test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
-        "//tools/adt/idea/property-editor:intellij.android.property-editor[module, test]",
+        "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module, test]",
         "//tools/adt/idea/designer:intellij.android.designer[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
@@ -58,10 +71,11 @@ iml_module(
         "//tools/base/layoutinspector:studio.android.sdktools.layoutinspector[module, test]",
         "//tools/adt/idea/naveditor:intellij.android.naveditor[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
+        "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
     ],
 )
 
-# Dependencies of UI tests not covered by //tools/adt/idea/android:test_deps, //prebuilts/tools/common/offline-m2, or out/studio/repo. This
+# Dependencies of UI tests not covered by //tools/adt/idea/android:test_deps or out/studio/repo. This
 # allows us to run UI tests on a release bundle without a source checkout.
 maven_repo(
     name = "uitest_deps",
@@ -75,10 +89,10 @@ maven_repo(
         "//prebuilts/tools/common/m2/repository/androidx/percentlayout/percentlayout/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/recyclerview/recyclerview/1.0.0:aar",
         "//prebuilts/tools/common/m2/repository/androidx/wear/wear/1.0.0:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/test/espresso/espresso-core/3.1.0-alpha3:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/test/espresso/espresso-idling-resource/3.1.0-alpha3:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/test/monitor/1.1.0-alpha3:aar",
-        "//prebuilts/tools/common/m2/repository/androidx/test/runner/1.1.0-alpha3:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/test/espresso/espresso-core/3.1.0:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/test/espresso/espresso-idling-resource/3.1.0:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/test/monitor/1.1.0:aar",
+        "//prebuilts/tools/common/m2/repository/androidx/test/runner/1.1.0:aar",
         "//prebuilts/tools/common/m2/repository/com/android/support/mediarouter-v7/27.1.1:aar",
         "//prebuilts/tools/common/m2/repository/com/google/android/material/material/1.0.0:aar",
     ],

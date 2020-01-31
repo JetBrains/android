@@ -16,10 +16,21 @@
 
 package com.android.tools.adtui.visualtests;
 
-import com.android.tools.adtui.*;
+import com.android.tools.adtui.AnimatedComponent;
+import com.android.tools.adtui.AnimatedTimeRange;
+import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.LegendComponent;
+import com.android.tools.adtui.LegendConfig;
+import com.android.tools.adtui.RangeSelectionComponent;
+import com.android.tools.adtui.RangeTimeScrollBar;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
-import com.android.tools.adtui.model.*;
+import com.android.tools.adtui.model.DefaultDataSeries;
+import com.android.tools.adtui.model.LineChartModel;
+import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangeSelectionModel;
+import com.android.tools.adtui.model.RangedContinuousSeries;
+import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ClampedAxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
@@ -31,10 +42,11 @@ import com.android.tools.adtui.model.updater.Updatable;
 import com.intellij.ui.Gray;
 import com.intellij.ui.components.JBLayeredPane;
 import com.intellij.ui.components.JBPanel;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.LayoutManager;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ItemEvent;
@@ -43,6 +55,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JLayeredPane;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 public class AxisLineChartVisualTest extends VisualTest {
 
@@ -63,7 +80,7 @@ public class AxisLineChartVisualTest extends VisualTest {
 
   private List<RangedContinuousSeries> mRangedData;
 
-  private List<LongDataSeries> mData;
+  private List<DefaultDataSeries<Long>> mData;
 
   private AxisComponent mMemoryAxis1;
 
@@ -71,7 +88,7 @@ public class AxisLineChartVisualTest extends VisualTest {
 
   private AxisComponent mTimeAxis;
 
-  private SelectionComponent mSelection;
+  private RangeSelectionComponent mSelection;
 
   private RangeTimeScrollBar mScrollbar;
 
@@ -130,7 +147,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mMemoryAxis1.setShowUnitAtMax(true);
     mMemoryAxis1.setMargins(AXIS_SIZE, AXIS_SIZE);
 
-    LongDataSeries series1 = new LongDataSeries();
+    DefaultDataSeries<Long> series1 = new DefaultDataSeries<>();
     RangedContinuousSeries ranged1 = new RangedContinuousSeries(SERIES1_LABEL, mTimeViewRangeUs, yRange1Animatable, series1);
     mRangedData.add(ranged1);
     mData.add(series1);
@@ -144,7 +161,7 @@ public class AxisLineChartVisualTest extends VisualTest {
     mMemoryAxis2.setShowUnitAtMax(true);
     mMemoryAxis2.setMargins(AXIS_SIZE, AXIS_SIZE);
 
-    LongDataSeries series2 = new LongDataSeries();
+    DefaultDataSeries<Long> series2 = new DefaultDataSeries<>();
     RangedContinuousSeries ranged2 = new RangedContinuousSeries(SERIES2_LABEL, mTimeViewRangeUs, yRange2Animatable, series2);
     mRangedData.add(ranged2);
     mData.add(series2);
@@ -158,8 +175,8 @@ public class AxisLineChartVisualTest extends VisualTest {
     mLegendComponent.configure(legend, new LegendConfig(LegendConfig.IconType.LINE, LineConfig.getColor(1)));
 
     final Range timeSelectionRangeUs = new Range();
-    SelectionModel selection = new SelectionModel(timeSelectionRangeUs);
-    mSelection = new SelectionComponent(selection, mTimeViewRangeUs);
+    RangeSelectionModel selection = new RangeSelectionModel(timeSelectionRangeUs);
+    mSelection = new RangeSelectionComponent(selection, mTimeViewRangeUs);
 
     // Note: the order below is important as some components depend on
     // others to be updated first. e.g. the ranges need to be updated before the axes.
@@ -198,7 +215,7 @@ public class AxisLineChartVisualTest extends VisualTest {
       try {
         while (true) {
           long nowUs = TimeUnit.NANOSECONDS.toMicros(System.nanoTime()) - mStartTimeUs;
-          for (LongDataSeries series : mData) {
+          for (DefaultDataSeries<Long> series : mData) {
             List<SeriesData<Long>> data = series.getAllData();
             long last = data.isEmpty() ? 0 : data.get(data.size() - 1).value;
             float delta = 10 * ((float)Math.random() - 0.45f);

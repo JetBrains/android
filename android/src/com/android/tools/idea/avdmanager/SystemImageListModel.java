@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.api.RemotePackage;
@@ -43,7 +43,6 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,8 +57,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.TextAttribute;
 import java.awt.font.TextLayout;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 
 /**
  * A table model for a {@link SystemImageList}
@@ -205,14 +204,14 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
         return releaseDisplayName(systemImage);
       }
     },
-    new SystemImageColumnInfo("API Level", JBUIScale.scale(100)) {
+    new SystemImageColumnInfo("API Level", JBUI.scale(100)) {
       @Nullable
       @Override
       public String valueOf(SystemImageDescription systemImage) {
         return systemImage.getVersion().getApiString();
       }
     },
-    new SystemImageColumnInfo("ABI", JBUIScale.scale(100)) {
+    new SystemImageColumnInfo("ABI", JBUI.scale(100)) {
       @Nullable
       @Override
       public String valueOf(SystemImageDescription systemImage) {
@@ -294,7 +293,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
           panel.setForeground(table.getForeground());
         }
         panel.setOpaque(true);
-        Font labelFont = StartupUiUtil.getLabelFont();
+        Font labelFont = UIUtil.getLabelFont();
         if (column == 0) {
           label.setFont(labelFont.deriveFont(Font.BOLD));
         }

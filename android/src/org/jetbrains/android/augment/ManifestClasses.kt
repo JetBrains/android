@@ -16,18 +16,26 @@
 package org.jetbrains.android.augment
 
 import com.android.SdkConstants
+import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.res.AndroidClassWithOnlyInnerClassesBase
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.util.text.StringUtil.getShortName
-import com.intellij.psi.*
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiField
+import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiModifier
+import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.util.containers.isNullOrEmpty
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils
+import org.jetbrains.android.dom.manifest.Manifest
+import org.jetbrains.android.dom.manifest.getCustomPermissionGroups
+import org.jetbrains.android.dom.manifest.getCustomPermissions
+import org.jetbrains.android.dom.manifest.getPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidResourceUtil.getFieldNameByResourceName
 
@@ -40,7 +48,7 @@ class ManifestClass(
   psiManager: PsiManager
 ) : AndroidClassWithOnlyInnerClassesBase(
   SdkConstants.FN_MANIFEST_BASE,
-  AndroidManifestUtils.getPackageName(facet),
+  getPackageName(facet),
   psiManager,
   listOf(PsiModifier.PUBLIC, PsiModifier.FINAL)
 ) {
@@ -49,16 +57,16 @@ class ManifestClass(
     setModuleInfo(facet.module, false)
   }
 
-  override fun getQualifiedName(): String? = AndroidManifestUtils.getPackageName(facet)?.let { it + "." + SdkConstants.FN_MANIFEST_BASE }
+  override fun getQualifiedName(): String? = getPackageName(facet)?.let { it + "." + SdkConstants.FN_MANIFEST_BASE }
 
   override fun doGetInnerClasses(): Array<PsiClass> {
     val classes = mutableListOf<PsiClass>()
 
-    if (!AndroidManifestUtils.getCustomPermissions(facet).isNullOrEmpty()) {
+    if (!getCustomPermissions(facet).isNullOrEmpty()) {
       classes += PermissionClass(facet, this)
     }
 
-    if (!AndroidManifestUtils.getCustomPermissionGroups(facet).isNullOrEmpty()) {
+    if (!getCustomPermissionGroups(facet).isNullOrEmpty()) {
       classes += PermissionGroupClass(facet, this)
     }
 
@@ -67,7 +75,7 @@ class ManifestClass(
 
   override fun getInnerClassesDependencies(): Array<Any> {
     // TODO(b/110188226): implement a ModificationTracker for the set of existing manifest files.
-    return arrayOf(PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT)
+    return arrayOf(AndroidPsiUtils.getXmlPsiModificationTracker(project))
   }
 }
 
@@ -89,25 +97,24 @@ sealed class ManifestInnerClass(
   private val factory = JavaPsiFacade.getElementFactory(project)
 
   private val myFieldsCache: CachedValue<Array<PsiField>> = CachedValuesManager.getManager(project).createCachedValue {
-    val manifest = myFacet.manifest
+    val manifest = Manifest.getMainManifest(myFacet)
     if (manifest == null) {
-      CachedValueProvider.Result.create(PsiField.EMPTY_ARRAY, PsiModificationTracker.MODIFICATION_COUNT)
+      CachedValueProvider.Result.create(PsiField.EMPTY_ARRAY, AndroidPsiUtils.getXmlPsiModificationTracker(project))
     }
     else {
-      val fields = doGetFields().map { (name, value) ->
-        AndroidLightField(
-          name,
-          this,
-          javaLangString,
-          AndroidLightField.FieldModifier.FINAL,
-          value
-        ).apply {
-          initializer = factory.createExpressionFromText("\"$value\"", this)
-        }
-      }
       CachedValueProvider.Result.create<Array<PsiField>>(
-        fields.toTypedArray(),
-        listOf(manifest.xmlElement?.containingFile ?: PsiModificationTracker.MODIFICATION_COUNT) + fields
+        doGetFields().map { (name, value) ->
+          AndroidLightField(
+            name,
+            this,
+            javaLangString,
+            AndroidLightField.FieldModifier.FINAL,
+            value
+          ).apply {
+            initializer = factory.createExpressionFromText("\"$value\"", this)
+          }
+        }.toTypedArray(),
+        listOf(manifest.xmlElement?.containingFile ?: AndroidPsiUtils.getXmlPsiModificationTracker(project))
       )
     }
   }
@@ -129,7 +136,7 @@ internal class PermissionClass(
   private val facet: AndroidFacet,
   parentClass: PsiClass
 ) : ManifestInnerClass(facet, "permission", parentClass) {
-  override fun getNamesFromManifest(): Collection<String> = AndroidManifestUtils.getCustomPermissions(facet) ?: emptySet()
+  override fun getNamesFromManifest(): Collection<String> = getCustomPermissions(facet) ?: emptySet()
 }
 
 
@@ -140,5 +147,5 @@ internal class PermissionGroupClass(
   private val facet: AndroidFacet,
   parentClass: PsiClass
 ) : ManifestInnerClass(facet, "permission_group", parentClass) {
-  override fun getNamesFromManifest(): Collection<String> = AndroidManifestUtils.getCustomPermissionGroups(facet) ?: emptySet()
+  override fun getNamesFromManifest(): Collection<String> = getCustomPermissionGroups(facet) ?: emptySet()
 }

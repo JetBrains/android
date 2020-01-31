@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.refactoring;
 
 import com.android.resources.ResourceFolderType;
@@ -129,8 +128,8 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
 
       chosenDirectory = testConfig.getResourceDirectory();
       styleName = testConfig.getStyleName();
-      final Set<String> attrsToExtract = new HashSet<>(Arrays.asList(testConfig.getAttributesToExtract()));
-      styledAttributes = new ArrayList<>();
+      final Set<String> attrsToExtract = new HashSet<String>(Arrays.asList(testConfig.getAttributesToExtract()));
+      styledAttributes = new ArrayList<XmlAttribute>();
 
       for (XmlAttribute attribute : extractableAttributes) {
         if (attrsToExtract.contains(attribute.getName())) {
@@ -146,7 +145,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
     new WriteCommandAction(project, "Extract Android Style '" + styleName + "'", file) {
       @Override
       protected void run(@NotNull final Result result) throws Throwable {
-        final List<XmlAttribute> attributesToDelete = new ArrayList<>();
+        final List<XmlAttribute> attributesToDelete = new ArrayList<XmlAttribute>();
 
         if (!AndroidResourceUtil
           .createValueResource(project, chosenDirectory, styleName, null, ResourceType.STYLE, fileName, dirNames,
@@ -224,7 +223,7 @@ public class AndroidExtractStyleAction extends AndroidBaseLayoutRefactoringActio
 
   @NotNull
   static List<XmlAttribute> getExtractableAttributes(@NotNull XmlTag viewTag) {
-    final List<XmlAttribute> extractableAttributes = new ArrayList<>();
+    final List<XmlAttribute> extractableAttributes = new ArrayList<XmlAttribute>();
 
     for (XmlAttribute attribute : viewTag.getAttributes()) {
       if (canBeExtracted(attribute)) {

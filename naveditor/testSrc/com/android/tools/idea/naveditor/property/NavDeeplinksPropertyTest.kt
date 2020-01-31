@@ -34,8 +34,8 @@ class NavDeeplinksPropertyTest : NavTestCase() {
           action("a1", destination = "f2")
         }
         fragment("f2") {
-          deeplink(uri1)
-          deeplink(uri2)
+          deeplink("deepLink1", uri1)
+          deeplink("deepLink2",uri2)
         }
         fragment("f3")
       }

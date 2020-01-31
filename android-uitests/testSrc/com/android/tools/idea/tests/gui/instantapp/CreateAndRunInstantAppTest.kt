@@ -18,20 +18,18 @@ package com.android.tools.idea.tests.gui.instantapp
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec
 import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.EditConfigurationsDialogFixture
+import com.android.tools.idea.tests.gui.framework.fixture.EnableInstantAppSupportDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.avdmanager.ChooseSystemImageStepFixture
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import com.sun.jna.Library
 import com.sun.jna.Native
 import org.fest.swing.edt.GuiTask
-import org.fest.swing.fixture.JCheckBoxFixture
 import org.fest.swing.util.PatternTextMatcher
 import org.junit.After
 import org.junit.Before
@@ -41,7 +39,6 @@ import org.junit.rules.RuleChain
 import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
-import javax.swing.JCheckBox
 
 @RunWith(GuiTestRemoteRunner::class)
 class CreateAndRunInstantAppTest {
@@ -118,7 +115,6 @@ class CreateAndRunInstantAppTest {
       .configureNewAndroidProjectStep
       .enterPackageName(projectApplicationId)
       .selectMinimumSdkApi("23")
-      .setIncludeInstantApp(true)
       .wizard()
       .clickFinish()
 
@@ -126,22 +122,19 @@ class CreateAndRunInstantAppTest {
     // TODO remove the following workaround wait for http://b/72666461
     ideFrame.waitForGradleProjectSyncToFinish()
 
+    ideFrame.projectView
+      .selectAndroidPane()
+      .clickPath("app")
+      .invokeMenuPath("Refactor", "Enable Instant Apps Support...")
+    EnableInstantAppSupportDialogFixture.find(ideFrame)
+      .clickOk()
+
     // The project is not deployed as an instant app by default anymore. Enable
     // deploying the project as an instant app:
     ideFrame.invokeMenuPath("Run", "Edit Configurations...")
-    val configDialog = EditConfigurationsDialogFixture.find(ideFrame.robot())
-    val instantAppCheckbox = GuiTests.waitUntilShowing(
-      ideFrame.robot(),
-      configDialog.target(),
-      Matchers.byText(JCheckBox::class.java, "Deploy as instant app")
-    )
-    val instantAppCheckBoxFixture = JCheckBoxFixture(
-      ideFrame.robot(),
-      instantAppCheckbox
-    )
-    instantAppCheckBoxFixture.select()
-    configDialog.clickOk()
-    configDialog.waitUntilNotShowing()
+    EditConfigurationsDialogFixture.find(ideFrame.robot())
+      .selectDeployAsInstantApp(true)
+      .clickOk()
 
     ideFrame.runApp(runConfigName, avdName)
 

@@ -17,10 +17,11 @@ package com.intellij.testGuiFramework.launcher
 
 import com.android.testutils.TestUtils
 import com.android.testutils.TestUtils.getWorkspaceRoot
-import com.android.tools.idea.tests.gui.framework.AspectsAgentLogger
 import com.android.tools.idea.tests.gui.framework.GuiTests
+import com.android.tools.idea.tests.gui.framework.aspects.AspectsAgentLogUtil
 import com.android.tools.tests.IdeaTestSuiteBase
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testGuiFramework.impl.GuiTestStarter
 import org.apache.log4j.Level
@@ -84,11 +85,19 @@ object GuiTestLauncher {
     vmOptionsFile?.let {
       processBuilder.environment()["STUDIO_VM_OPTIONS"] = it.canonicalPath
     }
-    val aspectsAgentLogPath = AspectsAgentLogger.getAspectsAgentLog()?.absolutePath
+    setAspectsAgentEnv(processBuilder)
+    process = processBuilder.start()
+  }
+
+  private fun setAspectsAgentEnv(processBuilder: ProcessBuilder) {
+    val aspectsAgentLogPath = AspectsAgentLogUtil.getAspectsAgentLog()?.absolutePath
     if (aspectsAgentLogPath != null) {
       processBuilder.environment()["ASPECTS_AGENT_LOG"] = aspectsAgentLogPath
     }
-    process = processBuilder.start()
+    val activeStackTracesLog = AspectsAgentLogUtil.getAspectsActiveStackTracesLog()?.absolutePath
+    if (activeStackTracesLog != null) {
+      processBuilder.environment()["ASPECTS_ACTIVE_BASELINE_STACKTRACES"] = activeStackTracesLog
+    }
   }
 
   /**
@@ -135,7 +144,7 @@ object GuiTestLauncher {
       "-Djava.net.preferIPv4Stack=true",
       "-Djna.nosys=true",
       "-Djna.boot.library.path=",
-      "-XX:MaxJavaStackTraceDepth=-1",
+      "-XX:MaxJavaStackTraceDepth=10000",
       "-XX:+HeapDumpOnOutOfMemoryError",
       "-XX:-OmitStackTraceInFastThrow",
       "-ea",
@@ -153,11 +162,13 @@ object GuiTestLauncher {
       "-Ddisable.android.analytics.consent.dialog.for.test=true",
       "-Ddisable.config.import=true",
       "-Didea.application.starter.command=${GuiTestStarter.COMMAND_NAME}",
-      "-Didea.gui.test.port=$port",
-      /* aspects agent options */
-      "-javaagent:${GuiTestOptions.getAspectsAgentJar()}=${GuiTestOptions.getAspectsAgentRules()};${GuiTestOptions.getAspectsAgentBaseline()}",
-      "-Daspects.baseline.export.path=${GuiTestOptions.getAspectsBaselineExportPath()}"
+      "-Didea.gui.test.port=$port"
     )
+    /* aspects agent options */
+    if (!SystemInfo.IS_AT_LEAST_JAVA9) {  // b/134524025
+      options += "-javaagent:${GuiTestOptions.getAspectsAgentJar()}=${GuiTestOptions.getAspectsAgentRules()};${GuiTestOptions.getAspectsAgentBaseline()}"
+      options += "-Daspects.baseline.export.path=${GuiTestOptions.getAspectsBaselineExportPath()}"
+    }
     /* options for BLeak */
     if (System.getProperty("enable.bleak") == "true") {
       options += "-Denable.bleak=true"
@@ -229,9 +240,10 @@ object GuiTestLauncher {
 
   private fun buildClasspathJar() {
     val files = getTestClasspath()
+    val prefix = if (SystemInfo.isWindows) "file:/" else "file:"
     val classpath = StringBuilder().apply {
       for (file in files) {
-        append("file:" + file.absolutePath.replace(" ", "%20") + if (file.isDirectory) "/ " else " ")
+        append(prefix + file.absolutePath.replace(" ", "%20").replace("\\", "/") + if (file.isDirectory) "/ " else " ")
       }
     }
 

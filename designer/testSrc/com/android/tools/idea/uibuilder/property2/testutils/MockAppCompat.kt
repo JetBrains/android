@@ -15,20 +15,17 @@
  */
 package com.android.tools.idea.uibuilder.property2.testutils
 
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
-import com.android.tools.idea.projectsystem.AndroidModuleSystem
-import com.android.tools.idea.projectsystem.AndroidProjectSystem
+import com.android.tools.idea.projectsystem.EP_NAME
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
-import com.android.tools.idea.projectsystem.LightResourceClassService
-import com.android.tools.idea.projectsystem.ProjectSystemService
+import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.google.common.collect.ImmutableList
+import com.intellij.openapi.extensions.Extensions
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.testFramework.registerExtension
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.facet.AndroidFacet
-import org.mockito.ArgumentMatcher
-import org.mockito.Mockito
-import org.mockito.Mockito.`when`
-import org.mockito.Mockito.mock
 
 const val APPCOMPAT_IMAGE_VIEW = "android.support.v7.widget.AppCompatImageView"
 const val APPCOMPAT_TEXT_VIEW = "android.support.v7.widget.AppCompatTextView"
@@ -162,20 +159,9 @@ object MockAppCompat {
         MOST_RECENT_API_LEVEL
     ))
     val appCompatCoordinate = GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate(gradleVersion.toString())
-    val projectSystemService = mock<ProjectSystemService>(ProjectSystemService::class.java)
-    val androidProjectSystem = mock<AndroidProjectSystem>(AndroidProjectSystem::class.java)
-    val androidModuleSystem = mock<AndroidModuleSystem>(AndroidModuleSystem::class.java)
-    val lightResourceClassService = mock<LightResourceClassService>(LightResourceClassService::class.java, Mockito.RETURNS_SMART_NULLS)
-    `when`<AndroidProjectSystem>(projectSystemService.projectSystem).thenReturn(androidProjectSystem)
-    `when`<AndroidModuleSystem>(androidProjectSystem.getModuleSystem(facet.module)).thenReturn(androidModuleSystem)
-    `when`<LightResourceClassService>(androidProjectSystem.getLightResourceClassService()).thenReturn(lightResourceClassService)
-    val matcher: ArgumentMatcher<GradleCoordinate> = ArgumentMatcher { it != null && it.isSameArtifact(appCompatCoordinate) }
-    // The "argThat_NonNull" is a required work around due to Mockito's argThat function explicitly returning null into
-    // a when() clause that does not accept null as an argument in kotlin.
-    fun <T> argThat_NonNull(matcher: ArgumentMatcher<T>): T = Mockito.argThat<T>(matcher) as T
-    `when`<GradleCoordinate>(androidModuleSystem.getResolvedDependency(argThat_NonNull(matcher))).thenReturn(appCompatCoordinate)
+    val projectSystem = TestProjectSystem(facet.module.project, ImmutableList.of(appCompatCoordinate))
+    facet.module.project.registerExtension(EP_NAME, projectSystem, fixture.testRootDisposable)
 
-    test.replaceProjectService(ProjectSystemService::class.java, projectSystemService)
     fixture.addFileToProject("src/android/support/v7/app/AppCompatImageView.java", APPCOMPAT_ACTIVITY)
     fixture.addFileToProject("src/android/support/v7/widget/AppCompatImageView.java", APPCOMPAT_IMAGE_VIEW_SOURCE)
     fixture.addFileToProject("src/android/support/v7/widget/AppCompatTextView.java", APPCOMPAT_TEXT_VIEW_SOURCE)

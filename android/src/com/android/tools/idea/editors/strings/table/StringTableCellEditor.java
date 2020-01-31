@@ -15,16 +15,18 @@
  */
 package com.android.tools.idea.editors.strings.table;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.resources.ValueXmlHelper;
-import com.android.tools.adtui.font.FontUtil;
+import com.android.tools.idea.editors.strings.StringResourceEditor;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.awt.Component;
+import javax.swing.DefaultCellEditor;
+import javax.swing.JComponent;
+import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.border.LineBorder;
 import javax.swing.text.JTextComponent;
-import java.awt.*;
+import org.jetbrains.annotations.NotNull;
 
 public final class StringTableCellEditor extends DefaultCellEditor {
   StringTableCellEditor() {
@@ -52,7 +54,7 @@ public final class StringTableCellEditor extends DefaultCellEditor {
     JComponent component = (JComponent)super.getTableCellEditorComponent(table, value, selected, row, column);
 
     component.setBorder(new LineBorder(JBColor.BLACK));
-    component.setFont(FontUtil.getFontAbleToDisplay((String)value, component.getFont()));
+    component.setFont(StringResourceEditor.getFont((String)value, component.getFont()));
 
     return component;
   }

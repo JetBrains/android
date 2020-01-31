@@ -105,7 +105,7 @@ public class ResolvedDependenciesPanel extends ToolWindowPanel implements Depend
 
     module.add(event -> myTreeBuilder.reset(), this);
 
-    JScrollPane scrollPane = setUp(myTreeBuilder);
+    JScrollPane scrollPane = setUp(myTreeBuilder, "resolvedDependencies");
     add(scrollPane, BorderLayout.CENTER);
 
     TreeSelectionListener treeSelectionListener = e -> {

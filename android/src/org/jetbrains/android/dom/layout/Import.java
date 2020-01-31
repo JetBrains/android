@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.dom.layout;
 
-import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.converters.DataBindingConverter;

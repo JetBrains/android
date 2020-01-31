@@ -17,9 +17,12 @@
   <extensions defaultExtensionNs="com.intellij">
     <facet.toolWindow id="Layout Inspector"
                       facetIdList="android"
-                      anchor="right"
+                      anchor="bottom"
                       secondary="true"
-                      icon="StudioIcons.Shell.Menu.LAYOUT_INSPECTOR"
+                      icon="StudioIcons.Shell.ToolWindows.CAPTURES"
                       factoryClass="com.android.tools.idea.layoutinspector.LayoutInspectorToolWindowFactory"/>
+  </extensions>
+  <extensions defaultExtensionNs="com.android.run">
+    <androidLaunchTaskContributor implementation="com.android.tools.idea.layoutinspector.LayoutInspectorAndroidLaunchTaskContributor"/>
   </extensions>
 </idea-plugin>

@@ -21,6 +21,7 @@ import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toPaddedSho
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toShortStringAsCount
 import com.android.tools.idea.diagnostics.hprof.util.HeapReportUtils.toShortStringAsSize
 import com.android.tools.idea.diagnostics.hprof.util.TruncatingPrintBuffer
+import gnu.trove.TIntArrayList
 import gnu.trove.TLongArrayList
 import gnu.trove.TLongHashSet
 import gnu.trove.TObjectIntHashMap
@@ -54,13 +55,57 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     )
   }
 
-  fun prepareDisposerTreeSection(): String {
+  fun prepareDisposerChildren() {
+    val result = analysisContext.disposerParentToChildren
+    result.clear()
+
     if (!analysisContext.classStore.containsClass("com.intellij.openapi.util.Disposer")) {
-      return ""
+      return
     }
     val nav = analysisContext.navigator
 
-    val result = StringBuilder()
+    nav.goToStaticField("com.intellij.openapi.util.Disposer", "ourTree")
+
+    analysisContext.diposerTreeObjectId = nav.id.toInt()
+
+    assert(!nav.isNull())
+    nav.goToInstanceField("com.intellij.openapi.util.objectTree.ObjectTree", "myObject2NodeMap")
+    nav.goToInstanceField("gnu.trove.THashMap", "_values")
+    nav.getReferencesCopy().forEach {
+      if (it == 0L) return@forEach true
+
+      nav.goTo(it)
+      val objectNodeParentId = nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myParent")
+      val childId = nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myObject")
+      nav.goTo(objectNodeParentId)
+
+      val parentId =
+        if (nav.isNull())
+          0L
+        else
+          nav.getInstanceFieldObjectId("com.intellij.openapi.util.objectTree.ObjectNode", "myObject")
+
+      val childrenList = if (result.containsKey(parentId.toInt())) {
+        result.get(parentId.toInt())
+      } else {
+        val list = TIntArrayList()
+        result.put(parentId.toInt(), list)
+        list
+      }
+      childrenList.add(childId.toInt())
+      true
+    }
+    result.forEachValue { list ->
+      list.trimToSize()
+      true
+    }
+  }
+
+  fun prepareDisposerTreeSection(): String = buildString {
+    if (!analysisContext.classStore.containsClass("com.intellij.openapi.util.Disposer")) {
+      return@buildString
+    }
+    val nav = analysisContext.navigator
 
     nav.goToStaticField("com.intellij.openapi.util.Disposer", "ourTree")
     assert(!nav.isNull())
@@ -132,7 +177,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
       true
     }
 
-    TruncatingPrintBuffer(400, 0, result::appendln).use { buffer ->
+    TruncatingPrintBuffer(400, 0, this::appendln).use { buffer ->
       groupingToObjectStats
         .entries
         .sortedByDescending { it.value.objectCount() }
@@ -149,13 +194,11 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     }
 
     if (tooDeepObjectClasses.size > 0) {
-      result.appendln("Skipped analysis of objects too deep in disposer tree:")
+      appendln("Skipped analysis of objects too deep in disposer tree:")
       tooDeepObjectClasses.forEach {
-        result.appendln(" * ${nav.classStore.getShortPrettyNameForClass(it)}")
+        appendln(" * ${nav.classStore.getShortPrettyNameForClass(it)}")
       }
     }
-
-    return result.toString()
   }
 
   private fun printDisposerTreeReportLine(buffer: TruncatingPrintBuffer,
@@ -228,9 +271,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     }
   }
 
-  fun prepareDisposedObjectsSection(): String {
-    val result = StringBuilder()
-
+  fun prepareDisposedObjectsSection(): String = buildString {
     val leakedInstancesByClass = HashMap<ClassDefinition, TLongArrayList>()
     val countByClass = TObjectIntHashMap<ClassDefinition>()
     var totalCount = 0
@@ -264,7 +305,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
 
     if (disposerOptions.includeDisposedObjectsSummary) {
       // Print counts of disposed-but-strong-referenced objects
-      TruncatingPrintBuffer(100, 0, result::appendln).use { buffer ->
+      TruncatingPrintBuffer(100, 0, this::appendln).use { buffer ->
         buffer.println("Count of disposed-but-strong-referenced objects: $totalCount")
         entries
           .sortedByDescending { it.value }
@@ -274,7 +315,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
             buffer.println("  ${entry.value} ${entry.key.prettyName}")
           }
       }
-      result.appendln()
+      appendln()
     }
 
     val disposedTree = GCRootPathsTree(analysisContext, AnalysisConfig.TreeDisplayOptions.all(), null)
@@ -300,7 +341,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
     }
 
     if (disposerOptions.includeDisposedObjectsSummary) {
-      TruncatingPrintBuffer(30, 0, result::appendln).use { buffer ->
+      TruncatingPrintBuffer(30, 0, this::appendln).use { buffer ->
         buffer.println("Disposed-but-strong-referenced dominator object count: $allDominatorsCount")
         buffer.println(
           "Disposed-but-strong-referenced dominator sub-graph size: ${toShortStringAsSize(allDominatorsSubgraphSize)}")
@@ -311,7 +352,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
               "  ${toPaddedShortStringAsSize(entry.size)} - ${toShortStringAsCount(entry.count)} ${entry.classDefinition.name}")
           }
       }
-      result.appendln()
+      appendln()
     }
 
     if (disposerOptions.includeDisposedObjectsDetails) {
@@ -320,7 +361,7 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
         disposedDominatorClassSizeList
       )
 
-      TruncatingPrintBuffer(700, 0, result::appendln).use { buffer ->
+      TruncatingPrintBuffer(700, 0, this::appendln).use { buffer ->
         instancesListInOrder
           .forEach { instances ->
             nav.goTo(instances[0])
@@ -335,7 +376,6 @@ class AnalyzeDisposer(private val analysisContext: AnalysisContext) {
           }
       }
     }
-    return result.toString()
   }
 
   private fun getInstancesListInPriorityOrder(

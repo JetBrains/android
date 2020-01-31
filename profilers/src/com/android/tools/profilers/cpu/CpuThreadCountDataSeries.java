@@ -45,14 +45,16 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
   }
 
   @Override
-  public List<SeriesData<Long>> getDataForXRange(Range xRangeUs) {
-    long minNs = TimeUnit.MICROSECONDS.toNanos((long)xRangeUs.getMin());
+  public List<SeriesData<Long>> getDataForRange(Range rangeUs) {
+    long minNs = TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMin());
+    long maxNs = TimeUnit.MICROSECONDS.toNanos((long)rangeUs.getMax());
 
     GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
       .setStreamId(myStreamId)
       .setPid(myPid)
       .setKind(Common.Event.Kind.CPU_THREAD)
-      // TODO(b/122110659): set from_timestamp and to_timestamp when GetEventGroups works as intended.
+      .setFromTimestamp(minNs)
+      .setToTimestamp(maxNs)
       .build();
     GetEventGroupsResponse response = myClient.getEventGroups(request);
 
@@ -83,14 +85,14 @@ public class CpuThreadCountDataSeries implements DataSeries<Long> {
     // to both range's min and max. Otherwise we wouldn't add any information to the data series
     // within timeCurrentRangeUs and nothing would be added to the chart.
     if (timestampToCountMap.isEmpty()) {
-      data.add(new SeriesData<>((long)xRangeUs.getMin(), total));
-      data.add(new SeriesData<>((long)xRangeUs.getMax(), total));
+      data.add(new SeriesData<>((long)rangeUs.getMin(), total));
+      data.add(new SeriesData<>((long)rangeUs.getMax(), total));
     }
     // If the last timestamp added to the data series is less than timeCurrentRangeUs.getMax(),
     // we need to replicate the last value in timeCurrentRangeUs.getMax(), so the chart renders this value
     // until the end of the selected range.
-    else if (data.get(data.size() - 1).x < xRangeUs.getMax()) {
-      data.add(new SeriesData<>((long)xRangeUs.getMax(), total));
+    else if (data.get(data.size() - 1).x < rangeUs.getMax()) {
+      data.add(new SeriesData<>((long)rangeUs.getMax(), total));
     }
 
     return data;

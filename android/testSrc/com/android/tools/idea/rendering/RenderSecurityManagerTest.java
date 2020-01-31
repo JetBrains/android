@@ -183,6 +183,7 @@ public class RenderSecurityManagerTest {
     }
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Test
   public void testInvalidRead() throws Exception {
     RenderSecurityManager manager = new RenderSecurityManager(null, null);
@@ -240,6 +241,7 @@ public class RenderSecurityManagerTest {
     }
   }
 
+  @SuppressWarnings("CheckReturnValue")
   @Test
   public void testReadOk() throws Exception {
     RenderSecurityManager manager = new RenderSecurityManager(null, null);

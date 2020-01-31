@@ -417,14 +417,6 @@ public final class ModuleClassLoader extends RenderClassLoader {
     }
 
     List<URL> result = new ArrayList<>();
-
-    if (StudioFlags.THEME_EDITOR_ENABLED.get()) {
-      URL customWidgetsUrl = ThemeEditorUtils.getCustomWidgetsJarUrl();
-      if (customWidgetsUrl != null) {
-        result.add(customWidgetsUrl);
-      }
-    }
-
     getExternalLibraryJars(module)
         .filter(file -> EXT_JAR.equals(Files.getFileExtension(file.getName())) && file.exists())
         .forEach(jarFile -> addFileUrl(jarFile, result));

@@ -21,7 +21,7 @@ import static com.android.SdkConstants.PREFIX_THEME_REF;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.utils.HashCodes;
 import com.intellij.lang.java.lexer.JavaLexer;
 import com.intellij.pom.java.LanguageLevel;

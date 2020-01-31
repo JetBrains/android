@@ -133,7 +133,7 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
           }
         }.execute();
       }
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PSD_DEPENDENCY_REMOVED);
+      GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_PSD_DEPENDENCY_REMOVED);
     }
   }
 
@@ -165,6 +165,6 @@ public class GradleOperations implements DeveloperServiceBuildSystemOperations {
   @Nullable
   public String getHighestVersion(@NotNull String groupId, @NotNull String artifactId) {
     GradleCoordinate gradleCoordinate = new GradleCoordinate(groupId, artifactId, GradleCoordinate.PLUS_REV);
-    return RepositoryUrlManager.get().resolveDynamicCoordinateVersion(gradleCoordinate, null);
+    return RepositoryUrlManager.get().resolveDynamicCoordinateVersion(gradleCoordinate, null, null);
   }
 }

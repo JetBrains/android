@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.structure.model
 
 data class PsLibraryKey(val group: String, val name: String) : Comparable<PsLibraryKey> {
   override fun compareTo(other: PsLibraryKey): Int = compareValuesBy(this, other, { it.group }, { it.name })
+  override fun toString(): String = "$group:$name"
 }
 
 fun PsArtifactDependencySpec.toLibraryKey(): PsLibraryKey = PsLibraryKey(group.orEmpty(), name)

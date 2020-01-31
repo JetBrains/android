@@ -41,7 +41,7 @@ public class AndroidLibsDepTest {
 
   @Before
   public void setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(false);
+    StudioFlags.NEW_PSD_ENABLED.override(true);
   }
 
   @After
@@ -78,7 +78,7 @@ public class AndroidLibsDepTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void transitiveDependenciesWithMultiAndroidLibraries() {
-    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK);
+    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK, DependenciesTestUtil.LANGUAGE_JAVA);
 
     DependenciesTestUtil.createAndroidLibrary(ideFrame, LIB_NAME_1);
     DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, LIB_NAME_1, "app", "IMPLEMENTATION");
@@ -94,9 +94,9 @@ public class AndroidLibsDepTest {
   private void createAndroidLibrary(@NotNull IdeFrameFixture ideFrame,
                                     @NotNull String moduleName) {
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType(DependenciesTestUtil.ANDROID_LIBRARY)
-      .clickNextToStep(DependenciesTestUtil.ANDROID_LIBRARY)
-      .setModuleName(moduleName)
+      .clickNextToAndroidLibrary()
+      .enterModuleName(moduleName)
+      .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
   }

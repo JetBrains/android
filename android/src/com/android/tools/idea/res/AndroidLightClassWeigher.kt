@@ -31,7 +31,7 @@ import org.jetbrains.android.augment.ManifestClass
 class AndroidLightClassWeigher : ProximityWeigher() {
   override fun weigh(element: PsiElement, location: ProximityLocation): Comparable<*> {
     return when (element) {
-      is ResourceRepositoryRClass -> element.module == location.positionModule
+      is ModuleRClass -> element.facet.module == location.positionModule
       is ManifestClass -> element.facet.module == location.positionModule
       else -> false
     }

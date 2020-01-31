@@ -24,17 +24,17 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.variant.view.BuildVariantView;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.ServiceContainerUtil;
-import org.jetbrains.android.AndroidTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link SyncProjectAction}.
  */
-public class SyncProjectActionTest extends AndroidTestCase {
+public class SyncProjectActionTest extends PlatformTestCase {
   @Mock private GradleSyncInvoker mySyncInvoker;
   @Mock GradleSyncState mySyncState;
   @Mock private AnActionEvent myEvent;
@@ -56,18 +56,18 @@ public class SyncProjectActionTest extends AndroidTestCase {
   public void testDoPerform() {
     Project project = getProject();
     BuildVariantView buildVariantView = mock(BuildVariantView.class);
-    ServiceContainerUtil.replaceService(project, BuildVariantView.class, buildVariantView, getTestRootDisposable());
+    new IdeComponents(project, getTestRootDisposable()).replaceProjectService(BuildVariantView.class, buildVariantView);
 
     myAction.doPerform(myEvent, project);
 
     assertTrue(myPresentation.isEnabled());
-    verify(mySyncInvoker).requestProjectSyncAndSourceGeneration(project, TRIGGER_USER_SYNC_ACTION);
+    verify(mySyncInvoker).requestProjectSync(project, TRIGGER_USER_SYNC_ACTION);
     verify(buildVariantView).projectImportStarted();
   }
 
   public void testDoUpdateWithSyncInProgress() {
     Project project = getProject();
-    ServiceContainerUtil.replaceService(project, GradleSyncState.class, mySyncState, getTestRootDisposable());
+    new IdeComponents(project, getTestRootDisposable()).replaceProjectService(GradleSyncState.class, mySyncState);
     when(mySyncState.isSyncInProgress()).thenReturn(true);
 
     myAction.doUpdate(myEvent, project);
@@ -77,7 +77,7 @@ public class SyncProjectActionTest extends AndroidTestCase {
 
   public void testDoUpdateWithSyncNotInProgress() {
     Project project = getProject();
-    ServiceContainerUtil.replaceService(project, GradleSyncState.class, mySyncState, getTestRootDisposable());
+    new IdeComponents(project, getTestRootDisposable()).replaceProjectService(GradleSyncState.class, mySyncState);
     when(mySyncState.isSyncInProgress()).thenReturn(false);
 
     myAction.doUpdate(myEvent, project);

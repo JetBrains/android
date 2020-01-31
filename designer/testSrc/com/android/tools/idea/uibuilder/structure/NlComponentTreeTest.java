@@ -45,8 +45,6 @@ import static org.mockito.MockitoAnnotations.initMocks;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
@@ -64,6 +62,7 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.psi.xml.XmlTag;
+import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Rectangle;
 import java.awt.dnd.DropTargetDropEvent;
@@ -109,20 +108,16 @@ public class NlComponentTreeTest extends LayoutTestCase {
 
       }
     };
-    mySurface = new NlDesignSurface(getProject(), false, myDisposable) {
-      @NotNull
-      @Override
-      public CompletableFuture<Void> requestRender() {
-        // We do not need layoutlib renders for these tests
-        return CompletableFuture.completedFuture(null);
-      }
-
-      @NotNull
-      @Override
-      protected SceneManager createSceneManager(@NotNull NlModel model) {
-        return new SyncLayoutlibSceneManager((SyncNlModel) model);
-      }
-    };
+    mySurface = NlDesignSurface.builder(getProject(), myDisposable)
+      .setSceneManagerProvider((surface, model) -> new SyncLayoutlibSceneManager((SyncNlModel) model) {
+        @NotNull
+        @Override
+        public CompletableFuture<Void> requestRender() {
+          // This test does not need Layoutlib renders
+          return CompletableFuture.completedFuture(null);
+        }
+      })
+      .build();
     mySurface.setModel(myModel);
     myTree = new NlComponentTree(getProject(), mySurface);
     registerApplicationComponent(BrowserLauncher.class, myBrowserLauncher);
@@ -363,7 +358,6 @@ public class NlComponentTreeTest extends LayoutTestCase {
                                    "        <Button>  [selected]\n");
   }
 
-
   public void testDropOnChain() {
     myModel = createModelWithConstraintLayout();
     mySurface.setModel(myModel);
@@ -582,13 +576,15 @@ public class NlComponentTreeTest extends LayoutTestCase {
     return model;
   }
 
-  public void testNonNlComponentDrop() {
+  public void testNonNlComponentDrop() throws Exception {
     assertNull(myTree.getSelectionPaths());
     myModel = createModelWithBarriers();
     mySurface.setModel(myModel);
 
     // Check initial state
     myTree.expandRow(3);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
+
     TreePath pathForRow4 = myTree.getPathForRow(4);
     TreePath pathForRow5 = myTree.getPathForRow(5);
     assertThat(pathForRow4.getLastPathComponent()).isEqualTo("button2");
@@ -629,17 +625,20 @@ public class NlComponentTreeTest extends LayoutTestCase {
     assertThat(pathForRow5.getLastPathComponent()).isEqualTo("button2");
   }
 
-  public void testDeleteBarrier() {
+  public void testDeleteBarrier() throws Exception {
     assertNull(myTree.getSelectionPaths());
     myModel = createModelWithBarriers();
     mySurface.setModel(myModel);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
     // Check initial state
     myTree.expandRow(3);
     TreePath pathForRow4 = myTree.getPathForRow(4);
     myTree.setSelectionPath(pathForRow4);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
     ((DeleteProvider)myTree.getData(PlatformDataKeys.DELETE_ELEMENT_PROVIDER.getName())).deleteElement(DataContext.EMPTY_CONTEXT);
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
     String constraintReferences = myModel.find("barrier").getAttribute(AUTO_URI, CONSTRAINT_REFERENCED_IDS);
     assertThat(constraintReferences).isEqualTo("button3");
   }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.run.LaunchCompatibilityChecker;
 import com.android.tools.idea.run.LaunchCompatibilityCheckerImpl;
 import com.google.common.annotations.VisibleForTesting;
@@ -27,30 +28,35 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.serviceContainer.NonInjectable;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AsyncDevicesGetter {
   @NotNull
   private final Project myProject;
 
   @NotNull
-  private final KeyToConnectionTimeMap myMap;
+  private final BooleanSupplier mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
   @NotNull
   private final Worker<Collection<VirtualDevice>> myVirtualDevicesWorker;
 
   @NotNull
   private final Worker<Collection<ConnectedDevice>> myConnectedDevicesWorker;
+
+  @NotNull
+  private final KeyToConnectionTimeMap myMap;
 
   @NotNull
   private final DeviceNamePropertiesFetcher myDevicePropertiesFetcher;
@@ -60,17 +66,21 @@ public class AsyncDevicesGetter {
 
   @SuppressWarnings("unused")
   private AsyncDevicesGetter(@NotNull Project project) {
-    this(project, new KeyToConnectionTimeMap());
+    this(project, () -> StudioFlags.SELECT_DEVICE_SNAPSHOT_COMBO_BOX_SNAPSHOTS_ENABLED.get(), new KeyToConnectionTimeMap());
   }
 
   @VisibleForTesting
   @NonInjectable
-  AsyncDevicesGetter(@NotNull Project project, @NotNull KeyToConnectionTimeMap map) {
+  AsyncDevicesGetter(@NotNull Project project,
+                     @NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabled,
+                     @NotNull KeyToConnectionTimeMap map) {
     myProject = project;
-    myMap = map;
+    mySelectDeviceSnapshotComboBoxSnapshotsEnabled = selectDeviceSnapshotComboBoxSnapshotsEnabled;
 
-    myVirtualDevicesWorker = new Worker<>(() -> new VirtualDevicesWorkerDelegate(myChecker));
-    myConnectedDevicesWorker = new Worker<>(() -> new ConnectedDevicesWorkerDelegate(project, myChecker));
+    myVirtualDevicesWorker = new Worker<>(Collections.emptyList());
+    myConnectedDevicesWorker = new Worker<>(Collections.emptyList());
+
+    myMap = map;
     myDevicePropertiesFetcher = new DeviceNamePropertiesFetcher(new DefaultCallback<>(), project);
   }
 
@@ -85,7 +95,16 @@ public class AsyncDevicesGetter {
     }
 
     initChecker(RunManager.getInstance(myProject).getSelectedConfiguration(), AndroidFacet::getInstance);
-    return getImpl(myVirtualDevicesWorker.get(), myConnectedDevicesWorker.get());
+
+    if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled.getAsBoolean()) {
+      Callable<Collection<VirtualDevice>> virtualDevicesTask = new VirtualDevicesTask(false, myChecker);
+      Callable<Collection<ConnectedDevice>> connectedDevicesTask = new ConnectedDevicesTask(myProject, myChecker);
+
+      return getImpl(myVirtualDevicesWorker.get(virtualDevicesTask), myConnectedDevicesWorker.get(connectedDevicesTask));
+    }
+
+    // TODO Reconcile the virtual devices with the connected ones. Retain the connected device keys in the map.
+    return new ArrayList<>(myVirtualDevicesWorker.get(new VirtualDevicesTask(true, myChecker)));
   }
 
   /**
@@ -109,7 +128,7 @@ public class AsyncDevicesGetter {
 
     List<Device> devices = deviceStream.collect(Collectors.toList());
 
-    Collection<String> keys = devices.stream()
+    Collection<Key> keys = devices.stream()
       .filter(Device::isConnected)
       .map(Device::getKey)
       .collect(Collectors.toList());
@@ -121,7 +140,7 @@ public class AsyncDevicesGetter {
   @NotNull
   private Stream<VirtualDevice> connectedVirtualDeviceStream(@NotNull Collection<ConnectedDevice> connectedDevices,
                                                              @NotNull Collection<VirtualDevice> virtualDevices) {
-    Map<String, VirtualDevice> keyToVirtualDeviceMap = virtualDevices.stream().collect(Collectors.toMap(Device::getKey, device -> device));
+    Map<Key, VirtualDevice> keyToVirtualDeviceMap = virtualDevices.stream().collect(Collectors.toMap(Device::getKey, device -> device));
 
     return connectedDevices.stream()
       .filter(device -> keyToVirtualDeviceMap.containsKey(device.getVirtualDeviceKey()))
@@ -138,7 +157,7 @@ public class AsyncDevicesGetter {
   @NotNull
   private static Stream<VirtualDevice> disconnectedVirtualDeviceStream(@NotNull Collection<VirtualDevice> virtualDevices,
                                                                        @NotNull Collection<ConnectedDevice> connectedDevices) {
-    Collection<String> connectedVirtualDeviceKeys = connectedDevices.stream()
+    Collection<Key> connectedVirtualDeviceKeys = connectedDevices.stream()
       .map(ConnectedDevice::getVirtualDeviceKey)
       .collect(Collectors.toSet());
 

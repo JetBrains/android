@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.property2.action;
 
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.property.panel.api.FilteredPTableModel;
 import com.android.tools.idea.uibuilder.handlers.motion.attributeEditor.NewCustomAttributePanel;
 import com.android.tools.idea.uibuilder.handlers.motion.property2.MotionLayoutAttributesModel;
@@ -35,7 +36,7 @@ public class AddCustomFieldAction extends AnAction {
   private final MotionLayoutAttributesModel myModel;
 
   public AddCustomFieldAction(@NotNull FilteredPTableModel<NelePropertyItem> tableModel, @NotNull NelePropertyItem property) {
-    super(null, "Add Custom Property", AllIcons.General.Add);
+    super(null, "Add Custom Attribute", AllIcons.General.Add);
     myTableModel = tableModel;
     myProperty = property;
     myModel = (MotionLayoutAttributesModel)myProperty.getModel();
@@ -54,16 +55,20 @@ public class AddCustomFieldAction extends AnAction {
     if (StringUtil.isEmpty(attributeName)) {
       return;
     }
-    XmlTag tag = MotionLayoutAttributesModel.getTag(myProperty);
+    MotionSceneTag motionTag = MotionLayoutAttributesModel.getMotionTag(myProperty);
+    if (motionTag == null) {
+      return;
+    }
+    XmlTag tag = motionTag.getXmlTag();
     if (tag == null) {
       return;
     }
-    Consumer<XmlTag> applyToModel = newCustomTag -> {
+    Consumer<MotionSceneTag> applyToModel = newCustomTag -> {
       NelePropertyItem newProperty = MotionLayoutPropertyProvider.createCustomProperty(
         attributeName, type.getTagName(), newCustomTag, myProperty.getModel(), myProperty.getComponents());
       myTableModel.addNewItem(newProperty);
     };
 
-    myModel.createCustomXmlTag(tag, attributeName, value, type, applyToModel);
+    myModel.createCustomXmlTag(motionTag, attributeName, value, type, applyToModel);
   }
 }

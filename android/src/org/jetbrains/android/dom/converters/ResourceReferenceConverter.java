@@ -36,12 +36,13 @@ import com.android.resources.FolderTypeRelationship;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceVisibility;
-import com.android.tools.idea.databinding.DataBindingUtil;
+import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceNamespaceContext;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.codeInsight.completion.CodeCompletionHandlerBase;
 import com.intellij.codeInsight.completion.CompletionType;
@@ -324,6 +325,24 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     }
   }
 
+  @Override
+  public boolean isReferenceTo(@NotNull PsiElement element,
+                               String stringValue,
+                               @Nullable ResourceValue resolveResult,
+                               ConvertContext context) {
+    if (StudioFlags.RESOLVE_USING_REPOS.get() && element instanceof ResourceReferencePsiElement) {
+      ResourceReference reference = ((ResourceReferencePsiElement)element).getResourceReference();
+      XmlElement xmlElement = context.getXmlElement();
+      if (xmlElement != null && resolveResult != null) {
+        ResourceNamespace resolvedNamespace = ResourceHelper.resolveResourceNamespace(xmlElement, resolveResult.getPackage());
+        return reference.getNamespace().equals(resolvedNamespace) &&
+               reference.getResourceType().equals(resolveResult.getType()) &&
+               reference.getName().equals(resolveResult.getResourceName());
+      }
+    }
+    return super.isReferenceTo(element, stringValue, resolveResult, context);
+  }
+
   @NotNull
   public static Set<ResourceType> getResourceTypesInCurrentModule(@NotNull AndroidFacet facet) {
     ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(facet);
@@ -394,7 +413,7 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
       ResourceVisibilityLookup visibilityLookup = repoManager.getResourceVisibility();
 
       if (onlyNamespace == ResourceNamespace.ANDROID || (onlyNamespace == null && !StudioFlags.COLLAPSE_ANDROID_NAMESPACE.get())) {
-        ResourceRepository frameworkResources = repoManager.getFrameworkResources(false);
+        ResourceRepository frameworkResources = repoManager.getFrameworkResources(ImmutableSet.of());
         if (frameworkResources != null) {
           addResourceReferenceValuesFromRepo(frameworkResources, repoManager, visibilityLookup, element, prefix, type,
                                              ResourceNamespace.ANDROID, result, explicitResourceType);
@@ -480,52 +499,17 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
     return super.getErrorMessage(s, context);
   }
 
-  /**
-   * Data class that contains all required information to show on-completion documentation.
-   */
-  public static class DocumentationHolder {
-    /**
-     * Value being completed
-     */
-    private final @NotNull String myValue;
-
-    /**
-     * Documentation associated with that value
-     */
-    private final @NotNull String myDocumentation;
-
-    public DocumentationHolder(@NotNull String value, @NotNull String documentation) {
-      myValue = value;
-      myDocumentation = documentation;
-    }
-
-    public @NotNull String getValue() {
-      return myValue;
-    }
-
-    public @NotNull String getDocumentation() {
-      return myDocumentation;
-    }
-  }
-
   @Nullable
   @Override
   public LookupElement createLookupElement(ResourceValue resourceValue) {
     String value = resourceValue.toString();
 
     boolean deprecated = false;
-    String doc = null;
     if (myAttributeDefinition != null) {
-      doc = myAttributeDefinition.getValueDescription(value);
       deprecated = myAttributeDefinition.isValueDeprecated(value);
     }
 
-    LookupElementBuilder builder;
-    if (doc == null) {
-      builder = LookupElementBuilder.create(value);
-    } else {
-      builder = LookupElementBuilder.create(new DocumentationHolder(value, doc.trim()), value);
-    }
+    LookupElementBuilder builder = LookupElementBuilder.create(value);
 
     builder = builder.withCaseSensitivity(true).withStrikeoutness(deprecated);
     String resourceName = resourceValue.getResourceName();
@@ -747,6 +731,13 @@ public class ResourceReferenceConverter extends ResolvingConverter<ResourceValue
 
   @Override
   public String getDocumentation(@NotNull String value) {
+    if (myAttributeDefinition != null) {
+      // Custom documentation for enums and flags of attr resources.
+      String description = myAttributeDefinition.getValueDescription(value);
+      if (description != null) {
+        return description;
+      }
+    }
     return myAdditionalConverter instanceof AttributeValueDocumentationProvider
            ? ((AttributeValueDocumentationProvider)myAdditionalConverter).getDocumentation(value)
            : null;

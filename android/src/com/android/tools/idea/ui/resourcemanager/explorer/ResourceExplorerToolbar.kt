@@ -45,39 +45,10 @@ private val GAP_SIZE = JBUI.scale(10)
  * Toolbar displayed at the top of the resource explorer which allows users
  * to change the module and add resources.
  */
-class ResourceExplorerToolbar(
-  private val toolbarViewModel: ResourceExplorerToolbarViewModel)
+class ResourceExplorerToolbar private constructor(
+  private val toolbarViewModel: ResourceExplorerToolbarViewModel,
+  private val moduleSelectionCombo: ComboBox<String>)
   : JPanel(), DataProvider by toolbarViewModel {
-
-  private val moduleSelectionCombo = ComboBox<String>().apply {
-
-    model = CollectionComboBoxModel(toolbarViewModel.getAvailableModules().toMutableList())
-
-    renderer = object : ColoredListCellRenderer<String>() {
-      override fun customizeCellRenderer(
-        list: JList<out String>,
-        value: String,
-        index: Int,
-        selected: Boolean,
-        hasFocus: Boolean
-      ) {
-        append(MODULE_PREFIX + value)
-      }
-    }
-
-    addItemListener { event ->
-      if (event.stateChange == ItemEvent.SELECTED) {
-        val moduleName = event.itemSelectable.selectedObjects.first() as String
-        toolbarViewModel.onModuleSelected(moduleName)
-      }
-    }
-
-    addPopupMenuListener(object : PopupMenuListenerAdapter() {
-      override fun popupMenuWillBecomeVisible(e: PopupMenuEvent?) {
-        (model as CollectionComboBoxModel).replaceAll(toolbarViewModel.getAvailableModules())
-      }
-    })
-  }
 
   private val searchAction = createSearchField()
 
@@ -108,6 +79,7 @@ class ResourceExplorerToolbar(
 
     border = JBUI.Borders.merge(JBUI.Borders.empty(4, 2), JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0), true)
     toolbarViewModel.updateUICallback = this::update
+    update() // Update current module right away.
   }
 
   private fun update() {
@@ -124,6 +96,19 @@ class ResourceExplorerToolbar(
         toolbarViewModel.searchString = e.document.getText(0, e.document.length)
       }
     })
+  }
+
+  companion object {
+    /**
+     * Returns a [ResourceExplorerToolbar].
+     *
+     * @param moduleComboEnabled Whether the module selection box UI should show as enabled.
+     */
+    @JvmStatic
+    fun create(toolbarViewModel: ResourceExplorerToolbarViewModel, moduleComboEnabled: Boolean): ResourceExplorerToolbar {
+      val moduleSelectionCombo = createModuleSelectionComboBox(toolbarViewModel, moduleComboEnabled)
+      return ResourceExplorerToolbar(toolbarViewModel, moduleSelectionCombo)
+    }
   }
 }
 
@@ -169,16 +154,46 @@ private class AddAction internal constructor(val viewModel: ResourceExplorerTool
 private class FilterAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
   : PopupAction(AllIcons.General.Filter, FILTERS_BUTTON_LABEL) {
   override fun createAddPopupGroup() = DefaultActionGroup().apply {
-    add(ShowDependenciesAction(viewModel))
+    add(ShowModuleDependenciesAction(viewModel))
+    add(ShowLibrariesAction(viewModel))
+    add(ShowFrameworkAction(viewModel))
+    add(ShowThemeAttributesAction(viewModel))
   }
 }
 
-private class ShowDependenciesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
-  : ToggleAction("Show libraries") {
-  override fun isSelected(e: AnActionEvent) = viewModel.isShowDependencies
+private class ShowModuleDependenciesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
+  : ToggleAction("Show local dependencies") {
+  override fun isSelected(e: AnActionEvent) = viewModel.isShowModuleDependencies
   override fun setSelected(e: AnActionEvent, state: Boolean) {
-    viewModel.isShowDependencies = state
+    viewModel.isShowModuleDependencies = state
+    ResourceManagerTracking.logShowLocalDependenciesToggle(state)
+  }
+}
+
+private class ShowLibrariesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
+  : ToggleAction("Show libraries") {
+  override fun isSelected(e: AnActionEvent) = viewModel.isShowLibraryDependencies
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
+    viewModel.isShowLibraryDependencies = state
     ResourceManagerTracking.logShowLibrariesToggle(state)
+  }
+}
+
+private class ShowFrameworkAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
+  : ToggleAction("Show android resources") {
+  override fun isSelected(e: AnActionEvent) = viewModel.isShowFrameworkResources
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
+    viewModel.isShowFrameworkResources = state
+    ResourceManagerTracking.logShowFrameworkToggle(state)
+  }
+}
+
+private class ShowThemeAttributesAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
+  : ToggleAction("Show theme attributes") {
+  override fun isSelected(e: AnActionEvent) = viewModel.isShowThemeAttributes
+  override fun setSelected(e: AnActionEvent, state: Boolean) {
+    viewModel.isShowThemeAttributes = state
+    ResourceManagerTracking.logShowThemeAttributesToggle(state)
   }
 }
 
@@ -193,3 +208,40 @@ private fun GroupLayout.SequentialGroup.addFixedSizeComponent(
   this.addComponent(baseline, jComponent, width, width, width)
   return this
 }
+
+
+/**
+ * Creates a combo box for the [ResourceExplorerToolbar], should contain available modules in the project. Selecting a module should
+ * change the working facet in the [ResourceExplorerToolbarViewModel].
+ *
+ * @param moduleComboEnabled Sets the isEnabled UI property. I.e: Whether it's allowed for the user to select a different module.
+ */
+private fun createModuleSelectionComboBox(toolbarViewModel: ResourceExplorerToolbarViewModel, moduleComboEnabled: Boolean) =
+  ComboBox<String>().apply {
+    model = CollectionComboBoxModel(toolbarViewModel.getAvailableModules().toMutableList())
+    isEnabled = moduleComboEnabled
+    renderer = object : ColoredListCellRenderer<String>() {
+      override fun customizeCellRenderer(
+        list: JList<out String>,
+        value: String,
+        index: Int,
+        selected: Boolean,
+        hasFocus: Boolean
+      ) {
+        append(MODULE_PREFIX + value)
+      }
+    }
+
+    addItemListener { event ->
+      if (event.stateChange == ItemEvent.SELECTED) {
+        val moduleName = event.itemSelectable.selectedObjects.first() as String
+        toolbarViewModel.onModuleSelected(moduleName)
+      }
+    }
+
+    addPopupMenuListener(object : PopupMenuListenerAdapter() {
+      override fun popupMenuWillBecomeVisible(e: PopupMenuEvent?) {
+        (model as CollectionComboBoxModel).replaceAll(toolbarViewModel.getAvailableModules())
+      }
+    })
+  }

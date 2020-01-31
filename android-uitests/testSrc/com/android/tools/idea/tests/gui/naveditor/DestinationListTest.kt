@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.naveditor
 
+import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.designer.naveditor.DestinationListFixture
@@ -40,16 +41,11 @@ class DestinationListTest {
    */
   @Test
   fun testExternalUpdate() {
-    val frame = guiTest.importProject("Navigation")
+    guiTest.importProject("Navigation").waitForGradleProjectSyncToFinish()
     // Open file as XML and switch to design tab, wait for successful render
     val editor = guiTest.ideFrame().editor
     editor.open("app/src/main/res/navigation/mobile_navigation.xml", EditorFixture.Tab.DESIGN)
-    val layout = editor.getLayoutEditor(true)
-
-    // This is separate to catch the case where we have a problem opening the file before sync is complete.
-    frame.waitForGradleProjectSyncToFinish()
-
-    layout.waitForRenderToFinish()
+    val layout = editor.getLayoutEditor(true).waitForRenderToFinish()
 
     ApplicationManager.getApplication().invokeAndWait {
       UIUtil.dispatchAllInvocationEvents()
@@ -96,11 +92,18 @@ class DestinationListTest {
     // At this point the surface scrolls and zooms. There's nothing obvious to watch for, especially since bugs (110435862) caused us to
     // reach the target value and then zoom/scroll more, incorrectly. So, just wait for what seems like long enough.
     Thread.sleep(1000)
-    val surfaceSize = editor
-      .navSurface
-      .target().extentSize
-    val distance = Point(surfaceSize.width / 2, surfaceSize.height / 2).distance(editor.navSurface.findDestination("first_screen").midPoint)
+
+    val surface = editor.navSurface
+    val surfaceSize = surface.target().extentSize
+
+    val destination = surface.findDestination("first_screen")
+    val distance = Point(surfaceSize.width / 2, surfaceSize.height / 2).distance(destination.midPoint)
     assertThat(distance).isLessThan(2.0)
-    assertThat(editor.navSurface.scale).isWithin(0.01).of(1.0)
+
+    val destinationBounds = NavSceneManager.getBoundingBox(listOf(destination.sceneComponent))
+    // We try to scale the destination to 100% (1.0), but in lower resolutions the destination might not fit the screen. We handle this case
+    // by using the fit scale of the destination.
+    val expectedScale = minOf(surface.target().getFitScale(destinationBounds.size, false), 1.0)
+    assertThat(surface.scale).isWithin(0.01).of(expectedScale)
   }
 }

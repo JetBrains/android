@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiElement;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,7 +66,7 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   @NotNull protected final List<GradleReferenceInjection> myDependents = new ArrayList<>();
 
   /**
-   * Creates an in stance of a {@link GradleDslElement}
+   * Creates an instance of a {@link GradleDslElement}
    *
    * @param parent     the parent {@link GradleDslElement} of this element. The parent element should always be a not-null value except if
    *                   this element is the root element, i.e a {@link GradleDslFile}.
@@ -348,6 +349,15 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
         if (ext != null) {
           results.putAll(ext.getPropertyElements());
         }
+        // Add properties files properties
+        GradleDslFile propertiesFile = file.getSiblingDslFile();
+        if (propertiesFile != null) {
+          // Only properties with no qualifier are picked up by build scripts.
+          Map<String, GradleDslElement> filteredProperties =
+            propertiesFile.getPropertyElements().entrySet().stream().filter(entry -> !entry.getKey().contains("."))
+              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+          results.putAll(filteredProperties);
+        }
         // Add BuildScriptExt properties.
         BuildScriptDslElement buildScriptElement = file.getPropertyElement(BUILDSCRIPT_BLOCK_NAME, BuildScriptDslElement.class);
         if (buildScriptElement != null) {
@@ -480,5 +490,29 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
   @Nullable
   public static String getPsiText(@NotNull PsiElement psiElement) {
     return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> psiElement.getText());
+  }
+
+  @Override
+  public boolean isNewEmptyBlockElement() {
+    if (myPsiElement != null) {
+      return false;
+    }
+
+    if (!isBlockElement() || !isInsignificantIfEmpty()) {
+      return false;
+    }
+
+    Collection<GradleDslElement> children = getChildren();
+    if (children.isEmpty()) {
+      return true;
+    }
+
+    for (GradleDslElement child : children) {
+      if (!child.isNewEmptyBlockElement()) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }

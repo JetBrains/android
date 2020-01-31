@@ -59,8 +59,21 @@ class AndroidPsiTreeChangePreprocessor : PsiTreeChangePreprocessor, SimpleModifi
                 return
             }
 
-            val file = event.file ?: return
+            val file = event.file
+            if (file == null) {
+                // We can't be sure what changed, so we conservatively increment the counter.
+                // This can happen if a file is added or deleted, since we might get a PROP_UNLOADED_PSI event with no associated PSI.
+                incModificationCount()
+                return
+            }
+
             if (!checkIfLayoutFile(file)) return
+
+            if (child == null || !child.isValid) {
+                // We can't be sure what changed, so we conservatively increment the counter.
+                incModificationCount()
+                return
+            }
 
             val xmlAttribute = findXmlAttribute(child) ?: return
             val name = xmlAttribute.name
@@ -79,7 +92,7 @@ class AndroidPsiTreeChangePreprocessor : PsiTreeChangePreprocessor, SimpleModifi
                 PsiTreeChangeEventImpl.PsiEventType.PROPERTY_CHANGED)
 
         private fun checkIfLayoutFile(element: PsiElement): Boolean {
-            val xmlFile = element as? XmlFile ?: return false
+            val xmlFile = (element as? XmlFile)?.takeIf { it.isLayoutXmlFile() } ?: return false
 
             val projectFileIndex = ProjectRootManager.getInstance(xmlFile.project).fileIndex
             val module = projectFileIndex.getModuleForFile(xmlFile.virtualFile)
@@ -90,7 +103,7 @@ class AndroidPsiTreeChangePreprocessor : PsiTreeChangePreprocessor, SimpleModifi
                 val resDirectories = resourceManager.getAllModuleResDirectories()
                 val baseDirectory = xmlFile.parent?.parent?.virtualFile
 
-                if (baseDirectory != null && baseDirectory in resDirectories && xmlFile.isLayoutXmlFile()) {
+                if (baseDirectory != null && baseDirectory in resDirectories) {
                     return true
                 }
             }

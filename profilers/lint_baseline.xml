@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="5" by="lint 3.6.0-dev">
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/art/ArtTraceHandler.java"
+            line="72"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
+            line="141"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
+            line="205"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
+            line="212"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
+            line="323"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/CpuCaptureParser.java"
+            line="331"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/CpuProfiler.java"
+            line="210"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/CpuProfilerStage.java"
+            line="461"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/energy/EnergyDuration.java"
+            line="166"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/memory/adapters/HeapDumpInstanceObject.java"
+            line="66"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/memory/adapters/JniReferenceInstanceObject.java"
+            line="292"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/memory/LazyMemoryObjectTreeNode.java"
+            line="166"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
+        <location
+            file="src/com/android/tools/profilers/event/LifecycleEventDataSeries.java"
+            line="107"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `toLowerCase(Locale)` instead. For strings meant to be internal use `Locale.ROOT`, otherwise `Locale.getDefault()`.">
+        <location
+            file="src/com/android/tools/profilers/event/LifecycleEventDataSeries.java"
+            line="125"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/memory/MemoryProfilerStage.java"
+            line="450"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            line="108"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            line="232"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            line="274"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            line="280"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            line="285"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            line="289"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            line="295"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            line="332"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            line="335"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/atrace/PerfettoProducer.java"
+            line="337"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/simpleperf/SimpleperfSampleReporter.java"
+            line="68"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/simpleperf/SimpleperfSampleReporter.java"
+            line="128"/>
+    </issue>
+
+    <issue
+        id="DefaultLocale"
+        message="Implicitly using the default locale is a common source of bugs: Use `String.format(Locale, ...)` instead">
+        <location
+            file="src/com/android/tools/profilers/cpu/simpleperf/SimpleperfTraceParser.java"
+            line="342"/>
+    </issue>
+
+    <issue
+        id="SimpleDateFormat"
+        message="To get local formatting use `getDateInstance()`, `getDateTimeInstance()`, or `getTimeInstance()`, or use `new SimpleDateFormat(String template, Locale locale)` with for example `Locale.US` for ASCII dates.">
+        <location
+            file="src/com/android/tools/profilers/energy/EnergyEventsTableTooltipInfoModel.java"
+            line="100"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/profilers/memory/adapters/ClassSet.java"
+            line="33"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/profilers/memory/adapters/ClassSet.java"
+            line="75"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/profilers/cpu/CpuCaptureSessionArtifact.java"
+            line="85"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/profilers/memory/HprofSessionArtifact.java"
+            line="89"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/profilers/memory/LegacyAllocationsSessionArtifact.java"
+            line="85"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/profilers/memory/adapters/MethodSet.java"
+            line="69"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/profilers/memory/adapters/PackageSet.java"
+            line="51"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/profilers/memory/adapters/ThreadSet.java"
+            line="59"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/profilers/memory/adapters/ThreadSet.java"
+            line="82"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/profilers/memory/adapters/ThreadSet.java"
+            line="89"/>
+    </issue>
+
+    <issue
+        id="VisibleForTests"
+        message="This method should only be accessed from tests or within private scope">
+        <location
+            file="src/com/android/tools/profilers/memory/adapters/ThreadSet.java"
+            line="96"/>
+    </issue>
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/profilers/memory/CaptureObjectLoader.java"
+            line="45"/>
+    </issue>
+
+</issues>

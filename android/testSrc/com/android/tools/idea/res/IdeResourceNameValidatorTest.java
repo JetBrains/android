@@ -85,10 +85,10 @@ public class IdeResourceNameValidatorTest {
   @Test
   public void testIds2() throws Exception {
     ListMultimap<String, ResourceItem> multimap = ArrayListMultimap.create();
-    multimap.put("foo1", new ResourceMergerItem("foo1", null, ResourceType.ID, null, null));
-    multimap.put("foo3", new ResourceMergerItem("foo3", null, ResourceType.ID, null, null));
-    multimap.put("foo.4", new ResourceMergerItem("foo.4", null, ResourceType.ID, null, null));
-    multimap.put("foo_5", new ResourceMergerItem("foo_5", null, ResourceType.ID, null, null));
+    multimap.put("foo1", new ResourceMergerItem("foo1", null, ResourceType.ID, null, null, null));
+    multimap.put("foo3", new ResourceMergerItem("foo3", null, ResourceType.ID, null, null, null));
+    multimap.put("foo.4", new ResourceMergerItem("foo.4", null, ResourceType.ID, null, null, null));
+    multimap.put("foo_5", new ResourceMergerItem("foo_5", null, ResourceType.ID, null, null, null));
 
     TestLocalResourceRepository resources = new TestLocalResourceRepository(RES_AUTO);
     resources.getFullTable().put(RES_AUTO, ResourceType.ID, multimap);

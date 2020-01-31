@@ -18,50 +18,49 @@ package com.android.tools.idea.ddms.screenrecord;
 
 import com.android.ddmlib.ScreenRecorderOptions;
 import com.android.tools.idea.help.StudioHelpManagerImpl;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.ValidationInfo;
+import javax.swing.Action;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Document;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-
 public class ScreenRecorderOptionsDialog extends DialogWrapper {
   @NonNls private static final String SCREENRECORDER_DIMENSIONS_KEY = "ScreenshotRecorder.Options.Dimensions";
 
-  private static final int DEFAULT_BITRATE_MBPS = 4;
-
-  private static int ourBitRateMbps = DEFAULT_BITRATE_MBPS;
-  private static int ourWidth;
-  private static int ourHeight;
-  private static boolean ourShowTouches;
-
   private JPanel myPanel;
-  private JTextField myBitRateTextField;
-  private JTextField myWidthTextField;
-  private JTextField myHeightTextField;
-  private JCheckBox myShowTouchCheckBox;
+  @VisibleForTesting JTextField myBitRateTextField;
+  @VisibleForTesting JTextField myWidthTextField;
+  @VisibleForTesting JTextField myHeightTextField;
+  @VisibleForTesting JCheckBox myShowTouchCheckBox;
 
   public ScreenRecorderOptionsDialog(@NotNull Project project) {
     super(project, true);
 
-    if (ourWidth > 0) {
-      myWidthTextField.setText(Integer.toString(ourWidth));
+    ScreenRecorderPersistentOptions options = ScreenRecorderPersistentOptions.getInstance();
+
+    if (options.getResolutionWidth() > 0) {
+      myWidthTextField.setText(Integer.toString(options.getResolutionWidth()));
     }
 
-    if (ourHeight > 0) {
-      myHeightTextField.setText(Integer.toString(ourHeight));
+    if (options.getResolutionHeight() > 0) {
+      myHeightTextField.setText(Integer.toString(options.getResolutionHeight()));
     }
 
-    if (ourBitRateMbps > 0) {
-      myBitRateTextField.setText(Integer.toString(ourBitRateMbps));
+    if (options.getBitRateMbps() > 0) {
+      myBitRateTextField.setText(Integer.toString(options.getBitRateMbps()));
     }
 
-    myShowTouchCheckBox.setSelected(ourShowTouches);
+    myShowTouchCheckBox.setSelected(options.getShowTaps());
 
     setTitle("Screen Recorder Options");
     init();
@@ -131,13 +130,13 @@ public class ScreenRecorderOptionsDialog extends DialogWrapper {
     return (x % multiple > 0) ? new ValidationInfo("Must be a multiple of " + multiple, textField) : null;
   }
 
-  @SuppressWarnings("AssignmentToStaticFieldFromInstanceMethod")
   @Override
   protected void doOKAction() {
-    ourBitRateMbps = getIntegerValue(myBitRateTextField);
-    ourHeight = getIntegerValue(myHeightTextField);
-    ourWidth = getIntegerValue(myWidthTextField);
-    ourShowTouches = myShowTouchCheckBox.isSelected();
+    ScreenRecorderPersistentOptions options = ScreenRecorderPersistentOptions.getInstance();
+    options.setBitRateMbps(getIntegerValue(myBitRateTextField));
+    options.setResolutionHeight(getIntegerValue(myHeightTextField));
+    options.setResolutionWidth(getIntegerValue(myWidthTextField));
+    options.setShowTaps(myShowTouchCheckBox.isSelected());
     super.doOKAction();
   }
 
@@ -157,6 +156,10 @@ public class ScreenRecorderOptionsDialog extends DialogWrapper {
   }
 
   public ScreenRecorderOptions getOptions() {
-    return new ScreenRecorderOptions.Builder().setBitRate(ourBitRateMbps).setSize(ourWidth, ourHeight).setShowTouches(ourShowTouches).build();
+    ScreenRecorderPersistentOptions options = ScreenRecorderPersistentOptions.getInstance();
+    return new ScreenRecorderOptions.Builder()
+      .setBitRate(options.getBitRateMbps())
+      .setSize(options.getResolutionWidth(), options.getResolutionHeight())
+      .setShowTouches(options.getShowTaps()).build();
   }
 }

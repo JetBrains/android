@@ -1,4 +1,4 @@
 ext {
-  def val = 'value'
-  prop1 = val
+  def val1 = 'value'
+  prop1 = val1
 }

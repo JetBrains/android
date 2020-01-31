@@ -18,13 +18,33 @@ package com.android.tools.idea.gradle.dsl.parser.android;
 import com.android.tools.idea.gradle.dsl.model.android.AndroidModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Common base class for {@link BuildTypeDslElement} and {@link ProductFlavorDslElement}.
  */
 public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement {
+  // Stores the method name of the block used in the KTS file. Ex: for the block with the name getByName("release"), methodName will be
+  // getByName.
+  @Nullable
+  private String methodName;
+
   protected AbstractFlavorTypeDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name) {
     super(parent, name);
+  }
+
+  protected AbstractFlavorTypeDslElement(@NotNull GradleDslElement parent, @NotNull GradleNameElement name, @NotNull String methodName) {
+    super(parent, name);
+    this.methodName = methodName;
+  }
+
+  public void setMethodName(String methodName) {
+    this.methodName = methodName;
+  }
+
+  @Nullable
+  public String getMethodName() {
+    return  methodName;
   }
 
   @Override
@@ -45,16 +65,6 @@ public abstract class AbstractFlavorTypeDslElement extends GradleDslBlockElement
     if (property.equals("proguardFiles") || property.equals("proguardFile")) {
       addToParsedExpressionList("proguardFiles", element);
       return;
-    }
-
-    if (property.equals("resValue")) {
-      if (!(element instanceof GradleDslExpressionList)) {
-        return;
-      }
-      GradleDslExpressionList listElement = (GradleDslExpressionList)element;
-      if (listElement.getExpressions().size() != 3 || listElement.getLiterals(String.class).size() != 3) {
-        return;
-      }
     }
 
     super.addParsedElement(element);

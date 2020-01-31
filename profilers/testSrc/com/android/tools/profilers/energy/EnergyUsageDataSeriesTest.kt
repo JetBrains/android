@@ -14,8 +14,9 @@
 package com.android.tools.profilers.energy
 
 import com.android.tools.adtui.model.Range
-import com.android.tools.profiler.proto.EnergyProfiler.EnergySample
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
+import com.android.tools.profiler.proto.Energy
+import com.android.tools.profiler.proto.EnergyProfiler.EnergySample
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.google.common.truth.Truth.assertThat
@@ -28,10 +29,22 @@ class EnergyUsageDataSeriesTest {
 
   private val service = FakeEnergyService(
       listOf(
-          EnergySample.newBuilder().setTimestamp(SECONDS.toNanos(5)).setCpuUsage(20).setNetworkUsage(30).build(),
-          EnergySample.newBuilder().setTimestamp(SECONDS.toNanos(10)).setCpuUsage(20).setNetworkUsage(40).build(),
-          EnergySample.newBuilder().setTimestamp(SECONDS.toNanos(15)).setCpuUsage(20).setNetworkUsage(50).build(),
-          EnergySample.newBuilder().setTimestamp(SECONDS.toNanos(20)).setNetworkUsage(10).build()
+        EnergySample.newBuilder()
+          .setTimestamp(SECONDS.toNanos(5))
+          .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setCpuUsage(20).setNetworkUsage(30))
+          .build(),
+        EnergySample.newBuilder()
+          .setTimestamp(SECONDS.toNanos(10))
+          .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setCpuUsage(20).setNetworkUsage(40))
+          .build(),
+        EnergySample.newBuilder()
+          .setTimestamp(SECONDS.toNanos(15))
+          .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setCpuUsage(20).setNetworkUsage(50))
+          .build(),
+        EnergySample.newBuilder()
+          .setTimestamp(SECONDS.toNanos(20))
+          .setEnergyUsage(Energy.EnergyUsageData.newBuilder().setNetworkUsage(10))
+          .build()
       )
   )
 
@@ -48,7 +61,7 @@ class EnergyUsageDataSeriesTest {
   @Test
   fun testAllDataIncluded() {
     val range = Range(SECONDS.toMicros(1).toDouble(), SECONDS.toMicros(20).toDouble())
-    val dataList = dataSeries.getDataForXRange(range)
+    val dataList = dataSeries.getDataForRange(range)
     assertThat(dataList.size).isEqualTo(4)
     assertThat(dataList[0].value).isEqualTo(50)
     assertThat(dataList[1].value).isEqualTo(60)
@@ -59,7 +72,7 @@ class EnergyUsageDataSeriesTest {
   @Test
   fun testExcludedTail() {
     val range = Range(SECONDS.toMicros(15).toDouble(), SECONDS.toMicros(19).toDouble())
-    val dataList = dataSeries.getDataForXRange(range)
+    val dataList = dataSeries.getDataForRange(range)
     assertThat(dataList.size).isEqualTo(1)
     assertThat(dataList[0].x).isEqualTo(SECONDS.toMicros(15))
     assertThat(dataList[0].value).isEqualTo(70)
@@ -68,7 +81,7 @@ class EnergyUsageDataSeriesTest {
   @Test
   fun testExcludedHead() {
     val range = Range(SECONDS.toMicros(7).toDouble(), SECONDS.toMicros(10).toDouble())
-    val dataList = dataSeries.getDataForXRange(range)
+    val dataList = dataSeries.getDataForRange(range)
     assertThat(dataList.size).isEqualTo(1)
     assertThat(dataList[0].x).isEqualTo(SECONDS.toMicros(10))
     assertThat(dataList[0].value).isEqualTo(60)

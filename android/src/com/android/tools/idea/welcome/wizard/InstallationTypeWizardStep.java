@@ -49,7 +49,7 @@ public class InstallationTypeWizardStep extends ModelWizardStep<ConfigureInstall
   protected void onEntering() {
     myBindings.bindTwoWay(
       new SelectedRadioButtonProperty<>(STANDARD, InstallationType.values(), myStandardRadioBtn, myCustomRadioBtn),
-      getModel().installationType()
+      getModel().installationType
     );
   }
 

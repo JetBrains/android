@@ -20,29 +20,49 @@ import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.adtui.common.SwingCoordinate;
+import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.awt.*;
-
-import static com.android.tools.idea.uibuilder.graphics.NlConstants.RESIZING_HOVERING_SIZE;
 
 /**
  * View of a device/screen/layout.
  * This is actually painted by {@link ScreenViewLayer}.
  */
 abstract class ScreenViewBase extends SceneView {
+
+  /**
+   * Distance between the bottom bound of model name and top bound of SceneView.
+   */
+  @SwingCoordinate private static final int NAME_LABEL_BOTTOM_MARGIN_PX = 5;
+
   private final ColorSet myColorSet = new AndroidColorSet();
   protected boolean myIsSecondary;
 
   public ScreenViewBase(@NotNull NlDesignSurface surface, @NotNull LayoutlibSceneManager manager) {
     super(surface, manager);
+  }
+
+  @Override
+  public int getNameLabelHeight() {
+    if (getSurface().isShowModelNames()) {
+      Graphics graphics = getSurface().getGraphics();
+      if (graphics != null) {
+        Font font = graphics.getFont();
+        FontMetrics metrics = graphics.getFontMetrics(font);
+        return metrics.getHeight() + NlConstants.NAME_LABEL_BOTTOM_MARGIN_PX;
+      }
+    }
+    return 0;
   }
 
   /**
@@ -69,17 +89,6 @@ abstract class ScreenViewBase extends SceneView {
     }
 
     return dimension;
-  }
-
-  @Override
-  @Nullable
-  public Cursor getCursor(@SwingCoordinate int x, @SwingCoordinate int y) {
-    Rectangle resizeZone =
-      new Rectangle(getX() + getSize().width, getY() + getSize().height, RESIZING_HOVERING_SIZE, RESIZING_HOVERING_SIZE);
-    if (resizeZone.contains(x, y) && getSurface().isResizeAvailable()) {
-      return Cursor.getPredefinedCursor(Cursor.SE_RESIZE_CURSOR);
-    }
-    return super.getCursor(x, y);
   }
 
   @NotNull

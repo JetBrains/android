@@ -77,7 +77,7 @@ public class SceneLayer extends Layer {
         return;
       }
 
-      myDesignSurface.getRenderableBoundsOfSceneView(mySceneView, mySurfaceRectangle);
+      myDesignSurface.getRenderableBoundsForInvisibleComponents(mySceneView, mySurfaceRectangle);
       Rectangle2D.intersect(mySurfaceRectangle, clipBounds, mySurfaceRectangle);
       sceneContext.setRenderableBounds(mySurfaceRectangle);
 

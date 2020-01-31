@@ -16,9 +16,8 @@
 package com.android.tools.idea.transport.faketransport.commands
 
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Commands.Command
-import com.android.tools.profiler.proto.Transport.EventGroup
+import com.android.tools.profiler.proto.Common
 
 /**
  * This class handles begin session commands by creating a unique session each time this command is called.
@@ -31,39 +30,37 @@ class BeginSession(timer: FakeTimer) : CommandHandler(timer) {
     return attachAgentCalled
   }
 
-  override fun handleCommand(command: Command, events: MutableList<EventGroup.Builder>) {
+  override fun handleCommand(command: Command, events: MutableList<Common.Event>) {
     nextSessionId++
     attachAgentCalled = command.beginSession.hasJvmtiConfig() && command.beginSession.jvmtiConfig.attachAgent
     if (attachAgentCalled) {
-      events.add(EventGroup.newBuilder().setGroupId(nextSessionId)
-                   .addEvents(Common.Event.newBuilder().apply {
-                     pid = command.pid
-                     kind = Common.Event.Kind.AGENT
-                     timestamp = timer.currentTimeNs
-                     agentData = Common.AgentData.newBuilder().apply {
-                       status = Common.AgentData.Status.ATTACHED
-                     }.build()
-                   }))
+      events.add(Common.Event.newBuilder().apply {
+        pid = command.pid
+        kind = Common.Event.Kind.AGENT
+        timestamp = timer.currentTimeNs
+        agentData = Common.AgentData.newBuilder().apply {
+          status = Common.AgentData.Status.ATTACHED
+        }.build()
+      }.build())
     }
-    events.add(EventGroup.newBuilder().setGroupId(nextSessionId)
-                 .addEvents(Common.Event.newBuilder().apply {
-                   groupId = nextSessionId
-                   pid = command.pid
-                   kind = Common.Event.Kind.SESSION
-                   timestamp = timer.currentTimeNs
-                   session = Common.SessionData.newBuilder().apply {
-                     sessionStarted = Common.SessionData.SessionStarted.newBuilder().apply {
-                       sessionId = nextSessionId
-                       streamId = command.streamId
-                       pid = command.pid
-                       startTimestampEpochMs = command.beginSession.requestTimeEpochMs
-                       sessionName = command.beginSession.sessionName
-                       processAbi = command.beginSession.processAbi
-                       jvmtiEnabled = attachAgentCalled
-                       liveAllocationEnabled = command.beginSession.jvmtiConfig.liveAllocationEnabled
-                       type = Common.SessionData.SessionStarted.SessionType.FULL
-                     }.build()
-                   }.build()
-                 }))
+    events.add(Common.Event.newBuilder().apply {
+      groupId = nextSessionId
+      pid = command.pid
+      kind = Common.Event.Kind.SESSION
+      timestamp = timer.currentTimeNs
+      session = Common.SessionData.newBuilder().apply {
+        sessionStarted = Common.SessionData.SessionStarted.newBuilder().apply {
+          sessionId = nextSessionId
+          streamId = command.streamId
+          pid = command.pid
+          startTimestampEpochMs = command.beginSession.requestTimeEpochMs
+          sessionName = command.beginSession.sessionName
+          processAbi = command.beginSession.processAbi
+          jvmtiEnabled = attachAgentCalled
+          liveAllocationEnabled = command.beginSession.jvmtiConfig.liveAllocationEnabled
+          type = Common.SessionData.SessionStarted.SessionType.FULL
+        }.build()
+      }.build()
+    }.build())
   }
 }

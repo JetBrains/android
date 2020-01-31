@@ -19,7 +19,7 @@
         id="DeveloperServices.ConnectionAssistant"
         class="com.android.tools.idea.connection.assistant.OpenConnectionAssistantSidePanelAction"
         icon="StudioIcons.Shell.ToolWindows.ASSISTANT"
-        text="Connection Assistant"
+        text="Troubleshoot Device Connections"
         description="Help debug device connection">
       <add-to-group group-id="AndroidToolsGroupExtension"/>
     </action>

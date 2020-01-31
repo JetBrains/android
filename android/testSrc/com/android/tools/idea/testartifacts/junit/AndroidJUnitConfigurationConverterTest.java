@@ -43,7 +43,7 @@ public class AndroidJUnitConfigurationConverterTest extends HeavyPlatformTestCas
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    mockIdeInfo = IdeComponents.mockApplicationService(IdeInfo.class, getTestRootDisposable());
+    mockIdeInfo = new IdeComponents(myProject).mockApplicationService(IdeInfo.class);
   }
 
   public void testConfigurationsAreConvertedInStudio() throws Exception {

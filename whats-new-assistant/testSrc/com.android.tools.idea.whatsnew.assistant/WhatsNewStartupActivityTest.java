@@ -19,11 +19,12 @@ package com.android.tools.idea.whatsnew.assistant;
 import com.android.repository.Revision;
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.assistant.AssistantBundleCreator;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.util.FutureUtils;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.ide.GeneralSettings;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
@@ -32,6 +33,8 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 /**
  * Tests for {@link WhatsNewStartupActivity}
@@ -39,36 +42,28 @@ import org.mockito.Mockito;
 public class WhatsNewStartupActivityTest extends AndroidTestCase {
   private static final long TIMEOUT_MILLISECONDS = 30000;
 
-  private WhatsNewAssistantURLProvider mockUrlProvider;
+  private WhatsNewURLProvider mockUrlProvider;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.override(true);
-    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(true);
 
-    mockUrlProvider = Mockito.mock(WhatsNewAssistantURLProvider.class);
+    mockUrlProvider = Mockito.mock(WhatsNewURLProvider.class);
     File serverFile = new File(myFixture.getTestDataPath(), "whatsnewassistant/server-3.3.0.xml");
     Mockito.when(mockUrlProvider.getWebConfig(ArgumentMatchers.anyString())).thenReturn(new URL("file:" + serverFile.getPath()));
 
     File resourceFile = new File(myFixture.getTestDataPath(), "whatsnewassistant/defaultresource-3.3.0.xml");
     Mockito.when(mockUrlProvider.getResourceFileAsStream(ArgumentMatchers.any(), ArgumentMatchers.anyString()))
-      .thenReturn(new URL("file:" + resourceFile.getPath()).openStream());
+      .thenAnswer(new Answer<InputStream>() {
+        @Override
+        public InputStream answer(InvocationOnMock invocation) throws IOException {
+          return new URL("file:" + resourceFile.getPath()).openStream();
+        }
+      });
 
     File tmpDir = TestUtils.createTempDirDeletedOnExit();
     Path localPath = tmpDir.toPath().resolve("local-3.3.0.xml");
     Mockito.when(mockUrlProvider.getLocalConfig(ArgumentMatchers.anyString())).thenReturn(localPath);
-  }
-
-  @Override
-  public void tearDown() throws Exception {
-    try {
-      StudioFlags.WHATS_NEW_ASSISTANT_ENABLED.clearOverride();
-      StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.clearOverride();
-    }
-    finally {
-      super.tearDown();
-    }
   }
 
   /**
@@ -102,17 +97,17 @@ public class WhatsNewStartupActivityTest extends AndroidTestCase {
    * Test that asynchronous version checking for What's New Assistant works
    */
   public void testCheckVersionTask() {
-    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(true);
-
-    WhatsNewAssistantBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME
-      .findExtension(WhatsNewAssistantBundleCreator.class);
+    WhatsNewBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME
+      .findExtension(WhatsNewBundleCreator.class);
+    bundleCreator.setStudioRevision(Revision.parseRevision("3.3.0"));
     bundleCreator.setURLProvider(mockUrlProvider);
+    bundleCreator.setAllowDownload(true);
 
     // Future callback, should return true since current version would be -1
     SettableFuture<Boolean> completeFuture = SettableFuture.create();
 
     // WhatsNewStartupActivity does this normally in production
-    new WhatsNewAssistantCheckVersionTask(getProject(), new BooleanCallback(completeFuture)).queue();
+    new WhatsNewCheckVersionTask(getProject(), new BooleanCallback(completeFuture)).queue();
     try {
       FutureUtils.pumpEventsAndWaitForFuture(completeFuture, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
       assertTrue(completeFuture.get());
@@ -127,20 +122,27 @@ public class WhatsNewStartupActivityTest extends AndroidTestCase {
    * Test that Tip of the Day settings is properly restored when WNA needs to auto-show
    */
   public void testStartupTips() {
-    StudioFlags.WHATS_NEW_ASSISTANT_DOWNLOAD_CONTENT.override(false);
+    // Make local bundle guaranteed to be available, so we don't try to open browser in tests
+    WhatsNewBundleCreator bundleCreator = AssistantBundleCreator.EP_NAME
+      .findExtension(WhatsNewBundleCreator.class);
+    bundleCreator.setStudioRevision(Revision.parseRevision("3.3.0"));
+    bundleCreator.setURLProvider(mockUrlProvider);
+    bundleCreator.setAllowDownload(false);
+
+    GeneralSettings generalSettings = new GeneralSettings();
 
     // Tips of the Day should be enabled by default
-    assertTrue(GeneralSettings.getInstance().isShowTipsOnStartup());
+    assertTrue(generalSettings.isShowTipsOnStartup());
     SettableFuture<Boolean> completeFutureEnabled = SettableFuture.create();
 
     // Temporarily disables tips and opens WNA
-    WhatsNewStartupActivity.hideTipsAndOpenWhatsNewAssistant(getProject(), new BooleanCallback(completeFutureEnabled));
+    WhatsNewStartupActivity.hideTipsAndOpenWhatsNewAssistant(getProject(), generalSettings, new BooleanCallback(completeFutureEnabled));
 
     // Check that Tips are enabled again
     try {
       FutureUtils.pumpEventsAndWaitForFuture(completeFutureEnabled, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
       assertTrue(completeFutureEnabled.get());
-      assertTrue(GeneralSettings.getInstance().isShowTipsOnStartup());
+      assertTrue(generalSettings.isShowTipsOnStartup());
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -148,17 +150,17 @@ public class WhatsNewStartupActivityTest extends AndroidTestCase {
     }
 
     // Now disable Tips instead
-    GeneralSettings.getInstance().setShowTipsOnStartup(false);
+    generalSettings.setShowTipsOnStartup(false);
     SettableFuture<Boolean> completeFutureDisabled = SettableFuture.create();
 
     // Temporarily disables tips and opens WNA
-    WhatsNewStartupActivity.hideTipsAndOpenWhatsNewAssistant(getProject(), new BooleanCallback(completeFutureDisabled));
+    WhatsNewStartupActivity.hideTipsAndOpenWhatsNewAssistant(getProject(), generalSettings, new BooleanCallback(completeFutureDisabled));
 
     // Check that Tips are still disabled
     try {
       FutureUtils.pumpEventsAndWaitForFuture(completeFutureDisabled, TIMEOUT_MILLISECONDS, TimeUnit.MILLISECONDS);
       assertTrue(completeFutureDisabled.get());
-      assertFalse(GeneralSettings.getInstance().isShowTipsOnStartup());
+      assertFalse(generalSettings.isShowTipsOnStartup());
     }
     catch (Exception e) {
       e.printStackTrace();

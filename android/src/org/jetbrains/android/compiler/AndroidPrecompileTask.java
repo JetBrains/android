@@ -7,7 +7,12 @@ import com.intellij.compiler.server.BuildManager;
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.compiler.*;
+import com.intellij.openapi.compiler.CompilationStatusListener;
+import com.intellij.openapi.compiler.CompileContext;
+import com.intellij.openapi.compiler.CompileScope;
+import com.intellij.openapi.compiler.CompileTask;
+import com.intellij.openapi.compiler.CompilerMessageCategory;
+import com.intellij.openapi.compiler.CompilerTopics;
 import com.intellij.openapi.compiler.options.ExcludeEntryDescription;
 import com.intellij.openapi.compiler.options.ExcludesConfiguration;
 import com.intellij.openapi.diagnostic.Logger;
@@ -29,7 +34,15 @@ import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.packaging.artifacts.ArtifactProperties;
 import com.intellij.packaging.impl.compiler.ArtifactCompileScope;
 import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.containers.HashMap;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.compiler.artifact.AndroidApplicationArtifactProperties;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactPropertiesProvider;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactSigningMode;
@@ -42,9 +55,6 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky

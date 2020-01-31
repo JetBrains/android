@@ -59,7 +59,7 @@ public class LintHighlightingPass implements HighlightingPass {
       return;
     }
 
-    SceneView sceneView = surface.getCurrentSceneView();
+    SceneView sceneView = surface.getFocusedSceneView();
     if (sceneView == null) {
       return;
     }
@@ -75,7 +75,7 @@ public class LintHighlightingPass implements HighlightingPass {
       return;
     }
 
-    SceneView sceneView = surface.getCurrentSceneView();
+    SceneView sceneView = surface.getFocusedSceneView();
     if (sceneView == null || myLintAnnotationsModel == null) {
       return;
     }

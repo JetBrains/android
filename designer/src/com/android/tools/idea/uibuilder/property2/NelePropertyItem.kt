@@ -42,7 +42,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.parseColor
 import com.android.tools.idea.res.resolveAsIcon
 import com.android.tools.idea.res.resolveColor
-import com.android.tools.idea.resources.aar.AarResourceItem
+import com.android.tools.idea.resources.base.BasicResourceItem
 import com.android.tools.idea.uibuilder.property2.support.ColorSelectionAction
 import com.android.tools.idea.uibuilder.property2.support.EmptyBrowseActionIconButton
 import com.android.tools.idea.uibuilder.property2.support.HelpActions
@@ -99,8 +99,9 @@ open class NelePropertyItem(
   open val componentName: String,
   open val libraryName: String,
   val model: NelePropertiesModel,
-  val optionalValue: Any?,
-  val components: List<NlComponent>
+  val components: List<NlComponent>,
+  val optionalValue1: Any? = null,
+  val optionalValue2: Any? = null
 ) : PropertyItem {
 
   override var value: String?
@@ -119,10 +120,11 @@ open class NelePropertyItem(
     }
 
   override val defaultValue: String?
-    get() {
-      val defValue = model.provideDefaultValue(this) ?: return null
-      return resolveValue(asResourceValue(defValue.reference) ?: defValue)
-    }
+    get() = model.provideDefaultValue(this)
+
+  fun resolveDefaultValue(defValue: ResourceValue?): String? {
+    return resolveValue(asResourceValue(defValue?.reference) ?: defValue)
+  }
 
   override val namespaceIcon: Icon?
     get() = when (namespace) {
@@ -150,6 +152,13 @@ open class NelePropertyItem(
 
   open val delegate: NelePropertyItem?
     get() = this
+
+  // TODO: Change the namespace property above to be of type ResourceReference
+  val asReference: ResourceReference?
+    get() {
+      val ns = ResourceNamespace.fromNamespaceUri(namespace) ?: return null
+      return ResourceReference.attr(ns, name)
+    }
 
   // TODO: Use the namespace resolver in ResourceHelper when it no longer returns [ResourceNamespace.Resolver.TOOLS_ONLY].
   // We need to find the prefix even when namespacing is turned off.
@@ -203,7 +212,7 @@ open class NelePropertyItem(
 
   val designProperty: NelePropertyItem
     get() = if (namespace == TOOLS_URI) this else
-      NelePropertyItem(TOOLS_URI, name, type, definition, componentName, libraryName, model, optionalValue, components)
+      NelePropertyItem(TOOLS_URI, name, type, definition, componentName, libraryName, model, components, optionalValue1, optionalValue2)
 
   override fun equals(other: Any?) =
     when (other) {
@@ -217,6 +226,11 @@ open class NelePropertyItem(
     return resolveValue(asResourceValue(value)) ?: value
   }
 
+  fun resolveValueAsReference(value: String?): ResourceReference? {
+    if (value == null) return null
+    return ResourceUrl.parse(value)?.resolve(defaultNamespace, namespaceResolver)
+  }
+
   fun resolveValueAsColor(value: String?): Color? {
     if (value != null && !isReferenceValue(value)) {
       return parseColor(value)
@@ -226,8 +240,7 @@ open class NelePropertyItem(
   }
 
   private fun asResourceValue(value: String?): ResourceValue? {
-    if (value == null) return null
-    return asResourceValue(ResourceUrl.parse(value)?.resolve(defaultNamespace, namespaceResolver))
+    return asResourceValue(resolveValueAsReference(value))
   }
 
   private fun asResourceValue(reference: ResourceReference?): ResourceValue? {
@@ -327,7 +340,7 @@ open class NelePropertyItem(
       return tags
     }
     if (type == NelePropertyType.ID) {
-      return IdEnumSupport(this).values.map { it.value }
+      return IdEnumSupport(this).values.mapNotNull { it.value }
     }
     val values = mutableListOf<String>()
     val attrDefinition = definition
@@ -336,7 +349,7 @@ open class NelePropertyItem(
     }
     val repositoryManager = ResourceRepositoryManager.getInstance(model.facet)
     val localRepository = repositoryManager.appResources
-    val frameworkRepository = repositoryManager.getFrameworkResources(false)
+    val frameworkRepository = repositoryManager.getFrameworkResources(emptySet())
     val types = type.resourceTypes
     val toName = { item: ResourceItem -> item.referenceToSelf.getRelativeResourceUrl(defaultNamespace, namespaceResolver).toString() }
     if (types.isNotEmpty()) {
@@ -356,7 +369,7 @@ open class NelePropertyItem(
       // AAR resources.
       localRepository.accept(object : ResourceVisitor {
         override fun visit(resourceItem: ResourceItem): ResourceVisitor.VisitResult {
-          if (resourceItem is AarResourceItem && resourceItem.visibility == ResourceVisibility.PUBLIC) {
+          if (resourceItem is BasicResourceItem && resourceItem.visibility == ResourceVisibility.PUBLIC) {
             valueSet.add(toName(resourceItem))
           }
           return ResourceVisitor.VisitResult.CONTINUE
@@ -451,7 +464,7 @@ open class NelePropertyItem(
   // region Implementation of browseButton
 
   private fun createBrowseButton(): ActionIconButton? {
-    if (name == ATTR_ID || type.resourceTypes.isEmpty()) {
+    if (name == ATTR_ID || type == NelePropertyType.DESTINATION || type.resourceTypes.isEmpty()) {
       return EmptyBrowseActionIconButton
     }
     return BrowseActionIconButton()

@@ -8,14 +8,12 @@
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-pixelprobe" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.tools.pixelprobe:pixelprobe:26.5.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:pixelprobe:26.6.0.1" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/pixelprobe/pixelprobe/26.5.0/pixelprobe-26.5.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/pixelprobe/26.6.0.1/pixelprobe-26.6.0.1.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/pixelprobe/pixelprobe/26.5.0/pixelprobe-26.5.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
   </component>

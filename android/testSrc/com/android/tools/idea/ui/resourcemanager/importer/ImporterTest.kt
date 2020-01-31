@@ -23,6 +23,7 @@ import com.android.resources.NightMode
 import com.android.tools.idea.ui.resourcemanager.densityMapper
 import com.android.tools.idea.ui.resourcemanager.getExternalResourceDirectory
 import com.android.tools.idea.ui.resourcemanager.model.Mapper
+import com.android.tools.idea.ui.resourcemanager.model.designAssets
 import com.android.tools.idea.ui.resourcemanager.model.getAssetSets
 import com.android.tools.idea.ui.resourcemanager.nightModeMapper
 import com.intellij.ide.IdeEventQueue

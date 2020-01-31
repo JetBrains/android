@@ -75,7 +75,7 @@ class BuildCppKotlinTest {
   @Test
   fun buildCppKotlinProj() {
     val ideFrame = try {
-      guiTest.importProject("CppKotlin")
+      guiTest.importProjectAndWaitForProjectSyncToFinish("CppKotlin")
     } catch(timeout: WaitTimedOutError) {
       // Ignore. We do not care about project indexing or syncing timeouts in QA tests
       GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)))

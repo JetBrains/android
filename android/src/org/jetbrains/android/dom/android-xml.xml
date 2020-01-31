@@ -91,7 +91,6 @@
                      enabledByDefault="true"
                      key="android.inspections.root.tag.name" groupKey="android.inspections.group.name"/>
     <xml.schemaProvider implementation="org.jetbrains.android.AndroidXmlSchemaProvider"/>
-    <codeInsight.lineMarkerProvider language="XML" implementationClass="org.jetbrains.android.AndroidLineMarkerProvider"/>
     <spellchecker.support language="XML" implementationClass="org.jetbrains.android.spellchecker.AndroidXmlSpellcheckingStrategy" order="before xml"/>
     <lang.refactoringSupport
         id="android_string_resource"
@@ -109,7 +108,6 @@
     <predefinedCodeStyle implementation="org.jetbrains.android.formatter.AndroidXmlPredefinedCodeStyle"/>
 
     <!-- Annotators: -->
-    <annotator language="XML" implementationClass="org.jetbrains.android.AndroidColorAnnotator" order="first"/>
     <externalAnnotator language="XML" implementationClass="org.jetbrains.android.AndroidXMLResourceExternalAnnotator"/>
 
 

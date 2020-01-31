@@ -122,8 +122,6 @@ public class VersionCompatibilityChecker {
   }
 
   public void checkAndReportComponentIncompatibilities(@NotNull Project project) {
-    GradleSyncMessages.getInstance(project).removeMessages(VERSION_COMPATIBILITY_ISSUE_GROUP);
-
     ComponentVersionAndReaderCache cache = new ComponentVersionAndReaderCache();
     Map<String, VersionIncompatibility> incompatibilitiesByCheck = Maps.newHashMap();
 
@@ -136,17 +134,8 @@ public class VersionCompatibilityChecker {
       return;
     }
 
-    boolean hasErrors = false;
-
     for (VersionIncompatibility versionIncompatibility : incompatibilitiesByCheck.values()) {
-      if (versionIncompatibility.getType() == ERROR) {
-        hasErrors = true;
-      }
       versionIncompatibility.reportMessages(project);
-    }
-
-    if (hasErrors) {
-      GradleSyncState.getInstance(project).getSummary().setSyncErrorsFound(true);
     }
   }
 

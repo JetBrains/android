@@ -19,14 +19,17 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.projectsystem.*
 import com.google.common.truth.Truth
-import com.intellij.testFramework.JavaProjectTestCase
+import com.intellij.openapi.extensions.Extensions
+import com.intellij.testFramework.PlatformTestCase
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.registerExtension
 import java.util.*
 
 /**
  * Tests for [DependencyManagement].
  */
-class DependencyManagementTest : JavaProjectTestCase() {
+class DependencyManagementTest : PlatformTestCase() {
+
   private lateinit var projectSystem: TestProjectSystem
   private lateinit var syncManager: ProjectSystemSyncManager
 

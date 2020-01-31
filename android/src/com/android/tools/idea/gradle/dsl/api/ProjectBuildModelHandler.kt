@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api
 
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import com.android.tools.idea.gradle.project.sync.GradleFiles
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.intellij.openapi.application.ApplicationManager
@@ -81,7 +81,7 @@ class ProjectBuildModelHandler(val project: Project) {
    * Returns the [ProjectBuildModel], refreshes it if it falls out of date.
    */
   private fun projectModel(): ProjectBuildModel {
-    val lastKnownSyncTime = GradleSyncState.getInstance(project).lastSyncEndTimeStamp
+    val lastKnownSyncTime = GradleSyncState.getInstance(project).lastSyncFinishedTimeStamp
 
     return projectBuildModel?.takeUnless {
       GradleFiles.getInstance(project).areGradleFilesModified() || modelSyncTime != lastKnownSyncTime

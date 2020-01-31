@@ -106,7 +106,9 @@ end_time: 9223372036854775807
 </message>
     </GrpcCall>
     <GrpcCall FunctionCalled="profiler.proto.MemoryService/TriggerHeapDump" Class="class com.android.tools.profiler.proto.MemoryProfiler$TriggerHeapDumpResponse">
-        <Message>status: SUCCESS
+        <Message>status {
+  status: SUCCESS
+}
 info {
   start_time: 86400000000000
   end_time: 86401000000000
@@ -114,7 +116,9 @@ info {
 </Message>
         <clazz>class com.android.tools.profiler.proto.MemoryProfiler$TriggerHeapDumpResponse</clazz>
         <functionCalled>profiler.proto.MemoryService/TriggerHeapDump</functionCalled>
-        <message>status: SUCCESS
+        <message>status {
+  status: SUCCESS
+}
 info {
   start_time: 86400000000000
   end_time: 86401000000000

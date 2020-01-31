@@ -39,10 +39,6 @@ public abstract class ModuleSetupStep<T> {
     return false;
   }
 
-  public boolean invokeOnSkippedSync() {
-    return false;
-  }
-
   /**
    * @return whether or not to terminate the setup of a module once this step has run.
    */

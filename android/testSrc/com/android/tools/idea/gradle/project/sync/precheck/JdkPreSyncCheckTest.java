@@ -15,8 +15,15 @@
  */
 package com.android.tools.idea.gradle.project.sync.precheck;
 
-import com.android.tools.idea.project.messages.SyncMessage;
+import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
@@ -25,12 +32,6 @@ import com.intellij.openapi.projectRoots.JavaSdkVersion;
 import com.intellij.openapi.projectRoots.Sdk;
 import java.io.File;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.gradle.project.sync.messages.SyncMessageSubject.syncMessage;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link JdkPreSyncCheck}.
@@ -48,13 +49,21 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
 
     loadSimpleApplication();
 
-    myMockIdeSdks = IdeComponents.mockApplicationService(IdeSdks.class, getTestRootDisposable());
-    myMockJdks = IdeComponents.mockApplicationService(Jdks.class, getTestRootDisposable());
+    IdeComponents ideComponents = new IdeComponents(getProject(), getTestRootDisposable());
+    myMockIdeSdks = ideComponents.mockApplicationService(IdeSdks.class);
+    myMockJdks = ideComponents.mockApplicationService(Jdks.class);
     assertSame(myMockIdeSdks, IdeSdks.getInstance());
 
     mySyncMessagesStub = GradleSyncMessagesStub.replaceSyncMessagesService(getProject(), getTestRootDisposable());
 
     myJdkPreSyncCheck = new JdkPreSyncCheck();
+    StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.override(false);
+  }
+
+  @Override
+  public void tearDown() throws Exception {
+    StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.clearOverride();
+    super.tearDown();
   }
 
   public void testDoCheckCanSyncWithNullJdk() {
@@ -86,6 +95,22 @@ public class JdkPreSyncCheckTest extends AndroidGradleTestCase {
     PreSyncCheckResult result = myJdkPreSyncCheck.doCheckCanSyncAndTryToFix(getProject());
     verifyCheckFailure(result,
                        "The version of selected Jdk doesn't match the Jdk used by Studio. Please choose a valid Jdk 8 directory.\n" +
+                       "Selected Jdk location is /path/to/jdk10.");
+  }
+
+  public void testDoCheckWithJdkWithIncompatibleVersionNoCheck() {
+    StudioFlags.ALLOW_DIFFERENT_JDK_VERSION.override(true);
+    Sdk jdk = mock(Sdk.class);
+    String pathToJdk10 = "/path/to/jdk10";
+
+    when(myMockIdeSdks.getJdk()).thenReturn(jdk);
+    when(jdk.getHomePath()).thenReturn(pathToJdk10);
+    when(myMockIdeSdks.getRunningVersionOrDefault()).thenReturn(JavaSdkVersion.JDK_1_8);
+    when(myMockJdks.findVersion(new File(pathToJdk10))).thenReturn(JavaSdkVersion.JDK_10);
+
+    PreSyncCheckResult result = myJdkPreSyncCheck.doCheckCanSyncAndTryToFix(getProject());
+    verifyCheckFailure(result,
+                       "The Jdk installation is invalid.\n" +
                        "Selected Jdk location is /path/to/jdk10.");
   }
 

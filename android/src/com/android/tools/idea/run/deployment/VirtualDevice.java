@@ -22,8 +22,6 @@ import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.DeviceFutures;
 import com.android.tools.idea.run.LaunchableAndroidDevice;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.project.Project;
@@ -36,22 +34,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class VirtualDevice extends Device {
-  static final String DEFAULT_SNAPSHOT = "default_boot";
-  static final ImmutableCollection<String> DEFAULT_SNAPSHOT_COLLECTION = ImmutableList.of(DEFAULT_SNAPSHOT);
-
   private static final Icon ourConnectedIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE);
 
-  /**
-   * Snapshot directory names displayed to the developer.
-   */
-  @NotNull
-  private final ImmutableCollection<String> mySnapshots;
+  @Nullable
+  private final Snapshot mySnapshot;
 
   @NotNull
   static VirtualDevice newConnectedDevice(@NotNull VirtualDevice virtualDevice,
                                           @NotNull ConnectedDevice connectedDevice,
                                           @NotNull KeyToConnectionTimeMap map) {
-    String key = virtualDevice.getKey();
+    Key key = virtualDevice.getKey();
 
     return new Builder()
       .setName(virtualDevice.getName())
@@ -60,17 +52,13 @@ final class VirtualDevice extends Device {
       .setKey(key)
       .setConnectionTime(map.get(key))
       .setAndroidDevice(connectedDevice.getAndroidDevice())
-      .setSnapshots(virtualDevice.mySnapshots)
+      .setSnapshot(virtualDevice.mySnapshot)
       .build();
   }
 
   static final class Builder extends Device.Builder {
-    @NotNull
-    private ImmutableCollection<String> mySnapshots;
-
-    Builder() {
-      mySnapshots = ImmutableList.of();
-    }
+    @Nullable
+    private Snapshot mySnapshot;
 
     @NotNull
     Builder setName(@NotNull String name) {
@@ -91,7 +79,7 @@ final class VirtualDevice extends Device {
     }
 
     @NotNull
-    Builder setKey(@NotNull String key) {
+    Builder setKey(@NotNull Key key) {
       myKey = key;
       return this;
     }
@@ -110,8 +98,8 @@ final class VirtualDevice extends Device {
     }
 
     @NotNull
-    Builder setSnapshots(@NotNull ImmutableCollection<String> snapshots) {
-      mySnapshots = snapshots;
+    Builder setSnapshot(@Nullable Snapshot snapshot) {
+      mySnapshot = snapshot;
       return this;
     }
 
@@ -124,7 +112,7 @@ final class VirtualDevice extends Device {
 
   private VirtualDevice(@NotNull Builder builder) {
     super(builder);
-    mySnapshots = builder.mySnapshots;
+    mySnapshot = builder.mySnapshot;
   }
 
   @NotNull
@@ -138,10 +126,10 @@ final class VirtualDevice extends Device {
     return getConnectionTime() != null;
   }
 
-  @NotNull
+  @Nullable
   @Override
-  ImmutableCollection<String> getSnapshots() {
-    return mySnapshots;
+  Snapshot getSnapshot() {
+    return mySnapshot;
   }
 
   @NotNull
@@ -161,11 +149,11 @@ final class VirtualDevice extends Device {
   }
 
   @Override
-  void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable String snapshot) {
+  void addTo(@NotNull DeviceFutures futures, @NotNull Project project, @Nullable Snapshot snapshot) {
     AndroidDevice device = getAndroidDevice();
 
     if (!isConnected()) {
-      device.launch(project, snapshot);
+      device.launch(project, snapshot == null ? null : snapshot.getDirectoryName());
     }
 
     futures.getDevices().add(device);
@@ -185,7 +173,7 @@ final class VirtualDevice extends Device {
            getKey().equals(device.getKey()) &&
            Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
            getAndroidDevice().equals(device.getAndroidDevice()) &&
-           mySnapshots.equals(device.mySnapshots);
+           Objects.equals(mySnapshot, device.mySnapshot);
   }
 
   @Override
@@ -197,6 +185,6 @@ final class VirtualDevice extends Device {
       getKey(),
       getConnectionTime(),
       getAndroidDevice(),
-      mySnapshots);
+      mySnapshot);
   }
 }

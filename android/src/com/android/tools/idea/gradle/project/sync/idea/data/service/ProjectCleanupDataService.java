@@ -34,6 +34,7 @@ import static com.android.tools.idea.gradle.project.sync.idea.data.service.Andro
 public class ProjectCleanupDataService extends AbstractProjectDataService<ProjectCleanupModel, Void> {
   @NotNull private final ProjectCleanup myProjectCleanup;
 
+  @SuppressWarnings("unused") // Instantiated by IDEA
   public ProjectCleanupDataService() {
     this(new ProjectCleanup());
   }

@@ -1,5 +1,6 @@
 package com.android.example.appwithdatabinding;
 
+import android.view.View;
 import android.arch.lifecycle.LiveData;
 import android.databinding.ObservableField;
 
@@ -21,4 +22,6 @@ public class DummyVo {
     public ObservableField<DummyVo> getObservableField() {
         return null;
     }
+
+    public void saveView(View view) {}
 }

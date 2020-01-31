@@ -2,11 +2,15 @@
 
 package org.jetbrains.android.exportSignedPackage;
 
-import com.android.annotations.VisibleForTesting;
-import com.intellij.credentialStore.CredentialAttributesKt;
-import com.intellij.credentialStore.Credentials;
+import static com.intellij.credentialStore.CredentialAttributesKt.CredentialAttributes;
+import static com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE;
+import static icons.StudioIcons.Common.WARNING_INLINE;
+
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.instantapp.InstantApps;
+import com.google.common.annotations.VisibleForTesting;
+import com.intellij.credentialStore.CredentialAttributesKt;
+import com.intellij.credentialStore.Credentials;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.util.ExecUtil;
 import com.intellij.ide.passwordSafe.PasswordSafe;
@@ -29,19 +33,7 @@ import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.SystemProperties;
-import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.android.compiler.artifact.ApkSigningSettingsForm;
-import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidUiUtil;
-import org.jetbrains.android.util.AndroidUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
-import java.awt.*;
+import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -53,10 +45,23 @@ import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.List;
-
-import static com.intellij.credentialStore.CredentialAttributesKt.CredentialAttributes;
-import static com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE;
-import static icons.StudioIcons.Common.WARNING_INLINE;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import org.jetbrains.android.compiler.artifact.ApkSigningSettingsForm;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.android.util.AndroidUiUtil;
+import org.jetbrains.android.util.AndroidUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Eugene.Kudelevsky
@@ -101,6 +106,7 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
   private final ExportSignedPackageWizard myWizard;
   private final boolean myUseGradleForSigning;
+  private boolean myIsBundle;
   @VisibleForTesting
   AndroidFacet mySelection;
   @VisibleForTesting final List<AndroidFacet> myFacets;
@@ -171,10 +177,10 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
   @Override
   public void _init() {
     super._init();
-    boolean isBundle = myWizard.getTargetType().equals(ExportSignedPackageWizard.BUNDLE);
-    updateModuleDropdown(isBundle);
+    myIsBundle = myWizard.getTargetType().equals(ExportSignedPackageWizard.BUNDLE);
+    updateModuleDropdown();
 
-    if (isBundle) {
+    if (myIsBundle) {
       final GenerateSignedApkSettings settings = GenerateSignedApkSettings.getInstance(myWizard.getProject());
       myExportKeysCheckBox.setSelected(settings.EXPORT_PRIVATE_KEY);
       myGoogleAppSigningLabel.setHyperlinkText("Google Play App Signing");
@@ -193,41 +199,37 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     }
   }
 
-  private void updateModuleDropdown(boolean isBundle) {
-    List<AndroidFacet> facets = isBundle ? filteredFacets(myFacets) : myFacets;
+  private void updateModuleDropdown() {
+    List<AndroidFacet> facets = myIsBundle ? filteredFacets(myFacets) : myFacets;
+    mySelection = null;
     myModuleCombo.setEnabled(facets.size() > 1);
     if (!facets.isEmpty()) {
-      if (mySelection == null) {
-        String moduleName = PropertiesComponent.getInstance(myWizard.getProject()).getValue(MODULE_PROPERTY);
-        if (moduleName != null) {
-          for (AndroidFacet facet : facets) {
-            if (moduleName.equals(facet.getModule().getName())) {
-              mySelection = facet;
-              break;
-            }
-          }
-        }
-      }
-
-      // it's possible for mySelection to be filtered out if user goes from apk -> select an instant app module -> back to build a bundle
-      // switch to the first valid facet in that case.
-      if (!facets.contains(mySelection)) {
-        mySelection = facets.get(0);
-      }
-
-      myModuleCombo.setModel(new CollectionComboBoxModel<>(facets, mySelection));
+      // If the selected module is not available, just pick the first item in the list
+      String savedModuleName = PropertiesComponent.getInstance(myWizard.getProject()).getValue(getModuleProperty(myIsBundle));
+      Optional<AndroidFacet> optionalFacet = facets.stream()
+        .filter(facet -> facet.getModule().getName().equals(savedModuleName))
+        .findFirst();
+      mySelection = optionalFacet.orElse(facets.get(0));
+      myModuleCombo.setModel(new CollectionComboBoxModel(facets, mySelection));
       updateSelection(mySelection);
     }
   }
 
   // Instant Apps cannot be built as bundles
-  private static List<AndroidFacet> filteredFacets(List<AndroidFacet> facets) {
-    return ContainerUtil.filter(facets, f -> !InstantApps.isInstantAppApplicationModule(f.getModule()));
+  private List<AndroidFacet> filteredFacets(List<AndroidFacet> facets) {
+    return facets.stream().filter(f -> !InstantApps.isInstantAppApplicationModule(f.getModule())).collect(Collectors.toList());
   }
 
   private void updateSelection(@Nullable AndroidFacet selectedItem) {
+    PropertiesComponent.getInstance(myWizard.getProject())
+      .setValue(getModuleProperty(myIsBundle), selectedItem == null ? "" : selectedItem.getModule().getName());
     mySelection = selectedItem;
     showGradleError(!isGradleValid(myWizard.getTargetType()));
+  }
+
+  @NotNull
+  static String getModuleProperty(boolean isBundle) {
+    return isBundle ? "Bundle" + MODULE_PROPERTY : "Apk" + MODULE_PROPERTY;
   }
 
   private boolean isGradleValid(@Nullable String targetType) {
@@ -270,9 +272,9 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
       password = passwordSafe.getPassword(CredentialAttributesKt.CredentialAttributes(primaryRequestor, key));
     }
     catch (Throwable t) {
-        Logger.getInstance(KeystoreStep.class).info("Unable to use password safe", t);
+      Logger.getInstance(KeystoreStep.class).info("Unable to use password safe", t);
     }
-    if ((password == null) && (passwordSafe != null)){
+    if ((password == null) && (passwordSafe != null)) {
       // Try to retrieve password previously saved with an old requestor in order to make user experience more seamless
       // while transitioning to a version which contains the fix for b/64995008, rather than having them retype all the
       // passwords at once.
@@ -489,7 +491,9 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
     return myExportKeysCheckBox;
   }
 
-  /** Copied from {@link GotoDesktopDirAction} **/
+  /**
+   * Copied from {@link GotoDesktopDirAction}
+   */
   @Nullable
   private static VirtualFile getDesktopDirectory() {
     File desktop = new File(SystemProperties.getUserHome(), "Desktop");
@@ -503,5 +507,4 @@ class KeystoreStep extends ExportSignedPackageWizardStep implements ApkSigningSe
 
     return desktop.isDirectory() ? LocalFileSystem.getInstance().refreshAndFindFileByIoFile(desktop) : null;
   }
-
 }

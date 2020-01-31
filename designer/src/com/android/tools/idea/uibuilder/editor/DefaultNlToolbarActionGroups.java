@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.editor;
 
-import static com.android.tools.adtui.actions.ZoomShortcut.ZOOM_FIT;
-import static com.android.tools.adtui.actions.ZoomShortcut.ZOOM_IN;
-import static com.android.tools.adtui.actions.ZoomShortcut.ZOOM_OUT;
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.DESIGN_MODE;
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.NEXT_DEVICE;
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.REFRESH_LAYOUT;
@@ -25,10 +22,6 @@ import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.SWITCH
 import static com.android.tools.idea.common.surface.DesignSurfaceShortcut.TOGGLE_ISSUE_PANEL;
 
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.adtui.actions.ZoomInAction;
-import com.android.tools.adtui.actions.ZoomLabelAction;
-import com.android.tools.adtui.actions.ZoomOutAction;
-import com.android.tools.adtui.actions.ZoomToFitAction;
 import com.android.tools.idea.actions.BlueprintAndDesignModeAction;
 import com.android.tools.idea.actions.BlueprintModeAction;
 import com.android.tools.idea.actions.DesignModeAction;
@@ -41,10 +34,14 @@ import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.configurations.OrientationMenuAction;
 import com.android.tools.idea.configurations.TargetMenuAction;
 import com.android.tools.idea.configurations.ThemeMenuAction;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RefreshRenderAction;
+import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantActionKt;
 import com.android.tools.idea.uibuilder.actions.SwitchDesignModeAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
+import com.android.tools.idea.uibuilder.surface.SceneMode;
 import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import icons.StudioIcons;
 import org.jetbrains.annotations.NotNull;
@@ -57,13 +54,27 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
   public DefaultNlToolbarActionGroups(@NotNull NlDesignSurface surface) {
     super(surface);
+  }
 
+  @NotNull
+  @Override
+  protected ActionGroup getEastGroup() {
+    if (StudioFlags.NELE_LAYOUT_EDITOR_ASSISTANT_ENABLED.get()) {
+      DefaultActionGroup group = new DefaultActionGroup();
+      group.add(ActionManager.getInstance().getAction(LayoutEditorHelpAssistantActionKt.getBUNDLE_ID()));
+      return group;
+    }
+    return ActionGroup.EMPTY_GROUP;
   }
 
   @NotNull
   @Override
   protected ActionGroup getNorthGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
+    if (isInVisualizationTool()) {
+      // There is no north group in visualization for now.
+      return group;
+    }
 
     group.add(DESIGN_MODE.registerForHiddenAction(createDesignModeAction(),
                                                   new SwitchDesignModeAction((NlDesignSurface)mySurface), mySurface, this));
@@ -86,9 +97,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
 
   @NotNull
   private DropDownAction createDesignModeAction() {
-    DropDownAction designSurfaceMenu = new DropDownAction(
-      "", "Select Design Surface",
-      StudioIcons.LayoutEditor.Toolbar.VIEW_MODE);
+    DropDownAction designSurfaceMenu = new DropDownAction(null, "Select Design Surface", StudioIcons.LayoutEditor.Toolbar.VIEW_MODE);
     designSurfaceMenu.addAction(new DesignModeAction((NlDesignSurface)mySurface));
     designSurfaceMenu.addAction(new BlueprintModeAction((NlDesignSurface)mySurface));
     designSurfaceMenu.addAction(new BlueprintAndDesignModeAction((NlDesignSurface)mySurface));
@@ -101,14 +110,17 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
   @Override
   protected ActionGroup getNorthEastGroup() {
     DefaultActionGroup group = new DefaultActionGroup();
-
-    group.add(ZOOM_OUT.registerForAction(ZoomOutAction.INSTANCE, mySurface, this));
-    group.add(ZoomLabelAction.INSTANCE);
-    group.add(ZOOM_IN.registerForAction(ZoomInAction.INSTANCE, mySurface, this));
-    group.add(ZOOM_FIT.registerForAction(ZoomToFitAction.INSTANCE, mySurface, this));
-    group.addSeparator();
+    if (isInVisualizationTool()) {
+      // Ignore Issue panel in visualisation.
+      group.addAll(getZoomActionsWithShortcuts(mySurface, this));
+      return group;
+    }
+    addActionsWithSeparator(group, getZoomActionsWithShortcuts(mySurface, this));
     group.add(TOGGLE_ISSUE_PANEL.registerForAction(new IssueNotificationAction(mySurface), mySurface, this));
-
     return group;
+  }
+
+  private boolean isInVisualizationTool() {
+    return StudioFlags.NELE_VISUALIZATION.get() && ((NlDesignSurface) mySurface).getSceneMode() == SceneMode.VISUALIZATION;
   }
 }

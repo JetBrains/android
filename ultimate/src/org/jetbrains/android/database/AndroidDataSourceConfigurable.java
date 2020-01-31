@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.database;
 
 import com.android.ddmlib.AndroidDebugBridge;
@@ -22,8 +21,9 @@ import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBRadioButton;
-import com.intellij.ui.scale.JBUIScale;
-import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ArrayUtil;
+import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.Activatable;
 import com.intellij.util.ui.update.UiNotifyConnector;
 import org.jetbrains.android.dom.manifest.Manifest;
@@ -62,7 +62,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
   private JBRadioButton myInternalStorageRadioButton;
 
   private IDevice mySelectedDevice = null;
-  private final Map<String, List<String>> myDatabaseMap = new LinkedHashMap<>();
+  private final Map<String, List<String>> myDatabaseMap = ContainerUtil.newLinkedHashMap();
   private final AndroidDebugBridge.IDeviceChangeListener myDeviceListener;
 
   private final AndroidDataSource myTempDataSource;
@@ -104,7 +104,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
                                                                                return new DeviceNameProperties(null, null, null, null);
                                                                              }
                                                                            }));
-    myDeviceComboBox.setPreferredSize(new Dimension(JBUIScale.scale(300), myDeviceComboBox.getPreferredSize().height));
+    myDeviceComboBox.setPreferredSize(new Dimension(JBUI.scale(300), myDeviceComboBox.getPreferredSize().height));
     myDeviceComboBox.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -227,7 +227,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     }
     else if (!selectedDevice.equals(mySelectedDevice)) {
       loadDatabases(selectedDevice);
-      myPackageNameComboBox.setModel(new DefaultComboBoxModel<>(ArrayUtilRt.toStringArray(myDatabaseMap.keySet())));
+      myPackageNameComboBox.setModel(new DefaultComboBoxModel<>(ArrayUtil.toStringArray(myDatabaseMap.keySet())));
       updateDbCombo();
     }
     mySelectedDevice = selectedDevice;
@@ -241,7 +241,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
 
     if (myInternalStorageRadioButton.isSelected()) {
       List<String> dbList = myDatabaseMap.get(selectedPackage);
-      myDataBaseComboBox.setModel(new DefaultComboBoxModel<>(ArrayUtilRt.toStringArray(dbList)));
+      myDataBaseComboBox.setModel(new DefaultComboBoxModel<>(ArrayUtil.toStringArray(dbList)));
     }
     else {
       myDataBaseComboBox.setModel(new DefaultComboBoxModel<>(DEFAULT_EXTERNAL_DB_PATTERNS));
@@ -270,7 +270,7 @@ public class AndroidDataSourceConfigurable extends AbstractDataSourceConfigurabl
     final Set<String> packages = new HashSet<>();
 
     for (AndroidFacet facet : ProjectFacetManager.getInstance(myProject).getFacets(AndroidFacet.ID)) {
-      final Manifest manifest = facet.getManifest();
+      final Manifest manifest = Manifest.getMainManifest(facet);
 
       if (manifest != null) {
         final String aPackage = manifest.getPackage().getStringValue();

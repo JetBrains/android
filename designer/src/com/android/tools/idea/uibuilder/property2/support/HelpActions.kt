@@ -44,7 +44,7 @@ object HelpActions {
       val property = event.dataContext.getData(HelpSupport.PROPERTY_ITEM) as NelePropertyItem? ?: return
       val tag = property.components.first().backend.getTagDeprecated()
       val documentation = createHelpText(property, allowEmptyDescription = false).nullize() ?: return
-      DocumentationManager.getInstance(property.project).showJavaDocInfo(tag, tag, true, null, documentation, false)
+      DocumentationManager.getInstance(property.project).showJavaDocInfo(tag, tag, true, null, documentation, true)
     }
   }
 

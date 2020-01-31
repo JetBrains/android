@@ -23,7 +23,7 @@ import com.intellij.psi.PsiModifier
  *
  * Note: This class is adapted from [android.databinding.tool.reflection.ModelField] from db-compiler.
  */
-class PsiModelField(val psiField: PsiField) {
+class PsiModelField(containingClass: PsiModelClass, val psiField: PsiField) {
 
   val name: String
     get() = psiField.name
@@ -31,4 +31,6 @@ class PsiModelField(val psiField: PsiField) {
   val isPublic = psiField.hasModifierProperty(PsiModifier.PUBLIC)
 
   val isStatic = psiField.hasModifierProperty(PsiModifier.STATIC)
+
+  val fieldType = PsiModelClass(containingClass.substitutor.substitute(psiField.type), containingClass.mode)
 }

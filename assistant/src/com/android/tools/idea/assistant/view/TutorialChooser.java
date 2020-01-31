@@ -18,6 +18,7 @@ package com.android.tools.idea.assistant.view;
 import com.android.tools.idea.assistant.datamodel.AnalyticsProvider;
 import com.android.tools.idea.assistant.datamodel.TutorialBundleData;
 import com.android.tools.idea.assistant.datamodel.FeatureData;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.components.JBLabel;
@@ -106,7 +107,7 @@ public class TutorialChooser extends CardViewPanel {
     serviceScroller.getViewport().setOpaque(false);
     add(serviceScroller, BorderLayout.CENTER);
     // reset the scroll bars after render see b/77530149
-    SwingUtilities.invokeLater(() -> serviceScroller.getVerticalScrollBar().setValue(0));
+    ApplicationManager.getApplication().invokeLater(() -> serviceScroller.getVerticalScrollBar().setValue(0));
   }
 
   /**

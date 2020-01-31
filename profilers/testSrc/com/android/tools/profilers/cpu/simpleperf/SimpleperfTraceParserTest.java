@@ -17,7 +17,7 @@ package com.android.tools.profilers.cpu.simpleperf;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.SimpleperfReport;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.android.tools.profilers.cpu.CpuCapture;
 import com.android.tools.profilers.cpu.CpuThreadInfo;

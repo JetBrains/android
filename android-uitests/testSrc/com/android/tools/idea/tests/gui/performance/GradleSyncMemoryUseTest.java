@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.performance;
 
+import static com.android.tools.idea.gradle.util.BuildMode.REBUILD;
+
 import com.android.tools.idea.gradle.eclipse.GradleImport;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -123,6 +125,16 @@ public class GradleSyncMemoryUseTest {
         .awaitNotification("Gradle project sync failed. Basic functionality (e.g. editing, debugging) will not work properly.")
         .performAction("Try Again")
         .waitForGradleProjectSyncToFinish();
+    });
+  }
+
+  @Test
+  @UseBleak
+  public void rebuildProject() throws Exception {
+    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
+    Bleak.runWithBleak(() -> {
+      ideFrameFixture.waitAndInvokeMenuPath("Build", "Rebuild Project")
+        .waitForBuildToFinish(REBUILD);
     });
   }
 }

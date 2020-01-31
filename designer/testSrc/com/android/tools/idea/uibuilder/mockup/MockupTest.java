@@ -24,7 +24,6 @@ import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
@@ -244,19 +243,16 @@ public class MockupTest extends MockupTestCase {
     final Mockup mockup = Mockup.create(component);
     assertNotNull(mockup);
 
-    NlDesignSurface surface = new NlDesignSurface(getProject(), false, getProject()) {
-      @Override
-      public CompletableFuture<Void> requestRender() {
-        // No need for layoutlib render
-        return CompletableFuture.completedFuture(null);
-      }
-
-      @NotNull
-      @Override
-      protected SceneManager createSceneManager(@NotNull NlModel model) {
-        return new SyncLayoutlibSceneManager((SyncNlModel) model);
-      }
-    };
+    NlDesignSurface surface = NlDesignSurface.builder(getProject(), getProject())
+      .setSceneManagerProvider((s, m) -> new SyncLayoutlibSceneManager((SyncNlModel) m) {
+        @NotNull
+        @Override
+        public CompletableFuture<Void> requestRender() {
+          // This test does not need Layoutlib renders
+          return CompletableFuture.completedFuture(null);
+        }
+      })
+      .build();
     surface.setModel(model);
     final ScreenView screenView = new ScreenView(surface, surface.getSceneManager()) {
       @Override
@@ -264,7 +260,7 @@ public class MockupTest extends MockupTestCase {
         return 1.0;
       }
     };
-
+    
     final Rectangle componentSwingCoordinates = new Rectangle(0, 0,
                                                               Coordinates.getSwingDimension(screenView, 1000),
                                                               // See createModel for the 1000 value
@@ -280,19 +276,16 @@ public class MockupTest extends MockupTestCase {
     final Mockup mockup = Mockup.create(component);
     assertNotNull(mockup);
 
-    NlDesignSurface surface = new NlDesignSurface(getProject(), false, getProject()) {
-      @Override
-      public CompletableFuture<Void> requestRender() {
-        // No need for layoutlib render
-        return CompletableFuture.completedFuture(null);
-      }
-
-      @NotNull
-      @Override
-      protected SceneManager createSceneManager(@NotNull NlModel model) {
-        return new SyncLayoutlibSceneManager((SyncNlModel) model);
-      }
-    };
+    NlDesignSurface surface = NlDesignSurface.builder(getProject(), getProject())
+      .setSceneManagerProvider((s, m) -> new SyncLayoutlibSceneManager((SyncNlModel) m) {
+        @NotNull
+        @Override
+        public CompletableFuture<Void> requestRender() {
+          // This test does not need Layoutlib renders
+          return CompletableFuture.completedFuture(null);
+        }
+      })
+      .build();
     surface.setModel(model);
     final ScreenView screenView = new ScreenView(surface, surface.getSceneManager()) {
       @Override

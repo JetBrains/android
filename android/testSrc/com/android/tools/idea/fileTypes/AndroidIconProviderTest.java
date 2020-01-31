@@ -16,6 +16,7 @@
 package com.android.tools.idea.fileTypes;
 
 import com.android.tools.idea.rendering.FlagManager;
+import com.intellij.ide.ui.UISettings;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -25,10 +26,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.nio.charset.StandardCharsets;
 
 public class AndroidIconProviderTest extends AndroidTestCase {
   public void testFlagIcons() throws Exception {
+    //UISettings.getInstance().getState().setLanguageFlags(false); FIXME-ank2: no such method
     checkIcon("res/wrong/path.xml", null);
     checkIcon("res/layout/file.xml", null);
     checkIcon("res/layout-land/file.xml", null);
@@ -38,10 +39,17 @@ public class AndroidIconProviderTest extends AndroidTestCase {
     checkIcon("res/values-en-rGB/strings.xml", "GB");
   }
 
+  public void testFlagForLanguageEnabled() throws Exception {
+    //UISettings.getInstance().getState().setLanguageFlags(true); FIXME-ank2: no such method
+    checkIcon("res/layout-land/file.xml", null);
+    checkIcon("res/values-no/strings.xml", "NO");
+    checkIcon("res/values-en-rUS/strings.xml", "US");
+  }
+
   private void checkIcon(@NotNull String path, @Nullable String region) throws Exception {
     AndroidIconProvider provider = new AndroidIconProvider();
     VirtualFile file = myFixture.getTempDirFixture().createFile(path);
-    WriteAction.run(() -> file.setBinaryContent("content does not matter".getBytes(StandardCharsets.UTF_8)));
+    WriteAction.run(() -> file.setBinaryContent("content does not matter".getBytes()));
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
     assertNotNull(psiFile);
     int flags = 0;

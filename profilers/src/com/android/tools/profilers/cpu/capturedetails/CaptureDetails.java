@@ -18,12 +18,14 @@ package com.android.tools.profilers.cpu.capturedetails;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.cpu.CaptureNode;
+import com.android.tools.profilers.cpu.CpuCapture;
+import com.android.tools.profilers.cpu.atrace.AtraceCpuCapture;
+import com.android.tools.profilers.cpu.audits.RenderAuditModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiFunction;
 
 /**
  * An interface that represents a capture details, e.g it can be {@link TopDown}, {@link BottomUp},
@@ -34,21 +36,26 @@ public interface CaptureDetails {
     TOP_DOWN(TopDown::new),
     BOTTOM_UP(BottomUp::new),
     CALL_CHART(CallChart::new),
-    FLAME_CHART(FlameChart::new);
+    FLAME_CHART(FlameChart::new),
+    RENDER_AUDIT(RenderAuditCaptureDetails::new);
 
     @NotNull
-    private final BiFunction<Range, CaptureNode, CaptureDetails> myBuilder;
+    private final CaptureDetailsBuilder myBuilder;
 
-    Type(@NotNull BiFunction<Range, CaptureNode, CaptureDetails> builder) {
+    Type(@NotNull CaptureDetailsBuilder builder) {
       myBuilder = builder;
     }
 
-    public CaptureDetails build(Range range, CaptureNode node) {
-      return myBuilder.apply(range, node);
+    public CaptureDetails build(Range range, CaptureNode node, CpuCapture cpuCapture) {
+      return myBuilder.build(range, node, cpuCapture);
     }
   }
 
   Type getType();
+
+  interface CaptureDetailsBuilder {
+    CaptureDetails build(Range range, CaptureNode captureNode, CpuCapture cpuCapture);
+  }
 
   interface ChartDetails extends CaptureDetails {
     @Nullable
@@ -58,7 +65,7 @@ public interface CaptureDetails {
   class TopDown implements CaptureDetails {
     @Nullable private final TopDownTreeModel myModel;
 
-    public TopDown(@NotNull Range range, @Nullable CaptureNode node) {
+    public TopDown(@NotNull Range range, @Nullable CaptureNode node, @Nullable CpuCapture cpuCapture) {
       myModel = node == null ? null : new TopDownTreeModel(range, new TopDownNode(node));
     }
 
@@ -76,7 +83,7 @@ public interface CaptureDetails {
   class BottomUp implements CaptureDetails {
     @Nullable private BottomUpTreeModel myModel;
 
-    public BottomUp(@NotNull Range range, @Nullable CaptureNode node) {
+    public BottomUp(@NotNull Range range, @Nullable CaptureNode node, @Nullable CpuCapture cpuCapture) {
       myModel = node == null ? null : new BottomUpTreeModel(range, new BottomUpNode(node));
     }
 
@@ -95,7 +102,7 @@ public interface CaptureDetails {
     @NotNull private final Range myRange;
     @Nullable private CaptureNode myNode;
 
-    public CallChart(@NotNull Range range, @Nullable CaptureNode node) {
+    public CallChart(@NotNull Range range, @Nullable CaptureNode node, @Nullable CpuCapture cpuCapture) {
       myRange = range;
       myNode = node;
     }
@@ -132,7 +139,7 @@ public interface CaptureDetails {
     @NotNull private final Range mySelectionRange;
     @NotNull private final AspectModel<Aspect> myAspectModel;
 
-    public FlameChart(@NotNull Range selectionRange, @Nullable CaptureNode captureNode) {
+    public FlameChart(@NotNull Range selectionRange, @Nullable CaptureNode captureNode, @Nullable CpuCapture cpuCapture) {
       mySelectionRange = selectionRange;
       myFlameRange = new Range();
       myAspectModel = new AspectModel<>();
@@ -224,6 +231,26 @@ public interface CaptureDetails {
       }
 
       return node;
+    }
+  }
+
+  class RenderAuditCaptureDetails implements CaptureDetails {
+
+    private final RenderAuditModel myRenderAuditModel;
+
+    public RenderAuditCaptureDetails(@NotNull Range range, @Nullable CaptureNode node, @NotNull CpuCapture cpuCapture) {
+      // The Render Audit tab is only added in the CapturePane is the capture is an AtraceCpuCapture
+      assert cpuCapture instanceof AtraceCpuCapture;
+      myRenderAuditModel = new RenderAuditModel((AtraceCpuCapture)cpuCapture);
+    }
+
+    @Override
+    public Type getType() {
+      return Type.RENDER_AUDIT;
+    }
+
+    public RenderAuditModel getRenderAuditModel() {
+      return myRenderAuditModel;
     }
   }
 }

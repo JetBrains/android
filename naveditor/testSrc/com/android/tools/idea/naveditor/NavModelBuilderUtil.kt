@@ -23,7 +23,6 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.common.surface.InteractionManager
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.naveditor.model.NavComponentHelper
@@ -69,7 +68,6 @@ object NavModelBuilderUtil {
       `when`<NlComponent>(surface.currentNavigation).then { model.components[0] }
       `when`(surface.extentSize).thenReturn(Dimension(500, 500))
       `when`(surface.scrollPosition).thenAnswer { Point(0, 0) }
-      `when`(surface.interactionManager).thenReturn(InteractionManager(surface))
 
       val sceneView = mock(SceneView::class.java)
       `when`<NlModel>(sceneView.model).thenReturn(model)
@@ -78,7 +76,7 @@ object NavModelBuilderUtil {
       `when`(sceneView.selectionModel).thenReturn(selectionModel)
       `when`<DesignSurface>(sceneView.surface).thenReturn(surface)
 
-      `when`<SceneView>(surface.currentSceneView).thenReturn(sceneView)
+      `when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
 
       NavSceneManager(model, surface)
     }
@@ -144,12 +142,14 @@ object NavModelBuilderUtil {
       navigation.apply(f)
     }
 
-    fun action(id: String, destination: String? = null) {
-      addChild(ActionComponentDescriptor(id, destination), null)
+    fun action(id: String, destination: String? = null, popUpTo: String? = null, f: ActionComponentDescriptor.() -> Unit = {}) {
+      val action = ActionComponentDescriptor(id, destination, popUpTo)
+      addChild(action, null)
+      action.apply(f)
     }
 
-    fun deeplink(uri: String, autoVerify: Boolean = false) {
-      addChild(DeepLinkComponentDescriptor(uri, autoVerify), null)
+    fun deeplink(id: String, uri: String, autoVerify: Boolean = false) {
+      addChild(DeepLinkComponentDescriptor(id, uri, autoVerify), null)
     }
 
     fun argument(name: String, type: String? = null, nullable: Boolean? = null, value: String? = null) {
@@ -179,8 +179,8 @@ object NavModelBuilderUtil {
       action.apply(f)
     }
 
-    fun deeplink(uri: String, autoVerify: Boolean = false) {
-      addChild(DeepLinkComponentDescriptor(uri, autoVerify), null)
+    fun deeplink(id: String, uri: String, autoVerify: Boolean = false) {
+      addChild(DeepLinkComponentDescriptor(id, uri, autoVerify), null)
     }
 
     fun argument(name: String, type: String? = null, nullable: Boolean? = null, value: String? = null) {
@@ -211,8 +211,8 @@ object NavModelBuilderUtil {
       layout?.let { withAttribute(TOOLS_URI, ATTR_LAYOUT, layout) }
     }
 
-    fun deeplink(uri: String, autoVerify: Boolean = false) {
-      addChild(DeepLinkComponentDescriptor(uri, autoVerify), null)
+    fun deeplink(id: String, uri: String, autoVerify: Boolean = false) {
+      addChild(DeepLinkComponentDescriptor(id, uri, autoVerify), null)
     }
 
     fun argument(name: String, type: String? = null, nullable: Boolean? = null, value: String? = null) {
@@ -226,8 +226,9 @@ object NavModelBuilderUtil {
     }
   }
 
-  class DeepLinkComponentDescriptor(uri: String, autoVerify: Boolean) : NavComponentDescriptor(TAG_DEEP_LINK) {
+  class DeepLinkComponentDescriptor(id: String, uri: String, autoVerify: Boolean) : NavComponentDescriptor(TAG_DEEP_LINK) {
     init {
+      id("@+id/$id")
       withAttribute(AUTO_URI, ATTR_URI, uri)
       if (autoVerify) {
         withAttribute(ANDROID_URI, ATTR_AUTO_VERIFY, "true")

@@ -30,12 +30,22 @@ private val defaultConfiguration = QualifierMatcherConfiguration(null, listOf())
 
 /**
  * Manager to save and load the importation settings.
+ *
+ * This class can be used to save a custom configuration to map a file to a qualifier.
+ *
  */
 @State(
   name = "ImportConfigurationManager",
   storages = [Storage(value = "design_importer.xml")]
 )
 class ImportConfigurationManager : PersistentStateComponent<QualifierMatcherConfiguration> {
+  // For now, the class is not used and was part of an experiment where user could
+  // edit how to map some token on a file path a qualifier via the UI.
+  //
+  // The class is kept around because it might be a good idea to let users customize how
+  // they want their assets to be imported (e.g maybe their designer use some custom file structure
+  // for organizing the densities of their icons). This can also be modified to read the configuration from
+  // a file in a separate folder along with the design resource that might be living outside the project.
 
   private var configuration: QualifierMatcherConfiguration = defaultConfiguration
 

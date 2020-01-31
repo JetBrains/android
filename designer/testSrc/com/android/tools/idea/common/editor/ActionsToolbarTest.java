@@ -71,7 +71,7 @@ public class ActionsToolbarTest extends LayoutTestCase {
     IssueModel issueModel = new IssueModel();
     IssuePanel issuePanel = new IssuePanel(surface, issueModel);
     Disposer.register(getTestRootDisposable(), issuePanel);
-    when(surface.getActionManager()).thenReturn(actionManager);
+    doReturn(actionManager).when(surface).getActionManager();
     doReturn(LayoutFileType.INSTANCE).when(surface).getLayoutType();
     when(surface.getIssuePanel()).thenReturn(issuePanel);
     when(surface.getIssueModel()).thenReturn(issueModel);

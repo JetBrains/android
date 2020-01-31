@@ -36,6 +36,7 @@ import com.android.builder.model.Dependencies;
 import com.android.builder.model.JavaCompileOptions;
 import com.android.builder.model.ProductFlavor;
 import com.android.builder.model.ProductFlavorContainer;
+import com.android.builder.model.ProjectSyncIssues;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.SourceProviderContainer;
 import com.android.builder.model.SyncIssue;
@@ -54,7 +55,6 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.databinding.DataBindingMode;
 import com.android.tools.idea.gradle.AndroidGradleClassJarProvider;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
-import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlyProjectModels.VariantOnlyModuleModel;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.model.ClassJarProvider;
 import com.android.tools.lint.detector.api.Desugaring;
@@ -74,6 +74,7 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.serialization.PropertyMapping;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -111,17 +112,12 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
   @Nullable private transient GradleVersion myModelVersion;
   @NotNull private String mySelectedVariantName;
 
-  private transient VirtualFile myRootDir;
-
   @Nullable private Boolean myOverridesManifestPackage;
   @Nullable private transient AndroidVersion myMinSdkVersion;
 
   @NotNull private Map<String, BuildTypeContainer> myBuildTypesByName = new HashMap<>();
   @NotNull private Map<String, ProductFlavorContainer> myProductFlavorsByName = new HashMap<>();
   @NotNull private Map<String, IdeVariant> myVariantsByName = new HashMap<>();
-  @NotNull private Set<String> myVariantNames = new HashSet<>();
-  private boolean myUsingSingleVariantSync;
-
   @NotNull private Set<File> myExtraGeneratedSourceFolders = new HashSet<>();
 
   @Nullable
@@ -136,29 +132,48 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return androidModel instanceof AndroidModuleModel ? (AndroidModuleModel)androidModel : null;
   }
 
+  public static AndroidModuleModel create(@NotNull String moduleName,
+                                          @NotNull File rootDirPath,
+                                          @NotNull AndroidProject androidProject,
+                                          @NotNull String selectedVariantName,
+                                          @NotNull IdeDependenciesFactory dependenciesFactory) {
+    return create(moduleName, rootDirPath, androidProject, selectedVariantName, dependenciesFactory, null, null);
+  }
+
+  public static AndroidModuleModel create(@NotNull String moduleName,
+                                          @NotNull File rootDirPath,
+                                          @NotNull IdeAndroidProject androidProject,
+                                          @NotNull String variantName) {
+    return new AndroidModuleModel(moduleName, rootDirPath, androidProject, variantName);
+  }
+
   /**
    * @param moduleName          the name of the IDEA module, created from {@code delegate}.
    * @param rootDirPath         the root directory of the imported Android-Gradle project.
    * @param androidProject      imported Android-Gradle project.
-   * @param selectedVariantName the name of selected variant.
+   * @param variantName         the name of selected variant.
    * @param dependenciesFactory the factory instance to create {@link IdeDependencies}.
+   * @param variantsToAdd       list of variants to add that were requested but not present in the {@link AndroidProject}.
+   * @param syncIssues          Model containing all sync issues that were produced by Gradle.
    */
-  public AndroidModuleModel(@NotNull String moduleName,
-                            @NotNull File rootDirPath,
-                            @NotNull AndroidProject androidProject,
-                            @NotNull String selectedVariantName,
-                            @NotNull IdeDependenciesFactory dependenciesFactory) {
-    this(moduleName, rootDirPath, androidProject, selectedVariantName, dependenciesFactory, null);
+  public static AndroidModuleModel create(@NotNull String moduleName,
+                                          @NotNull File rootDirPath,
+                                          @NotNull AndroidProject androidProject,
+                                          @NotNull String variantName,
+                                          @NotNull IdeDependenciesFactory dependenciesFactory,
+                                          @Nullable Collection<Variant> variantsToAdd,
+                                          @Nullable ProjectSyncIssues syncIssues) {
+    IdeAndroidProject ideAndroidProject = IdeAndroidProjectImpl.create(androidProject, dependenciesFactory, variantsToAdd, syncIssues);
+    return new AndroidModuleModel(moduleName, rootDirPath, ideAndroidProject, variantName);
   }
 
-  public AndroidModuleModel(@NotNull String moduleName,
-                            @NotNull File rootDirPath,
-                            @NotNull AndroidProject androidProject,
-                            @NotNull String variantName,
-                            @NotNull IdeDependenciesFactory dependenciesFactory,
-                            @Nullable Collection<Variant> variantsToAdd) {
-    myAndroidProject = new IdeAndroidProjectImpl(androidProject, dependenciesFactory, variantsToAdd);
-    myUsingSingleVariantSync = variantsToAdd != null;
+  @PropertyMapping({"myModuleName", "myRootDirPath", "myAndroidProject", "mySelectedVariantName"})
+  @VisibleForTesting
+  AndroidModuleModel(@NotNull String moduleName,
+                     @NotNull File rootDirPath,
+                     @NotNull IdeAndroidProject androidProject,
+                     @NotNull String variantName) {
+    myAndroidProject = androidProject;
 
     myProjectSystemId = GRADLE_SYSTEM_ID;
     myModuleName = moduleName;
@@ -173,26 +188,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     mySelectedVariantName = findVariantToSelect(variantName);
   }
 
-  // for serialization
-  @SuppressWarnings({"unused", "ConstantConditions"})
-  private AndroidModuleModel() {
-    myProjectSystemId = null;
-    myModuleName = null;
-    myRootDirPath = null;
-    myAndroidProject = null;
-    myFeatures = null;
-    myModelVersion = null;
-    mySelectedVariantName = null;
-    myRootDir = null;
-    myOverridesManifestPackage = null;
-    myMinSdkVersion = null;
-    myBuildTypesByName = null;
-    myProductFlavorsByName = null;
-    myVariantsByName = null;
-    myVariantNames = null;
-    myUsingSingleVariantSync = false;
-    myExtraGeneratedSourceFolders = null;
-  }
 
   private void populateBuildTypesByName() {
     for (BuildTypeContainer container : myAndroidProject.getBuildTypes()) {
@@ -210,25 +205,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   private void populateVariantsByName() {
     myAndroidProject.forEachVariant(variant -> myVariantsByName.put(variant.getName(), variant));
-    if (myUsingSingleVariantSync) {
-      myVariantNames = new HashSet<>(myAndroidProject.getVariantNames());
-    }
-    else {
-      myVariantNames = new HashSet<>(myVariantsByName.keySet());
-    }
-  }
-
-  /**
-   * Inject the Variant-Only Sync model to existing AndroidProject.
-   * Since the build files were not changed from last sync, only SyncIssues and Variant models need to be injected.
-   *
-   * @param moduleModel The module model obtained from Variant-Only sync.
-   * @param factory     IdeDependenciesFactory that handles GlobalLibraryMap for DependencyGraph.
-   */
-  public void addVariantOnlyModuleModel(@NotNull VariantOnlyModuleModel moduleModel, @NotNull IdeDependenciesFactory factory) {
-    myAndroidProject.addVariants(moduleModel.getVariants(), factory);
-    myAndroidProject.addSyncIssues(moduleModel.getAndroidProject().getSyncIssues());
-    populateVariantsByName();
   }
 
   /**
@@ -564,26 +540,9 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
    * @return the path of the root directory of the imported Android-Gradle project. The returned path belongs to the IDEA module containing
    * the build.gradle file.
    */
-  @Override
   @NotNull
   public File getRootDirPath() {
     return myRootDirPath;
-  }
-
-  /**
-   * @return the root directory of the imported Android-Gradle project. The returned path belongs to the IDEA module containing the
-   * build.gradle file.
-   */
-  @Override
-  @NotNull
-  public VirtualFile getRootDir() {
-    if (myRootDir == null) {
-      VirtualFile found = findFileByIoFile(myRootDirPath, true);
-      // the module's root directory can never be null.
-      assert found != null;
-      myRootDir = found;
-    }
-    return myRootDir;
   }
 
   @Override
@@ -680,7 +639,7 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
 
   @NotNull
   public Collection<String> getVariantNames() {
-    return myVariantNames;
+    return myAndroidProject.getVariantNames();
   }
 
   @Nullable
@@ -769,18 +728,12 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     return null;
   }
 
-  @VisibleForTesting
-  boolean isUsingSingleVariantSync() {
-    return myUsingSingleVariantSync;
-  }
-
   private void writeObject(ObjectOutputStream out) throws IOException {
     out.writeObject(myProjectSystemId);
     out.writeObject(myModuleName);
     out.writeObject(myRootDirPath);
     out.writeObject(myAndroidProject);
     out.writeObject(mySelectedVariantName);
-    out.writeBoolean(myUsingSingleVariantSync);
   }
 
   private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
@@ -789,7 +742,6 @@ public class AndroidModuleModel implements AndroidModel, ModuleModel {
     myRootDirPath = (File)in.readObject();
     myAndroidProject = (IdeAndroidProject)in.readObject();
     String variantName = (String)in.readObject();
-    myUsingSingleVariantSync = in.readBoolean();
 
     parseAndSetModelVersion();
     myFeatures = new AndroidModelFeatures(myModelVersion);

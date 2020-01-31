@@ -75,7 +75,7 @@ public class UserEventDataSeriesTest {
   public void testRotationEvent() {
     buildRotationEvent(1);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForRange(range);
     assertEquals(dataList.size(), 1);
     for (SeriesData<EventAction<UserEvent>> data : dataList) {
       assertEquals(data.x, TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
@@ -89,7 +89,7 @@ public class UserEventDataSeriesTest {
   public void testTouchEvent() {
     buildTouchEvent(1);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForRange(range);
     assertEquals(dataList.size(), 1);
     for (SeriesData<EventAction<UserEvent>> event : dataList) {
       assertEquals(event.x, TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
@@ -103,7 +103,7 @@ public class UserEventDataSeriesTest {
   public void testKeyEvent() {
     buildKeyEvent(1);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForRange(range);
     assertEquals(dataList.size(), 1);
     for (SeriesData<EventAction<UserEvent>> event : dataList) {
       assertEquals(event.x, TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
@@ -119,7 +119,7 @@ public class UserEventDataSeriesTest {
     buildTouchEvent(1);
     buildRotationEvent(2);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<UserEvent>>> dataList = mySeries.getDataForRange(range);
     assertEquals(dataList.size(), 2);
     SeriesData<EventAction<UserEvent>> event = dataList.get(0);
     assertEquals(event.x, TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS));
@@ -135,8 +135,8 @@ public class UserEventDataSeriesTest {
 
   private void buildTouchEvent(int eventId) {
     if (myIdeProfilerServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      myTransportService.addEventToEventGroup(FAKE_DEVICE_ID,
-                                              Common.Event.newBuilder()
+      myTransportService.addEventToStream(FAKE_DEVICE_ID,
+                                          Common.Event.newBuilder()
                                                 .setKind(Common.Event.Kind.INTERACTION)
                                                 .setTimestamp(TEST_START_TIME_NS)
                                                 .setGroupId(eventId)
@@ -144,8 +144,8 @@ public class UserEventDataSeriesTest {
                                                   Interaction.InteractionData.newBuilder()
                                                     .setType(Interaction.InteractionData.Type.TOUCH))
                                                 .build());
-      myTransportService.addEventToEventGroup(FAKE_DEVICE_ID,
-                                              Common.Event.newBuilder()
+      myTransportService.addEventToStream(FAKE_DEVICE_ID,
+                                          Common.Event.newBuilder()
                                                 .setKind(Common.Event.Kind.INTERACTION)
                                                 .setTimestamp(TEST_END_TIME_NS)
                                                 .setGroupId(eventId)
@@ -167,8 +167,8 @@ public class UserEventDataSeriesTest {
 
   private void buildRotationEvent(int eventId) {
     if (myIdeProfilerServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      myTransportService.addEventToEventGroup(FAKE_DEVICE_ID,
-                                              Common.Event.newBuilder()
+      myTransportService.addEventToStream(FAKE_DEVICE_ID,
+                                          Common.Event.newBuilder()
                                                 .setKind(Common.Event.Kind.INTERACTION)
                                                 .setTimestamp(TEST_START_TIME_NS)
                                                 .setGroupId(eventId)
@@ -190,8 +190,8 @@ public class UserEventDataSeriesTest {
 
   private void buildKeyEvent(int eventId) {
     if (myIdeProfilerServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      myTransportService.addEventToEventGroup(FAKE_DEVICE_ID,
-                                              Common.Event.newBuilder()
+      myTransportService.addEventToStream(FAKE_DEVICE_ID,
+                                          Common.Event.newBuilder()
                                                 .setKind(Common.Event.Kind.INTERACTION)
                                                 .setTimestamp(TEST_START_TIME_NS)
                                                 .setGroupId(eventId)

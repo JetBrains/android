@@ -68,6 +68,14 @@ public interface TutorialBundleData {
   String getWelcome();
 
   /**
+   * Returns the BUNDLE_ID of the AssistantBundleCreator that created this bundle.
+   */
+  @NotNull
+  String getBundleCreatorId();
+
+  void setBundleCreatorId(@NotNull String bundleCreatorId);
+
+  /**
    * If true, all tutorials should be rendered single step at a time with a
    * next/prev button to navigate between steps, Otherwise, all steps for a
    * tutorial will be displayed on a single page flowing vertically.

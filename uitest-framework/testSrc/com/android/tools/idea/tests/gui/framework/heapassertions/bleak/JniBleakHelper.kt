@@ -20,8 +20,6 @@ class JniBleakHelper: BleakHelper {
   private val Any.isPrimitiveArray: Boolean
     get() = javaClass.isArray && javaClass.componentType.isPrimitive
 
-  override fun traversalRoots() = (gcRoots().toMutableSet() + allLoadedClasses()).filter{ it !is String && !it.isPrimitiveArray && it !is DoNotTrace && !(it is Class<*> && it.isArray)}
-
   override fun allLoadedClasses(): List<Any> {
     return allLoadedClasses0().toList()
   }

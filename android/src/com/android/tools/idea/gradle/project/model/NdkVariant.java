@@ -18,18 +18,28 @@ package com.android.tools.idea.gradle.project.model;
 import com.android.builder.model.NativeArtifact;
 import com.android.builder.model.NativeFile;
 import com.google.common.collect.ImmutableList;
+import java.io.Serializable;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.*;
 
-public class NdkVariant {
+public class NdkVariant implements Serializable {
   @NotNull private final String myVariantName;
-  @NotNull private final Map<String, NativeArtifact> myArtifactsByName = new HashMap<>();
+  @NotNull private final Map<String, NativeArtifact> myArtifactsByName;
   private final boolean myExportedHeadersSupported;
+
+  // Used for serialization by the IDE.
+  @SuppressWarnings("unused")
+  public NdkVariant() {
+    myVariantName = "";
+    myArtifactsByName = Collections.emptyMap();
+    myExportedHeadersSupported = false;
+  }
 
   NdkVariant(@NotNull String variantName, boolean exportedHeadersSupported) {
     myVariantName = variantName;
+    myArtifactsByName = new HashMap<>();
     myExportedHeadersSupported = exportedHeadersSupported;
   }
 

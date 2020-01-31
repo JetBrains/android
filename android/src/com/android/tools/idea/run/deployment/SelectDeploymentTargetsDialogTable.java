@@ -23,39 +23,45 @@ import java.util.Collection;
 import java.util.OptionalInt;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.swing.event.TableModelEvent;
+import javax.swing.table.TableModel;
 import org.jetbrains.annotations.NotNull;
 
 final class SelectDeploymentTargetsDialogTable extends JBTable {
-  SelectDeploymentTargetsDialogTable(@NotNull SelectDeploymentTargetsDialogTableModel model) {
-    super(model);
-
+  SelectDeploymentTargetsDialogTable() {
     getTableHeader().setResizingAllowed(false);
     setDefaultEditor(Boolean.class, new BooleanTableCellEditor());
     setRowHeight(JBUI.scale(30));
-
-    model.addTableModelListener(this::synchronizeRowSelectionWithSelectedColumn);
-    model.addTableModelListener(event -> setSelectedAndIconColumnMaxWidthsToFit());
-
-    getSelectionModel().addListSelectionListener(event -> synchronizeSelectedColumnWithRowSelection());
   }
 
-  private void synchronizeRowSelectionWithSelectedColumn(@NotNull TableModelEvent event) {
-    int modelColumnIndex = event.getColumn();
+  @NotNull
+  Collection<Device> getSelectedDevices() {
+    SelectDeploymentTargetsDialogTableModel model = (SelectDeploymentTargetsDialogTableModel)getModel();
 
-    if (modelColumnIndex != SelectDeploymentTargetsDialogTableModel.SELECTED_MODEL_COLUMN_INDEX) {
+    return Arrays.stream(getSelectedRows())
+      .map(this::convertRowIndexToModel)
+      .mapToObj(model::getDeviceAt)
+      .collect(Collectors.toList());
+  }
+
+  void setSelectedDevices(@NotNull Collection<Key> keys) {
+    SelectDeploymentTargetsDialogTableModel model = (SelectDeploymentTargetsDialogTableModel)getModel();
+
+    IntStream.range(0, getRowCount()).forEach(viewRowIndex -> {
+      if (keys.contains(model.getDeviceAt(convertRowIndexToModel(viewRowIndex)).getKey())) {
+        addRowSelectionInterval(viewRowIndex, viewRowIndex);
+      }
+    });
+  }
+
+  @Override
+  public void setModel(@NotNull TableModel model) {
+    super.setModel(model);
+
+    if (tableHeader == null) {
       return;
     }
 
-    int viewRowIndex = convertRowIndexToView(event.getFirstRow());
-    int viewColumnIndex = convertColumnIndexToView(modelColumnIndex);
-
-    if ((boolean)getValueAt(viewRowIndex, viewColumnIndex)) {
-      getSelectionModel().addSelectionInterval(viewRowIndex, viewRowIndex);
-      return;
-    }
-
-    getSelectionModel().removeSelectionInterval(viewRowIndex, viewRowIndex);
+    setSelectedAndIconColumnMaxWidthsToFit();
   }
 
   private void setSelectedAndIconColumnMaxWidthsToFit() {
@@ -83,22 +89,5 @@ final class SelectDeploymentTargetsDialogTable extends JBTable {
     }
 
     return component.getPreferredSize().width + JBUI.scale(8);
-  }
-
-  private void synchronizeSelectedColumnWithRowSelection() {
-    SelectDeploymentTargetsDialogTableModel model = (SelectDeploymentTargetsDialogTableModel)getModel();
-
-    IntStream.range(0, getRowCount())
-      .forEach(viewRowIndex -> model.setSelected(isRowSelected(viewRowIndex), convertRowIndexToModel(viewRowIndex)));
-  }
-
-  @NotNull
-  Collection<Device> getSelectedDevices() {
-    SelectDeploymentTargetsDialogTableModel model = (SelectDeploymentTargetsDialogTableModel)getModel();
-
-    return Arrays.stream(getSelectedRows())
-      .map(this::convertRowIndexToModel)
-      .mapToObj(model::getDeviceAt)
-      .collect(Collectors.toList());
   }
 }

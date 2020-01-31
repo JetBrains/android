@@ -15,15 +15,6 @@
  */
 package com.android.tools.idea.gradle.project.common;
 
-import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
-import org.jetbrains.android.AndroidTestCase;
-import org.mockito.Mock;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import static com.android.tools.idea.testing.FileSubject.file;
 import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
@@ -32,10 +23,18 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
+import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
+import com.intellij.testFramework.PlatformTestCase;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import org.mockito.Mock;
+
 /**
  * Tests for {@link GradleInitScripts}.
  */
-public class GradleInitScriptsTest extends AndroidTestCase {
+public class GradleInitScriptsTest extends PlatformTestCase {
   @Mock private GradleInitScripts.ContentCreator myContentCreator;
 
   private File myInitScriptPath;
@@ -94,10 +93,10 @@ public class GradleInitScriptsTest extends AndroidTestCase {
 
   public void testAddApplyJavaLibraryPluginInitScriptCommandLineArg() throws IOException {
     String content = "Test";
-    when(myContentCreator.createApplyJavaLibraryPluginInitScriptContent()).thenReturn(content);
+    when(myContentCreator.createAndroidStudioToolingPluginInitScriptContent()).thenReturn(content);
 
     List<String> args = new ArrayList<>();
-    myInitScripts.addApplyJavaLibraryPluginInitScriptCommandLineArg(args);
+    myInitScripts.addAndroidStudioToolingPluginInitScriptCommandLineArg(args);
     assertThat(args).hasSize(2);
 
     assertEquals("--init-script", args.get(0));
@@ -106,7 +105,7 @@ public class GradleInitScriptsTest extends AndroidTestCase {
 
     myInitScriptPath = new File(initScriptTextPath);
     assertAbout(file()).that(myInitScriptPath).isFile();
-    assertEquals("sync.java.lib.gradle", myInitScriptPath.getName());
+    assertEquals("sync.studio.tooling.gradle", myInitScriptPath.getName());
 
     String actual = loadFile(myInitScriptPath);
     assertEquals(content, actual);

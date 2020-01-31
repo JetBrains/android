@@ -16,13 +16,8 @@
 package com.android.tools.idea.gradle.project.sync.setup.post;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
 public class ProjectSetup {
   @NotNull private final Project myProject;
@@ -38,10 +33,10 @@ public class ProjectSetup {
     mySetupSteps = setupSteps;
   }
 
-  public void setUpProject(@Nullable ProgressIndicator progressIndicator, boolean syncFailed) {
+  public void setUpProject(boolean syncFailed) {
     for (ProjectSetupStep step : mySetupSteps) {
       if (!syncFailed || step.invokeOnFailedSync()) {
-        step.setUpProject(myProject, progressIndicator);
+        step.setUpProject(myProject);
       }
     }
   }

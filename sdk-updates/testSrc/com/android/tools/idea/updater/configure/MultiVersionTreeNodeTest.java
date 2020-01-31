@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import com.android.repository.Revision;
 import com.android.repository.api.UpdatablePackage;
 import com.android.repository.testframework.FakePackage;
 import com.google.common.collect.ImmutableList;
@@ -30,7 +31,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class MultiVersionTreeNodeTest {
   @Test
-  public void maxVersion() throws Exception {
+  public void maxVersion() {
     SdkUpdaterConfigurable configurable = Mockito.mock(SdkUpdaterConfigurable.class);
     List<DetailsTreeNode> nodes = ImmutableList.of(
       new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(new FakePackage.FakeRemotePackage("foo;1.0.0-alpha1"))), null, configurable),
@@ -47,12 +48,34 @@ public class MultiVersionTreeNodeTest {
   }
 
   @Test
-  public void maxPreviewVersion() throws Exception {
+  public void maxPreviewVersion() {
     SdkUpdaterConfigurable configurable = Mockito.mock(SdkUpdaterConfigurable.class);
     List<DetailsTreeNode> nodes = ImmutableList.of(
       new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(new FakePackage.FakeRemotePackage("foo;1.0.1-alpha2"))), null, configurable),
       new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(new FakePackage.FakeRemotePackage("foo;1.0.1-beta1"))), null, configurable),
       new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(new FakePackage.FakeRemotePackage("foo;1.0.0"))), null, configurable)
+    );
+    MultiVersionTreeNode node = new MultiVersionTreeNode(nodes);
+    node.cycleState();
+    assertEquals(PackageNodeModel.SelectedState.NOT_INSTALLED, nodes.get(0).getCurrentState());
+    assertEquals(PackageNodeModel.SelectedState.INSTALLED, nodes.get(1).getCurrentState());
+    assertEquals(PackageNodeModel.SelectedState.NOT_INSTALLED, nodes.get(2).getCurrentState());
+  }
+
+  @Test
+  public void latestVersion() {
+    SdkUpdaterConfigurable configurable = Mockito.mock(SdkUpdaterConfigurable.class);
+    FakePackage.FakeRemotePackage v1 = new FakePackage.FakeRemotePackage("foo;1");
+    v1.setRevision(new Revision(1));
+    FakePackage.FakeRemotePackage v11 = new FakePackage.FakeRemotePackage("foo;1.1");
+    v11.setRevision(new Revision(1, 1));
+    FakePackage.FakeRemotePackage latest = new FakePackage.FakeRemotePackage("foo;latest");
+    latest.setRevision(new Revision(1, 1));
+
+    List<DetailsTreeNode> nodes = ImmutableList.of(
+      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(v1)), null, configurable),
+      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(latest)), null, configurable),
+      new DetailsTreeNode(new PackageNodeModel(new UpdatablePackage(v11)), null, configurable)
     );
     MultiVersionTreeNode node = new MultiVersionTreeNode(nodes);
     node.cycleState();

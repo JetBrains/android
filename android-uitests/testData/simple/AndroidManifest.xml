@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:versionCode="1"
+    android:versionName="1.0"
+    android:compileSdkVersion="28"
+    android:compileSdkVersionCodename="9"
+    package="com.example.simpleapp"
+    android:platformBuildVersionCode="1"
+    android:platformBuildVersionName="1065353216.000000">
+
+    <uses-sdk
+        android:minSdkVersion="19"
+        android:targetSdkVersion="28" />
+
+    <application
+        android:label="A Hello Android">
+
+        <activity
+            android:name="com.example.simpleapp.MainActivity">
+
+            <intent-filter>
+
+                <category
+                    android:name="android.intent.category.LAUNCHER" />
+
+                <action
+                    android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

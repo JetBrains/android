@@ -74,7 +74,7 @@ public class IdeSettingsDialogFixture extends IdeaDialogFixture<SettingsDialog> 
 
     CachingSimpleNode root = field("myRoot").ofType(CachingSimpleNode.class).in(tree).get();
 
-    ConfigurableGroup[] groups = field("myGroups").ofType(ConfigurableGroup[].class).in(root).get();
+    List<ConfigurableGroup> groups = field("myGroups").ofType(List.class).in(root).get();
     for (ConfigurableGroup current : groups) {
       Configurable[] configurables = current.getConfigurables();
       for (Configurable configurable : configurables) {

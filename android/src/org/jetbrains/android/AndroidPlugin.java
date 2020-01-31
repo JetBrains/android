@@ -1,6 +1,8 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android;
 
+import static com.android.tools.idea.startup.Actions.moveAction;
+
 import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
@@ -8,14 +10,16 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.Anchor;
+import com.intellij.openapi.actionSystem.Constraints;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.components.BaseComponent;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
-
-import static com.android.tools.idea.startup.Actions.moveAction;
 
 final class AndroidPlugin {
   private static final String GROUP_ANDROID_TOOLS = "AndroidToolsGroup";
@@ -50,7 +54,6 @@ final class AndroidPlugin {
     AnalyticsSettings.disable();
     UsageTracker.disable();
     UsageTracker.setIdeBrand(AndroidStudioEvent.IdeBrand.INTELLIJ);
-    StudioFlags.NEW_SYNC_INFRA_ENABLED.override(false);
   }
 
   private static void setUpActionsUnderFlag(@NotNull ActionManager actionManager) {

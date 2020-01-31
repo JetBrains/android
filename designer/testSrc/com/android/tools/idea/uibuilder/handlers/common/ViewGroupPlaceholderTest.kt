@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.handlers.common
 
 import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.uibuilder.applyPlaceholderToSceneComponent
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import java.awt.Point
@@ -47,7 +48,7 @@ class ViewGroupPlaceholderTest : SceneTest() {
     val bottom = top + textView.drawHeight
 
     val p = Point(-1, -1)
-    val snappedResult = placeholder.snap(left, top, right, bottom, p)
+    val snappedResult = placeholder.snap(SnappingInfo(left, top, right, bottom), p)
 
     assertTrue(snappedResult)
     assertEquals(left, p.x)
@@ -66,7 +67,7 @@ class ViewGroupPlaceholderTest : SceneTest() {
     val bottom = top + textView.drawHeight
 
     val p = Point(-1, -1)
-    val snappedResult = placeholder.snap(left, top, right, bottom, p)
+    val snappedResult = placeholder.snap(SnappingInfo(left, top, right, bottom), p)
 
     assertFalse(snappedResult)
     assertEquals(-1, p.x)

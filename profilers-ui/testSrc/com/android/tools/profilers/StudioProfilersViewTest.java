@@ -21,6 +21,7 @@ import static com.android.tools.idea.transport.faketransport.FakeTransportServic
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.FakeTimer;
@@ -453,6 +454,48 @@ public class StudioProfilersViewTest {
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // Attach status is detected, loading should stop.
+    assertThat(myView.getStageViewComponent().isVisible()).isTrue();
+    assertThat(myView.getStageLoadingComponent().isVisible()).isFalse();
+  }
+
+  @Test
+  public void testNullStageIfDeviceIsUnsupported() {
+    final String FAKE_PROCESS_2 = "FakeProcess2";
+    final String UNSUPPORTED_DEVICE_NAME = "UnsupportedDevice";
+    final String UNSUPPORTED_REASON = "This device is unsupported";
+    assertThat(myView.getStageViewComponent().isVisible()).isTrue();
+    assertThat(myView.getStageLoadingComponent().isVisible()).isFalse();
+
+    // Disconnect the current device and connect to an unsupported device.
+    Common.Device dead_device = FAKE_DEVICE.toBuilder().setState(Common.Device.State.DISCONNECTED).build();
+    Common.Device device = Common.Device.newBuilder()
+      .setDeviceId(999)
+      .setSerial(UNSUPPORTED_DEVICE_NAME)
+      .setApiLevel(AndroidVersion.VersionCodes.KITKAT)
+      .setFeatureLevel(AndroidVersion.VersionCodes.KITKAT)
+      .setModel(UNSUPPORTED_DEVICE_NAME)
+      .setState(Common.Device.State.ONLINE)
+      .setUnsupportedReason(UNSUPPORTED_REASON)
+      .build();
+    Common.Process process = Common.Process.newBuilder()
+      .setPid(2)
+      .setDeviceId(device.getDeviceId())
+      .setState(Common.Process.State.ALIVE)
+      .setName(FAKE_PROCESS_2)
+      .build();
+    myService.updateDevice(FAKE_DEVICE, dead_device);
+
+    // Set the preferred device to the unsupported one. Loading screen will be displayed.
+    myProfilers.getSessionsManager().endCurrentSession();
+    myProfilers.setPreferredProcess(UNSUPPORTED_DEVICE_NAME, FAKE_PROCESS_2, null);
+    assertThat(myView.getStageViewComponent().isVisible()).isFalse();
+    assertThat(myView.getStageLoadingComponent().isVisible()).isTrue();
+
+    // Preferred device is found. Loading stops and null stage should be displayed with the unsupported reason.
+    myService.addDevice(device);
+    myService.addProcess(device, process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    myProfilers.setProcess(device, process);
     assertThat(myView.getStageViewComponent().isVisible()).isTrue();
     assertThat(myView.getStageLoadingComponent().isVisible()).isFalse();
   }

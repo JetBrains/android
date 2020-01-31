@@ -1,6 +1,8 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.uipreview;
 
+import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
+
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.*;
 import com.android.resources.*;
@@ -22,22 +24,19 @@ import com.intellij.ui.speedSearch.ListWithFilter;
 import com.intellij.util.ui.AbstractLayoutManager;
 import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
-import java.util.HashMap;
-import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static com.android.ide.common.resources.configuration.LocaleQualifier.FAKE_VALUE;
+import javax.swing.*;
+import javax.swing.event.*;
+import org.jetbrains.android.util.AndroidBundle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author Eugene.Kudelevsky

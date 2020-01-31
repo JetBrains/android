@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.apk.viewer.dex;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.apk.analyzer.dex.KeepRuleBuilder;
 import com.android.tools.apk.analyzer.dex.tree.*;
 import com.android.tools.idea.lang.proguard.ProguardFileType;
@@ -173,6 +173,8 @@ public class GenerateProguardKeepRuleAction extends AnAction {
       .setResizable(true)
       .setMovable(true)
       .setTitle("Proguard keep rules for " + node.getName())
+      .setFocusable(true)
+      .setRequestFocus(true)
       .createPopup();
     Disposer.register(popup, () -> EditorFactory.getInstance().releaseEditor(editor));
 

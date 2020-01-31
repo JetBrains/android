@@ -21,7 +21,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.ui.StartupUiUtil;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -58,7 +58,7 @@ public abstract class DynamicWizardStepWithDescription extends DynamicWizardStep
   private JLabel myDescriptionLabel;
   private JBLabel myErrorWarningLabel;
   private JPanel mySouthPanel;
-  private Map<Component, String> myControlDescriptions = new WeakHashMap<>();
+  private Map<Component, String> myControlDescriptions = new WeakHashMap<Component, String>();
 
   public DynamicWizardStepWithDescription(@Nullable Disposable parentDisposable) {
     myDisposable = parentDisposable;
@@ -72,7 +72,7 @@ public abstract class DynamicWizardStepWithDescription extends DynamicWizardStep
   }
 
   protected static CompoundBorder createBodyBorder() {
-    int fontSize = StartupUiUtil.getLabelFont().getSize();
+    int fontSize = UIUtil.getLabelFont().getSize();
     Border insetBorder = BorderFactory.createEmptyBorder(fontSize * 4, fontSize * 2, fontSize * 4, fontSize * 2);
     return BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(JBColor.border()), insetBorder);
   }

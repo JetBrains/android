@@ -34,6 +34,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,7 +44,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link DependenciesModuleSetupStep}.
  */
-public class DependenciesModuleSetupStepTest extends JavaProjectTestCase {
+public class DependenciesModuleSetupStepTest extends PlatformTestCase {
   @Mock private JavaModuleDependenciesSetup myDependenciesSetup;
   @Mock private JavaModuleModel myJavaModuleModel;
 
@@ -85,11 +86,6 @@ public class DependenciesModuleSetupStepTest extends JavaProjectTestCase {
 
     // See https://code.google.com/p/android/issues/detail?id=225923
     assertAbout(moduleDependencies()).that(mainModule).hasDependency(moduleName, COMPILE, true);
-  }
-
-  public void testInvokeOnSkippedSync() {
-    // Make sure this step is called even when sync was skipped see b/62292929
-    assertTrue(mySetupStep.invokeOnSkippedSync());
   }
 
   public void testGetExported() {

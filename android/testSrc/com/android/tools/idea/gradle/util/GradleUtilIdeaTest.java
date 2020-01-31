@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Tests for {@link GradleUtil}.
  */
-public class GradleUtilIdeaTest extends JavaProjectTestCase {
+public class GradleUtilIdeaTest extends PlatformTestCase {
   private File myModuleRootDir;
   private File myBuildFile;
 
@@ -65,7 +66,8 @@ public class GradleUtilIdeaTest extends JavaProjectTestCase {
     String name = myModuleRootDir.getName();
     GradleProjectStub gradleProject = new GradleProjectStub(name, ":" + name, getBaseDirPath(getProject()), myBuildFile);
 
-    GradleModuleModel gradleModuleModel = new GradleModuleModel(myModule.getName(), gradleProject, emptyList(), myBuildFile, "2.2.1", null);
+    GradleModuleModel gradleModuleModel =
+      new GradleModuleModel(myModule.getName(), gradleProject, emptyList(), myBuildFile, "2.2.1", null, null);
 
     GradleFacet facet = createAndAddGradleFacet(myModule);
     facet.setGradleModuleModel(gradleModuleModel);

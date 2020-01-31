@@ -37,7 +37,7 @@ class BackPanelTest : NavTestCase() {
 
     val surface = model.surface as NavDesignSurface
     val sceneView = NavView(surface, surface.sceneManager!!)
-    Mockito.`when`<SceneView>(surface.currentSceneView).thenReturn(sceneView)
+    Mockito.`when`<SceneView>(surface.focusedSceneView).thenReturn(sceneView)
 
     var callbackCalled = false
     val backPanel = BackPanel(surface, { callbackCalled = true }, project)

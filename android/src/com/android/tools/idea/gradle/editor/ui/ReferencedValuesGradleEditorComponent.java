@@ -168,7 +168,7 @@ public class ReferencedValuesGradleEditorComponent extends JBPanel {
         if (project == null) {
           return;
         }
-        final Ref<Balloon> balloonRef = new Ref<>();
+        final Ref<Balloon> balloonRef = new Ref<Balloon>();
         Content content = new Content(project, new Runnable() {
           @Override
           public void run() {
@@ -189,7 +189,7 @@ public class ReferencedValuesGradleEditorComponent extends JBPanel {
   }
 
   public void bind(@NotNull Project project, @NotNull List<GradleEditorSourceBinding> sourceBindings) {
-    myProjectRef = new WeakReference<>(project);
+    myProjectRef = new WeakReference<Project>(project);
     ImmutableListMultimap<VirtualFile, GradleEditorSourceBinding> byFile = Multimaps.index(sourceBindings, GROUPER);
     List<VirtualFile> orderedFiles = Lists.newArrayList(byFile.keySet());
     ContainerUtil.sort(orderedFiles, FILES_COMPARATOR);

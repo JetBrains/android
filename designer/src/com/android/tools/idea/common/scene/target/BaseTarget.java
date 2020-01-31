@@ -20,6 +20,7 @@ import com.android.tools.idea.common.scene.Scene;
 import com.android.tools.idea.common.scene.SceneComponent;
 import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.ScenePicker;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,7 +83,7 @@ public abstract class BaseTarget implements Target {
   /////////////////////////////////////////////////////////////////////////////
 
   @Override
-  public Cursor getMouseCursor() {
+  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifiersEx) {
     return Cursor.getDefaultCursor();
   }
 

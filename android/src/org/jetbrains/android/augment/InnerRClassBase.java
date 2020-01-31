@@ -1,6 +1,6 @@
 package org.jetbrains.android.augment;
 
-import static com.android.ide.common.resources.ResourceNameKeyedMap.flattenResourceName;
+import static com.android.ide.common.resources.ResourcesUtil.flattenResourceName;
 
 import com.android.ide.common.rendering.api.AttrResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
@@ -18,11 +18,10 @@ import com.intellij.psi.PsiType;
 import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import java.util.ArrayList;
 import com.intellij.util.ArrayUtil;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiPredicate;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
@@ -56,14 +55,15 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
                                                   @NotNull BiPredicate<ResourceType, String> isPublic,
                                                   @NotNull ResourceType resourceType,
                                                   @NotNull PsiClass context) {
-    Map<String, PsiType> fieldNames = new HashMap<>();
-    PsiType basicType = ResourceType.STYLEABLE == resourceType ? INT_ARRAY : PsiType.INT;
+    Collection<String> intFields = new ArrayList<>();
+    Collection<String> intArrayFields = new ArrayList<>();
 
-    for (String resName : repository.getResources(namespace, resourceType).keySet()) {
-      fieldNames.put(resName, basicType);
+    if (resourceType != ResourceType.STYLEABLE) {
+      intFields.addAll(repository.getResources(namespace, resourceType).keySet());
     }
+    else {
+      intArrayFields.addAll(repository.getResources(namespace, resourceType).keySet());
 
-    if (ResourceType.STYLEABLE == resourceType) {
       Collection<ResourceItem> items = repository.getResources(namespace, ResourceType.STYLEABLE).values();
       for (ResourceItem item : items) {
         StyleableResourceValue value = (StyleableResourceValue)item.getResourceValue();
@@ -74,7 +74,7 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
               ResourceNamespace attrNamespace = attr.getNamespace();
               String packageName = attrNamespace.getPackageName();
               if (attrNamespace.equals(namespace) || StringUtil.isEmpty(packageName)) {
-                fieldNames.put(item.getName() + '_' + attr.getName(), PsiType.INT);
+                intFields.add(item.getName() + '_' + attr.getName());
               }
               else {
                 String fieldName =
@@ -83,7 +83,7 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
                   flattenResourceName(packageName) +
                   '_' +
                   flattenResourceName(attr.getName());
-                fieldNames.put(fieldName, PsiType.INT);
+                intFields.add(fieldName);
               }
             }
           }
@@ -91,32 +91,43 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
       }
     }
 
-    return buildResourceFields(fieldNames, resourceType, context, fieldModifier);
+    return buildResourceFields(intFields, intArrayFields, resourceType, context, fieldModifier);
   }
 
   @NotNull
-  protected static PsiField[] buildResourceFields(@NotNull Map<String, PsiType> fieldNames,
+  protected static PsiField[] buildResourceFields(@NotNull Collection<String> intFields,
+                                                  @NotNull Collection<String> intArrayFields,
                                                   @NotNull ResourceType resourceType,
                                                   @NotNull PsiClass context,
                                                   @NotNull AndroidLightField.FieldModifier fieldModifier) {
-    PsiField[] result = new PsiField[fieldNames.size()];
+    PsiField[] result = new PsiField[intFields.size() + intArrayFields.size()];
     PsiElementFactory factory = JavaPsiFacade.getElementFactory(context.getProject());
 
-    int idIterator = resourceType.ordinal() * 100000;
+    int nextId = resourceType.ordinal() * 100000;
     int i = 0;
 
-    for (Map.Entry<String, PsiType> entry : fieldNames.entrySet()) {
-      String fieldName = AndroidResourceUtil.getFieldNameByResourceName(entry.getKey());
-      PsiType type = entry.getValue();
-      int id = -(idIterator++);
-      AndroidLightField field = new AndroidLightField(fieldName,
+    for (String fieldName : intFields) {
+      int fieldId = nextId++;
+      AndroidLightField field = new AndroidLightField(AndroidResourceUtil.getFieldNameByResourceName(fieldName),
                                                       context,
-                                                      type,
+                                                      PsiType.INT,
                                                       fieldModifier,
-                                                      fieldModifier == AndroidLightField.FieldModifier.FINAL ? id : null);
-      field.setInitializer(factory.createExpressionFromText(Integer.toString(id), field));
+                                                      fieldModifier == AndroidLightField.FieldModifier.FINAL ? fieldId : null);
+      field.setInitializer(factory.createExpressionFromText(Integer.toString(fieldId), field));
       result[i++] = field;
     }
+
+    for (String fieldName : intArrayFields) {
+      int fieldId = nextId++;
+      AndroidLightField field = new AndroidLightField(AndroidResourceUtil.getFieldNameByResourceName(fieldName),
+                                                      context,
+                                                      INT_ARRAY,
+                                                      fieldModifier,
+                                                      fieldModifier == AndroidLightField.FieldModifier.FINAL ? fieldId : null);
+      field.setInitializer(factory.createExpressionFromText(Integer.toString(fieldId), field));
+      result[i++] = field;
+    }
+
     return result;
   }
 
@@ -129,8 +140,7 @@ public abstract class InnerRClassBase extends AndroidLightInnerClassBase {
           if (LOG.isDebugEnabled()) {
             LOG.debug("Recomputing fields for " + this);
           }
-          PsiField[] fields = doGetFields();
-          return CachedValueProvider.Result.create(fields, ArrayUtil.mergeArrays(getFieldsDependencies(), fields));
+          return CachedValueProvider.Result.create(doGetFields(), getFieldsDependencies());
         });
     }
     return myFieldsCache.getValue();

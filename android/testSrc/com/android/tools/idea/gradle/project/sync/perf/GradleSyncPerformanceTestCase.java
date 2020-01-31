@@ -31,6 +31,7 @@ import com.intellij.openapi.vfs.newvfs.persistent.FSRecords;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.logging.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -135,7 +136,7 @@ public abstract class GradleSyncPerformanceTestCase extends GradleSyncIntegratio
 
   @Nullable
   private GradleSyncStats getLastSyncStats() {
-    ArrayList<LoggedUsage> usages = myUsageTracker.getUsages();
+    List<LoggedUsage> usages = myUsageTracker.getUsages();
     for (int index = usages.size() - 1; index >= 0; index--) {
       LoggedUsage usage = usages.get(index);
       if (usage.getStudioEvent().getKind() == AndroidStudioEvent.EventKind.GRADLE_SYNC_ENDED) {

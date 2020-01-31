@@ -1,15 +1,25 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
 import com.intellij.openapi.util.io.FileUtil;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import java.util.List;
+import java.util.Set;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.AndroidJpsUtil;
 import org.jetbrains.jps.android.AndroidPlatform;
 import org.jetbrains.jps.android.model.JpsAndroidModuleExtension;
-import org.jetbrains.jps.builders.*;
+import org.jetbrains.jps.builders.BuildRootIndex;
+import org.jetbrains.jps.builders.BuildTarget;
+import org.jetbrains.jps.builders.BuildTargetLoader;
+import org.jetbrains.jps.builders.BuildTargetRegistry;
+import org.jetbrains.jps.builders.BuildTargetType;
+import org.jetbrains.jps.builders.TargetOutputIndex;
 import org.jetbrains.jps.builders.impl.BuildRootDescriptorImpl;
 import org.jetbrains.jps.builders.storage.BuildDataPaths;
 import org.jetbrains.jps.incremental.CompileContext;
@@ -20,9 +30,6 @@ import org.jetbrains.jps.model.JpsProject;
 import org.jetbrains.jps.model.module.JpsDependencyElement;
 import org.jetbrains.jps.model.module.JpsModule;
 import org.jetbrains.jps.model.module.JpsModuleDependency;
-
-import java.io.File;
-import java.util.*;
 
 /**
  * @author Eugene.Kudelevsky
@@ -46,7 +53,7 @@ public class AndroidPreDexBuildTarget extends BuildTarget<AndroidPreDexBuildTarg
 
   @Override
   public Collection<BuildTarget<?>> computeDependencies(BuildTargetRegistry targetRegistry, TargetOutputIndex outputIndex) {
-    final List<BuildTarget<?>> result = new ArrayList<>();
+    final List<BuildTarget<?>> result = new ArrayList<BuildTarget<?>>();
 
     for (JpsModule module : myProject.getModules()) {
       final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
@@ -100,9 +107,9 @@ public class AndroidPreDexBuildTarget extends BuildTarget<AndroidPreDexBuildTarg
                                                           IgnoredFileIndex ignoredFileIndex,
                                                           BuildDataPaths dataPaths) {
     final List<AndroidPreDexBuildTarget.MyRootDescriptor> result =
-      new ArrayList<>();
-    final Set<JpsModule> libModules = new HashSet<>();
-    final Set<String> externalJars = new HashSet<>();
+      new ArrayList<AndroidPreDexBuildTarget.MyRootDescriptor>();
+    final Set<JpsModule> libModules = new HashSet<JpsModule>();
+    final Set<String> externalJars = new HashSet<String>();
 
     for (JpsModule module : myProject.getModules()) {
       final JpsAndroidModuleExtension extension = AndroidJpsUtil.getExtension(module);
@@ -187,7 +194,7 @@ public class AndroidPreDexBuildTarget extends BuildTarget<AndroidPreDexBuildTarg
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     private MyTargetType() {
-      super(AndroidCommonUtils.PRE_DEX_BUILD_TARGET_TYPE_ID);
+      super(AndroidBuildCommonUtils.PRE_DEX_BUILD_TARGET_TYPE_ID);
     }
 
     @NotNull

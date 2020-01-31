@@ -25,23 +25,20 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public final class ProductFlavorsDslElement extends GradleDslElementMap {
+public final class ProductFlavorsDslElement extends AbstractFlavorTypeCollectionDslElement {
   @NonNls public static final String PRODUCT_FLAVORS_BLOCK_NAME = "productFlavors";
 
   public ProductFlavorsDslElement(@NotNull GradleDslElement parent) {
     super(parent, PRODUCT_FLAVORS_BLOCK_NAME);
   }
 
-  @Override
-  public boolean isBlockElement() {
-    return true;
-  }
-
   @NotNull
   public List<ProductFlavorModel> get() {
     List<ProductFlavorModel> result = Lists.newArrayList();
     for (ProductFlavorDslElement dslElement : getValues(ProductFlavorDslElement.class)) {
-      result.add(new ProductFlavorModelImpl(dslElement));
+      if (!KNOWN_METHOD_NAMES.contains(dslElement.getName())) {
+        result.add(new ProductFlavorModelImpl(dslElement));
+      }
     }
     return result;
   }

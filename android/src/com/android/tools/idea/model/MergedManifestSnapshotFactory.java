@@ -58,8 +58,6 @@ import com.android.resources.ResourceUrl;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.res.ResourceRepositoryManager;
-import com.android.tools.lint.checks.PermissionHolder;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -84,6 +82,7 @@ import org.w3c.dom.Node;
  * point in time and are immutable.
  */
 class MergedManifestSnapshotFactory {
+
   /**
    * A resource value defined by the manifest. Unlike its base class, does not need to keep a reference
    * to an XML DOM node in order to resolve the resource value to a {@link ResourceReference}.
@@ -161,7 +160,7 @@ class MergedManifestSnapshotFactory {
                                       null,
                                       null,
                                       null,
-                                      ModulePermissions.NOP_MODULE_PERMISSIONS,
+                                      ImmutablePermissionHolder.EMPTY,
                                       false,
                                       ImmutableList.of(),
                                       ImmutableList.of(),
@@ -187,7 +186,7 @@ class MergedManifestSnapshotFactory {
       String appId = getAttributeValue(root, null, ATTRIBUTE_PACKAGE);
 
       // The package comes from the main manifest, NOT from the merged manifest.
-      Manifest manifest = facet.getManifest();
+      Manifest manifest = Manifest.getMainManifest(facet);
       String packageName = manifest == null ? appId : manifest.getPackage().getValue();
 
       AaptOptions.Namespacing namespacing = ResourceRepositoryManager.getInstance(facet).getNamespacing();
@@ -294,7 +293,7 @@ class MergedManifestSnapshotFactory {
         // Else: not specified in gradle files; fall back to manifest
       }
 
-      ModulePermissions permissionHolder = new ModulePermissions(
+      ImmutablePermissionHolder permissionHolder = new ImmutablePermissionHolder(
         modelMinSdk == null ? minSdk : modelMinSdk,
         modelTargetSdk == null ? targetSdk : modelTargetSdk,
         ImmutableSet.copyOf(permissions),
@@ -319,51 +318,6 @@ class MergedManifestSnapshotFactory {
     }
 
     return null;
-  }
-
-  static class ModulePermissions implements PermissionHolder {
-    @VisibleForTesting
-    static final ModulePermissions NOP_MODULE_PERMISSIONS = new ModulePermissions(AndroidVersion.DEFAULT,
-                                                                                  AndroidVersion.DEFAULT,
-                                                                                  ImmutableSet.of(),
-                                                                                  ImmutableSet.of());
-
-    private final AndroidVersion myMinSdk;
-    private final AndroidVersion myTargetSdk;
-    @NotNull private final ImmutableSet<String> myPermissions;
-    @NotNull private final ImmutableSet<String> myRevocable;
-
-    ModulePermissions(@NotNull AndroidVersion minSdk,
-                      @NotNull AndroidVersion targetSdk,
-                      @NotNull ImmutableSet<String> permissions,
-                      @NotNull ImmutableSet<String> revocable) {
-      myMinSdk = minSdk;
-      myTargetSdk = targetSdk;
-      myPermissions = permissions;
-      myRevocable = revocable;
-    }
-
-    @Override
-    public boolean hasPermission(@NotNull String permission) {
-      return myPermissions.contains(permission);
-    }
-
-    @Override
-    public boolean isRevocable(@NotNull String permission) {
-      return myRevocable.contains(permission);
-    }
-
-    @NotNull
-    @Override
-    public AndroidVersion getMinSdkVersion() {
-      return myMinSdk;
-    }
-
-    @NotNull
-    @Override
-    public AndroidVersion getTargetSdkVersion() {
-      return myTargetSdk;
-    }
   }
 
   @NotNull

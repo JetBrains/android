@@ -28,6 +28,7 @@ import com.android.tools.idea.common.surface.PanZoomListener;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
+import com.google.common.collect.Iterables;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -75,7 +76,8 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     mySurface.addListener(this);
     mySurface.addPanZoomListener(this);
     if (myConfiguration == null) {
-      myConfiguration = mySurface.getConfiguration();
+      // TODO: Update to support multiple configurations
+      myConfiguration = Iterables.getFirst(mySurface.getConfigurations(), null);
       if (myConfiguration != null) {
         myConfiguration.addListener(this);
       }
@@ -151,7 +153,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     JComponent eastToolbarComponent = myEastToolbar.getComponent();
     eastToolbarComponent.setName("NlRhsToolbar");
 
-    if (northToolbarComponent.isVisible()) {
+    if (northToolbarComponent.isVisible() || northEastToolbarComponent.isVisible()) {
       JComponent northPanel = new AdtPrimaryPanel(new BorderLayout());
       northPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, StudioColorsKt.getBorder()));
       northPanel.add(northToolbarComponent, BorderLayout.CENTER);
@@ -174,7 +176,7 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   }
 
   public void updateActions() {
-    SceneView view = mySurface.getCurrentSceneView();
+    SceneView view = mySurface.getFocusedSceneView();
     if (view != null) {
       SelectionModel selectionModel = view.getSelectionModel();
       List<NlComponent> selection = selectionModel.getSelection();
@@ -193,13 +195,17 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   }
 
   private void updateActions(@NotNull List<NlComponent> newSelection) {
-    SceneView screenView = mySurface.getCurrentSceneView();
+    SceneView screenView = mySurface.getFocusedSceneView();
     if (screenView == null) {
       return;
     }
 
     // TODO: Perform caching
-    myDynamicGroup.copyFromGroup(mySurface.getActionManager().getToolbarActions(null, newSelection));
+    DesignerEditorFileType surfaceLayoutType = mySurface.getLayoutType();
+    DefaultActionGroup selectionToolbar = surfaceLayoutType.getSelectionContextToolbar(mySurface, newSelection);
+    if (selectionToolbar.getChildrenCount() > 0) {
+      myDynamicGroup.copyFromGroup(selectionToolbar);
+    }
     updateBottomActionBarBorder();
     myCenterToolbar.clearPresentationCache();
   }
@@ -227,16 +233,6 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
     }
     myModel = model;
     myNorthToolbar.updateActionsImmediately();
-    Configuration surfaceConfiguration = surface.getConfiguration();
-    if (surfaceConfiguration != myConfiguration) {
-      if (myConfiguration != null) {
-        myConfiguration.removeListener(this);
-      }
-      myConfiguration = surfaceConfiguration;
-      if (myConfiguration != null) {
-        myConfiguration.addListener(this);
-      }
-    }
     DesignerEditorFileType surfaceLayoutType = surface.getLayoutType();
     if (surfaceLayoutType != myLayoutType) {
       myLayoutType = surfaceLayoutType;
@@ -263,6 +259,9 @@ public final class ActionsToolbar implements DesignSurfaceListener, Disposable, 
   @Override
   public void modelDerivedDataChanged(@NotNull NlModel model) {
     ApplicationManager.getApplication().invokeLater(() -> {
+      if (mySurface.getProject().isDisposed()) {
+        return;
+      }
       if (model.getComponents().size() == 1) {
         updateActions();
       }

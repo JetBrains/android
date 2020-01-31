@@ -213,7 +213,7 @@ public class RemoveBackgroundPanel extends JPanel implements MouseMotionListener
 
       // If ShiftKey pressed remove all the similar color in the image
       // otherwise remove only the similar color in the selected region
-      myExtractComposite.setAreaOnly(!((e.getModifiers() & InputEvent.SHIFT_MASK) == InputEvent.SHIFT_MASK));
+      myExtractComposite.setAreaOnly(!((e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) == InputEvent.SHIFT_DOWN_MASK));
 
       myNewImage = createNewImage(myImage);
       repaintImage();

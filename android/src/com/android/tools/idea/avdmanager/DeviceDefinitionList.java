@@ -16,12 +16,11 @@
 package com.android.tools.idea.avdmanager;
 
 import com.android.annotations.NonNull;
-import com.android.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
 import com.android.tools.adtui.common.ColoredIconGenerator;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -33,17 +32,33 @@ import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.SearchTextField;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.table.TableView;
-import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.ListTableModel;
 import com.intellij.util.ui.accessibility.AccessibleContextUtil;
 import icons.StudioIcons;
-import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
 import javax.swing.border.Border;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -53,14 +68,8 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.text.DecimalFormat;
-import java.util.List;
-import java.util.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Lists the available device definitions by category
@@ -392,10 +401,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   }
 
   private void refreshDeviceProfiles() {
-    myDevices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices()
-      .stream()
-      .filter(d -> !HardwareConfigHelper.isAutomotive(d) || StudioFlags.NPW_TEMPLATES_AUTOMOTIVE.get())
-      .collect(Collectors.toList());
+    myDevices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
     myDeviceCategoryMap.clear();
     for (Device d : myDevices) {
       String category = getCategory(d);
@@ -405,7 +411,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       myDeviceCategoryMap.get(category).add(d);
     }
     Set<String> categories = myDeviceCategoryMap.keySet();
-    String[] categoryArray = ArrayUtilRt.toStringArray(categories);
+    String[] categoryArray = ArrayUtil.toStringArray(categories);
     myCategoryModel.setItems(Lists.newArrayList(categoryArray));
   }
 

@@ -29,7 +29,7 @@ public interface SwappableProcessHandler {
   Executor getExecutor();
 
   /**
-   * Returns whether or not this ProcessHandler was created with the given {@link RunConfiguration} and {@link ExecutionTarget}.
+   * Returns whether or not this ProcessHandler is presently running with {@link RunConfiguration} and {@link ExecutionTarget}.
    */
-  boolean isExecutedWith(@NotNull RunConfiguration runConfiguration, @NotNull ExecutionTarget executionTarget);
+  boolean isRunningWith(@NotNull RunConfiguration runConfiguration, @NotNull ExecutionTarget executionTarget);
 }

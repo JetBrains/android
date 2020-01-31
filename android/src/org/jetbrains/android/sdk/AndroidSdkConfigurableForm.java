@@ -44,14 +44,14 @@ import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
  * @author Eugene.Kudelevsky
  */
 class AndroidSdkConfigurableForm {
-  private JComboBox<Sdk> myInternalJdkComboBox;
+  private JComboBox myInternalJdkComboBox;
   private JPanel myContentPanel;
   private JComboBox<IAndroidTarget> myBuildTargetComboBox;
 
-  private final DefaultComboBoxModel<Sdk> myJdksModel = new DefaultComboBoxModel<>();
+  private final DefaultComboBoxModel myJdksModel = new DefaultComboBoxModel();
   private final SdkModel mySdkModel;
 
-  private final DefaultComboBoxModel<IAndroidTarget> myBuildTargetsModel = new DefaultComboBoxModel<>();
+  private final DefaultComboBoxModel myBuildTargetsModel = new DefaultComboBoxModel();
   private String mySdkLocation;
 
   private boolean myFreeze = false;
@@ -131,7 +131,7 @@ class AndroidSdkConfigurableForm {
 
     if (androidSdk != null) {
       for (int i = 0; i < myJdksModel.getSize(); i++) {
-        if (Comparing.strEqual(myJdksModel.getElementAt(i).getName(), jdkName)) {
+        if (Comparing.strEqual(((Sdk)myJdksModel.getElementAt(i)).getName(), jdkName)) {
           myInternalJdkComboBox.setSelectedIndex(i);
           break;
         }
@@ -166,7 +166,7 @@ class AndroidSdkConfigurableForm {
 
     if (buildTarget != null) {
       for (int i = 0; i < myBuildTargetsModel.getSize(); i++) {
-        IAndroidTarget target = myBuildTargetsModel.getElementAt(i);
+        IAndroidTarget target = (IAndroidTarget)myBuildTargetsModel.getElementAt(i);
         if (buildTarget.hashString().equals(target.hashString())) {
           myBuildTargetComboBox.setSelectedIndex(i);
           return;

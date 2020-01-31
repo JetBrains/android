@@ -1,4 +1,4 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.converter;
 
 import com.intellij.conversion.*;
@@ -6,7 +6,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.util.Processor;
 import org.jdom.Element;
 import org.jetbrains.android.compiler.artifact.AndroidArtifactPropertiesProvider;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.model.serialization.PathMacroUtil;
@@ -76,7 +76,7 @@ public class AndroidProguardOptionsConverterProvider extends ConverterProvider {
                                   : null;
 
       if (proguardCfgRelPath == null || proguardCfgRelPath.isEmpty()) {
-        proguardCfgRelPath = "/" + AndroidCommonUtils.PROGUARD_CFG_FILE_NAME;
+        proguardCfgRelPath = "/" + AndroidBuildCommonUtils.PROGUARD_CFG_FILE_NAME;
       }
       if (proguardCfgOptionElement != null) {
         confElement.removeContent(proguardCfgOptionElement);
@@ -88,10 +88,10 @@ public class AndroidProguardOptionsConverterProvider extends ConverterProvider {
       if (includeSystemCfgElement != null) {
         confElement.removeContent(includeSystemCfgElement);
       }
-      final List<String> proguardCfgUrls = new ArrayList<>();
+      final List<String> proguardCfgUrls = new ArrayList<String>();
 
       if (!Boolean.FALSE.toString().equals(includeSystemCfgStr)) {
-        proguardCfgUrls.add(AndroidCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL);
+        proguardCfgUrls.add(AndroidBuildCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL);
       }
       proguardCfgUrls.add(proguardCfgFileUrl);
       final Element newElement = new Element("proGuardCfgFiles");
@@ -147,10 +147,10 @@ public class AndroidProguardOptionsConverterProvider extends ConverterProvider {
       if (includeSystemCfgElement != null) {
         element.removeContent(includeSystemCfgElement);
       }
-      final List<String> proguardCfgUrls = new ArrayList<>();
+      final List<String> proguardCfgUrls = new ArrayList<String>();
 
       if (Boolean.parseBoolean(includeSystemCfgStr)) {
-        proguardCfgUrls.add(AndroidCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL);
+        proguardCfgUrls.add(AndroidBuildCommonUtils.PROGUARD_SYSTEM_CFG_FILE_URL);
       }
       if (proguardCfgFileUrl != null && !proguardCfgFileUrl.isEmpty()) {
         proguardCfgUrls.add(proguardCfgFileUrl);

@@ -18,6 +18,7 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants
+import com.intellij.openapi.vfs.JarFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 
@@ -50,6 +51,10 @@ fun findClassFileInOutputRoot(outputRoot: VirtualFile, fqcn: String): VirtualFil
   val pathSegments = fqcn.split(".").toTypedArray()
   pathSegments[pathSegments.size - 1] += SdkConstants.DOT_CLASS
 
-  val file = VfsUtil.findRelativeFile(outputRoot, *pathSegments)
-  return if (file != null && file.exists()) file else null
+  val classFile = VfsUtil.findRelativeFile(
+    JarFileSystem.getInstance().getJarRootForLocalFile(outputRoot) ?: outputRoot,
+    *pathSegments
+  )
+
+  return if (classFile != null && classFile.exists()) classFile else null
 }

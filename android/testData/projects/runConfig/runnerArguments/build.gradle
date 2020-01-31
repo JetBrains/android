@@ -1,6 +1,16 @@
 buildscript {
+  repositories {
+    // This will be populated by AndroidGradleTestCase
+  }
+
   dependencies {
     classpath 'com.android.tools.build:gradle:2.2.0'
+  }
+
+  allprojects {
+    repositories {
+      // This will be populated by AndroidGradleTestCase
+    }
   }
 }
 
@@ -15,5 +25,12 @@ android {
     minSdkVersion 19
     targetSdkVersion 23
     testInstrumentationRunnerArguments size:"medium", foo:"bar"
+    testOptions {
+      animationsDisabled true
+    }
   }
+}
+
+dependencies {
+  androidTestImplementation 'junit:junit:4.12'
 }

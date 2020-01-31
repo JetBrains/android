@@ -23,6 +23,7 @@ import com.android.tools.idea.common.scene.SceneContext;
 import com.android.tools.idea.common.scene.draw.DisplayList;
 
 import com.android.tools.idea.common.scene.draw.DrawCommand;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -151,7 +152,7 @@ public interface Target {
 
   SceneComponent getComponent();
 
-  Cursor getMouseCursor();
+  Cursor getMouseCursor(@JdkConstants.InputEventMask int modifiersEx);
 
   @AndroidDpCoordinate
   float getCenterX();

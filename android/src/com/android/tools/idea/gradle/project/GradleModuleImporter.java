@@ -189,7 +189,7 @@ public final class GradleModuleImporter extends ModuleImporter {
         dependencyComputer = Suppliers.compose(parser, Suppliers.ofInstance(location));
       }
       else {
-        dependencyComputer = Suppliers.ofInstance(ImmutableSet.of());
+        dependencyComputer = Suppliers.ofInstance(ImmutableSet.<String>of());
       }
       modulesSet.add(new ModuleToImport(entry.getKey(), location, dependencyComputer));
     }
@@ -313,7 +313,6 @@ public final class GradleModuleImporter extends ModuleImporter {
       gradleSettingsFile.addModule(name, targetFile.toFile());
     }
     GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_IMPORT_MODULES_COPIED);
-    request.generateSourcesOnSuccess = false;
     GradleSyncInvoker.getInstance().requestProjectSync(project, request, listener);
   }
 

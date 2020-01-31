@@ -26,7 +26,8 @@ import java.util.List;
 import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.GradleSyncFailure.JDK8_REQUIRED;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
-public final class Jdk8RequiredErrorHandler extends BaseSyncErrorHandler {
+public class Jdk8RequiredErrorHandler extends BaseSyncErrorHandler {
+
   @Override
   @Nullable
   protected String findErrorMessage(@NotNull Throwable rootCause, @NotNull Project project) {

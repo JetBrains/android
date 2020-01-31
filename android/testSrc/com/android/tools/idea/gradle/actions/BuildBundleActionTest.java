@@ -38,6 +38,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.gradle.tooling.model.GradleProject;
@@ -56,7 +57,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link BuildApkAction}.
  */
-public class BuildBundleActionTest extends JavaProjectTestCase {
+public class BuildBundleActionTest extends PlatformTestCase {
   @Mock private GradleProjectInfo myGradleProjectInfo;
   @Mock private GradleBuildInvoker myBuildInvoker;
   @Mock private ProjectStructure myProjectStructure;
@@ -138,7 +139,7 @@ public class BuildBundleActionTest extends JavaProjectTestCase {
     assertThat(testDialog.getDisplayedMessage()).isEqualTo(getHtmlUpdateMessage());
     // flush event queue to ensure the update call is processed.
     IdeEventQueue.getInstance().flushQueue();
-    verify(myAndroidPluginVersionUpdater).updatePluginVersion(any(), any());
+    verify(myAndroidPluginVersionUpdater).updatePluginVersion(any(), any(), any());
   }
 
   public void testUpdateGradlePluginCanceledNotification() {
@@ -161,7 +162,7 @@ public class BuildBundleActionTest extends JavaProjectTestCase {
     myAction.actionPerformed(event);
 
     assertThat(testDialog.getDisplayedMessage()).isEqualTo(getHtmlUpdateMessage());
-    verify(myAndroidPluginVersionUpdater, never()).updatePluginVersion(any(), any());
+    verify(myAndroidPluginVersionUpdater, never()).updatePluginVersion(any(), any(), any());
   }
 
   private static String getHtmlUpdateMessage() {
@@ -197,7 +198,7 @@ public class BuildBundleActionTest extends JavaProjectTestCase {
     gradleFacet.getConfiguration().GRADLE_PROJECT_PATH = gradlePath;
 
     GradleProject gradleProjectStub = new GradleProjectStub(emptyList(), gradlePath, getBaseDirPath(module.getProject()));
-    GradleModuleModel model = new GradleModuleModel(module.getName(), gradleProjectStub, emptyList(), null, null, null);
+    GradleModuleModel model = new GradleModuleModel(module.getName(), gradleProjectStub, emptyList(), null, null, null, null);
 
     gradleFacet.setGradleModuleModel(model);
   }

@@ -28,7 +28,7 @@ public class DensityMenuAction extends DropDownAction {
   private final NlModel myModel;
 
   public DensityMenuAction(@NotNull NlModel model) {
-    super("", "Device Screen Density", null);
+    super(null, "Device Screen Density", null);
     myModel = model;
     for (Density density : DENSITIES) {
       add(new SetDensityAction(myModel, density));
@@ -45,6 +45,11 @@ public class DensityMenuAction extends DropDownAction {
         break;
       }
     }
+  }
+
+  @Override
+  public boolean displayTextInToolbar() {
+    return true;
   }
 
   private static class SetDensityAction extends AnAction {

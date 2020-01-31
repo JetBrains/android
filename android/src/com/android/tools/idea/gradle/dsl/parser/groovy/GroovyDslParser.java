@@ -169,7 +169,7 @@ public class GroovyDslParser implements GradleDslParser {
     if (literal instanceof GrReferenceExpression || literal instanceof GrIndexProperty) {
       if (resolve) {
         GradleDslElement e = context.resolveReference(literal.getText(), true);
-        // Only attempt to get the value if its a simple expression.
+        // Only attempt to get the value if it is a simple expression.
         if (e instanceof GradleDslSimpleExpression) {
           return ((GradleDslSimpleExpression)e).getValue();
         }
@@ -181,7 +181,7 @@ public class GroovyDslParser implements GradleDslParser {
       return new ReferenceTo(literal.getText());
     }
 
-    // If this literal has a value then return is, this will be the case for none-string values.
+    // If this literal has a value then return it: this will be the case for non-string values.
     Object value = ((GrLiteral)literal).getValue();
     if (value != null) {
       return value;
@@ -431,7 +431,6 @@ public class GroovyDslParser implements GradleDslParser {
       }
     }
 
-    GradleNameElement propertyName = GradleNameElement.from(referenceExpression);
     // TODO: This code highly restricts the arguments allowed in an application statement. Fix this.
     GradleDslElement propertyElement = null;
     if (arguments[0] instanceof GrExpression) { // ex: proguardFiles 'proguard-android.txt', 'proguard-rules.pro'
@@ -444,10 +443,10 @@ public class GroovyDslParser implements GradleDslParser {
         }
       }
       if (expressions.size() == 1) {
-        propertyElement = createExpressionElement(blockElement, argumentList, propertyName, expressions.get(0));
+        propertyElement = createExpressionElement(blockElement, argumentList, name, expressions.get(0));
       }
       else {
-        propertyElement = getExpressionList(blockElement, argumentList, propertyName, expressions, false);
+        propertyElement = getExpressionList(blockElement, argumentList, name, expressions, false);
       }
     }
     else if (arguments[0] instanceof GrNamedArgument) {
@@ -460,7 +459,7 @@ public class GroovyDslParser implements GradleDslParser {
           namedArguments.add((GrNamedArgument)element);
         }
       }
-      propertyElement = getExpressionMap(blockElement, argumentList, propertyName, namedArguments, false);
+      propertyElement = getExpressionMap(blockElement, argumentList, name, namedArguments, false);
     }
     if (propertyElement == null) {
       return false;
@@ -468,7 +467,7 @@ public class GroovyDslParser implements GradleDslParser {
 
     GroovyPsiElement lastArgument = arguments[arguments.length - 1];
     if (lastArgument instanceof GrClosableBlock) {
-      propertyElement.setParsedClosureElement(getClosureElement(propertyElement, (GrClosableBlock)lastArgument, propertyName));
+      propertyElement.setParsedClosureElement(getClosureElement(propertyElement, (GrClosableBlock)lastArgument, name));
     }
 
     propertyElement.setElementType(REGULAR);

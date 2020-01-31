@@ -15,11 +15,23 @@
  */
 package com.android.tools.idea.explorer;
 
+import static com.android.tools.idea.concurrent.FutureUtils.ignoreResult;
+
+import com.android.annotations.NonNull;
+import com.android.annotations.concurrency.UiThread;
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.concurrent.FutureCallbackExecutor;
+import com.android.tools.idea.deviceExplorer.FileHandler;
 import com.android.tools.idea.explorer.adbimpl.AdbPathUtil;
-import com.android.tools.idea.explorer.fs.*;
+import com.android.tools.idea.explorer.fs.DeviceFileEntry;
+import com.android.tools.idea.explorer.fs.DeviceFileSystem;
+import com.android.tools.idea.explorer.fs.DeviceFileSystemService;
+import com.android.tools.idea.explorer.fs.DeviceFileSystemServiceListener;
+import com.android.tools.idea.explorer.fs.DeviceState;
+import com.android.tools.idea.explorer.fs.FileTransferProgress;
 import com.android.tools.idea.explorer.ui.TreeUtil;
 import com.android.utils.FileUtils;
+import com.android.utils.Pair;
 import com.google.common.primitives.Ints;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -29,7 +41,12 @@ import com.intellij.CommonBundle;
 import com.intellij.openapi.application.ApplicationBundle;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.fileChooser.*;
+import com.intellij.openapi.fileChooser.FileChooser;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.fileChooser.FileChooserFactory;
+import com.intellij.openapi.fileChooser.FileSaverDescriptor;
+import com.intellij.openapi.fileChooser.FileSaverDialog;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.InputValidatorEx;
@@ -44,21 +61,40 @@ import com.intellij.ui.UIBundle;
 import com.intellij.util.Alarm;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.ExceptionUtil;
-import java.util.HashSet;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.TestOnly;
-
-import javax.swing.tree.*;
 import java.awt.datatransfer.StringSelection;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.Stack;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.DefaultTreeSelectionModel;
+import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 
 /**
@@ -82,6 +118,7 @@ public class DeviceExplorerController {
   @NotNull private final DeviceExplorerView myView;
   @NotNull private final DeviceFileSystemService myService;
   @NotNull private final FutureCallbackExecutor myEdtExecutor;
+  @NotNull private final FutureCallbackExecutor myTaskExecutor;
   @NotNull private final DeviceExplorerFileManager myFileManager;
   @NotNull private final FileTransferWorkEstimator myWorkEstimator;
   @NotNull private final Set<DeviceFileEntryNode> myTransferringNodes = new HashSet<>();
@@ -103,6 +140,7 @@ public class DeviceExplorerController {
     myView = view;
     myService = service;
     myEdtExecutor = FutureCallbackExecutor.wrap(edtExecutor);
+    myTaskExecutor = FutureCallbackExecutor.wrap(taskExecutor);
     myService.addListener(new ServiceListener());
     myView.addListener(new ViewListener());
     myFileManager = fileManager;
@@ -412,8 +450,18 @@ public class DeviceExplorerController {
       }
 
       DeviceFileSystem device = myModel.getActiveDevice();
+      Map<DeviceFileEntryNode, Path> downloadedNodes = new HashMap<>();
 
       executeFuturesInSequence(treeNodes.iterator(), treeNode -> {
+        if (downloadedNodes.containsKey(treeNode)) {
+
+          ListenableFuture<VirtualFile> getVirtualFile = DeviceExplorerFilesUtils.findFile(downloadedNodes.get(treeNode));
+
+          return myEdtExecutor.transform(getVirtualFile, virtualFile -> {
+            openFile(treeNode, downloadedNodes.get(treeNode), virtualFile); return null;
+          });
+        }
+
         if (!Objects.equals(device, myModel.getActiveDevice())) {
           return Futures.immediateFuture(null);
         }
@@ -428,32 +476,136 @@ public class DeviceExplorerController {
         }
 
         ListenableFuture<Path> futurePath = downloadFileEntryToDefaultLocation(treeNode);
-        myEdtExecutor.addCallback(futurePath, new FutureCallback<Path>() {
-          @Override
-          public void onSuccess(@Nullable Path localPath) {
-            assert localPath != null;
-            ListenableFuture<Void> futureOpen = myFileManager.openFileInEditor(treeNode.getEntry(), localPath, true);
-            myEdtExecutor.addCallback(futureOpen, new FutureCallback<Void>() {
-              @Override
-              public void onSuccess(@Nullable Void result) {
-                // Nothing to do, file is opened in editor
-              }
 
-              @Override
-              public void onFailure(@NotNull Throwable t) {
-                String message = String.format("Unable to open file \"%s\" in editor", localPath);
-                myView.reportErrorRelatedToNode(treeNode, message, t);
-              }
-            });
+        // download file selected by the user and get additional paths on the device
+        ListenableFuture<Pair<List<DeviceFileEntryNode>, Path>> getAdditionalPathsFuture = myTaskExecutor.transform(futurePath, path -> {
+          VirtualFile virtualFile = VfsUtil.findFile(path, true);
+
+          if (virtualFile != null) {
+            List<String> additionalPaths = getAdditionalDevicePaths(treeNode, virtualFile);
+
+            List<DeviceFileEntryNode> nodes = additionalPaths.stream()
+              .map(p -> findDeviceFileEntryNodeFromPath((DeviceFileEntryNode)treeNode.getRoot(), p))
+              .filter(node -> node != null)
+              .collect(Collectors.toList());
+
+            return Pair.of(nodes, path);
           }
-
-          @Override
-          public void onFailure(@NotNull Throwable t) {
-            String message = String.format("Error downloading contents of device file %s", getUserFacingNodeName(treeNode));
-            myView.reportErrorRelatedToNode(treeNode, message, t);
+          else {
+            throw new RuntimeException("Failed to load file " + path);
           }
         });
-        return myEdtExecutor.transform(futurePath, path -> null);
+
+        // download additional nodes and open file selected by user in editor
+        ListenableFuture<Void> done = myEdtExecutor.transformAsync(getAdditionalPathsFuture, pair -> {
+          assert pair != null;
+          List<DeviceFileEntryNode> additionalPaths = pair.getFirst();
+          Path downloadedFilePath = pair.getSecond();
+
+          ListenableFuture<Void> allFilesDownloaded;
+          if(additionalPaths.isEmpty()) {
+            allFilesDownloaded = Futures.immediateFuture(null);
+          } else {
+            allFilesDownloaded = myEdtExecutor.executeFuturesInSequence(
+              additionalPaths.iterator(),
+              node -> myTaskExecutor.transform(
+                downloadFileEntryToDefaultLocation(node), path -> { downloadedNodes.put(node, path); return null; }
+                )
+            );
+          }
+
+          return myEdtExecutor.transform(allFilesDownloaded, aVoid -> {
+            ListenableFuture<VirtualFile> getVirtualFile = DeviceExplorerFilesUtils.findFile(downloadedFilePath);
+
+            myEdtExecutor.transform(getVirtualFile, virtualFile -> {
+              openFile(treeNode, downloadedFilePath, virtualFile); return null;
+            });
+
+            return null;
+          });
+        });
+
+        // handle exceptions
+        return myEdtExecutor.catching(done, Throwable.class, t -> {
+          String message = String.format("Error opening contents of device file %s", getUserFacingNodeName(treeNode));
+          myView.reportErrorRelatedToNode(treeNode, message, t);
+          return null;
+        });
+
+      });
+    }
+
+    private void openFile(DeviceFileEntryNode treeNode, Path downloadedFilePath, VirtualFile virtualFile) {
+      boolean handled = false;
+      for (FileOpener fileOpener : FileOpener.EP_NAME.getExtensions()) {
+        if (fileOpener.canOpenFile(virtualFile) && !handled) {
+          ApplicationManager.getApplication().invokeLater(() -> fileOpener.openFile(myProject, virtualFile));
+          handled = true;
+        }
+      }
+
+      if (!handled) {
+        ApplicationManager.getApplication().invokeLater(() -> openFileInEditor(treeNode, downloadedFilePath));
+      }
+    }
+
+    @NotNull
+    private List<String> getAdditionalDevicePaths(@NonNull DeviceFileEntryNode treeNode, @NonNull VirtualFile virtualFile) {
+      List<String> additionalPaths = new ArrayList<>();
+      for(FileHandler fileHandler : FileHandler.EP_NAME.getExtensions()) {
+        additionalPaths.addAll(fileHandler.getAdditionalDevicePaths(treeNode.getEntry().getFullPath(), virtualFile));
+      }
+      return additionalPaths;
+    }
+
+    @Nullable
+    private DeviceFileEntryNode findDeviceFileEntryNodeFromPath(@NonNull DeviceFileEntryNode root, @NonNull String filePath) {
+      String[] pathComponents = filePath.trim().substring(1).split("/");
+
+      if (pathComponents.length == 0) {
+        return root;
+      }
+
+      DeviceFileEntryNode currentNode = root;
+      for (String segment : pathComponents) {
+        currentNode = currentNode.findChildEntry(segment);
+        if (currentNode == null) {
+          return null;
+        }
+      }
+
+      return currentNode;
+    }
+
+    @UiThread
+    @NotNull
+    private ListenableFuture<Path> downloadFileEntryToDefaultLocation(@NotNull DeviceFileEntryNode treeNode) {
+      Path localPath;
+      try {
+        localPath = myFileManager.getDefaultLocalPathForEntry(treeNode.getEntry());
+      } catch (Throwable t) {
+        return Futures.immediateFailedFuture(t);
+      }
+
+      ListenableFuture<FileTransferSummary> futureSave = wrapFileTransfer(
+        tracker -> addDownloadOperationWork(tracker, treeNode),
+        tracker -> ignoreResult(downloadFileEntry(treeNode, localPath, tracker)));
+      return myEdtExecutor.transform(futureSave, summary -> localPath);
+    }
+
+    private void openFileInEditor(DeviceFileEntryNode treeNode, Path localPath) {
+      ListenableFuture<Void> futureOpen = myFileManager.openFileInEditor(treeNode.getEntry(), localPath, true);
+      myEdtExecutor.addCallback(futureOpen, new FutureCallback<Void>() {
+        @Override
+        public void onSuccess(@Nullable Void result) {
+          // Nothing to do, file is opened in editor
+        }
+
+        @Override
+        public void onFailure(@NotNull Throwable t) {
+          String message = String.format("Unable to open file \"%s\" in editor", localPath);
+          myView.reportErrorRelatedToNode(treeNode, message, t);
+        }
       });
     }
 
@@ -573,6 +725,7 @@ public class DeviceExplorerController {
      * when the whole transfer operation finishes. In case of cancellation, the future
      * completes with a {@link CancellationException}.
      */
+    @UiThread
     @NotNull
     private ListenableFuture<FileTransferSummary> wrapFileTransfer(
       @NotNull Function<FileTransferOperationTracker, ListenableFuture<Void>> prepareTransfer,
@@ -621,9 +774,7 @@ public class DeviceExplorerController {
 
     public ListenableFuture<Void> addDownloadOperationWork(@NotNull FileTransferOperationTracker tracker,
                                                            @NotNull List<DeviceFileEntryNode> entryNodes) {
-      ListenableFuture<Void> futureWork =
-        executeFuturesInSequence(entryNodes.iterator(), node -> addDownloadOperationWork(tracker, node));
-      return myEdtExecutor.transform(futureWork, aVoid -> null);
+      return executeFuturesInSequence(entryNodes.iterator(), node -> addDownloadOperationWork(tracker, node));
     }
 
     public ListenableFuture<Void> addDownloadOperationWork(@NotNull FileTransferOperationTracker tracker,
@@ -1333,26 +1484,6 @@ public class DeviceExplorerController {
     }
 
     @NotNull
-    private ListenableFuture<Path> downloadFileEntryToDefaultLocation(@NotNull DeviceFileEntryNode treeNode) {
-      // Figure out local path, ask user in "Save As" dialog if required
-      Path localPath;
-      try {
-        localPath = myFileManager.getDefaultLocalPathForEntry(treeNode.getEntry());
-      }
-      catch (Throwable t) {
-        return Futures.immediateFailedFuture(t);
-      }
-
-      ListenableFuture<FileTransferSummary> futureSave = wrapFileTransfer(
-        tracker -> addDownloadOperationWork(tracker, treeNode),
-        tracker -> {
-          ListenableFuture<Long> futureSize = downloadFileEntry(treeNode, localPath, tracker);
-          return myEdtExecutor.transform(futureSize, aLong -> null);
-        });
-      return myEdtExecutor.transform(futureSave, summary -> localPath);
-    }
-
-    @NotNull
     private ListenableFuture<Long> downloadFileEntry(@NotNull DeviceFileEntryNode treeNode,
                                                      @NotNull Path localPath,
                                                      @NotNull FileTransferOperationTracker tracker) {
@@ -1369,6 +1500,7 @@ public class DeviceExplorerController {
       ListenableFuture<Void> futureDownload = myFileManager.downloadFileEntry(entry, localPath, new FileTransferProgress() {
         private long previousBytes;
 
+        @UiThread
         @Override
         public void progress(long currentBytes, long totalBytes) {
           // Update progress UI
@@ -1381,6 +1513,7 @@ public class DeviceExplorerController {
           sizeRef.set(totalBytes);
         }
 
+        @WorkerThread
         @Override
         public boolean isCancelled() {
           return tracker.isCancelled();
@@ -1476,7 +1609,8 @@ public class DeviceExplorerController {
         stopLoadChildren(node);
         myLoadingNodesAlarms.cancelRequest(showLoadingNode);
       });
-      return myEdtExecutor.transform(futureEntries, entries -> null);
+
+      return ignoreResult(futureEntries);
     }
 
     @NotNull
@@ -1527,7 +1661,7 @@ public class DeviceExplorerController {
       Arrays.stream(oldSelections)
         .forEach(x -> restorePathSelection(treeSelectionModel, parentPath, x, newSelections));
 
-      TreePath[] newSelectionArray = ArrayUtil.toObjectArray(newSelections.stream().collect(Collectors.toList()), TreePath.class);
+      TreePath[] newSelectionArray = ArrayUtil.toObjectArray(new ArrayList<>(newSelections), TreePath.class);
       treeSelectionModel.addSelectionPaths(newSelectionArray);
     }
 
@@ -1601,7 +1735,7 @@ public class DeviceExplorerController {
             }
           }
         });
-        return myEdtExecutor.transform(futureIsLinkToDirectory, aBoolean -> null);
+        return ignoreResult(futureIsLinkToDirectory);
       });
     }
 
@@ -1618,7 +1752,7 @@ public class DeviceExplorerController {
     @NotNull private DefaultTreeModel myTreeModel;
     @NotNull private DeviceFileEntryNode myNode;
 
-    public ShowLoadingNodeRequest(@NotNull DefaultTreeModel treeModel, @NotNull DeviceFileEntryNode node) {
+    private ShowLoadingNodeRequest(@NotNull DefaultTreeModel treeModel, @NotNull DeviceFileEntryNode node) {
       myTreeModel = treeModel;
       myNode = node;
     }

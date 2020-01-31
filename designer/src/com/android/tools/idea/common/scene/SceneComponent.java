@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.scene;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.AndroidDpCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.model.NlComponent;
@@ -101,6 +101,8 @@ public class SceneComponent {
   public int getCenterY() {
     return myCurrentTop + (myCurrentBottom - myCurrentTop) / 2;
   }
+
+  @Nullable private CommonDragTarget myDragTarget;
 
   /////////////////////////////////////////////////////////////////////////////
   //region Constructor & toString
@@ -652,21 +654,6 @@ public class SceneComponent {
   //region Maintenance
   /////////////////////////////////////////////////////////////////////////////
 
-  /**
-   * Clear our attributes (delegating the action to our view handler)
-   */
-  void clearAttributes() {
-    NlComponent component = getAuthoritativeNlComponent();
-    NlComponent parent = component.getParent();
-    if (parent != null) {
-      // Parent is ViewGroup. This cleans layout_xxx attributes.
-      ViewGroupHandler parentHandler = NlComponentHelperKt.getViewGroupHandler(parent);
-      if (parentHandler != null) {
-        parentHandler.clearAttributes(component);
-      }
-    }
-  }
-
   protected void addTarget(@NotNull Target target) {
     target.setComponent(this);
     synchronized (myTargets) {
@@ -880,7 +867,11 @@ public class SceneComponent {
         hasDragTarget = myTargets.removeIf(CommonDragTarget::isSupported);
       }
       if (hasDragTarget && myScene.getRoot() != this) {
-        addTarget(new CommonDragTarget(this));
+        if (myDragTarget == null) {
+          // Drag Target is reusable.
+          myDragTarget = new CommonDragTarget(this);
+        }
+        addTarget(myDragTarget);
       }
     }
   }

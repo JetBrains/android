@@ -19,6 +19,8 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings;
+import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
+import com.android.tools.idea.gradle.project.build.invoker.GradleTasksExecutor;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.openapi.project.Project;
@@ -32,44 +34,30 @@ import java.io.File;
  */
 public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestCase {
   private GradleAwareSourceRootRenameValidator myValidator;
-  private boolean myUseNewSyncInfra;
   private boolean myUseSingleVariantSync;
+  private boolean myBuildAfterSync;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myValidator = new GradleAwareSourceRootRenameValidator();
-    myUseNewSyncInfra = StudioFlags.NEW_SYNC_INFRA_ENABLED.get();
     myUseSingleVariantSync = GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC;
+    myBuildAfterSync = StudioFlags.BUILD_AFTER_SYNC_ENABLED.get();
   }
 
   @Override
   protected void tearDown() throws Exception {
     try {
       // back to default value.
-      StudioFlags.NEW_SYNC_INFRA_ENABLED.override(myUseNewSyncInfra);
       GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = myUseSingleVariantSync;
+      StudioFlags.BUILD_AFTER_SYNC_ENABLED.override(myBuildAfterSync);
     }
     finally {
       super.tearDown();
     }
   }
 
-
-  public void testIsInputValidWithIdeaSync() throws Exception {
-    StudioFlags.NEW_SYNC_INFRA_ENABLED.override(false);
-    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = false;
-    verifyErrorMessage();
-  }
-
-  public void testIsInputValidWithNewSync() throws Exception {
-    StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
-    GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = false;
-    verifyErrorMessage();
-  }
-
-  public void testIsInputValidWithSingleVariantSync() throws Exception {
-    StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
+  public void testIsInputValid() throws Exception {
     GradleExperimentalSettings.getInstance().USE_SINGLE_VARIANT_SYNC = true;
     verifyErrorMessage();
   }
@@ -77,9 +65,8 @@ public class GradleAwareSourceRootRenameValidatorTest extends AndroidGradleTestC
   private void verifyErrorMessage() throws Exception {
     loadSimpleApplication();
     // Generate buildConfig.
-    GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED);
-    request.generateSourcesOnSuccess = true;
-    requestSyncAndWait(request);
+    requestSyncAndWait(new GradleSyncInvoker.Request(TRIGGER_TEST_REQUESTED));
+    GradleBuildInvoker.getInstance(getProject()).generateSources();
 
     Project project = getProject();
     File sourceRoot = new File(project.getBasePath(), "app/build/generated/source/buildConfig/debug");

@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.formatter;
 
 import com.intellij.application.options.CodeStyleAbstractPanel;
@@ -44,7 +43,7 @@ public class AndroidXmlCodeStylePanel extends CodeStyleAbstractPanel {
     myUseCustomSettings = new JBCheckBox(AndroidBundle.message("checkbox.use.custom.formatting.settings.for.android.xml.files"));
     myPanel.add(myUseCustomSettings, BorderLayout.NORTH);
 
-    myCodeStylePanels = new ArrayList<>();
+    myCodeStylePanels = new ArrayList<MyFileSpecificPanel>();
 
     myCodeStylePanels.add(new ManifestCodeStylePanel());
     myCodeStylePanels.add(new LayoutCodeStylePanel());

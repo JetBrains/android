@@ -23,6 +23,8 @@ import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.APP_PREFIX;
 import static com.android.SdkConstants.ATTR_COLOR;
 import static com.android.SdkConstants.ATTR_DRAWABLE;
+import static com.android.SdkConstants.ATTR_FORMAT;
+import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.ATTR_NAME;
 import static com.android.SdkConstants.AUTO_URI;
 import static com.android.SdkConstants.CLASS_R;
@@ -59,9 +61,14 @@ import static com.android.resources.ResourceType.STRING;
 import static com.android.resources.ResourceType.STYLE;
 import static com.android.resources.ResourceType.STYLEABLE;
 import static com.android.resources.ResourceType.fromXmlTag;
+import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
+import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
+
+import com.android.SdkConstants;
 import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.FileResourceNameValidator;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ValueXmlHelper;
@@ -70,6 +77,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.apk.viewer.ApkFileSystem;
+import com.android.tools.idea.kotlin.AndroidKtPsiUtilsKt;
 import com.android.tools.idea.projectsystem.LightResourceClassService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.AndroidInternalRClassFinder;
@@ -97,6 +105,7 @@ import com.intellij.openapi.fileTypes.FileTypeRegistry;
 import com.intellij.openapi.fileTypes.StdFileTypes;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -111,6 +120,7 @@ import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiReferenceExpression;
+import com.intellij.psi.ResolveResult;
 import com.intellij.psi.XmlElementFactory;
 import com.intellij.psi.search.PsiElementProcessor;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -128,7 +138,6 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -138,6 +147,7 @@ import org.jetbrains.android.augment.ManifestClass;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.color.ColorSelector;
 import org.jetbrains.android.dom.drawable.DrawableSelector;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.dom.resources.Item;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.dom.resources.Resources;
@@ -148,6 +158,9 @@ import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.references.ReferenceUtilKt;
+import org.jetbrains.kotlin.psi.KtExpression;
+import org.jetbrains.kotlin.psi.KtSimpleNameExpression;
 
 /**
  * @author Eugene.Kudelevsky
@@ -188,6 +201,12 @@ public class AndroidResourceUtil {
     }
     return e1.getTextOffset() - e2.getTextOffset();
   };
+
+  /**
+   * Comparator for {@link ResolveResult} using {@link #RESOURCE_ELEMENT_COMPARATOR} on the result PSI element.
+   */
+  public static final Comparator<ResolveResult> RESOLVE_RESULT_COMPARATOR =
+    Comparator.nullsLast(Comparator.comparing(ResolveResult::getElement, RESOURCE_ELEMENT_COMPARATOR));
 
   private AndroidResourceUtil() {
   }
@@ -261,7 +280,7 @@ public class AndroidResourceUtil {
   private static Collection<? extends PsiClass> findRJavaClasses(@NotNull AndroidFacet facet, boolean onlyInOwnPackages) {
     final Module module = facet.getModule();
     final Project project = module.getProject();
-    if (facet.getManifest() == null) {
+    if (Manifest.getMainManifest(facet) == null) {
       return Collections.emptySet();
     }
 
@@ -283,7 +302,7 @@ public class AndroidResourceUtil {
       return PsiField.EMPTY_ARRAY;
     }
 
-    final String resourceName = AndroidCommonUtils.getResourceName(resourceType, file.getName());
+    final String resourceName = AndroidBuildCommonUtils.getResourceName(resourceType, file.getName());
     return findResourceFields(facet, resourceType, resourceName, onlyInOwnPackages);
   }
 
@@ -552,8 +571,6 @@ public class AndroidResourceUtil {
         final Item item = resources.addItem();
         item.getType().setValue(ID.getName());
         return item;
-      case ATTR:
-        return resources.addAttr();
       case STYLEABLE:
         return resources.addDeclareStyleable();
       default:
@@ -849,9 +866,13 @@ public class AndroidResourceUtil {
 
     writeCommandAction(project, psiFiles.toArray(PsiFile.EMPTY_ARRAY)).withName("Add Resource").run(() -> {
       for (Resources resources : resourcesElements) {
-        final ResourceElement element = addValueResource(resourceType, resources, resourceValue);
-        element.getName().setValue(resourceName);
-        afterAddedProcessor.process(element);
+        if (resourceType.equals(ATTR)) {
+          resources.addAttr().getName().setValue(ResourceReference.attr(ResourceNamespace.TODO(), resourceName));
+        } else {
+          final ResourceElement element = addValueResource(resourceType, resources, resourceValue);
+          element.getName().setValue(resourceName);
+          afterAddedProcessor.process(element);
+        }
       }
     });
 
@@ -972,6 +993,59 @@ public class AndroidResourceUtil {
       AndroidUtils.reportError(project, AndroidBundle.message("android.cannot.create.file.error", dirPath + File.separatorChar + fileName));
     }
     return result;
+  }
+
+  @Nullable
+  public static MyReferredResourceFieldInfo getReferredResourceOrManifestField(@NotNull AndroidFacet facet,
+                                                                               @NotNull KtSimpleNameExpression exp,
+                                                                               @Nullable String className,
+                                                                               boolean localOnly) {
+    String resFieldName = exp.getReferencedName();
+    if (resFieldName.isEmpty()) {
+      return null;
+    }
+    KtExpression resClassReference = AndroidKtPsiUtilsKt.getPreviousInQualifiedChain(exp);
+    if (!(resClassReference instanceof KtSimpleNameExpression)) {
+      return null;
+    }
+    String resClassName = ((KtSimpleNameExpression)resClassReference).getReferencedName();
+    if (resClassName.isEmpty() || className != null && !className.equals(resClassName)) {
+      return null;
+    }
+
+    KtExpression rClassReference = AndroidKtPsiUtilsKt.getPreviousInQualifiedChain(resClassReference);
+    if (!(rClassReference instanceof KtSimpleNameExpression)) {
+      return null;
+    }
+    PsiElement resolvedElement = ReferenceUtilKt.getMainReference((KtSimpleNameExpression)rClassReference).resolve();
+    if (!(resolvedElement instanceof PsiClass)) {
+      return null;
+    }
+
+    PsiClass aClass = (PsiClass)resolvedElement;
+    String classShortName = aClass.getName();
+    boolean fromManifest = AndroidUtils.MANIFEST_CLASS_NAME.equals(classShortName);
+
+    if (!fromManifest && !isRJavaClass(aClass)) {
+      return null;
+    }
+    String qName = aClass.getQualifiedName();
+    if (qName == null) {
+      return null;
+    }
+
+    Module resolvedModule = ModuleUtilCore.findModuleForPsiElement(resolvedElement);
+    if (!localOnly) {
+      if (CLASS_R.equals(qName) || AndroidInternalRClassFinder.INTERNAL_R_CLASS_QNAME.equals(qName)) {
+        return new MyReferredResourceFieldInfo(resClassName, resFieldName, resolvedModule, ResourceNamespace.ANDROID, false);
+      }
+    }
+
+    if (fromManifest ? !isManifestClass(aClass) : !isRJavaClass(aClass)) {
+      return null;
+    }
+
+    return new MyReferredResourceFieldInfo(resClassName, resFieldName, resolvedModule, getRClassNamespace(facet, qName), fromManifest);
   }
 
   @Nullable
@@ -1241,6 +1315,147 @@ public class AndroidResourceUtil {
     PsiTreeUtil.processElements(xmlFile, processor);
 
     return (XmlAttribute)processor.getFoundElement();
+  }
+
+  /**
+   * Returns the {@link XmlAttributeValue} defining the given resource item. This is only defined for resource items which are not file
+   * based.
+   *
+   * <p>{@link org.jetbrains.android.AndroidFindUsagesHandlerFactory#createFindUsagesHandler} assumes references to value resources
+   * resolve to the "name" {@link XmlAttributeValue}, that's how they are found when looking for usages of a resource.
+   *
+   * TODO(b/113646219): store enough information in {@link ResourceItem} to find the attribute and get the tag from there, not the other
+   * way around.
+   *
+   * @see ResourceItem#isFileBased()
+   * @see org.jetbrains.android.AndroidFindUsagesHandlerFactory#createFindUsagesHandler
+   */
+  @Nullable
+  public static XmlAttributeValue getDeclaringAttributeValue(@NotNull Project project, @NotNull ResourceItem item) {
+    if (item.isFileBased()) {
+      return null;
+    }
+
+    XmlAttribute attribute;
+    if (ResourceHelper.isInlineIdDeclaration(item)) {
+      attribute = getIdDeclarationAttribute(project, item);
+    } else {
+      XmlTag tag = getItemTag(project, item);
+      attribute = tag == null ? null : tag.getAttribute(ATTR_NAME);
+    }
+
+    return attribute == null ? null : attribute.getValueElement();
+  }
+
+  /**
+   * Returns the {@link XmlTag} corresponding to the given resource item. This is only defined for resource items in value files.
+   *
+   * @see #getDeclaringAttributeValue(Project, ResourceItem)
+   */
+  @Nullable
+  public static XmlTag getItemTag(@NotNull Project project, @NotNull ResourceItem item) {
+    ApplicationManager.getApplication().assertReadAccessAllowed();
+
+    if (item.isFileBased()) {
+      return null;
+    }
+
+    if (item instanceof PsiResourceItem) {
+      PsiResourceItem psiResourceItem = (PsiResourceItem)item;
+      return psiResourceItem.getTag();
+    }
+
+    PsiFile psiFile = getItemPsiFile(project, item);
+    if (!(psiFile instanceof XmlFile)) {
+      return null;
+    }
+
+    XmlFile xmlFile = (XmlFile)psiFile;
+    XmlTag rootTag = xmlFile.getRootTag();
+    if (rootTag == null || !rootTag.isValid() || !rootTag.getName().equals(SdkConstants.TAG_RESOURCES)) {
+      return null;
+    }
+
+    for (XmlTag tag : rootTag.getSubTags()) {
+      ProgressManager.checkCanceled();
+      if (!tag.isValid()) {
+        continue;
+      }
+
+      ResourceType tagResourceType = getResourceTypeForResourceTag(tag);
+      if (item.getType() == tagResourceType && item.getName().equals(tag.getAttributeValue(ATTR_NAME))) {
+        return tag;
+      }
+
+      // Consider children of declare-styleable.
+      if (item.getType() == ATTR && tagResourceType == STYLEABLE) {
+        XmlTag[] attrs = tag.getSubTags();
+        for (XmlTag attr : attrs) {
+          if (!attr.isValid()) {
+            continue;
+          }
+
+          if (item.getName().equals(attr.getAttributeValue(ATTR_NAME))
+              && (attr.getAttribute(ATTR_FORMAT) != null || attr.getSubTags().length > 0)) {
+            return attr;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  public static String getViewTag(@NotNull ResourceItem item) {
+    if (item instanceof PsiResourceItem) {
+      PsiResourceItem psiItem = (PsiResourceItem)item;
+      XmlTag tag = psiItem.getTag();
+
+      final String id = item.getName();
+
+      if (tag != null && tag.isValid()
+          // Make sure that the id attribute we're searching for is actually
+          // defined for this tag, not just referenced from this tag.
+          // For example, we could have
+          //    <Button a:alignLeft="@+id/target" a:id="@+id/something ...>
+          // and this should *not* return "Button" as the view tag for
+          // @+id/target!
+          && id.equals(stripIdPrefix(tag.getAttributeValue(ATTR_ID, ANDROID_URI)))) {
+        return tag.getName();
+      }
+
+
+      PsiFile file = psiItem.getPsiFile();
+      if (file instanceof XmlFile && file.isValid()) {
+        XmlFile xmlFile = (XmlFile)file;
+        XmlTag rootTag = xmlFile.getRootTag();
+        if (rootTag != null && rootTag.isValid()) {
+          return findViewTag(rootTag, id);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  private static String findViewTag(XmlTag tag, String target) {
+    String id = tag.getAttributeValue(ATTR_ID, ANDROID_URI);
+    if (id != null && id.endsWith(target) && target.equals(stripIdPrefix(id))) {
+      return tag.getName();
+    }
+
+    for (XmlTag sub : tag.getSubTags()) {
+      if (sub.isValid()) {
+        String found = findViewTag(sub, target);
+        if (found != null) {
+          return found;
+        }
+      }
+    }
+
+    return null;
   }
 
   /**

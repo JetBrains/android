@@ -33,6 +33,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawHorizontalG
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawVerticalGuideline;
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.google.common.collect.ImmutableList;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -97,7 +98,7 @@ public class GuidelineTarget extends BaseTarget {
     updateAttributes(modification, snappedX, snappedY);
     modification.apply();
     component.fireLiveChangeEvent();
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
     myChangedComponent = true;
   }
 
@@ -129,7 +130,7 @@ public class GuidelineTarget extends BaseTarget {
       }
     }
     if (myChangedComponent) {
-      myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+      myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
     }
   }
 
@@ -151,7 +152,7 @@ public class GuidelineTarget extends BaseTarget {
     myComponent.setDragging(false);
     myTargetSnapper.reset();
     myChangedComponent = false;
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
   }
 
   private boolean isAutoConnectionEnabled() {
@@ -173,7 +174,7 @@ public class GuidelineTarget extends BaseTarget {
   }
 
   @Override
-  public Cursor getMouseCursor() {
+  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifiersEx) {
     if (myIsHorizontal) {
       return Cursor.getPredefinedCursor(Cursor.N_RESIZE_CURSOR);
     }

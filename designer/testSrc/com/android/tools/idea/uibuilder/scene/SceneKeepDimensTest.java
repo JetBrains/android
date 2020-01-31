@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.scene;
 
+import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
+import static com.android.SdkConstants.TEXT_VIEW;
+import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
+import static com.android.ide.common.rendering.api.ResourceNamespace.Resolver.EMPTY_RESOLVER;
+import static org.mockito.Mockito.when;
+
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.ide.common.resources.ResourceResolver;
@@ -23,19 +29,23 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
+import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
-
-import static com.android.SdkConstants.CONSTRAINT_LAYOUT;
-import static com.android.SdkConstants.TEXT_VIEW;
-import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
-import static com.android.ide.common.rendering.api.ResourceNamespace.Resolver.EMPTY_RESOLVER;
-import static org.mockito.Mockito.when;
 
 /**
  * Test that we correctly maintains existing dimension references on margin
  */
 public class SceneKeepDimensTest extends SceneTest {
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    NlDesignSurface nlSurface = (NlDesignSurface)myModel.getSurface();
+    NlAnalyticsManager analyticsManager = new NlAnalyticsManager(nlSurface);
+    when(nlSurface.getAnalyticsManager()).thenReturn(analyticsManager);
+  }
 
   @Override
   @NotNull

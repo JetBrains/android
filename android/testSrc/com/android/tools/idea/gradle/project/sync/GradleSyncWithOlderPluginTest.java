@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.SdkConstants.DOT_GRADLE;
-import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
 import static com.android.tools.idea.gradle.project.sync.ModuleDependenciesSubject.moduleDependencies;
 import static com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesForGroovy;
@@ -39,6 +38,7 @@ import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRA
 import static org.mockito.Mockito.mock;
 
 import com.android.tools.idea.gradle.project.sync.setup.post.PluginVersionUpgrade;
+import com.android.tools.idea.testing.AndroidGradleTests;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.intellij.codeInsight.daemon.impl.HighlightInfo;
@@ -72,12 +72,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     projectSettings.setDistributionType(DEFAULT_WRAPPED);
     GradleSettings.getInstance(project).setLinkedProjectsSettings(Collections.singletonList(projectSettings));
     // Most of the tests in this class share the same settings, create in setUp for convenience, each test can overwrite the settings.
-    myTestSettings = new TestSettings("2.4", "1.5.0");
-  }
-
-  @Override
-  protected boolean useNewSyncInfrastructure() {
-    return false;
+    myTestSettings = new TestSettings("2.6", "1.5.0");
   }
 
   @Override
@@ -92,18 +87,11 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
 
   @Override
   protected void patchPreparedProject(@NotNull File projectRoot) throws IOException {
-    createGradleWrapper(projectRoot, myTestSettings.gradleVersion);
-  }
-
-  @Override
-  protected void createGradleWrapper(@NotNull File projectRoot) {
-    // Do not create the Gradle wrapper automatically. Let each test method create it with the version of Gradle needed.
-  }
-
-  @Override
-  protected void updateVersionAndDependencies(@NotNull File projectRoot) throws IOException {
+    // Override settings just for tests (e.g. sdk.dir)
+    AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath());
     // In this overriden version we don't update versions of the Android plugin and use the one specified in the test project.
     updateVersionAndDependencies(projectRoot, getLocalRepositoriesForGroovy());
+    AndroidGradleTests.createGradleWrapper(projectRoot, myTestSettings.gradleVersion);
   }
 
   private static void resetActivityMain(@NotNull File path) throws IOException {
@@ -216,7 +204,7 @@ public class GradleSyncWithOlderPluginTest extends GradleSyncIntegrationTestCase
     Project project = getProject();
     BuildCacheSyncTest.setBuildCachePath(createTempDirectory("build-cache", ""), project);
 
-    importProject(project.getName(), getBaseDirPath(project));
+    importProject();
 
     File mainActivityFile = new File("app/src/main/java/com/example/alruiz/transitive_dependencies/MainActivity.java");
     Predicate<HighlightInfo> matchByDescription = info -> "Cannot resolve symbol 'AppCompatActivity'".equals(info.getDescription());

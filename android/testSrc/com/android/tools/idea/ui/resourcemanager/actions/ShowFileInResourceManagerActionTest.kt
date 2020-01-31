@@ -16,7 +16,7 @@
 package com.android.tools.idea.ui.resourcemanager.actions
 
 import com.android.tools.idea.ui.resourcemanager.ResourceExplorer
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.widget.SectionList
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
@@ -76,13 +76,17 @@ class ShowFileInResourceManagerActionTest {
     val resourceExplorer = ResourceExplorer.createForToolWindow(rule.module.androidFacet!!)
     Disposer.register(rule.project, resourceExplorer)
 
-    val component = UIUtil.findComponentsOfType(resourceExplorer, SectionList::class.java)[0]
     val wait = object : WaitFor(1000, 100) {
-      override fun condition() = (component.getLists().getOrNull(0)?.model?.size ?: 0) > 0
+      override fun condition(): Boolean {
+        val sectionLists = UIUtil.findComponentsOfType(resourceExplorer, SectionList::class.java)
+        if (sectionLists.size == 0) return false
+        return (sectionLists[0].getLists().getOrNull(0)?.model?.size ?: 0 ) > 0
+      }
     }
     wait.assertCompleted()
+    val component = UIUtil.findComponentsOfType(resourceExplorer, SectionList::class.java)[0]
     resourceExplorer.selectAsset(rule.module.androidFacet!!, newFile.virtualFile)
-    val designAsset = component.selectedValue as DesignAssetSet
+    val designAsset = component.selectedValue as ResourceAssetSet
     assertTrue { designAsset.name == "icon" }
   }
 

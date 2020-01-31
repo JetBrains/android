@@ -15,16 +15,21 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import static com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup.finishFailedSync;
+import static com.android.tools.idea.gradle.util.GradleProjects.open;
+import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
+import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
+
+import com.android.annotations.concurrency.WorkerThread;
 import com.android.tools.idea.gradle.project.AndroidGradleProjectComponent;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.ProjectBuildFileChecksums;
-import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetup;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.externalSystem.model.DataNode;
 import com.intellij.openapi.externalSystem.model.project.ProjectData;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -34,37 +39,25 @@ import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static com.android.tools.idea.gradle.project.sync.idea.ProjectFinder.unregisterAsNewProject;
-import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
-import static com.android.tools.idea.gradle.util.GradleProjects.open;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.ensureToolWindowContentInitialized;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static com.intellij.util.ui.UIUtil.invokeAndWaitIfNeeded;
-
 class ProjectSetUpTask implements ExternalProjectRefreshCallback {
   @NotNull private final Project myProject;
   @NotNull private final PostSyncProjectSetup.Request mySetupRequest;
 
   @Nullable private final GradleSyncListener mySyncListener;
 
-  private final boolean mySyncSkipped;
-
   ProjectSetUpTask(@NotNull Project project,
                    @NotNull PostSyncProjectSetup.Request setupRequest,
-                   @Nullable GradleSyncListener syncListener,
-                   boolean syncSkipped) {
+                   @Nullable GradleSyncListener syncListener) {
     myProject = project;
     mySetupRequest = setupRequest;
     mySyncListener = syncListener;
-    mySyncSkipped = syncSkipped;
   }
 
+  @WorkerThread
   @Override
   public void onSuccess(@NotNull ExternalSystemTaskId taskId,
                         @Nullable DataNode<ProjectData> projectInfo) {
     assert projectInfo != null;
-    unregisterAsNewProject(myProject);
-
     if (mySyncListener != null) {
       mySyncListener.setupStarted(myProject);
     }
@@ -74,12 +67,9 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
 
     Runnable runnable = () -> {
       boolean isTest = ApplicationManager.getApplication().isUnitTestMode();
-      if (!isTest || !GradleProjectImporter.ourSkipSetupFromTest) {
+      if (!isTest) {
         if (importedProject) {
           open(myProject);
-        }
-        if (!isTest) {
-          CommandProcessor.getInstance().runUndoTransparentAction(() -> myProject.save());
         }
       }
 
@@ -96,39 +86,23 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
       runnable.run();
     }
     else {
-      ApplicationManager.getApplication().invokeLater(runnable, myProject.getDisposed());
+      TransactionGuard.submitTransaction(myProject, runnable);
     }
   }
 
+  @WorkerThread
   private void doPopulateProject(@NotNull DataNode<ProjectData> projectInfo, @NotNull ExternalSystemTaskId taskId) {
     IdeaSyncPopulateProjectTask task = new IdeaSyncPopulateProjectTask(myProject);
-    task.populateProject(projectInfo, taskId, mySetupRequest, () -> {
-      if (mySyncListener != null) {
-        if (mySyncSkipped) {
-          mySyncListener.syncSkipped(myProject);
-        }
-        else {
-          mySyncListener.syncSucceeded(myProject);
-        }
-      }
-    });
+    task.populateProject(projectInfo, taskId, mySetupRequest, mySyncListener);
   }
 
   @Override
-  public void onFailure(@NotNull String errorMessage, @Nullable String errorDetails) {
-    Logger logger = getLogger();
-    if (isNotEmpty(errorDetails)) {
-      logger.warn(errorDetails);
-    }
-    logger.warn(errorMessage);
-
+  public void onFailure(@NotNull ExternalSystemTaskId externalTaskId, @NotNull String errorMessage, @Nullable String errorDetails) {
     // Make sure the failure was not because sync is already running, if so, then return
     // See b/75005810
     if (errorMessage.contains(ExternalSystemBundle.message("error.resolve.already.running", ""))) {
       return;
     }
-
-    unregisterAsNewProject(myProject);
 
     // Initialize the "Gradle Sync" tool window, otherwise any sync errors will not be displayed to the user.
     invokeAndWaitIfNeeded((Runnable)() -> {
@@ -137,25 +111,13 @@ class ProjectSetUpTask implements ExternalProjectRefreshCallback {
       }
     });
 
-    handleSyncFailure(errorMessage);
-  }
-
-  private void handleSyncFailure(@NotNull String errorMessage) {
-
     String newMessage = ExternalSystemBundle.message("error.resolve.with.reason", errorMessage);
     // Remove cache data to force a sync next time the project is open. This is necessary when checking MD5s is not enough. For example,
     // when sync failed because the SDK being used by the project was accidentally removed in the SDK Manager. The state of the project did
     // not change, and if we don't force a sync, the project will use the cached state and it would look like there are no errors.
     ProjectBuildFileChecksums.removeFrom(myProject);
-    GradleSyncState.getInstance(myProject).syncFailed(newMessage);
-
-    if (mySyncListener != null) {
-      mySyncListener.syncFailed(myProject, newMessage);
-    }
-  }
-
-  @NotNull
-  private static Logger getLogger() {
-    return Logger.getInstance(ProjectSetUpTask.class);
+    // To ensure the errorDetails are logged by GradleSyncState, create a runtime exception.
+    GradleSyncState.getInstance(myProject).syncFailed(newMessage, new RuntimeException(errorDetails), mySyncListener);
+    finishFailedSync(externalTaskId, myProject);
   }
 }

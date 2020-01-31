@@ -57,8 +57,8 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
   @NotNull protected Tree myResultsTree;
   @NotNull private JTextPane myResultExplanationArea;
 
-  @NotNull private Set<AnalyzerTask> myEnabledTasks = new HashSet<>();
-  @NotNull private Map<String, DefaultMutableTreeNode> myCategoryNodes = new HashMap<>();
+  @NotNull private Set<AnalyzerTask> myEnabledTasks = new HashSet<AnalyzerTask>();
+  @NotNull private Map<String, DefaultMutableTreeNode> myCategoryNodes = new HashMap<String, DefaultMutableTreeNode>();
   private boolean myCanRunAnalysis = false;
 
   public AnalysisContentsDelegate(@NotNull CapturePanel capturePanel) {
@@ -212,14 +212,14 @@ public abstract class AnalysisContentsDelegate extends ColoredTreeCellRenderer i
     root.removeAllChildren();
     myCategoryNodes.clear();
 
-    Set<AnalysisReport.Listener> singletonListener = Collections.singleton(new AnalysisReport.Listener() {
+    Set<AnalysisReport.Listener> singletonListener = Collections.<AnalysisReport.Listener>singleton(new AnalysisReport.Listener() {
       @Override
       public void onResultsAdded(@NonNull final List<AnalysisResultEntry<?>> entries) {
         UIUtil.invokeLaterIfNeeded(new Runnable() {
           @Override
           public void run() {
             boolean rootChanged = false;
-            Set<DefaultMutableTreeNode> changedCategories = new HashSet<>();
+            Set<DefaultMutableTreeNode> changedCategories = new HashSet<DefaultMutableTreeNode>();
 
             for (AnalysisResultEntry<?> entry : entries) {
               String category = entry.getCategory();

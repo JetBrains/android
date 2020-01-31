@@ -19,13 +19,12 @@ import static com.intellij.util.ui.SwingHelper.ELLIPSIS;
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
 import static java.awt.event.InputEvent.META_DOWN_MASK;
 
-import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener;
 import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.event.NestedScrollPaneMouseWheelListener;
 import com.intellij.openapi.keymap.MacKeymapUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBFont;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -42,6 +41,7 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.border.Border;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -52,6 +52,12 @@ public final class AdtUiUtils {
    * Default font to be used in the profiler UI.
    */
   public static final JBFont DEFAULT_FONT = JBUI.Fonts.label(10f);
+
+  /**
+   * Default font to be used in an empty tool window.
+   * eg Device File Explorer when no device is connected and Sqlite Explorer when no database has been opened.
+   */
+  public static final JBFont EMPTY_TOOL_WINDOW_FONT = JBUI.Fonts.label(16f);
 
   /**
    * Default font color of charts, and component labels.
@@ -121,7 +127,7 @@ public final class AdtUiUtils {
    * Does the reverse of {@link JBUI#scale(int) }
    */
   public static int unscale(int i) {
-    return Math.round(i / JBUIScale.scale(1.0f));
+    return Math.round(i / JBUI.scale(1.0f));
   }
 
   /**
@@ -152,6 +158,7 @@ public final class AdtUiUtils {
   /**
    * returns the action mask for the current platform. On mac it's {@link META_DOWN_MASK} everything else is {@link CTRL_DOWN_MASK}.
    */
+  @JdkConstants.InputEventMask
   public static int getActionMask() {
     return SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
   }

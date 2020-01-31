@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.wizard.model;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.core.*;
 import com.google.common.collect.Lists;
@@ -448,7 +448,9 @@ public final class ModelWizard implements Disposable {
 
     JComponent focusedComponent = step.getPreferredFocusComponent();
     if (focusedComponent != null) {
-      IdeFocusManager.findInstanceByComponent(focusedComponent).requestFocus(focusedComponent, false);
+      IdeFocusManager.getGlobalInstance().doWhenFocusSettlesDown(
+        () -> IdeFocusManager.findInstanceByComponent(focusedComponent).requestFocus(focusedComponent, false)
+      );
     }
   }
 

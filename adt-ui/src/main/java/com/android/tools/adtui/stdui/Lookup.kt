@@ -33,6 +33,8 @@ import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.Toolkit
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.DefaultListModel
 import javax.swing.JComponent
 import javax.swing.JList
@@ -70,6 +72,7 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
   init {
     @Suppress("UNCHECKED_CAST")
     ui.createList(filteredModel as ListModel<String>, matcher, editor)
+    ui.clickAction = { enter() }
     filteredModel.setFilter(condition)
   }
 
@@ -277,6 +280,7 @@ interface LookupUI {
   var selectedValue: String?
   var semiFocused: Boolean
   val popupSize: Dimension
+  var clickAction: () -> Unit
 
   fun createList(listModel: ListModel<String>, matcher: Matcher, editor: JComponent)
   fun updateLocation(location: Point, editor: JComponent)
@@ -291,6 +295,8 @@ class DefaultLookupUI : LookupUI {
   private val popup = JPopupMenu()
   private val renderer = LookupCellRenderer()
   private val list = JBList<String>()
+
+  override var clickAction: () -> Unit = {}
 
   override var visible: Boolean
     get() = popup.isVisible
@@ -337,6 +343,11 @@ class DefaultLookupUI : LookupUI {
     list.selectionMode = ListSelectionModel.SINGLE_SELECTION
     list.background = renderer.backgroundColor
     list.accessibleContext.accessibleName = "Code Completion"
+    list.addMouseListener(object : MouseAdapter() {
+      override fun mouseClicked(event: MouseEvent) {
+        clickAction()
+      }
+    })
     AccessibleContextUtil.setParent(list as Component, editor)
   }
 

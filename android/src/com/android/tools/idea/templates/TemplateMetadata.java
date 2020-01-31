@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,17 @@
  */
 package com.android.tools.idea.templates;
 
-import com.android.annotations.VisibleForTesting;
+import static com.android.tools.idea.templates.Template.ATTR_DESCRIPTION;
+import static com.android.tools.idea.templates.Template.ATTR_FORMAT;
+import static com.android.tools.idea.templates.Template.ATTR_NAME;
+import static com.android.tools.idea.templates.Template.ATTR_TYPE;
+import static com.android.tools.idea.templates.Template.ATTR_VALUE;
+import static com.android.tools.idea.templates.Template.CURRENT_FORMAT;
+import static com.android.tools.idea.templates.Template.RELATIVE_FILES_FORMAT;
+import static com.android.tools.idea.templates.Template.TAG_ICONS;
+import static com.android.tools.idea.templates.Template.TAG_PARAMETER;
+import static com.android.tools.idea.templates.Template.TAG_THUMB;
+
 import com.android.sdklib.AndroidTargetHash;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.npw.assetstudio.icon.AndroidIconType;
@@ -23,25 +33,24 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.util.text.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.*;
-
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import static com.android.tools.idea.templates.Template.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Attr;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * An ADT template along with metadata
  */
 public class TemplateMetadata {
-  public static final String ATTR_PARENT_ACTIVITY_CLASS = "parentActivityClass";
   public static final String ATTR_IS_LAUNCHER = "isLauncher";
   public static final String ATTR_IS_LIBRARY_MODULE = "isLibraryProject";
-  public static final String ATTR_CREATE_ICONS = "createIcons";
-  public static final String ATTR_COPY_ICONS = "copyIcons";
   public static final String ATTR_TARGET_API = "targetApi";
   public static final String ATTR_TARGET_API_STRING = "targetApiString";
   public static final String ATTR_MIN_API = "minApi";
@@ -55,12 +64,11 @@ public class TemplateMetadata {
   public static final String ATTR_MIN_API_LEVEL = "minApiLevel";
   public static final String ATTR_PACKAGE_NAME = "packageName";
   public static final String ATTR_APP_TITLE = "appTitle";
+  public static final String ATTR_IS_NEW_MODULE = "isNewModule";
   public static final String ATTR_IS_NEW_PROJECT = "isNewProject";
   public static final String ATTR_THEME_EXISTS = "themeExists";
-  public static final String ATTR_IS_GRADLE = "isGradle";
   public static final String ATTR_TOP_OUT = "topOut";
   public static final String ATTR_PROJECT_OUT = "projectOut"; // Module (Project in gradle language) location
-  public static final String ATTR_PROJECT_LOCATION = "projectLocation"; // "Master" Project root
   public static final String ATTR_SRC_OUT = "srcOut";
   public static final String ATTR_RES_OUT = "resOut";
   public static final String ATTR_MANIFEST_OUT = "manifestOut";
@@ -82,19 +90,14 @@ public class TemplateMetadata {
   public static final String ATTR_SOURCE_PROVIDER_NAME = "sourceProviderName";
   public static final String ATTR_MODULE_NAME = "projectName";
   public static final String ATTR_MODULE_SIMPLE_NAME = "projectSimpleName"; // Same as ATTR_MODULE_NAME but no spaces or other symbols
-  public static final String ATTR_CREATE_ACTIVITY = "createActivity";
   public static final String ATTR_INCLUDE_FORM_FACTOR = "included";
   public static final String ATTR_IS_LOW_MEMORY = "isLowMemory";
-  public static final String ATTR_NUM_ENABLED_FORM_FACTORS = "NumberOfEnabledFormFactors";
-  public static final String ATTR_USE_OFFLINE_REPO = "useOfflineRepo";
-  public static final String ATTR_OFFLINE_REPO_PATH = "offlineRepoPath";
 
   public static final String ATTR_CPP_FLAGS = "cppFlags";
   public static final String ATTR_CPP_SUPPORT = "includeCppSupport";
   public static final String ATTR_DEPENDENCIES_MULTIMAP = "dependenciesMultimap";
 
   public static final String ATTR_IS_DYNAMIC_FEATURE = "isDynamicFeature";
-  public static final String ATTR_DYNAMIC_FEATURE_SUPPORTS_DYNAMIC_DELIVERY = "dynamicFeatureSupportsDynamicDelivery";
   public static final String ATTR_DYNAMIC_FEATURE_INSTALL_TIME_DELIVERY = "dynamicFeatureInstallTimeDelivery";
   public static final String ATTR_DYNAMIC_FEATURE_INSTALL_TIME_WITH_CONDITIONS_DELIVERY = "dynamicFeatureInstallTimeWithConditionsDelivery";
   public static final String ATTR_DYNAMIC_FEATURE_ON_DEMAND_DELIVERY = "dynamicFeatureOnDemandDelivery";
@@ -104,33 +107,23 @@ public class TemplateMetadata {
   public static final String ATTR_DYNAMIC_FEATURE_FUSING = "dynamicFeatureFusing";
   public static final String ATTR_DYNAMIC_IS_INSTANT_MODULE = "isInstantModule";
 
-  public static final String ATTR_IS_INSTANT_APP = "isInstantApp";
-  public static final String ATTR_IS_DYNAMIC_INSTANT_APP = "isDynamicInstantApp";
-  public static final String ATTR_HAS_INSTANT_APP_WRAPPER = "hasInstantAppWrapper";
-  public static final String ATTR_HAS_MONOLITHIC_APP_WRAPPER = "hasMonolithicAppWrapper";
-  public static final String ATTR_MONOLITHIC_MODULE_NAME = "monolithicModuleName";
-  public static final String ATTR_INSTANT_APP_PACKAGE_NAME = "instantAppPackageName";
-  public static final String ATTR_INSTANT_APP_API_MIN_VERSION = "instantAppApiMinVersion";
   public static final String ATTR_COMPANY_DOMAIN = "companyDomain";
-  public static final String ATTR_IS_BASE_FEATURE = "isBaseFeature";
   public static final String ATTR_BASE_FEATURE_NAME = "baseFeatureName";
   public static final String ATTR_BASE_FEATURE_DIR = "baseFeatureDir";
   public static final String ATTR_BASE_FEATURE_RES_DIR = "baseFeatureResDir";
   public static final String ATTR_CLASS_NAME = "className";
-  public static final String ATTR_MAKE_IGNORE = "makeIgnore";
 
-  public static final String ATTR_USE_NAV_CONTROLLER = "useNavController";
-  public static final String ATTR_KOTLIN_SUPPORT = "includeKotlinSupport";
   public static final String ATTR_ANDROIDX_SUPPORT = "addAndroidXSupport";
   public static final String ATTR_LANGUAGE = "language"; // Java vs Kotlin
   public static final String ATTR_KOTLIN_VERSION = "kotlinVersion";
   public static final String ATTR_KOTLIN_EAP_REPO = "includeKotlinEapRepo";
-  public static final String ATTR_KOTLIN_EAP_REPO_URL = "kotlinEapRepoUrl";
-  public static final String KOTLIN_EAP_REPO_URL = "https://dl.bintray.com/kotlin/kotlin-eap";
 
+  public static final String ATTR_APP_THEME = "applicationTheme";
   public static final String ATTR_APP_THEME_NAME = "name";
-  public static final String ATTR_APP_THEME_IS_APP_COMPAT = "isAppCompat";
   public static final String ATTR_APP_THEME_EXISTS = "exists";
+  public static final String ATTR_APP_THEME_NO_ACTION_BAR = "NoActionBar";
+  public static final String ATTR_APP_THEME_APP_BAR_OVERLAY = "AppBarOverlay";
+  public static final String ATTR_APP_THEME_POPUP_OVERLAY = "PopupOverlay";
 
   public static final String TAG_CATEGORY = "category";
   public static final String TAG_FORMFACTOR = "formfactor";
@@ -144,8 +137,7 @@ public class TemplateMetadata {
   private String myCategory;
   private final Multimap<Parameter, Parameter> myRelatedParameters;
 
-  @VisibleForTesting
-  public TemplateMetadata(@NotNull Document document) {
+  TemplateMetadata(@NotNull Document document) {
     myDocument = document;
 
     NodeList parameters = myDocument.getElementsByTagName(TAG_PARAMETER);

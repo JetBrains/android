@@ -28,16 +28,6 @@ public final class BuildTypeDslElement extends AbstractFlavorTypeDslElement {
 
   @Override
   public void addParsedElement(@NotNull GradleDslElement element) {
-    if (element.getName().equals("buildConfigField")) {
-      if (!(element instanceof GradleDslExpressionList)) {
-        return;
-      }
-      GradleDslExpressionList listElement = (GradleDslExpressionList)element;
-      if (listElement.getExpressions().size() != 3 || listElement.getLiterals(String.class).size() != 3) {
-        return;
-      }
-    }
-
     super.addParsedElement(element);
   }
 }

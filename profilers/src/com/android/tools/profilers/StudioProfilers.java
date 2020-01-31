@@ -15,9 +15,6 @@
  */
 package com.android.tools.profilers;
 
-import static com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
-import static com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
-
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.model.AspectModel;
 import com.android.tools.adtui.model.FpsTimer;
@@ -28,13 +25,17 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
+import com.android.tools.idea.transport.poller.TransportEventPoller;
+import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Device;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRate;
+import com.android.tools.profiler.proto.Cpu;
+import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
+import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.GetDevicesRequest;
@@ -47,6 +48,8 @@ import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.cpu.CpuProfiler;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.customevent.CustomEventProfiler;
+import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfiler;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.event.EventProfiler;
@@ -60,11 +63,19 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import io.grpc.StatusRuntimeException;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -84,12 +95,21 @@ import org.jetbrains.annotations.TestOnly;
  */
 public class StudioProfilers extends AspectModel<ProfilerAspect> implements Updatable {
 
+  @NotNull
+  private static Logger getLogger() {
+    return Logger.getInstance(StudioProfilers.class);
+  }
+
+  // Device directory where the transport daemon lives.
+  public static final String DAEMON_DEVICE_DIR_PATH = "/data/local/tmp/perfd";
+
   @VisibleForTesting static final int AGENT_STATUS_MAX_RETRY_COUNT = 10;
 
   /**
    * The number of updates per second our simulated object models receive.
    */
   public static final int PROFILERS_UPDATE_RATE = 60;
+  public static final long TRANSPORT_POLLER_INTERVAL_NS = TimeUnit.MILLISECONDS.toNanos(500);
 
   @NotNull private final ProfilerClient myClient;
 
@@ -147,6 +167,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   private long myRefreshDevices;
 
+  private long myEventPollingInternvalNs;
+
   private final Map<Common.SessionMetaData.SessionType, Runnable> mySessionChangeListener;
 
   /**
@@ -159,6 +181,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    * If the agent status remains UNSPECIFIED after {@link AGENT_STATUS_MAX_RETRY_COUNT}, the profilers deem the process to be without agent.
    */
   public final Map<Long, Integer> mySessionIdToAgentStatusRetryMap = new HashMap<>();
+
+  private TransportEventPoller myTransportPoller;
 
   public StudioProfilers(@NotNull ProfilerClient client, @NotNull IdeProfilerServices ideServices) {
     this(client, ideServices, new FpsTimer(PROFILERS_UPDATE_RATE));
@@ -177,8 +201,15 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myStage.enter();
 
     myUpdater = new Updater(timer);
+
+    // Order in which events are added to profilersBuilder will be order they appear in monitor stage
     ImmutableList.Builder<StudioProfiler> profilersBuilder = new ImmutableList.Builder<>();
     profilersBuilder.add(new EventProfiler(this));
+
+    // Show the custom event monitor in the monitor stage view when enabled right under the activity bar
+    if (myIdeServices.getFeatureConfig().isCustomEventVisualizationEnabled()) {
+      profilersBuilder.add(new CustomEventProfiler(this));
+    }
     profilersBuilder.add(new CpuProfiler(this));
     profilersBuilder.add(new MemoryProfiler(this));
     profilersBuilder.add(new NetworkProfiler(this));
@@ -233,6 +264,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     myViewAxis = new ResizingAxisComponentModel.Builder(myTimeline.getViewRange(), TimeAxisFormatter.DEFAULT)
       .setGlobalRange(myTimeline.getDataRange()).build();
 
+    // Manage our own poll interval with the poller instead of using the ScheduledExecutorService helper provided in TransportEventPoller.
+    // The rest of the Studio code runs on its own updater and assumes all UI-related code (e.g. Aspect) be handled via the updating
+    // thread. Using the ScheduleExecutorService would violate that assumption and cause concurrency issues.
+    myTransportPoller = new TransportEventPoller(myClient.getTransportClient(), Comparator.comparing(Common.Event::getTimestamp));
+
     myUpdater.register(this);
   }
 
@@ -255,6 +291,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // inconsistency worse if we call these lines again.
     setProcess(null, null);
     changed(ProfilerAspect.STAGE);
+  }
+
+  @NotNull
+  public TransportEventPoller getTransportPoller() {
+    return myTransportPoller;
   }
 
   public Map<Common.Device, List<Common.Process>> getDeviceProcessMap() {
@@ -366,6 +407,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
   @Override
   public void update(long elapsedNs) {
+    myEventPollingInternvalNs += elapsedNs;
+    if (myEventPollingInternvalNs >= TRANSPORT_POLLER_INTERVAL_NS) {
+      myTransportPoller.poll();
+      myEventPollingInternvalNs = 0;
+    }
+
     myRefreshDevices += elapsedNs;
     if (myRefreshDevices < TimeUnit.SECONDS.toNanos(1)) {
       return;
@@ -401,8 +448,8 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
               }
               processList.add(process);
             }
-            newProcesses.put(device, processList);
           }
+          newProcesses.put(device, processList);
         }
       }
       else {
@@ -511,6 +558,10 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       // 2. The update loop has found the preferred device, in which case it will stay selected until the user selects something else.
       // All of these cases mean that we can unset the preferred device.
       myPreferredDeviceName = null;
+      // If the device is unsupported (e.g. pre-Lolipop), switch to the null stage with the unsupported reason.
+      if (!device.getUnsupportedReason().isEmpty()) {
+        setStage(new NullMonitorStage(this, device.getUnsupportedReason()));
+      }
     }
 
     if (!Objects.equals(device, myDevice)) {
@@ -620,10 +671,16 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       return false;
     }
 
-    ProfilingStateResponse response = getClient().getCpuClient()
-      .checkAppProfilingState(ProfilingStateRequest.newBuilder().setSession(mySelectedSession).build());
+    List<Cpu.CpuTraceInfo> traceInfoList =
+      CpuProfiler.getTraceInfoFromSession(myClient, mySelectedSession, myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled());
+    if (!traceInfoList.isEmpty()) {
+      Cpu.CpuTraceInfo lastTraceInfo = traceInfoList.get(traceInfoList.size() - 1);
+      if (lastTraceInfo.getConfiguration().getInitiationType() == Cpu.TraceInitiationType.INITIATED_BY_STARTUP) {
+        return true;
+      }
+    }
 
-    return response.getBeingProfiled() && response.getIsStartupProfiling();
+    return false;
   }
 
   /**
@@ -642,6 +699,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
         if (process.getName().equals(myPreferredProcessName) && process.getState() == Common.Process.State.ALIVE &&
             (myPreferredProcessFilter == null || myPreferredProcessFilter.test(process))) {
           myIdeServices.getFeatureTracker().trackAutoProfilingSucceeded();
+          myAutoProfilingEnabled = false;
           return process;
         }
       }
@@ -825,6 +883,11 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     if (getIdeServices().getFeatureConfig().isEnergyProfilerEnabled() && isEnergyStageEnabled) {
       listBuilder.add(EnergyProfilerStage.class);
     }
+
+    // Show the custom event stage in the dropdown list of profiling options when enabled
+    if (getIdeServices().getFeatureConfig().isCustomEventVisualizationEnabled()) {
+      listBuilder.add(CustomEventProfilerStage.class);
+    }
     return listBuilder.build();
   }
 
@@ -864,12 +927,25 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       int samplingRateOff = MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
       // If live allocation is already disabled, don't send any request.
       if (savedSamplingRate != samplingRateOff) {
-        getClient().getMemoryClient().setAllocationSamplingRate(
-          SetAllocationSamplingRateRequest
-            .newBuilder()
-            .setSession(getSession())
-            .setSamplingRate(AllocationSamplingRate.newBuilder().setSamplingNumInterval(enabled ? savedSamplingRate : samplingRateOff))
-            .build());
+        MemoryAllocSamplingData samplingRate = MemoryAllocSamplingData.newBuilder()
+          .setSamplingNumInterval(enabled ? savedSamplingRate : samplingRateOff)
+          .build();
+
+        if (getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+          getClient().getTransportClient().execute(
+            Transport.ExecuteRequest.newBuilder().setCommand(Commands.Command.newBuilder()
+                                                               .setStreamId(getSession().getStreamId())
+                                                               .setPid(getSession().getPid())
+                                                               .setType(Commands.Command.CommandType.MEMORY_ALLOC_SAMPLING)
+                                                               .setMemoryAllocSampling(samplingRate))
+              .build());
+        }
+        else {
+          getClient().getMemoryClient().setAllocationSamplingRate(SetAllocationSamplingRateRequest.newBuilder()
+                                                                    .setSession(getSession())
+                                                                    .setSamplingRate(samplingRate)
+                                                                    .build());
+        }
       }
     }
   }
@@ -909,5 +985,22 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     }
 
     return matched;
+  }
+
+  /**
+   * Returns the start timestamp, in nanoseconds, of the imported trace session. First, we try to get the trace file creation time.
+   * If there is an error to obtain it, we fallback to the input |fallbackTimesampMs| and convert that into nanoseconds.
+   */
+  public static long getFileCreationTimestampNs(File file, long fallbackTimesampMs) {
+    Path tracePath = Paths.get(file.getPath());
+    try {
+      BasicFileAttributes attributes = Files.readAttributes(tracePath, BasicFileAttributes.class);
+      return attributes.creationTime().to(TimeUnit.NANOSECONDS);
+    }
+    catch (IOException e) {
+      getLogger().warn("File creation time could not be read. Falling back to session start time.");
+    }
+
+    return TimeUnit.MICROSECONDS.toNanos(fallbackTimesampMs);
   }
 }

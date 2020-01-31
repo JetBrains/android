@@ -15,7 +15,7 @@
  */
 package com.android.tools.adtui.workbench;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
@@ -23,11 +23,12 @@ import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLayeredPane;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
@@ -67,7 +68,7 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
     mySplitter = new ThreeComponentsSplitter(this);
     mySplitter.setOpaque(false);
     mySplitter.setInnerComponent(myContainer);
-    mySplitter.setDividerWidth(JBUIScale.scale(0));
+    mySplitter.setDividerWidth(JBUI.scale(0));
     mySide = Side.LEFT;
 
     add(defaultLayer, DEFAULT_LAYER);
@@ -159,7 +160,7 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
   private int getToolWidth(@NotNull AttachedToolWindow<T> tool) {
     int width = myPropertiesComponent.getInt(getUnscaledWidthPropertyName(), -1);
     if (width != -1) {
-      return JBUIScale.scale(width);
+      return JBUI.scale(width);
     }
     int scaledWidth = myPropertiesComponent.getInt(getScaledWidthPropertyName(), -1);
     if (scaledWidth == -1) {

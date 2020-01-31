@@ -30,4 +30,5 @@ interface Zoomable {
   fun canZoomIn(): Boolean
   fun canZoomOut(): Boolean
   fun canZoomToFit(): Boolean
+  fun canZoomToActual(): Boolean
 }

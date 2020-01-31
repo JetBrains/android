@@ -19,7 +19,7 @@ import com.android.tools.idea.gradle.project.sync.compatibility.version.Componen
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.intellij.openapi.util.Pair;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
 import static com.android.tools.idea.gradle.project.sync.compatibility.VersionCompatibilityChecker.VERSION_COMPATIBILITY_ISSUE_GROUP;
 import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.ANDROID_GRADLE_PLUGIN;
@@ -33,7 +33,7 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests for {@link VersionIncompatibility}.
  */
-public class VersionIncompatibilityTest extends JavaProjectTestCase {
+public class VersionIncompatibilityTest extends PlatformTestCase {
   private GradleSyncMessagesStub mySyncMessagesStub;
 
   @Override
@@ -43,7 +43,7 @@ public class VersionIncompatibilityTest extends JavaProjectTestCase {
   }
 
   public void testReportMessagesWithWarning() {
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Component base = new Component("android-gradle-plugin", "2.1.3", null);
     Pair<ComponentVersionReader, String> baseReaderAndVersion = Pair.create(ANDROID_GRADLE_PLUGIN, "2.1.3");
@@ -70,7 +70,7 @@ public class VersionIncompatibilityTest extends JavaProjectTestCase {
   }
 
   public void testReportMessagesWithError() {
-    mySyncMessagesStub.clearReportedMessages();
+    mySyncMessagesStub.removeAllMessages();
 
     Component base = new Component("grade", "2.14.1", null);
     Pair<ComponentVersionReader, String> baseReaderAndVersion = Pair.create(GRADLE, "2.14.1");

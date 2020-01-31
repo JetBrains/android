@@ -17,6 +17,7 @@ package com.android.tools.idea.naveditor.editor
 
 import com.android.SdkConstants
 import com.android.SdkConstants.TAG_INCLUDE
+import com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY
 import com.android.tools.idea.actions.NewAndroidComponentAction.CREATED_FILES
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ModelBuilder
@@ -29,6 +30,7 @@ import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.android.tools.idea.naveditor.model.className
 import com.android.tools.idea.naveditor.model.layout
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
+import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.NavDestinationInfo
 import com.google.wireless.android.sdk.stats.NavDestinationInfo.DestinationType.FRAGMENT
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -39,16 +41,17 @@ import com.intellij.ide.impl.DataManagerImpl
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.undo.UndoManager
-import com.intellij.openapi.project.DumbServiceImpl
 import com.intellij.openapi.project.rootManager
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiManager
+import com.intellij.psi.impl.source.PsiJavaFileImpl
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
 import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
+import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import junit.framework.TestCase
-import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -474,3 +477,43 @@ class AddDestinationMenuTest : NavTestCase() {
     myFixture.addFileToProject(relativePath, fileText)
   }
 }
+
+class AddDestinationMenuDependencyTest : NavTestCase() {
+  override fun configureAdditionalModules(projectBuilder: TestFixtureBuilder<IdeaProjectTestFixture>,
+                                          modules: MutableList<MyAdditionalModuleData>) {
+    super.configureAdditionalModules(projectBuilder, modules)
+    addModuleWithAndroidFacet(projectBuilder, modules, "myLibrary", PROJECT_TYPE_LIBRARY, true)
+  }
+
+  fun testLayoutFileInDependency() {
+    val modulePath = getAdditionalModulePath("myLibrary")
+
+    val psiClass = (myFixture.addFileToProject("$modulePath/src/main/java/com/example/mylibrary/BlankFragment.java", """
+                                                 package com.example.mylibrary;
+                                                 import android.support.v4.app.Fragment;
+                                                 public class BlankFragment extends Fragment {}
+                                                 """.trimIndent()) as PsiJavaFileImpl).classes[0]
+
+    val xmlFile = myFixture.addFileToProject("$modulePath/res/layout/fragment_blank.xml", """
+                                               <?xml version="1.0" encoding="utf-8"?>
+                                               <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                                                   xmlns:tools="http://schemas.android.com/tools"
+                                                   tools:context="com.example.mylibrary.BlankFragment"
+                                               </FrameLayout>"
+                                               """.trimIndent()) as XmlFile
+
+    val module = getAdditionalModuleByName("myLibrary")!!
+    val facet = module.androidFacet!!
+    val model = NavModelBuilderUtil.model("nav.xml", facet, myFixture, { navigation("root") }).build();
+
+    val surface = NavDesignSurface(project, testRootDisposable)
+    surface.model = model
+
+    val blankFragment = Destination.RegularDestination(
+      model.components[0], "fragment", null, psiClass, layoutFile = xmlFile)
+
+    val menu = AddDestinationMenu(surface)
+    assertEquals(blankFragment, menu.destinations[1])
+  }
+}
+

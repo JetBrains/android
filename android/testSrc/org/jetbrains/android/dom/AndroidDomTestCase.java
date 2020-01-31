@@ -283,22 +283,6 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
     return myFixture.copyFileToProject(myTestFolder + '/' + from, to);
   }
 
-  protected final void doTestAndroidPrefixCompletion(@Nullable String prefix) throws IOException {
-    // TODO: Kill getTestName, make test classes specify the golden file explicitly.
-    VirtualFile f = copyFileToProject(getTestName(true) + ".xml");
-    myFixture.configureFromExistingVirtualFile(f);
-    myFixture.complete(CompletionType.BASIC);
-    List<String> strs = myFixture.getLookupElementStrings();
-    if (prefix != null) {
-      assertNotNull(strs);
-      assertEquals(strs.get(0), prefix);
-    }
-    else if (strs != null && !strs.isEmpty()) {
-      String first = strs.get(0);
-      assertFalse(first.endsWith(":"));
-    }
-  }
-
   protected final void doTestExternalDoc(String expectedPart) {
     PsiElement originalElement = myFixture.getFile().findElementAt(
       myFixture.getEditor().getCaretModel().getOffset());

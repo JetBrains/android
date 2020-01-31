@@ -17,6 +17,7 @@
 package org.jetbrains.android.dom.wrappers;
 
 import com.android.SdkConstants;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
 import com.intellij.navigation.PsiElementNavigationItem;
@@ -38,6 +39,7 @@ import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
+import org.jetbrains.android.dom.resources.Attr;
 import org.jetbrains.android.dom.resources.ResourceElement;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NonNls;
@@ -404,11 +406,21 @@ public class ValueResourceElementWrapper implements XmlAttributeValue, ResourceE
     }
     else {
       // then it is a value resource
-      XmlTag tag = PsiTreeUtil.getParentOfType(myWrappedElement, XmlTag.class);
-      DomElement domElement = DomManager.getDomManager(getProject()).getDomElement(tag);
-      assert domElement instanceof ResourceElement;
-      ResourceElement resElement = (ResourceElement)domElement;
-      resElement.getName().setValue(name);
+      if (myWrappedElement.isValid()) {
+        XmlTag tag = PsiTreeUtil.getParentOfType(myWrappedElement, XmlTag.class);
+        DomElement domElement = DomManager.getDomManager(getProject()).getDomElement(tag);
+        assert domElement instanceof ResourceElement || domElement instanceof Attr;
+        if (domElement instanceof ResourceElement) {
+          ResourceElement resElement = (ResourceElement)domElement;
+          resElement.getName().setValue(name);
+        }
+        else {
+          Attr attr = (Attr)domElement;
+          ResourceReference resourceReference = attr.getName().getValue();
+          assert resourceReference != null;
+          attr.getName().setValue(new ResourceReference(resourceReference.getNamespace(), resourceReference.getResourceType(), name));
+        }
+      }
     }
     return null;
   }

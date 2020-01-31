@@ -93,6 +93,9 @@
     <action id="RebuildGradleProject" class="com.android.tools.idea.gradle.actions.RebuildGradleProjectAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="CompileProject"/>
     </action>
+    <action id="GenerateSourcesModuleAction" class="com.android.tools.idea.gradle.actions.GenerateSourcesModuleAction">
+      <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleModule" />
+    </action>
 
     <action id="WelcomeScreen.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
             icon="StudioIcons.Shell.Toolbar.SDK_MANAGER">
@@ -124,14 +127,6 @@
             class="com.android.tools.idea.apk.ImportApkAction" text="Profile or Debug APK...">
       <add-to-group group-id="FileOpenGroup" relative-to-action="OpenFile" anchor="after"/>
     </action>
-
-    <group id="Internal.HeapAnalysis" text="Android Studio Heap Analysis" popup="true" internal="true">
-      <action class="com.android.tools.idea.diagnostics.hprof.action.InternalUserInvokedFullAnalysisAction" id="UserInvokedFullAnalysis"
-              text="Create And Immediately Analyze Heap Dump" internal="true"/>
-      <action class="com.android.tools.idea.diagnostics.hprof.action.InternalNonuserInvokedHeapDumpSnapshotAction" id="SilentHeapDumpSnapshot"
-              text="Create And Schedule Heap Dump Analysis (Non-user invoked)" internal="true"/>
-      <add-to-group group-id="Internal"/>
-    </group>
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">

@@ -30,18 +30,18 @@ import com.android.ide.common.util.DisjointUnionMap;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.multi.CompatibilityRenderTarget;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Table;
 import com.intellij.openapi.application.ReadAction;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
@@ -152,7 +152,6 @@ public class ResourceResolverCache {
       }
 
       resolver = ResourceResolver.create(allResources, theme);
-      resolver.setProjectIdChecker(ResourceIdManager.get(myManager.getModule())::isIdDefinedInRTxt);
 
       if (target instanceof CompatibilityRenderTarget) {
         int apiLevel = target.getVersion().getFeatureLevel();
@@ -212,18 +211,13 @@ public class ResourceResolverCache {
       myFrameworkResources.put(apiLevel, targetData);
     }
 
-    // TODO: Michal Bendowski wrote:
-    // I think we need to rework this. The whole idea of a ResourceRepository is that it contains all
-    // ResourceItems for all configurations. ResourceResolver(Cache) is the layer that for a given
-    // configuration turns them all into ResourceValues. So we should be able to just do something like:
-    // ResourceRepositoryManager.getFrameworkResources(target).getConfiguredResources(configuration)
-    // and cache the result. ResourceRepositoryManager should be the one caching the repositories accordingly?
-
-    // Framework resources with locales are 10 times larger and take 10 times longer to load than without locales.
-    // Avoid loading full framework resources whenever we can.
     LocaleQualifier locale = configuration.getLocaleQualifier();
-    boolean needLocales = locale != null && !locale.hasFakeValue() || myManager.getLocale() != Locale.ANY;
-    return targetData.getFrameworkResources(needLocales);
+    if (locale == null) {
+      locale = myManager.getLocale().qualifier;
+    }
+    String language = locale.getLanguage();
+    Set<String> languages = language == null ? ImmutableSet.of() : ImmutableSet.of(language);
+    return targetData.getFrameworkResources(languages);
   }
 
   public void reset() {

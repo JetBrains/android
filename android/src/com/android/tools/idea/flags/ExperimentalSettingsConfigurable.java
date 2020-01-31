@@ -25,13 +25,9 @@ import com.intellij.ui.TitledSeparator;
 import java.util.Hashtable;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
-import javax.swing.JSpinner;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.text.NumberFormatter;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -43,14 +39,12 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
   @NotNull private final RenderSettings myRenderSettings;
 
   private JPanel myPanel;
-  private JSpinner myModuleNumberSpinner;
-  private JCheckBox mySkipSourceGenOnSyncCheckbox;
   private JCheckBox myUseL2DependenciesCheckBox;
   private JCheckBox myUseSingleVariantSyncCheckbox;
-  private JCheckBox mySkipSourcesAndJavadocDownload;
   private JSlider myLayoutEditorQualitySlider;
   private JCheckBox myNewPsdCheckbox;
   private TitledSeparator myNewPsdSeparator;
+  private JCheckBox mySkipGradleTasksList;
 
   @SuppressWarnings("unused") // called by IDE
   public ExperimentalSettingsConfigurable(@NotNull Project project) {
@@ -82,7 +76,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
   @Override
   @NotNull
   public String getId() {
-    return "experimental";
+    return "gradle.experimental";
   }
 
   @Override
@@ -91,8 +85,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
     return null;
   }
 
-  @Nls
   @Override
+  @Nls
   public String getDisplayName() {
     return AndroidBundle.message("configurable.ExperimentalSettingsConfigurable.display.name");
   }
@@ -111,16 +105,11 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
 
   @Override
   public boolean isModified() {
-    if (mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC != isSkipSourceGenOnSync() ||
-        mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
-        mySettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
-        mySettings.SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC != skipSourcesAndJavadocDownload() ||
-        (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
-        mySettings.USE_NEW_PSD != isUseNewPsd()) {
-      return true;
-    }
-    Integer value = getMaxModuleCountForSourceGen();
-    return value != null && mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN != value;
+    return (mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
+            mySettings.USE_SINGLE_VARIANT_SYNC != isUseSingleVariantSync() ||
+            mySettings.SKIP_GRADLE_TASKS_LIST != skipGradleTasksList() ||
+            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
+            mySettings.USE_NEW_PSD != isUseNewPsd());
   }
 
   private int getQualitySetting() {
@@ -129,40 +118,12 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
 
   @Override
   public void apply() throws ConfigurationException {
-    mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC = isSkipSourceGenOnSync();
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = isUseL2DependenciesInSync();
     mySettings.USE_SINGLE_VARIANT_SYNC = isUseSingleVariantSync();
-    mySettings.SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC = skipSourcesAndJavadocDownload();
-
-    Integer value = getMaxModuleCountForSourceGen();
-    if (value != null) {
-      mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN = value;
-    }
+    mySettings.SKIP_GRADLE_TASKS_LIST = skipGradleTasksList();
 
     myRenderSettings.setQuality(getQualitySetting() / 100f);
     mySettings.USE_NEW_PSD = isUseNewPsd();
-  }
-
-  @VisibleForTesting
-  @Nullable
-  Integer getMaxModuleCountForSourceGen() {
-    Object value = myModuleNumberSpinner.getValue();
-    return value instanceof Integer ? (Integer)value : null;
-  }
-
-  @TestOnly
-  void setMaxModuleCountForSourceGen(int value) {
-    myModuleNumberSpinner.setValue(value);
-  }
-
-  @VisibleForTesting
-  boolean isSkipSourceGenOnSync() {
-    return mySkipSourceGenOnSyncCheckbox.isSelected();
-  }
-
-  @TestOnly
-  void setSkipSourceGenOnSync(boolean value) {
-    mySkipSourceGenOnSyncCheckbox.setSelected(value);
   }
 
   @VisibleForTesting
@@ -179,13 +140,18 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
     return myUseSingleVariantSyncCheckbox.isSelected();
   }
 
-  boolean skipSourcesAndJavadocDownload() {
-    return mySkipSourcesAndJavadocDownload.isSelected();
-  }
-
   @TestOnly
   void setUseSingleVariantSync(boolean value) {
     myUseSingleVariantSyncCheckbox.setSelected(value);
+  }
+
+  boolean skipGradleTasksList() {
+    return mySkipGradleTasksList.isSelected();
+  }
+
+  @TestOnly
+  void setSkipGradleTasksList(boolean value) {
+    mySkipGradleTasksList.setSelected(value);
   }
 
   boolean isUseNewPsd() {
@@ -199,26 +165,10 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable 
 
   @Override
   public void reset() {
-    mySkipSourceGenOnSyncCheckbox.setSelected(mySettings.SKIP_SOURCE_GEN_ON_PROJECT_SYNC);
-    myModuleNumberSpinner.setValue(mySettings.MAX_MODULE_COUNT_FOR_SOURCE_GEN);
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
     myUseSingleVariantSyncCheckbox.setSelected(mySettings.USE_SINGLE_VARIANT_SYNC);
-    mySkipSourcesAndJavadocDownload.setSelected(mySettings.SKIP_SRC_AND_JAVADOC_DOWNLOAD_ON_SYNC);
+    mySkipGradleTasksList.setSelected(mySettings.SKIP_GRADLE_TASKS_LIST);
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
     myNewPsdCheckbox.setSelected(mySettings.USE_NEW_PSD);
-  }
-
-  private void createUIComponents() {
-    int value = GradleExperimentalSettings.getInstance().MAX_MODULE_COUNT_FOR_SOURCE_GEN;
-    myModuleNumberSpinner = new JSpinner(new SpinnerNumberModel(value, 0, Integer.MAX_VALUE, 1));
-    // Force the spinner to accept numbers only.
-    JComponent editor = myModuleNumberSpinner.getEditor();
-    if (editor instanceof JSpinner.NumberEditor) {
-      JFormattedTextField textField = ((JSpinner.NumberEditor)editor).getTextField();
-      JFormattedTextField.AbstractFormatter formatter = textField.getFormatter();
-      if (formatter instanceof NumberFormatter) {
-        ((NumberFormatter)formatter).setAllowsInvalid(false);
-      }
-    }
   }
 }

@@ -17,16 +17,20 @@ package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.resources.ResourceType
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.intellij.util.ui.EmptyIcon
 import javax.swing.Icon
 
 class StubAssetPreviewManager(
-  private val iconProvider: AssetIconProvider = StubAssetIconProvider()
+  private val iconProvider: AssetIconProvider = StubAssetIconProvider(),
+  private val dataProvider: AssetDataProvider = StubAssetDataProvider()
 ) : AssetPreviewManager {
 
   constructor(icon: Icon) : this(StubAssetIconProvider(icon))
 
   override fun getPreviewProvider(resourceType: ResourceType): AssetIconProvider = iconProvider
+
+  override fun getDataProvider(resourceType: ResourceType): AssetDataProvider = dataProvider
 }
 
 class StubAssetIconProvider(var icon: Icon = EmptyIcon.ICON_18) : AssetIconProvider {
@@ -37,4 +41,14 @@ class StubAssetIconProvider(var icon: Icon = EmptyIcon.ICON_18) : AssetIconProvi
                        height: Int,
                        refreshCallback: () -> Unit,
                        shouldBeRendered: () -> Boolean): Icon = icon
+}
+
+class StubAssetDataProvider: AssetDataProvider {
+  override fun getAssetData(asset: DesignAsset): AssetData {
+    return AssetData("name", "file", "size")
+  }
+
+  override fun getAssetSetData(assetSet: ResourceAssetSet): AssetData {
+    return AssetData("name", "type", "versions")
+  }
 }

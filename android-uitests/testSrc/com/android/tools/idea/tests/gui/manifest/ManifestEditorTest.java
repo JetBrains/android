@@ -32,6 +32,7 @@ import java.awt.*;
 import java.io.IOException;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.fest.swing.edt.GuiTask.execute;
 import static org.junit.Assert.*;
 
 @RunWith(GuiTestRemoteRunner.class)
@@ -47,7 +48,8 @@ public class ManifestEditorTest {
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/AndroidManifest.xml");
     editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
-    MergedManifestFixture mergedManifestFixture = editor.getMergedManifestEditor();
+    MergedManifestFixture mergedManifestFixture = editor.getMergedManifestEditor()
+      .waitForLoadingToFinish();
     JTreeFixture tree = mergedManifestFixture.getTree();
     tree.clickPath("manifest/application/android:allowBackup = true");
     mergedManifestFixture.checkAllRowsColored();
@@ -64,7 +66,8 @@ public class ManifestEditorTest {
     EditorFixture editor = projectFrame.getEditor();
     editor.open("app/src/main/AndroidManifest.xml");
     editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
-    MergedManifestFixture mergedManifestFixture = editor.getMergedManifestEditor();
+    MergedManifestFixture mergedManifestFixture = editor.getMergedManifestEditor()
+      .waitForLoadingToFinish();
     JTreeFixture tree = mergedManifestFixture.getTree();
     mergedManifestFixture.checkAllRowsColored();
     mergedManifestFixture.requireText("Manifest Sources \n" +
@@ -78,9 +81,11 @@ public class ManifestEditorTest {
     editor.moveBetween("<application", "");
     editor.enterText(" android:isGame=\"true\"");
     editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
+    mergedManifestFixture
+      .waitForLoadingToFinish();
 
     tree.clickPath("manifest/application/android:isGame = true");
-    assertEquals("android:isGame = true", tree.valueAt(tree.target().getLeadSelectionRow()));
+    execute(() ->  assertEquals("android:isGame = true", tree.valueAt(tree.target().getLeadSelectionRow())));
   }
 
   @Test
@@ -94,7 +99,8 @@ public class ManifestEditorTest {
                        "            tools:remove=\"android:label\" />\n";
     assertThat(editor.getCurrentFileContents()).doesNotContain(addedText);
     editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
-    MergedManifestFixture mergedManifestFixture = editor.getMergedManifestEditor();
+    MergedManifestFixture mergedManifestFixture = editor.getMergedManifestEditor()
+      .waitForLoadingToFinish();
     JTreeFixture tree = mergedManifestFixture.getTree();
     // row 28 = "manifest/application/activity/android:name = com.android.mylibrary.MainActivity"
     JPopupMenuFixture popup = tree.showPopupMenuAt(22);
@@ -111,7 +117,8 @@ public class ManifestEditorTest {
 
     editor.open("app/src/main/AndroidManifest.xml");
     editor.selectEditorTab(EditorFixture.Tab.MERGED_MANIFEST);
-    MergedManifestFixture mergedManifestFixture = editor.getMergedManifestEditor();
+    MergedManifestFixture mergedManifestFixture = editor.getMergedManifestEditor()
+      .waitForLoadingToFinish();
 
     // row 22 is the first row of the intent-filter element generated from the nav-graph element
     mergedManifestFixture.getTree().clickRow(22);

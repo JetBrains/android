@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.dsl.parser;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
-import com.android.tools.idea.gradle.dsl.model.GradlePropertiesModel;
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleBuildFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
@@ -30,13 +29,12 @@ import com.google.common.collect.MutableClassToInstanceMap;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A context object used to hold information relevant to each unique instance of the project/build model.
@@ -105,6 +103,11 @@ public final class BuildModelContext {
       notificationMap.putInstance(type.getClazz(), notification);
       return notification;
     }
+  }
+
+  @Nullable
+  public VirtualFile getCurrentParsingRoot() {
+    return myFileCache.getCurrentParsingRoot();
   }
 
   /**

@@ -24,26 +24,38 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Memory.MemoryAllocStatsData;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.network.FakeNetworkService;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
-public class AllocStatsDataSeriesTest {
+@RunWith(Parameterized.class)
+public final class AllocStatsDataSeriesTest {
+  @Parameterized.Parameters
+  public static Collection<Boolean> useNewDataPipelineParameter() {
+    return Arrays.asList(false, true);
+  }
 
   private final FakeTimer myTimer = new FakeTimer();
   private final FakeMemoryService myService = new FakeMemoryService();
-
   private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
+  @NotNull private final FakeIdeProfilerServices myIdeProfilerServices = new FakeIdeProfilerServices();
 
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocStatsDataSeriesTest", myTransportService, myService,
                                                                    new FakeProfilerService(myTimer),
@@ -51,37 +63,64 @@ public class AllocStatsDataSeriesTest {
                                                                    new FakeCpuService(),
                                                                    new FakeNetworkService.Builder().build());
 
+  private final boolean myNewDataPipeline;
+
+  public AllocStatsDataSeriesTest(boolean useNewDataPipeline) {
+    myNewDataPipeline = useNewDataPipeline;
+    myIdeProfilerServices.enableEventsPipeline(useNewDataPipeline);
+  }
+
   @Test
   public void testGetDataForXRange() {
     myTransportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE);
-    StudioProfilers studioProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), new FakeIdeProfilerServices(), myTimer);
+    StudioProfilers studioProfilers =
+      new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myIdeProfilerServices, myTimer);
     studioProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));
 
-    MemoryData memoryData = MemoryData.newBuilder()
-      .setEndTimestamp(1)
-      .addAllocStatsSamples(
-        MemoryData.AllocStatsSample.newBuilder().setTimestamp(TimeUnit.MICROSECONDS.toNanos(3)).setJavaAllocationCount(1000)
-          .setJavaFreeCount(2000))
-      .addAllocStatsSamples(
-        MemoryData.AllocStatsSample.newBuilder().setTimestamp(TimeUnit.MICROSECONDS.toNanos(14)).setJavaAllocationCount(1500)
-          .setJavaFreeCount(2500))
-      .build();
-    myService.setMemoryData(memoryData);
+    MemoryAllocStatsData stats1 = MemoryAllocStatsData.newBuilder().setJavaAllocationCount(1000).setJavaFreeCount(2000).build();
+    MemoryAllocStatsData stats2 = MemoryAllocStatsData.newBuilder().setJavaAllocationCount(1500).setJavaFreeCount(2500).build();
+    long timestamp1 = TimeUnit.MICROSECONDS.toNanos(3);
+    long timestamp2 = TimeUnit.MICROSECONDS.toNanos(14);
+
+    if (myNewDataPipeline) {
+      myTransportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, Common.Event.newBuilder()
+        .setPid(FakeTransportService.FAKE_PROCESS.getPid())
+        .setTimestamp(timestamp1)
+        .setKind(Common.Event.Kind.MEMORY_ALLOC_STATS)
+        .setMemoryAllocStats(stats1)
+        .build());
+      myTransportService.addEventToStream(FakeTransportService.FAKE_DEVICE_ID, Common.Event.newBuilder()
+        .setPid(FakeTransportService.FAKE_PROCESS.getPid())
+        .setTimestamp(timestamp2)
+        .setKind(Common.Event.Kind.MEMORY_ALLOC_STATS)
+        .setMemoryAllocStats(stats2)
+        .build());
+    }
+    else {
+      MemoryData memoryData = MemoryData.newBuilder()
+        .setEndTimestamp(1)
+        .addAllocStatsSamples(
+          MemoryData.AllocStatsSample.newBuilder().setTimestamp(TimeUnit.MICROSECONDS.toNanos(3)).setAllocStats(stats1))
+        .addAllocStatsSamples(
+          MemoryData.AllocStatsSample.newBuilder().setTimestamp(TimeUnit.MICROSECONDS.toNanos(14)).setAllocStats(stats2))
+        .build();
+      myService.setMemoryData(memoryData);
+    }
 
     AllocStatsDataSeries series =
-      new AllocStatsDataSeries(studioProfilers, new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(),
+      new AllocStatsDataSeries(studioProfilers,
                                sample -> (long)sample.getJavaAllocationCount());
-    List<SeriesData<Long>> dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
+    List<SeriesData<Long>> dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, dataList.size());
     assertEquals(3, dataList.get(0).x);
     assertEquals(1000, dataList.get(0).value.longValue());
     assertEquals(14, dataList.get(1).x);
     assertEquals(1500, dataList.get(1).value.longValue());
 
-    series = new AllocStatsDataSeries(studioProfilers, new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(),
+    series = new AllocStatsDataSeries(studioProfilers,
                                       sample -> (long)sample.getJavaFreeCount());
-    dataList = series.getDataForXRange(new Range(0, Double.MAX_VALUE));
+    dataList = series.getDataForRange(new Range(0, Double.MAX_VALUE));
     assertEquals(2, dataList.size());
     assertEquals(3, dataList.get(0).x);
     assertEquals(2000, dataList.get(0).value.longValue());

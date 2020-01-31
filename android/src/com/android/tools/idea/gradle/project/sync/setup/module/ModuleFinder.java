@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.setup.module;
 
 import static com.android.tools.idea.Projects.getBaseDirPath;
 import static com.android.tools.idea.gradle.project.sync.Modules.createUniqueModuleId;
-import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
+import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
 import static com.google.common.base.Strings.nullToEmpty;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.toCanonicalPath;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
@@ -146,17 +146,6 @@ public class ModuleFinder {
       return module != null ? module : myModulesByGradlePath.get(gradlePath);
     }
     return null;
-  }
-
-  /**
-   * @return {@code true} if the given module comes from composite build.
-   */
-  public boolean isCompositeBuild(@NotNull Module module) {
-    File moduleFolder = findModuleRootFolderPath(module);
-    if (moduleFolder != null) {
-      return myIncludedProjectFolderByModuleFolder.containsKey(toCanonicalPath(moduleFolder.getPath()));
-    }
-    return false;
   }
 
   /**

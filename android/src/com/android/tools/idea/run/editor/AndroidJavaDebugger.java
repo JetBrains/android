@@ -15,13 +15,16 @@
  */
 package com.android.tools.idea.run.editor;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
+
 import com.android.annotations.concurrency.Slow;
+import com.android.builder.model.TestOptions;
 import com.android.ddmlib.Client;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.run.tasks.AndroidTestOrchestratorJavaDebuggerTask;
 import com.android.tools.idea.run.tasks.ConnectJavaDebuggerTask;
 import com.android.tools.idea.run.tasks.DebugConnectorTask;
+import com.android.tools.idea.testartifacts.instrumented.orchestrator.OrchestratorUtilsKt;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.debugger.impl.DebuggerSession;
 import com.intellij.debugger.ui.breakpoints.JavaFieldBreakpointType;
@@ -44,16 +47,13 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.util.NotNullFunction;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.breakpoints.XBreakpointType;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Set;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_INSTANTAPP;
-import static com.android.builder.model.TestOptions.Execution.ANDROID_TEST_ORCHESTRATOR;
 
 public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebuggerState> {
   public static final String ID = "Java";
@@ -81,7 +81,7 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
   @NotNull
   @Override
   public String getDisplayName() {
-    return getId();
+    return "Java Only";
   }
 
   @NotNull
@@ -103,15 +103,19 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
                                                    @NotNull Set<String> applicationIds,
                                                    @NotNull AndroidFacet facet,
                                                    @NotNull AndroidDebuggerState state,
-                                                   @NotNull String runConfigTypeId,
-                                                   boolean monitorRemoteProcess) {
-    AndroidModuleModel androidModuleModel = AndroidModuleModel.get(facet);
-    if (androidModuleModel != null && ANDROID_TEST_ORCHESTRATOR.equals(androidModuleModel.getTestExecutionStrategy())) {
-      return new AndroidTestOrchestratorJavaDebuggerTask(applicationIds, this, env.getProject(), monitorRemoteProcess);
-    }
-    else {
-      return new ConnectJavaDebuggerTask(applicationIds, this, env.getProject(), monitorRemoteProcess,
-                                         facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP);
+                                                   @NotNull String runConfigTypeId) {
+    ConnectJavaDebuggerTask baseConnector = new ConnectJavaDebuggerTask(
+      applicationIds, this, env.getProject(),
+      facet.getConfiguration().getProjectType() == PROJECT_TYPE_INSTANTAPP);
+    TestOptions.Execution executionType = Optional.ofNullable(AndroidModuleModel.get(facet))
+      .map(AndroidModuleModel::getTestExecutionStrategy)
+      .orElse(TestOptions.Execution.HOST);
+    switch (executionType) {
+      case ANDROID_TEST_ORCHESTRATOR:
+      case ANDROIDX_TEST_ORCHESTRATOR:
+        return OrchestratorUtilsKt.createReattachingDebugConnectorTask(baseConnector, executionType);
+      default:
+        return baseConnector;
     }
   }
 
@@ -124,17 +128,19 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
   @Override
   public void attachToClient(@NotNull Project project, @NotNull Client client) {
     String debugPort = getClientDebugPort(client);
-    String runConfigName = String.format(RUN_CONFIGURATION_NAME_PATTERN, debugPort);
+    String runConfigName = getRunConfigurationName(debugPort);
 
     // Try to find existing debug session
     Ref<Boolean> existingSession = new Ref<>();
-    ApplicationManager.getApplication().invokeAndWait(() -> existingSession.set(hasExistingDebugSession(project, debugPort, runConfigName)));
+    ApplicationManager.getApplication()
+      .invokeAndWait(() -> existingSession.set(hasExistingDebugSession(project, debugPort, runConfigName)));
     if (existingSession.get()) {
       return;
     }
 
     // Create run configuration
-    RunnerAndConfigurationSettings runSettings = RunManager.getInstance(project).createConfiguration(runConfigName, RemoteConfigurationType.class);
+    RunnerAndConfigurationSettings runSettings =
+      RunManager.getInstance(project).createConfiguration(runConfigName, RemoteConfigurationType.class);
 
     RemoteConfiguration configuration = (RemoteConfiguration)runSettings.getConfiguration();
     configuration.HOST = "localhost";
@@ -153,13 +159,18 @@ public class AndroidJavaDebugger extends AndroidDebuggerImplBase<AndroidDebugger
       if (debuggerSession != null) {
         return debuggerSession;
       }
-  }
+    }
     return null;
   }
 
-  private static boolean hasExistingDebugSession(@NotNull Project project,
-                                                 @NotNull final String debugPort,
-                                                 @NotNull final String runConfigName) {
+  @NotNull
+  public static String getRunConfigurationName(@NotNull String debugPort) {
+    return String.format(RUN_CONFIGURATION_NAME_PATTERN, debugPort);
+  }
+
+  public static boolean hasExistingDebugSession(@NotNull Project project,
+                                                @NotNull final String debugPort,
+                                                @NotNull final String runConfigName) {
     Collection<RunContentDescriptor> descriptors = null;
     Project[] openProjects = ProjectManager.getInstance().getOpenProjects();
     Project targetProject;

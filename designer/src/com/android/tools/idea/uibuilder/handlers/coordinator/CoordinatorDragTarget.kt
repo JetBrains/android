@@ -131,7 +131,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
   override fun mouseRelease(@AndroidDpCoordinate x: Int, @AndroidDpCoordinate y: Int, closestTargets: List<Target>) {
     super.mouseRelease(x, y, closestTargets)
     if (myChangedComponent) {
-      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+      myComponent.scene.markNeedsLayout(Scene.IMMEDIATE_LAYOUT)
     }
     updateInteractionState(CoordinatorLayoutHandler.InteractionState.NORMAL)
   }
@@ -161,7 +161,7 @@ class CoordinatorDragTarget : DragBaseTarget() {
       }
     }
     if (myChangedComponent) {
-      myComponent.scene.needsLayout(Scene.IMMEDIATE_LAYOUT)
+      myComponent.scene.markNeedsLayout(Scene.IMMEDIATE_LAYOUT)
     }
     updateInteractionState(CoordinatorLayoutHandler.InteractionState.NORMAL)
   }

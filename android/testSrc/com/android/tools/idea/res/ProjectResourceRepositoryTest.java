@@ -249,7 +249,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertNotNull(variant);
     File rootDir = androidProject.getRootDir();
     AndroidModuleModel androidModel =
-        new AndroidModuleModel(androidProject.getName(), rootDir, androidProject, variant.getName(), new IdeDependenciesFactory());
+      AndroidModuleModel.create(androidProject.getName(), rootDir, androidProject, variant.getName(), new IdeDependenciesFactory());
     myFacet.setModel(androidModel);
 
     File bundle = new File(rootDir, "bundle.aar");

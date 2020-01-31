@@ -76,6 +76,8 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
 
   override fun getModuleSystem(module: Module): AndroidModuleSystem {
     return object : AndroidModuleSystem {
+      override val module = module
+
       override fun analyzeDependencyCompatibility(dependenciesToAdd: List<GradleCoordinate>)
         : Triple<List<GradleCoordinate>, List<GradleCoordinate>, String> {
         val found = mutableListOf<GradleCoordinate>()
@@ -104,6 +106,8 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
 
       override fun getResourceModuleDependencies() = emptyList<Module>()
 
+      override fun getDirectResourceModuleDependents() = emptyList<Module>()
+
       override fun registerDependency(coordinate: GradleCoordinate) {
         registerDependency(coordinate, DependencyType.IMPLEMENTATION)
       }
@@ -131,6 +135,12 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
       override fun getOrCreateSampleDataDirectory(): PathString? = null
 
       override fun getSampleDataDirectory(): PathString? = null
+
+      override fun getPackageName(): String? = null
+
+      override fun getResolveScope(scopeType: ScopeType): GlobalSearchScope {
+        return module.getModuleWithDependenciesAndLibrariesScope(scopeType != ScopeType.MAIN)
+      }
     }
   }
 
@@ -147,7 +157,7 @@ class TestProjectSystem @JvmOverloads constructor(val project: Project,
   }
 
   override fun getSyncManager(): ProjectSystemSyncManager = object : ProjectSystemSyncManager {
-    override fun syncProject(reason: SyncReason, requireSourceGeneration: Boolean): ListenableFuture<SyncResult> {
+    override fun syncProject(reason: SyncReason): ListenableFuture<SyncResult> {
       emulateSync(SyncResult.SUCCESS)
       return Futures.immediateFuture(SyncResult.SUCCESS)
     }

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.project.sync;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.level2.Library;
 import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.gradle.model.IdeAndroidProjectImpl;
@@ -28,6 +27,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.AndroidGradleTests;
+import com.android.tools.idea.testing.TestGradleSyncListener;
 import com.android.tools.idea.testing.TestProjectPaths;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -47,16 +47,16 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
 
       loadSimpleApplication();
 
-      AndroidProject androidProject = getAndroidProjectInApp();
+      IdeAndroidProject androidProject = getAndroidProjectInApp();
       // Verify AndroidProject was copied.
       assertThat(androidProject).isInstanceOf(IdeAndroidProjectImpl.class);
 
       GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
       request.useCachedGradleModels = true;
-      SyncListener syncListener = requestSync(request);
+      TestGradleSyncListener syncListener = requestSync(request);
       assertTrue(syncListener.isSyncSkipped());
 
-      AndroidProject cached = getAndroidProjectInApp();
+      IdeAndroidProject cached = getAndroidProjectInApp();
       // Verify AndroidProject was deserialized.
       assertThat(cached).isInstanceOf(IdeAndroidProjectImpl.class);
 
@@ -70,7 +70,7 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
   public void ignore_testSyncWithGradle2Dot2() throws Exception {
     syncProjectWithGradle2Dot2();
 
-    AndroidProject androidProject = getAndroidProjectInApp();
+    IdeAndroidProject androidProject = getAndroidProjectInApp();
     // Verify AndroidProject was copied.
     assertThat(androidProject).isInstanceOf(IdeAndroidProjectImpl.class);
   }
@@ -88,7 +88,6 @@ public class IdeAndroidProjectIntegrationTest extends AndroidGradleTestCase {
     wrapper.updateDistributionUrl("3.5");
 
     GradleSyncInvoker.Request request = GradleSyncInvoker.Request.testRequest();
-    request.generateSourcesOnSuccess = false;
     request.skipAndroidPluginUpgrade = true;
     requestSyncAndWait(request);
   }

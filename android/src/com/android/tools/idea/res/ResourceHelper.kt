@@ -63,7 +63,7 @@ import com.android.resources.ResourceUrl
 import com.android.resources.ResourceVisibility
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.apk.viewer.ApkFileSystem
-import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.editors.theme.MaterialColorUtils
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel
 import com.android.tools.idea.rendering.GutterIconCache
@@ -111,7 +111,6 @@ import com.intellij.util.ui.TwoColorsIcon
 import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
-import org.jetbrains.android.refactoring.getNameInProject
 import org.jetbrains.annotations.Contract
 import java.awt.Color
 import java.io.File
@@ -215,11 +214,19 @@ fun getResourceName(file: PsiFile): String {
 }
 
 fun getFolderType(file: PsiFile?): ResourceFolderType? {
+
   return when {
     file == null -> null
     !ApplicationManager.getApplication().isReadAccessAllowed -> runReadAction { getFolderType(file) }
     !file.isValid -> getFolderType(file.virtualFile)
-    else -> file.parent?.let { ResourceFolderType.getFolderType(it.name) }
+    else -> {
+      var folderType = file.parent?.let { ResourceFolderType.getFolderType(it.name) }
+      if (folderType == null) {
+        folderType = file.virtualFile?.let { getFolderType(it) }
+      }
+
+      return folderType
+    }
   }
 }
 
@@ -339,8 +346,11 @@ fun isClassPackageNeeded(qualifiedName: String, baseClass: PsiClass, apiLevel: I
   return when {
     InheritanceUtil.isInheritor(baseClass, CLASS_VIEW) -> isViewPackageNeeded(qualifiedName, apiLevel)
     InheritanceUtil.isInheritor(baseClass, CLASS_PREFERENCE) -> !isDirectlyInPackage(qualifiedName, "android.preference")
-    InheritanceUtil.isInheritor(baseClass, CLASS_PREFERENCE_ANDROIDX.getNameInProject(baseClass.project)) ->
+    InheritanceUtil.isInheritor(baseClass, CLASS_PREFERENCE_ANDROIDX.newName()) ->
       !isDirectlyInPackage(qualifiedName, "androidx.preference")
+    InheritanceUtil.isInheritor(baseClass, CLASS_PREFERENCE_ANDROIDX.oldName()) ->
+      !isDirectlyInPackage(qualifiedName, "android.support.v7.preference") &&
+      !isDirectlyInPackage(qualifiedName, "android.support.v14.preference")
     else -> // TODO: removing that makes some of unit tests fail, but leaving it as it is can introduce buggy XML validation
       // Issue with further information: http://b.android.com/186559
       !qualifiedName.startsWith(ANDROID_PKG_PREFIX)
@@ -869,7 +879,7 @@ fun getCompletionFromTypes(
 
   val repoManager = ResourceRepositoryManager.getInstance(facet)
   val appResources = repoManager.appResources
-  val frameworkResources = repoManager.getFrameworkResources(false)
+  val frameworkResources = repoManager.getFrameworkResources(emptySet())
 
   val resources = ArrayList<String>(500)
   for (type in types) {
@@ -1117,7 +1127,7 @@ fun ResourceRepository.getResourceItems(
       val items = getResources(namespace, type) { item ->
         when {
           minVisibility == ResourceVisibility.values()[0] -> true
-          item is ResourceItemWithVisibility -> item.visibility >= minVisibility
+          item is ResourceItemWithVisibility && item.visibility != ResourceVisibility.UNDEFINED -> item.visibility >= minVisibility
           else ->
             // TODO(b/74324283): distinguish between PRIVATE and PRIVATE_XML_ONLY.
             // TODO(namespaces)
@@ -1159,11 +1169,23 @@ fun ResourceValue.isAccessibleInCode(facet: AndroidFacet): Boolean {
 private fun isAccessible(namespace: ResourceNamespace, type: ResourceType, name: String, facet: AndroidFacet): Boolean {
   val repoManager = ResourceRepositoryManager.getInstance(facet)
   return if (namespace == ResourceNamespace.ANDROID) {
-    val repo = repoManager.getFrameworkResources(false) ?: return false
+    val repo = repoManager.getFrameworkResources(emptySet()) ?: return false
     val items = repo.getResources(ResourceNamespace.ANDROID, type, name)
     items.isNotEmpty() && (items[0] as ResourceItemWithVisibility).visibility == ResourceVisibility.PUBLIC
   }
   else {
     !repoManager.resourceVisibility.isPrivate(type, name)
+  }
+}
+
+/**
+ * Checks if this [ResourceItem] came from an inline id declaration (`@+id`) in an "id generating" file.
+ */
+fun ResourceItem.isInlineIdDeclaration(): Boolean {
+  if (type != ResourceType.ID) return false
+  val parentFolderName = source?.parentFileName ?: return false
+  return when (val resourceFolderType = ResourceFolderType.getFolderType(parentFolderName)) {
+    null, ResourceFolderType.VALUES -> false
+    else -> FolderTypeRelationship.isIdGeneratingFolderType(resourceFolderType)
   }
 }

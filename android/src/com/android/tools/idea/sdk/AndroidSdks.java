@@ -25,6 +25,7 @@ import static com.android.sdklib.IAndroidTarget.RESOURCES;
 import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
 import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
 import static com.android.tools.idea.startup.ExternalAnnotationsSupport.attachJdkAnnotations;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemUtil.refreshAndFindFileByIoFile;
 import static com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil.createUniqueSdkName;
 import static com.intellij.openapi.roots.OrderRootType.CLASSES;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
@@ -35,11 +36,12 @@ import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.vfs.JarFileSystem.JAR_SEPARATOR;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
+import static com.intellij.openapi.vfs.VfsUtil.refreshAndFindChild;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkType.DEFAULT_EXTERNAL_DOCUMENTATION_URL;
 import static org.jetbrains.android.sdk.AndroidSdkType.SDK_NAME;
-import static org.jetbrains.android.util.AndroidCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
+import static org.jetbrains.android.util.AndroidBuildCommonUtils.ANNOTATIONS_JAR_RELATIVE_PATH;
 
 import com.android.annotations.NonNull;
 import com.android.sdklib.IAndroidTarget;
@@ -61,7 +63,6 @@ import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEntry;
-import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.libraries.ui.OrderRoot;
@@ -77,9 +78,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -104,11 +103,6 @@ public class AndroidSdks {
   @NonInjectable
   public AndroidSdks(@NotNull Jdks jdks, @NotNull IdeInfo ideInfo) {
     myIdeInfo = ideInfo;
-    myJdks = jdks;
-  }
-
-  public AndroidSdks(@NotNull Jdks jdks) {
-    myIdeInfo = IdeInfo.getInstance();
     myJdks = jdks;
   }
 
@@ -145,27 +139,17 @@ public class AndroidSdks {
 
   @Nullable
   public Sdk findSuitableAndroidSdk(@NotNull String targetHash) {
-    Set<String> foundSdkHomePaths = new HashSet<>();
-    List<Sdk> notCompatibleSdks = new ArrayList<>();
-
     for (Sdk sdk : getAllAndroidSdks()) {
       AndroidSdkAdditionalData originalData = getAndroidSdkAdditionalData(sdk);
       if (originalData == null) {
         continue;
       }
-      String sdkHomePath = sdk.getHomePath();
-      if (!foundSdkHomePaths.contains(sdkHomePath) && targetHash.equals(originalData.getBuildTargetHashString())) {
-        if (VersionCheck.isCompatibleVersion(sdkHomePath)) {
-          return sdk;
-        }
-        notCompatibleSdks.add(sdk);
-        if (sdkHomePath != null) {
-          foundSdkHomePaths.add(sdkHomePath);
-        }
+      if (targetHash.equals(originalData.getBuildTargetHashString())) {
+        return sdk;
       }
     }
 
-    return notCompatibleSdks.isEmpty() ? null : notCompatibleSdks.get(0);
+    return null;
   }
 
   @Nullable
@@ -423,16 +407,16 @@ public class AndroidSdks {
     if (targetDir != null) {
       docsOrSourcesFound = addJavaDocAndSources(result, targetDir);
     }
-    VirtualFile sdkDir = sdkPath != null ? findFileInLocalFileSystem(sdkPath.getPath()) : null;
+    VirtualFile sdkDir = sdkPath != null ? refreshAndFindFileByIoFile(sdkPath) : null;
     VirtualFile sourcesDir = null;
     if (sdkDir != null) {
       docsOrSourcesFound = addJavaDocAndSources(result, sdkDir) || docsOrSourcesFound;
-      sourcesDir = sdkDir.findChild(FD_PKG_SOURCES);
+      sourcesDir = refreshAndFindChild(sdkDir, FD_PKG_SOURCES);
     }
 
     // todo: replace it by target.getPath(SOURCES) when it'll be up to date
     if (sourcesDir != null && sourcesDir.isDirectory()) {
-      VirtualFile platformSourcesDir = sourcesDir.findChild(platformFolder.getName());
+      VirtualFile platformSourcesDir = refreshAndFindChild(sourcesDir, platformFolder.getName());
       if (platformSourcesDir != null && platformSourcesDir.isDirectory()) {
         result.add(new OrderRoot(platformSourcesDir, SOURCES));
         docsOrSourcesFound = true;
@@ -447,11 +431,9 @@ public class AndroidSdks {
     }
 
     String resFolderPath = target.getPath(RESOURCES);
-    if (resFolderPath != null) {
-      VirtualFile resFolder = findFileInLocalFileSystem(resFolderPath);
-      if (resFolder != null) {
-        result.add(new OrderRoot(resFolder, CLASSES));
-      }
+    VirtualFile resFolder = findFileInLocalFileSystem(resFolderPath);
+    if (resFolder != null) {
+      result.add(new OrderRoot(resFolder, CLASSES));
     }
 
     // Explicitly add annotations.jar unless the target platform already provides it (API16+).
@@ -472,7 +454,7 @@ public class AndroidSdks {
 
     VirtualFile platformFolder = getPlatformFolder(target);
     if (platformFolder != null) {
-      VirtualFile androidJar = platformFolder.findChild(FN_FRAMEWORK_LIBRARY);
+      VirtualFile androidJar = refreshAndFindChild(platformFolder, FN_FRAMEWORK_LIBRARY);
       if (androidJar != null) {
         File androidJarPath = virtualToIoFile(androidJar);
         VirtualFile androidJarRoot = findFileInJarFileSystem(androidJarPath);
@@ -522,7 +504,7 @@ public class AndroidSdks {
       found = true;
     }
 
-    VirtualFile sourcesFolder = sdkFolder.findChild(FD_SOURCES);
+    VirtualFile sourcesFolder = refreshAndFindChild(sdkFolder, FD_SOURCES);
     if (sourcesFolder != null) {
       orderRoots.add(new OrderRoot(sourcesFolder, SOURCES));
       found = true;
@@ -532,8 +514,8 @@ public class AndroidSdks {
 
   @Nullable
   private static VirtualFile findJavadocFolder(@NotNull VirtualFile folder) {
-    VirtualFile docsFolder = folder.findChild(FD_DOCS);
-    return docsFolder != null ? docsFolder.findChild(FD_DOCS_REFERENCE) : null;
+    VirtualFile docsFolder = refreshAndFindChild(folder, FD_DOCS);
+    return docsFolder != null ? refreshAndFindChild(docsFolder, FD_DOCS_REFERENCE) : null;
   }
 
   @Nullable
@@ -544,13 +526,13 @@ public class AndroidSdks {
 
   @Nullable
   private static VirtualFile findFileInLocalFileSystem(@NotNull String path) {
-    return LocalFileSystem.getInstance().findFileByPath(toSystemDependentName(path));
+    return LocalFileSystem.getInstance().refreshAndFindFileByIoFile(new File(path));
   }
 
   @Nullable
   private static VirtualFile findFileInJarFileSystem(@NotNull File path) {
     String canonicalPath = toCanonicalPath(path.getPath());
-    return JarFileSystem.getInstance().findFileByPath(canonicalPath + JAR_SEPARATOR);
+    return JarFileSystem.getInstance().refreshAndFindFileByPath(canonicalPath + JAR_SEPARATOR);
   }
 
   @NotNull
@@ -578,37 +560,10 @@ public class AndroidSdks {
     return target.getVersion().getApiLevel() <= 15;
   }
 
-  /**
-   * Refreshes the docs for a given SDK if required
-   *
-   * After installing or uninstalling docs we need to check if the doc roots need updating to reflect the new status of the installed
-   * documentation
-   */
-  public void refreshDocsIn(@NotNull Sdk sdk) {
-    AndroidSdkAdditionalData additionalData = getAndroidSdkAdditionalData(sdk);
-    AndroidSdkData sdkData = getSdkData(sdk);
-    if (additionalData != null && sdkData != null) {
-      IAndroidTarget target = additionalData.getBuildTarget(sdkData);
-      if (target != null && !hasValidDocs(sdk, target)) {
-        OrderRootType javaDocType = JavadocOrderRootType.getInstance();
-        SdkModificator sdkModificator = sdk.getSdkModificator();
-
-        List<OrderRoot> newRoots = getLibraryRootsForTarget(target, toSystemDependentPath(sdkModificator.getHomePath()), true);
-        sdkModificator.removeRoots(javaDocType);
-        for (OrderRoot orderRoot : newRoots) {
-          if (orderRoot.getType() == javaDocType) {
-            sdkModificator.addRoot(orderRoot.getFile(), orderRoot.getType());
-          }
-        }
-
-        sdkModificator.commitChanges();
-      }
-    }
-  }
 
   /**
    * Refresh the library {@link VirtualFile}s in the given {@link Sdk}.
-   *
+   * <p>
    * After changes to installed Android SDK components, the contents of the {@link Sdk}s do not automatically get refreshed.
    * The referenced {@link VirtualFile}s can be obsolete, new files may be created, or files may be deleted. The result is that
    * references to Android classes may not be found in editors.

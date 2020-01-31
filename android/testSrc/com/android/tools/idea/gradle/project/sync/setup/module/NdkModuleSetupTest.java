@@ -42,38 +42,9 @@ public class NdkModuleSetupTest {
   }
 
   @Test
-  public void setUpAndroidModuleWithProgressIndicator() {
-    myModuleSetup.setUpModule(myModuleSetupContext, myNdkModel, false);
+  public void setUpAndroidModule() {
+    myModuleSetup.setUpModule(myModuleSetupContext, myNdkModel);
 
-    verify(mySetupStep1, times(1)).setUpModule(myModuleSetupContext, myNdkModel);
-    verify(mySetupStep2, times(1)).setUpModule(myModuleSetupContext, myNdkModel);
-  }
-
-  @Test
-  public void setUpAndroidModuleWithoutProgressIndicator() {
-    myModuleSetup.setUpModule(myModuleSetupContext, myNdkModel, false);
-
-    verify(mySetupStep1, times(1)).setUpModule(myModuleSetupContext, myNdkModel);
-  }
-
-  @Test
-  public void setUpAndroidModuleWithSyncSkipped() {
-    when(mySetupStep1.invokeOnSkippedSync()).thenReturn(true);
-
-    myModuleSetup.setUpModule(myModuleSetupContext, myNdkModel, true /* sync skipped */);
-
-    // Only 'mySetupStep1' should be invoked when sync is skipped.
-    verify(mySetupStep1, times(1)).setUpModule(myModuleSetupContext, myNdkModel);
-    verify(mySetupStep2, times(0)).setUpModule(myModuleSetupContext, myNdkModel);
-  }
-
-  @Test
-  public void setUpAndroidModuleWithSyncNotSkipped() {
-    when(mySetupStep1.invokeOnSkippedSync()).thenReturn(true);
-
-    myModuleSetup.setUpModule(myModuleSetupContext, myNdkModel, false /* sync not skipped */);
-
-    // Only 'mySetupStep1' should be invoked when sync is skipped.
     verify(mySetupStep1, times(1)).setUpModule(myModuleSetupContext, myNdkModel);
     verify(mySetupStep2, times(1)).setUpModule(myModuleSetupContext, myNdkModel);
   }

@@ -50,14 +50,12 @@ public class GradleNameElement {
   public static final Pattern INDEX_PATTERN = Pattern.compile("\\[(.+?)\\]|(.+?)(?=\\[)");
 
   @NotNull
-  private final Pattern SPACES = Pattern.compile("\\s+");
+  private static final Pattern SPACES = Pattern.compile("\\s+");
 
   @Nullable
   private PsiElement myNameElement;
   @Nullable
-  private String mySavedName;
-  @Nullable
-  private String myUnsavedName;
+  private String myLocalName;
   @Nullable
   private String myFakeName; // Used for names that do not require a file element.
   @Nullable
@@ -102,13 +100,12 @@ public class GradleNameElement {
       myFakeName = name;
     }
     else {
-      myUnsavedName = name;
+      myLocalName = name;
     }
   }
 
   private GradleNameElement(@NotNull GradleNameElement element) {
-    mySavedName = element.mySavedName;
-    myUnsavedName = element.myUnsavedName;
+    myLocalName = element.myLocalName;
     myFakeName = element.myFakeName;
   }
 
@@ -173,14 +170,14 @@ public class GradleNameElement {
   }
 
   @Nullable
-  public String getUnsavedName() {
-    return myUnsavedName;
+  public String getLocalName() {
+    return myLocalName;
   }
 
 
   public void rename(@NotNull String newName) {
     if (!isFake()) {
-      myUnsavedName = newName;
+      myLocalName = newName;
     }
     else {
       myFakeName = newName;
@@ -232,13 +229,9 @@ public class GradleNameElement {
   private String findName() {
     if (myName != null) return myName;
     String name = null;
-    if (myUnsavedName != null) {
-      name = myUnsavedName;
+    if (myLocalName != null) {
+      name = myLocalName;
     }
-    else if (mySavedName != null) {
-      name = mySavedName;
-    }
-
     if (name == null && myFakeName != null) {
       name = myFakeName;
     }
@@ -262,10 +255,10 @@ public class GradleNameElement {
   private void setUpFrom(@Nullable PsiElement element) {
     myNameElement = element;
     if (myNameElement instanceof PsiNamedElement) {
-      mySavedName = ((PsiNamedElement)myNameElement).getName();
+      myLocalName = ((PsiNamedElement)myNameElement).getName();
     }
     else if (myNameElement != null) {
-      mySavedName = myNameElement.getText();
+      myLocalName = myNameElement.getText();
     }
     myName = null;
   }

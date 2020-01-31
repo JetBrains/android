@@ -37,6 +37,7 @@ import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -355,7 +356,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
 
     // Framework XML: API28 has two default app icons: res/drawable-watch/sym_def_app_icon.xml and res/drawable/sym_def_app_icon.xml
     List<ResourceItem> frameworkResourceItems = ResourceRepositoryManager.getInstance(myFacet)
-      .getFrameworkResources(false)
+      .getFrameworkResources(ImmutableSet.of())
       .getResources(ANDROID, ResourceType.DRAWABLE, "sym_def_app_icon");
 
     for (ResourceItem frameworkResourceItem : frameworkResourceItems) {

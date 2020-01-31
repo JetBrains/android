@@ -23,6 +23,7 @@ import com.android.tools.idea.run.util.LaunchStatus;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind;
+import com.intellij.execution.Executor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
@@ -52,7 +53,8 @@ public class AndroidDeepLinkLaunchTask implements LaunchTask {
   }
 
   @Override
-  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+  public LaunchResult run(
+    @NotNull Executor executor, @NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     printer.stdout("Launching deeplink: " + myDeepLink + ".\n");
     UsageTracker.log(AndroidStudioEvent.newBuilder()
                                    .setCategory(EventCategory.APP_INDEXING)
@@ -62,7 +64,8 @@ public class AndroidDeepLinkLaunchTask implements LaunchTask {
 
     // Launch deeplink
     String command = getLaunchDeepLinkCommand(myDeepLink, myStartActivityFlagsProvider.getFlags(device));
-    return ShellCommandLauncher.execute(command, device, launchStatus, printer, 5, TimeUnit.SECONDS);
+    boolean successful = ShellCommandLauncher.execute(command, device, launchStatus, printer, 5, TimeUnit.SECONDS);
+    return successful ? LaunchResult.success() : LaunchResult.error("", getDescription());
   }
 
   @NotNull

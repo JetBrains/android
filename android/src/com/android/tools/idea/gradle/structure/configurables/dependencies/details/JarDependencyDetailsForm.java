@@ -28,15 +28,11 @@ public abstract class JarDependencyDetailsForm implements ConfigurationDependenc
   protected JXLabel myExcludesText;
   protected JBLabel myNameLabel;
   protected JBLabel myIncludesLabel;
-  protected JBLabel myScopeLabel;
-  protected JComboBox<String> myScope;
-
-  private void createUIComponents() {
-    myScope = createConfigurationUI();
-  }
+  protected JBLabel myConfigurationLabel;
+  protected JPanel myConfigurationPanel;
 
   @Override
-  public JComboBox<String> getConfigurationUI() {
-    return myScope;
+  public JPanel getConfigurationUI() {
+    return myConfigurationPanel;
   }
 }

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.explorer.ui;
 
+import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
 import com.android.tools.idea.apk.viewer.ApkViewPanel;
 import com.android.tools.idea.explorer.DeviceFileEntryNode;
@@ -29,22 +30,31 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.testFramework.LightVirtualFile;
-import com.intellij.ui.*;
+import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.JBColor;
+import com.intellij.ui.LayeredIcon;
+import com.intellij.ui.LoadingNode;
+import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.event.ActionListener;
+import javax.swing.Icon;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JTree;
+import javax.swing.SwingConstants;
+import javax.swing.tree.DefaultTreeModel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
-import javax.swing.*;
-import javax.swing.tree.DefaultTreeModel;
-import java.awt.*;
-import java.awt.event.ActionListener;
 
 public class DeviceExplorerPanel {
   private static final int TEXT_RENDERER_HORIZ_PADDING = 6;
@@ -61,8 +71,7 @@ public class DeviceExplorerPanel {
   public DeviceExplorerPanel() {
     myErrorPanel.setBackground(UIUtil.getTreeBackground());
 
-    Font font = myErrorText.getFont();
-    myErrorText.setFont(font.deriveFont(font.getStyle(), font.getSize() + 4));
+    myErrorText.setFont(AdtUiUtils.EMPTY_TOOL_WINDOW_FONT);
     myErrorText.setForeground(UIUtil.getInactiveTextColor());
 
     // Disable toolbar until implementation is complete, as the "Device Explorer"
@@ -168,25 +177,25 @@ public class DeviceExplorerPanel {
       .setBackground(UIUtil.getTreeBackground())
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Name")
-                   .setPreferredWidth(JBUIScale.scale(600))
+                   .setPreferredWidth(JBUI.scale(600))
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new NameRenderer(treeSpeedSearch)))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Permissions")
-                   .setPreferredWidth(JBUIScale.scale(190))
+                   .setPreferredWidth(JBUI.scale(190))
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new PermissionsRenderer()))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Date")
-                   .setPreferredWidth(JBUIScale.scale(280))
+                   .setPreferredWidth(JBUI.scale(280))
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new DateRenderer()))
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Size")
-                   .setPreferredWidth(JBUIScale.scale(130))
+                   .setPreferredWidth(JBUI.scale(130))
                    .setHeaderAlignment(SwingConstants.LEADING)
                    .setHeaderBorder(JBUI.Borders.empty(TEXT_RENDERER_VERT_PADDING, TEXT_RENDERER_HORIZ_PADDING))
                    .setRenderer(new SizeRenderer())

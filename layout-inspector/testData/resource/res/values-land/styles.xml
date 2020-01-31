@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <style name="MyTextStyle" parent="TextAppearance.Material.Body1">
+    <item name="android:textColor">@color/textRedIndirect</item>
+  </style>
+</resources>

@@ -78,7 +78,7 @@ public class AvdSummaryAction extends AvdUiAction {
       }
 
       // display other hardware
-      HashMap<String, String> copy = new HashMap<>(properties);
+      HashMap<String, String> copy = new HashMap<String, String>(properties);
       // remove stuff we already displayed (or that we don't want to display)
       copy.remove(AvdManager.AVD_INI_ABI_TYPE);
       copy.remove(AvdManager.AVD_INI_CPU_ARCH);

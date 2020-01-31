@@ -71,6 +71,70 @@ public class ProguardCompletionTest extends LightJavaCodeInsightFixtureTestCase 
     assertEquals("Expected a highlight of type ERROR", HighlightInfoType.ERROR, expectedError.type);
   }
 
+  public void testCommercialAtIncludeSynonym() throws Throwable {
+    // commercialat.pro is syntactically correct but semantically dubious (it includes itself).  If proguard
+    // support extends to detecting mistakes like that, think harder about this test.
+    copyFileToProject("commercialat.pro");
+    List<HighlightInfo> highlights = myFixture.doHighlighting();
+    assertTrue("Expected no highlights", highlights.isEmpty());
+  }
+
+  private void performTestFilenameCompletion(String completionFile, String otherFile) throws Throwable {
+    assert !completionFile.startsWith("z");
+    myFixture.addFileToProject("zzz.pro", "");
+    myFixture.addFileToProject(otherFile, "");
+    performTestCompletionVariants(completionFile, completionFile, otherFile);
+  }
+
+  public void testIncludeCompletion() throws Throwable {
+    performTestFilenameCompletion("includecompletion.pro", "ijklk.pro");
+  }
+
+  public void testApplyMappingCompletion() throws Throwable {
+    performTestFilenameCompletion("applymappingcompletion.pro", "abc.pro");
+  }
+
+  public void testObfuscationDictionaryCompletion() throws Throwable {
+    performTestFilenameCompletion("obfuscationdictionarycompletion.pro", "obvs.pro");
+  }
+
+  public void testClassObfuscationDictionaryCompletion() throws Throwable {
+    performTestFilenameCompletion("classobfuscationdictionarycompletion.pro", "cat.pro");
+  }
+
+  public void testPackageObfuscationDictionaryCompletion() throws Throwable {
+    performTestFilenameCompletion("packageobfuscationdictionarycompletion.pro", "pi.pro");
+  }
+
+  public void testPrintSeedsCompletion() throws Throwable {
+    performTestFilenameCompletion("printseedscompletion.pro", "pi.pro");
+  }
+
+  public void testPrintUsageCompletion() throws Throwable {
+    performTestFilenameCompletion("printusagecompletion.pro", "pi.pro");
+  }
+
+  public void testPrintMappingCompletion() throws Throwable {
+    performTestFilenameCompletion("printmappingcompletion.pro", "pi.pro");
+  }
+
+  public void testPrintConfigurationCompletion() throws Throwable {
+    performTestFilenameCompletion("printconfigurationcompletion.pro", "pi.pro");
+  }
+
+  public void testDumpCompletion() throws Throwable {
+    performTestFilenameCompletion("dumpcompletion.pro", "dog.pro");
+  }
+
+  // TODO(xof): rework so that we don't have to manually generate all (flags)x(quotes) test cases
+  //  but get full coverage
+  public void testFilenameCompletionWithSingleQuotes() throws Throwable {
+    performTestFilenameCompletion("dumpwithsinglequotescompletion.pro", "dog.pro");
+  }
+
+  public void testFilenameCompletionWithDoubleQuotes() throws Throwable {
+    performTestFilenameCompletion("dumpwithdoublequotescompletion.pro", "dog.pro");
+  }
   /**
    * Tests basic completion on the input file {@code fileBefore} at caret position, comparing it
    * against the contents of the file {@code fileAfter}.
@@ -97,7 +161,7 @@ public class ProguardCompletionTest extends LightJavaCodeInsightFixtureTestCase 
     // myFixture.testCompletionVariants(fileBefore, expectedVariants);
 
     LookupElement[] completions = myFixture.complete(CompletionType.BASIC);
-    assertNotNull("Expected at least one completion in " + fileBefore, completions);
+    assertNotNull("Expected at least two completions in " + fileBefore, completions);
 
     // Transform array of LookupElement into a List of Strings.
     List<String> completionVariants =

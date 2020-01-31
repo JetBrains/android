@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.editors.strings;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.resources.LocaleManager;
 import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.tools.idea.rendering.Locale;

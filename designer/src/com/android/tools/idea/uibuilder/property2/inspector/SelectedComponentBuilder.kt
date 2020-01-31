@@ -17,20 +17,28 @@ package com.android.tools.idea.uibuilder.property2.inspector
 
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_ID
-import com.android.tools.property.panel.api.InspectorBuilder
-import com.android.tools.property.panel.api.InspectorPanel
-import com.android.tools.property.panel.api.PropertiesTable
+import com.android.SdkConstants.TAG_DEEP_LINK
 import com.android.tools.idea.uibuilder.property2.NelePropertyItem
 import com.android.tools.idea.uibuilder.property2.model.SelectedComponentModel
 import com.android.tools.idea.uibuilder.property2.ui.SelectedComponentPanel
+import com.android.tools.property.panel.api.InspectorBuilder
+import com.android.tools.property.panel.api.InspectorPanel
+import com.android.tools.property.panel.api.PropertiesTable
+import org.jetbrains.android.dom.navigation.NavigationSchema.TAG_ARGUMENT
 
 class SelectedComponentBuilder : InspectorBuilder<NelePropertyItem> {
+  private val hiddenTags = setOf(TAG_DEEP_LINK, TAG_ARGUMENT)
 
   override fun attachToInspector(inspector: InspectorPanel, properties: PropertiesTable<NelePropertyItem>) {
     val components = properties.first?.components ?: emptyList()
     if (components.isEmpty()) {
       return
     }
+
+    if (components.all { hiddenTags.contains(it.tagName) }) {
+      return
+    }
+
     val id = properties.getOrNull(ANDROID_URI, ATTR_ID)
     val qualifiedTagName = if (components.size == 1) components[0].tagName else ""
     val tagName = qualifiedTagName.substring(qualifiedTagName.lastIndexOf('.') + 1)

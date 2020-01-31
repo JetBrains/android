@@ -15,22 +15,6 @@
  */
 package com.android.tools.idea.profilers;
 
-import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
-import com.android.tools.idea.profilers.perfd.ProfilerServiceProxyManager;
-import com.android.tools.idea.run.AndroidRunConfigurationBase;
-import com.android.tools.idea.run.profiler.CpuProfilerConfig;
-import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
-import com.android.tools.idea.transport.TransportDeviceManager;
-import com.android.tools.idea.transport.TransportProxy;
-import com.android.tools.profiler.proto.Agent;
-import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.Transport;
-import com.android.tools.profilers.analytics.FeatureTracker;
-import com.android.tools.profilers.cpu.CpuProfilerStage;
-import com.android.tools.profilers.memory.MemoryProfilerStage;
-import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
@@ -42,13 +26,11 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.content.ContentManager;
-import com.intellij.util.messages.MessageBusConnection;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.HashMap;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class AndroidProfilerToolWindowFactory implements DumbAware, ToolWindowFactory {
   public static final String ID = "Android Profiler";
@@ -72,17 +54,24 @@ public final class AndroidProfilerToolWindowFactory implements DumbAware, ToolWi
         }
       }
     });
-
-    // TODO move to non-project-dependent once service is fully migrated to be application-level
-    MessageBusConnection busConnection = project.getMessageBus().connect();
-    busConnection.subscribe(TransportDeviceManager.TOPIC, new ProfilerDeviceManagerListener(project));
   }
 
   @Override
   public void init(@NotNull ToolWindow toolWindow) {
-    toolWindow.setToHideOnEmptyContent(true);
-    toolWindow.setShowStripeButton(false);
     toolWindow.setStripeTitle(PROFILER_TOOL_WINDOW_TITLE);
+
+    // When we initialize the ToolWindow we call to the profiler service to also make sure it is initialized.
+    // The default behavior for intellij is to lazy load services so having this call here forces intellij to
+    // load the AndroidProfilerService registering the data and callbacks required for initializing the profilers.
+    // Note: The AndroidProfilerService is where all application level components should be managed. This means if
+    // we have something that impacts the TransportPipeline or should be done only once for X instances of
+    // profilers or projects it will need to be handled there.
+    AndroidProfilerService.getInstance(); // FIXME-ank2: too early!
+  }
+
+  @Override
+  public boolean shouldBeAvailable(@NotNull Project project) {
+    return false; // No tool window (and its stripe button) should be visible after startup.
   }
 
   private static void createContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
@@ -124,95 +113,6 @@ public final class AndroidProfilerToolWindowFactory implements DumbAware, ToolWi
       Content content = toolWindow.getContentManager().getContent(0);
       PROJECT_PROFILER_MAP.remove(content);
       toolWindow.getContentManager().removeAllContents(true);
-    }
-  }
-
-  private static final class ProfilerDeviceManagerListener implements TransportDeviceManager.TransportDeviceManagerListener {
-    private final int LIVE_ALLOCATION_STACK_DEPTH = Integer.getInteger("profiler.alloc.stack.depth", 50);
-
-    @NotNull private final FeatureTracker myTracker;
-
-    private ProfilerDeviceManagerListener(@NotNull Project project) {
-      myTracker = new StudioFeatureTracker(project);
-    }
-
-    @Override
-    public void onPreTransportDaemonStart(@NotNull Common.Device device) {
-      myTracker.trackPreTransportDaemonStarts(device);
-    }
-
-    @Override
-    public void onStartTransportDaemonFail(@NotNull Common.Device device, @NotNull Exception exception) {
-      myTracker.trackTransportDaemonFailed(device, exception);
-    }
-
-    @Override
-    public void onTransportProxyCreationFail(@NotNull Common.Device device, @NotNull Exception exception) {
-      myTracker.trackTransportProxyCreationFailed(device, exception);
-    }
-
-    @Override
-    public void customizeProxyService(@NotNull TransportProxy proxy) {
-      ProfilerServiceProxyManager.registerProxies(proxy);
-    }
-
-    @Override
-    public void customizeDaemonConfig(@NotNull Transport.DaemonConfig.Builder configBuilder) {
-      configBuilder
-        .setCommon(
-          configBuilder.getCommonBuilder()
-            .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
-            .setProfilerUnifiedPipeline(StudioFlags.PROFILER_UNIFIED_PIPELINE.get()))
-        .setCpu(
-          Transport.DaemonConfig.CpuConfig.newBuilder()
-            .setArtStopTimeoutSec(CpuProfilerStage.CPU_ART_STOP_TIMEOUT_SEC)
-            .setSimpleperfHost(StudioFlags.PROFILER_SIMPLEPERF_HOST.get())
-            .setUsePerfetto(StudioFlags.PROFILER_USE_PERFETTO.get()));
-    }
-
-    @Override
-    public void customizeAgentConfig(@NotNull Agent.AgentConfig.Builder configBuilder,
-                                     @Nullable AndroidRunConfigurationBase runConfig) {
-      int liveAllocationSamplingRate;
-      if (StudioFlags.PROFILER_SAMPLE_LIVE_ALLOCATIONS.get()) {
-        // If memory live allocation is enabled, read sampling rate from preferences. Otherwise suspend live allocation.
-        if (shouldEnableMemoryLiveAllocation(runConfig)) {
-          liveAllocationSamplingRate = PropertiesComponent.getInstance().getInt(
-            IntellijProfilerPreferences.getProfilerPropertyName(MemoryProfilerStage.LIVE_ALLOCATION_SAMPLING_PREF),
-            MemoryProfilerStage.DEFAULT_LIVE_ALLOCATION_SAMPLING_MODE.getValue());
-        }
-        else {
-          liveAllocationSamplingRate = MemoryProfilerStage.LiveAllocationSamplingMode.NONE.getValue();
-        }
-      }
-      else {
-        // Sampling feature is disabled, use full mode.
-        liveAllocationSamplingRate = MemoryProfilerStage.LiveAllocationSamplingMode.FULL.getValue();
-      }
-      configBuilder
-        .setCommon(
-          configBuilder.getCommonBuilder()
-            .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
-            .setProfilerUnifiedPipeline(StudioFlags.PROFILER_UNIFIED_PIPELINE.get()))
-        .setMem(
-          Agent.AgentConfig.MemoryConfig.newBuilder()
-            .setUseLiveAlloc(StudioFlags.PROFILER_USE_LIVE_ALLOCATIONS.get())
-            .setMaxStackDepth(LIVE_ALLOCATION_STACK_DEPTH)
-            .setTrackGlobalJniRefs(StudioFlags.PROFILER_TRACK_JNI_REFS.get())
-            .setSamplingRate(
-              MemoryProfiler.AllocationSamplingRate.newBuilder().setSamplingNumInterval(liveAllocationSamplingRate).build())
-            .build())
-        .setCpuApiTracingEnabled(StudioFlags.PROFILER_CPU_API_TRACING.get())
-        .setStartupProfilingEnabled(runConfig != null);
-    }
-
-    private static boolean shouldEnableMemoryLiveAllocation(@Nullable AndroidRunConfigurationBase runConfig) {
-      if (runConfig != null && runConfig.getProfilerState().STARTUP_CPU_PROFILING_ENABLED) {
-        String configName = runConfig.getProfilerState().STARTUP_CPU_PROFILING_CONFIGURATION_NAME;
-        CpuProfilerConfig startupConfig = CpuProfilerConfigsState.getInstance(runConfig.getProject()).getConfigByName(configName);
-        return startupConfig == null || !startupConfig.isDisableLiveAllocation();
-      }
-      return true;
     }
   }
 }

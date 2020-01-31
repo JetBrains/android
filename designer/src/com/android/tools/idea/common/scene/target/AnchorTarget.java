@@ -31,11 +31,10 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.ui.scale.JBUIScale;
 import java.awt.Color;
 import java.awt.Point;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.List;
 import java.util.Optional;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Implements a target anchor for the ConstraintLayout.
@@ -393,40 +392,15 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
     myLastX = -1;
     myLastY = -1;
     myComponent.getScene().needsRebuildList();
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
     myIsDragging = false;
   }
 
   @Override
   public String getToolTipText() {
-    String side = null;
-    switch (myType) {
-      case LEFT:
-        side = "Left";
-        break;
-      case TOP:
-        side = "Top";
-        break;
-      case RIGHT:
-        side = "Right";
-        break;
-      case BOTTOM:
-        side = "Bottom";
-        break;
-      case BASELINE:
-        side = "Baseline";
-        break;
-      default:
-        return isConnected() ? "Delete Constraint" : "Create Constraint";
-    }
-
-    StringBuilder builder = new StringBuilder();
-    builder
-      .append(isConnected() ? "Delete " : "Create ")
-      .append(side)
-      .append(" Constraint");
-
-    return builder.toString();
+    boolean supportRtl = myComponent.getScene().supportsRTL();
+    boolean isRtl = myComponent.getScene().isInRTL();
+    return createAnchorToolTips(myType, !isConnected(), supportRtl, isRtl);
   }
 
   //endregion
@@ -471,6 +445,47 @@ abstract public class AnchorTarget extends BaseTarget implements Notch.Provider 
     notch.setGap(Coordinates.getAndroidDimensionDip(snappableComponent.getScene().getDesignSurface(), ANCHOR_SIZE * 2));
     notch.setTarget(this);
     notchBuilder.add(notch);
+  }
+
+  /**
+   * Create the tool tips for anchors.
+   *
+   * @param type           type of anchor direction. May be null if there is no specified anchor type.
+   * @param isCreated      true for having the tool tips of creating constraint anchor, false for deleting.
+   * @param isRtlSupported true if left and right type should be treat as start and end depends on {@param isRtl}.
+   * @param isRtl          true if the type is in rtl mode. This parameter is meaningless when {@param isSupportRtl} is false.
+   *
+   */
+  @NotNull
+  public static String createAnchorToolTips(@Nullable Type type, boolean isCreated, boolean isRtlSupported, boolean isRtl) {
+    StringBuilder builder = new StringBuilder();
+    builder.append(isCreated ? "Create " : "Delete ");
+    if (type != null) {
+      String directionText;
+      switch (type) {
+        case LEFT:
+          directionText = isRtlSupported ? isRtl ? "End" : "Start" : "Left";
+          break;
+        case TOP:
+          directionText = "Top";
+          break;
+        case RIGHT:
+          directionText = isRtlSupported ? isRtl ? "Start" : "End" : "Right";
+          break;
+        case BOTTOM:
+          directionText = "Bottom";
+          break;
+        case BASELINE:
+          directionText = "Baseline";
+          break;
+        default:
+          // Logically this shouldn't happen.
+          directionText = "";
+      }
+      builder.append(directionText).append(" ");
+    }
+    builder.append("Constraint");
+    return builder.toString();
   }
 
   @Nullable

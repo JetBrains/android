@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths.BASIC
 import com.intellij.execution.ui.ConfigurationModuleSelector
 import com.intellij.openapi.module.Module
+import com.intellij.ui.components.JBCheckBox
 import org.junit.Test
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
@@ -54,5 +55,15 @@ class ApplicationRunParametersTest : AndroidGradleTestCase() {
     val event = mock(ActionEvent::class.java)
     `when`(event.source).thenReturn(myInstantAppDeployCheckbox.get(myApplicationRunParameters))
     myApplicationRunParameters.actionPerformed(event)
+  }
+
+  @Test
+  fun testInstantAppCheckboxDisabledWithNullModule() {
+    `when`(myModuleSelector.module).thenReturn(null)
+    myApplicationRunParameters.onModuleChanged()
+    val myInstantAppDeployCheckboxField = ApplicationRunParameters::class.java.getDeclaredField("myInstantAppDeployCheckBox")
+    myInstantAppDeployCheckboxField.isAccessible = true
+    val myInstantAppDeployCheckbox = myInstantAppDeployCheckboxField.get(myApplicationRunParameters) as JBCheckBox
+    assertFalse(myInstantAppDeployCheckbox.isEnabled)
   }
 }

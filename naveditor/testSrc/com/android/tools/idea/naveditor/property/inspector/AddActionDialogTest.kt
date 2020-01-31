@@ -55,6 +55,11 @@ class AddActionDialogTest : NavTestCase() {
     }
 
     AddActionDialog(AddActionDialog.Defaults.NORMAL, null, model.find("f1")!!, DESIGN_SURFACE).runAndClose { dialog ->
+      assertFalse(dialog.dialog.myEnterComboBox.isEnabled)
+      assertFalse(dialog.dialog.myExitComboBox.isEnabled)
+      assertFalse(dialog.dialog.myPopEnterComboBox.isEnabled)
+      assertFalse(dialog.dialog.myPopExitComboBox.isEnabled)
+
       val destinationCombo = dialog.dialog.myDestinationComboBox
       val f2 = model.find("f2")
       for (i in 0 until destinationCombo.itemCount) {
@@ -69,6 +74,11 @@ class AddActionDialogTest : NavTestCase() {
       val action = model.find("foo")!!
       assertEquals(model.find("f2"), action.actionDestination)
       assertEquals(model.find("f1"), dialog.source)
+
+      assertTrue(dialog.dialog.myEnterComboBox.isEnabled)
+      assertTrue(dialog.dialog.myExitComboBox.isEnabled)
+      assertTrue(dialog.dialog.myPopEnterComboBox.isEnabled)
+      assertTrue(dialog.dialog.myPopExitComboBox.isEnabled)
     }
   }
 
@@ -119,6 +129,12 @@ class AddActionDialogTest : NavTestCase() {
       assertEquals("f2", dialog.popTo)
       assertEquals("a1", dialog.id)
       assertFalse(dialog.dialog.myIdTextField.isEnabled)
+      assertTrue(dialog.dialog.myDestinationComboBox.isEnabled)
+      assertEquals(model.find("f2")!!, dialog.destination)
+      assertTrue(dialog.dialog.myEnterComboBox.isEnabled)
+      assertTrue(dialog.dialog.myExitComboBox.isEnabled)
+      assertTrue(dialog.dialog.myPopEnterComboBox.isEnabled)
+      assertTrue(dialog.dialog.myPopExitComboBox.isEnabled)
     }
   }
 
@@ -207,7 +223,7 @@ class AddActionDialogTest : NavTestCase() {
     }
   }
 
-  fun testReturnToSource() {
+  fun testAddReturnToSource() {
     val model = model("nav.xml") {
       navigation("root") {
         fragment("f1")
@@ -225,6 +241,37 @@ class AddActionDialogTest : NavTestCase() {
       assertFalse(dialog.myPopToComboBox.isEnabled)
       assertTrue(dialog.myInclusiveCheckBox.isSelected)
       assertFalse(dialog.myInclusiveCheckBox.isEnabled)
+      assertEquals("action_f1_pop", dialog.myIdTextField.text)
+      assertTrue(dialog.myPopEnterComboBox.isEnabled)
+      assertTrue(dialog.myPopExitComboBox.isEnabled)
+    }
+  }
+
+  fun testExistingReturnToSource() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          action("action_f1_pop", popUpTo = "f1", inclusive = true)
+        }
+      }
+    }
+
+    val f1 = model.find("f1")!!
+    val action_f1_pop = model.find("action_f1_pop")!!
+
+    AddActionDialog(AddActionDialog.Defaults.NORMAL, action_f1_pop, f1, DESIGN_SURFACE).runAndClose { dialogWrapper ->
+      val dialog = dialogWrapper.dialog
+
+      val destination = dialog.myDestinationComboBox.selectedItem as? AddActionDialog.DestinationListEntry?
+      assertEquals(true, destination?.isReturnToSource)
+
+      val entry = dialog.myPopToComboBox.selectedItem as AddActionDialog.DestinationListEntry?
+      assertEquals(f1, entry?.component)
+      assertFalse(dialog.myPopToComboBox.isEnabled)
+
+      assertTrue(dialog.myInclusiveCheckBox.isSelected)
+      assertFalse(dialog.myInclusiveCheckBox.isEnabled)
+
       assertEquals("action_f1_pop", dialog.myIdTextField.text)
       assertTrue(dialog.myPopEnterComboBox.isEnabled)
       assertTrue(dialog.myPopExitComboBox.isEnabled)
@@ -584,6 +631,36 @@ class AddActionDialogTest : NavTestCase() {
     }
   }
 
+  fun testInclusive() {
+    val model = model("nav.xml") {
+      navigation {
+        fragment("f1") {
+          action("a1", popUpTo = "f2", inclusive = true)
+        }
+        fragment("f2")
+      }
+    }
+
+    val f1 = model.find("f1")!!
+    val a1 = model.find("a1")!!
+
+    AddActionDialog(AddActionDialog.Defaults.NORMAL, a1, f1, DESIGN_SURFACE).runAndClose { dialog ->
+      assertTrue(dialog.dialog.myInclusiveCheckBox.isSelected)
+      assertTrue(dialog.dialog.myInclusiveCheckBox.isEnabled)
+
+      val previousIndex = dialog.dialog.myPopToComboBox.selectedIndex
+      dialog.dialog.myPopToComboBox.selectedIndex = 0
+
+      assertFalse(dialog.dialog.myInclusiveCheckBox.isSelected)
+      assertFalse(dialog.dialog.myInclusiveCheckBox.isEnabled)
+
+      dialog.dialog.myPopToComboBox.selectedIndex = previousIndex
+
+      assertFalse(dialog.dialog.myInclusiveCheckBox.isSelected)
+      assertTrue(dialog.dialog.myInclusiveCheckBox.isEnabled)
+    }
+  }
+
   fun testShowAndUpdateFromDialogWithExisting() {
     val model = model("nav.xml") {
       navigation {
@@ -594,6 +671,8 @@ class AddActionDialogTest : NavTestCase() {
       }
     }
     val surface = model.surface
+    val f1 = model.find("f1")!!
+    surface.selectionModel.setSelection(listOf(f1))
     val dialog = mock(AddActionDialog::class.java)
 
     `when`(dialog.showAndGet()).thenReturn(true)
@@ -603,7 +682,7 @@ class AddActionDialogTest : NavTestCase() {
 
     TestNavUsageTracker.create(model).use { tracker ->
       showAndUpdateFromDialog(dialog, surface, true)
-      assertSameElements(surface.selectionModel.selection, action)
+      assertSameElements(surface.selectionModel.selection, f1)
       verify(tracker).logEvent(NavEditorEvent.newBuilder()
                                  .setType(EDIT_ACTION)
                                  .setActionInfo(NavActionInfo.newBuilder()

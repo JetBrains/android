@@ -29,8 +29,14 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.BuildVariantsToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.ProcessRunningDialogFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import org.fest.swing.timing.Wait;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import org.fest.swing.util.PatternTextMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,13 +45,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class FlavorsExecutionTest {
@@ -62,7 +61,7 @@ public class FlavorsExecutionTest {
 
   @Before
   public void setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(false);
+    StudioFlags.NEW_PSD_ENABLED.override(true);
   }
 
   @After
@@ -161,6 +160,7 @@ public class FlavorsExecutionTest {
 
     ExecutionToolWindowFixture.ContentFixture flavor2WindowContent = ideFrameFixture.getRunToolWindow().findContent("app");
     String flavor2LaunchPattern = ACTIVITY_OUTPUT_PATTERN.replace("Main_Activity", SECOND_ACTIVITY_NAME);
+    ProcessRunningDialogFixture.find(ideFrameFixture).clickTerminate();
     flavor2WindowContent.waitForOutput(new PatternTextMatcher(Pattern.compile(flavor2LaunchPattern, Pattern.DOTALL)), 120);
 
     ideFrameFixture

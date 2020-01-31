@@ -19,6 +19,7 @@ import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.notification.NotificationListener;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class LaunchResult {
   private boolean mySuccess;
@@ -102,5 +103,20 @@ public class LaunchResult {
 
   public void addOnFinishedCallback(Runnable runnable) {
     myOnFinishedCallbacks.add(runnable);
+  }
+
+  @NotNull
+  public static LaunchResult success() {
+    return new LaunchResult();
+  }
+
+  @NotNull
+  public static LaunchResult error(@NotNull String errorId, @NotNull String taskDescription) {
+    LaunchResult result = new LaunchResult();
+    result.setSuccess(false);
+    result.setErrorId(errorId);
+    result.setError("Error " + taskDescription);
+    result.setConsoleError("Error while " + taskDescription);
+    return result;
   }
 }

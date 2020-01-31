@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.ui.resourcechooser.colorpicker2
 
-import com.android.annotations.VisibleForTesting
+import com.google.common.annotations.VisibleForTesting
 import java.awt.*
 import java.awt.geom.Point2D
 import kotlin.math.max

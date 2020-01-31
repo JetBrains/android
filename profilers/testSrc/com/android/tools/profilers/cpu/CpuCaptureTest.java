@@ -21,7 +21,7 @@ import static org.junit.Assert.fail;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profiler.proto.Cpu;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.FakeTraceParser;
 import com.android.tools.profilers.cpu.art.ArtTraceParser;
 import com.android.tools.profilers.cpu.atrace.AtraceParser;

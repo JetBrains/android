@@ -27,6 +27,7 @@ import com.android.tools.idea.npw.assetstudio.DrawableRenderer;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.utils.XmlUtils;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.Disposer;
@@ -42,7 +43,8 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -89,7 +91,7 @@ public class GutterIconFactory {
     com.intellij.openapi.editor.Document document = FileDocumentManager.getInstance().getCachedDocument(file);
 
     if  (document == null) {
-      return new String(file.contentsToByteArray(), StandardCharsets.UTF_8);
+      return new String(file.contentsToByteArray());
     }
 
     return document.getText();
@@ -127,12 +129,29 @@ public class GutterIconFactory {
         Configuration configuration = ConfigurationManager.getOrCreateInstance(facet).getConfiguration(file);
         DrawableRenderer renderer = new DrawableRenderer(facet, configuration);
         Dimension size = new Dimension(maxWidth * RENDERING_SCALING_FACTOR, maxHeight * RENDERING_SCALING_FACTOR);
-        image = renderer.renderDrawable(xml, size).get();
+        try {
+          CompletableFuture<BufferedImage> imageFuture = renderer.renderDrawable(xml, size);
+          // TODO(http://b/143455172): Remove the timeout by removing usages of this method on the UI thread. For now we just ensure
+          //  we do not block indefinitely on the UI thread. We also do not use the timeout in unit test to avoid non deterministic tests.
+          //  On production, if the request times out, it will cause the icon on the gutter not to show which is an acceptable fallback
+          //  until this is correctly fixed.
+          //  250ms should be enough time for inflating and rendering and is used a upper boundary.
+          image = ApplicationManager.getApplication().isDispatchThread() && !ApplicationManager.getApplication().isUnitTestMode() ?
+                  imageFuture.get(250, TimeUnit.MILLISECONDS) :
+                  imageFuture.get();
+        } catch (Throwable e) {
+          // If an invalid drawable is passed, renderDrawable might throw an exception. We can not fully control the input passed to this
+          // rendering call since the user might be referencing an invalid drawable so we are just less verbose about it. The user will
+          // not see the preview next to the code when referencing invalid drawables.
+          LOG.debug(String.format("Could not read/render icon image %1$s", file.getPresentableUrl()), e);
+          image = null;
+        } finally {
+          Disposer.dispose(renderer);
+        }
         if (image == null) {
           return null;
         }
         image = ImageUtils.scale(image, maxWidth / (double)image.getWidth(), maxHeight / (double)image.getHeight());
-        Disposer.dispose(renderer);
       }
       if (isRetinaEnabled()) {
         RetinaImageIcon retinaIcon = getRetinaIcon(image);
@@ -265,7 +284,7 @@ public class GutterIconFactory {
 
     @Override
     public synchronized void paintIcon(Component c, Graphics g, int x, int y) {
-      StartupUiUtil.drawImage(g, getImage(), x, y, null);
+      UIUtil.drawImage(g, getImage(), x, y, null);
     }
   }
 }

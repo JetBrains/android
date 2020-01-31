@@ -21,7 +21,6 @@ import com.android.builder.model.SyncIssue.TYPE_THIRD_PARTY_GRADLE_PLUGIN_TOO_OL
 import com.android.tools.idea.gradle.project.sync.hyperlink.UpdatePluginHyperlink
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub
 import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.GradleSyncIssue
 import com.intellij.openapi.externalSystem.service.notification.NotificationCategory
@@ -44,7 +43,7 @@ class OutOfDateThirdPartyPluginIssueReporterTest : AndroidGradleTestCase() {
 
   @Test
   fun testReporterEmitsCorrectLinks() {
-    syncMessages.clearReportedMessages()
+    syncMessages.removeAllMessages()
     loadSimpleApplication()
 
     val syncIssue = setUpMockSyncIssue("pluginName", "pluginGroup", "2.3.4", listOf("path/one", "path/two"))

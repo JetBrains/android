@@ -83,18 +83,6 @@ public class NlPropertyInspectorFixture extends ComponentFixture<NlPropertyInspe
   }
 
   @NotNull
-  @SuppressWarnings("UnusedReturnValue")
-  public NlPropertyTableFixture openAsSliceEditor() {
-    if (!myPanel.isAllPropertiesPanelMode()) {
-      myPanel.setAllPropertiesPanelVisible(true);
-    }
-    if (!isSliceEditorActive()) {
-      toggleShowSliceEditor();
-    }
-    return NlPropertyTableFixture.create(robot());
-  }
-
-  @NotNull
   public ConstraintLayoutViewInspectorFixture getConstraintLayoutViewInspector() {
     Robot robot = robot();
     Container target = waitUntilFound(robot, myPanel, Matchers.byType(WidgetConstraintPanel.class));

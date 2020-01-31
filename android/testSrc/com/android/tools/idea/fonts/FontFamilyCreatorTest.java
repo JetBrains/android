@@ -23,6 +23,7 @@ import com.google.common.base.Charsets;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.ui.UIUtil;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.annotations.NotNull;
@@ -98,7 +99,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
       "    </array>%n" +
       "</resources>%n"
     ));
-    assertThat(myFacet.getManifest().getXmlTag().getText()).isEqualTo(
+    assertThat(Manifest.getMainManifest(myFacet).getXmlTag().getText()).isEqualTo(
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
       "    <uses-sdk android:minSdkVersion=\"25\"\n" +
       "              android:targetSdkVersion=\"25\" />\n" +
@@ -192,7 +193,7 @@ public class FontFamilyCreatorTest extends FontTestCase {
       "    </array>%n" +
       "</resources>%n"
     ));
-    assertThat(myFacet.getManifest().getXmlTag().getText()).isEqualTo(
+    assertThat(Manifest.getMainManifest(myFacet).getXmlTag().getText()).isEqualTo(
       "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">\n" +
       "    <uses-sdk android:minSdkVersion=\"28\"\n" +
       "              android:targetSdkVersion=\"28\" />\n" +

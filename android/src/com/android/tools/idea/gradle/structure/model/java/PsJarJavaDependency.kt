@@ -27,16 +27,21 @@ import com.android.tools.idea.gradle.structure.model.meta.ModelProperty
 import com.android.tools.idea.gradle.structure.model.meta.asString
 import com.android.tools.idea.gradle.structure.model.meta.getValue
 
-class PsDeclaredJarJavaDependency private constructor(
-  parent: PsJavaModule,
-  override val parsedModel: DependencyModel
+class PsDeclaredJarJavaDependency constructor(
+  parent: PsJavaModule
 ) : PsJarJavaDependency(parent), PsDeclaredJarDependency {
+  override lateinit var parsedModel: DependencyModel ; private set
 
-  constructor (parent: PsJavaModule, parsedModel: FileDependencyModel) : this(parent, parsedModel as DependencyModel)
-  constructor (parent: PsJavaModule, parsedModel: FileTreeDependencyModel) : this(parent, parsedModel as DependencyModel)
+  fun init(parsedModel: FileDependencyModel) {
+    this.parsedModel = parsedModel
+  }
+
+  fun init(parsedModel: FileTreeDependencyModel) {
+    this.parsedModel = parsedModel
+  }
 
   override val descriptor by PsDeclaredJarJavaDependency.Descriptor
-  override val kind: PsJarDependency.Kind = when (parsedModel) {
+  override val kind: PsJarDependency.Kind get() = when (parsedModel) {
     is FileDependencyModel -> PsJarDependency.Kind.FILE
     is FileTreeDependencyModel -> PsJarDependency.Kind.FILE_TREE
     else -> error("Unsupported dependency model: ${parsedModel.javaClass.name}")

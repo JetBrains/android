@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.inspections;
 
 import com.android.resources.ResourceType;
@@ -8,7 +7,6 @@ import com.intellij.navigation.GotoRelatedItem;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -21,20 +19,22 @@ import com.intellij.util.Processor;
 import java.util.HashSet;
 import com.intellij.util.xml.DomFileDescription;
 import com.intellij.util.xml.DomManager;
-import org.jetbrains.android.AndroidGotoRelatedProvider;
+import org.jetbrains.android.AndroidGotoRelatedLineMarkerProvider;
 import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction;
 import org.jetbrains.android.dom.converters.OnClickConverter;
 import org.jetbrains.android.dom.layout.LayoutDomFileDescription;
 import org.jetbrains.android.dom.menu.MenuDomFileDescription;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import org.jetbrains.kotlin.asJava.LightClassUtilsKt;
+import org.jetbrains.kotlin.psi.KtClass;
 
 /**
  * @author Eugene.Kudelevsky
@@ -45,14 +45,8 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
                                                             @NotNull AndroidFacet facet,
                                                             @NotNull DomFileDescription<?> description) {
     if (description instanceof LayoutDomFileDescription) {
-      final Computable<List<GotoRelatedItem>> computable = AndroidGotoRelatedProvider.getLazyItemsForXmlFile(file, facet);
-
-      if (computable == null) {
-        return Collections.emptyList();
-      }
-      final List<GotoRelatedItem> items = computable.compute();
-
-      if (items.isEmpty()) {
+      final List<GotoRelatedItem> items = AndroidGotoRelatedLineMarkerProvider.getItemsForXmlFile(file, facet);
+      if (items == null || items.isEmpty()) {
         return Collections.emptyList();
       }
       final PsiClass activityClass = findActivityClass(facet.getModule());
@@ -60,7 +54,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
       if (activityClass == null) {
         return Collections.emptyList();
       }
-      final List<PsiClass> result = new ArrayList<>();
+      final List<PsiClass> result = new ArrayList<PsiClass>();
 
       for (GotoRelatedItem item : items) {
         final PsiElement element = item.getElement();
@@ -69,6 +63,12 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
           final PsiClass aClass = (PsiClass)element;
 
           if (aClass.isInheritor(activityClass, true)) {
+            result.add(aClass);
+          }
+        } else if (element instanceof KtClass) {
+          final PsiClass aClass = LightClassUtilsKt.toLightClass((KtClass)element);
+
+          if (aClass != null && aClass.isInheritor(activityClass, true)) {
             result.add(aClass);
           }
         }
@@ -83,7 +83,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
   @NotNull
   private static Set<PsiClass> findRelatedActivitiesForMenu(@NotNull XmlFile file, @NotNull AndroidFacet facet) {
     final String resType = ResourceType.MENU.getName();
-    final String resourceName = AndroidCommonUtils.getResourceName(resType, file.getName());
+    final String resourceName = AndroidBuildCommonUtils.getResourceName(resType, file.getName());
     final PsiField[] fields = AndroidResourceUtil.findResourceFields(facet, resType, resourceName, true);
 
     if (fields.length == 0) {
@@ -95,7 +95,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     if (activityClass == null) {
       return Collections.emptySet();
     }
-    final Set<PsiClass> result = new HashSet<>();
+    final Set<PsiClass> result = new HashSet<PsiClass>();
 
     ReferencesSearch.search(fields[0], scope).forEach(new Processor<PsiReference>() {
       @Override
@@ -149,7 +149,7 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
     private final boolean myOnTheFly;
     private final Collection<PsiClass> myRelatedActivities;
 
-    final List<ProblemDescriptor> myResult = new ArrayList<>();
+    final List<ProblemDescriptor> myResult = new ArrayList<ProblemDescriptor>();
 
     private MyVisitor(@NotNull InspectionManager inspectionManager, boolean onTheFly, @NotNull Collection<PsiClass> relatedActivities) {
       myInspectionManager = inspectionManager;
@@ -170,8 +170,8 @@ public class AndroidMissingOnClickHandlerInspection extends LocalInspectionTool 
           continue;
         }
         final ResolveResult[] results = ref.multiResolve(false);
-        final Set<PsiClass> resolvedClasses = new HashSet<>();
-        final Set<PsiClass> resolvedClassesWithMistake = new HashSet<>();
+        final Set<PsiClass> resolvedClasses = new HashSet<PsiClass>();
+        final Set<PsiClass> resolvedClassesWithMistake = new HashSet<PsiClass>();
 
         for (ResolveResult result : results) {
           if (result instanceof OnClickConverter.MyResolveResult) {

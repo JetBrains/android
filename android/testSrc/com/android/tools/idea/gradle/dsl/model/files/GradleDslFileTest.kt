@@ -113,8 +113,8 @@ class GradleDslFileTest : GradleFileModelTestCase() {
 
   @Test
   fun testInvolvedAppliedFiles() {
-    writeToNewProjectFile("b.gradle", GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_ONE)
-    writeToNewProjectFile("a.gradle", GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_TWO)
+    val b = writeToNewProjectFile("b", GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_ONE)
+    val a = writeToNewProjectFile("a", GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES_APPLIED_FILE_TWO)
     writeToBuildFile(GRADLE_DSL_FILE_INVOLVED_APPLIED_FILES)
 
     val buildModel = gradleBuildModel
@@ -123,17 +123,19 @@ class GradleDslFileTest : GradleFileModelTestCase() {
       val files = buildModel.involvedFiles
       assertSize(4, files)
       val fileParent = myBuildFile.parent
-      val expected = listOf(myBuildFile.path,
-                            fileParent.findChild("a.gradle")!!.path, fileParent.findChild("b.gradle")!!.path,
-                            fileParent.findChild("gradle.properties")!!.path)
+      val expected =
+        listOf(myBuildFile.path,
+               fileParent.findChild(a)!!.path,
+               fileParent.findChild(b)!!.path,
+               fileParent.findChild("gradle.properties")!!.path)
       assertContainsElements(files.map { it.virtualFile.path }, expected.map { toSystemIndependentPath(it) })
     }
   }
 
   @Test
   fun testListPropertiesFromAppliedFiles() {
-    writeToNewProjectFile("b.gradle", GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_ONE)
-    writeToNewProjectFile("a.gradle", GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_TWO)
+    val b = writeToNewProjectFile("b", GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_ONE)
+    val a = writeToNewProjectFile("a", GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES_APPLIED_FILE_TWO)
     writeToBuildFile(GRADLE_DSL_FILE_LIST_PROPERTIES_FROM_APPLIED_FILES)
 
     val buildModel = gradleBuildModel
@@ -148,14 +150,14 @@ class GradleDslFileTest : GradleFileModelTestCase() {
     }
 
     run {
-      val properties = getFile(fileParent.findChild("a.gradle")!!, files).declaredProperties
+      val properties = getFile(fileParent.findChild(a)!!, files).declaredProperties
       assertSize(2, properties)
       verifyPropertyModel(properties[0], STRING_TYPE, "hello", STRING, VARIABLE, 0, "hello")
       verifyPropertyModel(properties[1], BOOLEAN_TYPE, false, BOOLEAN, REGULAR, 0, "prop2")
     }
 
     run {
-      val properties = getFile(fileParent.findChild("b.gradle")!!, files).declaredProperties
+      val properties = getFile(fileParent.findChild(b)!!, files).declaredProperties
       assertSize(5, properties)
       verifyPropertyModel(properties[0], STRING_TYPE, "1", STRING, VARIABLE, 0, "var1")
       verifyPropertyModel(properties[1], INTEGER_TYPE, 2, INTEGER, VARIABLE, 0, "var2")
@@ -167,7 +169,7 @@ class GradleDslFileTest : GradleFileModelTestCase() {
 
   @Test
   fun testApplyFromBlock() {
-    writeToNewProjectFile("a.gradle", GRADLE_DSL_FILE_APPLY_FROM_BLOCK_APPLIED)
+    writeToNewProjectFile("a", GRADLE_DSL_FILE_APPLY_FROM_BLOCK_APPLIED)
     writeToBuildFile(GRADLE_DSL_FILE_APPLY_FROM_BLOCK)
 
     val buildModel = gradleBuildModel

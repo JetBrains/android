@@ -45,7 +45,7 @@ import com.google.common.collect.Ordering;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.scale.JBUIScale;
+import com.intellij.util.ui.JBUI;
 import icons.StudioIcons;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -102,8 +102,8 @@ public class SessionsView extends AspectObserver {
   @VisibleForTesting static final String NO_DEBUGGABLE_PROCESSES = "No debuggable processes";
 
   // Collapsed width should essentially look like a toolbar.
-  private static final int SESSIONS_COLLAPSED_MIN_WIDTH = JBUIScale.scale(32);
-  private static final int SESSIONS_EXPANDED_MIN_WIDTH = JBUIScale.scale(200);
+  private static final int SESSIONS_COLLAPSED_MIN_WIDTH = JBUI.scale(32);
+  private static final int SESSIONS_EXPANDED_MIN_WIDTH = JBUI.scale(200);
 
   @NotNull private final StudioProfilers myProfilers;
   @NotNull private final SessionsManager mySessionsManager;

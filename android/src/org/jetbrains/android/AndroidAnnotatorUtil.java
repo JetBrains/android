@@ -22,6 +22,7 @@ import static com.android.SdkConstants.DOT_XML;
 import static com.android.SdkConstants.FD_RES_LAYOUT;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
+import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.ResourceRepository;
@@ -40,6 +41,8 @@ import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.ui.resourcechooser.ColorPicker;
+import com.android.tools.idea.ui.resourcechooser.HorizontalTabbedPanelBuilder;
+import com.android.tools.idea.ui.resourcechooser.ColorResourcePicker;
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.ColorPickerBuilder;
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialColorPaletteProvider;
 import com.android.tools.idea.ui.resourcechooser.colorpicker2.internal.MaterialGraphicalColorPipetteProvider;
@@ -48,12 +51,16 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.TransactionGuard;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
+import com.intellij.openapi.fileTypes.FileType;
+import com.intellij.openapi.fileTypes.UnknownFileType;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -72,7 +79,7 @@ import java.awt.MouseInfo;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.Icon;
-import javax.swing.JPanel;
+import javax.swing.JComponent;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -248,35 +255,6 @@ public class AndroidAnnotatorUtil {
     return null;
   }
 
-  /** Looks up the resource item of the given type and name for the given configuration, if any. */
-  @Nullable
-  public static ResourceValue findResourceValue(@NotNull ResourceType type,
-                                                @NotNull String name,
-                                                boolean isFramework,
-                                                @NotNull Module module,
-                                                @NotNull Configuration configuration) {
-    if (isFramework) {
-      ResourceRepository frameworkResources = configuration.getFrameworkResources();
-      if (frameworkResources == null) {
-        return null;
-      }
-      List<ResourceItem> items = frameworkResources.getResources(ResourceNamespace.ANDROID, type, name);
-      if (items.isEmpty()) {
-        return null;
-      }
-      return items.get(0).getResourceValue();
-    } else {
-      LocalResourceRepository appResources = ResourceRepositoryManager.getAppResources(module);
-      if (appResources == null) {
-        return null;
-      }
-      if (!appResources.hasResources(ResourceNamespace.TODO(), type, name)) {
-        return null;
-      }
-      return ResourceRepositoryUtil.getConfiguredValue(appResources, type, name, configuration.getFullConfig());
-    }
-  }
-
   /**
    * Picks a suitable configuration to use for resource resolution within a given file.
    *
@@ -308,17 +286,40 @@ public class AndroidAnnotatorUtil {
     return ConfigurationManager.getOrCreateInstance(facet.getModule()).getConfiguration(layout);
   }
 
+
+  /**
+   * Return {@link FileType} if found, or {@link UnknownFileType#INSTANCE} otherwise.
+   */
+  @NotNull
+  public static FileType getFileType(@NotNull PsiElement element) {
+    return ApplicationManager.getApplication().runReadAction((Computable<FileType>)() -> {
+      PsiFile file = element.getContainingFile();
+      if (file != null) {
+        return file.getFileType();
+      }
+      return UnknownFileType.INSTANCE;
+    });
+  }
+
   public static class ColorRenderer extends GutterIconRenderer {
     private final PsiElement myElement;
     private final Color myColor;
-    private final Consumer<Color> mySetColorTask;
+    private final ResourceReference myResourceReference;
+    private final Consumer<String> mySetColorTask;
     private final boolean myIncludeClickAction;
+    @Nullable private final Configuration myConfiguration;
 
-    public ColorRenderer(@NotNull PsiElement element, @Nullable Color color, boolean includeClickAction) {
+    public ColorRenderer(@NotNull PsiElement element,
+                         @Nullable Color color,
+                         @Nullable ResourceReference resourceReference,
+                         boolean includeClickAction,
+                         @Nullable Configuration configuration) {
       myElement = element;
       myColor = color;
+      myResourceReference = resourceReference;
       myIncludeClickAction = includeClickAction;
       mySetColorTask = createSetColorTask(myElement);
+      myConfiguration = configuration;
     }
 
     @NotNull
@@ -367,8 +368,7 @@ public class AndroidAnnotatorUtil {
 
     private void openNewColorPicker(@Nullable Color currentColor) {
       LightCalloutPopup dialog = new LightCalloutPopup();
-
-      JPanel panel = new ColorPickerBuilder()
+      JComponent colorPicker = new ColorPickerBuilder()
           .setOriginalColor(currentColor)
           .addSaturationBrightnessComponent()
           .addColorAdjustPanel(new MaterialGraphicalColorPipetteProvider())
@@ -380,13 +380,33 @@ public class AndroidAnnotatorUtil {
           .setFocusCycleRoot(true)
           .build();
 
-      dialog.show(panel, null, MouseInfo.getPointerInfo().getLocation());
+      JComponent popupContent;
+      if (StudioFlags.NELE_RESOURCE_POPUP_PICKER.get() && myConfiguration != null) {
+        // Use tabbed panel instead.
+        ColorResourcePicker resourcePicker = new ColorResourcePicker(myConfiguration, myResourceReference);
+        // TODO: Use relative resource url instead.
+        resourcePicker.addColorResourcePickerListener(resource -> setColorStringAttribute(resource.getResourceUrl().toString()));
+        popupContent = new HorizontalTabbedPanelBuilder()
+          .addTab("Resources", resourcePicker)
+          .addTab("Custom", colorPicker)
+          .setDefaultPage(myResourceReference != null ? 0 : 1)
+          .build();
+      }
+      else {
+        popupContent = colorPicker;
+      }
+
+      dialog.show(popupContent, null, MouseInfo.getPointerInfo().getLocation());
     }
 
     private void setColorToAttribute(@NotNull Color color) {
+      setColorStringAttribute(ResourceHelper.colorToString(color));
+    }
+
+    private void setColorStringAttribute(@NotNull String colorString) {
       Project project = myElement.getProject();
       TransactionGuard.submitTransaction(project, () ->
-        WriteCommandAction.runWriteCommandAction(project, SET_COLOR_COMMAND_NAME, null, () -> mySetColorTask.consume(color))
+        WriteCommandAction.runWriteCommandAction(project, SET_COLOR_COMMAND_NAME, null, () -> mySetColorTask.consume(colorString))
       );
     }
 
@@ -409,15 +429,15 @@ public class AndroidAnnotatorUtil {
     }
 
     @VisibleForTesting
-    public static Consumer<Color> createSetColorTask(@NotNull PsiElement element) {
+    public static Consumer<String> createSetColorTask(@NotNull PsiElement element) {
       if (element instanceof XmlTag) {
         XmlTagValue xmlTagValue = ((XmlTag)element).getValue();
-        return color -> xmlTagValue.setText(ResourceHelper.colorToString(color));
+        return colorString -> xmlTagValue.setText(colorString);
       }
       else if (element instanceof XmlAttributeValue) {
         XmlAttribute xmlAttribute = PsiTreeUtil.getParentOfType(element, XmlAttribute.class);
         if (xmlAttribute != null) {
-          return color -> xmlAttribute.setValue(ResourceHelper.colorToString(color));
+          return colorString -> xmlAttribute.setValue(colorString);
         }
       }
       // Unknown case, do nothing.

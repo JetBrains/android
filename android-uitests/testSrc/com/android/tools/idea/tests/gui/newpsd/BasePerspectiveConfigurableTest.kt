@@ -17,11 +17,7 @@ package com.android.tools.idea.tests.gui.newpsd
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
-import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.RunIn
-import com.android.tools.idea.tests.gui.framework.TestGroup
-import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectBuildVariantsConfigurable
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectDependenciesConfigurable
@@ -36,7 +32,13 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-@RunIn(TestGroup.UNRELIABLE)
+private const val ALL_MODULES_LABEL = "<All Modules>"
+private const val ALL_MODULES_MINIMIZED_LIST_LABEL = "<All Modules>"
+private const val APP_LABEL = "app"
+private const val APP_MINIMIZED_LIST_LABEL = "<html><body>:<B>app</B></body></html>"
+private const val MY_LIBRARY_LABEL = "mylibrary"
+private const val MY_LIBRARY_MINIMIZED_LIST_LABEL = "<html><body>:<B>mylibrary</B></body></html>"
+
 @RunWith(GuiTestRemoteRunner::class)
 class BasePerspectiveConfigurableTest {
 
@@ -93,25 +95,26 @@ class BasePerspectiveConfigurableTest {
 
     assertThat(dependenciesConfigurable.isModuleSelectorMinimized()).isFalse()
     var moduleSelector = dependenciesConfigurable.findModuleSelector()
-    assertThat(moduleSelector.modules()).containsExactly("<All Modules>", "app", "mylibrary")
-    moduleSelector.selectModule("app")
-    assertThat(moduleSelector.selectedModule()).isEqualTo("app")
+    assertThat(moduleSelector.modules())
+      .containsExactly(ALL_MODULES_LABEL, APP_LABEL, MY_LIBRARY_LABEL)
+    moduleSelector.selectModule(APP_LABEL)
+    assertThat(moduleSelector.selectedModule()).isEqualTo(APP_LABEL)
 
     dependenciesConfigurable.minimizeModulesList()
     assertThat(dependenciesConfigurable.isModuleSelectorMinimized()).isTrue()
     moduleSelector = dependenciesConfigurable.findModuleSelector()
-    assertThat(moduleSelector.selectedModule()).isEqualTo("app")
-    assertThat(moduleSelector.modules()).containsExactly("<All Modules>", "app", "mylibrary")
-    moduleSelector.selectModule("mylibrary")
-    assertThat(moduleSelector.selectedModule()).isEqualTo("mylibrary")
+    assertThat(moduleSelector.selectedModule()).isEqualTo(APP_LABEL)
+    assertThat(moduleSelector.modules()).containsExactly(ALL_MODULES_MINIMIZED_LIST_LABEL, APP_MINIMIZED_LIST_LABEL, MY_LIBRARY_MINIMIZED_LIST_LABEL)
+    moduleSelector.selectModule(MY_LIBRARY_MINIMIZED_LIST_LABEL)
+    assertThat(moduleSelector.selectedModule()).isEqualTo(MY_LIBRARY_LABEL)
 
     dependenciesConfigurable.restoreModulesList()
     assertThat(dependenciesConfigurable.isModuleSelectorMinimized()).isFalse()
     moduleSelector = dependenciesConfigurable.findModuleSelector()
-    assertThat(moduleSelector.selectedModule()).isEqualTo("mylibrary")
-    assertThat(moduleSelector.modules()).containsExactly("<All Modules>", "app", "mylibrary")
-    moduleSelector.selectModule("<All Modules>")
-    assertThat(moduleSelector.selectedModule()).isEqualTo("<All Modules>")
+    assertThat(moduleSelector.selectedModule()).isEqualTo(MY_LIBRARY_LABEL)
+    assertThat(moduleSelector.modules()).containsExactly(ALL_MODULES_LABEL, APP_LABEL, MY_LIBRARY_LABEL)
+    moduleSelector.selectModule(ALL_MODULES_LABEL)
+    assertThat(moduleSelector.selectedModule()).isEqualTo(ALL_MODULES_LABEL)
 
     psd.clickCancel()
   }
@@ -125,9 +128,9 @@ class BasePerspectiveConfigurableTest {
     psd.selectModulesConfigurable().also { modulesConfigurable ->
       assertThat(modulesConfigurable.isModuleSelectorMinimized()).isFalse()
       val moduleSelector = modulesConfigurable.findModuleSelector()
-      assertThat(moduleSelector.modules()).containsExactly("app", "mylibrary")
-      moduleSelector.selectModule("mylibrary")
-      assertThat(moduleSelector.selectedModule()).isEqualTo("mylibrary")
+      assertThat(moduleSelector.modules()).containsExactly(APP_LABEL, MY_LIBRARY_LABEL)
+      moduleSelector.selectModule(MY_LIBRARY_LABEL)
+      assertThat(moduleSelector.selectedModule()).isEqualTo(MY_LIBRARY_LABEL)
     }
 
     psd.selectBuildVariantsConfigurable().also { buildVariantsConfigurable ->
@@ -135,10 +138,10 @@ class BasePerspectiveConfigurableTest {
       buildVariantsConfigurable.minimizeModulesList()
       assertThat(buildVariantsConfigurable.isModuleSelectorMinimized()).isTrue()
       val moduleSelector = buildVariantsConfigurable.findModuleSelector()
-      assertThat(moduleSelector.selectedModule()).isEqualTo("mylibrary")
-      assertThat(moduleSelector.modules()).containsExactly("app", "mylibrary")
-      moduleSelector.selectModule("app")
-      assertThat(moduleSelector.selectedModule()).isEqualTo("app")
+      assertThat(moduleSelector.selectedModule()).isEqualTo(MY_LIBRARY_LABEL)
+      assertThat(moduleSelector.modules()).containsExactly(APP_MINIMIZED_LIST_LABEL, MY_LIBRARY_MINIMIZED_LIST_LABEL)
+      moduleSelector.selectModule(APP_MINIMIZED_LIST_LABEL)
+      assertThat(moduleSelector.selectedModule()).isEqualTo(APP_LABEL)
     }
 
     psd.selectDependenciesConfigurable().also { dependenciesConfigurable ->
@@ -146,21 +149,21 @@ class BasePerspectiveConfigurableTest {
       dependenciesConfigurable.restoreModulesList()
       assertThat(dependenciesConfigurable.isModuleSelectorMinimized()).isFalse()
       val moduleSelector = dependenciesConfigurable.findModuleSelector()
-      assertThat(moduleSelector.selectedModule()).isEqualTo("app")
-      assertThat(moduleSelector.modules()).containsExactly("<All Modules>", "app", "mylibrary")
-      moduleSelector.selectModule("<All Modules>")
-      assertThat(moduleSelector.selectedModule()).isEqualTo("<All Modules>")
+      assertThat(moduleSelector.selectedModule()).isEqualTo(APP_LABEL)
+      assertThat(moduleSelector.modules()).containsExactly(ALL_MODULES_LABEL, APP_LABEL, MY_LIBRARY_LABEL)
+      moduleSelector.selectModule(ALL_MODULES_LABEL)
+      assertThat(moduleSelector.selectedModule()).isEqualTo(ALL_MODULES_LABEL)
     }
 
     psd.selectModulesConfigurable().also { modulesConfigurable ->
       val moduleSelector = modulesConfigurable.findModuleSelector()
-      assertThat(moduleSelector.selectedModule()).isEqualTo("mylibrary")
+      assertThat(moduleSelector.selectedModule()).isEqualTo(MY_LIBRARY_LABEL)
     }
 
     psd.selectSuggestionsConfigurable().also { suggestionsConfigurable ->
       val moduleSelector = suggestionsConfigurable.findModuleSelector()
-      assertThat(moduleSelector.modules()).containsExactly("<All Modules>", "app", "mylibrary")
-      assertThat(moduleSelector.selectedModule()).isEqualTo("<All Modules>")
+      assertThat(moduleSelector.modules()).containsExactly(ALL_MODULES_LABEL, APP_LABEL, MY_LIBRARY_LABEL)
+      assertThat(moduleSelector.selectedModule()).isEqualTo(ALL_MODULES_LABEL)
     }
 
     psd.clickCancel()

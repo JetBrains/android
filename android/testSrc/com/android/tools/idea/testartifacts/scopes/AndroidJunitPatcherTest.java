@@ -125,7 +125,7 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
     myAndroidProject = TestProjects.createBasicProject();
     createAndSetAndroidModel();
     for (Module module : ModuleManager.getInstance(getProject()).getModules()) {
-      TestArtifactSearchScopes.initializeScope(module);
+      GradleTestArtifactSearchScopes.initializeScope(module);
     }
   }
 
@@ -239,8 +239,9 @@ public class AndroidJunitPatcherTest extends AndroidTestCase {
   private void createAndSetAndroidModel() {
     mySelectedVariant = myAndroidProject.getFirstVariant();
     assertNotNull(mySelectedVariant);
-    AndroidModuleModel model = new AndroidModuleModel(myAndroidProject.getName(), myAndroidProject.getRootDir(), myAndroidProject,
-                                                      mySelectedVariant.getName(), new IdeDependenciesFactory());
+    AndroidModuleModel model = AndroidModuleModel
+      .create(myAndroidProject.getName(), myAndroidProject.getRootDir(), myAndroidProject, mySelectedVariant.getName(),
+              new IdeDependenciesFactory());
     myFacet.setModel(model);
   }
 }

@@ -90,7 +90,7 @@ public class GenerateProguardKeepRuleActionTest {
 
     // the expected data may change if baksmali is updated
     String expected = "# Add *one* of the following rules to your Proguard configuration file.\n" +
-                      "# Alternatively, you can annotate classes and class members with @android.support.annotation.Keep\n" +
+                      "# Alternatively, you can annotate classes and class members with @androidx.annotation.Keep\n" +
                       "\n" +
                       "# keep the class and specified members from being removed or renamed\n" +
                       "-keep class Test { <init>(); }\n" +

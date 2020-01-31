@@ -26,28 +26,34 @@ import com.android.tools.idea.lang.proguard.psi.impl.*;
 public interface ProguardTypes {
 
   IElementType COMMENT = new ProguardElementType("COMMENT");
-  IElementType FLAG = new ProguardElementType("FLAG");
+  IElementType FILENAME_ARG = new ProguardElementType("FILENAME_ARG");
+  IElementType FILENAME_FLAG = new ProguardElementType("FILENAME_FLAG");
   IElementType JAVA_SECTION = new ProguardElementType("JAVA_SECTION");
   IElementType MULTI_LINE_FLAG = new ProguardElementType("MULTI_LINE_FLAG");
   IElementType SINGLE_LINE_FLAG = new ProguardElementType("SINGLE_LINE_FLAG");
 
   IElementType CLOSE_BRACE = new ProguardTokenType("CLOSE_BRACE");
   IElementType CRLF = new ProguardTokenType("CRLF");
+  IElementType DOUBLE_QUOTED_STRING = new ProguardTokenType("DOUBLE_QUOTED_STRING");
   IElementType FLAG_ARG = new ProguardTokenType("FLAG_ARG");
   IElementType FLAG_NAME = new ProguardTokenType("FLAG_NAME");
   IElementType JAVA_DECL = new ProguardTokenType("JAVA_DECL");
   IElementType LINE_CMT = new ProguardTokenType("LINE_CMT");
   IElementType OPEN_BRACE = new ProguardTokenType("OPEN_BRACE");
+  IElementType SINGLE_QUOTED_STRING = new ProguardTokenType("SINGLE_QUOTED_STRING");
   IElementType WS = new ProguardTokenType("WS");
 
   class Factory {
     public static PsiElement createElement(ASTNode node) {
       IElementType type = node.getElementType();
-       if (type == COMMENT) {
+      if (type == COMMENT) {
         return new ProguardCommentImpl(node);
       }
-      else if (type == FLAG) {
-        return new ProguardFlagImpl(node);
+      else if (type == FILENAME_ARG) {
+        return new ProguardFilenameArgImpl(node);
+      }
+      else if (type == FILENAME_FLAG) {
+        return new ProguardFilenameFlagImpl(node);
       }
       else if (type == JAVA_SECTION) {
         return new ProguardJavaSectionImpl(node);

@@ -68,7 +68,7 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
     return if (sync) {
       val projectSystem = project.getProjectSystem()
       val syncManager = projectSystem.getSyncManager()
-      syncManager.syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, requireSourceGeneration = false)
+      syncManager.syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
     }
     else {
       null

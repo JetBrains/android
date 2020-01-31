@@ -15,25 +15,33 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.post.upgrade;
 
+import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo;
-import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater.UpdateResult;
+import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.Mock;
 
-import static com.android.SdkConstants.GRADLE_LATEST_VERSION;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
-
 /**
  * Tests for {@link RecommendedPluginVersionUpgradeStep}.
  */
-public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProjectTestCase {
+public class RecommendedPluginVersionUpgradeStepIntegrationTest extends PlatformTestCase {
   @Mock private AndroidPluginInfo myPluginInfo;
   @Mock private LatestKnownPluginVersionProvider myLatestKnownPluginVersionProvider;
   @Mock private RecommendedPluginVersionUpgradeDialog.Factory myUpgradeDialogFactory;
@@ -83,7 +91,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProj
     verifyPluginVersionWasNotUpdated();
   }
 
-  public void testCheckAndPerformUpgradeWhenCurrentVersionIsGreaterRecommended() {
+  public void testPerformUpgradeWhenCurrentVersionIsGreaterRecommended() {
     simulateUpgradeReminderIsDue();
 
     // Simulate project's plugin version is lower than latest.
@@ -97,7 +105,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProj
     verifyPluginVersionWasNotUpdated();
   }
 
-  public void testCheckAndPerformUpgradeWhenCurrentVersionIsPreviewAndRecommendedIsSnapshot() {
+  public void testPerformUpgradeWhenCurrentIsPreviewRecommendedIsSnapshot() {
     simulateUpgradeReminderIsDue();
 
     // Current version is a preview
@@ -118,7 +126,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProj
     verify(myUpgradeDialog, never()).showAndGet();
   }
 
-  public void testCheckAndPerformUpgradeWhenUserDeclinesUpgrade() {
+  public void testPerformUpgradeWhenUserDeclinesUpgrade() {
     simulateUpgradeReminderIsDue();
 
     // Simulate project's plugin version is lower than latest.
@@ -135,7 +143,7 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProj
   }
 
   private void verifyPluginVersionWasNotUpdated() {
-    verify(myVersionUpdater, never()).updatePluginVersionAndSync(any(), any(), anyBoolean());
+    verify(myVersionUpdater, never()).updatePluginVersionAndSync(any(), any());
   }
 
   public void testCheckAndPerformUpgradeWhenVersionUpdateFails() {
@@ -196,6 +204,6 @@ public class RecommendedPluginVersionUpgradeStepIntegrationTest extends JavaProj
     UpdateResult result = mock(UpdateResult.class);
     when(result.versionUpdateSuccess()).thenReturn(success);
     GradleVersion gradleVersion = GradleVersion.parse(GRADLE_LATEST_VERSION);
-    doReturn(result).when(myVersionUpdater).updatePluginVersionAndSync(eq(pluginVersion), eq(gradleVersion), anyBoolean());
+    doReturn(result).when(myVersionUpdater).updatePluginVersionAndSync(eq(pluginVersion), eq(gradleVersion), any());
   }
 }

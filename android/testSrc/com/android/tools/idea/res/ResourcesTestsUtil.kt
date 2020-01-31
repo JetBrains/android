@@ -18,25 +18,40 @@
 package com.android.tools.idea.res
 
 import com.android.SdkConstants
+import com.android.SdkConstants.DOT_AAR
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.util.toPathString
 import com.android.projectmodel.SelectiveResourceFolder
-import com.android.tools.idea.projectsystem.FilenameConstants
+import com.android.tools.idea.projectsystem.FilenameConstants.EXPLODED_AAR
 import com.android.tools.idea.resources.aar.AarSourceResourceRepository
+import com.android.tools.idea.testing.Facets
 import com.android.tools.idea.util.toVirtualFile
+import com.intellij.ide.highlighter.ModuleFileType
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.module.ModuleTypeId
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.LibraryOrderEntry
 import com.intellij.openapi.roots.ModuleRootModificationUtil
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiFile
 import com.intellij.testFramework.PsiTestUtil
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
 import java.io.File
+import java.nio.file.FileVisitResult
+import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.attribute.BasicFileAttributes
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 const val AAR_LIBRARY_NAME = "com.test:test-library:1.0.0"
 const val AAR_PACKAGE_NAME = "com.test.testlibrary"
@@ -45,24 +60,63 @@ fun createTestAppResourceRepository(facet: AndroidFacet): LocalResourceRepositor
   val moduleResources = createTestModuleRepository(facet, emptyList())
   val projectResources = ProjectResourceRepository.createForTest(facet, listOf(moduleResources))
   val appResources = AppResourceRepository.createForTest(facet, listOf<LocalResourceRepository>(projectResources), emptyList())
-  val aar = getTestAarRepository()
+  val aar = getTestAarRepositoryFromExplodedAar()
   appResources.updateRoots(listOf(projectResources), listOf(aar))
   return appResources
 }
 
 @JvmOverloads
-fun getTestAarRepository(libraryDirName: String = "my_aar_lib"): AarSourceResourceRepository {
+fun getTestAarRepositoryFromExplodedAar(libraryDirName: String = "my_aar_lib"): AarSourceResourceRepository {
  return AarSourceResourceRepository.create(
-    Paths.get(AndroidTestBase.getTestDataPath(), "rendering", FilenameConstants.EXPLODED_AAR, libraryDirName, "res").toFile(),
+    Paths.get(AndroidTestBase.getTestDataPath(), "rendering", EXPLODED_AAR, libraryDirName, "res"),
     AAR_LIBRARY_NAME
   )
 }
 
+@JvmOverloads
+fun getTestAarRepository(tempDir: Path, libraryDirName: String = "my_aar_lib"): AarSourceResourceRepository {
+  val aar = createAar(tempDir, libraryDirName)
+  return AarSourceResourceRepository.create(aar, AAR_LIBRARY_NAME)
+}
+
+/**
+ * Creates an .aar file for the [libraryDirName] library. The name of the .aar file is determined by [libraryDirName].
+ *
+ * @return the path to the resulting .aar file in the temporary directory
+ */
+@JvmOverloads
+fun createAar(tempDir: Path, libraryDirName: String = "my_aar_lib"): Path {
+  val sourceDirectory = Paths.get(AndroidTestBase.getTestDataPath(), "rendering", EXPLODED_AAR, libraryDirName)
+  return createAar(sourceDirectory, tempDir)
+}
+
+private fun createAar(sourceDirectory: Path, tempDir: Path): Path {
+  val aarFile = tempDir.resolve(sourceDirectory.fileName.toString() + DOT_AAR)
+  ZipOutputStream(Files.newOutputStream(aarFile)).use { zip ->
+    Files.walkFileTree(sourceDirectory, object : SimpleFileVisitor<Path>() {
+      override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
+        val relativePath = FileUtil.toSystemIndependentName(sourceDirectory.relativize(file).toString())
+        createZipEntry(relativePath, Files.readAllBytes(file), zip)
+        return FileVisitResult.CONTINUE
+      }
+    })
+  }
+  return aarFile
+}
+
+private fun createZipEntry(name: String, content: ByteArray, zip: ZipOutputStream) {
+  val entry = ZipEntry(name)
+  zip.putNextEntry(entry)
+  zip.write(content)
+  zip.closeEntry()
+}
+
 fun getTestAarRepositoryWithResourceFolders(libraryDirName: String, vararg resources: String): AarSourceResourceRepository {
-  val root = Paths.get(AndroidTestBase.getTestDataPath(), "rendering", FilenameConstants.EXPLODED_AAR, libraryDirName, "res").toPathString()
+  val root = Paths.get(AndroidTestBase.getTestDataPath(), "rendering", EXPLODED_AAR, libraryDirName, "res").toPathString()
   return AarSourceResourceRepository.create(
     SelectiveResourceFolder(root, resources.map { resource -> root.resolve(resource) }),
-    AAR_LIBRARY_NAME
+    AAR_LIBRARY_NAME,
+    null
   )
 }
 
@@ -71,9 +125,37 @@ fun createTestModuleRepository(
   facet: AndroidFacet,
   resourceDirectories: Collection<VirtualFile>,
   namespace: ResourceNamespace = ResourceNamespace.RES_AUTO,
-  dynamicRepo: DynamicResourceValueRepository? = null
+  dynamicRepo: DynamicValueResourceRepository? = null
 ): LocalResourceRepository {
   return ModuleResourceRepository.createForTest(facet, resourceDirectories, namespace, dynamicRepo)
+}
+
+/**
+ * Creates and adds an Android Module to the given project.
+ * The module file would be located under [Project.getBasePath] + "/[moduleName]/[moduleName].iml"
+ *
+ * Runs the given [function][createResources] to add resources to the module.
+ *
+ * @param moduleName name given to the new module.
+ * @param project current working project.
+ * @param createResources code that will be invoked on the module resources folder, to add desired resources. VFS will be refreshed after
+ *                        the function is done.
+ * @return The instance of the created module added to the project.
+ */
+fun addAndroidModule(moduleName: String, project: Project, createResources: (moduleResDir: File) -> Unit): Module {
+  val root = project.basePath
+  val moduleDir = File(FileUtil.toSystemDependentName(root!!), moduleName)
+  val moduleFilePath = File(moduleDir, moduleName + ModuleFileType.DOT_DEFAULT_EXTENSION)
+
+  val module = runWriteAction { ModuleManager.getInstance(project).newModule(moduleFilePath.path, ModuleTypeId.JAVA_MODULE) }
+  Facets.createAndAddAndroidFacet(module)
+
+  val moduleResDir = moduleDir.resolve(SdkConstants.FD_RES)
+  moduleResDir.mkdir()
+
+  createResources(moduleResDir)
+  VfsUtil.markDirtyAndRefresh(false, true, true, moduleDir.toVirtualFile(refresh = true))
+  return module
 }
 
 /**
@@ -146,3 +228,8 @@ fun addBinaryAarDependency(module: Module) {
     "res.apk"
   )
 }
+
+/**
+ * Exposes protected method [LocalResourceRepository.isScanPending] for usage in tests.
+ */
+fun checkIfScanPending(repository: LocalResourceRepository, psiFile: PsiFile) = repository.isScanPending(psiFile)

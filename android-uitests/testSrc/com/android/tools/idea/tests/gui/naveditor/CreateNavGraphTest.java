@@ -16,18 +16,17 @@
 package com.android.tools.idea.tests.gui.naveditor;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateResourceFileDialogFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.google.common.truth.Truth;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.core.MouseButton;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Verifies Creating Navigation Graph
@@ -61,25 +60,19 @@ public class CreateNavGraphTest {
   @Test
   @RunIn(TestGroup.SANITY_BAZEL)
   public void createNavGraph() throws Exception {
-
-    IdeFrameFixture ideFrameFixture = guiTest.importSimpleApplication();
-
-    ideFrameFixture.getProjectView()
+    String contents = guiTest.importSimpleApplication()
+      .getProjectView()
       .selectAndroidPane()
       .clickPath(MouseButton.RIGHT_BUTTON, "app")
       .openFromMenu(CreateResourceFileDialogFixture::find, "File", "New", "Android Resource File")
       .setFilename("nav_g")
       .setType("navigation")
-      .clickOk();
-
-    GuiTests.findAndClickOkButton(ideFrameFixture.waitForDialog("Add Project Dependency", 10));
-
-    String contents = guiTest
-      .ideFrame()
+      .clickOkAndWaitForDependencyDialog()
+      .clickOk()
       .getEditor()
       .open("app/build.gradle")
       .getCurrentFileContents();
 
-    Truth.assertThat(contents).contains("android.arch.navigation:navigation-fragment");
+    assertThat(contents).contains("android.arch.navigation:navigation-fragment");
   }
 }

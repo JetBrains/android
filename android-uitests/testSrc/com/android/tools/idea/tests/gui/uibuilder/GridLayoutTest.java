@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -33,22 +34,23 @@ import org.junit.runner.RunWith;
 public final class GridLayoutTest {
   @Rule
   public final GuiTestRule myGuiTest = new GuiTestRule();
+  @Rule
+  public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   @Test
   public void dragViewIntoEmptyGridLayout() throws Exception {
     IdeFrameFixture frame = myGuiTest.importSimpleApplication();
     frame.getProjectView().selectAndroidPane().clickPath("app");
     frame.openFromMenu(CreateResourceFileDialogFixture::find, "File", "New", "Android Resource File")
-                                   .setFilename("gridlayout")
-                                   .setType("layout")
-                                   .setRootElement("GridLayout")
-                                   .clickOk();
-
-    EditorFixture editor = myGuiTest.ideFrame().getEditor();
-    NlEditorFixture layoutEditor = editor.getLayoutEditor(false);
-    layoutEditor.waitForRenderToFinish();
-    layoutEditor.showOnlyDesignView();
-    layoutEditor.dragComponentToSurface("Text", "TextView");
+      .setFilename("gridlayout")
+      .setType("layout")
+      .setRootElement("GridLayout")
+      .clickOk()
+      .getEditor()
+      .getLayoutEditor(false)
+      .waitForRenderToFinish()
+      .showOnlyDesignView()
+      .dragComponentToSurface("Text", "TextView");
 
     @Language("XML")
     String expected = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -64,7 +66,7 @@ public final class GridLayoutTest {
                       "        android:text=\"TextView\" />\n" +
                       "</GridLayout>";
 
-    editor.open("app/src/main/res/layout/gridlayout.xml", Tab.EDITOR);
-    assertEquals(expected, editor.getCurrentFileContents());
+    String contents = frame.getEditor().open("app/src/main/res/layout/gridlayout.xml", Tab.EDITOR).getCurrentFileContents();
+    assertThat(contents).isEqualTo(expected);
   }
 }

@@ -147,7 +147,7 @@ public class FileRootSearchScope extends GlobalSearchScope {
   /**
    * Create a scope whose {@link #myDirRootPaths} is the merge of those two scopes. The scope created is equivalent to the ones created
    * using {@link GlobalSearchScope#uniteWith} or {@link SearchScope#union} but has better query time performance and worse creation time
-   * performance. This method is only supposed to be used in {@link TestArtifactSearchScopes} where we create the base scopes.
+   * performance. This method is only supposed to be used in {@link GradleTestArtifactSearchScopes} where we create the base scopes.
    */
   @Contract(value = "_ -> new", pure = true)
   @NotNull

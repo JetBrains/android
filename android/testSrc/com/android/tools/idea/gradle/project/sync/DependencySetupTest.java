@@ -75,11 +75,6 @@ public class DependencySetupTest extends GradleSyncIntegrationTestCase {
   }
 
   @Override
-  protected boolean useNewSyncInfrastructure() {
-    return false;
-  }
-
-  @Override
   protected boolean useSingleVariantSyncInfrastructure() {
     return false;
   }

@@ -15,29 +15,35 @@
  */
 package com.android.tools.idea.naveditor.property.inspector;
 
-import com.google.common.annotations.VisibleForTesting;
+import static com.android.SdkConstants.ANDROID_URI;
+import static com.android.SdkConstants.ATTR_AUTO_VERIFY;
+import static com.android.SdkConstants.ATTR_URI;
+import static com.android.SdkConstants.AUTO_URI;
+import static com.android.SdkConstants.TAG_DEEP_LINK;
+
 import com.android.tools.idea.common.api.InsertType;
+import com.android.tools.idea.common.command.NlWriteCommandActionUtil;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.naveditor.model.NavComponentHelperKt;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.NavEditorEvent;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.ValidationInfo;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-
-import javax.swing.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-
-import static com.android.SdkConstants.*;
+import javax.swing.Action;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class AddDeeplinkDialog extends DialogWrapper {
   @VisibleForTesting
-  JTextField myUriField;
+  PlaceholderTextField myUriField;
   @VisibleForTesting
   JCheckBox myAutoVerify;
   private JPanel myContentPanel;
@@ -46,6 +52,7 @@ public class AddDeeplinkDialog extends DialogWrapper {
 
   public AddDeeplinkDialog(@Nullable NlComponent existing, @NotNull NlComponent parent) {
     super(false);
+    myUriField.setPlaceHolderText("Enter URI - https://www.example.com/person/{id}");
     if (existing != null) {
       myUriField.setText(existing.getAttribute(AUTO_URI, ATTR_URI));
       myAutoVerify.setSelected(Boolean.parseBoolean(existing.getAttribute(ANDROID_URI, ATTR_AUTO_VERIFY)));
@@ -108,13 +115,14 @@ public class AddDeeplinkDialog extends DialogWrapper {
   }
 
   public void save() {
-    WriteCommandAction.runWriteCommandAction(myParent.getModel().getProject(), () -> {
+    String name = (myExistingComponent == null) ? "Add Deep Link" : "Update Deep Link";
+    NlWriteCommandActionUtil.run(myParent, name, () -> {
       NlComponent realComponent = myExistingComponent;
       if (realComponent == null) {
         realComponent = NlComponentHelperKt.createChild(myParent, TAG_DEEP_LINK, false, null, null, null, null, InsertType.CREATE);
         if (realComponent == null) {
           ApplicationManager.getApplication().invokeLater(() ->
-            Messages.showErrorDialog(myParent.getModel().getProject(), "Failed to create Argument!", "Error")
+            Messages.showErrorDialog(myParent.getModel().getProject(), "Failed to create Deep Link!", "Error")
           );
           return;
         }

@@ -18,9 +18,9 @@ package com.android.tools.idea.gradle.project.sync.setup.post.project;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages;
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessagesStub;
+import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.ServiceContainerUtil;
-import org.jetbrains.android.AndroidTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -35,7 +35,7 @@ import static com.google.common.truth.Truth.assertThat;
 /**
  * Tests for {@link MissingPlatformsSetupStep}.
  */
-public class MissingPlatformsSetupStepTest extends AndroidTestCase {
+public class MissingPlatformsSetupStepTest extends PlatformTestCase {
   private MySyncMessages mySyncMessages;
   private MissingPlatformsSetupStep mySetupStep;
 
@@ -44,8 +44,7 @@ public class MissingPlatformsSetupStepTest extends AndroidTestCase {
     super.setUp();
     Project project = getProject();
     mySyncMessages = new MySyncMessages(project);
-    ServiceContainerUtil
-      .replaceService(project, GradleSyncMessages.class, mySyncMessages, getTestRootDisposable());
+    new IdeComponents(project, getTestRootDisposable()).replaceProjectService(GradleSyncMessages.class, mySyncMessages);
 
     mySetupStep = new MissingPlatformsSetupStep();
   }
@@ -53,7 +52,7 @@ public class MissingPlatformsSetupStepTest extends AndroidTestCase {
   public void testSetUpProjectWithMissingPlatforms() {
     mySyncMessages.setMessageCount("SDK Setup Issues", 1);
 
-    mySetupStep.setUpProject(getProject(), null);
+    mySetupStep.setUpProject(getProject());
 
     List<SyncMessage> messages = mySyncMessages.getReportedMessages();
     assertThat(messages).hasSize(1);
@@ -68,7 +67,7 @@ public class MissingPlatformsSetupStepTest extends AndroidTestCase {
   public void testSetUpProjectWithoutMissingPlatforms() {
     mySyncMessages.setMessageCount("SDK Setup Issues", 0);
 
-    mySetupStep.setUpProject(getProject(), null);
+    mySetupStep.setUpProject(getProject());
 
     List<SyncMessage> messages = mySyncMessages.getReportedMessages();
     assertThat(messages).isEmpty();

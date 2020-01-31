@@ -38,12 +38,14 @@ import static org.mockito.Mockito.when;
  * Tests {@link GradleVersionReader}.
  */
 public class GradleVersionReaderTest extends AndroidGradleTestCase {
+  private IdeComponents myIdeComponents;
   private GradleVersionReader myVersionReader;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     myVersionReader = new GradleVersionReader();
+    myIdeComponents = new IdeComponents(getProject(), getTestRootDisposable());
   }
 
   public void testAppliesToWithGradleModule() throws Exception {
@@ -65,7 +67,7 @@ public class GradleVersionReaderTest extends AndroidGradleTestCase {
 
     Module appModule = myModules.getAppModule();
 
-    GradleVersions gradleVersions = IdeComponents.mockApplicationService(GradleVersions.class, getTestRootDisposable());
+    GradleVersions gradleVersions = myIdeComponents.mockApplicationService(GradleVersions.class);
 
     Project project = getProject();
     GradleVersion gradleVersion = GradleVersion.parse("2.14.1");

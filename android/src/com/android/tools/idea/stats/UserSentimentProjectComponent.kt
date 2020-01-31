@@ -16,36 +16,32 @@
 package com.android.tools.idea.stats
 
 import com.android.tools.analytics.AnalyticsSettings
-import com.intellij.ide.ApplicationInitializedListener
+import com.android.utils.NullLogger
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.AbstractProjectComponent
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.openapi.wm.ex.StatusBarEx
 
-private class UserSentimentProjectComponent : ApplicationInitializedListener {
-  override fun componentsInitialized() {
-    ApplicationManager.getApplication().messageBus.connect().subscribe(ProjectManager.TOPIC, object : ProjectManagerListener {
-      override fun projectOpened(project: Project) {
-        if (!AnalyticsSettings.optedIn) {
-          return
-        }
+class UserSentimentProjectComponent(val project: Project) : AbstractProjectComponent(project) {
+  override fun projectOpened() {
+    super.projectOpened()
 
-        val statusBar = WindowManager.getInstance().getStatusBar(project) as StatusBarEx
-        val positive = UserSentimentPanel(project, true)
-        val negative = UserSentimentPanel(project, false)
+    if (!AnalyticsSettings.optedIn) {
+      return
+    }
 
-        statusBar.addWidget(positive, "after ReadOnlyAttribute")
-        statusBar.addWidget(negative, "after " + positive.ID())
+    val statusBar = WindowManager.getInstance().getStatusBar(project) as StatusBarEx
+    val positive = UserSentimentPanel(project, true)
+    val negative = UserSentimentPanel(project, false)
 
-        Disposer.register(project, Disposable {
-          statusBar.removeWidget(positive.ID())
-          statusBar.removeWidget(negative.ID())
-        })
-      }
+    statusBar.addWidget(positive, "after ReadOnlyAttribute")
+    statusBar.addWidget(negative, "after " + positive.ID())
+
+    Disposer.register(project, Disposable {
+      statusBar.removeWidget(positive.ID())
+      statusBar.removeWidget(negative.ID())
     })
   }
 }

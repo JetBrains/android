@@ -20,13 +20,11 @@ import com.android.tools.idea.gradle.structure.model.PsDeclaredLibraryDependency
 import com.android.tools.idea.gradle.structure.model.PsGeneralIssue
 import com.android.tools.idea.gradle.structure.model.PsIssue
 import com.android.tools.idea.gradle.structure.model.PsIssue.Severity.WARNING
-import com.android.tools.idea.gradle.structure.model.PsIssueType
 import com.android.tools.idea.gradle.structure.model.PsIssueType.PROJECT_ANALYSIS
 import com.android.tools.idea.gradle.structure.model.PsModuleType
 import com.android.tools.idea.gradle.structure.model.PsQuickFix
-import com.android.tools.idea.gradle.structure.quickfix.PsDependencyScopeQuickFixPath
+import com.android.tools.idea.gradle.structure.quickfix.PsDependencyConfigurationQuickFixPath
 import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyPlusQuickFixPath
-import com.android.tools.idea.gradle.structure.quickfix.PsLibraryDependencyVersionQuickFixPath
 
 fun analyzeDeclaredDependency(dependency: PsDeclaredLibraryDependency): Sequence<PsIssue> {
   val path = dependency.path
@@ -76,10 +74,10 @@ fun analyzeDependencyScope(dependency: PsDeclaredDependency): Iterable<PsIssue> 
       apiReplacement = configurationName.removeSuffix("Compile") + "Api"
     }
 
-    val implementationFix = PsDependencyScopeQuickFixPath(dependency, implementationReplacement)
+    val implementationFix = PsDependencyConfigurationQuickFixPath(dependency, implementationReplacement)
     return if (suggestApi) {
       listOf(
-        PsDependencyScopeQuickFixPath(dependency, apiReplacement),
+        PsDependencyConfigurationQuickFixPath(dependency, apiReplacement),
         implementationFix
       )
     }
@@ -91,11 +89,11 @@ fun analyzeDependencyScope(dependency: PsDeclaredDependency): Iterable<PsIssue> 
   val issues = mutableListOf<PsIssue>()
   val configurationName = dependency.configurationName
   if (configurationName == "compile" || configurationName.endsWith("Compile")) {
-    val text = "Obsolete scope found: <b>$configurationName</b>"
+    val text = "Obsolete dependency configuration found: <b>$configurationName</b>"
     val fixes = fixesFor(configurationName)
     val path = dependency.path
     if (path != null) {
-      val issue = PsGeneralIssue(text, "", path, PsIssueType.PROJECT_ANALYSIS, WARNING, fixes)
+      val issue = PsGeneralIssue(text, "", path, PROJECT_ANALYSIS, WARNING, fixes)
       issues.add(issue)
     }
   }

@@ -39,7 +39,6 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
 
   static {
     optSymlinkToIdeaHome(
-      "prebuilts/tools/common/offline-m2",
       "prebuilts/studio/jdk",
       "prebuilts/studio/layoutlib",
       "prebuilts/studio/sdk",
@@ -48,7 +47,6 @@ public class GuiJarTestSuite extends IdeaTestSuiteBase {
       "tools/adt/idea/android/lib",
       "tools/adt/idea/android-uitests/testData",
       "tools/adt/idea/artwork/resources/device-art-resources",
-      "tools/adt/idea/resources-aar/framework_res.jar",
       "tools/base/templates",
       "tools/external/gradle",
       "tools/idea/java",

@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.structure.configurables.ui;
 
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.AbstractBaseTreeBuilder;
 import com.android.tools.idea.gradle.structure.configurables.ui.treeview.TreeBuilderSpeedSearch;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,6 +25,7 @@ import javax.swing.tree.TreeSelectionModel;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 
+import static com.intellij.openapi.util.SystemInfo.isMac;
 import static com.intellij.ui.ScrollPaneFactory.createScrollPane;
 import static com.intellij.util.BitUtil.isSet;
 import static java.awt.Event.CTRL_MASK;
@@ -45,11 +45,12 @@ public final class UiUtil {
   }
 
   @NotNull
-  public static JScrollPane setUp(@NotNull AbstractBaseTreeBuilder treeBuilder) {
+  public static JScrollPane setUp(@NotNull AbstractBaseTreeBuilder treeBuilder, @NotNull String name) {
     JTree tree = treeBuilder.getUi().getTree();
 
     tree.setExpandsSelectedPaths(true);
     tree.setRootVisible(false);
+    tree.setName(name);
     TreeSelectionModel selectionModel = tree.getSelectionModel();
     selectionModel.setSelectionMode(DISCONTIGUOUS_TREE_SELECTION);
 
@@ -61,11 +62,11 @@ public final class UiUtil {
   }
 
   public static boolean isMetaOrCtrlKeyPressed(@NotNull KeyEvent e) {
-    return e.getKeyCode() == (SystemInfo.isMac ? VK_META : VK_CONTROL);
+    return e.getKeyCode() == (isMac ? VK_META : VK_CONTROL);
   }
 
   public static boolean isMetaOrCtrlKeyPressed(@NotNull MouseEvent e) {
     int modifiers = e.getModifiers();
-    return isSet(modifiers, SystemInfo.isMac ? META_MASK : CTRL_MASK);
+    return isSet(modifiers, isMac ? META_MASK : CTRL_MASK);
   }
 }

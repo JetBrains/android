@@ -130,7 +130,7 @@ public class Locale {
    * @return true if this locale specifies a specific language
    */
   public boolean hasLanguage() {
-    return !qualifier.hasFakeValue();
+    return !qualifier.hasFakeValue() && qualifier.hasLanguage();
   }
 
   /**

@@ -19,7 +19,6 @@ import com.android.tools.idea.npw.ThemeHelper
 import org.jetbrains.android.AndroidTestCase
 
 class ThemeHelperTest : AndroidTestCase() {
-
   fun testThemeExists() {
     val layoutFile = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml")
     val configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile)
@@ -41,6 +40,6 @@ class ThemeHelperTest : AndroidTestCase() {
   fun testHasActionBar() {
     val layoutFile = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout1.xml")
     val configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(layoutFile)
-    assertTrue(ThemeHelper.hasActionBar(configuration, "@android:style/Theme.DeviceDefault"))
+    assertTrue(ThemeHelper.hasActionBar(configuration, "@android:style/Theme.DeviceDefault")!!)
   }
 }

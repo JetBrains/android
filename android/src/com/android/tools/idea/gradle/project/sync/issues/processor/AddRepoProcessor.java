@@ -136,7 +136,7 @@ public class AddRepoProcessor extends BaseRefactoringProcessor {
     projectBuildModel.applyChanges();
 
     if (myRequestSync) {
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(myProject, TRIGGER_QF_REPOSITORY_ADDED);
+      GradleSyncInvoker.getInstance().requestProjectSync(myProject, TRIGGER_QF_REPOSITORY_ADDED);
     }
   }
 

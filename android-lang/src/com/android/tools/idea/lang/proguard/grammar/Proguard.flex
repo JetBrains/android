@@ -33,7 +33,12 @@ import com.intellij.psi.TokenType;
 CRLF = [ ]*[\n\r]+   // Newlines
 WS = [ \t\f]+        // Whitespace
 
-FLAG_NAME = -[a-zA-Z0-9_]+  // Flag name that includes the leading "-"
+UNTERMINATED_SINGLE_QUOTED_STRING = \'(\\\'|[^\'])*
+SINGLE_QUOTED_STRING = {UNTERMINATED_SINGLE_QUOTED_STRING} \'
+UNTERMINATED_DOUBLE_QUOTED_STRING = \"(\\\"|[^\"])*
+DOUBLE_QUOTED_STRING = {UNTERMINATED_DOUBLE_QUOTED_STRING} \"
+
+FLAG_NAME = (@|-[a-zA-Z0-9_]+)  // Flag name that includes the leading "-"
 FLAG_ARG = [^ \n\r{#]+      // A single flag argument.
 LINE_CMT = #[^\n\r]*        // A end of line comment, anything that starts with "#"
 JAVA_DECL = [^\n\r}#]+;     // A single line of Java declaration in Java specification blocks.
@@ -46,7 +51,6 @@ CLOSE_BRACE = "}"
 %state STATE_JAVA_SECTION
 // Parses flag arguments.
 %state STATE_FLAG_ARG
-
 %%
 
 <YYINITIAL> {
@@ -64,6 +68,11 @@ CLOSE_BRACE = "}"
 <STATE_FLAG_ARG> {
     // If an open brace is encountered, enter the java spec state.
     {OPEN_BRACE}     { yybegin(STATE_JAVA_SECTION); return ProguardTypes.OPEN_BRACE; }
+
+    {SINGLE_QUOTED_STRING} { return ProguardTypes.SINGLE_QUOTED_STRING; }
+    {DOUBLE_QUOTED_STRING} { return ProguardTypes.DOUBLE_QUOTED_STRING; }
+    {UNTERMINATED_SINGLE_QUOTED_STRING} { return TokenType.BAD_CHARACTER; }
+    {UNTERMINATED_DOUBLE_QUOTED_STRING} { return TokenType.BAD_CHARACTER; }
 
     // Individual arguments.
     {FLAG_ARG}       { return ProguardTypes.FLAG_ARG; }

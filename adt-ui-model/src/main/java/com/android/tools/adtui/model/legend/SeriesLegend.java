@@ -93,7 +93,7 @@ public final class SeriesLegend implements Legend {
       return UNAVAILABLE_MESSAGE;
     }
 
-    List<SeriesData<Long>> data = mySeries.getDataSeries().getDataForXRange(range);
+    List<SeriesData<Long>> data = mySeries.getSeriesForRange(range);
     if (data.isEmpty()) {
       // SeriesLegend should always show up, even when data is absent.
       return UNAVAILABLE_MESSAGE;

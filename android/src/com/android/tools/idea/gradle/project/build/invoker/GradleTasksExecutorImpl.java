@@ -31,11 +31,13 @@ import static com.intellij.openapi.ui.MessageType.INFO;
 import static com.intellij.openapi.util.text.StringUtil.formatDuration;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.ui.AppUIUtil.invokeLaterIfProjectAlive;
+import static com.intellij.util.ArrayUtilRt.toStringArray;
 import static com.intellij.util.ExceptionUtil.getRootCause;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper.prepare;
 
+import com.android.build.attribution.BuildAttributionManager;
 import com.android.builder.model.AndroidProject;
 import com.android.ide.common.blame.Message;
 import com.android.ide.common.blame.SourceFilePosition;
@@ -47,11 +49,12 @@ import com.android.tools.idea.gradle.project.build.BuildSummary;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.gradle.project.build.compiler.AndroidGradleBuildConfiguration;
 import com.android.tools.idea.gradle.project.common.GradleInitScripts;
-import com.android.tools.idea.gradle.project.settings.AndroidStudioGradleIdeSettings;
 import com.android.tools.idea.gradle.util.BuildMode;
+import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.android.tools.idea.ui.GuiTestingService;
+import com.android.utils.FileUtils;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.intellij.compiler.CompilerManagerImpl;
@@ -59,6 +62,7 @@ import com.intellij.compiler.CompilerWorkspaceConfiguration;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.externalSystem.model.ExternalSystemException;
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId;
@@ -95,6 +99,7 @@ import org.gradle.tooling.CancellationTokenSource;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.LongRunningOperation;
 import org.gradle.tooling.ProjectConnection;
+import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -222,6 +227,8 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       GradleBuildState buildState = GradleBuildState.getInstance(myProject);
       buildState.buildStarted(new BuildContext(project, gradleTasks, buildMode));
 
+      BuildAttributionManager buildAttributionManager = null;
+
       try {
         AndroidGradleBuildConfiguration buildConfiguration = AndroidGradleBuildConfiguration.getInstance(project);
         List<String> commandLineArguments = Lists.newArrayList(buildConfiguration.getCommandLineOptions());
@@ -232,13 +239,16 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
         }
 
         commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_INVOKED_FROM_IDE, true));
+        String attributionFilePath = FileUtils.join(project.getBasePath(), GradleUtil.BUILD_DIR_DEFAULT_NAME);
+        if (StudioFlags.BUILD_ATTRIBUTION_ENABLED.get()) {
+          commandLineArguments.add(createProjectProperty(AndroidProject.PROPERTY_ATTRIBUTION_FILE_LOCATION,
+                                                         attributionFilePath));
+        }
         commandLineArguments.addAll(myRequest.getCommandLineArguments());
 
         // Inject embedded repository if it's enabled by user or if in testing mode.
-        if (AndroidStudioGradleIdeSettings.getInstance().isEmbeddedMavenRepoEnabled() || isInTestingMode()) {
-          if (!StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get()) {
-            GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
-          }
+        if (StudioFlags.USE_DEVELOPMENT_OFFLINE_REPOS.get() || isInTestingMode()) {
+          GradleInitScripts.getInstance().addLocalMavenRepoInitScriptCommandLineArg(commandLineArguments);
           attemptToUseEmbeddedGradle(project);
         }
 
@@ -284,16 +294,25 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
           }
         }, connection);
 
+        if (StudioFlags.BUILD_ATTRIBUTION_ENABLED.get()) {
+          buildAttributionManager = ServiceManager.getService(myProject, BuildAttributionManager.class);
+          // Don't listen to transform events due to b/136194724
+          operation
+            .addProgressListener(buildAttributionManager, OperationType.GENERIC, OperationType.PROJECT_CONFIGURATION, OperationType.TASK,
+                                 OperationType.TEST);
+          buildAttributionManager.onBuildStart();
+        }
+
         File javaHome = IdeSdks.getInstance().getJdkPath();
         if (javaHome != null) {
           operation.setJavaHome(javaHome);
         }
 
         if (isRunBuildAction) {
-          ((BuildActionExecuter)operation).forTasks(ArrayUtilRt.toStringArray(gradleTasks));
+          ((BuildActionExecuter)operation).forTasks(toStringArray(gradleTasks));
         }
         else {
-          ((BuildLauncher)operation).forTasks(ArrayUtilRt.toStringArray(gradleTasks));
+          ((BuildLauncher)operation).forTasks(toStringArray(gradleTasks));
         }
 
         operation.withCancellationToken(cancellationTokenSource.token());
@@ -307,6 +326,9 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
 
         buildState.buildFinished(SUCCESS);
         taskListener.onSuccess(id);
+        if (buildAttributionManager != null) {
+          buildAttributionManager.onBuildSuccess(attributionFilePath);
+        }
       }
       catch (BuildException e) {
         buildError = e;
@@ -317,6 +339,10 @@ class GradleTasksExecutorImpl extends GradleTasksExecutor {
       }
       finally {
         if (buildError != null) {
+          if (buildAttributionManager != null) {
+            buildAttributionManager.onBuildFailure();
+          }
+
           if (wasBuildCanceled(buildError)) {
             buildState.buildFinished(CANCELED);
             taskListener.onCancel(id);

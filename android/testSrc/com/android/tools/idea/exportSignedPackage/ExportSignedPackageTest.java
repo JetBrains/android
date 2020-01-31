@@ -17,6 +17,7 @@ package com.android.tools.idea.exportSignedPackage;
 
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.Sets;
@@ -37,7 +38,7 @@ import static java.util.Collections.singletonList;
 public class ExportSignedPackageTest extends AndroidGradleTestCase {
   public void testNoFlavors() throws Exception {
     loadProject(SIGNAPK_NO_FLAVORS);
-    AndroidProject androidProject = getModel().getAndroidProject();
+    IdeAndroidProject androidProject = getModel().getAndroidProject();
     assertNotNull(androidProject);
 
     // debug and release
@@ -51,7 +52,7 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
 
   public void testFlavors() throws Exception {
     loadProject(SIGNAPK_MULTIFLAVOR);
-    AndroidProject androidProject = getModel().getAndroidProject();
+    IdeAndroidProject androidProject = getModel().getAndroidProject();
     assertNotNull(androidProject);
 
     // (free,pro) x (arm,x86) x (debug,release) = 8
@@ -72,7 +73,7 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
 
   public void testBundleNoFlavors() throws Exception {
     loadProject(SIGNAPK_NO_FLAVORS);
-    AndroidProject androidProject = getModel().getAndroidProject();
+    IdeAndroidProject androidProject = getModel().getAndroidProject();
     assertNotNull(androidProject);
 
     // debug and release
@@ -86,7 +87,7 @@ public class ExportSignedPackageTest extends AndroidGradleTestCase {
 
   public void testBundleFlavors() throws Exception {
     loadProject(SIGNAPK_MULTIFLAVOR);
-    AndroidProject androidProject = getModel().getAndroidProject();
+    IdeAndroidProject androidProject = getModel().getAndroidProject();
     assertNotNull(androidProject);
 
     // (free,pro) x (arm,x86) x (debug,release) = 8

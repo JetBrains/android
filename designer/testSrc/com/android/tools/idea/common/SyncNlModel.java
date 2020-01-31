@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
@@ -40,14 +40,24 @@ public class SyncNlModel extends NlModel {
                                    @Nullable Disposable parent,
                                    @NotNull AndroidFacet facet,
                                    @NotNull VirtualFile file) {
+    return create(surface, parent, null, facet, file);
+  }
+
+  @NotNull
+  @SuppressWarnings("MethodOverridesStaticMethodOfSuperclass")
+  public static SyncNlModel create(@NotNull DesignSurface surface,
+                                   @Nullable Disposable parent,
+                                   @Nullable String displayName,
+                                   @NotNull AndroidFacet facet,
+                                   @NotNull VirtualFile file) {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(facet);
     Configuration configuration =  manager.getConfiguration(file);
     configuration.setDevice(manager.getDeviceById("Nexus 4"), true);
-    return new SyncNlModel(surface, parent, facet, file, configuration);
+    return new SyncNlModel(surface, parent, displayName, facet, file, configuration);
   }
 
-  private SyncNlModel(@NotNull DesignSurface surface, @Nullable Disposable parent, @NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull Configuration configuration) {
-    super(parent, facet, file, configuration, surface.getComponentRegistrar());
+  private SyncNlModel(@NotNull DesignSurface surface, @Nullable Disposable parent, @Nullable String displayName, @NotNull AndroidFacet facet, @NotNull VirtualFile file, @NotNull Configuration configuration) {
+    super(parent, displayName, facet, file, configuration, surface.getComponentRegistrar());
     mySurface = surface;
   }
 

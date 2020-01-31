@@ -23,6 +23,8 @@ import com.intellij.build.events.impl.FileMessageEventImpl
 import com.intellij.build.events.impl.MessageEventImpl
 import com.intellij.build.output.BuildOutputInstantReader
 import com.intellij.build.output.BuildOutputParser
+import com.intellij.openapi.util.SystemInfo
+import com.intellij.util.io.isWritable
 import java.io.IOException
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -49,7 +51,7 @@ private enum class ClangDiagnosticClass(val tag: String) {
  *
  * > Task :app:externalNativeBuildDebug
  */
-private val nativeBuildTaskPattern = Regex("> Task (:[^:]+)*:externalNativeBuild([^ ]+)(?: [-A-Z]+)?")
+private val nativeBuildTaskPattern = Regex("> Task ((?::[^:]+)*):externalNativeBuild([^ ]+)(?: [-A-Z]+)?")
 
 /**
  * Pattern matching a line output by ninja when it changes the working directory.
@@ -101,6 +103,7 @@ class ClangOutputParser : BuildOutputParser {
    * no longer allows a parser to pushback lines past the `currentLine`.
    */
   private var previousLine: String? = null
+
   /**
    * Parses an build output while it's being streamed from external build systems.
    *
@@ -113,9 +116,10 @@ class ClangOutputParser : BuildOutputParser {
    * file, this parser can emit a [FileMessageEventImpl] so that the IDE will show a corresponding entry in the 'Build Output' UI.
    * @return true if the current line is consumed by this parser and should not be passed to other parsers. Otherwise, false.
    */
-  override fun parse(currentLine: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
+  override fun parse(currentLineRaw: String, reader: BuildOutputInstantReader, messageConsumer: Consumer<in BuildEvent>): Boolean {
+    val currentLine = currentLineRaw.trimEnd()
     val previousLine = this.previousLine
-    this.previousLine = currentLine
+    this.previousLine = currentLine.trimEnd()
     val nativeBuildTaskMatch = nativeBuildTaskPattern.matchEntire(previousLine ?: return false) ?: return false
     val (gradleProject, variant) = nativeBuildTaskMatch.capturedRegexGroupValues
 
@@ -184,17 +188,10 @@ class ClangOutputParser : BuildOutputParser {
         }
         val lineNumber = lineString.toInt()
         val colNumber = colString.toInt()
-        val diagnosticClass = ClangDiagnosticClass.fromTag(diagnosticClassString)
+        val diagnosticClass = fromTag(diagnosticClassString)
         val detailedMessage = inclusionContextMap.getValue(path).let { inclusionContext ->
           val fileMessage = "$path:$lineNumber:$colNumber: ${diagnosticClass.tag}: $diagnosticMessage"
-          val inclusionContextMessage = if (inclusionContext.isEmpty()) {
-            ""
-          }
-          else {
-            "\n\nThis file is included from the following inclusion chain:\n" +
-            inclusionContext.joinToString("") { "$it\n" }
-          }
-          fileMessage + inclusionContextMessage
+          (inclusionContext.map { "In file included from $it:" } + fileMessage).joinToString("\n")
         }
         messageConsumer.accept(
           FileMessageEventImpl(reader.parentEventId,
@@ -210,6 +207,9 @@ class ClangOutputParser : BuildOutputParser {
       val (pathString, optionalLineNumber, optionalDiagnosticClassString, message) = linkerErrorLine.let {
         linkerErrorDiagnosticPattern.matchEntire(it)?.capturedOptionalRegexGroupValues
       } ?: continue
+      val soFilePath = message?.indexOf(": open: Invalid argument")?.takeIf { it != -1 }?.let {
+        resolveAgainstWorkingDir(message.substring(0, it))
+      }
       val path = resolveAgainstWorkingDir(pathString!!)
       val lineNumber = optionalLineNumber?.toInt()
       val diagnosticClass = optionalDiagnosticClassString?.let(::fromTag) ?: ClangDiagnosticClass.ERROR
@@ -220,7 +220,7 @@ class ClangOutputParser : BuildOutputParser {
                                diagnosticClass.toMessageEventKind(),
                                compilerMessageGroup,
                                diagnosticMessage,
-                               linkerErrorLine,
+                               augmentLinkerError(linkerErrorLine, soFilePath),
                                FilePosition(path.toFile(), lineNumber - 1, 0)))
       }
       else {
@@ -229,7 +229,7 @@ class ClangOutputParser : BuildOutputParser {
                            diagnosticClass.toMessageEventKind(),
                            compilerMessageGroup,
                            diagnosticMessage,
-                           linkerErrorLine))
+                           augmentLinkerError(linkerErrorLine, soFilePath)))
       }
     }
   }
@@ -243,6 +243,22 @@ class ClangOutputParser : BuildOutputParser {
   /** Simple data class representing a line in a file. */
   private data class LineInFile(val path: Path, val lineNumber: Int) {
     override fun toString() = "$path:$lineNumber"
+  }
+}
+
+/**
+ * Augments the linker error with hints about file being locked on Windows.
+ */
+private fun augmentLinkerError(message: String, soFilePath: Path?): String {
+  if (SystemInfo.isWindows && soFilePath?.isWritable == false) {
+    // If the system is windows, the linker error could be caused by file locks on the so file. In that case, the error message is terribly
+    // misleading. Hence we want to provider a better message here. See b/124104842
+    return message + "\n\n" +
+           "File $soFilePath is not writable. This may be caused by insufficient permissions or files being locked by other processes. " +
+           "For example, LLDB locks .so files while debugging."
+  }
+  else {
+    return message
   }
 }
 

@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
 import com.android.tools.idea.jps.AndroidTargetBuilder;
@@ -7,7 +6,7 @@ import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.util.Processor;
 import com.intellij.util.io.ZipUtil;
 import org.jetbrains.android.util.AndroidBuildTestingManager;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.android.AndroidJpsBundle;
@@ -69,7 +68,7 @@ public class AndroidAarDepsBuilder extends AndroidTargetBuilder<BuildRootDescrip
     if (outputDir == null) {
       return false;
     }
-    final List<String> srcJarFiles = new ArrayList<>();
+    final List<String> srcJarFiles = new ArrayList<String>();
 
     for (BuildRootDescriptor descriptor : context.getProjectDescriptor().getBuildRootIndex().getTargetRoots(target, context)) {
       final File file = descriptor.getRootFile();
@@ -92,7 +91,7 @@ public class AndroidAarDepsBuilder extends AndroidTargetBuilder<BuildRootDescrip
       for (int i = srcJarFiles.size() - 1; i >= 0; i--) {
         ZipUtil.extract(new File(srcJarFiles.get(i)), tempDir, null, true);
       }
-      final File outputJarFile = new File(outputDir, AndroidCommonUtils.AAR_DEPS_JAR_FILE_NAME);
+      final File outputJarFile = new File(outputDir, AndroidBuildCommonUtils.AAR_DEPS_JAR_FILE_NAME);
 
       if (!packDirectoryIntoJar(tempDir, outputJarFile, context)) {
         return false;
@@ -128,7 +127,7 @@ public class AndroidAarDepsBuilder extends AndroidTargetBuilder<BuildRootDescrip
 
             if (relPath != null) {
               try {
-                AndroidCommonUtils.packIntoJar(jos, file, relPath);
+                AndroidBuildCommonUtils.packIntoJar(jos, file, relPath);
               }
               catch (IOException e) {
                 AndroidJpsUtil.reportExceptionError(context, null, e, BUILDER_NAME);

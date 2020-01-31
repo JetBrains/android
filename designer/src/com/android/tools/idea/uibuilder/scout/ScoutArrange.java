@@ -15,15 +15,40 @@
  */
 package com.android.tools.idea.uibuilder.scout;
 
+import static com.android.SdkConstants.CLASS_MOTION_LAYOUT;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.getDpBaseline;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.getDpHeight;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.getDpWidth;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.getDpX;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.getDpY;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.isLine;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourBaselineAttributes;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourBottomAttributes;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourEndAttributes;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourLeftAttributes;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourRightAttributes;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourStartAttributes;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.ourTopAttributes;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.scoutClearAttributes;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.scoutConnect;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.setScoutAbsoluteDpHeight;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.setScoutAbsoluteDpWidth;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.setScoutAbsoluteDpX;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.setScoutAbsoluteDpY;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.setScoutHorizontalBiasPercent;
+import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.setScoutVerticalBiasPercent;
+
 import com.android.SdkConstants;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneUtils;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
-
 import java.awt.Rectangle;
-import java.util.*;
-
-import static com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * This implements the standard arrange functions
@@ -50,6 +75,16 @@ public class ScoutArrange {
     if (widgetList.get(0).getParent() == null) {
       return;
     }
+    NlComponent layout = widgetList.get(0).getParent();
+    boolean useConstraintSet = false;
+    if (NlComponentHelperKt.isOrHasSuperclass(layout, CLASS_MOTION_LAYOUT)) {
+      System.out.println("align MotionLayout");
+      if (MotionSceneUtils.isUnderConstraintSet(widgetList.get(0))) {
+        useConstraintSet = true;
+      }
+
+    }
+
     ScoutWidget parentScoutWidget = new ScoutWidget(widgetList.get(0).getParent(), null);
     ScoutWidget[] scoutWidgets = ScoutWidget.create(widgetList, parentScoutWidget);
 
@@ -587,11 +622,6 @@ public class ScoutArrange {
       case VerticalPack: {
         NlComponent[] wArray = new NlComponent[widgetList.size()];
         wArray = widgetList.toArray(wArray);
-        for (int i = 0; i < wArray.length; i++) {
-          if (wArray[i].getId() == null) {
-            NlComponentHelperKt.ensureLiveId(wArray[i]);
-          }
-        }
         Arrays.sort(wArray, (w1, w2) -> Integer.compare(getDpY(w1), getDpY(w2)));
         ScoutWidget[] list = ScoutWidget.getWidgetArray(widgetList.get(0).getParent());
         Rectangle bounds = null;
@@ -621,12 +651,7 @@ public class ScoutArrange {
       case HorizontalPack: {
         NlComponent[] wArray = new NlComponent[widgetList.size()];
         wArray = widgetList.toArray(wArray);
-        for (int i = 0; i < wArray.length; i++) {
-          if (wArray[i].getId() == null) {
-            NlComponentHelperKt.ensureLiveId(wArray[i]);
-          }
-        }
-          Arrays.sort(wArray, (w1, w2) -> Integer.compare(getDpX(w1), getDpX(w2)));
+        Arrays.sort(wArray, (w1, w2) -> Integer.compare(getDpX(w1), getDpX(w2)));
         ScoutWidget[] list = ScoutWidget.getWidgetArray(widgetList.get(0).getParent());
         Rectangle bounds = null;
         for (int i = 0; i < wArray.length; i++) {
@@ -694,7 +719,7 @@ public class ScoutArrange {
     clip.y = selectBounds.y - gapNorth;
     clip.height = selectBounds.height + gapSouth + gapNorth;
 
-    ArrayList<ScoutWidget> selectedList = new ArrayList<>(Arrays.asList(list));
+    ArrayList<ScoutWidget> selectedList = new ArrayList<ScoutWidget>(Arrays.asList(list));
     while (!selectedList.isEmpty()) {
       ScoutWidget widget = selectedList.remove(0);
       ArrayList<ScoutWidget> col = new ArrayList<>();
@@ -748,7 +773,7 @@ public class ScoutArrange {
     clip.x = selectBounds.x - gapWest;
     clip.width = selectBounds.width + gapEast + gapWest;
     ArrayList<ScoutWidget> selectedList;
-    selectedList = new ArrayList<>(Arrays.asList(list));
+    selectedList = new ArrayList<ScoutWidget>(Arrays.asList(list));
     while (!selectedList.isEmpty()) {
       ScoutWidget widget = selectedList.remove(0);
       ArrayList<ScoutWidget> row = new ArrayList<>();

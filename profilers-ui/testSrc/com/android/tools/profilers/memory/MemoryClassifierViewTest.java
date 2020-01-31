@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory;
 
-import static com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import static com.android.tools.profiler.proto.Memory.AllocationStack;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CALLSTACK;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.MemoryProfilerConfiguration.ClassGrouping.ARRANGE_BY_PACKAGE;
@@ -33,10 +33,10 @@ import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.filter.Filter;
 import com.android.tools.adtui.model.formatter.NumberFormatter;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;
-import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.ProfilersTestData;
@@ -61,6 +61,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.swing.JScrollPane;
@@ -90,7 +91,9 @@ public class MemoryClassifierViewTest {
     loader.setReturnImmediateFuture(true);
     myFakeIdeProfilerServices = new FakeIdeProfilerServices();
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
-    myStage = new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myFakeIdeProfilerServices, new FakeTimer()), loader);
+    myStage =
+      new MemoryProfilerStage(new StudioProfilers(new ProfilerClient(myGrpcChannel.getName()), myFakeIdeProfilerServices, new FakeTimer()),
+                              loader);
     myClassifierView = new MemoryClassifierView(myStage, myFakeIdeProfilerComponents);
   }
 
@@ -106,29 +109,29 @@ public class MemoryClassifierViewTest {
 
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
     InstanceObject instanceFoo0 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo0").setDepth(1).setShallowSize(2).setRetainedSize(3)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo0").setDepth(1).setShallowSize(2)
+        .setRetainedSize(3).build();
     InstanceObject instanceFoo1 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo1").setDepth(2).setShallowSize(2).setRetainedSize(3)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo1").setDepth(2).setShallowSize(2)
+        .setRetainedSize(3).build();
     InstanceObject instanceFoo2 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo2").setDepth(3).setShallowSize(2).setRetainedSize(3)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo2").setDepth(3).setShallowSize(2)
+        .setRetainedSize(3).build();
     InstanceObject instanceBar0 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_1).setName("instanceBar0").setDepth(1).setShallowSize(2).setRetainedSize(4)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 1, CLASS_NAME_1).setName("instanceBar0").setDepth(1).setShallowSize(2)
+        .setRetainedSize(4).build();
     InstanceObject instanceBaz0 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBaz0").setDepth(1).setShallowSize(2).setRetainedSize(5)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz0").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5).build();
     InstanceObject instanceBaz1 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBaz1").setDepth(1).setShallowSize(2).setRetainedSize(5)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz1").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5).build();
     InstanceObject instanceBaz2 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBaz2").setDepth(1).setShallowSize(2).setRetainedSize(5)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz2").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5).build();
     InstanceObject instanceBaz3 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBaz3").setDepth(1).setShallowSize(2).setRetainedSize(5)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz3").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5).build();
     Set<InstanceObject> instanceObjects = new HashSet<>(
       Arrays.asList(instanceFoo0, instanceFoo1, instanceFoo2, instanceBar0, instanceBaz0, instanceBaz1, instanceBaz2, instanceBaz3));
     captureObject.addInstanceObjects(instanceObjects);
@@ -136,9 +139,9 @@ public class MemoryClassifierViewTest {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
 
-    assertThat(captureObject.containsClass(CaptureObject.DEFAULT_CLASSLOADER_ID, CLASS_NAME_0)).isTrue();
-    assertThat(captureObject.containsClass(CaptureObject.DEFAULT_CLASSLOADER_ID, CLASS_NAME_1)).isTrue();
-    assertThat(captureObject.containsClass(CaptureObject.DEFAULT_CLASSLOADER_ID, CLASS_NAME_2)).isTrue();
+    assertThat(captureObject.containsClass(0)).isTrue();
+    assertThat(captureObject.containsClass(1)).isTrue();
+    assertThat(captureObject.containsClass(2)).isTrue();
 
     HeapSet heapSet = captureObject.getHeapSet(instanceFoo0.getHeapId());
     assertThat(heapSet).isNotNull();
@@ -247,28 +250,36 @@ public class MemoryClassifierViewTest {
 
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
     InstanceObject instanceFoo0 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo0").setDepth(1).setShallowSize(2).setRetainedSize(3)
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo0").setDepth(1).setShallowSize(2)
+        .setRetainedSize(3)
         .build();
     InstanceObject instanceFoo1 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo1").setDepth(2).setShallowSize(2).setRetainedSize(3)
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo1").setDepth(2).setShallowSize(2)
+        .setRetainedSize(3)
         .build();
     InstanceObject instanceFoo2 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo2").setDepth(3).setShallowSize(2).setRetainedSize(3)
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo2").setDepth(3).setShallowSize(2)
+        .setRetainedSize(3)
         .build();
     InstanceObject instanceBar0 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_1).setName("instanceBar0").setDepth(1).setShallowSize(2).setRetainedSize(4)
+      new FakeInstanceObject.Builder(captureObject, 1, CLASS_NAME_1).setName("instanceBar0").setDepth(1).setShallowSize(2)
+        .setRetainedSize(4)
         .build();
     InstanceObject instanceBaz0 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBaz0").setDepth(1).setShallowSize(2).setRetainedSize(5)
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz0").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5)
         .build();
     InstanceObject instanceBaz1 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBaz1").setDepth(1).setShallowSize(2).setRetainedSize(5)
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz1").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5)
         .build();
     InstanceObject instanceBaz2 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBaz2").setDepth(1).setShallowSize(2).setRetainedSize(5)
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz2").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5)
         .build();
     InstanceObject instanceBaz3 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBaz3").setDepth(1).setShallowSize(2).setRetainedSize(5)
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBaz3").setDepth(1).setShallowSize(2)
+        .setRetainedSize(5)
         .build();
     Set<InstanceObject> instanceObjects = new HashSet<>(
       Arrays.asList(instanceFoo0, instanceFoo1, instanceFoo2, instanceBar0, instanceBaz0, instanceBaz1, instanceBaz2, instanceBaz3));
@@ -277,9 +288,9 @@ public class MemoryClassifierViewTest {
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
                              null);
 
-    assertThat(captureObject.containsClass(CaptureObject.DEFAULT_CLASSLOADER_ID, CLASS_NAME_0)).isTrue();
-    assertThat(captureObject.containsClass(CaptureObject.DEFAULT_CLASSLOADER_ID, CLASS_NAME_1)).isTrue();
-    assertThat(captureObject.containsClass(CaptureObject.DEFAULT_CLASSLOADER_ID, CLASS_NAME_2)).isTrue();
+    assertThat(captureObject.containsClass(0)).isTrue();
+    assertThat(captureObject.containsClass(1)).isTrue();
+    assertThat(captureObject.containsClass(2)).isTrue();
 
     HeapSet heapSet = captureObject.getHeapSet(instanceFoo0.getHeapId());
     assertThat(heapSet).isNotNull();
@@ -393,29 +404,29 @@ public class MemoryClassifierViewTest {
 
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
     InstanceObject instance1 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo1").setAllocationStack(callstack1).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo1").setAllocationStack(callstack1)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance2 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo2").setAllocationStack(callstack1).setDepth(2)
-        .setShallowSize(2).setRetainedSize(24).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo2").setAllocationStack(callstack1)
+        .setDepth(2).setShallowSize(2).setRetainedSize(24).build();
     InstanceObject instance3 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo3").setAllocationStack(callstack1).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo3").setAllocationStack(callstack1)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance4 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo4").setAllocationStack(callstack2).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo4").setAllocationStack(callstack2)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance5 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo5").setAllocationStack(callstack2).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo5").setAllocationStack(callstack2)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance6 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo6").setAllocationStack(callstack3).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo6").setAllocationStack(callstack3)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance7 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_1).setName("instanceBar7").setAllocationStack(callstack3).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 1, CLASS_NAME_1).setName("instanceBar7").setAllocationStack(callstack3)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance8 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBar8").setDepth(0).setShallowSize(2).setRetainedSize(8)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBar8").setDepth(0).setShallowSize(2)
+        .setRetainedSize(8).build();
     Set<InstanceObject> instanceObjects =
       new HashSet<>(Arrays.asList(instance1, instance2, instance3, instance4, instance5, instance6, instance7, instance8));
     captureObject.addInstanceObjects(instanceObjects);
@@ -533,32 +544,32 @@ public class MemoryClassifierViewTest {
 
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
     InstanceObject instance1 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo1").setAllocationStack(callstack1).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo1").setAllocationStack(callstack1)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance2 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo2").setAllocationStack(callstack1).setDepth(2)
-        .setShallowSize(2).setRetainedSize(24).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo2").setAllocationStack(callstack1)
+        .setDepth(2).setShallowSize(2).setRetainedSize(24).build();
     InstanceObject instance3 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo3").setAllocationStack(callstack1).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo3").setAllocationStack(callstack1)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance4 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo4").setAllocationStack(callstack2).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo4").setAllocationStack(callstack2)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance5 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo5").setAllocationStack(callstack2).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo5").setAllocationStack(callstack2)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance6 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("instanceFoo6").setAllocationStack(callstack3).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 0, CLASS_NAME_0).setName("instanceFoo6").setAllocationStack(callstack3)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance7 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_1).setName("instanceBar7").setAllocationStack(callstack3).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 1, CLASS_NAME_1).setName("instanceBar7").setAllocationStack(callstack3)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     InstanceObject instance8 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("instanceBar8").setDepth(0).setShallowSize(2).setRetainedSize(8)
-        .build();
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_2).setName("instanceBar8").setDepth(0).setShallowSize(2)
+        .setRetainedSize(8).build();
     InstanceObject instance9 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_1).setName("instanceBar9").setAllocationStack(callstack4).setDepth(2)
-        .setShallowSize(2).setRetainedSize(16).build();
+      new FakeInstanceObject.Builder(captureObject, 1, CLASS_NAME_1).setName("instanceBar9").setAllocationStack(callstack4)
+        .setDepth(2).setShallowSize(2).setRetainedSize(16).build();
     Set<InstanceObject> instanceObjects =
       new HashSet<>(Arrays.asList(instance1, instance2, instance3, instance4, instance5, instance6, instance7, instance8, instance9));
     captureObject.addInstanceObjects(instanceObjects);
@@ -655,7 +666,7 @@ public class MemoryClassifierViewTest {
 
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
     InstanceObject instance1 =
-      new FakeInstanceObject.Builder(captureObject, TEST_CLASS_NAME).setName("instanceFoo1").setDepth(0)
+      new FakeInstanceObject.Builder(captureObject, 1, TEST_CLASS_NAME).setName("instanceFoo1").setDepth(0)
         .setShallowSize(0).setRetainedSize(0).build();
     Set<InstanceObject> instanceObjects = new HashSet<>(Collections.singleton(instance1));
     captureObject.addInstanceObjects(instanceObjects);
@@ -705,11 +716,14 @@ public class MemoryClassifierViewTest {
 
     FakeCaptureObject captureObject = new FakeCaptureObject.Builder().build();
     InstanceObject instance1 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_0).setName("def").setDepth(7).setShallowSize(8).setRetainedSize(9).build();
+      new FakeInstanceObject.Builder(captureObject, 1, CLASS_NAME_0).setName("def").setDepth(7).setShallowSize(8).setRetainedSize(9)
+        .build();
     InstanceObject instance2 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_1).setName("abc").setDepth(4).setShallowSize(5).setRetainedSize(7).build();
+      new FakeInstanceObject.Builder(captureObject, 2, CLASS_NAME_1).setName("abc").setDepth(4).setShallowSize(5).setRetainedSize(7)
+        .build();
     InstanceObject instance3 =
-      new FakeInstanceObject.Builder(captureObject, CLASS_NAME_2).setName("ghi").setDepth(1).setShallowSize(2).setRetainedSize(3).build();
+      new FakeInstanceObject.Builder(captureObject, 3, CLASS_NAME_2).setName("ghi").setDepth(1).setShallowSize(2).setRetainedSize(3)
+        .build();
     captureObject.addInstanceObjects(new HashSet<>(Arrays.asList(instance1, instance2, instance3)));
     myStage
       .selectCaptureDuration(new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObject)),
@@ -763,14 +777,14 @@ public class MemoryClassifierViewTest {
     // LiveAllocationCaptureObject assumes a valid, non-empty range.
     selectionRange.set(0, 0);
 
-    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(),
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
                                                                           ProfilersTestData.SESSION_DATA,
                                                                           captureStartTime,
                                                                           MoreExecutors.newDirectExecutorService(),
                                                                           myStage);
     // Bypass the stage's selection logic and manually alter the range selection ourselves.
-    // This avoids the interaction of the SelectionModel triggering the stage to select CaptureData based on AllocationInfosDataSeries
-    myStage.getSelectionModel().clearListeners();
+    // This avoids the interaction of the RangeSelectionModel triggering the stage to select CaptureData based on AllocationInfosDataSeries
+    myStage.getRangeSelectionModel().clearListeners();
     myStage.selectCaptureDuration(new CaptureDurationData<>(Long.MAX_VALUE, true, true, new CaptureEntry<>(capture, () -> capture)),
                                   MoreExecutors.directExecutor());
     myStage.selectHeapSet(capture.getHeapSet(CaptureObject.DEFAULT_HEAP_ID));
@@ -791,7 +805,7 @@ public class MemoryClassifierViewTest {
     assertThat(rootNode.getChildCount()).isEqualTo(0);
 
     // Initial selection from 0 to 4
-    selectionRange.set(captureStartTime, captureStartTime + 4);
+    selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_4 = new LinkedList<>();
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 2, 2, 2, 2));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2));
@@ -807,7 +821,7 @@ public class MemoryClassifierViewTest {
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_4, 0);
 
     // Expand right to 8
-    selectionRange.set(captureStartTime, captureStartTime + 8);
+    selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(8));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_8 = new LinkedList<>();
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 8, 6, 2, 2, 2));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 4, 3, 1, 1, 2));
@@ -823,7 +837,7 @@ public class MemoryClassifierViewTest {
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_0_to_8, 0);
 
     // Shrink left to 4
-    selectionRange.setMin(captureStartTime + 4);
+    selectionRange.setMin(captureStartTime + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_4_to_8 = new LinkedList<>();
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 4, 2, 2, 2));
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 2, 1, 1, 2));
@@ -839,7 +853,7 @@ public class MemoryClassifierViewTest {
     verifyLiveAllocRenderResult(treeInfo, rootNode, expected_4_to_8, 0);
 
     // Shrink right to 4
-    selectionRange.setMax(captureStartTime + 4);
+    selectionRange.setMax(captureStartTime + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_4_to_4 = new LinkedList<>();
     expected_4_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 0, 0, 2, 2, 2));
     expected_4_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 0, 0, 1, 1, 1));
@@ -858,14 +872,14 @@ public class MemoryClassifierViewTest {
     // LiveAllocationCaptureObject assumes a valid, non-empty range.
     selectionRange.set(0, 0);
 
-    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(),
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
                                                                           ProfilersTestData.SESSION_DATA,
                                                                           captureStartTime,
                                                                           MoreExecutors.newDirectExecutorService(),
                                                                           myStage);
     // Bypass the stage's selection logic and manually alter the range selection ourselves.
-    // This avoids the interaction of the SelectionModel triggering the stage to select CaptureData based on AllocationInfosDataSeries
-    myStage.getSelectionModel().clearListeners();
+    // This avoids the interaction of the RangeSelectionModel triggering the stage to select CaptureData based on AllocationInfosDataSeries
+    myStage.getRangeSelectionModel().clearListeners();
     myStage.selectCaptureDuration(new CaptureDurationData<>(Long.MAX_VALUE, true, true, new CaptureEntry<>(capture, () -> capture)),
                                   MoreExecutors.directExecutor());
     myStage.selectHeapSet(capture.getHeapSet(CaptureObject.DEFAULT_HEAP_ID));
@@ -886,7 +900,7 @@ public class MemoryClassifierViewTest {
     assertThat(rootNode.getChildCount()).isEqualTo(0);
 
     // Initial selection from 0 to 4
-    selectionRange.set(captureStartTime, captureStartTime + 4);
+    selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_4 = new LinkedList<>();
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 2, 2, 2, 2));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2));
@@ -918,7 +932,7 @@ public class MemoryClassifierViewTest {
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
 
     // Expand right to 8
-    selectionRange.setMax(captureStartTime + 8);
+    selectionRange.setMax(captureStartTime + TimeUnit.SECONDS.toMicros(8));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_8 = new LinkedList<>();
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 3, 1, 1, 1));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 4, 3, 1, 1, 2));
@@ -931,7 +945,7 @@ public class MemoryClassifierViewTest {
     assertThat(myClassifierView.getClassifierPanel().getComponent(0)).isNotInstanceOf(InstructionsPanel.class);
 
     // Shrink left to 4
-    selectionRange.setMin(captureStartTime + 4);
+    selectionRange.setMin(captureStartTime + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_4_to_8 = new LinkedList<>();
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 2, 2, 1, 1, 1));
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 2, 1, 1, 2));
@@ -985,14 +999,14 @@ public class MemoryClassifierViewTest {
     // LiveAllocationCaptureObject assumes a valid, non-empty range.
     selectionRange.set(0, 0);
 
-    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()).getMemoryClient(),
+    LiveAllocationCaptureObject capture = new LiveAllocationCaptureObject(new ProfilerClient(myGrpcChannel.getName()),
                                                                           ProfilersTestData.SESSION_DATA,
                                                                           captureStartTime,
                                                                           MoreExecutors.newDirectExecutorService(),
                                                                           myStage);
     // Bypass the stage's selection logic and manually alter the range selection ourselves.
-    // This avoids the interaction of the SelectionModel triggering the stage to select CaptureData based on AllocationInfosDataSeries
-    myStage.getSelectionModel().clearListeners();
+    // This avoids the interaction of the RangeSelectionModel triggering the stage to select CaptureData based on AllocationInfosDataSeries
+    myStage.getRangeSelectionModel().clearListeners();
     myStage.selectCaptureDuration(new CaptureDurationData<>(Long.MAX_VALUE, true, true, new CaptureEntry<>(capture, () -> capture)),
                                   MoreExecutors.directExecutor());
     myStage.selectHeapSet(capture.getHeapSet(CaptureObject.DEFAULT_HEAP_ID));
@@ -1013,7 +1027,7 @@ public class MemoryClassifierViewTest {
     assertThat(rootNode.getChildCount()).isEqualTo(0);
 
     // Initial selection from 0 to 4
-    selectionRange.set(captureStartTime, captureStartTime + 4);
+    selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_4 = new LinkedList<>();
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 2, 2, 2, 2));
     expected_0_to_4.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 1, 1, 1, 2));
@@ -1044,7 +1058,7 @@ public class MemoryClassifierViewTest {
     assertThat(selectedNode).isEqualTo(childThatIsBar);
 
     // Expand right to 8
-    selectionRange.set(captureStartTime, captureStartTime + 8);
+    selectionRange.set(captureStartTime, captureStartTime + TimeUnit.SECONDS.toMicros(8));
     Queue<MemoryObjectTreeNodeTestData> expected_0_to_8 = new LinkedList<>();
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 8, 6, 2, 2, 2));
     expected_0_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 4, 3, 1, 1, 2));
@@ -1067,7 +1081,7 @@ public class MemoryClassifierViewTest {
     assertThat(myStage.getSelectedInstanceObject()).isEqualTo(selectedInstance);
 
     // Shrink left to 4
-    selectionRange.setMin(captureStartTime + 4);
+    selectionRange.setMin(captureStartTime + TimeUnit.SECONDS.toMicros(4));
     Queue<MemoryObjectTreeNodeTestData> expected_4_to_8 = new LinkedList<>();
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(0, "default heap", 4, 4, 2, 2, 2));
     expected_4_to_8.add(new MemoryObjectTreeNodeTestData(1, "This", 2, 2, 1, 1, 2));

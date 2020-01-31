@@ -15,24 +15,42 @@
  */
 package com.android.tools.idea.tests.gui.debugger;
 
-import com.android.tools.idea.tests.gui.emulator.EmulatorTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
+import com.android.tools.idea.tests.gui.framework.emulator.AvdSpec;
+import com.android.tools.idea.tests.gui.framework.emulator.AvdTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.DebugToolWindowFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class WatchpointTest extends DebuggerTestBase {
+  private final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
+  private final AvdTestRule avdRule = AvdTestRule.Companion.buildAvdTestRule(() ->
+    new AvdSpec.Builder()
+  );
+  @Rule public final RuleChain emulatorRules = RuleChain
+    .outerRule(avdRule)
+    .around(guiTest);
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES).settingNdkPath();
-  @Rule public final EmulatorTestRule emulator = new EmulatorTestRule();
+  @Before
+  public void setupSpecialSdk() {
+    DebuggerTestUtil.setupSpecialSdk(avdRule);
+  }
+
+  @Before
+  public void symlinkLldb() throws IOException {
+    DebuggerTestUtil.symlinkLldb();
+  }
 
   /**
    * Verifies that debugger stops an app once watched variable is read and/or written.
@@ -53,15 +71,13 @@ public class WatchpointTest extends DebuggerTestBase {
    *   </pre>
    */
   @Test
-  @RunIn(TestGroup.QA_UNRELIABLE) // b/114304149, fast
+  @RunIn(TestGroup.FAST_BAZEL)
   public void testWatchpoint() throws Exception {
     guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/WatchpointTestAppForUI");
 
     final IdeFrameFixture ideFrame = guiTest.ideFrame();
 
     DebuggerTestUtil.setDebuggerType(ideFrame, DebuggerTestUtil.NATIVE);
-
-    emulator.createDefaultAVD(ideFrame.invokeAvdManager());
 
     // Setup breakpoints
     openAndToggleBreakPoints(ideFrame, "app/src/main/jni/native-lib.c", "int dummy = 1;");
@@ -70,7 +86,7 @@ public class WatchpointTest extends DebuggerTestBase {
     String[] expectedPattern = {variableToSearchPattern("write", "int", "5")};
 
     DebugToolWindowFixture debugToolWindowFixture =
-      DebuggerTestUtil.debugAppAndWaitForSessionToStart(ideFrame, guiTest, DEBUG_CONFIG_NAME, emulator.getDefaultAvdName());
+      DebuggerTestUtil.debugAppAndWaitForSessionToStart(ideFrame, guiTest, DEBUG_CONFIG_NAME, avdRule.getMyAvd().getName());
     checkAppIsPaused(ideFrame, expectedPattern);
 
     DebugToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(DEBUG_CONFIG_NAME);

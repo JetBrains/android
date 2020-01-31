@@ -16,12 +16,20 @@
 package com.android.tools.idea.uibuilder.handlers.constraint
 
 import com.android.SdkConstants
+import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.model.NlAttributesHolder
 import com.android.tools.idea.common.scene.Placeholder
 import com.android.tools.idea.common.scene.SceneComponent
+import com.android.tools.idea.common.scene.SnappingInfo
+import com.android.tools.idea.common.scene.TemporarySceneComponent
 import com.android.tools.idea.uibuilder.handlers.common.ViewGroupPlaceholder
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintDragTarget
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.GuidelineTarget
+import com.android.tools.idea.uibuilder.model.x
+import com.android.tools.idea.uibuilder.model.y
+import com.android.tools.idea.uibuilder.scout.Scout
+import com.android.tools.idea.uibuilder.scout.ScoutArrange
+import com.android.tools.idea.uibuilder.scout.ScoutWidget
 import java.awt.Point
 
 class ConstraintPlaceholder(host: SceneComponent) : Placeholder(host) {
@@ -34,7 +42,7 @@ class ConstraintPlaceholder(host: SceneComponent) : Placeholder(host) {
 
   override val region = delegator.region
 
-  override fun snap(left: Int, top: Int, right: Int, bottom: Int, retPoint: Point) = delegator.snap(left, top, right, bottom, retPoint)
+  override fun snap(info: SnappingInfo, retPoint: Point) = delegator.snap(info, retPoint)
 
   override fun updateAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder) =
     updateLiveAttribute(sceneComponent, attributes, sceneComponent.drawX, sceneComponent.drawY)
@@ -43,12 +51,38 @@ class ConstraintPlaceholder(host: SceneComponent) : Placeholder(host) {
    * Position of [SceneComponent] is not set yet when live rendering is enabled, the [x] and [y] argument should be passed in.
    */
   override fun updateLiveAttribute(sceneComponent: SceneComponent, attributes: NlAttributesHolder, x: Int, y: Int) {
-    if (SdkConstants.CONSTRAINT_LAYOUT_GUIDELINE.isEquals(sceneComponent.authoritativeNlComponent.tagName)) {
+    if (ConstraintComponentUtilities.isGuideLine(sceneComponent.authoritativeNlComponent)) {
       val horizontal = attributes.getAndroidAttribute(SdkConstants.ATTR_ORIENTATION) != SdkConstants.VALUE_VERTICAL
       GuidelineTarget.GuidelineDropHandler(sceneComponent, horizontal).updateAttributes(attributes, x, y)
     }
-    else {
+    else if (sceneComponent !is TemporarySceneComponent) {
       ConstraintDragTarget.ConstraintDropHandler(sceneComponent).updateAttributes(attributes, host, x, y)
+    }
+    else {
+      val nlComponent = sceneComponent.authoritativeNlComponent
+      var horizontalMatchParent = false
+      var verticalMatchParent = false
+      if (SdkConstants.VALUE_MATCH_PARENT == attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_WIDTH)) {
+        horizontalMatchParent = true
+      }
+      if (SdkConstants.VALUE_MATCH_PARENT == attributes.getAttribute(SdkConstants.ANDROID_URI, SdkConstants.ATTR_LAYOUT_HEIGHT)) {
+        verticalMatchParent = true
+      }
+      if (horizontalMatchParent || verticalMatchParent) {
+        val transaction = nlComponent.startAttributeTransaction()
+        nlComponent.x = Coordinates.dpToPx(host.scene.designSurface, x.toFloat())
+        nlComponent.y = Coordinates.dpToPx(host.scene.designSurface, y.toFloat())
+        val parentScoutWidget = ScoutWidget(host.nlComponent, null)
+        val scoutWidgets = ScoutWidget.create(listOf(nlComponent), parentScoutWidget)
+        val margin = Scout.getMargin()
+        if (horizontalMatchParent) {
+          ScoutArrange.expandHorizontally(scoutWidgets, parentScoutWidget, margin, false)
+        }
+        if (verticalMatchParent) {
+          ScoutArrange.expandVertically(scoutWidgets, parentScoutWidget, margin, false)
+        }
+        transaction.apply()
+      }
     }
   }
 }

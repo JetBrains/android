@@ -15,30 +15,36 @@
  */
 package org.jetbrains.android.exportSignedPackage
 
+import com.android.tools.idea.testing.IdeComponents
 import com.intellij.credentialStore.CredentialAttributes
 import com.intellij.credentialStore.PasswordSafeSettings
 import com.intellij.credentialStore.ProviderType
 import com.intellij.ide.passwordSafe.PasswordSafe
 import com.intellij.ide.passwordSafe.impl.BasePasswordSafe
 import com.intellij.ide.wizard.CommitStepException
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.PlatformTestCase
 import com.intellij.util.ThrowableRunnable
 import org.jetbrains.android.AndroidTestCase
 import org.jetbrains.android.exportSignedPackage.KeystoreStep.KEY_PASSWORD_KEY
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidFacetConfiguration
 import org.jetbrains.android.util.AndroidBundle
 import org.junit.Assert.assertArrayEquals
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.io.File
 
-class KeystoreStepTest : AndroidTestCase() {
+class KeystoreStepTest : PlatformTestCase() {
+  private lateinit var ideComponents: IdeComponents
   private lateinit var facets: MutableList<AndroidFacet>
-
+  private lateinit var myAndroidFacet1: AndroidFacet
+  private lateinit var myAndroidFacet2: AndroidFacet
   override fun setUp() {
     super.setUp()
+    ideComponents = IdeComponents(myProject, testRootDisposable)
     facets = ArrayList()
+    myAndroidFacet1 = AndroidFacet(myModule, AndroidFacet.NAME, AndroidFacetConfiguration())
+    myAndroidFacet2 = AndroidFacet(myModule, AndroidFacet.NAME, AndroidFacetConfiguration())
   }
 
   fun testEnableEncryptedKeyExportFlagFalse() {
@@ -69,7 +75,7 @@ class KeystoreStepTest : AndroidTestCase() {
 
     val settings = GenerateSignedApkSettings.getInstance(wizard.project)
     settings.EXPORT_PRIVATE_KEY = false
-    project.replaceService(GenerateSignedApkSettings::class.java, settings, testRootDisposable)
+    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
@@ -91,7 +97,7 @@ class KeystoreStepTest : AndroidTestCase() {
     settings.KEY_ALIAS = testKeyAlias
     settings.REMEMBER_PASSWORDS = false
     settings.EXPORT_PRIVATE_KEY = false
-    project.replaceService(GenerateSignedApkSettings::class.java, settings, testRootDisposable)
+    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep.keyStorePasswordField.text = testKeyStorePassword
@@ -113,7 +119,7 @@ class KeystoreStepTest : AndroidTestCase() {
     settings.KEY_ALIAS = testKeyAlias
     settings.REMEMBER_PASSWORDS = false
     settings.EXPORT_PRIVATE_KEY = true
-    project.replaceService(GenerateSignedApkSettings::class.java, settings, testRootDisposable)
+    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep.keyStorePasswordField.text = testKeyStorePassword
@@ -140,7 +146,7 @@ class KeystoreStepTest : AndroidTestCase() {
     settings.KEY_ALIAS = testKeyAlias
     settings.REMEMBER_PASSWORDS = false
     settings.EXPORT_PRIVATE_KEY = true
-    project.replaceService(GenerateSignedApkSettings::class.java, settings, testRootDisposable)
+    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
 
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep.keyStorePasswordField.text = testKeyStorePassword
@@ -156,10 +162,10 @@ class KeystoreStepTest : AndroidTestCase() {
     assertEquals(true, keystoreStep.myModuleCombo.isEnabled)
   }
 
-  fun testMooduleDropDownDisabledWhenOnlyOneFacet() {
+  fun testModuleDropDownDisabledWhenOnlyOneFacet() {
     val wizard = setupWizardHelper()
     `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
-    facets.add(mock(AndroidFacet::class.java))
+    facets.add(myAndroidFacet1)
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
     assertEquals(false, keystoreStep.myModuleCombo.isEnabled)
@@ -169,23 +175,20 @@ class KeystoreStepTest : AndroidTestCase() {
     // if the current selected facet is no longer in the list of facets, then it should be updated to the first one in the list
     val wizard = setupWizardHelper()
     `when`(wizard.targetType).thenReturn(ExportSignedPackageWizard.APK)
-    val mockFacet = mock(AndroidFacet::class.java)
-    val mockFacet2 = mock(AndroidFacet::class.java)
-    facets.add(mockFacet)
-    facets.add(mockFacet2)
+    facets.add(myAndroidFacet1)
+    facets.add(myAndroidFacet2)
     val keystoreStep = KeystoreStep(wizard, true, facets)
     keystoreStep._init()
-    assertEquals(mockFacet, keystoreStep.myModuleCombo.selectedItem)
+    assertEquals(myAndroidFacet1, keystoreStep.myModuleCombo.selectedItem)
 
     // remove the selected facet
     keystoreStep.myFacets.removeAt(0)
 
     keystoreStep._init()
-    assertEquals(mockFacet2, keystoreStep.myModuleCombo.selectedItem)
+    assertEquals(myAndroidFacet2, keystoreStep.myModuleCombo.selectedItem)
   }
 
-  fun setupWizardHelper(): ExportSignedPackageWizard
-  {
+  fun setupWizardHelper(): ExportSignedPackageWizard {
     val testKeyStorePath = "/test/path/to/keystore"
     val testKeyAlias = "testkey"
 
@@ -194,15 +197,15 @@ class KeystoreStepTest : AndroidTestCase() {
     settings.KEY_ALIAS = testKeyAlias
     settings.REMEMBER_PASSWORDS = true
 
-    project.replaceService(GenerateSignedApkSettings::class.java, settings, testRootDisposable)
+    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
 
     val passwordSafeSettings = PasswordSafeSettings()
     passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
     val passwordSafe = BasePasswordSafe(passwordSafeSettings)
-    ApplicationManager.getApplication().replaceService(PasswordSafe::class.java, passwordSafe, testRootDisposable)
+    ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
-    `when`(wizard.project).thenReturn(getProject())
+    `when`(wizard.project).thenReturn(myProject)
     return wizard
   }
 
@@ -219,12 +222,12 @@ class KeystoreStepTest : AndroidTestCase() {
     settings.KEY_ALIAS = testKeyAlias
     settings.REMEMBER_PASSWORDS = true
 
-    project.replaceService(GenerateSignedApkSettings::class.java, settings, testRootDisposable)
+    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
 
     val passwordSafeSettings = PasswordSafeSettings()
     passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
     val passwordSafe = BasePasswordSafe(passwordSafeSettings)
-    ApplicationManager.getApplication().replaceService(PasswordSafe::class.java, passwordSafe, testRootDisposable)
+    ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
     `when`(wizard.project).thenReturn(project)
@@ -266,14 +269,14 @@ class KeystoreStepTest : AndroidTestCase() {
     settings.KEY_ALIAS = testKeyAlias
     settings.REMEMBER_PASSWORDS = true
 
-    project.replaceService(GenerateSignedApkSettings::class.java, settings, testRootDisposable)
+    ideComponents.replaceProjectService(GenerateSignedApkSettings::class.java, settings)
 
     val passwordSafeSettings = PasswordSafeSettings()
     passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
     val passwordSafe = BasePasswordSafe(passwordSafeSettings)
     val keyPasswordKey = KeystoreStep.makePasswordKey(KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS)
     passwordSafe.setPassword(CredentialAttributes(legacyRequestor, keyPasswordKey), testLegacyKeyPassword)
-    ApplicationManager.getApplication().replaceService(PasswordSafe::class.java, passwordSafe, testRootDisposable)
+    ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
     `when`(wizard.project).thenReturn(project)
@@ -294,6 +297,6 @@ class KeystoreStepTest : AndroidTestCase() {
     keystoreStep.commitForNext()
 
     // Now check that the old-style password is erased
-    assertEquals(null, passwordSafe.getPassword(getProject(), legacyRequestor, keyPasswordKey))
+    assertEquals(null, passwordSafe.getPassword(CredentialAttributes(legacyRequestor, keyPasswordKey)))
   }
 }

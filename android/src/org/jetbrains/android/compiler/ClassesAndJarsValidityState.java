@@ -39,7 +39,7 @@ class ClassesAndJarsValidityState implements ValidityState {
 
   public ClassesAndJarsValidityState(@NotNull Collection<VirtualFile> files) {
     myFiles = new HashMap<>();
-    Set<VirtualFile> visited = new HashSet<>();
+    Set<VirtualFile> visited = new HashSet<VirtualFile>();
     for (VirtualFile file : files) {
       fillMap(file, visited);
     }

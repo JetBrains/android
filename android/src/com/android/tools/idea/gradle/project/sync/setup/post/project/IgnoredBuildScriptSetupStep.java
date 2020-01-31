@@ -21,7 +21,6 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFilePa
 import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
 
-import com.android.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenFileHyperlink;
@@ -30,6 +29,7 @@ import com.android.tools.idea.gradle.project.sync.setup.post.ProjectSetupStep;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
 import com.android.tools.idea.project.messages.SyncMessage;
 import com.android.utils.FileUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -45,7 +45,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class IgnoredBuildScriptSetupStep extends ProjectSetupStep {
   @Override
-  public void setUpProject(@NotNull Project project, @Nullable ProgressIndicator indicator) {
+  public void setUpProject(@NotNull Project project) {
     // Check build script
     File projectPath = getBaseDirPath(project);
     File projectBuildPath = getGradleBuildFilePath(projectPath);

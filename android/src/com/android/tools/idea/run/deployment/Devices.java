@@ -17,18 +17,25 @@ package com.android.tools.idea.run.deployment;
 
 import java.util.Collection;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 final class Devices {
   private Devices() {
   }
 
   @NotNull
-  static String getName(@NotNull Device device, @NotNull Collection<Device> devices) {
-    String key = device.getKey();
+  static String getText(@NotNull Device device, @NotNull Collection<Device> devices) {
+    return getText(device, devices, null);
+  }
+
+  // TODO Delete this overload and use the snapshot in the device. Do not display it if it's null or the default.
+  @NotNull
+  static String getText(@NotNull Device device, @NotNull Collection<Device> devices, @Nullable Snapshot snapshot) {
+    String key = device.getKey().getDeviceKey();
     String name = device.getName();
 
     boolean match = devices.stream()
-      .filter(d -> !d.getKey().equals(key))
+      .filter(d -> !d.getKey().getDeviceKey().equals(key))
       .map(Device::getName)
       .anyMatch(name::equals);
 
@@ -39,6 +46,12 @@ final class Devices {
         .append(" [")
         .append(key)
         .append(']');
+    }
+
+    if (snapshot != null) {
+      builder
+        .append(" - ")
+        .append(snapshot);
     }
 
     String reason = device.getValidityReason();

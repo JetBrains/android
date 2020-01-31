@@ -15,14 +15,16 @@
  */
 package com.android.tools.idea.lang.databinding.model
 
+import android.databinding.tool.util.StringUtils
 import com.android.tools.idea.databinding.DataBindingMode
-import com.android.tools.idea.databinding.DataBindingUtil
-import com.intellij.openapi.util.text.StringUtil
+import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
 import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassType
+import com.intellij.psi.PsiSubstitutor
 import com.intellij.psi.PsiType
 import com.intellij.psi.util.MethodSignatureUtil
+import com.intellij.psi.util.TypeConversionUtil
 import java.util.ArrayList
 
 /**
@@ -87,7 +89,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    * Returns the list of fields in the class and all its superclasses.
    */
   val allFields: List<PsiModelField>
-    get() = (type as? PsiClassType)?.resolve()?.allFields?.map { PsiModelField(it) } ?: listOf()
+    get() = (type as? PsiClassType)?.resolve()?.allFields?.map { PsiModelField(this, it) } ?: listOf()
 
   /**
    * Returns the list of methods in the class and all its superclasses.
@@ -99,16 +101,46 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
   val allMethods: List<PsiModelMethod>
     get() {
       var psiClass = (type as? PsiClassType)?.resolve()
+
+      // Usually, we do not need to take care of methods declared in interfaces because we only return their implementations.
+      // However, when [psiClass] itself is an interface, we need to include all of them.
+      // Example:
+      // Interface A has method a().
+      // Interface B has method b() and extends Interface A.
+      // Abstract Class C implements interface B with method a(), b() and abstract method c().
+      // Class D extends class C and overrides method c().
+      // To get all methods from Class D, we need to go up to its super class and remove duplication (method c() from Class C).
+      // Fortunately, there is no need to consider methods from Interface A and B because they are already implemented in Class C and D.
+      // On the other hand, to get all methods from Interface B, we need to add methods from Interface A while removing duplication
+      // is not needed.
+      if (psiClass?.isInterface == true) {
+        return psiClass.allMethods.map { PsiModelMethod(this, it) }
+      }
       val methods = ArrayList<PsiModelMethod>()
       while (psiClass != null) {
         val newMethods = psiClass.methods.filter {
           // Only keep the methods that do not have equivalents in the result set with same name and signatures.
-          newMethod -> methods.none { it.name == newMethod.name && MethodSignatureUtil.areOverrideEquivalent(it.psiMethod, newMethod) }
+          newMethod ->
+          methods.none { it.name == newMethod.name && MethodSignatureUtil.areOverrideEquivalent(it.psiMethod, newMethod) }
         }
-        methods.addAll(newMethods.map { PsiModelMethod(it, mode) })
+        methods.addAll(newMethods.map { PsiModelMethod(this, it) })
         psiClass = psiClass.superClass
       }
       return methods
+    }
+
+  /**
+   * Returns the [PsiSubstitutor] which can be used to resolve generic types for fields and methods.
+   */
+  val substitutor: PsiSubstitutor
+    get() {
+      // Create the substitutor for this class
+      var substitutor = (type as? PsiClassType)?.resolveGenerics()?.substitutor ?: PsiSubstitutor.EMPTY
+      // Add substitutors from its super types
+      type.superTypes.forEach { superType ->
+        substitutor = substitutor.putAll(PsiModelClass(superType, mode).substitutor)
+      }
+      return substitutor
     }
 
   /**
@@ -117,9 +149,9 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    */
   private val isObservableField
     get() =
-      psiClass?.project?.let { project ->
+      psiClass?.let { resolvedClass ->
         mode.observableFields.any { className ->
-          val observableFieldClass = PsiModelClass(DataBindingUtil.parsePsiType(className, project, null)!!, mode)
+          val observableFieldClass = PsiModelClass(LayoutBindingTypeUtil.parsePsiType(className, resolvedClass)!!, mode)
           observableFieldClass.isAssignableFrom(erasure())
         }
       } ?: false
@@ -128,8 +160,8 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    * Returns true if this is a LiveData
    */
   private val isLiveData
-    get() = psiClass?.project?.let { project ->
-      val liveDataClass = PsiModelClass(DataBindingUtil.parsePsiType(mode.liveData, project, null)!!, mode)
+    get() = psiClass?.let { resolvedClass ->
+      val liveDataClass = PsiModelClass(LayoutBindingTypeUtil.parsePsiType(mode.liveData, resolvedClass)!!, mode)
       liveDataClass.isAssignableFrom(erasure())
     } ?: false
 
@@ -155,13 +187,11 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
    * see [isLiveData], [isObservableField]
    */
   val unwrapped: PsiModelClass
-    get() = observableGetterName?.let {
-      if (isGeneric)
-      // For Generics (LiveData<T>, ObservableField<T>, ObservableParcelable<T>), return its type parameter
-        typeArguments[0].unwrapped
-      else
-      // For Non-Generics (ObservableInt, ObservableChar etc.) return the returnType of its getter method
-        getMethod("get", listOf(), staticOnly = false, allowProtected = false)?.returnType?.unwrapped
+    get() = observableGetterName?.let { name ->
+      // Find the return type of getter function from LiveData/ObservableField
+      val getterTypeModelClass = getMethod(name, listOf(), staticOnly = false, allowProtected = false)?.returnType ?: return this
+      // Recursively unwrap the getter type
+      PsiModelClass(getterTypeModelClass.type, mode).unwrapped
     } ?: this
 
   /**
@@ -178,7 +208,7 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
   /**
    * Returns this class type without any generic type arguments.
    */
-  fun erasure() = this
+  fun erasure() = PsiModelClass(TypeConversionUtil.erasure(type), mode)
 
   /**
    * Finds public methods that matches the given name exactly. These may be resolved into
@@ -243,8 +273,14 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
                              staticOnly = staticOnly,
                              allowProtected = allowProtected,
                              unwrapObservableFields = unwrapObservableFields)
-    // TODO: b/130429958 Choose method based on args matching
-    return if (methods.isEmpty()) null else methods[0]
+    if (methods.isEmpty()) {
+      return null
+    }
+    var bestMethod = methods[0]
+    for (i in 1 until methods.size) {
+      bestMethod = PsiModelMethod.betterMatchWithArguments(args, bestMethod, methods[i])
+    }
+    return bestMethod
   }
 
   private fun getField(name: String, allowPrivate: Boolean, isStatic: Boolean): PsiModelField? {
@@ -268,8 +304,8 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
       // TODO b/129771951 implement length with Observable
       return null
     }
-    val capitalized = StringUtil.capitalize(name)
-    val methodNames = arrayOf("get" + capitalized, "is$capitalized", name)
+    val capitalized = StringUtils.capitalize(name)!!
+    val methodNames = arrayOf("get$capitalized", "is$capitalized")
     for (methodName in methodNames) {
       val methods = getMethods(methodName, ArrayList(), staticOnly, allowProtected = false, unwrapObservableFields = false)
       for (method in methods) {
@@ -288,6 +324,12 @@ class PsiModelClass(val type: PsiType, val mode: DataBindingMode) {
     else null
   }
 
+  override fun equals(other: Any?): Boolean {
+    val otherClass = other as? PsiModelClass ?: return false
+    return type == otherClass.type && mode == otherClass.mode
+  }
+
+  override fun hashCode() = type.hashCode().xor(mode.hashCode())
 
   companion object {
 

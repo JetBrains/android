@@ -23,7 +23,7 @@ import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.install.ComponentTreeNode;
 import com.android.tools.idea.welcome.install.InstallableComponent;
-import com.android.tools.idea.welcome.wizard.WelcomeUIUtils;
+import com.android.tools.idea.welcome.wizard.WelcomeUiUtils;
 import com.android.tools.idea.wizard.WizardConstants;
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore;
 import com.google.common.collect.ImmutableList;
@@ -42,7 +42,6 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
-import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.accessibility.AccessibleContextDelegate;
 import org.jetbrains.android.sdk.AndroidSdkData;
@@ -169,7 +168,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
     if (file == null) {
       return "";
     }
-    String available = WelcomeUIUtils.getSizeLabel(file.getFreeSpace());
+    String available = WelcomeUiUtils.getSizeLabel(file.getFreeSpace());
     if (SystemInfo.isWindows) {
       while (file.getParentFile() != null) {
         file = file.getParentFile();
@@ -273,7 +272,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
       String path = myState.get(mySdkDownloadPathKey);
       myAvailableSpace.setText(getDiskSpace(path));
       long selected = getComponentsSize();
-      myNeededSpace.setText(String.format("Total download size: %s", WelcomeUIUtils.getSizeLabel(selected)));
+      myNeededSpace.setText(String.format("Total download size: %s", WelcomeUiUtils.getSizeLabel(selected)));
     }
   }
 
@@ -339,7 +338,7 @@ public class SdkComponentsStep extends FirstRunWizardStep implements Disposable 
     splitter.setFirstComponent(ScrollPaneFactory.createScrollPane(myContentPanel, false));
     splitter.setSecondComponent(ScrollPaneFactory.createScrollPane(myComponentDescription, false));
 
-    myComponentDescription.setFont(StartupUiUtil.getLabelFont());
+    myComponentDescription.setFont(UIUtil.getLabelFont());
     myComponentDescription.setEditable(false);
     myComponentDescription.setBorder(BorderFactory.createEmptyBorder(WizardConstants.STUDIO_WIZARD_INSET_SIZE,
                                                                      WizardConstants.STUDIO_WIZARD_INSET_SIZE,

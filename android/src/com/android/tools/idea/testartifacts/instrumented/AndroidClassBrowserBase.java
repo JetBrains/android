@@ -29,10 +29,11 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.search.GlobalSearchScope;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class AndroidClassBrowserBase extends BrowseModuleValueActionListener {
+public abstract class AndroidClassBrowserBase<T extends JComponent> extends BrowseModuleValueActionListener<T> {
   protected final ConfigurationModuleSelector myModuleSelector;
   protected final String myDialogTitle;
   protected final boolean myIncludeLibraryClasses;

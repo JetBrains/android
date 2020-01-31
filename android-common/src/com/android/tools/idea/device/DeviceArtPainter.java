@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.device;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ninepatch.NinePatch;
 import com.android.resources.ScreenOrientation;
 import com.android.sdklib.devices.Device;
@@ -26,7 +26,7 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.reference.SoftReference;
 import com.intellij.ui.Gray;
 import com.intellij.util.PathUtil;
-import com.intellij.util.ui.StartupUiUtil;
+import com.intellij.util.ui.UIUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -299,7 +299,7 @@ public class DeviceArtPainter {
 
     if (withRetina) {
       //noinspection ConstantConditions
-      StartupUiUtil.drawImage(g, image, x, y, null);
+      UIUtil.drawImage(g, image, x, y, null);
     } else {
       g.drawImage(image, x, y, null);
     }
@@ -565,9 +565,9 @@ public class DeviceArtPainter {
     private final FrameData myDouble;
 
     @SuppressWarnings("ConstantConditions")
-    @NotNull private SoftReference<BufferedImage> myPlainImage = new SoftReference<>(null);
+    @NotNull private SoftReference<BufferedImage> myPlainImage = new SoftReference<BufferedImage>(null);
     @SuppressWarnings("ConstantConditions")
-    @NotNull private SoftReference<BufferedImage> myEffectsImage = new SoftReference<>(null);
+    @NotNull private SoftReference<BufferedImage> myEffectsImage = new SoftReference<BufferedImage>(null);
 
     private boolean isPortrait() {
       return myOrientation == ScreenOrientation.PORTRAIT;
@@ -805,9 +805,9 @@ public class DeviceArtPainter {
 
       if (image != null) {
         if (showEffects) {
-          myEffectsImage = new SoftReference<>(image);
+          myEffectsImage = new SoftReference<BufferedImage>(image);
         } else {
-          myPlainImage = new SoftReference<>(image);
+          myPlainImage = new SoftReference<BufferedImage>(image);
         }
       }
 

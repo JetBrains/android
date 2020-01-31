@@ -18,7 +18,7 @@ package com.android.tools.profilers.network;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.adtui.model.Range;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.network.httpdata.HttpData;
 import com.android.tools.profilers.network.httpdata.Payload;
 import com.android.tools.profilers.network.httpdata.StackTrace;

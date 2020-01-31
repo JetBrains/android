@@ -28,11 +28,11 @@ import static com.intellij.openapi.util.io.FileUtilRt.copy;
 import static com.intellij.util.io.URLUtil.FILE_PROTOCOL;
 
 import com.android.SdkConstants;
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.BuildTypeContainer;
 import com.android.builder.model.ProductFlavorContainer;
 import com.android.builder.model.SourceProvider;
 import com.android.builder.model.Variant;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
 import com.android.ide.common.rendering.api.ArrayResourceValue;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -54,7 +54,7 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
-import com.android.tools.idea.editors.theme.attributes.editors.DrawableRendererEditor;
+import com.android.tools.idea.editors.theme.ThemeEditorUtils;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.RenderTask;
@@ -70,6 +70,7 @@ import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import com.intellij.openapi.editor.colors.EditorColorsUtil;
@@ -141,7 +142,7 @@ public class AndroidJavaDocRenderer {
     }
 
     String valueDoc = renderer.render(url);
-    if (url.isTheme()) {
+    if (url.type.equals(ResourceType.ATTR)) {
       String attrDoc = renderAttributeDoc(module, configuration, (url.isFramework() ? ANDROID_NS_NAME_PREFIX : "") + url.name);
       if (valueDoc == null) {
         return attrDoc;
@@ -325,7 +326,7 @@ public class AndroidJavaDocRenderer {
           hasGradleModel = true;
           String facetModuleName = reachableFacet.getModule().getName();
           assert reachableFacet.requiresAndroidModel();
-          AndroidProject androidProject = androidModel.getAndroidProject();
+          IdeAndroidProject androidProject = androidModel.getAndroidProject();
           Variant selectedVariant = androidModel.getSelectedVariant();
           Set<SourceProvider> selectedProviders = new HashSet<>();
 
@@ -566,7 +567,7 @@ public class AndroidJavaDocRenderer {
     @Nullable
     public ResourceRepository getFrameworkResources() {
       ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myModule);
-      return repositoryManager == null ? null : repositoryManager.getFrameworkResources(false);
+      return repositoryManager == null ? null : repositoryManager.getFrameworkResources(ImmutableSet.of());
     }
 
     @Override
@@ -1107,7 +1108,7 @@ public class AndroidJavaDocRenderer {
       }
       else {
         if (myConfiguration != null) {
-          RenderTask renderTask = DrawableRendererEditor.configureRenderTask(myModule, myConfiguration);
+          RenderTask renderTask = ThemeEditorUtils.configureRenderTask(myModule, myConfiguration);
 
           // Find intrinsic size.
           int width = 100;

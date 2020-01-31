@@ -1,0 +1,5 @@
+rootProject.name='FirstApp'
+include ':app'
+include ':mysharedlibrary'
+project(':mysharedlibrary').projectDir = new File( "../shared/mysharedlibrary")
+

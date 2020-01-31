@@ -38,7 +38,6 @@ object ZoomLabelAction : AnAction(), CustomComponentAction {
   }
 
   override fun update(event: AnActionEvent) {
-    super.update(event)
     event.getData(ZOOMABLE_KEY)?.let { updatePresentation(event.presentation, it) }
   }
 

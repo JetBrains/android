@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.npw;
 import com.android.tools.idea.npw.dynamicapp.DeviceFeatureKind;
 import com.android.tools.idea.npw.dynamicapp.DownloadInstallKind;
 import com.android.tools.idea.tests.gui.framework.fixture.LinkLabelFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.theme.EditorTextFieldFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorTextFieldFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import com.intellij.ui.components.labels.LinkLabel;

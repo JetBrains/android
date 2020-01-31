@@ -15,16 +15,20 @@
  */
 package com.android.tools.idea.concurrent;
 
-import com.google.common.util.concurrent.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.google.common.util.concurrent.AsyncFunction;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An {@link Executor} implementation that registers {@link ListenableFuture} callbacks
@@ -40,6 +44,7 @@ public class FutureCallbackExecutor implements Executor {
     myExecutor = executor;
   }
 
+  @NotNull
   public static FutureCallbackExecutor wrap(@NotNull Executor executor) {
     if (executor instanceof FutureCallbackExecutor) {
       return (FutureCallbackExecutor)executor;
@@ -50,6 +55,13 @@ public class FutureCallbackExecutor implements Executor {
   @Override
   public void execute(@NotNull Runnable command) {
     myExecutor.execute(command);
+  }
+
+  /**
+   * Submits a {@link Callable} for execution and blocks the current thread waiting for result.
+   */
+  public <V> V executeAndAwait(@NotNull Callable<V> function) throws ExecutionException, InterruptedException {
+    return executeAsync(function).get();
   }
 
   /**
@@ -124,7 +136,7 @@ public class FutureCallbackExecutor implements Executor {
   }
 
   /**
-   * Similar to {@link Futures#transform(ListenableFuture, com.google.common.base.Function, Executor)},
+   * Similar to {@link Futures#transformAsync(ListenableFuture, AsyncFunction, Executor)},
    * using this instance as the executor.
    */
   @NotNull
@@ -158,6 +170,34 @@ public class FutureCallbackExecutor implements Executor {
 
   /**
    * Similar to {@link Futures#transform(ListenableFuture, com.google.common.base.Function, Executor)},
+   * using this instance as the executor, but executes the callable block in both success and error
+   * completion. If the {@code finallyBlock} itself fails, the returned future fails too.
+   */
+  @NotNull
+  public <I> ListenableFuture<I> finallySync(@NotNull ListenableFuture<I> input,
+                                             @NotNull Runnable finallyBlock) {
+    SettableFuture<I> futureResult = SettableFuture.create();
+    addConsumer(input, (i, futureThrowable) -> {
+      try {
+        finallyBlock.run();
+        futureResult.set(i);
+      }
+      catch (Throwable finallyError) {
+        // Prefer original error over error from finally block
+        if (futureThrowable != null) {
+          futureThrowable.addSuppressed(finallyError);
+          futureResult.setException(futureThrowable);
+        }
+        else {
+          futureResult.setException(finallyError);
+        }
+      }
+    });
+    return futureResult;
+  }
+
+  /**
+   * Similar to {@link Futures#transformAsync(ListenableFuture, AsyncFunction, Executor)},
    * using this instance as the executor, but executes the async function in both success and error
    * completion. If the {@code finallyBlock} itself fails, the returned future fails too.
    */
@@ -171,6 +211,9 @@ public class FutureCallbackExecutor implements Executor {
         addConsumer(futureFinallyBlock, (aVoid, finallyError) -> {
           // Prefer original error over error from finally block
           if (futureThrowable != null) {
+            if (finallyError != null) {
+              futureThrowable.addSuppressed(finallyError);
+            }
             futureResult.setException(futureThrowable);
           }
           else if (finallyError != null){
@@ -248,6 +291,7 @@ public class FutureCallbackExecutor implements Executor {
   /**
    * Similar to {@link Function} but allows the {@link #apply(Object)} method to throw checked exceptions.
    */
+  @FunctionalInterface
   public interface ThrowableFunction<T, R> {
     R apply(T t) throws Exception;
   }

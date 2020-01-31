@@ -15,6 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module.idea.java;
 
+import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
+import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.roots.DependencyScope.COMPILE;
+import static com.intellij.openapi.roots.OrderRootType.CLASSES;
+import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
+import static com.intellij.openapi.util.io.FileUtilRt.getNameWithoutExtension;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.tools.idea.gradle.project.model.JavaModuleModel;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
 import com.intellij.openapi.application.ApplicationManager;
@@ -26,31 +36,20 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.io.FileUtilRt;
-import com.intellij.testFramework.JavaProjectTestCase;
-import org.jetbrains.annotations.NotNull;
-
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
-
-import static com.android.tools.idea.gradle.project.sync.LibraryDependenciesSubject.libraryDependencies;
-import static com.android.tools.idea.io.FilePaths.pathToIdeaUrl;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.roots.DependencyScope.COMPILE;
-import static com.intellij.openapi.roots.OrderRootType.CLASSES;
-import static com.intellij.openapi.util.io.FileUtil.createIfDoesntExist;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * Tests for {@link ArtifactsByConfigurationModuleSetupStep}.
  */
-public class ArtifactsByConfigurationModuleSetupStepTest extends JavaProjectTestCase {
+public class ArtifactsByConfigurationModuleSetupStepTest extends PlatformTestCase {
   private ArtifactsByConfigurationModuleSetupStep mySetupStep;
 
   @Override
@@ -70,8 +69,9 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends JavaProjectTest
     Map<String, Set<File>> artifactsByConfiguration = new HashMap<>();
     artifactsByConfiguration.put("default", Collections.singleton(jarFilePath));
 
-    JavaModuleModel model = new JavaModuleModel(module.getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
-                                                Collections.emptyList(), artifactsByConfiguration, null, null, null, true, false);
+    JavaModuleModel model = JavaModuleModel
+      .create(module.getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), artifactsByConfiguration,
+              Collections.emptyList(), null, null, null, true, false);
     ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
     mySetupStep.doSetUpModule(context, model);
 
@@ -94,8 +94,9 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends JavaProjectTest
 
     Module module = getModule();
 
-    JavaModuleModel model = new JavaModuleModel(module.getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
-                                                Collections.emptyList(), artifactsByConfiguration, null, null, null, true, false);
+    JavaModuleModel model = JavaModuleModel
+      .create(module.getName(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), artifactsByConfiguration,
+              Collections.emptyList(), null, null, null, true, false);
     ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
     mySetupStep.doSetUpModule(context, model);
 
@@ -135,7 +136,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends JavaProjectTest
 
   @NotNull
   private String createLibraryName(@NotNull File jarFilePath) {
-    return GradleConstants.SYSTEM_ID.getReadableName() + ": " + getModule().getName() + "." + FileUtilRt.getNameWithoutExtension(jarFilePath.getName());
+    return GradleConstants.SYSTEM_ID.getReadableName() + ": " + getModule().getName() + "." + getNameWithoutExtension(jarFilePath.getName());
   }
 
   public void testDoSetUpModuleWithCompiledJar() throws IOException {
@@ -144,7 +145,7 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends JavaProjectTest
 
     File buildFolderPath = createTempDir("build");
     File jarFilePath = new File(buildFolderPath, moduleName + ".jar");
-    createIfDoesntExist(jarFilePath);
+    createIfNotExists(jarFilePath);
 
     Project project = getProject();
     IdeModifiableModelsProvider modelsProvider = new IdeModifiableModelsProviderImpl(project);
@@ -153,14 +154,15 @@ public class ArtifactsByConfigurationModuleSetupStepTest extends JavaProjectTest
     artifactsByConfiguration.put("default", Collections.singleton(jarFilePath));
 
     JavaModuleModel model =
-      new JavaModuleModel(moduleName, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
-                          artifactsByConfiguration, null, buildFolderPath, null, true, false);
+      JavaModuleModel
+        .create(moduleName, Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), artifactsByConfiguration,
+                Collections.emptyList(), null, buildFolderPath, null, true, false);
     ModuleSetupContext context = new ModuleSetupContext.Factory().create(module, modelsProvider);
     mySetupStep.doSetUpModule(context, model);
 
     ApplicationManager.getApplication().runWriteAction(modelsProvider::commit);
 
-    LibraryTable libraryTable = com.intellij.openapi.roots.libraries.LibraryTablesRegistrar.getInstance().getLibraryTable(project);
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(project);
     Library[] libraries = libraryTable.getLibraries();
     assertThat(libraries).isEmpty();
 

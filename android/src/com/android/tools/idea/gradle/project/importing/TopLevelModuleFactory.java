@@ -89,15 +89,11 @@ class TopLevelModuleFactory {
 
       ModifiableRootModel model = ModuleRootManager.getInstance(module).getModifiableModel();
       model.addContentEntry(contentRoot);
-      if (myIdeInfo.isAndroidStudio()) {
-        // If sync fails, make sure that the project has a JDK, otherwise Groovy indices won't work (a common scenario where
-        // users will update build.gradle files to fix Gradle sync.)
-        // See: https://code.google.com/p/android/issues/detail?id=194621
-        Sdk jdk = myIdeSdks.getJdk();
-        if (jdk != null) {
-          model.setSdk(jdk);
-        }
-      }
+
+      // If sync fails, make sure that the project has a JDK, otherwise Groovy indices won't work (a common scenario where
+      // users will update build.gradle files to fix Gradle sync.)
+      // See: https://code.google.com/p/android/issues/detail?id=194621
+      model.inheritSdk();
       model.commit();
 
       FacetManager facetManager = FacetManager.getInstance(module);

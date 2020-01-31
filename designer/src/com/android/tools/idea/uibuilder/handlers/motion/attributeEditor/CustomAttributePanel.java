@@ -38,7 +38,7 @@ import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
  * Used to show custom attributes
  */
 public class CustomAttributePanel extends TagPanel {
-  private final Vector<String> colNames = new Vector<>(Arrays.asList("Name", "Value"));
+  private final Vector<String> colNames = new Vector<String>(Arrays.asList("Name", "Value"));
   private final Vector<Vector<Object>> data = new Vector<>();
   private final DefaultTableModel myTableModel = new CustomAttrTableModel(data, colNames);
   private final JBPopupMenu myPopupMenu = new JBPopupMenu("Add Attribute");

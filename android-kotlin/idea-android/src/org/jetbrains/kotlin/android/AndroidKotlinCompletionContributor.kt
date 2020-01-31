@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.android
 import com.android.SdkConstants.R_CLASS
 import com.android.resources.ResourceType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.kotlin.getPreviousInQualifiedChain
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInsight.completion.CompletionContributor
@@ -29,7 +30,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.util.Consumer
 import org.jetbrains.android.augment.AndroidLightField
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils
+import org.jetbrains.android.dom.manifest.getPackageName
+import org.jetbrains.android.dom.manifest.getTestPackageName
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
@@ -99,8 +101,8 @@ class AndroidKotlinCompletionContributor : CompletionContributor() {
         val fqName = (it.containingDeclaration as? ClassDescriptor)?.importableFqName ?: return@any false
         val packageName = fqName.parent().asString()
 
-        fqName.shortName().asString() == R_CLASS && (packageName == AndroidManifestUtils.getPackageName(facet) ||
-                                                     packageName == AndroidManifestUtils.getTestPackageName(facet))
+        fqName.shortName().asString() == R_CLASS && (packageName == getPackageName(facet) ||
+                                                     packageName == getTestPackageName(facet))
       }
   }
 }

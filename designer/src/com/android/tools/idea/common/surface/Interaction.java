@@ -90,29 +90,24 @@ public class Interaction {
    * Handles initialization of this interaction. Called when the interaction is
    * starting.
    *
-   * @param x         The most recent mouse x coordinate applicable to this
-   *                  interaction
-   * @param y         The most recent mouse y coordinate applicable to this
-   *                  interaction
-   * @param startMask The initial AWT mask for the interaction, if known, or
-   *                  otherwise 0.
+   * @param x           The most recent mouse x coordinate applicable to this interaction
+   * @param y           The most recent mouse y coordinate applicable to this interaction
+   * @param modifiersEx The initial AWT mask for the interaction, if known, otherwise 0.
    */
-  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int startMask) {
+  public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
     myStartX = x;
     myStartY = y;
-    myStartMask = startMask;
+    myStartMask = modifiersEx;
   }
 
   /**
    * Handles updating of the interaction state for a new mouse position.
    *
-   * @param x         The most recent mouse x coordinate applicable to this
-   *                  interaction
-   * @param y         The most recent mouse y coordinate applicable to this
-   *                  interaction
-   * @param modifiers current modifier key mask
+   * @param x           The most recent mouse x coordinate applicable to this interaction
+   * @param y           The most recent mouse y coordinate applicable to this interaction
+   * @param modifiersEx current modifier key mask
    */
-  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers) {
+  public void update(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
   }
 
   /**
@@ -131,14 +126,12 @@ public class Interaction {
    * interaction has terminated (either through successful completion, or because
    * it was canceled).
    *
-   * @param x         The most recent mouse x coordinate applicable to this
-   *                  interaction
-   * @param y         The most recent mouse y coordinate applicable to this
-   *                  interaction
-   * @param modifiers current modifier key mask
-   * @param canceled  True if the interaction was canceled, and false otherwise.
+   * @param x           The most recent mouse x coordinate applicable to this interaction
+   * @param y           The most recent mouse y coordinate applicable to this interaction
+   * @param modifiersEx current modifier key masks
+   * @param canceled    True if the interaction was canceled, and false otherwise.
    */
-  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiers, boolean canceled) {
+  public void end(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx, boolean canceled) {
   }
 
   /**

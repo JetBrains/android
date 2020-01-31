@@ -17,14 +17,14 @@ package com.android.tools.idea.gradle.project.sync.messages;
 
 import com.android.tools.idea.project.messages.MessageType;
 import com.android.tools.idea.project.messages.SyncMessage;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 
 /**
  * Tests for {@link GradleSyncMessages}.
  */
-public class GradleSyncMessagesTest extends JavaProjectTestCase {
+public class GradleSyncMessagesTest extends PlatformTestCase {
   private GradleSyncMessages mySyncMessages;
 
   @Override
@@ -47,7 +47,7 @@ public class GradleSyncMessagesTest extends JavaProjectTestCase {
     mySyncMessages.report(new SyncMessage("Version Compatibility Issues", MessageType.ERROR, "Message for test VCI"));
 
     assertFalse(mySyncMessages.isEmpty());
-    mySyncMessages.removeProjectMessages();
+    mySyncMessages.removeAllMessages();
     assertTrue(mySyncMessages.isEmpty());
   }
 }

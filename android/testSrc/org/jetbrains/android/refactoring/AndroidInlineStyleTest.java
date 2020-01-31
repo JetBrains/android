@@ -1,5 +1,8 @@
 package org.jetbrains.android.refactoring;
 
+import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
+import static com.google.common.truth.Truth.assertThat;
+
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -10,12 +13,9 @@ import com.intellij.testFramework.fixtures.IdeaProjectTestFixture;
 import com.intellij.testFramework.fixtures.TestFixtureBuilder;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.MultiMap;
+import java.util.List;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
-
-import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 
 /**
  * @author Eugene.Kudelevsky
@@ -209,12 +209,8 @@ public class AndroidInlineStyleTest extends AndroidTestCase {
     final String layoutPath = BASE_PATH + testName + ".xml";
     myFixture.copyFileToProject(layoutPath, "res/layout/test.xml");
     myFixture.configureFromExistingVirtualFile(f);
-    try {
-      doCommonInlineAction(thisOnly);
-      fail();
-    }
-    catch (CommonRefactoringUtil.RefactoringErrorHintException e) {
-    }
+    Presentation presentation = myFixture.testAction(new InlineAction());
+    assertThat(presentation.isEnabled()).isFalse();
     myFixture.checkResultByFile(BASE_PATH + testName + "_styles_after.xml", true);
     myFixture.checkResultByFile("res/layout/test.xml", layoutPath, true);
   }

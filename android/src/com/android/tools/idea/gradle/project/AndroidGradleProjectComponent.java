@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
-import static com.android.tools.idea.gradle.util.GradleProjects.canImportAsGradleProject;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
-import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN;
+import static com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME;
 import static com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT;
 
 import com.android.tools.idea.IdeInfo;
@@ -26,13 +24,18 @@ import com.android.tools.idea.gradle.project.build.JpsBuildContext;
 import com.android.tools.idea.gradle.project.build.PostProjectBuildTasksExecutor;
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink;
+import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.project.AndroidProjectBuildNotifications;
 import com.android.tools.idea.project.AndroidProjectInfo;
+import com.android.tools.idea.sdk.IdeSdks;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.execution.RunConfigurationProducerService;
 import com.intellij.execution.actions.RunConfigurationProducer;
 import com.intellij.ide.SaveAndSyncHandler;
+import com.intellij.notification.NotificationDisplayType;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.NotificationsConfiguration;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompilerManager;
@@ -52,17 +55,13 @@ import org.jetbrains.plugins.gradle.execution.test.runner.AllInPackageGradleConf
 import org.jetbrains.plugins.gradle.execution.test.runner.TestClassGradleConfigurationProducer;
 import org.jetbrains.plugins.gradle.execution.test.runner.TestMethodGradleConfigurationProducer;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.intellij.openapi.externalSystem.model.ExternalSystemDataKeys.NEWLY_IMPORTED_PROJECT;
-
 public final class AndroidGradleProjectComponent implements ProjectComponent {
+  // Copy of a private constant in GradleNotification.java.
+  private static final String GRADLE_NOTIFICATION_GROUP_NAME = "Gradle Notification Group";
+  @NotNull private final Project myProject;
   @NotNull private final LegacyAndroidProjects myLegacyAndroidProjects;
 
   @Nullable private Disposable myDisposable;
-
-  private final Project myProject;
 
   @NotNull
   public static AndroidGradleProjectComponent getInstance(@NotNull Project project) {
@@ -81,6 +80,14 @@ public final class AndroidGradleProjectComponent implements ProjectComponent {
   public AndroidGradleProjectComponent(@NotNull Project project, @NotNull LegacyAndroidProjects legacyAndroidProjects) {
     myProject = project;
     myLegacyAndroidProjects = legacyAndroidProjects;
+
+    // Disable Gradle plugin notifications in Android Studio.
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      NotificationsConfiguration
+        .getNotificationsConfiguration()
+        .changeSettings(GRADLE_NOTIFICATION_GROUP_NAME, NotificationDisplayType.NONE, false, false);
+    }
+
 
     // Register a task that gets notified when a Gradle-based Android project is compiled via JPS.
     CompilerManager.getInstance(myProject).addAfterTask(context -> {
@@ -136,6 +143,16 @@ public final class AndroidGradleProjectComponent implements ProjectComponent {
       if (!GradleProjectInfo.getInstance(myProject).isBuildWithGradle()) {
         // Suggest that Android Studio users use Gradle instead of IDEA project builder.
         myLegacyAndroidProjects.showMigrateToGradleWarning();
+      }
+    }
+    // Check if the Gradle JDK environment variable is valid
+    if (IdeInfo.getInstance().isAndroidStudio()) {
+      IdeSdks ideSdks = IdeSdks.getInstance();
+      if (ideSdks.isJdkEnvVariableDefined() && !ideSdks.isJdkEnvVariableValid()) {
+        String msg = JDK_LOCATION_ENV_VARIABLE_NAME + " is being ignored since it is set to an invalid JDK Location:\n"
+                     + ideSdks.getEnvVariableJdkValue();
+        AndroidNotification.getInstance(myProject).showBalloon("", msg, NotificationType.WARNING,
+                                                               SelectJdkFromFileSystemHyperlink.create(myProject));
       }
     }
   }

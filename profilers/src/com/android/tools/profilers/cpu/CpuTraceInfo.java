@@ -41,7 +41,7 @@ public class CpuTraceInfo implements ConfigurableDurationData {
 
   @Override
   public long getDurationUs() {
-    return (long)myRange.getLength();
+    return myInfo.getToTimestamp() == -1 ? Long.MAX_VALUE : (long)myRange.getLength();
   }
 
   @NotNull
@@ -53,22 +53,19 @@ public class CpuTraceInfo implements ConfigurableDurationData {
     return myInfo.getTraceId();
   }
 
-  /**
-   * Path of the file where the trace content is saved to. This file is temporary and will be deleted once the user exit Android Studio.
-   */
   @NotNull
-  public String getTraceFilePath() {
-    return myInfo.getTraceFilePath();
+  public Cpu.CpuTraceType getTraceType() {
+    return myInfo.getConfiguration().getUserOptions().getTraceType();
   }
 
   @NotNull
-  public Cpu.CpuTraceType getTraceType() {
-    return myInfo.getTraceType();
+  public Cpu.CpuTraceMode getTraceMode() {
+    return myInfo.getConfiguration().getUserOptions().getTraceMode();
   }
 
   @NotNull
   public Cpu.TraceInitiationType getInitiationType() {
-    return myInfo.getInitiationType();
+    return myInfo.getConfiguration().getInitiationType();
   }
 
   @Override

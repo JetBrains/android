@@ -241,7 +241,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
     getPalette().dragComponent(group, item);
 
     DesignSurface target = myDesignSurfaceFixture.target();
-    SceneView sceneView = target.getCurrentSceneView();
+    SceneView sceneView = target.getFocusedSceneView();
 
     myDragAndDrop
       .drop(target, new Point(sceneView.getX() + relativeX, sceneView.getY() + relativeY));
@@ -254,7 +254,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   @NotNull
   public NlEditorFixture dragComponentToSurface(@NotNull String group, @NotNull String item) {
     DesignSurface target = myDesignSurfaceFixture.target();
-    SceneView sceneView = target.getCurrentSceneView();
+    SceneView sceneView = target.getFocusedSceneView();
 
     dragComponentToSurface(group, item, sceneView.getSize().width / 2, sceneView.getSize().height / 2);
     return this;
@@ -270,7 +270,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   @NotNull
   public NlEditorFixture startResizeInteraction() {
     DesignSurface surface = myDesignSurfaceFixture.target();
-    SceneView screenView = surface.getCurrentSceneView();
+    SceneView screenView = surface.getFocusedSceneView();
 
     Dimension size = screenView.getSize();
     robot().pressMouse(surface, new Point(screenView.getX() + size.width + 24, screenView.getY() + size.height + 24));
@@ -286,7 +286,7 @@ public class NlEditorFixture extends ComponentFixture<NlEditorFixture, DesignerE
   @NotNull
   public NlEditorFixture resizeToAndroidSize(@AndroidDpCoordinate int width, @AndroidDpCoordinate int height) {
     DesignSurface surface = myDesignSurfaceFixture.target();
-    SceneView screenView = surface.getCurrentSceneView();
+    SceneView screenView = surface.getFocusedSceneView();
 
     robot().moveMouse(surface, Coordinates.getSwingXDip(screenView, width), Coordinates.getSwingYDip(screenView, height));
     return this;

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
@@ -74,13 +73,6 @@ public class ConfigureBasicActivityStepFixture<W extends AbstractWizardFixture> 
   }
 
   @NotNull
-  public ConfigureBasicActivityStepFixture<W> selectUseFragment() {
-    JCheckBox checkBox = robot().finder().find(target(), Matchers.byText(JCheckBox.class, "Use a Fragment"));
-    new JCheckBoxFixture(robot(), checkBox).select();
-    return this;
-  }
-
-  @NotNull
   public ConfigureBasicActivityStepFixture<W> enterTextFieldValue(@NotNull ActivityTextField activityField, @NotNull String text) {
     JTextComponent textField = findTextFieldWithLabel(activityField.getLabelText());
     robot().click(textField, MouseButton.LEFT_BUTTON, 3); // select all; particularly for pseudo-JTextComponent EditorComponentImpl
@@ -94,33 +86,9 @@ public class ConfigureBasicActivityStepFixture<W extends AbstractWizardFixture> 
   }
 
   @NotNull
-  public ConfigureBasicActivityStepFixture<W> undoTextFieldValue(@NotNull ActivityTextField activityField) {
-    JTextComponent textField = findTextFieldWithLabel(activityField.getLabelText());
-    robot().rightClick(textField);
-
-    JMenuItem popup = GuiTests.waitUntilShowing(robot(), null, Matchers.byText(JMenuItem.class, "Restore default value"));
-    robot().click(popup);
-
-    return this;
-  }
-
-  @NotNull
-  public ConfigureBasicActivityStepFixture<W> setTargetSourceSet(@NotNull String targetSourceSet) {
-    new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Target Source Set:", JComboBox.class, true))
-      .selectItem(targetSourceSet);
-    return this;
-  }
-
-  @NotNull
   public ConfigureBasicActivityStepFixture<W> setSourceLanguage(@NotNull String sourceLanguage) {
     new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Source Language:", JComboBox.class, true))
       .selectItem(sourceLanguage);
-    return this;
-  }
-
-  @NotNull
-  public ConfigureBasicActivityStepFixture<W> selectIncludeUrl(boolean select) {
-    selectCheckBoxWithText("Associate a URL with this Activity", select);
     return this;
   }
 }

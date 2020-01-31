@@ -24,12 +24,11 @@ import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
-import com.intellij.openapi.vfs.CharsetToolkit
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.LightProjectDescriptor
-import com.intellij.testFramework.fixtures.LightCodeInsightFixtureTestCase
+import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl
 import com.intellij.util.ArrayUtil
 import com.intellij.util.PathUtil
@@ -46,7 +45,7 @@ import java.util.ArrayList
 import java.util.regex.Pattern
 
 // Largely copied from the Kotlin test framework (after taking over android-kotlin sources).
-abstract class AbstractQuickFixMultiFileTest : LightCodeInsightFixtureTestCase() {
+abstract class AbstractQuickFixMultiFileTest : LightJavaCodeInsightFixtureTestCase() {
 
   override fun getProjectDescriptor(): LightProjectDescriptor = KotlinLightProjectDescriptor.INSTANCE
 

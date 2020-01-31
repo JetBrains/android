@@ -10,12 +10,12 @@
     </properties>
     <border type="none"/>
     <children>
-      <component id="c6759" class="javax.swing.JLabel">
+      <component id="c6759" class="com.intellij.ui.components.JBLabel">
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="We have detected that your system can run the Android emulator in an accelerated perfomance mode."/>
+          <text value="We have detected that your system can run the Android emulator in an accelerated performance mode."/>
         </properties>
       </component>
       <vspacer id="d4062">
@@ -25,7 +25,7 @@
           </grid>
         </constraints>
       </vspacer>
-      <component id="556c1" class="javax.swing.JLabel">
+      <component id="556c1" class="com.intellij.ui.components.JBLabel">
         <constraints>
           <grid row="2" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="7" anchor="0" fill="1" indent="0" use-parent-layout="false">
             <preferred-size width="780" height="-1"/>

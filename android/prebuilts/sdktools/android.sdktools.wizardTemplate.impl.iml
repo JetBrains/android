@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="android.sdktools.wizardTemplate.plugin" />
+    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
+    <orderEntry type="module-library" exported="">
+      <library name="precompiled-intellij.android.wizardTemplate.impl" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:wizardTemplate.impl:26.6.0.1" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/wizardTemplate.impl/26.6.0.1/wizardTemplate.impl-26.6.0.1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+  </component>
+</module>

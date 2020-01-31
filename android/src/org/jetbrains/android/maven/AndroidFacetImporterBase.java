@@ -1,8 +1,23 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2012 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.maven;
 
 import com.android.SdkConstants;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.ui.CustomNotificationListener;
 import com.android.tools.idea.gradle.project.sync.hyperlink.OpenAndroidSdkManagerHyperlink;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.Jdks;
@@ -48,6 +63,7 @@ import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.idea.maven.importing.FacetImporter;
 import org.jetbrains.idea.maven.importing.MavenModuleImporter;
 import org.jetbrains.idea.maven.importing.MavenRootModelAdapter;
@@ -576,7 +592,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
         targetDirPath = contentRoots[0].getPath();
       }
       else {
-        final String moduleDir = new File(apklibModule.getModuleFilePath()).getParent();
+        @SystemIndependent final String moduleDir = AndroidRootUtil.getModuleDirPath(apklibModule);
         if (moduleDir != null) {
           targetDirPath = moduleDir + '/' + AndroidMavenUtil.getMavenIdStringForFileName(artifactMavenId);
         }
@@ -859,7 +875,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
                                        String moduleName,
                                        AndroidExternalApklibDependenciesManager adm,
                                        ResolveContext context) throws MavenProcessCanceledException {
-    final File depArtifacetFile = new File(FileUtilRt.getNameWithoutExtension(artifact.getPath()) + ".pom");
+    final File depArtifacetFile = new File(FileUtil.getNameWithoutExtension(artifact.getPath()) + ".pom");
     if (!depArtifacetFile.exists()) {
       AndroidUtils.reportImportErrorToEventLog("Cannot find file " + depArtifacetFile.getPath(), moduleName, project);
       return;
@@ -1108,7 +1124,7 @@ public abstract class AndroidFacetImporterBase extends FacetImporter<AndroidFace
 
   private void configurePaths(AndroidFacet facet, MavenProject project) {
     Module module = facet.getModule();
-    String moduleDirPath = AndroidRootUtil.getModuleDirPath(module);
+    @SystemIndependent String moduleDirPath = AndroidRootUtil.getModuleDirPath(module);
     if (moduleDirPath == null) {
       return;
     }

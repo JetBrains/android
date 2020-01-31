@@ -15,16 +15,16 @@
  */
 package com.android.tools.idea.databinding
 
+import com.android.tools.idea.AndroidPsiUtils
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiModificationTracker
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 import org.jetbrains.uast.UAnnotation
@@ -39,9 +39,11 @@ class DataBindingModuleComponent(val module: Module) {
 
   // Cache the set of binding adapter attributes for fast lookup during XML markup and autocompletion.
   // This cache is refreshed on every Java change.
-  private val cachedBindingAdapterAttributes = CachedValuesManager.getManager(module.project).createCachedValue({
-    CachedValueProvider.Result.create(computeBindingAdapterAttributes(), PsiModificationTracker.MODIFICATION_COUNT)
-  }, false)
+  private val cachedBindingAdapterAttributes = CachedValuesManager.getManager(module.project).createCachedValue(
+    {
+      CachedValueProvider.Result.create(computeBindingAdapterAttributes(),
+                                        AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(module.project))
+    }, false)
 
   /**
    * Returns the (possibly cached) set of attributes defined by `@BindingAdapter` annotations.

@@ -123,10 +123,6 @@ public class GraphicGeneratorContext {
   @NotNull
   private static Future<BufferedImage> getStencilImage(@NotNull String path) throws IOException {
     BufferedImage image = BuiltInImages.getStencilImage(path);
-    if (image == null) {
-      image = AssetStudioUtils.createDummyImage();
-    }
-
     return Futures.immediateFuture(image);
   }
 

@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.LongAdder;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.annotations.NotNull;
 
 public class TagToClassMapperImplTest extends AndroidTestCase {
@@ -64,20 +65,20 @@ public class TagToClassMapperImplTest extends AndroidTestCase {
     myFixture.addFileToProject(getAdditionalModulePath(MODULE_WITHOUT_DEPENDENCY) + "/src/com/test/other/ClassB.java", classB);
 
     // The main module should only see the classes from MODULE_WITH_DEPENDENCY
-    Set<String> classes = new TagToClassMapperImpl(myFacet.getModule()).getFrameworkClassMap(OBJECT_CLASS).keySet();
+    Set<String> classes = new TagToClassMapperImpl(myFacet.getModule()).getClassMap(OBJECT_CLASS).keySet();
     assertContainsElements(classes, "com.test.ClassA");
     assertDoesntContain(classes, "com.test.other.ClassB");
 
     // MODULE_WITH_DEPENDENCY should only see the classes from MODULE_WITH_DEPENDENCY
     classes = new TagToClassMapperImpl(getAdditionalModuleByName(MODULE_WITH_DEPENDENCY))
-      .getFrameworkClassMap(OBJECT_CLASS)
+      .getClassMap(OBJECT_CLASS)
       .keySet();
     assertContainsElements(classes, "com.test.ClassA");
     assertDoesntContain(classes, "com.test.other.ClassB");
 
     // MODULE_WITHOUT_DEPENDENCY should see its own class
     classes = new TagToClassMapperImpl(getAdditionalModuleByName(MODULE_WITHOUT_DEPENDENCY))
-      .getFrameworkClassMap(OBJECT_CLASS)
+      .getClassMap(OBJECT_CLASS)
       .keySet();
     assertDoesntContain(classes, "com.test.ClassA");
     assertContainsElements(classes, "com.test.other.ClassB");
@@ -105,9 +106,9 @@ public class TagToClassMapperImplTest extends AndroidTestCase {
     ServiceContainerUtil.replaceService(myModule, TagToClassMapper.class, countingMapper, getTestRootDisposable());
 
     // Use a min API level that affects short names, to make sure it's used in up-to-date checks. See ResourceHelper.isViewPackageNeeded.
-    runWriteCommandAction(getProject(), () -> myFacet.getManifest().addUsesSdk().getMinSdkVersion().setValue("21"));
+    runWriteCommandAction(getProject(), () -> Manifest.getMainManifest(myFacet).addUsesSdk().getMinSdkVersion().setValue("21"));
 
-    countingMapper.getFrameworkClassMap(SdkConstants.CLASS_VIEW);
+    countingMapper.getClassMap(SdkConstants.CLASS_VIEW);
     assertThat(countingMapper.fullRebuilds.longValue()).named("Number of full rebuilds").isEqualTo(1);
 
     PsiFile layoutFile = myFixture.addFileToProject("res/layout/my_layout.xml", "<LinearLayout><<caret></LinearLayout>");

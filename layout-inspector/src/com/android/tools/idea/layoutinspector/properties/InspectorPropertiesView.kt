@@ -18,7 +18,6 @@ package com.android.tools.idea.layoutinspector.properties
 import com.android.tools.layoutinspector.proto.LayoutInspectorProto.Property.Type
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
-import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.PropertiesView
@@ -38,17 +37,21 @@ class InspectorPropertiesView(model: InspectorPropertiesModel) : PropertiesView<
   private val controlTypeProvider = object : ControlTypeProvider<InspectorPropertyItem> {
     override fun invoke(property: InspectorPropertyItem): ControlType =
       when (property.type) {
+        Type.DRAWABLE,
         Type.COLOR -> ControlType.COLOR_EDITOR
         else -> ControlType.TEXT_EDITOR
       }
   }
 
-  private val editorProvider = EditorProvider.create(enumSupportProvider, controlTypeProvider)
+  private val declaredEditorProvider = ResolutionStackEditorProvider(model, enumSupportProvider, controlTypeProvider)
+  private val allEditorProvider = ResolutionStackEditorProvider(model, enumSupportProvider, controlTypeProvider)
 
   init {
     watermark = Watermark(WATERMARK_MESSAGE, WATERMARK_ACTION_MESSAGE, "")
+    main.builders.add(SelectedViewBuilder())
     val tab = addTab("")
-    tab.builders.add(InspectorTableBuilder("Declared Attributes", { it.isDeclared }, model, controlTypeProvider, editorProvider))
-    tab.builders.add(InspectorTableBuilder("All Attributes", { true }, model, controlTypeProvider, editorProvider))
+    tab.builders.add(DimensionBuilder())
+    tab.builders.add(InspectorTableBuilder("Declared Attributes", { it.isDeclared }, model, controlTypeProvider, declaredEditorProvider))
+    tab.builders.add(InspectorTableBuilder("All Attributes", { true }, model, controlTypeProvider, allEditorProvider))
   }
 }

@@ -45,7 +45,7 @@ public class LegacyCpuThreadCountDataSeries implements DataSeries<Long> {
   }
 
   @Override
-  public List<SeriesData<Long>> getDataForXRange(@NotNull Range timeCurrentRangeUs) {
+  public List<SeriesData<Long>> getDataForRange(@NotNull Range timeCurrentRangeUs) {
     long bufferNs = TimeUnit.SECONDS.toNanos(1);
     CpuProfiler.GetThreadsRequest.Builder request = CpuProfiler.GetThreadsRequest.newBuilder()
       .setSession(mySession)

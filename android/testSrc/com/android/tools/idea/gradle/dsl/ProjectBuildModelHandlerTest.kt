@@ -39,7 +39,7 @@ class ProjectBuildModelHandlerTest : AndroidTestCase() {
 
   private fun setupGradleSyncState(timeStamp: Long) {
     val gradleSyncState = mock(GradleSyncState::class.java)
-    `when`(gradleSyncState.lastSyncEndTimeStamp).thenReturn(timeStamp)
+    `when`(gradleSyncState.lastSyncFinishedTimeStamp).thenReturn(timeStamp)
     replaceProjectService(GradleSyncState::class.java, gradleSyncState)
   }
 

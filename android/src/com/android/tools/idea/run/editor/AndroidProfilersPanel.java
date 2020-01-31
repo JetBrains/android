@@ -21,8 +21,8 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider;
 import com.android.tools.idea.gradle.plugin.AndroidPluginVersionUpdater;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
-import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
 import com.google.common.util.concurrent.Futures;
@@ -34,6 +34,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.SimpleListCellRenderer;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
@@ -178,7 +179,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
 
     // Update plugin version
     AndroidPluginVersionUpdater updater = AndroidPluginVersionUpdater.getInstance(myProject);
-    AndroidPluginVersionUpdater.UpdateResult result = updater.updatePluginVersion(pluginVersion, gradleVersion);
+    AndroidPluginVersionUpdater.UpdateResult result = updater.updatePluginVersion(pluginVersion, gradleVersion, null);
     if (result.isPluginVersionUpdated() && result.versionUpdateSuccess()) {
       requestSync();
     } else {
@@ -194,7 +195,7 @@ public class AndroidProfilersPanel implements HyperlinkListener {
 
       // TODO change trigger to plugin upgrade trigger if it is created
       syncResult.setFuture(ProjectSystemUtil.getProjectSystem(myProject)
-        .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true));
+        .getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED));
     });
 
     // Block until sync finishes

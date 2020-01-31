@@ -16,8 +16,8 @@
 package com.android.tools.idea.ui.resourcemanager.sketchImporter.ui
 
 import com.android.resources.ResourceType
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
 import com.android.tools.idea.ui.resourcemanager.explorer.DesignAssetCellRenderer
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
 import com.android.tools.idea.ui.resourcemanager.widget.SingleAssetCard
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.CollectionListModel
@@ -116,8 +116,8 @@ open class ChildView(protected val designAssetCellRenderer: DesignAssetCellRende
                      protected val colorAssetCellRenderer: ColorAssetCellRenderer) : JPanel(BorderLayout()) {
   protected var resourcesView = ResourcesView(emptyList(), emptyList(), designAssetCellRenderer, colorAssetCellRenderer)
 
-  fun getSelectedDrawables(): List<DesignAssetSet> {
-    return resourcesView.drawables?.selectedValuesList?.map { it as DesignAssetSet } ?: listOf()
+  fun getSelectedDrawables(): List<ResourceAssetSet> {
+    return resourcesView.drawables?.selectedValuesList?.map { it as ResourceAssetSet } ?: listOf()
   }
 
   fun getSelectedColors(): List<Pair<Color, String>> {
@@ -132,7 +132,7 @@ class PageView(designAssetCellRenderer: DesignAssetCellRenderer,
    * Create/refresh the preview panel associated with the page.
    */
   fun refresh(pageName: String,
-              drawableAssets: List<DesignAssetSet>,
+              drawableAssets: List<ResourceAssetSet>,
               colorAssets: List<Pair<Color, String>>) {
     removeAll()
     add(createHeader(pageName), BorderLayout.NORTH)
@@ -152,7 +152,7 @@ class DocumentView(designAssetCellRenderer: DesignAssetCellRenderer,
   /**
    * Create/refresh the preview panel associated with the document.
    */
-  fun refresh(drawableAssets: List<DesignAssetSet>,
+  fun refresh(drawableAssets: List<ResourceAssetSet>,
               colorAssets: List<Pair<Color, String>>) {
     removeAll()
     add(createHeader(DOCUMENT_HEADER), BorderLayout.NORTH)
@@ -175,7 +175,7 @@ private fun createHeader(pageName: String): JComponent {
   }
 }
 
-class ResourcesView(drawableAssets: List<DesignAssetSet>,
+class ResourcesView(drawableAssets: List<ResourceAssetSet>,
                     colorAssets: List<Pair<Color, String>>,
                     designAssetCellRenderer: DesignAssetCellRenderer,
                     colorResourceCellRenderer: ColorAssetCellRenderer
@@ -213,9 +213,9 @@ private fun JTabbedPane.resizeTabbedPane() {
 /**
  * Create a [JList] with the rendering of the [assetList] drawable assets.
  */
-private fun createDrawablesPreviewsList(assetList: List<DesignAssetSet>, designAssetCellRenderer: DesignAssetCellRenderer): JList<*>? {
+private fun createDrawablesPreviewsList(assetList: List<ResourceAssetSet>, designAssetCellRenderer: DesignAssetCellRenderer): JList<*>? {
   if (assetList.isNotEmpty()) {
-    return JList<DesignAssetSet>().apply {
+    return JList<ResourceAssetSet>().apply {
       cellRenderer = designAssetCellRenderer
       model = CollectionListModel(assetList)
       setUI()

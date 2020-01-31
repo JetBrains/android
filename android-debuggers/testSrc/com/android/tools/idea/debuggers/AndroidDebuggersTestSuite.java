@@ -22,9 +22,15 @@ import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses(AndroidDebuggersTestSuite.class)  // a suite mustn't contain itself
+@JarTestSuiteRunner.ExcludeClasses({
+  com.android.tools.idea.debuggers.AndroidDebuggersTestSuite.class  // a suite mustn't contain itself
+})
 public class AndroidDebuggersTestSuite extends IdeaTestSuiteBase {
 
   @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();
+
+  static {
+    symlinkToIdeaHome("tools/idea/java");
+  }
 }
 

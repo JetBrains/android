@@ -16,6 +16,7 @@
 package org.jetbrains.android.inspections.lint;
 
 import com.android.tools.lint.detector.api.Issue;
+import com.android.tools.lint.detector.api.LintFix;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -33,5 +34,5 @@ public interface AndroidLintQuickFixProvider {
     @NotNull PsiElement startElement,
     @NotNull PsiElement endElement,
     @NotNull String message,
-    @Nullable Object quickfixData);
+    @Nullable LintFix fixData);
 }

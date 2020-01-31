@@ -20,7 +20,6 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Cpu
-import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.FakeProfilerService
@@ -64,16 +63,22 @@ class CpuUsageTooltipViewTest {
     }
     cpuService.addTraceInfo(Cpu.CpuTraceInfo.newBuilder()
                               .setTraceId(1)
-                              .setTraceType(Cpu.CpuTraceType.ATRACE)
+                              .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+                                                  .setUserOptions(
+                                                    Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
+                                                      .setTraceType(Cpu.CpuTraceType.ATRACE)))
                               .setFromTimestamp(TimeUnit.SECONDS.toNanos(2))
                               .setToTimestamp(TimeUnit.SECONDS.toNanos(4))
-                              .addTids(3).build())
+                              .build())
     cpuService.addTraceInfo(Cpu.CpuTraceInfo.newBuilder()
                               .setTraceId(2)
-                              .setTraceType(Cpu.CpuTraceType.SIMPLEPERF)
+                              .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+                                                  .setUserOptions(
+                                                    Cpu.CpuTraceConfiguration.UserOptions.newBuilder()
+                                                      .setTraceType(Cpu.CpuTraceType.SIMPLEPERF)))
                               .setFromTimestamp(TimeUnit.SECONDS.toNanos(5))
                               .setToTimestamp(TimeUnit.SECONDS.toNanos(7))
-                              .addTids(3).build())
+                              .build())
 
   }
 

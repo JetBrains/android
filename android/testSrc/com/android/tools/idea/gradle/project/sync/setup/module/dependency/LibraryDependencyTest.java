@@ -16,16 +16,17 @@
 package com.android.tools.idea.gradle.project.sync.setup.module.dependency;
 
 import com.intellij.openapi.roots.DependencyScope;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 
 import java.io.File;
+import java.io.IOException;
 
 import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Tests for {@link LibraryDependency}.
  */
-public class LibraryDependencyTest extends JavaProjectTestCase {
+public class LibraryDependencyTest extends PlatformTestCase {
   public void testConstructorWithJar() {
     File jarFile = new File("~/repo/guava/guava-11.0.2.jar");
     LibraryDependency dependency = new LibraryDependency(jarFile, DependencyScope.TEST);

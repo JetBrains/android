@@ -361,7 +361,7 @@ public class ManifestUtilsTest extends AndroidTestCase {
 
     myFixture.addFileToProject(path, manifestContents);
 
-    return MergedManifestManager.getSnapshot(myModule, true);
+    return MergedManifestManager.getMergedManifest(myModule).get();
   }
 
 }

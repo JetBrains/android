@@ -29,7 +29,7 @@ public class ChainChecker {
   private SceneComponent myHorizontalChainHead;
   private SceneComponent myVerticalChainHead;
 
-  protected boolean checkIsInChain(@NotNull SceneComponent component) {
+  public boolean checkIsInChain(@NotNull SceneComponent component) {
     myHorizontalChainHead = null;
     myVerticalChainHead = null;
     myIsInHorizontalChain = false;

@@ -1,10 +1,9 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.jps.AndroidTargetBuilder;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.util.ArrayUtilRt;
+import com.intellij.util.ArrayUtil;
 import com.intellij.util.PathUtilRt;
 import com.intellij.util.Processor;
 import org.jetbrains.android.compiler.tools.AndroidApt;
@@ -93,7 +92,7 @@ public class AndroidResourcePackagingBuilder extends AndroidTargetBuilder<BuildR
         AndroidJpsBundle.message("android.jps.errors.manifest.not.found", module.getName())));
       return false;
     }
-    final ArrayList<String> assetsDirPaths = new ArrayList<>();
+    final ArrayList<String> assetsDirPaths = new ArrayList<String>();
     AndroidResourcePackagingBuildTarget.collectAssetDirs(extension, assetsDirPaths, true);
 
     final String outputFilePath = target.getOutputFile(context).getPath();
@@ -117,7 +116,7 @@ public class AndroidResourcePackagingBuilder extends AndroidTargetBuilder<BuildR
                                          : null;
     final String additionalParameters = extension.getAdditionalPackagingCommandLineParameters();
 
-    return doPackageResources(context, manifestFile, androidTarget, resourceDirPaths, ArrayUtilRt.toStringArray(assetsDirPaths),
+    return doPackageResources(context, manifestFile, androidTarget, resourceDirPaths, ArrayUtil.toStringArray(assetsDirPaths),
                               outputFilePath, releaseBuild, module.getName(), outputConsumer, customManifestPackage, additionalParameters);
   }
 
@@ -148,7 +147,7 @@ public class AndroidResourcePackagingBuilder extends AndroidTargetBuilder<BuildR
       final boolean success = messages.get(AndroidCompilerMessageKind.ERROR).isEmpty();
 
       if (success) {
-        final List<String> srcFiles = new ArrayList<>();
+        final List<String> srcFiles = new ArrayList<String>();
         srcFiles.add(manifestFile.getPath());
         fillRecursively(resourceDirPaths, srcFiles);
         fillRecursively(assetsDirPaths, srcFiles);

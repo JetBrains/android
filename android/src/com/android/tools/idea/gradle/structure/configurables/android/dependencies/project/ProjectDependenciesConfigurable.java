@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.android.dependencies.project;
 
+import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.dependencies.PsAllModulesFakeModule;
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable;
@@ -26,8 +27,9 @@ import javax.swing.*;
 public class ProjectDependenciesConfigurable extends AbstractModuleConfigurable<PsAllModulesFakeModule, MainPanel> {
 
   public ProjectDependenciesConfigurable(@NotNull PsAllModulesFakeModule module,
-                                         @NotNull PsContext context) {
-    super(context, module);
+                                         @NotNull PsContext context,
+                                         @NotNull BasePerspectiveConfigurable perspectiveConfigurable) {
+    super(context, perspectiveConfigurable, module);
     setDisplayName("<All Modules>");
   }
 

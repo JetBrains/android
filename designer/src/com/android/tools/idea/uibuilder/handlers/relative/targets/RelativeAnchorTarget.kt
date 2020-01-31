@@ -143,7 +143,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
       return
     }
     myIsDragging = false
-    myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
+    myComponent.scene.markNeedsLayout(Scene.ANIMATED_LAYOUT)
   }
 
   override fun mouseDrag(x: Int, y: Int, ignored: List<Target>) {
@@ -180,7 +180,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     clearAssociatedAttribute(attributesTransaction)
     val message = "Remove constraint from ${myType.name} of ${nlComponent.tagName}"
     NlWriteCommandActionUtil.run(nlComponent, message) { attributesTransaction.commit() }
-    myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
+    myComponent.scene.markNeedsLayout(Scene.ANIMATED_LAYOUT)
     updateAlignedComponentIds()
   }
 
@@ -190,7 +190,7 @@ class RelativeAnchorTarget(type: Type, private val isParent: Boolean) : AnchorTa
     val message = "Create constraint between ${myType.name} of ${nlComponent.tagName} " +
         "and ${target.myType} of ${target.myComponent.authoritativeNlComponent.tagName}"
     NlWriteCommandActionUtil.run(nlComponent, message) { attributesTransaction.commit() }
-    myComponent.scene.needsLayout(Scene.ANIMATED_LAYOUT)
+    myComponent.scene.markNeedsLayout(Scene.ANIMATED_LAYOUT)
     updateAlignedComponentIds()
   }
 

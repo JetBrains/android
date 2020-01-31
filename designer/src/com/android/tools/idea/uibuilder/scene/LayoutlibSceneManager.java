@@ -22,8 +22,10 @@ import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
+import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.common.analytics.CommonUsageTracker;
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.tools.idea.common.model.Coordinates;
@@ -41,7 +43,6 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.rendering.Locale;
@@ -52,7 +53,7 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceNotificationManager;
-import com.android.tools.idea.uibuilder.analytics.NlUsageTracker;
+import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.ViewEditorImpl;
@@ -67,7 +68,6 @@ import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
-import com.google.wireless.android.sdk.stats.LayoutEditorEvent;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
@@ -76,9 +76,9 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Alarm;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.TimerUtil;
 import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
@@ -93,12 +93,13 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.GuardedBy;
 import javax.swing.Timer;
@@ -113,7 +114,7 @@ import org.jetbrains.ide.PooledThreadExecutor;
 public class LayoutlibSceneManager extends SceneManager {
 
   private static final SceneDecoratorFactory DECORATOR_FACTORY = new NlSceneDecoratorFactory();
-  private final RenderSettings myRenderSettings;
+  private final Supplier<RenderSettings> myRenderSettingsProvider;
 
   @Nullable private SceneView mySecondarySceneView;
 
@@ -162,6 +163,16 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   private final AtomicBoolean myIsCurrentlyRendering = new AtomicBoolean(false);
 
+  /**
+   * If true, the renders using this LayoutlibSceneManager will use transparent backgrounds
+   */
+  private boolean useTransparentRendering = false;
+
+  /**
+   * If true, the renders will use {@link com.android.ide.common.rendering.api.SessionParams.RenderingMode.SHRINK}
+   */
+  private boolean useShrinkRendering = false;
+
   protected static LayoutEditorRenderResult.Trigger getTriggerFromChangeType(@Nullable NlModel.ChangeType changeType) {
     if (changeType == null) {
       return null;
@@ -192,10 +203,10 @@ public class LayoutlibSceneManager extends SceneManager {
 
   protected LayoutlibSceneManager(@NotNull NlModel model,
                                   @NotNull DesignSurface designSurface,
-                                  @NotNull RenderSettings settings,
+                                  @NotNull Supplier<RenderSettings> settingsProvider,
                                   @NotNull Executor renderTaskDisposerExecutor) {
-    super(model, designSurface, settings);
-    myRenderSettings = settings;
+    super(model, designSurface, settingsProvider);
+    myRenderSettingsProvider = settingsProvider;
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     createSceneView();
     updateTrackingConfiguration();
@@ -228,8 +239,10 @@ public class LayoutlibSceneManager extends SceneManager {
     scene.selectionChanged(getDesignSurface().getSelectionModel(), getDesignSurface().getSelectionModel().getSelection());
   }
 
-  public LayoutlibSceneManager(@NotNull NlModel model, @NotNull DesignSurface designSurface) {
-    this(model, designSurface, RenderSettings.getProjectSettings(model.getProject()), PooledThreadExecutor.INSTANCE);
+  public LayoutlibSceneManager(@NotNull NlModel model,
+                               @NotNull DesignSurface designSurface,
+                               @NotNull Supplier<RenderSettings> renderSettingsProvider) {
+    this(model, designSurface, renderSettingsProvider, PooledThreadExecutor.INSTANCE);
   }
 
   @NotNull
@@ -414,14 +427,14 @@ public class LayoutlibSceneManager extends SceneManager {
       NlDesignSurface surface = getDesignSurface();
       // TODO: this is the right behavior, but seems to unveil repaint issues. Turning it off for now.
       if (false && surface.getSceneMode() == SceneMode.BLUEPRINT_ONLY) {
-        layout(true);
+        requestLayout(true);
       }
       else {
-        requestRender(getTriggerFromChangeType(model.getLastChangeType()))
+        requestRender(getTriggerFromChangeType(model.getLastChangeType()), false)
           .thenRunAsync(() ->
             // Selection change listener should run in UI thread not in the layoublib rendering thread. This avoids race condition.
             mySelectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection())
-          , EdtExecutor.INSTANCE);
+          , EdtExecutorService.getInstance());
       }
     }
 
@@ -480,7 +493,7 @@ public class LayoutlibSceneManager extends SceneManager {
         requestLayoutAndRender(animate);
       }
       else {
-        layout(animate);
+        requestLayout(animate);
       }
     }
   }
@@ -489,12 +502,20 @@ public class LayoutlibSceneManager extends SceneManager {
     @Override
     public void selectionChanged(@NotNull SelectionModel model, @NotNull List<NlComponent> selection) {
       updateTargets();
-      getScene().needsRebuildList();
+      Scene scene = getScene();
+      scene.needsRebuildList();
+      scene.repaint();
     }
   }
 
+  /**
+   * Adds a new render request to the queue.
+   * @param trigger build trigger for reporting purposes
+   * @param forceInflate if true, the layout will be re-inflated
+   * @return {@link CompletableFuture} that will be completed once the render has been done.
+   */
   @NotNull
-  private CompletableFuture<Void> requestRender(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+  private CompletableFuture<Void> requestRender(@Nullable LayoutEditorRenderResult.Trigger trigger, boolean forceInflate) {
     CompletableFuture<Void> callback = new CompletableFuture<>();
     synchronized (myRenderFutures) {
       myRenderFutures.add(callback);
@@ -508,7 +529,7 @@ public class LayoutlibSceneManager extends SceneManager {
     getRenderingQueue().queue(new Update("model.render", LOW_PRIORITY) {
       @Override
       public void run() {
-        render(trigger);
+        render(trigger, forceInflate);
       }
 
       @Override
@@ -518,6 +539,10 @@ public class LayoutlibSceneManager extends SceneManager {
     });
 
     return callback;
+  }
+
+  private CompletableFuture<Void> requestRender(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+    return requestRender(trigger, false);
   }
 
   private class ConfigurationChangeListener implements ConfigurationListener {
@@ -538,7 +563,7 @@ public class LayoutlibSceneManager extends SceneManager {
   @Override
   @NotNull
   public CompletableFuture<Void> requestRender() {
-    return requestRender(getTriggerFromChangeType(getModel().getLastChangeType()));
+    return requestRender(getTriggerFromChangeType(getModel().getLastChangeType()), false);
   }
 
   /**
@@ -547,14 +572,14 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   @NotNull
   public CompletableFuture<Void> requestUserInitiatedRender() {
-    return requestRender(LayoutEditorRenderResult.Trigger.USER);
+    return requestRender(LayoutEditorRenderResult.Trigger.USER, true);
   }
 
   @Override
   public void requestLayoutAndRender(boolean animate) {
     // Don't render if we're just showing the blueprint
     if (getDesignSurface().getSceneMode() == SceneMode.BLUEPRINT_ONLY) {
-      layout(animate);
+      requestLayout(animate);
       return;
     }
 
@@ -562,7 +587,7 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   void doRequestLayoutAndRender(boolean animate) {
-    requestRender(getTriggerFromChangeType(getModel().getLastChangeType()))
+    requestRender(getTriggerFromChangeType(getModel().getLastChangeType()), false)
       .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(animate), PooledThreadExecutor.INSTANCE);
   }
 
@@ -630,6 +655,31 @@ public class LayoutlibSceneManager extends SceneManager {
     return ourRenderViewPort;
   }
 
+  public void enableTransparentRendering() {
+    useTransparentRendering = true;
+  }
+
+  public void enableShrinkRendering() {
+    useShrinkRendering = true;
+  }
+
+  @Override
+  @NotNull
+  public CompletableFuture<Void> requestLayout(boolean animate) {
+    synchronized (myRenderingTaskLock) {
+      if (myRenderTask == null) {
+        return CompletableFuture.completedFuture(null);
+      }
+      return myRenderTask.layout()
+        .thenAccept(result -> {
+          if (result != null) {
+            updateHierarchy(result);
+            notifyListenersModelLayoutComplete(animate);
+          }
+        });
+    }
+  }
+
   /**
    * Request a layout pass
    *
@@ -637,23 +687,10 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   @Override
   public void layout(boolean animate) {
-    Future<RenderResult> futureResult;
-    synchronized (myRenderingTaskLock) {
-      if (myRenderTask == null) {
-        return;
-      }
-      futureResult = myRenderTask.layout();
-    }
-
     try {
-      RenderResult result = futureResult.get();
-
-      if (result != null) {
-        updateHierarchy(result);
-        notifyListenersModelLayoutComplete(animate);
-      }
+      requestLayout(animate).get(2, TimeUnit.SECONDS);
     }
-    catch (InterruptedException | ExecutionException e) {
+    catch (InterruptedException | ExecutionException | TimeoutException e) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("Unable to run layout()", e);
     }
   }
@@ -739,14 +776,9 @@ public class LayoutlibSceneManager extends SceneManager {
 
   // Get the root tag of the xml file associated with the specified model.
   // Since this code may be called on a non UI thread be extra careful about expired objects.
-  // Note: NlModel.getFile() probably should be nullable.
   @Nullable
   private static XmlTag getRootTag(@NotNull NlModel model) {
     if (Disposer.isDisposed(model)) {
-      return null;
-    }
-    XmlFile file = (XmlFile)AndroidPsiUtils.getPsiFileSafely(model.getProject(), model.getVirtualFile());
-    if (file == null) {
       return null;
     }
     return AndroidPsiUtils.getRootTagSafely(model.getFile());
@@ -765,6 +797,7 @@ public class LayoutlibSceneManager extends SceneManager {
     if (project.isDisposed()) {
       return CompletableFuture.completedFuture(false);
     }
+
     ResourceNotificationManager resourceNotificationManager = ResourceNotificationManager.getInstance(project);
 
     // Some types of files must be saved to disk first, because layoutlib doesn't
@@ -851,7 +884,7 @@ public class LayoutlibSceneManager extends SceneManager {
   @VisibleForTesting
   @NotNull
   protected RenderService.RenderTaskBuilder setupRenderTaskBuilder(@NotNull RenderService.RenderTaskBuilder taskBuilder) {
-    RenderSettings settings = myRenderSettings;
+    RenderSettings settings = myRenderSettingsProvider.get();
     if (!settings.getUseLiveRendering()) {
       // When we are not using live rendering, we do not need the pool
       taskBuilder.disableImagePool();
@@ -862,6 +895,14 @@ public class LayoutlibSceneManager extends SceneManager {
 
     if (!settings.getShowDecorations()) {
       taskBuilder.disableDecorations();
+    }
+
+    if (useShrinkRendering) {
+      taskBuilder.withRenderingMode(SessionParams.RenderingMode.SHRINK);
+    }
+
+    if (useTransparentRendering) {
+      taskBuilder.useTransparentBackground();
     }
 
     return taskBuilder;
@@ -891,21 +932,22 @@ public class LayoutlibSceneManager extends SceneManager {
     if (getModel().getConfigurationModificationCount() != configuration.getModificationCount()) {
       // usage tracking (we only pay attention to individual changes where only one item is affected since those are likely to be triggered
       // by the user
+      NlAnalyticsManager analyticsManager = ((NlDesignSurface)surface).getAnalyticsManager();
       if (!StringUtil.equals(configuration.getTheme(), myPreviousTheme)) {
         myPreviousTheme = configuration.getTheme();
-        NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.THEME_CHANGE);
+        analyticsManager.trackThemeChange();
       }
       else if (configuration.getTarget() != null && !StringUtil.equals(configuration.getTarget().getVersionName(), myPreviousVersion)) {
         myPreviousVersion = configuration.getTarget().getVersionName();
-        NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.API_LEVEL_CHANGE);
+        analyticsManager.trackApiLevelChange();
       }
       else if (!configuration.getLocale().equals(myPreviousLocale)) {
         myPreviousLocale = configuration.getLocale();
-        NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.LANGUAGE_CHANGE);
+        analyticsManager.trackLanguageChange();
       }
       else if (configuration.getDevice() != null && !StringUtil.equals(configuration.getDevice().getDisplayName(), myPreviousDeviceName)) {
         myPreviousDeviceName = configuration.getDevice().getDisplayName();
-        NlUsageTracker.getInstance(surface).logAction(LayoutEditorEvent.LayoutEditorEventType.DEVICE_CHANGE);
+        analyticsManager.trackDeviceChange();
       }
     }
   }
@@ -916,7 +958,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
    */
   @NotNull
-  protected CompletableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+  protected CompletableFuture<RenderResult> render(@Nullable LayoutEditorRenderResult.Trigger trigger, boolean forceInflate) {
     myIsCurrentlyRendering.set(true);
     try {
       DesignSurface surface = getDesignSurface();
@@ -924,7 +966,7 @@ public class LayoutlibSceneManager extends SceneManager {
       getModel().resetLastChange();
 
       long renderStartTimeMs = System.currentTimeMillis();
-      return renderImpl()
+      return renderImpl(forceInflate)
         .thenApply(result -> {
           if (result == null) {
             completeRender();
@@ -944,9 +986,7 @@ public class LayoutlibSceneManager extends SceneManager {
             long renderTimeMs = System.currentTimeMillis() - renderStartTimeMs;
             NlDiagnosticsManager.getWriteInstance(surface).recordRender(renderTimeMs,
                                                                         myRenderResult.getRenderedImage().getWidth() * myRenderResult.getRenderedImage().getHeight() * 4);
-            NlUsageTracker.getInstance(surface).logRenderResult(trigger,
-                                                                myRenderResult,
-                                                                renderTimeMs);
+            CommonUsageTracker.Companion.getInstance(surface).logRenderResult(trigger, myRenderResult, renderTimeMs);
           }
           finally {
             myRenderResultLock.readLock().unlock();
@@ -988,8 +1028,8 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   @NotNull
-  private CompletableFuture<RenderResult> renderImpl() {
-    return inflate(false)
+  private CompletableFuture<RenderResult> renderImpl(boolean forceInflate) {
+    return inflate(forceInflate)
       .whenCompleteAsync((result, ex) -> {
         if (result) {
           notifyListenersModelUpdateComplete();

@@ -37,9 +37,9 @@ import static com.android.sdklib.devices.Storage.Unit;
 public class StorageField extends JPanel {
 
   private final Unit DEFAULT_UNIT = Unit.MiB;
-  private final ComboBoxModel<Unit> unitModel = new EnumComboBoxModel<>(Unit.class);
+  private final ComboBoxModel unitModel = new EnumComboBoxModel<Unit>(Unit.class);
 
-  private final ComboBox<Unit> myUnitsCombo = new ComboBox<>(unitModel);
+  private final ComboBox myUnitsCombo = new ComboBox(unitModel);
   private final JTextField myValueField = new JTextField();
 
   private Unit myCurrentUnit = DEFAULT_UNIT;

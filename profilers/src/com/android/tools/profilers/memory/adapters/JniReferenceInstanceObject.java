@@ -13,16 +13,17 @@
 // limitations under the License.
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
+import com.android.tools.profiler.proto.Memory.NativeBacktrace;
+import com.android.tools.profiler.proto.Memory.NativeCallStack;
 import com.android.tools.profilers.cpu.nodemodel.CppFunctionModel;
 import com.android.tools.profilers.cpu.simpleperf.NodeNameParser;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ThreadId;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 public class JniReferenceInstanceObject implements InstanceObject {
   @NotNull private final LiveAllocationCaptureObject myCaptureObject;
@@ -33,8 +34,8 @@ public class JniReferenceInstanceObject implements InstanceObject {
   private final long myObjectTag;
   @NotNull private ThreadId myAllocThreadId = ThreadId.INVALID_THREAD_ID;
   @NotNull private ThreadId myDeallocThreadId = ThreadId.INVALID_THREAD_ID;
-  @Nullable private NativeCallStack myAllocationCallstack;
-  @Nullable private NativeCallStack myDeallocationCallstack;
+  @Nullable private NativeBacktrace myAllocationBacktrace;
+  @Nullable private NativeBacktrace myDeallocationBacktrace;
   @Nullable private List<CodeLocation> myAllocationLocations;
   @Nullable private List<CodeLocation> myDeallocationLocations;
   @Nullable private List<FieldObject> myFields;
@@ -83,7 +84,7 @@ public class JniReferenceInstanceObject implements InstanceObject {
 
   @Override
   public int getCallStackDepth() {
-    if (myAllocationCallstack == null) {
+    if (myAllocationBacktrace == null) {
       return 0;
     }
     return getAllocationCodeLocations().size();
@@ -96,7 +97,7 @@ public class JniReferenceInstanceObject implements InstanceObject {
       return myAllocationLocations;
     }
 
-    myAllocationLocations = resolveCallstack(myAllocationCallstack);
+    myAllocationLocations = resolveBacktrace(myAllocationBacktrace);
     return myAllocationLocations;
   }
 
@@ -107,17 +108,19 @@ public class JniReferenceInstanceObject implements InstanceObject {
       return myDeallocationLocations;
     }
 
-    myDeallocationLocations = resolveCallstack(myDeallocationCallstack);
+    myDeallocationLocations = resolveBacktrace(myDeallocationBacktrace);
     return myDeallocationLocations;
   }
 
   @NotNull
-  private List<CodeLocation> resolveCallstack(@Nullable NativeCallStack callstack) {
-    if (callstack == null || callstack.getFramesCount() == 0) {
+  private List<CodeLocation> resolveBacktrace(@Nullable NativeBacktrace backtrace) {
+    if (backtrace == null || backtrace.getAddressesCount() == 0) {
       return Collections.emptyList();
     }
-    ArrayList<CodeLocation> codeLocations = new ArrayList<>(callstack.getFramesCount());
-    for (MemoryProfiler.NativeCallStack.NativeFrame frame : callstack.getFramesList()) {
+
+    NativeCallStack resolvedStack = myCaptureObject.resolveNativeBacktrace(backtrace);
+    ArrayList<CodeLocation> codeLocations = new ArrayList<>(resolvedStack.getFramesCount());
+    for (NativeCallStack.NativeFrame frame : resolvedStack.getFramesList()) {
       if (isHiddenFrame(frame)) continue;
       String functionName = frame.getSymbolName();
       String classOrNamespace = "";
@@ -128,16 +131,16 @@ public class JniReferenceInstanceObject implements InstanceObject {
         parameters = nativeFunction.getParameters();
         classOrNamespace = nativeFunction.getClassOrNamespace();
       }
-      catch (IndexOutOfBoundsException|IllegalStateException e) {
+      catch (IndexOutOfBoundsException | IllegalStateException e) {
         // Ignore symbol parsing exceptions, symbolizer may potentially produce all kinds of
         // outputs that createCppFunctionModel wouldn't like and throw an exception.
         // functionName will still have the whole name for a user to see.
       }
       int lineNumber = (frame.getLineNumber() == 0)
-                    // 0 is an invalid line number in DWARF and we convert it into INVALID_LINE_NUMBER
-                    ? CodeLocation.INVALID_LINE_NUMBER
-                    // code location line numbers are zero based, DWARF line numbers are one based
-                    : frame.getLineNumber() - 1;
+                       // 0 is an invalid line number in DWARF and we convert it into INVALID_LINE_NUMBER
+                       ? CodeLocation.INVALID_LINE_NUMBER
+                       // code location line numbers are zero based, DWARF line numbers are one based
+                       : frame.getLineNumber() - 1;
       CodeLocation codeLocation = new CodeLocation.Builder(classOrNamespace)
         .setMethodName(functionName)
         .setMethodParameters(parameters)
@@ -164,14 +167,14 @@ public class JniReferenceInstanceObject implements InstanceObject {
     myDeallocThreadId = deallocThreadId;
   }
 
-  public void setAllocationCallstack(@NotNull  NativeCallStack callstack) {
+  public void setAllocationBacktrace(@NotNull NativeBacktrace backtrace) {
     myAllocationLocations = null;
-    myAllocationCallstack = callstack;
+    myAllocationBacktrace = backtrace;
   }
 
-  public void setDeallocationCallstack(@NotNull NativeCallStack callstack) {
+  public void setDeallocationBacktrace(@NotNull NativeBacktrace backtrace) {
     myDeallocationLocations = null;
-    myDeallocationCallstack = callstack;
+    myDeallocationBacktrace = backtrace;
   }
 
   @Override
@@ -240,12 +243,6 @@ public class JniReferenceInstanceObject implements InstanceObject {
   @Override
   public ClassDb.ClassEntry getClassEntry() {
     return myReferencedObject.getClassEntry();
-  }
-
-  @Nullable
-  @Override
-  public InstanceObject getClassObject() {
-    return myReferencedObject.getClassObject();
   }
 
   @NotNull

@@ -15,24 +15,24 @@
  */
 package com.android.tools.idea.gradle.model.java;
 
-import com.intellij.openapi.util.io.FileUtilRt;
+import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
+import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
+
 import com.intellij.serialization.PropertyMapping;
+import java.io.File;
+import java.io.Serializable;
+import java.util.Objects;
 import org.gradle.tooling.model.GradleModuleVersion;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.io.Serializable;
-
-import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
 
 /**
  * Dependency to a Jar library.
  */
 public class JarLibraryDependency implements Serializable {
   // Increase the value when adding/removing fields or when changing the serialization/deserialization mechanism.
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = 2L;
 
   @NotNull @NonNls private static final String UNRESOLVED_DEPENDENCY_PREFIX = "unresolved dependency - ";
 
@@ -50,7 +50,7 @@ public class JarLibraryDependency implements Serializable {
   public static String getDependencyName(@NotNull File binaryPath, boolean resolved) {
     if (resolved) {
       // Gradle API doesn't provide library name at the moment.
-      return binaryPath.isFile() ? FileUtilRt.getNameWithoutExtension(binaryPath.getName()) : sanitizeFileName(binaryPath.getPath());
+      return binaryPath.isFile() ? getNameWithoutExtension(binaryPath) : sanitizeFileName(binaryPath.getPath());
     }
     else {
       // Gradle uses names like 'unresolved dependency - commons-collections commons-collections 3.2' for unresolved dependencies.
@@ -63,7 +63,15 @@ public class JarLibraryDependency implements Serializable {
     return !libraryName.startsWith(UNRESOLVED_DEPENDENCY_PREFIX);
   }
 
-  @PropertyMapping({"myName", "myBinaryPath", "mySourcePath", "myJavadocPath", "myScope", "myModuleVersion", "myResolved"})
+  @PropertyMapping({
+    "myName",
+    "myBinaryPath",
+    "mySourcePath",
+    "myJavadocPath",
+    "myScope",
+    "myModuleVersion",
+    "myResolved"
+  })
   public JarLibraryDependency(@NotNull String name,
                               @Nullable File binaryPath,
                               @Nullable File sourcePath,
@@ -112,5 +120,36 @@ public class JarLibraryDependency implements Serializable {
 
   public boolean isResolved() {
     return myResolved;
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(
+      myName,
+      myBinaryPath,
+      mySourcePath,
+      myJavadocPath,
+      myScope,
+      myModuleVersion,
+      myResolved
+    );
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (!(obj instanceof JarLibraryDependency)) {
+      return false;
+    }
+    JarLibraryDependency dependency = (JarLibraryDependency) obj;
+    return Objects.equals(myName, dependency.myName)
+      && Objects.equals(myBinaryPath, dependency.myBinaryPath)
+      && Objects.equals(mySourcePath, dependency.mySourcePath)
+      && Objects.equals(myJavadocPath, dependency.myJavadocPath)
+      && Objects.equals(myScope, dependency.myScope)
+      && Objects.equals(myModuleVersion, dependency.myModuleVersion)
+      && Objects.equals(myResolved, dependency.myResolved);
   }
 }

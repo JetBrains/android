@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture.translations;
 
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.fixture.theme.EditorTextFieldFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.EditorTextFieldFixture;
 import org.fest.swing.core.Robot;
 import org.fest.swing.core.matcher.JLabelMatcher;
 import org.fest.swing.fixture.JButtonFixture;

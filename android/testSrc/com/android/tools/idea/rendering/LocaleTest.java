@@ -83,6 +83,10 @@ public class LocaleTest extends TestCase {
 
     assertEquals(Locale.create(qualifier1), Locale.create("b+nb"));
     assertEquals(Locale.create(qualifier3), Locale.create("b+nb+NO"));
+
+    Locale defaultLocale = Locale.create(new LocaleQualifier());
+    assertFalse(defaultLocale.hasLanguage());
+    assertNull(defaultLocale.qualifier.getLanguage());
   }
 
   public void testFolderConfig() {

@@ -17,22 +17,21 @@ package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.gradle.structure.configurables.ui.ToolWindowHeader
 import com.android.tools.idea.tests.gui.framework.GuiTests
-import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
 import com.android.tools.idea.tests.gui.framework.findByLabel
 import com.android.tools.idea.tests.gui.framework.findByType
 import com.android.tools.idea.tests.gui.framework.finder
 import com.android.tools.idea.tests.gui.framework.fixture.ComboBoxActionFixture
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
-import com.android.tools.idea.tests.gui.framework.robot
 import com.android.tools.idea.tests.gui.framework.tryFind
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.TimedDeadzone
 import org.fest.swing.core.MouseButton
+import org.fest.swing.core.Robot
 import org.fest.swing.edt.GuiQuery
+import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.fixture.JTabbedPaneFixture
 import org.fest.swing.fixture.JTreeFixture
 import org.fest.swing.timing.Pause
@@ -44,19 +43,28 @@ import javax.swing.JLabel
 import javax.swing.JTabbedPane
 
 open class BasePerspectiveConfigurableFixture protected constructor(
-    override val ideFrameFixture: IdeFrameFixture,
-    override val container: Container
-) : IdeFrameContainerFixture {
+  val robot: Robot,
+  val container: Container
+) : ContainerFixture<Container> {
+
+  override fun target(): Container = container
+  override fun robot(): Robot = robot
 
   fun minimizeModulesList() {
-    val hideButton = finder().find(container, matcher<InplaceButton> { it.toolTipText == "Hide" })
+    val hideButton =
+      finder().find(
+        finder().find(
+          container,
+          matcher<ToolWindowHeader> { toolWindowHeader ->
+            !finder().findAll(toolWindowHeader, matcher<JLabel> { it.text == "Modules" }).isEmpty()
+          }
+        ),
+        matcher<InplaceButton> { it.toolTipText == "Hide" })
     robot().pressMouse(hideButton, Point(3, 3), MouseButton.LEFT_BUTTON)
     try {
-      waitForIdle()  // This is to make sure that pause() waits long enough.
       Pause.pause(TimedDeadzone.DEFAULT.length.toLong() + 1)
     } finally {
       robot().releaseMouse(MouseButton.LEFT_BUTTON)
-      waitForIdle()
     }
   }
 
@@ -64,11 +72,9 @@ open class BasePerspectiveConfigurableFixture protected constructor(
     val restoreButton = finder().find(container, matcher<ActionButton> { it.toolTipText == "Restore 'Modules' List" })
     robot().pressMouse(restoreButton, Point(3, 3), MouseButton.LEFT_BUTTON)
     try {
-      waitForIdle()  // This is to make sure that pause() waits long enough.
       Pause.pause(TimedDeadzone.DEFAULT.length.toLong() + 1)
     } finally {
       robot().releaseMouse(MouseButton.LEFT_BUTTON)
-      waitForIdle()
     }
   }
 
@@ -106,8 +112,8 @@ open class BasePerspectiveConfigurableFixture protected constructor(
                   .findByType<Tree>(
                       root = finder()
                           .find(
-                              container,
-                              matcher<ToolWindowHeader> { it.components.any { it is JLabel && it.text == "Modules" } })
+                            container,
+                            matcher<ToolWindowHeader> { toolWindowHeader -> toolWindowHeader.components.any { it is JLabel && it.text == "Modules" } })
                           .parent))
     }
   }

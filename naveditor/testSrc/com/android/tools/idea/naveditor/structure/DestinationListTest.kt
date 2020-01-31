@@ -63,8 +63,11 @@ class DestinationListTest : NavTestCase() {
     }
     val surface = model.surface
     val sceneView = NavView(surface as NavDesignSurface, surface.sceneManager!!)
-    `when`<SceneView>(surface.getCurrentSceneView()).thenReturn(sceneView)
-    _list = DestinationList(project, surface)
+    `when`<SceneView>(surface.getFocusedSceneView()).thenReturn(sceneView)
+    val destinationList = DestinationList(project, surface)
+    val myList = destinationList.myList
+    myList.setSize(200,500)
+    _list = destinationList
   }
 
   override fun tearDown() {
@@ -132,7 +135,7 @@ class DestinationListTest : NavTestCase() {
     val model = modelBuilder.build()
 
     val sceneView = NavView(model.surface as NavDesignSurface, model.surface.sceneManager!!)
-    `when`<SceneView>(model.surface.currentSceneView).thenReturn(sceneView)
+    `when`<SceneView>(model.surface.focusedSceneView).thenReturn(sceneView)
     val list = DestinationList(project, model.surface as NavDesignSurface)
 
     assertEquals(ImmutableList.of(model.find("fragment1")!!, model.find("fragment2")!!),
@@ -191,7 +194,7 @@ class DestinationListTest : NavTestCase() {
     }
     val surface = model.surface
     val sceneView = NavView(surface as NavDesignSurface, surface.sceneManager!!)
-    `when`<SceneView>(surface.getCurrentSceneView()).thenReturn(sceneView)
+    `when`<SceneView>(surface.getFocusedSceneView()).thenReturn(sceneView)
     val list = DestinationList(project, surface)
 
     assertEquals(6, list.myList.itemsCount)
@@ -240,7 +243,7 @@ class DestinationListTest : NavTestCase() {
     }
     val surface = model.surface
     val sceneView = NavView(surface as NavDesignSurface, surface.sceneManager!!)
-    `when`<SceneView>(surface.getCurrentSceneView()).thenReturn(sceneView)
+    `when`<SceneView>(surface.getFocusedSceneView()).thenReturn(sceneView)
     val list = DestinationList(project, surface)
 
     list.setFilter("nav")

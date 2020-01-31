@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.util;
 
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import com.intellij.ide.IdeEventQueue;
@@ -23,10 +22,15 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.util.AtomicNotNullLazyValue;
 import com.intellij.util.Alarm;
+import java.awt.EventQueue;
+import java.awt.Toolkit;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
-import java.util.concurrent.*;
 
 public class FutureUtils {
   private static AtomicNotNullLazyValue<Alarm> myAlarm = new AtomicNotNullLazyValue<Alarm>() {
@@ -66,7 +70,7 @@ public class FutureUtils {
    * Waits on the dispatch thread for a {@link Future} to complete.
    * Calling this method instead of {@link Future#get} is required for
    * {@link Future} that have callbacks executing on the
-   * {@link EdtExecutor#INSTANCE}.
+   * {@link com.intellij.util.concurrency.EdtExecutorService}.
    */
   public static <V> V pumpEventsAndWaitForFuture(Future<V> future, long timeout, TimeUnit unit)
     throws ExecutionException, InterruptedException, TimeoutException {

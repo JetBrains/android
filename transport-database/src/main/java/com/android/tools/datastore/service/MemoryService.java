@@ -23,31 +23,24 @@ import com.android.tools.datastore.LogService;
 import com.android.tools.datastore.ServicePassThrough;
 import com.android.tools.datastore.database.MemoryLiveAllocationTable;
 import com.android.tools.datastore.database.MemoryStatsTable;
+import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.poller.MemoryDataPoller;
 import com.android.tools.datastore.poller.MemoryJvmtiDataPoller;
 import com.android.tools.datastore.poller.PollRunner;
 import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
+import com.android.tools.profiler.proto.MemoryProfiler;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationContextsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSnapshotRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo;
-import com.android.tools.profiler.proto.MemoryProfiler.BatchAllocationSample;
-import com.android.tools.profiler.proto.MemoryProfiler.BatchJNIGlobalRefEvent;
-import com.android.tools.profiler.proto.MemoryProfiler.DumpDataRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.DumpDataResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.HeapDumpInfo;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ImportLegacyAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.JNIGlobalRefsEventsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LatestAllocationTimeResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationContextsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.LegacyAllocationEventsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.ListDumpInfosRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.ListHeapDumpInfosResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
@@ -56,18 +49,14 @@ import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
-import com.android.tools.profiler.proto.MemoryProfiler.ResolveNativeBacktraceRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.SetAllocationSamplingRateResponse;
-import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoRequest;
-import com.android.tools.profiler.proto.MemoryProfiler.StackFrameInfoResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpRequest;
 import com.android.tools.profiler.proto.MemoryProfiler.TriggerHeapDumpResponse;
 import com.android.tools.profiler.proto.MemoryServiceGrpc;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.profiler.proto.Transport;
 import io.grpc.stub.StreamObserver;
 import java.sql.Connection;
 import java.util.Arrays;
@@ -82,14 +71,18 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
 
   private final Map<Long, PollRunner> myRunners = new HashMap<>();
   private final Map<Long, PollRunner> myJvmtiRunners = new HashMap<>();
+  private final UnifiedEventsTable myUnifiedTable;
   private final MemoryStatsTable myStatsTable;
   private final MemoryLiveAllocationTable myAllocationsTable;
   private final Consumer<Runnable> myFetchExecutor;
   private final DataStoreService myService;
   private final LogService myLogService;
 
-  // TODO Revisit fetch mechanism
-  public MemoryService(@NotNull DataStoreService dataStoreService, Consumer<Runnable> fetchExecutor, @NotNull LogService logService) {
+  public MemoryService(@NotNull DataStoreService dataStoreService,
+                       UnifiedEventsTable unifiedTable,
+                       Consumer<Runnable> fetchExecutor,
+                       @NotNull LogService logService) {
+    myUnifiedTable = unifiedTable;
     myLogService = logService;
     myFetchExecutor = fetchExecutor;
     myService = dataStoreService;
@@ -151,37 +144,12 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       response = client.triggerHeapDump(request);
       // Saves off the HeapDumpInfo immediately instead of waiting for the MemoryDataPoller to pull it through, which can be delayed
       // and results in a NOT_FOUND status when the profiler tries to pull the dump's data in quick successions.
-      if (response.getStatus() == TriggerHeapDumpResponse.Status.SUCCESS) {
+      if (response.getStatus().getStatus() == Memory.HeapDumpStatus.Status.SUCCESS) {
         assert response.getInfo() != null;
         myStatsTable.insertOrReplaceHeapInfo(request.getSession(), response.getInfo());
       }
     }
     responseObserver.onNext(response);
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getHeapDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
-    DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
-    DumpDataResponse.Status status = myStatsTable.getHeapDumpStatus(request.getSession(), request.getDumpTime());
-    switch (status) {
-      case SUCCESS:
-        byte[] data = myStatsTable.getHeapDumpData(request.getSession(), request.getDumpTime());
-        assert data != null;
-        responseBuilder.setData(ByteString.copyFrom(data));
-        responseBuilder.setStatus(status);
-        break;
-      case NOT_READY:
-      case FAILURE_UNKNOWN:
-      case NOT_FOUND:
-        responseBuilder.setStatus(status);
-        break;
-      default:
-        responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
-        break;
-    }
-
-    responseObserver.onNext(responseBuilder.build());
     responseObserver.onCompleted();
   }
 
@@ -199,8 +167,8 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void importHeapDump(ImportHeapDumpRequest request, StreamObserver<ImportHeapDumpResponse> responseObserver) {
     ImportHeapDumpResponse.Builder responseBuilder = ImportHeapDumpResponse.newBuilder();
     myStatsTable.insertOrReplaceHeapInfo(request.getSession(), request.getInfo());
-    myStatsTable
-      .insertHeapDumpData(request.getSession(), request.getInfo().getStartTime(), DumpDataResponse.Status.SUCCESS, request.getData());
+    myUnifiedTable.insertBytes(request.getSession().getStreamId(), Long.toString(request.getInfo().getStartTime()),
+                               Transport.BytesResponse.newBuilder().setContents(request.getData()).build());
     responseBuilder.setStatus(ImportHeapDumpResponse.Status.SUCCESS);
     responseObserver.onNext(responseBuilder.build());
     responseObserver.onCompleted();
@@ -215,7 +183,7 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
       response = client.trackAllocations(request);
       // Saves off the AllocationsInfo immediately instead of waiting for the MemoryDataPoller to pull it through, which can be delayed
       // and results in a NOT_FOUND status when the profiler tries to pull the info's data in quick successions.
-      if (request.getEnabled() && response.getStatus() == TrackAllocationsResponse.Status.SUCCESS) {
+      if (request.getEnabled() && response.getStatus().getStatus() == Memory.TrackStatus.Status.SUCCESS) {
         assert response.getInfo() != null;
         myStatsTable.insertOrReplaceAllocationsInfo(request.getSession(), response.getInfo());
       }
@@ -228,96 +196,10 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   public void importLegacyAllocations(ImportLegacyAllocationsRequest request,
                                       StreamObserver<ImportLegacyAllocationsResponse> responseObserver) {
     assert request.getInfo().getLegacy();
+    myUnifiedTable.insertBytes(request.getSession().getStreamId(), Long.toString(request.getInfo().getStartTime()),
+                               Transport.BytesResponse.newBuilder().setContents(request.getData()).build());
     myStatsTable.insertOrReplaceAllocationsInfo(request.getSession(), request.getInfo());
-
-    AllocationContextsResponse contexts = request.getContexts();
-    LegacyAllocationEventsResponse allocations = request.getAllocations();
-    if (!contexts.equals(AllocationContextsResponse.getDefaultInstance())) {
-      myStatsTable
-        .insertLegacyAllocationContext(request.getSession(), contexts.getAllocatedClassesList(), contexts.getAllocationStacksList());
-    }
-    if (!allocations.equals(LegacyAllocationEventsResponse.getDefaultInstance())) {
-      myStatsTable.updateLegacyAllocationEvents(request.getSession(), request.getInfo().getStartTime(), allocations);
-    }
-
     responseObserver.onNext(ImportLegacyAllocationsResponse.newBuilder().setStatus(ImportLegacyAllocationsResponse.Status.SUCCESS).build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getLegacyAllocationContexts(LegacyAllocationContextsRequest request,
-                                          StreamObserver<AllocationContextsResponse> responseObserver) {
-    responseObserver.onNext(myStatsTable.getLegacyAllocationContexts(request));
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getLegacyAllocationDump(DumpDataRequest request, StreamObserver<DumpDataResponse> responseObserver) {
-    DumpDataResponse.Builder responseBuilder = DumpDataResponse.newBuilder();
-
-    AllocationsInfo response = myStatsTable.getAllocationsInfo(request.getSession(), request.getDumpTime());
-    if (response == null) {
-      responseBuilder.setStatus(DumpDataResponse.Status.NOT_FOUND);
-    }
-    else if (response.getStatus() == AllocationsInfo.Status.FAILURE_UNKNOWN) {
-      responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
-    }
-    else {
-      if (response.getLegacy()) {
-        byte[] data = myStatsTable.getLegacyAllocationDumpData(request.getSession(), request.getDumpTime());
-        if (data == null) {
-          responseBuilder.setStatus(DumpDataResponse.Status.NOT_READY);
-        }
-        else {
-          responseBuilder.setStatus(DumpDataResponse.Status.SUCCESS);
-          responseBuilder.setData(ByteString.copyFrom(data));
-        }
-      }
-      else {
-        // O+ allocation does not have legacy data.
-        responseBuilder.setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN);
-      }
-    }
-    responseObserver.onNext(responseBuilder.build());
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getStackFrameInfo(StackFrameInfoRequest request,
-                                StreamObserver<StackFrameInfoResponse> responseObserver) {
-    responseObserver.onNext(myAllocationsTable.getStackFrameInfo(request.getSession(), request.getMethodId()));
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getLegacyAllocationEvents(LegacyAllocationEventsRequest request,
-                                        StreamObserver<LegacyAllocationEventsResponse> responseObserver) {
-    LegacyAllocationEventsResponse.Builder builder = LegacyAllocationEventsResponse.newBuilder();
-
-    AllocationsInfo response = myStatsTable.getAllocationsInfo(request.getSession(), request.getStartTime());
-    if (response == null) {
-      builder.setStatus(LegacyAllocationEventsResponse.Status.NOT_FOUND);
-    }
-    else if (response.getStatus() == AllocationsInfo.Status.FAILURE_UNKNOWN) {
-      builder.setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN);
-    }
-    else {
-      if (response.getLegacy()) {
-        LegacyAllocationEventsResponse events =
-          myStatsTable.getLegacyAllocationData(request.getSession(), request.getStartTime());
-        if (events == null) {
-          builder.setStatus(LegacyAllocationEventsResponse.Status.NOT_READY);
-        }
-        else {
-          builder.mergeFrom(events);
-        }
-      }
-      else {
-        // O+ allocation does not have legacy data.
-        builder.setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN);
-      }
-    }
-    responseObserver.onNext(builder.build());
     responseObserver.onCompleted();
   }
 
@@ -338,54 +220,30 @@ public class MemoryService extends MemoryServiceGrpc.MemoryServiceImplBase imple
   }
 
   @Override
-  public void getAllocations(AllocationSnapshotRequest request, StreamObserver<BatchAllocationSample> responseObserver) {
-    BatchAllocationSample response;
-    if (request.getLiveObjectsOnly()) {
-      response = myAllocationsTable.getSnapshot(request.getSession(), request.getEndTime());
-    }
-    else {
-      response =
-        myAllocationsTable.getAllocations(request.getSession(), request.getStartTime(), request.getEndTime());
-    }
+  public void getAllocationEvents(AllocationSnapshotRequest request,
+                                  StreamObserver<MemoryProfiler.AllocationEventsResponse> responseObserver) {
+    MemoryProfiler.AllocationEventsResponse response = MemoryProfiler.AllocationEventsResponse.newBuilder()
+      .addAllEvents(myAllocationsTable.getAllocationEvents(request.getSession(), request.getStartTime(), request.getEndTime()))
+      .build();
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
 
   @Override
   public void getJNIGlobalRefsEvents(JNIGlobalRefsEventsRequest request,
-                                     StreamObserver<BatchJNIGlobalRefEvent> responseObserver) {
-    BatchJNIGlobalRefEvent result;
-    if (request.getLiveObjectsOnly()) {
-      result = myAllocationsTable.getJniReferencesSnapshot(request.getSession(), request.getEndTime());
-    }
-    else {
-      result = myAllocationsTable.getJniReferencesEventsFromRange(request.getSession(), request.getStartTime(), request.getEndTime());
-    }
-
-    responseObserver.onNext(result);
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void resolveNativeBacktrace(ResolveNativeBacktraceRequest request,
-                                     StreamObserver<NativeCallStack> responseObserver) {
-    NativeCallStack callStack = myAllocationsTable.resolveNativeBacktrace(request.getSession(), request.getBacktrace());
-    responseObserver.onNext(callStack);
-    responseObserver.onCompleted();
-  }
-
-  @Override
-  public void getLatestAllocationTime(LatestAllocationTimeRequest request,
-                                      StreamObserver<LatestAllocationTimeResponse> responseObserver) {
-    LatestAllocationTimeResponse response = myAllocationsTable.getLatestDataTimestamp(request.getSession());
+                                     StreamObserver<MemoryProfiler.JNIGlobalRefsEventsResponse> responseObserver) {
+    MemoryProfiler.JNIGlobalRefsEventsResponse response = MemoryProfiler.JNIGlobalRefsEventsResponse.newBuilder()
+      .addAllEvents(myAllocationsTable.getJniReferenceEvents(request.getSession(), request.getStartTime(), request.getEndTime()))
+      .build();
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }
 
   @Override
   public void getAllocationContexts(AllocationContextsRequest request, StreamObserver<AllocationContextsResponse> responseObserver) {
-    AllocationContextsResponse response =
-      myAllocationsTable.getAllocationContexts(request.getSession(), request.getStartTime(), request.getEndTime());
+    MemoryProfiler.AllocationContextsResponse response = MemoryProfiler.AllocationContextsResponse.newBuilder()
+      .addAllContexts(myAllocationsTable.getAllocationContexts(request.getSession(), request.getStartTime(), request.getEndTime()))
+      .build();
     responseObserver.onNext(response);
     responseObserver.onCompleted();
   }

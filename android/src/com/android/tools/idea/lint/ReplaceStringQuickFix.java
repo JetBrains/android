@@ -42,6 +42,9 @@ import org.jetbrains.android.inspections.lint.AndroidLintQuickFix;
 import org.jetbrains.android.inspections.lint.AndroidQuickfixContexts;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.KotlinLanguage;
+import org.jetbrains.kotlin.idea.core.ShortenReferences;
+import org.jetbrains.kotlin.psi.KtElement;
 
 /**
  * Generic lint quickfix which replaces text somewhere in the range from [startElement,endElement] by matching
@@ -168,16 +171,24 @@ public class ReplaceStringQuickFix implements AndroidLintQuickFix {
           if (element == null) {
             return;
           }
-          if (myShortenNames && element.getLanguage() == JavaLanguage.INSTANCE) {
+          if (myShortenNames) {
             PsiElement end = file.findElementAt(endOffset);
             PsiElement parent = end != null ? PsiTreeUtil.findCommonParent(element.getParent(), end) : element.getParent();
             if (parent == null) {
               parent = element.getParent();
             }
 
-            parent = JavaCodeStyleManager.getInstance(project).shortenClassReferences(parent);
-            if (myFormat) {
+            if (element.getLanguage() == JavaLanguage.INSTANCE) {
+              parent = JavaCodeStyleManager.getInstance(project).shortenClassReferences(parent);
+            } else if (element.getLanguage() == KotlinLanguage.INSTANCE && parent instanceof KtElement) {
+              parent = ShortenReferences.DEFAULT.process((KtElement)parent);
+            } else {
+              parent = null;
+            }
+            if (myFormat && parent != null) {
               CodeStyleManager.getInstance(project).reformat(parent);
+            } else {
+              CodeStyleManager.getInstance(project).reformatRange(element, startOffset, endOffset);
             }
           } else if (myFormat) {
             CodeStyleManager.getInstance(project).reformatRange(element, startOffset, endOffset);

@@ -16,8 +16,6 @@
 package com.android.tools.idea.structure.dialog
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable
@@ -44,6 +42,7 @@ import com.intellij.openapi.project.ProjectBundle
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.MasterDetailsComponent
 import com.intellij.openapi.ui.MessageType
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.WindowManager
@@ -61,7 +60,10 @@ import com.intellij.ui.navigation.Place.goFurther
 import com.intellij.util.EventDispatcher
 import com.intellij.util.io.storage.HeavyProcessLatch
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil.*
+import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.UIUtil.SIDE_PANEL_BACKGROUND
+import com.intellij.util.ui.UIUtil.invokeLaterIfNeeded
+import com.intellij.util.ui.UIUtil.requestFocus
 import com.intellij.util.ui.update.Activatable
 import com.intellij.util.ui.update.UiNotifyConnector
 import org.jetbrains.annotations.Nls
@@ -70,7 +72,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.KeyEvent
-import java.util.*
+import java.util.EventListener
 import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JLabel
@@ -101,6 +103,9 @@ class ProjectStructureConfigurable(private val project: Project) : SearchableCon
   private var myOpenTimeMs: Long = 0
   private var inDoOK = false
   private var needsSync = false
+
+  private val isDefaultProject: Boolean
+    get() = project === ProjectManager.getInstance().defaultProject
 
   override fun getPreferredFocusedComponent(): JComponent? = myToFocus
 
@@ -203,7 +208,7 @@ class ProjectStructureConfigurable(private val project: Project) : SearchableCon
   override fun enableSearch(option: String): Runnable? = null
 
   @Nls
-  override fun getDisplayName(): String = ProjectBundle.message("project.settings.display.name")
+  override fun getDisplayName(): String = if (isDefaultProject) "Default Project Structure" else ProjectBundle.message("project.settings.display.name")
 
   override fun getHelpTopic(): String? = mySelectedConfigurable?.helpTopic
 
@@ -275,7 +280,7 @@ class ProjectStructureConfigurable(private val project: Project) : SearchableCon
     if (needsSync) {
       // NOTE: If the user applied the changes in the dialog and then cancelled the dialog, sync still needs to happen here since
       //       we do not perform a sync when applying changes on "apply".
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_PSD_CHANGES)
+      GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_PSD_CHANGES)
     }
   }
 
@@ -294,8 +299,21 @@ class ProjectStructureConfigurable(private val project: Project) : SearchableCon
       }
 
       override fun doCancelAction() {
-        // Do not close on Escape.
-        if (IdeEventQueue.getInstance().trueCurrentEvent.safeAs<KeyEvent>()?.keyCode == KeyEvent.VK_ESCAPE) return
+        // Ask for confirmation to close on ESC with not apllied changes.
+        if (IdeEventQueue.getInstance().trueCurrentEvent.safeAs<KeyEvent>()?.keyCode == KeyEvent.VK_ESCAPE) {
+          if (isModified) {
+            if (Messages.showDialog(
+                project,
+                "You have made changes that have not been applied.",
+                "Discard changes?",
+                arrayOf("Discard changes", "Continue editing"),
+                0,
+                UIUtil.getQuestionIcon()
+              ) != 0) {
+              return
+            }
+          }
+        }
         super.doCancelAction()
       }
 
@@ -325,8 +343,6 @@ class ProjectStructureConfigurable(private val project: Project) : SearchableCon
   }
 
   private fun addConfigurables() {
-    if (myDisposable.disposed) myDisposable = MyDisposable()
-
     val configurables =
       AndroidConfigurableContributor.EP_NAME.extensions
         .asSequence()
@@ -512,9 +528,6 @@ class ProjectStructureConfigurable(private val project: Project) : SearchableCon
     fun putPath(place: Place, configurable: Configurable) {
       place.putPath(CATEGORY_NAME, configurable.displayName)
     }
-
-    @JvmStatic
-    fun isNewPsdEnabled(): Boolean = StudioFlags.NEW_PSD_ENABLED.get() && GradleExperimentalSettings.getInstance().USE_NEW_PSD
 
     private fun createPlaceFor(configurable: Configurable): Place = Place().putPath(CATEGORY_NAME, configurable.displayName)
   }

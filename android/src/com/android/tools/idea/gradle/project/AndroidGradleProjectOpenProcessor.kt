@@ -22,6 +22,7 @@ import com.android.tools.idea.util.toVirtualFile
 import com.intellij.ide.GeneralSettings
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.ide.impl.ProjectUtil.confirmOpenNewProject
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.vfs.VirtualFile
@@ -85,4 +86,6 @@ class AndroidGradleProjectOpenProcessor : ProjectOpenProcessor() {
 
   private fun canOpenAsExistingProject(file: VirtualFile): Boolean =
       file.toPathString().resolve(Project.DIRECTORY_STORE_FOLDER).toVirtualFile(true) != null
+
+  override fun isStrongProjectInfoHolder(): Boolean = ApplicationManager.getApplication().isHeadlessEnvironment
 }

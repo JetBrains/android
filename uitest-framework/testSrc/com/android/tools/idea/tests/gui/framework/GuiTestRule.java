@@ -15,19 +15,31 @@
  */
 package com.android.tools.idea.tests.gui.framework;
 
+import static com.android.testutils.TestUtils.getWorkspaceFile;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
+import static com.google.common.base.Charsets.UTF_8;
+import static com.google.common.io.Files.asCharSource;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
+import static org.fest.reflect.core.Reflection.field;
+import static org.fest.reflect.core.Reflection.method;
+import static org.fest.reflect.core.Reflection.type;
+
 import com.android.SdkConstants;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.gradle.project.importing.GradleProjectImporter;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.testing.AndroidGradleTests;
+import com.android.tools.idea.tests.gui.framework.aspects.AspectsAgentLogger;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ide.GeneralSettings;
+import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
@@ -39,6 +51,24 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.IdeFrameImpl;
 import com.intellij.testGuiFramework.impl.GuiTestThread;
 import com.intellij.testGuiFramework.remote.transport.RestartIdeMessage;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dialog;
+import java.awt.Frame;
+import java.awt.KeyboardFocusManager;
+import java.awt.Toolkit;
+import java.awt.Window;
+import java.awt.event.KeyEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
 import org.fest.swing.core.Robot;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
@@ -54,25 +84,6 @@ import org.junit.rules.Timeout;
 import org.junit.runner.Description;
 import org.junit.runners.model.MultipleFailureException;
 import org.junit.runners.model.Statement;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.beans.PropertyChangeListener;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static com.android.testutils.TestUtils.getWorkspaceFile;
-import static com.android.tools.idea.testing.FileSubject.file;
-import static com.android.tools.idea.tests.gui.framework.GuiTests.refreshFiles;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.intellij.openapi.util.io.FileUtil.sanitizeFileName;
-import static org.fest.reflect.core.Reflection.*;
 
 public class GuiTestRule implements TestRule {
 
@@ -90,7 +101,7 @@ public class GuiTestRule implements TestRule {
    * before/after the test gets a chance to run, while preventing the whole rule chain from running forever.
    */
   private static final int DEFAULT_TEST_TIMEOUT_MINUTES = 3;
-  private Timeout myInnerTimeout = new DebugFriendlyTimeout(DEFAULT_TEST_TIMEOUT_MINUTES, TimeUnit.MINUTES);
+  private Timeout myInnerTimeout = new DebugFriendlyTimeout(DEFAULT_TEST_TIMEOUT_MINUTES, TimeUnit.MINUTES).withThreadDumpOnTimeout();
   private Timeout myOuterTimeout = new DebugFriendlyTimeout(DEFAULT_TEST_TIMEOUT_MINUTES + 2, TimeUnit.MINUTES);
 
   private final PropertyChangeListener myGlobalFocusListener = e -> {
@@ -128,7 +139,6 @@ public class GuiTestRule implements TestRule {
       .around(new BlockReloading())
       .around(new BazelUndeclaredOutputs())
       .around(myLeakCheck)
-      .around(new BleakLogControl())
       .around(new IdeHandling())
       .around(new NpwControl())
       .around(new ScreenshotOnFailure())
@@ -286,6 +296,20 @@ public class GuiTestRule implements TestRule {
     field("containerMap").ofType(Hashtable.class).in(manager).get().clear();
   }
 
+  @NotNull
+  public Project openProject(@NotNull String projectDirName) throws Exception {
+    File projectDir = copyProjectBeforeOpening(projectDirName);
+    VirtualFile fileToSelect = VfsUtil.findFileByIoFile(projectDir, true);
+    ProjectManager.getInstance().loadAndOpenProject(fileToSelect.getPath());
+
+    Wait.seconds(5).expecting("Project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length == 1);
+
+    Project project = ProjectManager.getInstance().getOpenProjects()[0];
+    GuiTests.waitForProjectIndexingToFinish(project);
+    ideFrame().updateToolbars();
+    return project;
+  }
+
   public IdeFrameFixture importSimpleApplication() throws IOException {
     return importProjectAndWaitForProjectSyncToFinish("SimpleApplication");
   }
@@ -300,8 +324,13 @@ public class GuiTestRule implements TestRule {
   }
 
   public IdeFrameFixture importProject(@NotNull String projectDirName) throws IOException {
-    VirtualFile toSelect = VfsUtil.findFileByIoFile(setUpProject(projectDirName), true);
-    ApplicationManager.getApplication().invokeAndWait(() -> GradleProjectImporter.getInstance().importProject(toSelect));
+    File projectDir = setUpProject(projectDirName);
+    return openProject(projectDir);
+  }
+
+  @NotNull
+  public IdeFrameFixture openProject(@NotNull File projectDir) {
+    ApplicationManager.getApplication().invokeAndWait(() -> ProjectUtil.openOrImport(projectDir.getAbsolutePath(), null, true));
 
     Wait.seconds(5).expecting("Project to be open").until(() -> ProjectManager.getInstance().getOpenProjects().length != 0);
 
@@ -328,7 +357,7 @@ public class GuiTestRule implements TestRule {
    * @param projectDirName             the name of the project's root directory. Tests are located in testData/guiTests.
    * @throws IOException if an unexpected I/O error occurs.
    */
-  private File setUpProject(@NotNull String projectDirName) throws IOException {
+  public File setUpProject(@NotNull String projectDirName) throws IOException {
     File projectPath = copyProjectBeforeOpening(projectDirName);
 
     createGradleWrapper(projectPath, SdkConstants.GRADLE_LATEST_VERSION);
@@ -435,6 +464,15 @@ public class GuiTestRule implements TestRule {
   @NotNull
   public File getProjectPath(@NotNull String child) {
     return new File(ideFrame().getProjectPath(), child);
+  }
+
+  @NotNull
+  public String getProjectFileText(@NotNull String fileRelPath) {
+    try {
+      return asCharSource(getProjectPath(fileRelPath), UTF_8).read();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @NotNull

@@ -54,8 +54,8 @@ class DependenciesTreeRootNodeTest : DependencyTestCase() {
           android.arch.core:common:1.1.1
           android.arch.core:runtime:1.1.1
           android.arch.lifecycle:common:1.1.1
-          android.arch.lifecycle:livedata-core:1.1.1
           android.arch.lifecycle:livedata:1.1.1
+          android.arch.lifecycle:livedata-core:1.1.1
           android.arch.lifecycle:runtime:1.1.1
           android.arch.lifecycle:viewmodel:1.1.1
           com.android.support:animated-vector-drawable:28.0.0
@@ -72,7 +72,7 @@ class DependenciesTreeRootNodeTest : DependencyTestCase() {
           com.android.support:localbroadcastmanager:28.0.0
           com.android.support:print:28.0.0
           com.android.support:slidingpanelayout:28.0.0
-          support-annotations:→28.0.0
+          com.android.support:support-annotations:28.0.0
           com.android.support:support-compat:28.0.0
           com.android.support:support-core-ui:28.0.0
           com.android.support:support-core-utils:28.0.0
@@ -98,7 +98,12 @@ class DependenciesTreeRootNodeTest : DependencyTestCase() {
               lib2:1.0
           lib (..)
           libsam1-1.1.jar (../lib)
-          libs""".trimIndent()
+          libs
+          libsfd
+          libsfr
+          libspd
+          libspr
+          otherlibsfd""".trimIndent()
     val treeStructure = node.testStructure({ !it.name.startsWith("appcompat-v7") })
     // Note: If fails see a nice diff by clicking <Click to see difference> in the IDEA output window.
     Assert.assertThat(treeStructure.toString(), CoreMatchers.equalTo(expectedProjectStructure))

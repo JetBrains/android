@@ -39,14 +39,10 @@ public class ProjectCleanup {
                              @NotNull IdeModifiableModelsProvider ideModelsProvider,
                              @Nullable ProgressIndicator indicator) {
     GradleSyncState syncState = GradleSyncState.getInstance(project);
-    if (syncState.lastSyncFailedOrHasIssues()) {
+    if (syncState.lastSyncFailed()) {
       return;
     }
-    boolean syncSkipped = syncState.isSyncSkipped();
     for (ProjectCleanupStep step : myCleanupSteps) {
-      if (syncSkipped && !step.invokeOnSkippedSync()) {
-        continue;
-      }
       step.cleanUpProject(project, ideModelsProvider, indicator);
     }
   }

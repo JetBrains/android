@@ -37,6 +37,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.TestAndroidModel;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -361,7 +362,7 @@ public class ResourceHelperTest extends AndroidTestCase {
   private void setProjectNamespace(ResourceNamespace appNs) {
     CommandProcessor.getInstance().runUndoTransparentAction(() -> ApplicationManager.getApplication().runWriteAction(() -> {
       myFacet.setModel(TestAndroidModel.namespaced(myFacet));
-      myFacet.getManifest().getPackage().setValue(appNs.getPackageName());
+      Manifest.getMainManifest(myFacet).getPackage().setValue(appNs.getPackageName());
     }));
   }
 
@@ -414,7 +415,7 @@ public class ResourceHelperTest extends AndroidTestCase {
     assertThat(ResourceHelper.getResourceNamespace(rClass)).isEqualTo(RES_AUTO);
 
     // Project manifest:
-    Manifest manifest = myFacet.getManifest();
+    Manifest manifest = Manifest.getMainManifest(myFacet);
     assertThat(ResourceHelper.getResourceNamespace(manifest.getXmlElement())).isEqualTo(RES_AUTO);
     assertThat(ResourceHelper.getResourceNamespace(manifest.getXmlElement().getContainingFile())).isEqualTo(RES_AUTO);
 
@@ -432,7 +433,7 @@ public class ResourceHelperTest extends AndroidTestCase {
 
     // Framework XML: API28 has two default app icons: res/drawable-watch/sym_def_app_icon.xml and res/drawable/sym_def_app_icon.xml
     List<ResourceItem> appIconResourceItems = ResourceRepositoryManager.getInstance(myFacet)
-      .getFrameworkResources(false)
+      .getFrameworkResources(ImmutableSet.of())
       .getResources(ANDROID, ResourceType.DRAWABLE, "sym_def_app_icon");
 
     for (ResourceItem appIconResourceItem : appIconResourceItems) {

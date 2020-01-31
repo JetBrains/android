@@ -20,7 +20,8 @@ import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
-import java.awt.Rectangle
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -29,10 +30,12 @@ import java.awt.image.MemoryImageSource
 import javax.swing.JComponent
 
 private val KNOB_COLOR = Color.WHITE
-private const val KNOB_OUTER_RADIUS = 4
-private const val KNOB_INNER_RADIUS = 3
 
 class SaturationBrightnessComponent(private val myModel: ColorPickerModel) : JComponent(), ColorPickerListener {
+
+  private val knobOuterRadius = JBUI.scale(4)
+  private val knobInnerRadius = JBUI.scale(3)
+
   var brightness = 1f
     private set
   var hue = 1f
@@ -41,6 +44,9 @@ class SaturationBrightnessComponent(private val myModel: ColorPickerModel) : JCo
     private set
   var alpha: Int = 0
     private set
+
+  private var knobX: Int = 0
+  private var knobY: Int = 0
 
   init {
     isOpaque = false
@@ -61,51 +67,54 @@ class SaturationBrightnessComponent(private val myModel: ColorPickerModel) : JCo
     }
     addMouseListener(mouseAdapter)
     addMouseMotionListener(mouseAdapter)
+    addComponentListener(object : ComponentAdapter() {
+      override fun componentResized(e: ComponentEvent?) = setKnobPosition(myModel.hsb)
+    })
 
     myModel.addListener(this)
   }
 
   private fun handleMouseEvent(e: MouseEvent, commit: Boolean) {
-    val x = Math.max(0, Math.min(e.x, size.width))
-    val y = Math.max(0, Math.min(e.y, size.height))
+    knobX = Math.max(0, Math.min(e.x, size.width))
+    knobY = Math.max(0, Math.min(e.y, size.height))
 
-    val saturation = x.toFloat() / size.width
-    val brightness = 1.0f - y.toFloat() / size.height
+    val saturation = knobX.toFloat() / size.width
+    val brightness = 1.0f - knobY.toFloat() / size.height
 
     val argb = ahsbToArgb(alpha, hue, saturation, brightness)
     (if (commit) myModel::setColor else myModel::setPickingColor).invoke(Color(argb, true), this)
+    repaint()
   }
 
-  override fun getPreferredSize(): Dimension = JBUI.size(PICKER_PREFERRED_WIDTH, 150)
+  override fun getPreferredSize(): Dimension = JBUI.size(COLOR_PICKER_WIDTH, 150)
 
   override fun getMinimumSize(): Dimension = JBUI.size(150, 140)
 
   override fun paintComponent(g: Graphics) {
-    val component = Rectangle(0, 0, size.width, size.height)
     val image = createImage(SaturationBrightnessImageProducer(size.width, size.height, hue))
-
     g.color = UIUtil.getPanelBackground()
     g.fillRect(0, 0, width, height)
-
-    g.drawImage(image, component.x, component.y, null)
-
-    val knobX = Math.round(saturation * component.width)
-    val knobY = Math.round(component.height * (1.0f - brightness))
+    g.drawImage(image, 0, 0, null)
 
     g.color = KNOB_COLOR
-    g.drawOval(knobX - JBUI.scale(KNOB_OUTER_RADIUS),
-               knobY - JBUI.scale(KNOB_OUTER_RADIUS),
-               JBUI.scale(KNOB_OUTER_RADIUS * 2),
-               JBUI.scale(KNOB_OUTER_RADIUS * 2))
-    g.drawOval(knobX - JBUI.scale(KNOB_INNER_RADIUS),
-               knobY - JBUI.scale(KNOB_INNER_RADIUS),
-               JBUI.scale(KNOB_INNER_RADIUS * 2),
-               JBUI.scale(KNOB_INNER_RADIUS * 2))
+    g.drawOval(knobX - knobOuterRadius,
+               knobY - knobOuterRadius,
+               knobOuterRadius * 2,
+               knobOuterRadius * 2)
+    g.drawOval(knobX - knobInnerRadius,
+               knobY - knobInnerRadius,
+               knobInnerRadius * 2,
+               knobInnerRadius * 2)
   }
 
   override fun colorChanged(color: Color, source: Any?) {
+    if (source == this) {
+      return
+    }
     val hsbValues = Color.RGBtoHSB(color.red, color.green, color.blue, null)
     setHSBAValue(hsbValues[0], hsbValues[1], hsbValues[2], color.alpha)
+    setKnobPosition(hsbValues)
+    repaint()
   }
 
   private fun setHSBAValue(h: Float, s: Float, b: Float, a: Int) {
@@ -113,7 +122,11 @@ class SaturationBrightnessComponent(private val myModel: ColorPickerModel) : JCo
     saturation = s
     brightness = b
     alpha = a
-    repaint()
+  }
+
+  private fun setKnobPosition(hsbArray: FloatArray) {
+    knobX = (hsbArray[1] * size.width).toInt()
+    knobY = ((1f - hsbArray[2]) * size.height).toInt()
   }
 
   override fun pickingColorChanged(color: Color, source: Any?) = colorChanged(color, source)

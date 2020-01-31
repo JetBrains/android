@@ -7,13 +7,27 @@ iml_module(
     name = "intellij.android.projectSystem.gradle",
     srcs = ["src"],
     iml_files = ["intellij.android.projectSystem.gradle.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
+    # do not sort: must match IML order
+    test_runtime_deps = [
+        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
+        "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
+        "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
+        "//tools/idea/java/manifest:intellij.java.manifest",
+        "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
+        "//tools/idea:intellij.java.ui.tests",
+        "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
+        "//tools/idea/java/plugin:intellij.java.plugin",
+        "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
+    ],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
-        "//tools/idea/json:intellij.json",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
         "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
+        "//tools/idea/java/ide-customization:intellij.java.ide.customization",
+        "//tools/idea/java/ide-resources:intellij.java.ide.resources",
         "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
         "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
@@ -33,6 +47,7 @@ iml_module(
         "//tools/idea/.idea/libraries:studio-analytics-proto",
         "//tools/base/flags:studio.android.sdktools.flags[module]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module]",
+        "//tools/idea/xml/impl:intellij.xml.impl[module]",
     ],
 )
 
@@ -42,14 +57,14 @@ iml_module(
     iml_files = ["intellij.android.projectSystem.gradle.tests.iml"],
     tags = ["no_test_windows"],
     test_class = "com.android.tools.idea.projectsystem.GradleProjectSystemTestSuite",
-    test_coverage = True,
+    test_coverage = False,  # TODO(b/136028658): too flaky for use in covergae runs
     test_data = [
+        "//tools/base/build-system/previous-versions:2.2.0.zip",
         "//prebuilts/studio/jdk",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/tools/common/kotlin-plugin:Kotlin/kotlinc/build.txt",
-        "//prebuilts/tools/common/offline-m2:android-gradle-2.2.0",
         "//tools/adt/idea/android:test_deps.zip",
         "//tools/adt/idea/android/annotations",
         "//tools/adt/idea/android/testData",
@@ -67,10 +82,20 @@ iml_module(
     test_runtime_deps = [
         "//tools/idea/platform/tasks-platform-impl:intellij.platform.tasks.impl",
         "//tools/idea/platform/credential-store:intellij.platform.credentialStore",
-        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
-        "//tools/idea/jvm/jvm-analysis-impl:intellij.jvm.analysis.impl",
-        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
+        "//tools/idea/uast/uast-tests:intellij.platform.uast.tests",
         "//tools/idea/plugins/IntelliLang/intellilang-jps-plugin:intellij.java.langInjection.jps",
+        "//tools/idea/plugins/java-decompiler/plugin:intellij.java.decompiler",
+        "//tools/idea/jvm/jvm-analysis-java-tests:intellij.jvm.analysis.java.tests",
+        "//tools/idea/java/manifest:intellij.java.manifest",
+        "//tools/idea/java/ide-customization:intellij.java.ide.customization",
+        "//tools/idea/java/remote-servers/impl:intellij.java.remoteServers.impl",
+        "//tools/idea:intellij.java.ui.tests",
+        "//tools/idea/plugins/ui-designer:intellij.java.guiForms.designer",
+        "//tools/idea/java/plugin:intellij.java.plugin",
+        "//tools/idea/java/compiler/instrumentation-util-8:intellij.java.compiler.instrumentationUtil.java8",
+        "//tools/idea/java/ide-resources:intellij.java.ide.resources",
+        "//tools/idea/plugins/ui-designer-core:intellij.uiDesigner",
+        "//tools/idea/plugins/maven/error-prone-compiler:intellij.maven.errorProne.compiler",
         "//tools/adt/idea/adt-branding:intellij.android.adt.branding",
     ],
     test_srcs = ["testSrc"],
@@ -99,6 +124,7 @@ apply_diff(
     diff_file = "build_gradle.diff",
     input_file = "//tools/idea/build/dependencies/gradle-api-deps:build.gradle",
     output_file = "build.gradle",
+    tags = ["manual"],
 )
 
 # generate the maven repository
@@ -111,5 +137,6 @@ gradle_build(
         "gradle-launcher.jar": "m2/org/jetbrains/intellij/deps/gradle-launcher/*/gradle-launcher-*.jar",
         "gradle-wrapper.jar": "m2/org/jetbrains/intellij/deps/gradle-wrapper/*/gradle-wrapper-*.jar",
     },
+    tags = ["manual"],
     tasks = [":publishGradleApiToMavenLocal"],
 )

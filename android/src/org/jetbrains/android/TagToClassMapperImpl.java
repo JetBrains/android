@@ -16,17 +16,16 @@
 package org.jetbrains.android;
 
 import static com.intellij.psi.search.GlobalSearchScope.notScope;
-import static com.intellij.util.ArrayUtilRt.find;
-import static com.intellij.psi.search.GlobalSearchScope.notScope;
 import static org.jetbrains.android.facet.LayoutViewClassUtils.getTagNamesByClass;
 
-import com.android.support.AndroidxName;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.projectsystem.ScopeType;
 import com.android.tools.idea.psi.TagToClassMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import com.intellij.ProjectTopics;
-import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -36,10 +35,8 @@ import com.intellij.openapi.roots.ModuleRootListener;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiManager;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
-import com.intellij.psi.impl.PsiModificationTrackerImpl;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
@@ -51,9 +48,7 @@ import com.intellij.util.messages.MessageBusConnection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.KotlinLanguage;
 
 class TagToClassMapperImpl implements TagToClassMapper {
   private static final Logger LOG = Logger.getInstance(TagToClassMapper.class);
@@ -76,42 +71,20 @@ class TagToClassMapperImpl implements TagToClassMapper {
     });
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   * In addition, a {@link CachedValue} for this mapping is created that is updated automatically with changes
-   * to {@link PsiModificationTracker#JAVA_STRUCTURE_MODIFICATION_COUNT}.
-   */
   @Override
   @NotNull
-  public Map<String, PsiClass> getFrameworkClassMap(@NotNull String frameworkClass) {
-    Map<String, PsiClass> frameworkClasses = getClassMap(frameworkClass);
-    return Collections.unmodifiableMap(frameworkClasses);
-  }
-
-  @NotNull
-  @Override
-  public Map<String, PsiClass> getAndroidXClassMap(@NotNull AndroidxName androidXClass) {
-    String qualifiedName = MigrateToAndroidxUtil.getNameInProject(androidXClass, myModule.getProject());
-    Map<String, PsiClass> libClasses = getClassMap(qualifiedName);
-    return Collections.unmodifiableMap(libClasses);
-  }
-
-  private Map<String, PsiClass> getClassMap(String className) {
+  public Map<String, PsiClass> getClassMap(String className) {
     CachedValue<Map<String, PsiClass>> value = myClassMaps.get(className);
 
     if (value == null) {
       value = CachedValuesManager.getManager(myModule.getProject()).createCachedValue(() -> {
         Map<String, PsiClass> map = computeClassMap(className);
-        return CachedValueProvider.Result.create(
-          map,
-          ((PsiModificationTrackerImpl)PsiManager.getInstance(myModule.getProject()).getModificationTracker()).forLanguages(
-            language -> language.is(JavaLanguage.INSTANCE) || language.is(KotlinLanguage.INSTANCE)));
+        return CachedValueProvider.Result.create(map, AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(myModule.getProject()));
       }, false);
       myClassMaps.put(className, value);
     }
 
-    return value.getValue();
+    return Collections.unmodifiableMap(value.getValue());
   }
 
   @NotNull
@@ -186,7 +159,7 @@ class TagToClassMapperImpl implements TagToClassMapper {
 
   @NotNull
   private GlobalSearchScope moduleResolveScope() {
-    return myModule.getModuleWithDependenciesAndLibrariesScope(false);
+    return ProjectSystemUtil.getModuleSystem(myModule).getResolveScope(ScopeType.MAIN);
   }
 
   @NotNull

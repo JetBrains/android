@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.project.facet.ndk.NdkFacet;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.intellij.openapi.module.Module;
+import com.intellij.serialization.PropertyMapping;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -79,6 +80,12 @@ public class NdkModuleModel implements ModuleModel {
     return androidModel;
   }
 
+  @PropertyMapping({
+    "myModuleName",
+    "myRootDirPath",
+    "myAndroidProject",
+    "myVariantAbi"
+  })
   public NdkModuleModel(@NotNull String moduleName,
                         @NotNull File rootDirPath,
                         @NotNull IdeNativeAndroidProject androidProject,

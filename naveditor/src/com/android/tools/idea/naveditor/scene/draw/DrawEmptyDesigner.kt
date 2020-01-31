@@ -17,11 +17,10 @@ package com.android.tools.idea.naveditor.scene.draw
 
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.scene.SceneContext
-import com.android.tools.idea.common.scene.draw.DrawCommand
+import com.android.tools.idea.common.scene.draw.DrawCommandBase
 import com.android.tools.idea.common.scene.draw.parse
 import com.android.tools.idea.common.scene.draw.pointToString
 import com.android.tools.idea.common.scene.draw.stringToPoint
-import com.android.tools.idea.naveditor.scene.DRAW_FRAME_LEVEL
 import com.android.tools.idea.naveditor.scene.NavColors.TEXT
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons.NavEditor.Toolbar.ADD_DESTINATION
@@ -34,16 +33,12 @@ private val text2 = " to add a destination"
 @SwingCoordinate private val FONT_SIZE = JBUI.scale(13)
 @SwingCoordinate private val VERTICAL_OFFSET = JBUI.scale(3)
 
-class DrawEmptyDesigner(@SwingCoordinate private val point: Point) : DrawCommand {
-  private constructor(sp: Array<String>) : this(stringToPoint(sp[0]))
+class DrawEmptyDesigner(@SwingCoordinate private val point: Point) : DrawCommandBase() {
+  private constructor(tokens: Array<String>) : this(stringToPoint(tokens[0]))
 
-  constructor(s: String) : this(parse(s, 1))
+  constructor(serialized: String) : this(parse(serialized, 1))
 
-  override fun getLevel(): Int {
-    return DRAW_FRAME_LEVEL
-  }
-
-  override fun paint(g: Graphics2D, sceneContext: SceneContext) {
+  override fun onPaint(g: Graphics2D, sceneContext: SceneContext) {
     val g2 = g.create() as Graphics2D
 
     g2.color = TEXT

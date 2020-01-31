@@ -35,22 +35,22 @@ import com.android.sdklib.internal.avd.EmulatedProperties;
 import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
+import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.adtui.ASGallery;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.InvalidationListener;
 import com.android.tools.idea.observable.ListenerManager;
 import com.android.tools.idea.observable.core.ObjectProperty;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.expressions.string.StringExpression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.ui.wizard.deprecated.StudioWizardStepPanel;
 import com.android.tools.idea.wizard.model.ModelWizard;
@@ -99,7 +99,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -122,7 +121,6 @@ import javax.swing.event.ListSelectionListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
-
 
 /**
  * Options panel for configuring various AVD options. Has an "advanced" mode and a "simple" mode.
@@ -185,6 +183,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private StorageField myBuiltInSdCardStorage;
   private JRadioButton myBuiltInRadioButton;
   private JRadioButton myExternalRadioButton;
+  private JRadioButton myNoSDCardRadioButton;
   private ASGallery<ScreenOrientation> myOrientationToggle;
   private JButton myChangeDeviceButton;
   private JButton myChangeSystemImageButton;
@@ -501,9 +500,12 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       myBuiltInSdCardStorage.setEnabled(false);
       myExternalSdCard.setEnabled(true);
     }
-    else {
+    else if (getModel().useBuiltInSdCard().get()) {
       myBuiltInSdCardStorage.setEnabled(true);
       myExternalSdCard.setEnabled(false);
+    } else {
+      myExternalSdCard.setEnabled(false);
+      myBuiltInSdCardStorage.setEnabled(false);
     }
     myModel.ensureMinimumMemory();
     // Set 'myOriginalSdCard' so we don't warn the user about making this change
@@ -543,8 +545,9 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myDeviceFrameCheckbox.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Enable device frame");
     myBuiltInRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Built-in SD Card Size");
     myEnableComputerKeyboard.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Enable keyboard input");
-    myExternalSdCard.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Location of external SD card image");
-    myExternalRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Location of external SD card image");
+    myExternalSdCard.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Location of external SD Card image");
+    myExternalRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Location of external SD Card image");
+    myNoSDCardRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "No SD Card");
   }
 
   private void initComponents() {
@@ -607,6 +610,13 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
       public void actionPerformed(ActionEvent e) {
         myExternalSdCard.setEnabled(false);
         myBuiltInSdCardStorage.setEnabled(true);
+      }
+    });
+    myNoSDCardRadioButton.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        myExternalSdCard.setEnabled(false);
+        myBuiltInSdCardStorage.setEnabled(false);
       }
     });
 
@@ -848,7 +858,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
      */
     private void readEmulatorSnapshotSelection(@NotNull File fileToRead) {
       try (final FileInputStream inputStream = new FileInputStream(fileToRead);
-           final InputStreamReader streamReader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+           final InputStreamReader streamReader = new InputStreamReader(inputStream);
            final BufferedReader reader = new BufferedReader(streamReader)
       ) {
         final String keyString = "selectedSnapshotFile=";
@@ -954,6 +964,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBindings.bindTwoWay(new SelectedProperty(myEnableComputerKeyboard), getModel().enableHardwareKeyboard());
     myBindings.bindTwoWay(new SelectedProperty(myExternalRadioButton), getModel().useExternalSdCard());
     myBindings.bindTwoWay(new SelectedProperty(myBuiltInRadioButton), getModel().useBuiltInSdCard());
+    myBindings.bind(new SelectedProperty(myNoSDCardRadioButton), getModel().useBuiltInSdCard().not().and(getModel().useExternalSdCard().not()));
   }
 
   // TODO: jameskaye Add unit tests for these validators. (b.android.com/230192)
@@ -1173,6 +1184,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myVmHeapStorage.setEnabled(enable);
     myBuiltInRadioButton.setEnabled(enable);
     myExternalRadioButton.setEnabled(enable);
+    myNoSDCardRadioButton.setEnabled(enable);
     Device device = getModel().device().getValueOrNull();
     if (device != null && device.getDefaultHardware().getScreen().isFoldable()) {
       mySkinComboBox.setEnabled(false);
@@ -1238,8 +1250,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
 
   private void registerAdvancedOptionsVisibility() {
     myAdvancedOptionsComponents =
-      Lists.newArrayList(myStoragePanel, myCameraPanel, myNetworkPanel, myQemu2Panel, myKeyboardPanel, myCustomSkinPanel,
-                         myAvdIdRow);
+      Lists.<JComponent>newArrayList(myStoragePanel, myCameraPanel, myNetworkPanel, myQemu2Panel, myKeyboardPanel, myCustomSkinPanel,
+                                     myAvdIdRow);
   }
 
   @Override

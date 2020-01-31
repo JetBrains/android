@@ -32,7 +32,7 @@ public class SingleDeclaredLibraryDependencyDetails implements ConfigurationDepe
   private JXLabel myGroupIdLabel;
   private JXLabel myArtifactNameLabel;
   private JPanel myRequestedVersion;
-  private JComboBox<String> myScope;
+  private JPanel myConfigurationPanel;
 
   @NotNull private final PsContext myContext;
   @Nullable private PsDeclaredLibraryDependency myDependency;
@@ -98,11 +98,12 @@ public class SingleDeclaredLibraryDependencyDetails implements ConfigurationDepe
   }
 
   @Override
-  public JComboBox<String> getConfigurationUI() {
-    return myScope;
+  public PsContext getContext() {
+    return myContext;
   }
 
-  private void createUIComponents() {
-    myScope = createConfigurationUI();
+  @Override
+  public JPanel getConfigurationUI() {
+    return myConfigurationPanel;
   }
 }

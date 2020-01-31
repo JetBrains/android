@@ -33,7 +33,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.project.sync.GradleSyncListener;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.gradle.project.sync.ModuleSetupContext;
-import com.android.tools.idea.gradle.project.sync.ng.variantonly.VariantOnlySyncOptions;
+import com.android.tools.idea.gradle.project.sync.VariantOnlySyncOptions;
 import com.android.tools.idea.gradle.project.sync.setup.module.AndroidModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.NdkModuleSetupStep;
 import com.android.tools.idea.gradle.project.sync.setup.module.android.AndroidVariantChangeModuleSetup;
@@ -42,9 +42,11 @@ import com.android.tools.idea.gradle.project.sync.setup.post.PostSyncProjectSetu
 import com.android.tools.idea.gradle.variant.view.BuildVariantUpdater.IdeModifiableModelsProviderFactory;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.Lists;
+import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.util.HashSet;
@@ -68,7 +70,7 @@ import static org.mockito.MockitoAnnotations.initMocks;
 /**
  * Tests for {@link BuildVariantUpdater}.
  */
-public class BuildVariantUpdaterTest extends JavaProjectTestCase {
+public class BuildVariantUpdaterTest extends PlatformTestCase {
   @Mock private IdeModifiableModelsProvider myModifiableModelsProvider;
   @Mock private IdeModifiableModelsProviderFactory myModifiableModelsProviderFactory;
   @Mock private AndroidModuleSetupStep mySetupStepToInvoke;
@@ -275,10 +277,10 @@ public class BuildVariantUpdaterTest extends JavaProjectTestCase {
   public void testUpdateSelectedVariantWithChangedBuildFiles() {
     // Simulate build files have changed since last sync.
     GradleSyncState syncState = mock(GradleSyncState.class);
-    ServiceContainerUtil
-      .replaceService(myProject, GradleSyncState.class, syncState, getTestRootDisposable());
+    new IdeComponents(myProject).replaceProjectService(GradleSyncState.class, syncState);
     when(syncState.isSyncNeeded()).thenReturn(YES);
-    GradleSyncInvoker syncInvoker = IdeComponents.mockApplicationService(GradleSyncInvoker.class, getTestRootDisposable());
+    IdeComponents ideComponents = new IdeComponents(myProject);
+    GradleSyncInvoker syncInvoker = ideComponents.mockApplicationService(GradleSyncInvoker.class);
     doAnswer(new Answer() {
       @Override
       public Object answer(InvocationOnMock invocation) {
@@ -287,7 +289,7 @@ public class BuildVariantUpdaterTest extends JavaProjectTestCase {
         syncListener.syncSucceeded(myProject);
         return null;
       }
-    }).when(syncInvoker).requestProjectSyncAndSourceGeneration(eq(myProject), any(), any());
+    }).when(syncInvoker).requestProjectSync(eq(myProject), any(GradleSyncStats.Trigger.class), any());
 
     String variantToSelect = "release";
     when(myAndroidModel.getSelectedVariant()).thenReturn(myDebugVariant);
@@ -296,7 +298,7 @@ public class BuildVariantUpdaterTest extends JavaProjectTestCase {
     myVariantUpdater.updateSelectedBuildVariant(myProject, myModule.getName(), variantToSelect);
 
     verify(myAndroidModel).setSelectedVariantName(variantToSelect);
-    verify(syncInvoker).requestProjectSyncAndSourceGeneration(eq(myProject), any(), any());
+    verify(syncInvoker).requestProjectSync(eq(myProject), any(GradleSyncStats.Trigger.class), any());
     verify(myVariantSelectionChangeListener).selectionChanged();
 
     // Verify that module setup steps are not being called.
@@ -310,11 +312,10 @@ public class BuildVariantUpdaterTest extends JavaProjectTestCase {
 
   public void testCompoundSyncEnabled() {
     try {
-      StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
       StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
 
-      GradleSyncInvoker syncInvoker = IdeComponents.mockApplicationService(GradleSyncInvoker.class, getTestRootDisposable());
+      GradleSyncInvoker syncInvoker = new IdeComponents(myProject).mockApplicationService(GradleSyncInvoker.class);
 
       GradleFacet gradleFacet = createAndAddGradleFacet(getModule());
       GradleModuleModel gradleModel = mock(GradleModuleModel.class);
@@ -331,13 +332,11 @@ public class BuildVariantUpdaterTest extends JavaProjectTestCase {
 
       // Check the BuildAction has its property set to generate sources and the sync request not
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
-      request.generateSourcesOnSuccess = true;
       request.variantOnlySyncOptions =
-        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantToSelect, null, true);
+        new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantToSelect, null, false);
       verify(syncInvoker).requestProjectSync(eq(myProject), eq(request), any());
     }
     finally {
-      StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
       StudioFlags.COMPOUND_SYNC_ENABLED.clearOverride();
     }
@@ -347,7 +346,7 @@ public class BuildVariantUpdaterTest extends JavaProjectTestCase {
     try {
       StudioFlags.COMPOUND_SYNC_ENABLED.override(false);
 
-      GradleSyncInvoker syncInvoker = IdeComponents.mockApplicationService(GradleSyncInvoker.class, getTestRootDisposable());
+      GradleSyncInvoker syncInvoker = new IdeComponents(myProject).mockApplicationService(GradleSyncInvoker.class);
 
       GradleFacet gradleFacet = createAndAddGradleFacet(getModule());
       GradleModuleModel gradleModel = mock(GradleModuleModel.class);
@@ -364,7 +363,6 @@ public class BuildVariantUpdaterTest extends JavaProjectTestCase {
 
       // Check the BuildAction has its property set to not generate sources and the sync request does
       GradleSyncInvoker.Request request = new GradleSyncInvoker.Request(TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER);
-      request.generateSourcesOnSuccess = true;
       request.variantOnlySyncOptions =
         new VariantOnlySyncOptions(gradleModel.getRootFolderPath(), gradleModel.getGradlePath(), variantToSelect);
       verify(syncInvoker).requestProjectSync(eq(myProject), eq(request), any());

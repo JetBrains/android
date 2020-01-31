@@ -16,12 +16,9 @@
 package com.android.tools.idea.tests.gui.framework.fixture.translations;
 
 import com.android.tools.idea.editors.strings.table.FrozenColumnTable;
-import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.ObjIntConsumer;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.fest.swing.core.KeyPressInfo;
 import org.fest.swing.core.Robot;
 import org.fest.swing.data.TableCell;
@@ -88,11 +85,8 @@ public final class FrozenColumnTableFixture {
   }
 
   @NotNull
-  public List<String> columnAt(int viewColumnIndex) {
-    return GuiQuery.getNonNull(() -> IntStream.range(0, myTarget.getRowCount())
-                                              .mapToObj(viewRowIndex -> myTarget.getValueAt(viewRowIndex, viewColumnIndex))
-                                              .map(Object::toString)
-                                              .collect(Collectors.toList()));
+  public Object columnAt(int viewColumnIndex) {
+    return GuiQuery.getNonNull(() -> myTarget.getColumnAt(viewColumnIndex));
   }
 
   public int getPreferredColumnWidth(int viewColumnIndex) {
@@ -111,11 +105,6 @@ public final class FrozenColumnTableFixture {
 
   public void clickHeaderColumn(int viewColumnIndex) {
     new TableAndColumn(this, viewColumnIndex).accept((table, c) -> table.tableHeader().clickColumn(c));
-  }
-
-  @NotNull
-  public JPopupMenuFixture showHeaderPopupMenuAt(int viewColumnIndex) {
-    return new TableAndColumn(this, viewColumnIndex).apply((table, c) -> table.tableHeader().showPopupMenuAt(c));
   }
 
   @NotNull
@@ -164,10 +153,6 @@ public final class FrozenColumnTableFixture {
         myTable = frozenColumnTable.myScrollableTable;
         myColumn = column - count;
       }
-    }
-
-    private <R> R apply(@NotNull BiFunction<JTableFixture, Integer, R> function) {
-      return function.apply(myTable, myColumn);
     }
 
     private void accept(@NotNull ObjIntConsumer<JTableFixture> consumer) {

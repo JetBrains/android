@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 public class LayoutPreviewRenderTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
    * To verify that the layout preview renders appropriately with different themes and API selections

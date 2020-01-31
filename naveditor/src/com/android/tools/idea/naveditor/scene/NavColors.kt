@@ -22,7 +22,6 @@ import java.awt.Color
 object NavColors {
   val FRAME = JBColor.namedColor(
     "UIDesigner.Component.borderColor", JBColor(0xa7a7a7, 0x2d2f31))
-  @JvmField
   val HIGHLIGHTED_FRAME = JBColor.namedColor(
     "UIDesigner.Component.hoverBorderColor", JBColor(0xa7a7a7, 0xa1a1a1))
   val COMPONENT_BACKGROUND = JBColor.namedColor(
@@ -39,14 +38,13 @@ object NavColors {
     "UIDesigner.Activity.borderColor", JBColor(0xa7a7a7, 0x2d2f31))
   // Note that this must match the highlight color of ActionButtonWithText
   val LIST_MOUSEOVER = JBColor.namedColor(
-    "UIDesigner.List.selectionBackground", JBColor(Gray.xDB, Color(0x55595c)))
+    "UIDesigner.List.selectionBackground", JBColor(Gray.xDB, Color(0x36393a)))
   val PLACEHOLDER_BORDER = JBColor.namedColor(
     "UIDesigner.Placeholder.borderColor", JBColor(0xcccccc, 0x3f4244))
   val PLACEHOLDER_TEXT = JBColor.namedColor(
     "UIDesigner.Placeholder.foreground", JBColor(0xcccccc, 0x888888))
   val PLACEHOLDER_BACKGROUND = JBColor.namedColor(
     "UIDesigner.Placeholder.background", JBColor(0xfdfdfd, 0x515658))
-  @JvmField
   val SELECTED = JBColor.namedColor(
     "UIDesigner.Placeholder.selectedForeground", JBColor(0x1886f7, 0x9ccdff))
 }

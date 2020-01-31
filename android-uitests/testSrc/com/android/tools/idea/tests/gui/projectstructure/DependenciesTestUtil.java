@@ -21,20 +21,19 @@ import static org.junit.Assert.assertTrue;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.parser.Dependency;
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult;
-import com.android.tools.idea.gradle.structure.editors.ModuleDependenciesTableItem;
-import com.android.tools.idea.gradle.structure.editors.ModuleDependenciesTableModel;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
-import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.CreateFileFromTemplateDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.AddLibraryDependencyDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.AddModuleDependencyDialogFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.DependenciesPerspectiveConfigurableFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.DependenciesPerspectiveConfigurableFixtureKt;
+import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.DependencyTabFixture;
-import com.android.tools.idea.tests.gui.framework.fixture.projectstructure.ProjectStructureDialogFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.intellij.ui.table.JBTable;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.Arrays;
 import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
@@ -46,10 +45,10 @@ public class DependenciesTestUtil {
 
   protected static final String APP_NAME = "App";
   protected static final String MIN_SDK = "18";
-  protected static final String JAVA_LIBRARY = "Java Library";
   protected static final String CLASS_NAME_1 = "ModuleA";
   protected static final String CLASS_NAME_2 = "ModuleB";
-  protected static final String ANDROID_LIBRARY = "Android Library";
+  protected static final String LANGUAGE_JAVA = "Java";
+  protected static final String LANGUAGE_KOTLIN = "Kotlin";
 
   @Before
   public void setUp() {
@@ -64,7 +63,8 @@ public class DependenciesTestUtil {
   @NotNull
   protected static IdeFrameFixture createNewProject(@NotNull GuiTestRule guiTest,
                                                     @NotNull String appName,
-                                                    @NotNull String minSdk) {
+                                                    @NotNull String minSdk,
+                                                    @NotNull String language) {
     guiTest
       .welcomeFrame()
       .createNewProject()
@@ -76,6 +76,7 @@ public class DependenciesTestUtil {
       .enterName(appName)
       .enterPackageName("android.com.app")
       .selectMinimumSdkApi(minSdk)
+      .setSourceLanguage(language)
       .wizard()
       .clickFinish();
 
@@ -84,8 +85,8 @@ public class DependenciesTestUtil {
 
   protected static void createJavaModule(@NotNull IdeFrameFixture ideFrame) {
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType(JAVA_LIBRARY)
-      .clickNextToStep(JAVA_LIBRARY)
+      .clickNextToJavaLibrary()
+      .wizard()
       .clickFinish() // Use default Java Module name.
       .waitForGradleProjectSyncToFinish();
   }
@@ -125,36 +126,49 @@ public class DependenciesTestUtil {
 
     ideFrame.invokeMenuPath("Open Module Settings");
 
-    String module = ":" + moduleName;
-    DependencyTabFixture dependencyTabFixture = ProjectStructureDialogFixture.find(ideFrame)
-      .selectDependenciesTab()
-      .addModuleDependency(module);
+    ProjectStructureDialogFixture dialogFixture = ProjectStructureDialogFixture.Companion.find(ideFrame);
+    DependenciesPerspectiveConfigurableFixture dependenciesFixture =
+      DependenciesPerspectiveConfigurableFixtureKt.selectDependenciesConfigurable(dialogFixture);
 
-    if (scope.equals(Dependency.Scope.API.getDisplayName())) {
-      JBTable jbTable = GuiTests.waitUntilFound(ideFrame.robot(),
-        dependencyTabFixture.target(),
-        Matchers.byType(JBTable.class).andIsShowing());
+    AddModuleDependencyDialogFixture addModuleDependencyFixture = dependenciesFixture.findDependenciesPanel().clickAddModuleDependency();
+    addModuleDependencyFixture.toggleModule(moduleName);
+    String scopeValue =
+      Arrays.stream(Dependency.Scope.values()).filter(it -> scope.equalsIgnoreCase(it.getDisplayName())).findFirst().get().getGroovyMethodCall();
+    addModuleDependencyFixture.findConfigurationCombo().selectItem(scopeValue);
+    addModuleDependencyFixture.clickOk();
 
-      ModuleDependenciesTableModel tableModel = (ModuleDependenciesTableModel) jbTable.getModel();
+    dialogFixture.clickOk();
+  }
 
-      for (ModuleDependenciesTableItem item : tableModel.getItems()) {
-        Dependency dependencyEntry = (Dependency) item.getEntry();
-        if (module.equals(dependencyEntry.getValueAsString())) {
-          item.setScope(Dependency.Scope.API);
-          break;
-        }
-      }
-    }
+  public static void addLibraryDependency(@NotNull IdeFrameFixture ideFrame,
+                                             @NotNull String library,
+                                             @NotNull String anotherModule,
+                                             @NotNull String scope) {
+    ideFrame.invokeMenuPath("File", "Project Structure...");
 
-    dependencyTabFixture.clickOk();
+    ProjectStructureDialogFixture dialogFixture = ProjectStructureDialogFixture.Companion.find(ideFrame);
+    DependenciesPerspectiveConfigurableFixture dependenciesFixture =
+      DependenciesPerspectiveConfigurableFixtureKt.selectDependenciesConfigurable(dialogFixture);
+    dependenciesFixture.findModuleSelector().selectModule(anotherModule);
+
+    AddLibraryDependencyDialogFixture addLibraryDependencyFixture = dependenciesFixture.findDependenciesPanel().clickAddLibraryDependency();
+    addLibraryDependencyFixture.findSearchQueryTextBox().enterText(library);
+    addLibraryDependencyFixture.findSearchButton().click();
+    addLibraryDependencyFixture.findVersionsView(true); // Wait for search to complete.
+    String scopeValue =
+      Arrays.stream(Dependency.Scope.values()).filter(it -> scope.equalsIgnoreCase(it.getDisplayName())).findFirst().get()
+        .getGroovyMethodCall();
+    addLibraryDependencyFixture.findConfigurationCombo().selectItem(scopeValue);
+    addLibraryDependencyFixture.clickOk();
+    dialogFixture.clickOk();
   }
 
   protected static void createAndroidLibrary(@NotNull IdeFrameFixture ideFrame,
                                              @NotNull String moduleName) {
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module...")
-      .chooseModuleType(ANDROID_LIBRARY)
-      .clickNextToStep(ANDROID_LIBRARY)
-      .setModuleName(moduleName)
+      .clickNextToAndroidLibrary()
+      .enterModuleName(moduleName)
+      .wizard()
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
   }

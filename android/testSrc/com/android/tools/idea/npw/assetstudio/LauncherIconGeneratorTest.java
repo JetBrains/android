@@ -20,10 +20,10 @@ import static com.android.tools.adtui.imagediff.ImageDiffUtil.assertImageSimilar
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
+import com.android.tools.idea.npw.assetstudio.assets.TextAsset;
 import com.android.tools.idea.projectsystem.AndroidModuleTemplate;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.Files;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.ThreadTracker;
@@ -32,7 +32,11 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -134,24 +138,33 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
     return asset;
   }
 
-  private void checkGeneratedIcons(String[] expectedFilenames) throws IOException {
+  private void checkGeneratedIcons(@NotNull String[] expectedFilenames, @NotNull String... excludedFromContentComparison)
+      throws IOException {
+    checkGeneratedIcons(expectedFilenames, DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT, excludedFromContentComparison);
+  }
+
+  private void checkGeneratedIcons(@NotNull String[] expectedFilenames, double imageDiffThresholdPercent,
+                                   @NotNull String... excludedFromContentComparison) throws IOException {
     Map<File, GeneratedIcon> pathIconMap = myIconGenerator.generateIntoIconMap(myProjectPaths);
     Set<File> unexpectedFiles = new HashSet<>(pathIconMap.keySet());
-    File goldenDir = new File(FileUtil.join(getTestDataPath(), getTestName(true), "golden"));
+    Path goldenDir = Paths.get(getTestDataPath(), getTestName(true), "golden");
     for (String filename : expectedFilenames) {
       File file = new File(myProjectPaths.getModuleRoot(), filename);
       GeneratedIcon icon = pathIconMap.get(file);
       assertNotNull(filename + " icon is not generated.", icon);
-      File goldenFile = new File(goldenDir, filename);
-      if (!goldenFile.exists()) {
+      Path goldenFile = goldenDir.resolve(filename);
+      if (Files.notExists(goldenFile)) {
         createGolden(goldenFile, icon);
       }
-      if (filename.endsWith(".xml")) {
-        assertEquals("File " + filename + " does not match",
-                     Files.toString(goldenFile, UTF_8), ((GeneratedXmlResource)icon).getXmlText());
-      } else {
-        BufferedImage goldenImage = ImageIO.read(goldenFile);
-        assertImageSimilar(filename, goldenImage, ((GeneratedImageIcon)icon).getImage(), DEFAULT_IMAGE_DIFF_THRESHOLD_PERCENT);
+      if (!Arrays.asList(excludedFromContentComparison).contains(filename)) {
+        if (filename.endsWith(".xml")) {
+          assertEquals("File " + filename + " does not match",
+                       new String(Files.readAllBytes(goldenFile), UTF_8), ((GeneratedXmlResource)icon).getXmlText());
+        }
+        else {
+          BufferedImage goldenImage = ImageIO.read(goldenFile.toFile());
+          assertImageSimilar(filename, goldenImage, ((GeneratedImageIcon)icon).getImage(), imageDiffThresholdPercent);
+        }
       }
       unexpectedFiles.remove(file);
     }
@@ -169,16 +182,16 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
     }
   }
 
-  private void createGolden(@NotNull File file, @NotNull GeneratedIcon icon) throws IOException {
-    myWarnings.add("Golden file " + file.getAbsolutePath() + " didn't exist, created by the test.");
-    Files.createParentDirs(file);
+  private void createGolden(@NotNull Path file, @NotNull GeneratedIcon icon) throws IOException {
+    myWarnings.add("Golden file " + file + " didn't exist, created by the test.");
+    Files.createDirectories(file.getParent());
     if (icon instanceof GeneratedXmlResource) {
-      try (BufferedWriter writer = Files.newWriter(file, UTF_8)) {
+      try (BufferedWriter writer = Files.newBufferedWriter(file)) {
         writer.write(((GeneratedXmlResource)icon).getXmlText());
       }
     } else {
       BufferedImage image = ((GeneratedImageIcon)icon).getImage();
-      ImageIO.write(image, "PNG", file);
+      ImageIO.write(image, "PNG", file.toFile());
     }
   }
 
@@ -198,10 +211,32 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
         "resources/mipmap-hdpi/ic_launcher_round.png",
         "resources/mipmap-mdpi/ic_launcher.png",
         "resources/mipmap-mdpi/ic_launcher_round.png",
-        "manifests/ic_launcher-web.png"};
+        "manifests/ic_launcher-playstore.png"};
     myIconGenerator.sourceAsset().setValue(createImageAsset("foreground.xml"));
     myIconGenerator.backgroundImageAsset().setValue(createImageAsset("background.xml"));
     checkGeneratedIcons(expectedFilenames);
+  }
+
+  public void testText() throws Exception {
+    String[] expectedFilenames = {
+        "resources/mipmap-anydpi-v26/ic_launcher.xml",
+        "resources/drawable/ic_launcher_foreground.xml",
+        "resources/mipmap-xxxhdpi/ic_launcher.png",
+        "resources/mipmap-xxhdpi/ic_launcher.png",
+        "resources/mipmap-xhdpi/ic_launcher.png",
+        "resources/mipmap-hdpi/ic_launcher.png",
+        "resources/mipmap-mdpi/ic_launcher.png",
+        "resources/values/ic_launcher_background.xml",
+        "manifests/ic_launcher-playstore.png"};
+    TextAsset textAsset = new TextAsset();
+    textAsset.text().set("AL");
+    textAsset.color().setValue(new Color(0x0000FF));
+    myIconGenerator.sourceAsset().setValue(textAsset);
+    myIconGenerator.backgroundImageAsset().setNullableValue(null);
+    myIconGenerator.backgroundColor().set(new Color(0xFFFFFF));
+    myIconGenerator.generateRoundIcon().set(false);
+    // Don't compare context of ic_launcher_foreground.xml because it is slightly platform dependent.
+    checkGeneratedIcons(expectedFilenames, 1.5, "resources/drawable/ic_launcher_foreground.xml");
   }
 
   public void testImageBackgroundAndForeground() throws Exception {
@@ -228,7 +263,7 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
         "resources/mipmap-mdpi/ic_launcher_background.png",
         "resources/mipmap-mdpi/ic_launcher_foreground.png",
         "resources/mipmap-mdpi/ic_launcher_round.png",
-        "manifests/ic_launcher-web.png"};
+        "manifests/ic_launcher-playstore.png"};
     myIconGenerator.sourceAsset().setValue(createImageAsset("foreground.png"));
     myIconGenerator.backgroundImageAsset().setValue(createImageAsset("background.png"));
     checkGeneratedIcons(expectedFilenames);
@@ -237,7 +272,6 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
   public void testClipart() throws Exception {
     String[] expectedFilenames = {
         "resources/mipmap-anydpi-v26/ic_launcher.xml",
-        "resources/mipmap-anydpi-v26/ic_launcher_round.xml",
         "resources/drawable/ic_launcher_foreground.xml",
         "resources/mipmap-xxxhdpi/ic_launcher.png",
         "resources/mipmap-xxhdpi/ic_launcher.png",
@@ -245,16 +279,15 @@ public class LauncherIconGeneratorTest extends AndroidTestCase {
         "resources/mipmap-hdpi/ic_launcher.png",
         "resources/mipmap-mdpi/ic_launcher.png",
         "resources/values/ic_launcher_background.xml",
-        "manifests/ic_launcher-web.png"};
+        "manifests/ic_launcher-playstore.png"};
     ImageAsset asset = createClipartAsset("ic_android_black_24dp.xml");
-    asset.color().setValue(new Color(0xA4C639)); // Android green.
+    asset.color().setValue(new Color(0x00FF00));
     myIconGenerator.sourceAsset().setValue(asset);
     myIconGenerator.backgroundImageAsset().setNullableValue(null);
     //noinspection UseJBColor
-    myIconGenerator.backgroundColor().set(new Color(0x26A69A));
+    myIconGenerator.backgroundColor().set(new Color(0xFFFFFF));
     myIconGenerator.generateRoundIcon().set(false);
     myIconGenerator.legacyIconShape().set(IconGenerator.Shape.VRECT);
-    myIconGenerator.webIconShape().set(IconGenerator.Shape.CIRCLE);
     checkGeneratedIcons(expectedFilenames);
   }
 }

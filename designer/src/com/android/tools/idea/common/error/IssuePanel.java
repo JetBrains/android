@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.error;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.surface.DesignSurface;
@@ -29,7 +29,6 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import icons.StudioIcons;
@@ -559,7 +558,7 @@ public class IssuePanel extends JPanel implements Disposable, PropertyChangeList
       setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, JBColor.border()));
       mySourceLabel.setBorder(BorderFactory.createCompoundBorder(
         BorderFactory.createMatteBorder(0, 1, 0, 0, JBColor.border()),
-        BorderFactory.createEmptyBorder(0, JBUIScale.scale(6), 0, 0)));
+        BorderFactory.createEmptyBorder(0, JBUI.scale(6), 0, 0)));
       add(myMessageLabel);
       add(mySourceLabel);
       myInitialized = true;

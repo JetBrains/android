@@ -18,15 +18,11 @@ package com.android.tools.idea.uibuilder.surface;
 import com.android.tools.idea.common.SyncNlModel;
 import com.android.tools.idea.common.fixtures.ModelBuilder;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.common.model.NlModel;
-import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
+import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
-import com.android.tools.idea.uibuilder.surface.NlDesignSurfaceActionHandler;
-import com.android.tools.idea.uibuilder.surface.ScreenView;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -77,25 +73,22 @@ public class NlDesignSurfaceActionHandlerTest extends LayoutTestCase {
 
       }
     };
-    mySurface = new NlDesignSurface(getProject(), false, myDisposable) {
-      @Nullable
-      @Override
-      public ScreenView getCurrentSceneView() {
-        return myScreen;
-      }
+    mySurface = NlDesignSurface.builder(getProject(), myDisposable)
+      .setSceneManagerProvider((surface, model) -> new SyncLayoutlibSceneManager((SyncNlModel) model) {
+        @NotNull
+        @Override
+        public CompletableFuture<Void> requestRender() {
+          // This test does not need Layoutlib renders
+          return CompletableFuture.completedFuture(null);
+        }
 
-      @NotNull
-      @Override
-      public CompletableFuture<Void> requestRender() {
-        return CompletableFuture.completedFuture(null);
-      }
-
-      @NotNull
-      @Override
-      protected SceneManager createSceneManager(@NotNull NlModel model) {
-        return new SyncLayoutlibSceneManager((SyncNlModel) model);
-      }
-    };
+        @NotNull
+        @Override
+        public SceneView getSceneView() {
+          return myScreen;
+        }
+      })
+    .build();
     mySurface.setModel(myModel);
     mySurfaceActionHandler = new NlDesignSurfaceActionHandler(mySurface, myCopyPasteManager);
 

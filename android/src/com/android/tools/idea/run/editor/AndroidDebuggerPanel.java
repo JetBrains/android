@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.editor;
 
+import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.google.common.collect.Maps;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.ui.CollectionComboBoxModel;
@@ -39,7 +40,7 @@ public class AndroidDebuggerPanel {
   public AndroidDebuggerPanel(@NotNull RunConfiguration runConfiguration, @NotNull AndroidDebuggerContext androidDebuggerContext) {
     myAndroidDebuggerContext = androidDebuggerContext;
 
-    myDebuggerType.setModel(new CollectionComboBoxModel<>(myAndroidDebuggerContext.getAndroidDebuggers()));
+    myDebuggerType.setModel(new CollectionComboBoxModel(myAndroidDebuggerContext.getAndroidDebuggers()));
     myDebuggerType.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent actionEvent) {

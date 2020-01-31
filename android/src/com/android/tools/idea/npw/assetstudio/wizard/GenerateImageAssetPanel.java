@@ -186,7 +186,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     myOutputIconType = ObjectProperty.wrap(new SelectedItemProperty<>(myIconTypeCombo));
     myOutputPreviewPanel.setName("PreviewIconsPanel"); // for UI Tests
 
-    myValidatorPanel = new ValidatorPanel(this, myRootPanel);
+    myValidatorPanel = new ValidatorPanel(this, myRootPanel, "Conversion Issues", "Encountered Issues:");
 
     myPreviewResolutionComboBox.setRenderer(
       SimpleListCellRenderer.create("", Density::getResourceValue));
@@ -437,7 +437,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
         String errorMessage = errors.isEmpty() ?
                               "" :
                               errors.size() == 1 ?
-                              "Preview rendering error: " + Iterables.getOnlyElement(errors) :
+                              Iterables.getOnlyElement(errors) :
                               "Icon preview was rendered with errors";
         myPreviewRenderingError.set(errorMessage);
       }
@@ -532,7 +532,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
           return 6;
         case LEGACY_ROUND:
           return 7;
-        case WEB:
+        case PLAY_STORE:
           return 8;
         case NONE:
         default:

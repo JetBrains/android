@@ -85,6 +85,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
+import org.junit.Assume.assumeTrue
 import org.junit.Ignore
 import org.junit.Test
 
@@ -119,6 +120,7 @@ class PropertyOrderTest : GradleFileModelTestCase() {
 
   @Test
   fun testAddPropertiesToEmpty() {
+    assumeTrue(isGroovy())
     writeToBuildFile("")
 
     val buildModel = gradleBuildModel
@@ -513,8 +515,8 @@ class PropertyOrderTest : GradleFileModelTestCase() {
     val minSdkModel = buildModel.android().defaultConfig().minSdkVersion()
     val maxSdkModel = buildModel.android().defaultConfig().maxSdkVersion()
 
-    verifyPropertyModel(minSdkModel, STRING_TYPE, "minSdk", REFERENCE, REGULAR, 0, "minSdkVersion")
-    verifyPropertyModel(maxSdkModel, STRING_TYPE, "maxSdk", REFERENCE, REGULAR, 0, "maxSdkVersion")
+    verifyPropertyModel(minSdkModel, STRING_TYPE, extraName("minSdk"), REFERENCE, REGULAR, 0, "minSdkVersion")
+    verifyPropertyModel(maxSdkModel, STRING_TYPE, extraName("maxSdk"), REFERENCE, REGULAR, 0, "maxSdkVersion")
   }
 
   @Test

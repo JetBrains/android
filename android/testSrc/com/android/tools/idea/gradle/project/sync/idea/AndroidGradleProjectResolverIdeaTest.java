@@ -15,6 +15,24 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea;
 
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.ANDROID_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.GRADLE_MODULE_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.JAVA_MODULE_MODEL;
+import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.NDK_MODEL;
+import static com.google.common.truth.Truth.assertThat;
+import static com.intellij.openapi.externalSystem.model.ProjectKeys.PROJECT;
+import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
+import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
+import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
+import static com.intellij.util.containers.ContainerUtil.getFirstItem;
+import static java.util.stream.Collectors.toList;
+import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.NativeAndroidProject;
 import com.android.builder.model.SyncIssue;
@@ -22,7 +40,11 @@ import com.android.builder.model.Variant;
 import com.android.ide.common.gradle.model.IdeNativeAndroidProject;
 import com.android.ide.common.gradle.model.level2.IdeDependenciesFactory;
 import com.android.tools.idea.gradle.TestProjects;
-import com.android.tools.idea.gradle.project.model.*;
+import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
+import com.android.tools.idea.gradle.project.model.GradleModuleModel;
+import com.android.tools.idea.gradle.project.model.IdeaJavaModuleModelFactory;
+import com.android.tools.idea.gradle.project.model.JavaModuleModel;
+import com.android.tools.idea.gradle.project.model.NdkModuleModel;
 import com.android.tools.idea.gradle.project.sync.common.CommandLineArgs;
 import com.android.tools.idea.gradle.project.sync.common.VariantSelector;
 import com.android.tools.idea.gradle.stubs.android.AndroidProjectStub;
@@ -37,8 +59,11 @@ import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotifica
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskNotificationListenerAdapter;
 import com.intellij.openapi.externalSystem.model.task.TaskData;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import org.gradle.tooling.ProjectConnection;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.gradle.model.LegacyIdeaProjectModelAdapter;
@@ -51,26 +76,10 @@ import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverExtensi
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext;
 import org.mockito.Mock;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
-import static com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys.*;
-import static com.google.common.truth.Truth.assertThat;
-import static com.intellij.openapi.externalSystem.model.ProjectKeys.PROJECT;
-import static com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType.RESOLVE_PROJECT;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getChildren;
-import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static com.intellij.util.containers.ContainerUtil.getFirstItem;
-import static java.util.stream.Collectors.toList;
-import static org.jetbrains.plugins.gradle.util.GradleConstants.SYSTEM_ID;
-import static org.mockito.Mockito.*;
-import static org.mockito.MockitoAnnotations.initMocks;
-
 /**
  * Tests for {@link AndroidGradleProjectResolver}.
  */
-public class AndroidGradleProjectResolverIdeaTest extends JavaProjectTestCase {
+public class AndroidGradleProjectResolverIdeaTest extends PlatformTestCase {
   @Mock private CommandLineArgs myCommandLineArgs;
   @Mock private ProjectImportErrorHandler myErrorHandler;
   @Mock private ProjectFinder myProjectFinder;
@@ -181,7 +190,12 @@ public class AndroidGradleProjectResolverIdeaTest extends JavaProjectTestCase {
     Collection<DataNode<JavaModuleModel>> javaModelNodes = getChildren(moduleDataNode, JAVA_MODULE_MODEL);
     assertSize(1, javaModelNodes);
     JavaModuleModel javaModuleModel = javaModelNodes.iterator().next().getData();
-    assertThat(javaModuleModel.getSyncIssues()).containsExactly(syncIssue);
+    SyncIssue issue = javaModuleModel.getSyncIssues().iterator().next();
+    assertThat(issue.getMessage()).isEqualTo(syncIssue.getMessage());
+    assertThat(issue.getData()).isEqualTo(syncIssue.getData());
+    assertThat(issue.getSeverity()).isEqualTo(syncIssue.getSeverity());
+    assertThat(issue.getType()).isEqualTo(syncIssue.getType());
+    assertThat(issue.getMultiLineMessage()).isEqualTo(syncIssue.getMultiLineMessage());
   }
 
   public void testPopulateModuleContentRootsWithNativeAndroidProject() {
@@ -296,8 +310,8 @@ public class AndroidGradleProjectResolverIdeaTest extends JavaProjectTestCase {
     when(myVariantSelector.findVariantToSelect(any())).thenReturn(myAndroidProjectStub.getFirstVariant());
 
     ProjectImportAction.AllModels allModels = new ProjectImportAction.AllModels(myProjectModel);
-    //allModels.addExtraProject(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel); // FIXME-ank
-    //allModels.addExtraProject(mockKaptModel, KaptGradleModel.class, myAndroidModuleModel); // FIXME-ank
+    allModels.addModel(myAndroidProjectStub, AndroidProject.class, myAndroidModuleModel);
+    allModels.addModel(mockKaptModel, KaptGradleModel.class, myAndroidModuleModel);
     myResolverCtx.setModels(allModels);
 
     myProjectResolver.populateModuleContentRoots(myAndroidModuleModel, moduleDataNode);

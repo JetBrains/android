@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslMethodCall
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Assume.assumeTrue
 import org.junit.Test
 
 
@@ -96,6 +97,7 @@ class PropertyUtilTest : TransformTestCase() {
 
   @Test
   fun testWriteBackElementWithTrimmedName() {
+    assumeTrue(isGroovy())
     val literal = createLiteral(name = "android.defaultConfig.applicationId")
     val buildModel = gradleBuildModel
     val defaultConfigBlock = (buildModel.android().defaultConfig() as ProductFlavorModelImpl).dslElement()

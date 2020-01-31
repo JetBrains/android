@@ -21,13 +21,12 @@ import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.concurrent.TimeUnit;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class JavaLibsDepTest {
@@ -39,7 +38,7 @@ public class JavaLibsDepTest {
 
   @Before
   public void setUp() {
-    StudioFlags.NEW_PSD_ENABLED.override(false);
+    StudioFlags.NEW_PSD_ENABLED.override(true);
   }
 
   @After
@@ -76,7 +75,7 @@ public class JavaLibsDepTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void multiJavaLibraries() {
-    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK);
+    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, DependenciesTestUtil.APP_NAME, DependenciesTestUtil.MIN_SDK, DependenciesTestUtil.LANGUAGE_JAVA);
 
     DependenciesTestUtil.createJavaModule(ideFrame); // default name: lib
     DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_1, "app", "API");

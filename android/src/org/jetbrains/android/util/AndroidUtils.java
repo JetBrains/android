@@ -15,15 +15,21 @@
  */
 package org.jetbrains.android.util;
 
+import static com.android.SdkConstants.ATTR_CONTEXT;
+import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.builder.model.AndroidProject.PROJECT_TYPE_LIBRARY;
 import static com.intellij.openapi.application.ApplicationManager.getApplication;
 
 import com.android.SdkConstants;
+import com.android.resources.ResourceFolderType;
 import com.android.sdklib.internal.project.ProjectProperties;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
+import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
 import com.android.tools.idea.util.CommonAndroidUtil;
@@ -53,6 +59,7 @@ import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -83,14 +90,15 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiModifier;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.ProjectScope;
 import com.intellij.psi.tree.java.IKeywordElementType;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.PsiNavigateUtil;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.graph.Graph;
 import com.intellij.util.graph.GraphAlgorithms;
 import com.intellij.util.xml.DomElement;
@@ -101,9 +109,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.Enumeration;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -113,7 +120,6 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextArea;
-import org.gradle.internal.impldep.com.esotericsoftware.minlog.Log;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetConfiguration;
@@ -125,7 +131,7 @@ import org.jetbrains.annotations.Nullable;
  * @author yole, coyote
  */
 public class AndroidUtils extends CommonAndroidUtil {
-  private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.util.AndroidUtils");
+  private static final Logger LOG = Logger.getInstance(AndroidUtils.class);
 
   @NonNls public static final String NAMESPACE_KEY = "android";
   @NonNls public static final String SYSTEM_RESOURCE_PACKAGE = "android";
@@ -183,18 +189,14 @@ public class AndroidUtils extends CommonAndroidUtil {
   public static <T extends DomElement> T loadDomElement(@NotNull final Project project,
                                                         @NotNull final VirtualFile file,
                                                         @NotNull final Class<T> aClass) {
-    return getApplication().runReadAction(new Computable<T>() {
-      @Override
-      @Nullable
-      public T compute() {
-        if (project.isDisposed()) return null;
-        PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-        if (psiFile instanceof XmlFile) {
-          return loadDomElementWithReadPermission(project, (XmlFile)psiFile, aClass);
-        }
-        else {
-          return null;
-        }
+    return getApplication().runReadAction((Computable<T>)() -> {
+      if (project.isDisposed() || !file.isValid()) return null;
+      PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+      if (psiFile instanceof XmlFile) {
+        return loadDomElementWithReadPermission(project, (XmlFile)psiFile, aClass);
+      }
+      else {
+        return null;
       }
     });
   }
@@ -381,12 +383,7 @@ public class AndroidUtils extends CommonAndroidUtil {
   public static AndroidFacet addAndroidFacetInWriteAction(@NotNull final Module module,
                                                           @NotNull final VirtualFile contentRoot,
                                                           final boolean library) {
-    return getApplication().runWriteAction(new Computable<AndroidFacet>() {
-      @Override
-      public AndroidFacet compute() {
-        return addAndroidFacet(module, contentRoot, library);
-      }
-    });
+    return WriteAction.compute(() -> addAndroidFacet(module, contentRoot, library));
   }
 
   @NotNull
@@ -436,8 +433,6 @@ public class AndroidUtils extends CommonAndroidUtil {
         if (configuration instanceof AndroidRunConfigurationBase) {
           final AndroidRunConfigurationBase runConfig = (AndroidRunConfigurationBase)configuration;
           final TargetSelectionMode targetMode = runConfig.getDeployTargetContext().getTargetSelectionMode();
-
-          //noinspection IfStatementWithIdenticalBranches - branches are only identical for final iteration of outer loop
           if (runConfig.getConfigurationModule() == module) {
             return targetMode;
           }
@@ -480,14 +475,10 @@ public class AndroidUtils extends CommonAndroidUtil {
 
   @NotNull
   public static List<AndroidFacet> getApplicationFacets(@NotNull Project project) {
-    final List<AndroidFacet> result = new ArrayList<>();
-
-    for (AndroidFacet facet : ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID)) {
-      if (facet.getConfiguration().isAppProject()) {
-        result.add(facet);
-      }
-    }
-    return result;
+    return ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID).stream()
+      .filter(facet -> facet.getConfiguration().isAppProject())
+      .sorted(Comparator.comparing(facet -> facet.getModule().getName()))
+      .collect(Collectors.toList());
   }
 
   @NotNull
@@ -533,11 +524,6 @@ public class AndroidUtils extends CommonAndroidUtil {
       .getResourceModuleDependencies()
       .stream()
       .map(AndroidFacet::getInstance)
-      .peek(facet -> {
-        if (facet == null) {
-          Log.error("Null in result of getResourceModuleDependencies, module system: " + ProjectSystemUtil.getModuleSystem(module));
-        }
-      })
       .filter(Objects::nonNull)
       .collect(Collectors.toList());
   }
@@ -562,7 +548,7 @@ public class AndroidUtils extends CommonAndroidUtil {
 
     if (visited.add(module)) {
       for (AndroidFacet depFacet : getAllAndroidDependencies(module, true)) {
-        final Manifest manifest = depFacet.getManifest();
+        final Manifest manifest = Manifest.getMainManifest(depFacet);
 
         if (manifest != null) {
           String aPackage = manifest.getPackage().getValue();
@@ -597,11 +583,6 @@ public class AndroidUtils extends CommonAndroidUtil {
     if (password.length == 0) {
       throw new CommitStepException(AndroidBundle.message("android.export.package.specify.password.error"));
     }
-  }
-
-  @NotNull
-  public static <T> List<T> toList(@NotNull Enumeration<T> enumeration) {
-    return ContainerUtil.toList(enumeration);
   }
 
   public static void reportError(@NotNull Project project, @NotNull String message) {
@@ -694,7 +675,7 @@ public class AndroidUtils extends CommonAndroidUtil {
       return "Package name is missing";
     }
 
-    String packageManagerCheck = validateName(name, true);
+    String packageManagerCheck = validateName(name);
     if (packageManagerCheck != null) {
       return packageManagerCheck;
     }
@@ -740,7 +721,7 @@ public class AndroidUtils extends CommonAndroidUtil {
   // This method is a copy of android.content.pm.PackageParser#validateName with the
   // error messages tweaked
   @Nullable
-  private static String validateName(String name, boolean requiresSeparator) {
+  private static String validateName(String name) {
     final int N = name.length();
     boolean hasSep = false;
     boolean front = true;
@@ -768,7 +749,7 @@ public class AndroidUtils extends CommonAndroidUtil {
       }
       return "The character '" + c + "' is not allowed in Android application package names";
     }
-    return hasSep || !requiresSeparator ? null : "The package must have at least one '.' separator";
+    return hasSep ? null : "The package must have at least one '.' separator";
   }
 
   public static boolean isIdentifier(@NotNull String candidate) {
@@ -807,14 +788,14 @@ public class AndroidUtils extends CommonAndroidUtil {
 
     for (String url : urls) {
       if (sdkHomeCanonicalPath != null) {
-        url = StringUtil.replace(url, AndroidCommonUtils.SDK_HOME_MACRO, sdkHomeCanonicalPath);
+        url = StringUtil.replace(url, AndroidBuildCommonUtils.SDK_HOME_MACRO, sdkHomeCanonicalPath);
       }
       result.add(FileUtil.toSystemDependentName(VfsUtilCore.urlToPath(url)));
     }
     return result;
   }
 
-  @NotNull
+  @NotNull // FIXME-ank2: was deleted. Move to safe place?
   public static String getAndroidSystemDirectoryOsPath() {
     return PathManager.getSystemPath() + File.separator + "android";
   }
@@ -837,5 +818,65 @@ public class AndroidUtils extends CommonAndroidUtil {
     return facetManager.hasFacets(AndroidFacet.getFacetType().getId()) ||
            facetManager.hasFacets(ApkFacet.getFacetTypeId()) ||
            facetManager.hasFacets(GradleFacet.getFacetTypeId());
+  }
+
+  /**
+   * Looks up the declared associated context/activity for the given XML file and
+   * returns the resolved fully qualified name if found
+   *
+   * @param module module containing the XML file
+   * @param xmlFile the XML file
+   * @return the associated fully qualified name, or null
+   */
+  @Nullable
+  public static String getDeclaredContextFqcn(@NotNull Module module, @NotNull XmlFile xmlFile) {
+    String context = AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_CONTEXT, TOOLS_URI);
+    if (context != null && !context.isEmpty()) {
+      boolean startsWithDot = context.charAt(0) == '.';
+      if (startsWithDot || context.indexOf('.') == -1) {
+        // Prepend application package
+        String pkg = MergedManifestManager.getSnapshot(module).getPackage();
+        return startsWithDot ? pkg + context : pkg + '.' + context;
+      }
+      return context;
+    }
+    return null;
+  }
+
+  /**
+   * Looks up the declared associated context/activity for the given XML file and
+   * returns the associated class, if found
+   *
+   * @param module module containing the XML file
+   * @param xmlFile the XML file
+   * @return the associated class, or null
+   */
+  @Nullable
+  public static PsiClass getContextClass(@NotNull Module module, @NotNull XmlFile xmlFile) {
+    String fqn = getDeclaredContextFqcn(module, xmlFile);
+    if (fqn != null) {
+      Project project = module.getProject();
+      return JavaPsiFacade.getInstance(project).findClass(fqn, GlobalSearchScope.allScope(project));
+    }
+    return null;
+  }
+
+  /**
+   * Returns the root tag for the given {@link PsiFile}, if any, acquiring the read
+   * lock to do so if necessary
+   *
+   * @param file the file to look up the root tag for
+   * @return the corresponding root tag, if any
+   */
+  @Nullable
+  public static String getRootTagName(@NotNull PsiFile file) {
+    ResourceFolderType folderType = ResourceHelper.getFolderType(file);
+    if (folderType == ResourceFolderType.XML || folderType == ResourceFolderType.MENU || folderType == ResourceFolderType.DRAWABLE) {
+      if (file instanceof XmlFile) {
+        XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(((XmlFile)file));
+        return rootTag == null ? null : rootTag.getName();
+      }
+    }
+    return null;
   }
 }

@@ -45,9 +45,9 @@ import com.android.tools.property.ptable2.PTableItem
 import com.android.tools.property.ptable2.PTableModel
 import com.android.tools.property.ptable2.PTableModelUpdateListener
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import icons.StudioIcons
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.ArgumentMatchers
@@ -68,9 +68,10 @@ class DeclaredAttributesInspectorBuilderTest {
     addProperties(util)
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
-    util.checkTitle(0, "Declared Attributes", true)
+    util.checkTitle(0, InspectorSection.DECLARED.title, true)
     val tableModel = util.checkTable(1).tableModel
-    assertThat(util.inspector.lines).hasSize(2)
+    util.checkEmptyTableIndicator(2)
+    assertThat(util.inspector.lines).hasSize(3)
 
     // Check that there are 3 attributes
     assertThat(tableModel.items.map { it.name })
@@ -87,12 +88,13 @@ class DeclaredAttributesInspectorBuilderTest {
     addProperties(util)
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
-    val titleModel = util.checkTitle(0, "Declared Attributes", true)
+    val titleModel = util.checkTitle(0, InspectorSection.DECLARED.title, true)
     val tableModel = util.checkTable(1).tableModel
-    assertThat(util.inspector.lines).hasSize(2)
+    util.checkEmptyTableIndicator(2)
+    assertThat(util.inspector.lines).hasSize(3)
 
     titleModel.expanded = false
-    performAddNewRowAction(util)
+    util.performAction(0, 0, StudioIcons.Common.ADD)
 
     // Check that the "Declared Attributes" title is now expanded
     assertThat(titleModel.expanded).isTrue()
@@ -112,7 +114,7 @@ class DeclaredAttributesInspectorBuilderTest {
     addProperties(util)
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
-    performAddNewRowAction(util)
+    util.performAction(0, 0, StudioIcons.Common.ADD)
 
     val declared = util.checkTable(1).tableModel
     assertThat(declared.acceptMoveToNextEditor(declared.items[0], PTableColumn.NAME)).isTrue()
@@ -131,7 +133,7 @@ class DeclaredAttributesInspectorBuilderTest {
     addProperties(util)
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
-    performAddNewRowAction(util)
+    util.performAction(0, 0, StudioIcons.Common.ADD)
 
     val declared = util.checkTable(1).tableModel
     val newProperty = declared.items.last() as NeleNewPropertyItem
@@ -154,7 +156,7 @@ class DeclaredAttributesInspectorBuilderTest {
     addProperties(util)
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
-    performAddNewRowAction(util)
+    util.performAction(0, 0, StudioIcons.Common.ADD)
 
     val declared = util.checkTable(1).tableModel
     val listener = mock(PTableModelUpdateListener::class.java)
@@ -170,7 +172,7 @@ class DeclaredAttributesInspectorBuilderTest {
     addProperties(util)
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
-    performAddNewRowAction(util)
+    util.performAction(0, 0, StudioIcons.Common.ADD)
 
     val declared = util.checkTable(1).tableModel
     val listener = mock(PTableModelUpdateListener::class.java)
@@ -190,7 +192,7 @@ class DeclaredAttributesInspectorBuilderTest {
     val tableLine = util.checkTable(1)
     val model = tableLine.tableModel
     tableLine.selectedItem = model.items[2] // select ATTR_TEXT
-    performDeleteRowAction(util)
+    util.performAction(0, 1, StudioIcons.Common.REMOVE)
 
     // Check that there are only 2 declared attributes left
     assertThat(model.items.map { it.name })
@@ -205,8 +207,8 @@ class DeclaredAttributesInspectorBuilderTest {
     addProperties(util)
     val builder = createBuilder(util.model)
     builder.attachToInspector(util.inspector, util.properties)
-    performAddNewRowAction(util)
-    performDeleteRowAction(util)
+    util.performAction(0, 0, StudioIcons.Common.ADD)
+    util.performAction(0, 1, StudioIcons.Common.REMOVE)
 
     // Check that there are only the 3 declared attributes left (the place holder is gone)
     val declared = util.checkTable(1).tableModel
@@ -225,7 +227,7 @@ class DeclaredAttributesInspectorBuilderTest {
     val listener = RecursiveUpdateListener(declared)
     declared.addListener(listener)
 
-    performAddNewRowAction(util)
+    util.performAction(0, 0, StudioIcons.Common.ADD)
     assertThat(listener.called).isTrue()
   }
 
@@ -262,19 +264,5 @@ class DeclaredAttributesInspectorBuilderTest {
     util.properties[ANDROID_URI, ATTR_TEXT].value = "Testing"
     util.properties[ANDROID_URI, ATTR_LAYOUT_WIDTH].value = VALUE_WRAP_CONTENT
     util.properties[ANDROID_URI, ATTR_LAYOUT_HEIGHT].value = VALUE_WRAP_CONTENT
-  }
-
-  private fun performAddNewRowAction(util: InspectorTestUtil) {
-    // Add a new property line in the table
-    val addNewPropertyAction = util.inspector.lines[0].actions[0]
-    val event = mock(AnActionEvent::class.java)
-    addNewPropertyAction.actionPerformed(event)
-  }
-
-  private fun performDeleteRowAction(util: InspectorTestUtil) {
-    // Remove the selected row in the table
-    val addNewPropertyAction = util.inspector.lines[0].actions[1]
-    val event = mock(AnActionEvent::class.java)
-    addNewPropertyAction.actionPerformed(event)
   }
 }

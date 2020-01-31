@@ -69,7 +69,7 @@ class ClangOutputParserTest {
   @Test
   fun `ndk - simple case`() = assertParser("""
     > Task :some:gradle:task UP-TO-DATE
-    > Task :app:externalNativeBuildDebug
+    > Task :foo:bar:app:externalNativeBuildDebug
   * Build app_armeabi-v7a
   * [armeabi-v7a] Compile++ arm  : app <= app.cpp
   * /usr/local/home/jeff/hello-world/src/app.cpp:1:1: warning: something is suboptimal
@@ -79,7 +79,23 @@ class ClangOutputParserTest {
     > Task :some:other:gradle:task UP-TO-DATE
     """) {
     assertDiagnosticMessages(
-      "[:app Debug armeabi-v7a]" to "/usr/local/home/jeff/hello-world/src/app.cpp:1:1: warning: something is suboptimal")
+      "[:foo:bar:app Debug armeabi-v7a]" to "/usr/local/home/jeff/hello-world/src/app.cpp:1:1: warning: something is suboptimal")
+  }
+
+  @Test
+  fun `ndk - no module name`() = assertParser("""
+    > Task :some:gradle:task UP-TO-DATE
+    > Task :externalNativeBuildDebug
+  * Build app_armeabi-v7a
+  * [armeabi-v7a] Compile++ arm  : app <= app.cpp
+  * /usr/local/home/jeff/hello-world/src/app.cpp:1:1: warning: something is suboptimal
+  *         some randome code
+  *         ^~~~~~~~~
+  * 1 warning generated.
+    > Task :some:other:gradle:task UP-TO-DATE
+    """) {
+    assertDiagnosticMessages(
+      "[ Debug armeabi-v7a]" to "/usr/local/home/jeff/hello-world/src/app.cpp:1:1: warning: something is suboptimal")
   }
 
   @Test
@@ -288,37 +304,67 @@ class ClangOutputParserTest {
   }
 
   @Test
-  fun `linker - unresolved reference`() = assertParser("""
-    > Task :app:externalNativeBuildDebug
-  * ninja: Entering directory `/usr/local/google/home/jeff/hello-world/app/.cxx/cmake/debug/arm64-v8a'
-  * [1/1] Linking CXX shared library /usr/local/google/home/jeff/HelloWorld/app/build/intermediates/cmake/debug/obj/x86_64/libmain.so
-  * FAILED: /usr/local/google/home/jeff/HelloWorld/app/build/intermediates/cmake/debug/obj/x86_64/libmain.so
-  * /usr/local/google/home/jeff/HelloWorld/src/HelloWorld.cpp:33: error: undefined reference to 'foo()'
-  * clang++: error: linker command failed with exit code 1 (use -v to see invocation)
-  * ninja: build stopped: subcommand failed.
-  * :app:externalNativeBuildDebug FAILED
-    FAILURE: Build failed with an exception.
-    """) {
-    assertDiagnosticMessages(
-      "[:app Debug arm64-v8a]" to "/usr/local/google/home/jeff/HelloWorld/src/HelloWorld.cpp:33: error: undefined reference to 'foo()'"
-    )
+  fun `linker - unresolved reference`() {
+    Assume.assumeTrue(SdkConstants.currentPlatform() == SdkConstants.PLATFORM_LINUX)
+    assertParser("""
+      > Task :app:externalNativeBuildDebug
+    * ninja: Entering directory `/usr/local/google/home/jeff/hello-world/app/.cxx/cmake/debug/arm64-v8a'
+    * [1/1] Linking CXX shared library /usr/local/google/home/jeff/HelloWorld/app/build/intermediates/cmake/debug/obj/x86_64/libmain.so
+    * FAILED: /usr/local/google/home/jeff/HelloWorld/app/build/intermediates/cmake/debug/obj/x86_64/libmain.so
+    * /usr/local/google/home/jeff/HelloWorld/src/HelloWorld.cpp:33: error: undefined reference to 'foo()'
+    * clang++: error: linker command failed with exit code 1 (use -v to see invocation)
+    * ninja: build stopped: subcommand failed.
+    * :app:externalNativeBuildDebug FAILED
+      FAILURE: Build failed with an exception.
+      """) {
+      assertDiagnosticMessages(
+        "[:app Debug arm64-v8a]" to "/usr/local/google/home/jeff/HelloWorld/src/HelloWorld.cpp:33: error: undefined reference to 'foo()'"
+      )
+    }
   }
 
   @Test
-  fun `linker - missing library`() = assertParser ("""
-    > Task :app:externalNativeBuildDebug
-  * ninja: Entering directory `/usr/local/google/home/jeff/hello-world/app/.cxx/cmake/debug/x86_64'
-  * [1/1] Linking CXX shared library /usr/local/google/home/jeff/HelloWorld/app/build/intermediates/cmake/debug/obj/x86_64/libmain.so
-  * FAILED: /usr/local/google/home/jeff/HelloWorld/app/build/intermediates/cmake/debug/obj/x86_64/libmain.so
-  * /usr/local/google/home/jeff/Android/Sdk/ndk-bundle/toolchains/llvm/prebuilt/windows-x86_64/x86_64-linux-android/bin\ld: error: cannot find -lbdisasm
-  * clang++.exe: error: linker command failed with exit code 1 (use -v to see invocation)
-  * ninja: build stopped: subcommand failed.
-  * :app:externalNativeBuildDebug FAILED
-    FAILURE: Build failed with an exception.
-  """) {
-    assertDiagnosticMessages(
-      "[:app Debug x86_64]" to "/usr/local/google/home/jeff/Android/Sdk/ndk-bundle/toolchains/llvm/prebuilt/windows-x86_64/x86_64-linux-android/bin\\ld: error: cannot find -lbdisasm"
-    )
+  fun `linker - missing library`() {
+    Assume.assumeTrue(SdkConstants.currentPlatform() == SdkConstants.PLATFORM_LINUX)
+    assertParser("""
+      > Task :app:externalNativeBuildDebug
+    * ninja: Entering directory `/usr/local/google/home/jeff/hello-world/app/.cxx/cmake/debug/x86_64'
+    * [1/1] Linking CXX shared library /usr/local/google/home/jeff/HelloWorld/app/build/intermediates/cmake/debug/obj/x86_64/libmain.so
+    * FAILED: /usr/local/google/home/jeff/HelloWorld/app/build/intermediates/cmake/debug/obj/x86_64/libmain.so
+    * /usr/local/google/home/jeff/Android/Sdk/ndk-bundle/toolchains/llvm/prebuilt/windows-x86_64/x86_64-linux-android/bin/ld: error: cannot find -lbdisasm
+    * clang++.exe: error: linker command failed with exit code 1 (use -v to see invocation)
+    * ninja: build stopped: subcommand failed.
+    * :app:externalNativeBuildDebug FAILED
+      FAILURE: Build failed with an exception.
+    """) {
+      assertDiagnosticMessages(
+        "[:app Debug x86_64]" to "/usr/local/google/home/jeff/Android/Sdk/ndk-bundle/toolchains/llvm/prebuilt/windows-x86_64/x86_64-linux-android/bin/ld: error: cannot find -lbdisasm"
+      )
+    }
+  }
+
+  @Test
+  fun `windows - linker error has augmented details`() {
+    Assume.assumeTrue(SdkConstants.currentPlatform() == SdkConstants.PLATFORM_WINDOWS)
+    assertParser("""
+      > Task :app:externalNativeBuildDebug
+    * ninja: Entering directory `/usr/local/google/home/jeff/hello-world/app/.cxx/cmake/debug/x86_64'
+    * [1/1] Linking CXX shared library /usr/local/google/home/jeff/HelloWorld/app/build/intermediates/cmake/debug/obj/x86_64/libmain.so
+    * FAILED: /usr/local/google/home/jeff/HelloWorld/app/build/intermediates/cmake/debug/obj/x86_64/libmain.so
+    * C:\sdk\ndk-bundle\toolchains\llvm\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.9.x\bin\ld: fatal error: C:\build\intermediates\cmake\debug\obj\armeabi-v7a\libcore.so: open: Invalid argument
+    * clang++.exe: error: linker command failed with exit code 1 (use -v to see invocation)
+    * ninja: build stopped: subcommand failed.
+    * :app:externalNativeBuildDebug FAILED
+      FAILURE: Build failed with an exception.
+    """) {
+      assertDiagnosticMessages(
+        "[:app Debug x86_64]" to """
+           C:\sdk\ndk-bundle\toolchains\llvm\prebuilt\windows-x86_64\lib\gcc\arm-linux-androideabi\4.9.x\bin\ld: fatal error: C:\build\intermediates\cmake\debug\obj\armeabi-v7a\libcore.so: open: Invalid argument
+    
+           File C:\build\intermediates\cmake\debug\obj\armeabi-v7a\libcore.so is not writable. This may be caused by insufficient permissions or files being locked by other processes. For example, LLDB locks .so files in a while debugging.
+        """.trimIndent()
+      )
+    }
   }
 
   @Test
@@ -335,14 +381,13 @@ class ClangOutputParserTest {
     * ^
     * 1 error generated.
       > Task :app:externalNativeBuildDebug FAILED
-    """) {
+    """.trimIndent().replace("\n", "\r\n")) {
       // Note the weird backward slash in middle of forward slashes in the diagnostic message line. It's what the clang compiler generates.
       assertDiagnosticMessages(
         "[:app Debug arm64-v8a]" to """
-          C:\src\HelloWorld\app\include\common\header.h:72:1: error: C++ requires a type specifier for all declarations
-
-          This file is included from the following inclusion chain:
-          C:\src\HelloWorld\app\HelloWorld.cpp:14""".trimIndent())
+           In file included from C:\src\HelloWorld\app\HelloWorld.cpp:14:
+           C:\src\HelloWorld\app\include\common\header.h:72:1: error: C++ requires a type specifier for all declarations
+         """.trimIndent())
     }
   }
 
@@ -360,14 +405,13 @@ class ClangOutputParserTest {
     * ^
     * 1 error generated.
       > Task :app:externalNativeBuildDebug FAILED
-    """) {
+    """.trimIndent().replace("\n", "\r\n")) {
       // Note the weird backward slash in middle of forward slashes in the diagnostic message line. It's what the clang compiler generates.
       assertDiagnosticMessages(
         "[:app Debug arm64-v8a]" to """
-          C:\src\HelloWorld\app\include\common\header.h:72:1: error: C++ requires a type specifier for all declarations
-
-          This file is included from the following inclusion chain:
-          C:\src\HelloWorld\app\HelloWorld.cpp:14""".trimIndent())
+             In file included from C:\src\HelloWorld\app\HelloWorld.cpp:14:
+             C:\src\HelloWorld\app\include\common\header.h:72:1: error: C++ requires a type specifier for all declarations
+           """.trimIndent())
     }
   }
 
@@ -383,8 +427,7 @@ class ClangOutputParserTest {
       val (compilerGroup, msg) = pair
       Truth.assertThat(event.group).named("compiler group").endsWith(compilerGroup)
       // Details may contains file inclusion path in addition to the expected error itself.
-      Truth.assertThat(event.result.details).named("diagnostic details").startsWith(
-        msg.normalizeSeparator())
+      Truth.assertThat(event.result.details).named("diagnostic details").contains(msg.normalizeSeparator())
     }
   }
 
@@ -408,11 +451,9 @@ class ClangOutputParserTest {
       Truth.assertThat(group).isEqualTo("Clang Compiler [:app Debug arm64-v8a]")
       Truth.assertThat(message).isEqualTo("'unresolved.h' file not found")
       Truth.assertThat(result.details).isEqualTo("""
+          In file included from /usr/local/google/home/jeff/hello-world/native/source.cpp:8:
           /usr/local/google/home/jeff/hello-world/native/source.h:12:10: fatal error: 'unresolved.h' file not found
-
-          This file is included from the following inclusion chain:
-          /usr/local/google/home/jeff/hello-world/native/source.cpp:8
-          """.trimIndent().normalizeSeparator() + "\n")
+          """.trimIndent().normalizeSeparator())
       with((this as FileMessageEventImpl).result.filePosition) {
         Truth.assertThat(file.path).isEqualTo("/usr/local/google/home/jeff/hello-world/native/source.h".normalizeSeparator())
         // The following two numbers are one less than that from clang since Clang error output counts from 1 while Intellij counts from 0.

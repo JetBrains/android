@@ -74,7 +74,7 @@ public class AndroidRegenerateSourcesAction extends AnAction {
     }
     assert project != null;
     List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
-    List<Module> modulesToProcess = new ArrayList<>();
+    List<Module> modulesToProcess = new ArrayList<Module>();
     for (AndroidFacet facet : facets) {
       module = facet.getModule();
       if (AndroidAutogenerator.supportsAutogeneration(facet)) {

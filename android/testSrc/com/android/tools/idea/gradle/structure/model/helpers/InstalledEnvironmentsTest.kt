@@ -90,9 +90,9 @@ class InstalledEnvironmentsTest {
         installedEnvironments(sdkManager, targets).buildTools,
         equalTo(
             listOf(
-                ValueDescriptor("24.0.3", "24.0.3"),
-                ValueDescriptor("27.0.0", "27.0.0"),
-                ValueDescriptor("4109860.0.0", "4109860.0.0")
+                ValueDescriptor("24.0.3", null),
+                ValueDescriptor("27.0.0", null),
+                ValueDescriptor("4109860.0.0", null)
             )))
 
   }

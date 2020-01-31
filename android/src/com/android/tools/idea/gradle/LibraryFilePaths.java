@@ -15,34 +15,94 @@
  */
 package com.android.tools.idea.gradle;
 
+import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifact;
+import com.android.ide.gradle.model.sources.SourcesAndJavadocArtifacts;
+import com.intellij.openapi.project.Project;
 import com.intellij.jarFinder.InternetAttachSourceProvider;
 import com.intellij.openapi.components.ServiceManager;
-import com.intellij.openapi.util.io.FileUtilRt;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 
+import static com.android.tools.idea.gradle.project.sync.idea.SourcesAndJavadocCollectorKt.idToString;
+import static com.android.tools.idea.gradle.project.sync.setup.module.dependency.LibraryDependency.NAME_PREFIX;
+import static com.intellij.openapi.util.io.FileUtil.getNameWithoutExtension;
 import static com.intellij.openapi.util.io.FileUtil.notNullize;
 
 public class LibraryFilePaths {
+  // Key: libraryId, Value: ExtraArtifactsPaths for the library.
+  @NotNull private final Map<String, ArtifactPaths> myPathsMap = new HashMap<>();
+
+  // for 2019-05 gradle cache layout
+  private static final Pattern gradleCachePattern = Pattern.compile("^[a-f0-9]{30,48}$");
+
+  private static class ArtifactPaths {
+    @Nullable final File myJavaDoc;
+    @Nullable final File mySources;
+
+    private ArtifactPaths(@Nullable File javadoc, @Nullable File sources) {
+      myJavaDoc = javadoc;
+      mySources = sources;
+    }
+  }
+
+  public void populate(@NotNull SourcesAndJavadocArtifacts artifacts) {
+    for (SourcesAndJavadocArtifact artifact : artifacts.getArtifacts()) {
+      myPathsMap.computeIfAbsent(idToString(artifact.getId()),
+                                 k -> new ArtifactPaths(artifact.getJavadoc(), artifact.getSources()));
+    }
+  }
+
+  public Collection<String> retrieveCachedLibs() {
+    return new HashSet<>(myPathsMap.keySet());
+  }
+
   @NotNull
-  public static LibraryFilePaths getInstance() {
-    return ServiceManager.getService(LibraryFilePaths.class);
+  public static LibraryFilePaths getInstance(@NotNull Project project) {
+    return ServiceManager.getService(project, LibraryFilePaths.class);
   }
 
   @Nullable
-  public File findSourceJarPath(@NotNull File libraryPath) {
+  public File findSourceJarPath(@NotNull String libraryName, @NotNull File libraryPath) {
+    String libraryId = getLibraryId(libraryName);
+    if (myPathsMap.containsKey(libraryId)) {
+      return myPathsMap.get(libraryId).mySources;
+    }
     return findArtifactFilePathInRepository(libraryPath, "-sources.jar", true);
   }
 
+  /**
+   * libraryName is in the format of "Gradle: junit:junit:4.12@jar", the internal map uses the core part
+   * "junit:junit:4.12" as key, this method extracts the map key from libraryName.
+   */
+  @NotNull
+  static String getLibraryId(@NotNull String libraryName) {
+    if (libraryName.startsWith(NAME_PREFIX)) {
+      libraryName = libraryName.substring(NAME_PREFIX.length());
+    }
+    if (libraryName.contains("@")) {
+      libraryName = libraryName.substring(0, libraryName.indexOf('@'));
+    }
+    return libraryName.trim();
+  }
+
   @Nullable
-  public File findJavadocJarPath(@NotNull File libraryPath) {
+  public File findJavadocJarPath(@NotNull String libraryName, @NotNull File libraryPath) {
+    String libraryId = getLibraryId(libraryName);
+    if (myPathsMap.containsKey(libraryId)) {
+      return myPathsMap.get(libraryId).myJavaDoc;
+    }
     return findArtifactFilePathInRepository(libraryPath, "-javadoc.jar", true);
   }
 
   @Nullable
-  public File findPomPathForLibrary(@NotNull File libraryPath) {
+  public static File findPomPathForLibrary(@NotNull File libraryPath) {
     return findArtifactFilePathInRepository(libraryPath, ".pom", false);
   }
 
@@ -56,7 +116,7 @@ public class LibraryFilePaths {
     }
 
     File parentPath = libraryPath.getParentFile();
-    String name = FileUtilRt.getNameWithoutExtension(libraryPath.getName());
+    String name = getNameWithoutExtension(libraryPath);
     String sourceFileName = name + fileNameSuffix;
     if (parentPath != null) {
 
@@ -79,19 +139,17 @@ public class LibraryFilePaths {
         }
       }
 
-      // Try new .gradle layout.
+      // Try new (around 2019-05) .gradle cache layout.
       // Example: androidx.appcompat/appcompat/1.0.2/2533a36c928bb27a3cc6843a25f83754b3c3ae/appcompat-1.0.2.aar
-      parentPath = parentPath.getParentFile();
-      if (parentPath != null && parentPath.getName().length() == 48) {
+      parentPath = libraryPath.getParentFile();
+      if (parentPath != null && gradleCachePattern.matcher(parentPath.getName()).matches()) {
         parentPath = parentPath.getParentFile();
-        if (parentPath != null && libraryPath.getName().startsWith(parentPath.getName())) {
+        if (parentPath != null && parentPath.getParentFile() != null && libraryPath.getName().startsWith(parentPath.getParentFile().getName())) {
           for (File child : notNullize(parentPath.listFiles())) {
-            if (child.isDirectory() && child.getName().length() == 48) {
-              for (File child2 : notNullize(child.listFiles())) {
-                sourceJar = findChildPath(child2, sourceFileName);
-                if (sourceJar != null) {
-                  return sourceJar;
-                }
+            if (child.isDirectory() && gradleCachePattern.matcher(child.getName()).matches()) {
+              sourceJar = findChildPath(child, sourceFileName);
+              if (sourceJar != null) {
+                return sourceJar;
               }
             }
           }

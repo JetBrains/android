@@ -43,7 +43,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -125,7 +124,7 @@ public class SketchParser {
    */
   @Nullable
   public static <T> T parseJson(@NotNull InputStream in, @NotNull Type typeOfT) {
-    try (Reader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
+    try (Reader reader = new BufferedReader(new InputStreamReader(in))) {
       return gson.fromJson(reader, typeOfT);
     }
     catch (Exception e) {

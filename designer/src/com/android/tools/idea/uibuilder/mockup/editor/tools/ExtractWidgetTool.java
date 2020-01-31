@@ -220,7 +220,7 @@ public class ExtractWidgetTool extends ToolRootPanel implements MockupEditor.Too
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         Mockup mockup = myMockupEditor.getMockup();
-        SceneView currentScreenView = mySurface.getCurrentSceneView();
+        SceneView currentScreenView = mySurface.getFocusedSceneView();
         if (mockup == null) {
           myMockupEditor.showError("Cannot create a widget from an empty mockup");
           LOGGER.warn("MockupEditor has no associated mockup");

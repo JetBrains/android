@@ -25,6 +25,8 @@ import com.android.tools.idea.gradle.structure.model.meta.getValue
 import com.android.tools.idea.testing.TestProjectPaths.BASIC
 import com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE
+import com.android.tools.idea.testing.TestProjectPaths.PSD_VARIANT_COLLISIONS
+import com.android.tools.idea.testing.TestProjectPaths.SCRIPTED_DIMENSIONS
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -43,6 +45,8 @@ class PsAndroidModuleTest : DependencyTestCase() {
   var signingConfigsChanged = 0
   var variantsChanged = 0
 
+  private val DISALLOWED_NAME_CHARS = "/\\:<>\"?*|"
+
   fun testFlavorDimensions() {
     loadProject(PSD_SAMPLE)
 
@@ -50,7 +54,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = moduleWithSyncedModel(project, "app")
-    assertNotNull(appModule);
+    assertNotNull(appModule)
 
     val flavorDimensions = getFlavorDimensions(appModule)
     assertThat(flavorDimensions)
@@ -64,11 +68,35 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = moduleWithoutSyncedModel(project, "app")
-    assertNotNull(appModule);
+    assertNotNull(appModule)
 
     val flavorDimensions = getFlavorDimensions(appModule)
     assertThat(flavorDimensions)
       .containsExactly("foo", "bar").inOrder()
+  }
+
+  fun testScriptedFlavorDimensions() {
+    loadProject(SCRIPTED_DIMENSIONS)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    run {
+      val appModule = moduleWithoutSyncedModel(project, "app")
+      assertNotNull(appModule)
+
+      val flavorDimensions = getFlavorDimensions(appModule)
+      assertThat(flavorDimensions).isEmpty()
+    }
+
+    run {
+      val appModule = moduleWithSyncedModel(project, "app")
+      assertNotNull(appModule)
+
+      val flavorDimensions = getFlavorDimensions(appModule)
+      assertThat(flavorDimensions)
+        .containsExactly("dimScripted").inOrder()
+    }
   }
 
   fun testValidateFlavorDimensionName() {
@@ -78,11 +106,18 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = moduleWithoutSyncedModel(project, "app")
-    assertNotNull(appModule);
+    assertNotNull(appModule)
 
     assertThat(appModule.validateFlavorDimensionName("")).isEqualTo("Flavor dimension name cannot be empty.")
     assertThat(appModule.validateFlavorDimensionName("foo")).isEqualTo("Duplicate flavor dimension name: 'foo'")
     assertThat(appModule.validateFlavorDimensionName("ok")).isNull()
+    DISALLOWED_NAME_CHARS.forEach {
+      assertThat(appModule.validateFlavorDimensionName("${it}")).isNotNull()
+      assertThat(appModule.validateFlavorDimensionName("foo${it}")).isNotNull()
+      assertThat(appModule.validateFlavorDimensionName("foo${it}bar")).isNotNull()
+      assertThat(appModule.validateFlavorDimensionName("'${it}'")).isNotNull()
+      assertThat(appModule.validateFlavorDimensionName("''${it}''")).isNotNull()
+    }
   }
 
   fun testAddFlavorDimension() {
@@ -117,23 +152,23 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val resolvedProject = myFixture.project
     var project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
-    var appModule = moduleWithSyncedModel(project, "lib")
-    assertNotNull(appModule)
-    appModule.testSubscribeToChangeNotifications()
+    var libModule = moduleWithSyncedModel(project, "lib")
+    assertNotNull(libModule)
+    libModule.testSubscribeToChangeNotifications()
 
-    appModule.addNewFlavorDimension("bar")
+    libModule.addNewFlavorDimension("bar")
     assertThat(flavorDimensionsChanged).isEqualTo(1)
     // A product flavor is required for successful sync.
-    val bar = appModule.addNewProductFlavor("bar", "bar")
-    val otherBar = appModule.addNewProductFlavor("bar", "otherBar")
-    appModule.applyChanges()
+    val bar = libModule.addNewProductFlavor("bar", "bar")
+    val otherBar = libModule.addNewProductFlavor("bar", "otherBar")
+    libModule.applyChanges()
 
     requestSyncAndWait()
     project = PsProjectImpl(resolvedProject).also { it.testResolve() }
-    appModule = moduleWithSyncedModel(project, "lib")
-    assertNotNull(appModule)
+    libModule = moduleWithSyncedModel(project, "lib")
+    assertNotNull(libModule)
 
-    val flavorDimensions = getFlavorDimensions(appModule)
+    val flavorDimensions = getFlavorDimensions(libModule)
     assertThat(flavorDimensions).containsExactly("bar")
   }
 
@@ -221,11 +256,105 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = moduleWithoutSyncedModel(project, "app")
-    assertNotNull(appModule);
+    assertNotNull(appModule)
 
-    assertThat(appModule.validateProductFlavorName("")).isEqualTo("Product flavor name cannot be empty.")
-    assertThat(appModule.validateProductFlavorName("paid")).isEqualTo("Duplicate product flavor name: 'paid'")
-    assertThat(appModule.validateProductFlavorName("ok")).isNull()
+    assertThat(appModule.validateProductFlavorName("", "foo")).isEqualTo("Product flavor name cannot be empty.")
+    assertThat(appModule.validateProductFlavorName("", "bar")).isEqualTo("Product flavor name cannot be empty.")
+    assertThat(appModule.validateProductFlavorName("", null)).isEqualTo("Product flavor name cannot be empty.")
+    assertThat(appModule.validateProductFlavorName("test", "foo")).isEqualTo("Product flavor name cannot start with 'test'.")
+    assertThat(appModule.validateProductFlavorName("test", "bar")).isEqualTo("Product flavor name cannot start with 'test'.")
+    assertThat(appModule.validateProductFlavorName("test", null)).isEqualTo("Product flavor name cannot start with 'test'.")
+    assertThat(appModule.validateProductFlavorName("testable", "foo")).isEqualTo("Product flavor name cannot start with 'test'.")
+    assertThat(appModule.validateProductFlavorName("testable", "bar")).isEqualTo("Product flavor name cannot start with 'test'.")
+    assertThat(appModule.validateProductFlavorName("testable", null)).isEqualTo("Product flavor name cannot start with 'test'.")
+    assertThat(appModule.validateProductFlavorName("androidTest", "foo")).isEqualTo("Product flavor name cannot start with 'androidTest'.")
+    assertThat(appModule.validateProductFlavorName("androidTest", "bar")).isEqualTo("Product flavor name cannot start with 'androidTest'.")
+    assertThat(appModule.validateProductFlavorName("androidTest", null)).isEqualTo("Product flavor name cannot start with 'androidTest'.")
+    assertThat(appModule.validateProductFlavorName("androidTestable", "foo")).isEqualTo(
+      "Product flavor name cannot start with 'androidTest'.")
+    assertThat(appModule.validateProductFlavorName("androidTestable", "bar")).isEqualTo(
+      "Product flavor name cannot start with 'androidTest'.")
+    assertThat(appModule.validateProductFlavorName("androidTestable", null)).isEqualTo(
+      "Product flavor name cannot start with 'androidTest'.")
+    assertThat(appModule.validateProductFlavorName("main", "foo")).isEqualTo("Product flavor name cannot be 'main'.")
+    assertThat(appModule.validateProductFlavorName("main", "bar")).isEqualTo("Product flavor name cannot be 'main'.")
+    assertThat(appModule.validateProductFlavorName("main", null)).isEqualTo("Product flavor name cannot be 'main'.")
+    assertThat(appModule.validateProductFlavorName("lint", "foo")).isEqualTo("Product flavor name cannot be 'lint'.")
+    assertThat(appModule.validateProductFlavorName("lint", "bar")).isEqualTo("Product flavor name cannot be 'lint'.")
+    assertThat(appModule.validateProductFlavorName("lint", null)).isEqualTo("Product flavor name cannot be 'lint'.")
+    assertThat(appModule.validateProductFlavorName("specialRelease", "foo"))
+      .isEqualTo("Product flavor name cannot collide with build type: 'specialRelease'")
+    assertThat(appModule.validateProductFlavorName("specialRelease", "bar"))
+      .isEqualTo("Product flavor name cannot collide with build type: 'specialRelease'")
+    assertThat(appModule.validateProductFlavorName("specialRelease", null))
+      .isEqualTo("Product flavor name cannot collide with build type: 'specialRelease'")
+    assertThat(appModule.validateProductFlavorName("paid", "foo")).isEqualTo("Duplicate product flavor name: 'paid'")
+    assertThat(appModule.validateProductFlavorName("paid", "bar")).isEqualTo("Duplicate product flavor name: 'paid'")
+    assertThat(appModule.validateProductFlavorName("paid", null)).isEqualTo("Duplicate product flavor name: 'paid'")
+    assertThat(appModule.validateProductFlavorName("ok", "foo")).isNull()
+    assertThat(appModule.validateProductFlavorName("ok", "bar")).isNull()
+    assertThat(appModule.validateProductFlavorName("ok", null)).isNull()
+    DISALLOWED_NAME_CHARS.forEach {
+      assertThat(appModule.validateProductFlavorName("${it}", "foo")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("foo${it}", "foo")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("foo${it}bar", "foo")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("'${it}'", "foo")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("''${it}''", "foo")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("${it}", "bar")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("foo${it}", "bar")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("foo${it}bar", "bar")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("'${it}'", "bar")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("''${it}''", "bar")).isNotNull()
+      assertThat(appModule.validateProductFlavorName("${it}", null)).isNotNull()
+      assertThat(appModule.validateProductFlavorName("foo${it}", null)).isNotNull()
+      assertThat(appModule.validateProductFlavorName("foo${it}bar", null)).isNotNull()
+      assertThat(appModule.validateProductFlavorName("'${it}'", null)).isNotNull()
+      assertThat(appModule.validateProductFlavorName("''${it}''", null)).isNotNull()
+    }
+  }
+
+  fun testValidateProductFlavorNameWithCollisions() {
+    loadProject(PSD_VARIANT_COLLISIONS)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+    val appModule = moduleWithoutSyncedModel(project, "app")
+    assertNotNull(appModule)
+    assertThat(appModule.validateProductFlavorName("paid", "foo")).isEqualTo("Duplicate product flavor name: 'paid'")
+    assertThat(appModule.validateProductFlavorName("paidLittle", "foo")).isEqualTo("Duplicate product flavor name: 'paidLittle'")
+
+    // even in the first flavor dimension, the first character will end up capitalized in some configuration names...
+    assertThat(appModule.validateProductFlavorName("Paid", "foo"))
+      .isEqualTo("Duplicate product flavor name: 'Paid'")
+    // ... but characters after the first in names are not case-converted
+    assertThat(appModule.validateProductFlavorName("pAid", "foo")).isNull()
+
+    // "paid" product flavor + "specialRelease" build type = "paidSpecial" product flavor + "release" build type
+    assertThat(appModule.validateProductFlavorName("paidSpecial", "foo"))
+      .isEqualTo("Product flavor name 'paidSpecial' in flavor dimension 'foo' would cause a configuration name ambiguity.")
+
+    val app2Module = moduleWithoutSyncedModel(project, "app2")
+
+    // "paid" product flavor + "littleScreen" product flavor + "specialRelease" build type
+    // =
+    // "paidLittle" product flavor + "screenSpecial" product flavor + "release" build type
+    assertThat(app2Module.validateProductFlavorName("screenSpecial", "bar"))
+      .isEqualTo("Product flavor name 'screenSpecial' in flavor dimension 'bar' would cause a configuration name ambiguity.")
+    // but this one is OK
+    assertThat(app2Module.validateProductFlavorName("screenSpecial", "foo")).isNull()
+
+    val app3Module = moduleWithoutSyncedModel(project, "app3")
+
+    // "paid" product flavor + "little" product flavor = "paidLittle" product flavor (whichever dimension)
+    assertThat(app3Module.validateProductFlavorName("paidLittle", "foo"))
+      .isEqualTo("Product flavor name 'paidLittle' in flavor dimension 'foo' would cause a configuration name ambiguity.")
+    assertThat(app3Module.validateProductFlavorName("paidLittle", "bar"))
+      .isEqualTo("Product flavor name 'paidLittle' in flavor dimension 'bar' would cause a configuration name ambiguity.")
+
+    assertThat(app3Module.validateProductFlavorName("PaidLittle", "foo"))
+      .isEqualTo("Product flavor name 'PaidLittle' in flavor dimension 'foo' would cause a configuration name ambiguity.")
+    assertThat(app3Module.validateProductFlavorName("PaidLittle", "bar"))
+      .isEqualTo("Product flavor name 'PaidLittle' in flavor dimension 'bar' would cause a configuration name ambiguity.")
   }
 
   fun testAddProductFlavor() {
@@ -380,11 +509,56 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = moduleWithoutSyncedModel(project, "app")
-    assertNotNull(appModule);
+    assertNotNull(appModule)
 
     assertThat(appModule.validateBuildTypeName("")).isEqualTo("Build type name cannot be empty.")
+    assertThat(appModule.validateBuildTypeName("test")).isEqualTo("Build type name cannot start with 'test'.")
+    assertThat(appModule.validateBuildTypeName("testable")).isEqualTo("Build type name cannot start with 'test'.")
+    assertThat(appModule.validateBuildTypeName("androidTest")).isEqualTo("Build type name cannot start with 'androidTest'.")
+    assertThat(appModule.validateBuildTypeName("androidTestable")).isEqualTo("Build type name cannot start with 'androidTest'.")
+    assertThat(appModule.validateBuildTypeName("main")).isEqualTo("Build type name cannot be 'main'.")
+    assertThat(appModule.validateBuildTypeName("lint")).isEqualTo("Build type name cannot be 'lint'.")
+    assertThat(appModule.validateBuildTypeName("otherBar"))
+      .isEqualTo("Build type name cannot collide with product flavor: 'otherBar'")
     assertThat(appModule.validateBuildTypeName("specialRelease")).isEqualTo("Duplicate build type name: 'specialRelease'")
     assertThat(appModule.validateBuildTypeName("ok")).isNull()
+    DISALLOWED_NAME_CHARS.forEach {
+      assertThat(appModule.validateBuildTypeName("${it}")).isNotNull()
+      assertThat(appModule.validateBuildTypeName("foo${it}")).isNotNull()
+      assertThat(appModule.validateBuildTypeName("foo${it}bar")).isNotNull()
+      assertThat(appModule.validateBuildTypeName("'${it}'")).isNotNull()
+      assertThat(appModule.validateBuildTypeName("''${it}''")).isNotNull()
+    }
+  }
+
+  fun testValidateBuildTypeNameWithCollisions() {
+    loadProject(PSD_VARIANT_COLLISIONS)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+    val appModule = moduleWithoutSyncedModel(project, "app")
+    assertNotNull(appModule)
+    assertThat(appModule.validateBuildTypeName("release")).isEqualTo("Duplicate build type name: 'release'")
+    assertThat(appModule.validateBuildTypeName("specialRelease")).isEqualTo("Duplicate build type name: 'specialRelease'")
+
+    // "paid" flavor + "littleRelease" buildType = "paidLittle" flavor + "release" buildType
+    assertThat(appModule.validateBuildTypeName("littleRelease"))
+      .isEqualTo("Build type name 'littleRelease' would cause a configuration name ambiguity.")
+
+    val app2Module = moduleWithoutSyncedModel(project, "app2")
+    assertNotNull(app2Module)
+    assertThat(app2Module.validateBuildTypeName("release")).isEqualTo("Duplicate build type name: 'release'")
+    assertThat(app2Module.validateBuildTypeName("specialRelease")).isEqualTo("Duplicate build type name: 'specialRelease'")
+
+    // "paid" flavor + "littleScreen" flavor + "release" buildType = "paidLittle" flavor + "screenRelease" buildType
+    assertThat(app2Module.validateBuildTypeName("screenRelease"))
+      .isEqualTo("Build type name 'screenRelease' would cause a configuration name ambiguity.")
+
+    val app4Module = moduleWithoutSyncedModel(project, "app4")
+    assertNotNull(app4Module)
+    assertThat(app4Module.validateBuildTypeName("Experimental"))
+      .isEqualTo("Duplicate build type name: 'Experimental'")
+    assertThat(app4Module.validateBuildTypeName("exPerimental")).isNull()
   }
 
   fun testAddBuildType() {
@@ -508,7 +682,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val appModule = moduleWithSyncedModel(project, "app")
     assertNotNull(appModule)
 
-    val variants = appModule.variants
+    val variants = appModule.resolvedVariants
     assertThat(variants).hasSize(4)
 
     val paidDebug = appModule.findVariant("paidDebug")
@@ -576,11 +750,18 @@ class PsAndroidModuleTest : DependencyTestCase() {
     val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
 
     val appModule = moduleWithoutSyncedModel(project, "app")
-    assertNotNull(appModule);
+    assertNotNull(appModule)
 
     assertThat(appModule.validateSigningConfigName("")).isEqualTo("Signing config name cannot be empty.")
     assertThat(appModule.validateSigningConfigName("myConfig")).isEqualTo("Duplicate signing config name: 'myConfig'")
     assertThat(appModule.validateSigningConfigName("ok")).isNull()
+    DISALLOWED_NAME_CHARS.forEach {
+      assertThat(appModule.validateSigningConfigName("${it}")).isNotNull()
+      assertThat(appModule.validateSigningConfigName("foo${it}")).isNotNull()
+      assertThat(appModule.validateSigningConfigName("foo${it}bar")).isNotNull()
+      assertThat(appModule.validateSigningConfigName("'${it}'")).isNotNull()
+      assertThat(appModule.validateSigningConfigName("''${it}''")).isNotNull()
+    }
   }
 
   fun testAddSigningConfig() {
@@ -700,7 +881,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
       assertThat(signingConfig.resolvedModel).isNull()
     }
     // TODO(b/110194207): Populate variant collection when unsynced.
-    assertThat(appModule.variants).isEmpty()
+    assertThat(appModule.resolvedVariants).isEmpty()
   }
 
   fun testApplyChangesAndSyncReloadsResolvedValues() {
@@ -847,41 +1028,17 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "specialReleaseImplementation",
       "debugImplementation",
       "basicImplementation",
-      "basicReleaseImplementation",
-      "basicSpecialReleaseImplementation",
-      "basicDebugImplementation",
       "paidImplementation",
-      "paidReleaseImplementation",
-      "paidSpecialReleaseImplementation",
-      "paidDebugImplementation",
       "barImplementation",
-      "barReleaseImplementation",
-      "barSpecialReleaseImplementation",
-      "barDebugImplementation",
       "otherBarImplementation",
-      "otherBarReleaseImplementation",
-      "otherBarSpecialReleaseImplementation",
-      "otherBarDebugImplementation",
       "testImplementation",
       "testReleaseImplementation",
       "testSpecialReleaseImplementation",
       "testDebugImplementation",
       "testBasicImplementation",
-      "testBasicReleaseImplementation",
-      "testBasicSpecialReleaseImplementation",
-      "testBasicDebugImplementation",
       "testPaidImplementation",
-      "testPaidReleaseImplementation",
-      "testPaidSpecialReleaseImplementation",
-      "testPaidDebugImplementation",
       "testBarImplementation",
-      "testBarReleaseImplementation",
-      "testBarSpecialReleaseImplementation",
-      "testBarDebugImplementation",
       "testOtherBarImplementation",
-      "testOtherBarReleaseImplementation",
-      "testOtherBarSpecialReleaseImplementation",
-      "testOtherBarDebugImplementation",
       "androidTestImplementation",
       "androidTestBasicImplementation",
       "androidTestPaidImplementation",
@@ -912,21 +1069,9 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "specialReleaseImplementation",
       "debugImplementation",
       "basicImplementation",
-      "basicReleaseImplementation",
-      "basicSpecialReleaseImplementation",
-      "basicDebugImplementation",
       "paidImplementation",
-      "paidReleaseImplementation",
-      "paidSpecialReleaseImplementation",
-      "paidDebugImplementation",
       "barImplementation",
-      "barReleaseImplementation",
-      "barSpecialReleaseImplementation",
-      "barDebugImplementation",
       "otherBarImplementation",
-      "otherBarReleaseImplementation",
-      "otherBarSpecialReleaseImplementation",
-      "otherBarDebugImplementation",
       "basicBarImplementation",
       "basicBarReleaseImplementation",
       "basicBarSpecialReleaseImplementation",
@@ -948,21 +1093,9 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "testSpecialReleaseImplementation",
       "testDebugImplementation",
       "testBasicImplementation",
-      "testBasicReleaseImplementation",
-      "testBasicSpecialReleaseImplementation",
-      "testBasicDebugImplementation",
       "testPaidImplementation",
-      "testPaidReleaseImplementation",
-      "testPaidSpecialReleaseImplementation",
-      "testPaidDebugImplementation",
       "testBarImplementation",
-      "testBarReleaseImplementation",
-      "testBarSpecialReleaseImplementation",
-      "testBarDebugImplementation",
       "testOtherBarImplementation",
-      "testOtherBarReleaseImplementation",
-      "testOtherBarSpecialReleaseImplementation",
-      "testOtherBarDebugImplementation",
       "testBasicBarImplementation",
       "testBasicBarReleaseImplementation",
       "testBasicBarSpecialReleaseImplementation",
@@ -988,27 +1121,15 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "androidTestOtherBarImplementation",
       "androidTestBasicOtherBarImplementation",
       "androidTestPaidOtherBarImplementation",
-    
+
       "api",
       "releaseApi",
       "specialReleaseApi",
       "debugApi",
       "basicApi",
-      "basicReleaseApi",
-      "basicSpecialReleaseApi",
-      "basicDebugApi",
       "paidApi",
-      "paidReleaseApi",
-      "paidSpecialReleaseApi",
-      "paidDebugApi",
       "barApi",
-      "barReleaseApi",
-      "barSpecialReleaseApi",
-      "barDebugApi",
       "otherBarApi",
-      "otherBarReleaseApi",
-      "otherBarSpecialReleaseApi",
-      "otherBarDebugApi",
       "basicBarApi",
       "basicBarReleaseApi",
       "basicBarSpecialReleaseApi",
@@ -1030,21 +1151,9 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "testSpecialReleaseApi",
       "testDebugApi",
       "testBasicApi",
-      "testBasicReleaseApi",
-      "testBasicSpecialReleaseApi",
-      "testBasicDebugApi",
       "testPaidApi",
-      "testPaidReleaseApi",
-      "testPaidSpecialReleaseApi",
-      "testPaidDebugApi",
       "testBarApi",
-      "testBarReleaseApi",
-      "testBarSpecialReleaseApi",
-      "testBarDebugApi",
       "testOtherBarApi",
-      "testOtherBarReleaseApi",
-      "testOtherBarSpecialReleaseApi",
-      "testOtherBarDebugApi",
       "testBasicBarApi",
       "testBasicBarReleaseApi",
       "testBasicBarSpecialReleaseApi",
@@ -1070,27 +1179,15 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "androidTestOtherBarApi",
       "androidTestBasicOtherBarApi",
       "androidTestPaidOtherBarApi",
-    
+
       "compileOnly",
       "releaseCompileOnly",
       "specialReleaseCompileOnly",
       "debugCompileOnly",
       "basicCompileOnly",
-      "basicReleaseCompileOnly",
-      "basicSpecialReleaseCompileOnly",
-      "basicDebugCompileOnly",
       "paidCompileOnly",
-      "paidReleaseCompileOnly",
-      "paidSpecialReleaseCompileOnly",
-      "paidDebugCompileOnly",
       "barCompileOnly",
-      "barReleaseCompileOnly",
-      "barSpecialReleaseCompileOnly",
-      "barDebugCompileOnly",
       "otherBarCompileOnly",
-      "otherBarReleaseCompileOnly",
-      "otherBarSpecialReleaseCompileOnly",
-      "otherBarDebugCompileOnly",
       "basicBarCompileOnly",
       "basicBarReleaseCompileOnly",
       "basicBarSpecialReleaseCompileOnly",
@@ -1112,21 +1209,9 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "testSpecialReleaseCompileOnly",
       "testDebugCompileOnly",
       "testBasicCompileOnly",
-      "testBasicReleaseCompileOnly",
-      "testBasicSpecialReleaseCompileOnly",
-      "testBasicDebugCompileOnly",
       "testPaidCompileOnly",
-      "testPaidReleaseCompileOnly",
-      "testPaidSpecialReleaseCompileOnly",
-      "testPaidDebugCompileOnly",
       "testBarCompileOnly",
-      "testBarReleaseCompileOnly",
-      "testBarSpecialReleaseCompileOnly",
-      "testBarDebugCompileOnly",
       "testOtherBarCompileOnly",
-      "testOtherBarReleaseCompileOnly",
-      "testOtherBarSpecialReleaseCompileOnly",
-      "testOtherBarDebugCompileOnly",
       "testBasicBarCompileOnly",
       "testBasicBarReleaseCompileOnly",
       "testBasicBarSpecialReleaseCompileOnly",
@@ -1152,27 +1237,15 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "androidTestOtherBarCompileOnly",
       "androidTestBasicOtherBarCompileOnly",
       "androidTestPaidOtherBarCompileOnly",
-    
+
       "annotationProcessor",
       "releaseAnnotationProcessor",
       "specialReleaseAnnotationProcessor",
       "debugAnnotationProcessor",
       "basicAnnotationProcessor",
-      "basicReleaseAnnotationProcessor",
-      "basicSpecialReleaseAnnotationProcessor",
-      "basicDebugAnnotationProcessor",
       "paidAnnotationProcessor",
-      "paidReleaseAnnotationProcessor",
-      "paidSpecialReleaseAnnotationProcessor",
-      "paidDebugAnnotationProcessor",
       "barAnnotationProcessor",
-      "barReleaseAnnotationProcessor",
-      "barSpecialReleaseAnnotationProcessor",
-      "barDebugAnnotationProcessor",
       "otherBarAnnotationProcessor",
-      "otherBarReleaseAnnotationProcessor",
-      "otherBarSpecialReleaseAnnotationProcessor",
-      "otherBarDebugAnnotationProcessor",
       "basicBarAnnotationProcessor",
       "basicBarReleaseAnnotationProcessor",
       "basicBarSpecialReleaseAnnotationProcessor",
@@ -1194,21 +1267,9 @@ class PsAndroidModuleTest : DependencyTestCase() {
       "testSpecialReleaseAnnotationProcessor",
       "testDebugAnnotationProcessor",
       "testBasicAnnotationProcessor",
-      "testBasicReleaseAnnotationProcessor",
-      "testBasicSpecialReleaseAnnotationProcessor",
-      "testBasicDebugAnnotationProcessor",
       "testPaidAnnotationProcessor",
-      "testPaidReleaseAnnotationProcessor",
-      "testPaidSpecialReleaseAnnotationProcessor",
-      "testPaidDebugAnnotationProcessor",
       "testBarAnnotationProcessor",
-      "testBarReleaseAnnotationProcessor",
-      "testBarSpecialReleaseAnnotationProcessor",
-      "testBarDebugAnnotationProcessor",
       "testOtherBarAnnotationProcessor",
-      "testOtherBarReleaseAnnotationProcessor",
-      "testOtherBarSpecialReleaseAnnotationProcessor",
-      "testOtherBarDebugAnnotationProcessor",
       "testBasicBarAnnotationProcessor",
       "testBasicBarReleaseAnnotationProcessor",
       "testBasicBarSpecialReleaseAnnotationProcessor",
@@ -1237,6 +1298,168 @@ class PsAndroidModuleTest : DependencyTestCase() {
     )
   }
 
+  fun testConfigurationRequiresWorkaround() {
+    loadProject(PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject).also { it.testResolve() }
+
+    val appModule = moduleWithSyncedModel(project, "app")
+    assertNotNull(appModule)
+
+    assertThat(appModule.getConfigurations().filter { appModule.configurationRequiresWorkaround(it) }).containsExactly(
+      "basicBarImplementation",
+      "basicBarReleaseImplementation",
+      "basicBarSpecialReleaseImplementation",
+      "basicBarDebugImplementation",
+      "paidBarImplementation",
+      "paidBarReleaseImplementation",
+      "paidBarSpecialReleaseImplementation",
+      "paidBarDebugImplementation",
+      "basicOtherBarImplementation",
+      "basicOtherBarReleaseImplementation",
+      "basicOtherBarSpecialReleaseImplementation",
+      "basicOtherBarDebugImplementation",
+      "paidOtherBarImplementation",
+      "paidOtherBarReleaseImplementation",
+      "paidOtherBarSpecialReleaseImplementation",
+      "paidOtherBarDebugImplementation",
+
+      "testBasicBarImplementation",
+      "testBasicBarReleaseImplementation",
+      "testBasicBarSpecialReleaseImplementation",
+      "testBasicBarDebugImplementation",
+      "testPaidBarImplementation",
+      "testPaidBarReleaseImplementation",
+      "testPaidBarSpecialReleaseImplementation",
+      "testPaidBarDebugImplementation",
+      "testBasicOtherBarImplementation",
+      "testBasicOtherBarReleaseImplementation",
+      "testBasicOtherBarSpecialReleaseImplementation",
+      "testBasicOtherBarDebugImplementation",
+      "testPaidOtherBarImplementation",
+      "testPaidOtherBarReleaseImplementation",
+      "testPaidOtherBarSpecialReleaseImplementation",
+      "testPaidOtherBarDebugImplementation",
+
+      "androidTestBasicBarImplementation",
+      "androidTestPaidBarImplementation",
+      "androidTestBasicOtherBarImplementation",
+      "androidTestPaidOtherBarImplementation",
+
+      "basicBarApi",
+      "basicBarReleaseApi",
+      "basicBarSpecialReleaseApi",
+      "basicBarDebugApi",
+      "paidBarApi",
+      "paidBarReleaseApi",
+      "paidBarSpecialReleaseApi",
+      "paidBarDebugApi",
+      "basicOtherBarApi",
+      "basicOtherBarReleaseApi",
+      "basicOtherBarSpecialReleaseApi",
+      "basicOtherBarDebugApi",
+      "paidOtherBarApi",
+      "paidOtherBarReleaseApi",
+      "paidOtherBarSpecialReleaseApi",
+      "paidOtherBarDebugApi",
+      "testBasicBarApi",
+      "testBasicBarReleaseApi",
+      "testBasicBarSpecialReleaseApi",
+      "testBasicBarDebugApi",
+      "testPaidBarApi",
+      "testPaidBarReleaseApi",
+      "testPaidBarSpecialReleaseApi",
+      "testPaidBarDebugApi",
+      "testBasicOtherBarApi",
+      "testBasicOtherBarReleaseApi",
+      "testBasicOtherBarSpecialReleaseApi",
+      "testBasicOtherBarDebugApi",
+      "testPaidOtherBarApi",
+      "testPaidOtherBarReleaseApi",
+      "testPaidOtherBarSpecialReleaseApi",
+      "testPaidOtherBarDebugApi",
+      "androidTestBasicBarApi",
+      "androidTestPaidBarApi",
+      "androidTestBasicOtherBarApi",
+      "androidTestPaidOtherBarApi",
+
+      "basicBarCompileOnly",
+      "basicBarReleaseCompileOnly",
+      "basicBarSpecialReleaseCompileOnly",
+      "basicBarDebugCompileOnly",
+      "paidBarCompileOnly",
+      "paidBarReleaseCompileOnly",
+      "paidBarSpecialReleaseCompileOnly",
+      "paidBarDebugCompileOnly",
+      "basicOtherBarCompileOnly",
+      "basicOtherBarReleaseCompileOnly",
+      "basicOtherBarSpecialReleaseCompileOnly",
+      "basicOtherBarDebugCompileOnly",
+      "paidOtherBarCompileOnly",
+      "paidOtherBarReleaseCompileOnly",
+      "paidOtherBarSpecialReleaseCompileOnly",
+      "paidOtherBarDebugCompileOnly",
+      "testBasicBarCompileOnly",
+      "testBasicBarReleaseCompileOnly",
+      "testBasicBarSpecialReleaseCompileOnly",
+      "testBasicBarDebugCompileOnly",
+      "testPaidBarCompileOnly",
+      "testPaidBarReleaseCompileOnly",
+      "testPaidBarSpecialReleaseCompileOnly",
+      "testPaidBarDebugCompileOnly",
+      "testBasicOtherBarCompileOnly",
+      "testBasicOtherBarReleaseCompileOnly",
+      "testBasicOtherBarSpecialReleaseCompileOnly",
+      "testBasicOtherBarDebugCompileOnly",
+      "testPaidOtherBarCompileOnly",
+      "testPaidOtherBarReleaseCompileOnly",
+      "testPaidOtherBarSpecialReleaseCompileOnly",
+      "testPaidOtherBarDebugCompileOnly",
+      "androidTestBasicBarCompileOnly",
+      "androidTestPaidBarCompileOnly",
+      "androidTestBasicOtherBarCompileOnly",
+      "androidTestPaidOtherBarCompileOnly",
+
+      "basicBarAnnotationProcessor",
+      "basicBarReleaseAnnotationProcessor",
+      "basicBarSpecialReleaseAnnotationProcessor",
+      "basicBarDebugAnnotationProcessor",
+      "paidBarAnnotationProcessor",
+      "paidBarReleaseAnnotationProcessor",
+      "paidBarSpecialReleaseAnnotationProcessor",
+      "paidBarDebugAnnotationProcessor",
+      "basicOtherBarAnnotationProcessor",
+      "basicOtherBarReleaseAnnotationProcessor",
+      "basicOtherBarSpecialReleaseAnnotationProcessor",
+      "basicOtherBarDebugAnnotationProcessor",
+      "paidOtherBarAnnotationProcessor",
+      "paidOtherBarReleaseAnnotationProcessor",
+      "paidOtherBarSpecialReleaseAnnotationProcessor",
+      "paidOtherBarDebugAnnotationProcessor",
+      "testBasicBarAnnotationProcessor",
+      "testBasicBarReleaseAnnotationProcessor",
+      "testBasicBarSpecialReleaseAnnotationProcessor",
+      "testBasicBarDebugAnnotationProcessor",
+      "testPaidBarAnnotationProcessor",
+      "testPaidBarReleaseAnnotationProcessor",
+      "testPaidBarSpecialReleaseAnnotationProcessor",
+      "testPaidBarDebugAnnotationProcessor",
+      "testBasicOtherBarAnnotationProcessor",
+      "testBasicOtherBarReleaseAnnotationProcessor",
+      "testBasicOtherBarSpecialReleaseAnnotationProcessor",
+      "testBasicOtherBarDebugAnnotationProcessor",
+      "testPaidOtherBarAnnotationProcessor",
+      "testPaidOtherBarReleaseAnnotationProcessor",
+      "testPaidOtherBarSpecialReleaseAnnotationProcessor",
+      "testPaidOtherBarDebugAnnotationProcessor",
+      "androidTestBasicBarAnnotationProcessor",
+      "androidTestPaidBarAnnotationProcessor",
+      "androidTestBasicOtherBarAnnotationProcessor",
+      "androidTestPaidOtherBarAnnotationProcessor"
+    )
+  }
+
   private fun PsProject.testSubscribeToNotifications(disposable: Disposable = testRootDisposable) {
     this.onModuleChanged(disposable) { module -> changedModules.add(module.gradlePath.orEmpty()) }
   }
@@ -1246,7 +1469,7 @@ class PsAndroidModuleTest : DependencyTestCase() {
     productFlavors.onChange(testRootDisposable) { productFlavorsChanged++ }
     flavorDimensions.onChange(testRootDisposable) { flavorDimensionsChanged++ }
     signingConfigs.onChange(testRootDisposable) { signingConfigsChanged++ }
-    variants.onChange(testRootDisposable) { variantsChanged++ }
+    resolvedVariants.onChange(testRootDisposable) { variantsChanged++ }
   }
 }
 

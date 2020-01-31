@@ -15,27 +15,27 @@
  */
 package com.android.tools.idea.lang.databinding.model
 
-import com.android.tools.idea.databinding.DataBindingMode
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifier
 import com.intellij.psi.PsiType
+import java.lang.Integer.min
 
 /**
  * PSI wrapper around psi methods that additionally expose information particularly useful in data binding expressions.
  *
  * Note: This class is adapted from [android.databinding.tool.reflection.ModelMethod] from db-compiler.
  */
-class PsiModelMethod(val psiMethod: PsiMethod, val mode: DataBindingMode) {
+class PsiModelMethod(val containingClass: PsiModelClass, val psiMethod: PsiMethod) {
 
   val parameterTypes by lazy(LazyThreadSafetyMode.NONE) {
-    psiMethod.parameterList.parameters.map { PsiModelClass(it.type, mode) }.toTypedArray()
+    psiMethod.parameterList.parameters.map { PsiModelClass(it.type, containingClass.mode) }.toTypedArray()
   }
 
   val name: String
     get() = psiMethod.name
 
   val returnType: PsiModelClass?
-    get() = psiMethod.returnType?.let { PsiModelClass(it, mode) }
+    get() = psiMethod.returnType?.let { PsiModelClass(containingClass.substitutor.substitute(it), containingClass.mode) }
 
   val isVoid = PsiType.VOID == psiMethod.returnType
 
@@ -52,29 +52,22 @@ class PsiModelMethod(val psiMethod: PsiMethod, val mode: DataBindingMode) {
    */
   val isVarArgs = psiMethod.isVarArgs
 
-  private fun getParameter(index: Int, parameterTypes: Array<PsiModelClass>): PsiModelClass? {
-    val normalParamCount = if (isVarArgs) parameterTypes.size - 1 else parameterTypes.size
-    return if (index < normalParamCount) {
-      parameterTypes[index]
-    }
-    else {
-      null
-    }
-  }
-
   /**
    * @param args The arguments to the method
    * @return Whether the arguments would be accepted as parameters to this method.
    */
   // b/129771951 revisit the case when unwrapObservableFields is true
   fun acceptsArguments(args: List<PsiModelClass>): Boolean {
-    if (!isVarArgs && args.size != parameterTypes.size || isVarArgs && args.size < parameterTypes.size - 1) {
+    if ((!isVarArgs && args.size != parameterTypes.size) || (isVarArgs && args.size < parameterTypes.size - 1)) {
       return false // The wrong number of parameters
     }
     var parametersMatch = true
     var i = 0
     while (i < args.size && parametersMatch) {
-      var parameterType = getParameter(i, parameterTypes)!!
+      // If we are indexing past the end of the parameter list with a varargs function,
+      // it means we are referencing a parameter that is really a part of the varargs
+      // parameter (which is the last one)
+      var parameterType = parameterTypes[i.coerceAtMost(parameterTypes.lastIndex)]
       val arg = args[i]
       if (parameterType.isIncomplete) {
         parameterType = parameterType.erasure()
@@ -86,5 +79,43 @@ class PsiModelMethod(val psiMethod: PsiMethod, val mode: DataBindingMode) {
       i++
     }
     return parametersMatch
+  }
+
+  companion object {
+    /**
+     * Returns the [PsiModelMethod] whose parameters match [args] better.
+     *
+     * Ensure both [thisMethod] and [thatMethod] accept [args] as their arguments before calling this method.
+     * 1. Exact matches are better than boxed/unboxed ones for primitive types. e.g "int" matches "int" better than "java.lang.Integer"
+     * 2. Stricter matches are better.
+     * e.g. "int" matches "char" better than "float"
+     * "AbstractMap" matches "HashMap" better than "Map"
+     * "List<String>" matches "ArrayList<String>" better than "List"
+     */
+    fun betterMatchWithArguments(args: List<PsiModelClass>, thisMethod: PsiModelMethod, thatMethod: PsiModelMethod): PsiModelMethod {
+      for (i in args.indices) {
+        val arg = args[i]
+        val thisParameterType = thisMethod.parameterTypes[min(i, thisMethod.parameterTypes.size)]
+        val thatParameterType = thatMethod.parameterTypes[min(i, thatMethod.parameterTypes.size)]
+        if (thisParameterType == thatParameterType) {
+          continue
+        }
+        // Check exact match for primitive types.
+        if (thisParameterType == arg) {
+          return thisMethod
+        }
+        if (thatParameterType == arg) {
+          return thatMethod
+        }
+        // thatParameterType.isAssignableFrom(thisParameterType) means thisParameterType has a stricter bound
+        // e.g. "String" has a stricter bound than "Object" as "Object" is assignable from "String".
+        val thisStricterOrEqual = thatParameterType.isAssignableFrom(thisParameterType)
+        val thatStricterOrEqual = thisParameterType.isAssignableFrom(thatParameterType)
+        if (thisStricterOrEqual != thatStricterOrEqual) {
+          return if (thisStricterOrEqual) thisMethod else thatMethod
+        }
+      }
+      return thisMethod
+    }
   }
 }

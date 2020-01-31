@@ -7,7 +7,7 @@ import static com.intellij.openapi.util.text.StringUtil.capitalize;
 import static com.intellij.openapi.util.text.StringUtil.decapitalize;
 import static com.intellij.util.ui.UIUtil.invokeLaterIfNeeded;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.builder.model.AndroidProject;
 import com.android.builder.model.Variant;
 import com.android.sdklib.BuildToolInfo;
@@ -58,7 +58,7 @@ import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -445,17 +445,10 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
   private void createAndAlignApk(final String apkPath) {
     AndroidPlatform platform = getFacet().getAndroidPlatform();
     assert platform != null;
-    String sdkPath = platform.getSdkData().getLocation().getPath();
-    String zipAlignPath = AndroidCommonUtils.getZipAlign(sdkPath, platform.getTarget());
-
+    BuildToolInfo buildTool = platform.getTarget().getBuildToolInfo();
+    String zipAlignPath = buildTool.getPath(BuildToolInfo.PathId.ZIP_ALIGN);
     File zipalign = new File(zipAlignPath);
-    if (!zipalign.isFile()) {
-      BuildToolInfo buildTool = platform.getTarget().getBuildToolInfo();
-      if (buildTool != null) {
-        zipAlignPath = buildTool.getPath(BuildToolInfo.PathId.ZIP_ALIGN);
-        zipalign = new File(zipAlignPath);
-      }
-    }
+
     final boolean runZipAlign = zipalign.isFile();
     File destFile = null;
     try {
@@ -471,7 +464,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
 
     if (runZipAlign) {
       File realDestFile = new File(apkPath);
-      String message = AndroidCommonUtils.executeZipAlign(zipAlignPath, destFile, realDestFile);
+      String message = AndroidBuildCommonUtils.executeZipAlign(zipAlignPath, destFile, realDestFile);
       if (message != null) {
         showErrorInDispatchThread(message);
         return;
@@ -512,7 +505,7 @@ public class ExportSignedPackageWizard extends AbstractWizard<ExportSignedPackag
     File srcApk = new File(FileUtil.toSystemDependentName(srcApkPath));
 
     if (isSigned()) {
-      AndroidCommonUtils.signApk(srcApk, destFile, getPrivateKey(), getCertificate());
+      AndroidBuildCommonUtils.signApk(srcApk, destFile, getPrivateKey(), getCertificate());
     }
     else {
       FileUtil.copy(srcApk, destFile);

@@ -28,11 +28,14 @@ import java.util.EnumSet
 enum class NelePropertyType {
   UNKNOWN,
   ANIM,
+  ANIMATOR,
   ARRAY,
   BOOLEAN,
+  CLASS_NAME,
   COLOR,
   COLOR_STATE_LIST,
   DIMENSION,
+  DESTINATION,
   DRAWABLE,
   ENUM,
   FLAGS,
@@ -42,25 +45,30 @@ enum class NelePropertyType {
   FRACTION,
   FRAGMENT,
   ID,
+  ID_OR_STRING,
   INTEGER,
   INTERPOLATOR,
   LAYOUT,
   LIST,
   MENU,
+  NAVIGATION,
   READONLY_STRING,
   STRING,
   STRING_ARRAY,
   STYLE,
   THREE_STATE_BOOLEAN,
-  TEXT_APPEARANCE;
+  TEXT_APPEARANCE,
+  XML;
 
   val resourceTypes: EnumSet<ResourceType>
     get() = when (this) {
       ANIM -> EnumSet.of(ResourceType.ANIM)
+      ANIMATOR -> EnumSet.of(ResourceType.ANIMATOR, ResourceType.ANIM)
       ARRAY -> EnumSet.of(ResourceType.ARRAY)
       BOOLEAN -> EnumSet.of(ResourceType.BOOL)
       COLOR -> EnumSet.of(ResourceType.COLOR)
       COLOR_STATE_LIST -> EnumSet.of(ResourceType.COLOR)
+      DESTINATION -> EnumSet.of(ResourceType.ID)
       DIMENSION -> EnumSet.of(ResourceType.DIMEN)
       DRAWABLE -> EnumSet.of(ResourceType.COLOR, ResourceType.DRAWABLE, ResourceType.MIPMAP)
       FLAGS -> EnumSet.of(ResourceType.STRING)
@@ -69,17 +77,20 @@ enum class NelePropertyType {
       FRACTION -> EnumSet.of(ResourceType.FRACTION)
       FONT_SIZE -> EnumSet.of(ResourceType.DIMEN)
       ID -> EnumSet.of(ResourceType.ID)
+      ID_OR_STRING -> EnumSet.of(ResourceType.ID, ResourceType.STRING)
       INTEGER -> EnumSet.of(ResourceType.INTEGER)
       INTERPOLATOR -> EnumSet.of(ResourceType.INTERPOLATOR)
       LAYOUT -> EnumSet.of(ResourceType.LAYOUT)
       LIST -> EnumSet.noneOf(ResourceType.ID.javaClass)
       MENU -> EnumSet.of(ResourceType.MENU)
+      NAVIGATION -> EnumSet.of(ResourceType.NAVIGATION)
       READONLY_STRING -> EnumSet.noneOf(ResourceType.ID.javaClass)
       STRING -> EnumSet.of(ResourceType.STRING)
       STRING_ARRAY -> EnumSet.of(ResourceType.ARRAY)
       STYLE -> EnumSet.of(ResourceType.STYLE)
       TEXT_APPEARANCE -> EnumSet.of(ResourceType.STYLE)
       THREE_STATE_BOOLEAN -> EnumSet.of(ResourceType.BOOL)
+      XML -> EnumSet.of(ResourceType.XML)
       else -> EnumSet.noneOf(ResourceType.BOOL.javaClass)
     }
 

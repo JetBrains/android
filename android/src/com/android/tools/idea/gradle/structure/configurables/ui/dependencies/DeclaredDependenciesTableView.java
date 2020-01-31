@@ -150,7 +150,7 @@ public class DeclaredDependenciesTableView<T extends PsBaseDependency> extends T
 
   private void setHoveredDependency(@Nullable PsModuleDependency dependency) {
     getListTableModel().setHoveredDependency(dependency);
-    Cursor cursor = getDefaultCursor();
+    Cursor cursor = null;
     if (dependency != null) {
       cursor = getPredefinedCursor(HAND_CURSOR);
     }

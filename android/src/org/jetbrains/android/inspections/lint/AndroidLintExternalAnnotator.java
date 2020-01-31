@@ -1,4 +1,3 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.inspections.lint;
 
 import com.android.tools.idea.lint.*;
@@ -51,9 +50,10 @@ import org.jetbrains.android.compiler.AndroidCompileUtil;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
 import org.jetbrains.android.util.AndroidBundle;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.KotlinFileType;
 import org.jetbrains.plugins.groovy.GroovyFileType;
 
 import javax.swing.*;
@@ -101,7 +101,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       }
     }
     else if (fileType == FileTypes.PLAIN_TEXT) {
-      if (!AndroidCommonUtils.PROGUARD_CFG_FILE_NAME.equals(file.getName()) &&
+      if (!AndroidBuildCommonUtils.PROGUARD_CFG_FILE_NAME.equals(file.getName()) &&
           !AndroidCompileUtil.OLD_PROGUARD_CFG_FILE_NAME.equals(file.getName())) {
         return null;
       }
@@ -117,18 +117,13 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
       }
     }
     else if (fileType != StdFileTypes.JAVA
-             && !isKotlin(fileType)
+             && fileType != KotlinFileType.INSTANCE
              && fileType != StdFileTypes.PROPERTIES) {
       return null;
     }
 
     final Set<Issue> issues = getIssuesFromInspections(file.getProject(), file);
     return new State(module, vFile, file.getText(), issues);
-  }
-
-  public static boolean isKotlin(FileType fileType) {
-    // KotlinFileType.getName() is "Kotlin"; we don't have compile-time dependency on the Kotlin plugin and it's not in StdFileTypes
-    return fileType.getName().equals("Kotlin");
   }
 
   @Override
@@ -147,7 +142,7 @@ public class AndroidLintExternalAnnotator extends ExternalAnnotator<State, State
         } else {
           scope = Scope.RESOURCE_FILE_SCOPE;
         }
-      } else if (fileType == StdFileTypes.JAVA || isKotlin(fileType)) {
+      } else if (fileType == StdFileTypes.JAVA || fileType == KotlinFileType.INSTANCE) {
         scope = Scope.JAVA_FILE_SCOPE;
         if (name.endsWith(DOT_KTS)) {
           scope = EnumSet.of(Scope.GRADLE_FILE, Scope.JAVA_FILE);

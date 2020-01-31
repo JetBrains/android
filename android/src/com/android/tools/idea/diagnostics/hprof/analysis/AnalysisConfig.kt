@@ -26,26 +26,24 @@ class AnalysisConfig(
   class PerClassOptions(
     val classNames: List<String>,
     val includeClassList: Boolean = true,
-    val treeDisplayOptions: TreeDisplayOptions = TreeDisplayOptions.default()
+    val treeDisplayOptions: TreeDisplayOptions = TreeDisplayOptions.default
   )
 
   class TreeDisplayOptions(
-    val minimumObjectSize: Int = 20_000_000,
-    val minimumObjectCount: Int = 20_000,
+    val minimumObjectSize: Int = 30_000_000,
+    val minimumObjectCount: Int = 50_000,
     val minimumSubgraphSize: Long = 100_000_000,
-    val minimumObjectCountPercent: Int = 10,
+    val minimumObjectCountPercent: Int = 15,
     val maximumTreeDepth: Int = 80,
     val maximumIndent: Int = 40,
     val minimumPaths: Int = 2,
     val headLimit: Int = 100,
     val tailLimit: Int = 25,
-    val showFieldNames: Boolean = false,
     val smartIndent: Boolean = true
   ) {
     companion object {
-      fun default() = TreeDisplayOptions()
-      fun all(showFieldNames: Boolean = false,
-              smartIndent: Boolean = true) =
+      val default = TreeDisplayOptions()
+      fun all(smartIndent: Boolean = default.smartIndent) =
         TreeDisplayOptions(minimumObjectSize = 0,
                            minimumObjectCount = 0,
                            minimumSubgraphSize = 0,
@@ -53,7 +51,6 @@ class AnalysisConfig(
                            headLimit = Int.MAX_VALUE,
                            tailLimit = 0,
                            minimumPaths = Int.MAX_VALUE,
-                           showFieldNames = showFieldNames,
                            smartIndent = smartIndent)
     }
   }
@@ -75,7 +72,9 @@ class AnalysisConfig(
   )
 
   class TraverseOptions(
-    val onlyStrongReferences: Boolean = false
+    val onlyStrongReferences: Boolean = false,
+    val includeDisposerRelationships: Boolean = true,
+    val includeFieldInformation: Boolean = true
   )
 
   class MetaInfoOptions(

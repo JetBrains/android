@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.editor;
 
 import com.android.tools.idea.common.lint.BackgroundEditorHighlighter;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.ide.structureView.StructureViewBuilder;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorLocation;
@@ -80,6 +81,10 @@ public abstract class DesignerEditor extends UserDataHolderBase implements FileE
 
   @Override
   public void selectNotify() {
+    if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
+      // When using the split editor, the TextEditorWithPreview will handle the selectNotify invocation.
+      return;
+    }
     // select/deselectNotify will be called when the user selects (clicks) or opens a new editor. However, in some cases, the editor
     // might be deselected but still visible. We first check whether we should pay attention to the select/deselect so we only do something
     // if we are visible
@@ -90,6 +95,11 @@ public abstract class DesignerEditor extends UserDataHolderBase implements FileE
 
   @Override
   public void deselectNotify() {
+    if (StudioFlags.NELE_SPLIT_EDITOR.get()) {
+      // When using the split editor, the TextEditorWithPreview will handle the deselectNotify invocation.
+      return;
+    }
+
     // If we are still visible but the user deselected us, do not deactivate the model since we still need to receive updates
     if (!ArrayUtil.contains(this, FileEditorManager.getInstance(myProject).getSelectedEditors())) {
       getComponent().deactivate();
@@ -114,7 +124,7 @@ public abstract class DesignerEditor extends UserDataHolderBase implements FileE
   public void removePropertyChangeListener(@NotNull PropertyChangeListener listener) {
   }
 
-  @Nullable
+  @NotNull
   @Override
   public BackgroundEditorHighlighter getBackgroundHighlighter() {
     // The designer should display components that have problems detected by inspections. Ideally, we'd just get the result

@@ -18,21 +18,26 @@ package com.android.tools.idea.uibuilder.property2
 import com.android.SdkConstants.ABSOLUTE_LAYOUT
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_BACKGROUND
+import com.android.SdkConstants.ATTR_CONSTRAINT_LAYOUT_DESCRIPTION
 import com.android.SdkConstants.ATTR_CONTENT_DESCRIPTION
 import com.android.SdkConstants.ATTR_FONT_FAMILY
 import com.android.SdkConstants.ATTR_LAYOUT_HEIGHT
 import com.android.SdkConstants.ATTR_LAYOUT_TO_END_OF
 import com.android.SdkConstants.ATTR_LAYOUT_WIDTH
 import com.android.SdkConstants.ATTR_LINE_SPACING_EXTRA
+import com.android.SdkConstants.ATTR_MOTION_TARGET
 import com.android.SdkConstants.ATTR_PARENT_TAG
 import com.android.SdkConstants.ATTR_SRC
 import com.android.SdkConstants.ATTR_SRC_COMPAT
+import com.android.SdkConstants.ATTR_STATE_LIST_ANIMATOR
 import com.android.SdkConstants.ATTR_TEXT
 import com.android.SdkConstants.ATTR_TEXT_APPEARANCE
 import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.SdkConstants.ATTR_TEXT_SIZE
 import com.android.SdkConstants.ATTR_VISIBILITY
+import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.BUTTON
+import com.android.SdkConstants.CLASS_MOTION_LAYOUT
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.IMAGE_VIEW
 import com.android.SdkConstants.LINEAR_LAYOUT
@@ -81,14 +86,6 @@ import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
 import java.awt.Color
-
-private const val STRINGS = """<?xml version="1.0" encoding="utf-8"?>
-<resources>
-  <string name="demo">Demo String</string>
-  <string name="design">Design Demo</string>
-  <dimen name="lineSpacing">13sp</dimen>
-</resources>
-"""
 
 private const val HELLO_WORLD = "Hello World"
 
@@ -359,8 +356,6 @@ class NelePropertyItemTest {
       override fun propertiesGenerated(model: PropertiesModel<NelePropertyItem>) {
         propertiesGenerated = true
       }
-      override fun propertyValuesChanged(model: PropertiesModel<NelePropertyItem>) {
-      }
     })
 
     property.value = LINEAR_LAYOUT
@@ -503,6 +498,24 @@ class NelePropertyItemTest {
     assertThat(srcCompat.editingSupport.validation("@mipmap/ic_not_found")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'ic_not_found'"))
   }
 
+  @RunsInEdt
+  @Test
+  fun testAnimatorValidation() {
+    projectRule.fixture.addFileToProject("res/animator/my_animator.xml", ANIMATOR_RESOURCE)
+    val util = SupportTestUtil(projectRule, createButton())
+    val animator = util.makeProperty(ANDROID_URI, ATTR_STATE_LIST_ANIMATOR, NelePropertyType.ANIMATOR)
+    assertThat(animator.editingSupport.validation("")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(animator.editingSupport.validation("@animator/my_animator")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(animator.editingSupport.validation("@android:animator/fade_in")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(animator.editingSupport.validation("@android:anim/fade_in")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(animator.editingSupport.validation("@null")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(animator.editingSupport.validation("@android:color/holo_blue_bright")).isEqualTo(
+      Pair(ERROR, "Unexpected resource type: 'color' expected one of: anim, animator"))
+    assertThat(animator.editingSupport.validation("@animator/no_animator")).isEqualTo(
+      Pair(ERROR, "Cannot resolve symbol: 'no_animator'"))
+    assertThat(animator.editingSupport.validation("@hello/hello")).isEqualTo(Pair(ERROR, "Unknown resource type hello"))
+  }
+
   @Test
   fun testEnumValidation() {
     val util = SupportTestUtil(projectRule, createTextView())
@@ -520,6 +533,39 @@ class NelePropertyItemTest {
     val util = SupportTestUtil(projectRule, createTextView())
     val src = util.makeProperty(ANDROID_URI, ATTR_SRC, NelePropertyType.DRAWABLE)
     assertThat(src.editingSupport.validation("@tools:sample/avatars[1]")).isEqualTo(EDITOR_NO_ERROR)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testIdOrStringDataValidation() {
+    projectRule.fixture.addFileToProject("res/layout/motion_layout.xml", MOTION_LAYOUT)
+    projectRule.fixture.addFileToProject("res/values/values.xml", VALUE_RESOURCES)
+    val util = SupportTestUtil(projectRule, "KeyTrigger", parentTag = "KeyFrameSet")
+    val src = util.makeProperty(AUTO_URI, ATTR_MOTION_TARGET, NelePropertyType.ID_OR_STRING)
+    assertThat(src.editingSupport.validation("@id/go")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(src.editingSupport.validation("@string/demo")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(src.editingSupport.validation("string")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(src.editingSupport.validation("@id/go")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(src.editingSupport.validation("@bool/useBorder")).isEqualTo(
+      Pair(ERROR, "Unexpected resource type: 'bool' expected one of: id, string"))
+    assertThat(src.editingSupport.validation("@color/opaqueRed")).isEqualTo(
+      Pair(ERROR, "Unexpected resource type: 'color' expected one of: id, string"))
+    assertThat(src.editingSupport.validation("@hello/hello")).isEqualTo(Pair(ERROR, "Unknown resource type hello"))
+  }
+
+  @RunsInEdt
+  @Test
+  fun testXmlDataValidation() {
+    projectRule.fixture.addFileToProject("res/xml/motion_scene.xml", MOTION_SCENE)
+    projectRule.fixture.addFileToProject("res/xml/other_scene.xml", MOTION_SCENE)
+    val util = SupportTestUtil(projectRule, CLASS_MOTION_LAYOUT.newName())
+    val src = util.makeProperty(AUTO_URI, ATTR_CONSTRAINT_LAYOUT_DESCRIPTION, NelePropertyType.XML)
+    assertThat(src.editingSupport.validation("@xml/motion_scene")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(src.editingSupport.validation("@xml/other_scene")).isEqualTo(EDITOR_NO_ERROR)
+    assertThat(src.editingSupport.validation("@xml/nowhere")).isEqualTo(Pair(ERROR, "Cannot resolve symbol: 'nowhere'"))
+    assertThat(src.editingSupport.validation("@string/demo")).isEqualTo(Pair(ERROR, "Unexpected resource type: 'string' expected: xml"))
+    assertThat(src.editingSupport.validation("@id/go")).isEqualTo(Pair(ERROR, "Unexpected resource type: 'id' expected: xml"))
+    assertThat(src.editingSupport.validation("@hello/hello")).isEqualTo(Pair(ERROR, "Unknown resource type hello"))
   }
 
   @RunsInEdt
@@ -603,6 +649,12 @@ class NelePropertyItemTest {
           .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "wrap_content")
           .withAttribute(ANDROID_URI, ATTR_TEXT, "@string/demo")
           .withAttribute(TOOLS_URI, ATTR_TEXT, "@string/design")
+
+  private fun createButton(): ComponentDescriptor =
+    ComponentDescriptor(BUTTON)
+      .withAttribute(ANDROID_URI, ATTR_LAYOUT_WIDTH, "wrap_content")
+      .withAttribute(ANDROID_URI, ATTR_LAYOUT_HEIGHT, "wrap_content")
+      .withAttribute(ANDROID_URI, ATTR_TEXT, "@string/demo")
 
   private fun createImageView(): ComponentDescriptor =
     ComponentDescriptor(IMAGE_VIEW)
@@ -707,6 +759,88 @@ class NelePropertyItemTest {
     </resources>
   """.trimIndent()
 
+  @Language("XML")
+  private val ANIMATOR_RESOURCE = """<?xml version="1.0" encoding="utf-8"?>
+    <selector xmlns:android="http://schemas.android.com/apk/res/android">
+        <!-- the pressed state; increase x and y size to 150% -->
+        <item android:state_pressed="true">
+            <set>
+                <objectAnimator android:propertyName="scaleX"
+                        android:duration="@android:integer/config_shortAnimTime"
+                        android:valueTo="5.0"
+                        android:valueType="floatType"/>
+                <objectAnimator android:propertyName="scaleY"
+                        android:duration="@android:integer/config_shortAnimTime"
+                        android:valueTo="2.0"
+                        android:valueType="floatType"/>
+            </set>
+        </item>
+        <!-- the default, non-pressed state; set x and y size to 100% -->
+        <item android:state_pressed="false">
+            <set>
+                <objectAnimator android:propertyName="scaleX"
+                        android:duration="@android:integer/config_shortAnimTime"
+                        android:valueTo="1"
+                        android:valueType="floatType"/>
+                <objectAnimator android:propertyName="scaleY"
+                        android:duration="@android:integer/config_shortAnimTime"
+                        android:valueTo="1"
+                        android:valueType="floatType"/>
+            </set>
+        </item>
+    </selector>
+  """.trimIndent()
+
+  @Language("XML")
+  private val MOTION_SCENE = """<?xml version="1.0" encoding="utf-8"?>
+    <MotionScene>
+    </MotionScene>
+  """.trimIndent()
+
+  @Language("XML")
+  private val MOTION_LAYOUT = """<?xml version="1.0" encoding="utf-8"?>
+    <android.support.constraint.motion.MotionLayout 
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/mlo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layoutDescription="@xml/motion_scene">
+        <Button
+            android:id="@+id/go"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="run"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+    
+        <Button
+            android:id="@+id/button"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginTop="64dp"
+            android:background="@color/colorAccent"
+            android:onClick="click"
+            android:text="Button"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_editor_absoluteX="174dp"
+            app:layout_editor_absoluteY="567dp"
+            app:layout_height="140dp"
+            app:layout_width="202dp" />
+    </android.support.constraint.motion.MotionLayout>
+   """
+
+  @Language("XML")
+  private val STRINGS = """<?xml version="1.0" encoding="utf-8"?>
+    <resources>
+      <string name="demo">Demo String</string>
+      <string name="design">Design Demo</string>
+      <dimen name="lineSpacing">13sp</dimen>
+    </resources>
+  """
+
   private fun findLineAtOffset(file: VirtualFile, offset: Int): String {
     val text = String(file.contentsToByteArray(), Charsets.UTF_8)
     val line = StringUtil.offsetToLineColumn(text, offset)
@@ -715,6 +849,6 @@ class NelePropertyItemTest {
   }
 
   private fun getSceneManager(property: NelePropertyItem): SyncLayoutlibSceneManager {
-    return property.model.surface!!.currentSceneView!!.sceneManager as SyncLayoutlibSceneManager
+    return property.model.surface!!.focusedSceneView!!.sceneManager as SyncLayoutlibSceneManager
   }
 }

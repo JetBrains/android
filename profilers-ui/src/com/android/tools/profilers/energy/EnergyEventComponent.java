@@ -20,29 +20,31 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.adtui.model.event.EventAction;
 import com.android.tools.adtui.model.event.EventModel;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.ProfilerColors;
 import com.google.common.annotations.VisibleForTesting;
-import org.jetbrains.annotations.NotNull;
-
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 
 public class EnergyEventComponent extends AnimatedComponent {
   protected static final int HIGHLIGHT_WIDTH = 2;
   /**
    * Cache the result of filtering events from a single duration that match the range.
    */
-  @NotNull private final List<EventAction<EnergyEvent>> myActionToDrawList;
-  @NotNull private final EventModel<EnergyEvent> myModel;
+  @NotNull private final List<EventAction<Common.Event>> myActionToDrawList;
+  @NotNull private final EventModel<Common.Event> myModel;
   @NotNull private final Color myHighlightColor;
   @NotNull private final Color myDurationColor;
   private boolean myRender;
 
-  EnergyEventComponent(@NotNull EventModel<EnergyEvent> model, @NotNull Color highlightColor) {
+  EnergyEventComponent(@NotNull EventModel<Common.Event> model, @NotNull Color highlightColor) {
     myModel = model;
     myHighlightColor = highlightColor;
     // Use ProfilerColors.DEFAULT_BACKGROUND as the component's background is null.
@@ -64,7 +66,7 @@ public class EnergyEventComponent extends AnimatedComponent {
     myActionToDrawList.clear();
     double minUs = myModel.getRangedSeries().getXRange().getMin();
     double maxUs = myModel.getRangedSeries().getXRange().getMax();
-    for (SeriesData<EventAction<EnergyEvent>> data : myModel.getRangedSeries().getSeries()) {
+    for (SeriesData<EventAction<Common.Event>> data : myModel.getRangedSeries().getSeries()) {
       // If the condition is false, that means either start time is larger than the range's max and the event is not shown;
       // or the end time is smaller than the range's min and the event is not shown.
       // The conditions two parts will not happen at the same time ever, because startTimeUs is always earlier than endTimeUs.
@@ -88,7 +90,7 @@ public class EnergyEventComponent extends AnimatedComponent {
     double scaleFactor = dim.getWidth();
     double height = dim.getHeight() - 2;
 
-    for (EventAction<EnergyEvent> action : myActionToDrawList) {
+    for (EventAction<Common.Event> action : myActionToDrawList) {
       // Starts from the maximum of the range's min and the start time.
       double normalizedPositionStart = ((Math.max(minUs, action.getStartUs()) - minUs) / (maxUs - minUs));
       AffineTransform transform = AffineTransform
@@ -104,7 +106,7 @@ public class EnergyEventComponent extends AnimatedComponent {
       }
 
       // Draw the event bar only when the event is not terminal.
-      if (!action.getType().getIsTerminal()) {
+      if (!action.getType().getIsEnded()) {
         // Ends at the minimum of the range's max and the end time.
         double normalizedPositionEnd = ((Math.min(maxUs, action.getEndUs()) - minUs) / (maxUs - minUs));
         double length = (normalizedPositionEnd - normalizedPositionStart) * scaleFactor;
@@ -118,7 +120,7 @@ public class EnergyEventComponent extends AnimatedComponent {
 
   @VisibleForTesting
   @NotNull
-  List<EventAction<EnergyEvent>> getActionToDrawList() {
+  List<EventAction<Common.Event>> getActionToDrawList() {
     return myActionToDrawList;
   }
 }

@@ -19,6 +19,7 @@ import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.ElementCreator;
 import com.intellij.ide.actions.TemplateKindCombo;
@@ -88,7 +89,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
   private final JavaCodeFragmentFactory myFragmentFactory;
   private final PsiDocumentManager myPsiDocumentManager;
 
-  private final Map<String, String> myCreationOptions = new HashMap<>();
+  private final Map<String, String> myCreationOptions = new HashMap<String, String>();
 
   protected CreateFileFromTemplateDialog(@NotNull Project project, @NotNull PsiDirectory defaultDirectory) {
     super(project);
@@ -254,7 +255,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
 
   @Override
   protected void doOKAction() {
-    List<String> imports = new ArrayList<>();
+    List<String> imports = new ArrayList<String>();
     String localPackage = getPackage();
     String superclassAsString = getSuperclass();
     if (!superclassAsString.isEmpty()) {
@@ -268,7 +269,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
       myCreationOptions.put(ATTRIBUTE_SUPERCLASS, "");
     }
 
-    List<String> interfacesToUse = new ArrayList<>();
+    List<String> interfacesToUse = new ArrayList<String>();
     for (String interfaceAsString : Splitter.on(',').trimResults().omitEmptyStrings().split(getInterfaces())) {
       Type interfaceAsType = Type.newType(interfaceAsString, myProject);
       interfacesToUse.add(interfaceAsType.getClassWithNesting());
@@ -476,7 +477,7 @@ public class CreateFileFromTemplateDialog extends DialogWrapper {
       }
 
       String classToImport = null;
-      Deque<String> containingClasses = new ArrayDeque<>();
+      Deque<String> containingClasses = new ArrayDeque<String>();
       for (PsiClass psiClass = myPsiClass; psiClass != null; psiClass = psiClass.getContainingClass()) {
         classToImport = psiClass.getName();
         containingClasses.addFirst(psiClass.getName());

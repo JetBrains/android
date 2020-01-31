@@ -29,7 +29,9 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Common.AgentData;
+import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
+import com.android.tools.profilers.customevent.CustomEventProfilerStage;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.MemoryProfilerStage;
 import com.android.tools.profilers.network.NetworkProfilerStage;
@@ -439,7 +441,7 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void shouldSelectAlivePreferredProcessWhenRestarted() {
+  public void testRestartedPreferredProcessNotSelected() {
     StudioProfilers profilers = new StudioProfilers(myProfilerClient, myIdeProfilerServices, myTimer);
     //int nowInSeconds = 42;
     //myTransportService.setTimestampNs(TimeUnit.SECONDS.toNanos(nowInSeconds));
@@ -474,8 +476,15 @@ public final class StudioProfilersTest {
       .build();
     myTransportService.addProcess(device, process);
 
-    // The profiler should select the alive preferred process.
+
+    // The profiler should not automatically selects the alive, preferred process again.
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(profilers.getProcess().getPid()).isEqualTo(20);
+    assertThat(profilers.getProcess().getState()).isEqualTo(Common.Process.State.DEAD);
+    assertThat(profilers.getAutoProfilingEnabled()).isFalse();
+
+    // Re-enable auto-profiling should pick up the new process.
+    profilers.setAutoProfilingEnabled(true);
     assertThat(profilers.getProcess().getPid()).isEqualTo(21);
     assertThat(profilers.getProcess().getState()).isEqualTo(Common.Process.State.ALIVE);
   }
@@ -521,7 +530,22 @@ public final class StudioProfilersTest {
 
     myTransportService.addDevice(device);
     myTransportService.addProcess(device, process);
-    myCpuService.setStartupProfiling(true);
+    Cpu.CpuTraceInfo traceInfo = Cpu.CpuTraceInfo.newBuilder()
+      .setConfiguration(Cpu.CpuTraceConfiguration.newBuilder()
+                          .setInitiationType(Cpu.TraceInitiationType.INITIATED_BY_STARTUP))
+      .build();
+    if (myNewEventPipeline) {
+      myTransportService.addEventToStream(device.getDeviceId(), Common.Event.newBuilder()
+        .setGroupId(myTimer.getCurrentTimeNs())
+        .setPid(process.getPid())
+        .setKind(Common.Event.Kind.CPU_TRACE)
+        .setCpuTrace(Cpu.CpuTraceData.newBuilder()
+                       .setTraceEnded(Cpu.CpuTraceData.TraceEnded.newBuilder().setTraceInfo(traceInfo).build()))
+        .build());
+    }
+    else {
+      myCpuService.addTraceInfo(traceInfo);
+    }
 
     // To make sure that StudioProfilers#update is called, which in a consequence polls devices and processes,
     // and starts a new session with the preferred process name.
@@ -929,6 +953,27 @@ public final class StudioProfilersTest {
   }
 
   @Test
+  public void testUnsupportedDeviceShowsNullStage() {
+    StudioProfilers profilers = new StudioProfilers(myProfilerClient, myIdeProfilerServices, myTimer);
+    String deviceName = "UnsupportedDevice";
+    String unsupportedReason = "Unsupported device";
+    Common.Device device = Common.Device.newBuilder()
+      .setDeviceId(deviceName.hashCode())
+      .setFeatureLevel(AndroidVersion.VersionCodes.KITKAT)
+      .setModel(deviceName)
+      .setState(Common.Device.State.ONLINE)
+      .setUnsupportedReason(unsupportedReason)
+      .build();
+    myTransportService.addDevice(device);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    profilers.setPreferredProcess(deviceName, "FakeProcess", null);
+    assertThat(profilers.getDevice()).isEqualTo(device);
+    assertThat(profilers.getProcess()).isNull();
+    assertThat(profilers.getStageClass()).isEqualTo(NullMonitorStage.class);
+    assertThat(((NullMonitorStage)profilers.getStage()).getUnsupportedReason()).isEqualTo(unsupportedReason);
+  }
+
+  @Test
   public void testProfilingStopsWithLiveAllocationEnabled() {
     // Enable live allocation tracker
     myIdeProfilerServices.enableLiveAllocationTracking(true);
@@ -1157,6 +1202,25 @@ public final class StudioProfilersTest {
 
     // When energy flag is disabled and device is O, GetDirectStages does not return Energy stage.
     myIdeProfilerServices.enableEnergyProfiler(false);
+    assertThat(profilers.getDevice().getSerial()).isEqualTo("FakeDeviceO");
+
+    assertThat(profilers.getDirectStages()).containsExactly(
+      CpuProfilerStage.class,
+      MemoryProfilerStage.class,
+      NetworkProfilerStage.class).inOrder();
+
+    // When custom event flag is enabled and device is O, GetDirectStages returns Custom Event stage.
+    myIdeProfilerServices.enableCustomEventVisualization(true);
+    assertThat(profilers.getDevice().getSerial()).isEqualTo("FakeDeviceO");
+
+    assertThat(profilers.getDirectStages()).containsExactly(
+      CpuProfilerStage.class,
+      MemoryProfilerStage.class,
+      NetworkProfilerStage.class,
+      CustomEventProfilerStage.class).inOrder();
+
+    // When custom event flag is disabled and device is O, GetDirectStages does not return Custom Event stage.
+    myIdeProfilerServices.enableCustomEventVisualization(false);
     assertThat(profilers.getDevice().getSerial()).isEqualTo("FakeDeviceO");
 
     assertThat(profilers.getDirectStages()).containsExactly(

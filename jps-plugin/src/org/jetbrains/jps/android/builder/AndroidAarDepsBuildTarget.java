@@ -1,8 +1,7 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.jps.android.builder;
 
 import com.intellij.openapi.util.Pair;
-import org.jetbrains.android.util.AndroidCommonUtils;
+import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.jps.android.AndroidJpsUtil;
@@ -39,7 +38,7 @@ public class AndroidAarDepsBuildTarget extends AndroidBuildTarget {
                                                                BuildDataPaths dataPaths) {
     final Set<JpsLibrary> libraries = JpsJavaExtensionService.getInstance().enumerateDependencies(
       Collections.singleton(myModule)).runtimeOnly().productionOnly().getLibraries();
-    final List<BuildRootDescriptor> result = new ArrayList<>();
+    final List<BuildRootDescriptor> result = new ArrayList<BuildRootDescriptor>();
 
     for (JpsLibrary library : libraries) {
       final Pair<File, List<File>> pair = AndroidJpsUtil.getResDirAndJarsIfAar(library);
@@ -74,14 +73,14 @@ public class AndroidAarDepsBuildTarget extends AndroidBuildTarget {
   @NotNull
   public static File getOutputFile(@NotNull JpsModule module, @NotNull BuildDataPaths dataPaths) {
     final File dir = AndroidJpsUtil.getDirectoryForIntermediateArtifacts(dataPaths, module);
-    return new File(dir, AndroidCommonUtils.AAR_DEPS_JAR_FILE_NAME);
+    return new File(dir, AndroidBuildCommonUtils.AAR_DEPS_JAR_FILE_NAME);
   }
 
   public static class MyTargetType extends AndroidBuildTargetType<AndroidAarDepsBuildTarget> {
     public static final MyTargetType INSTANCE = new MyTargetType();
 
     MyTargetType() {
-      super(AndroidCommonUtils.AAR_DEPS_BUILD_TARGET_TYPE_ID, "AAR Dependencies Packaging");
+      super(AndroidBuildCommonUtils.AAR_DEPS_BUILD_TARGET_TYPE_ID, "AAR Dependencies Packaging");
     }
 
     @Nullable

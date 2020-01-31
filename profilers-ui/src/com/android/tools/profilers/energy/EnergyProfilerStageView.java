@@ -13,34 +13,65 @@
 // limitations under the License.
 package com.android.tools.profilers.energy;
 
-import com.android.tools.adtui.*;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
+import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
+import static com.android.tools.profilers.ProfilerLayout.MARKER_LENGTH;
+import static com.android.tools.profilers.ProfilerLayout.MONITOR_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.MONITOR_LABEL_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.PROFILER_LEGEND_RIGHT_PADDING;
+import static com.android.tools.profilers.ProfilerLayout.PROFILING_INSTRUCTIONS_BACKGROUND_ARC_DIAMETER;
+import static com.android.tools.profilers.ProfilerLayout.TOOLTIP_BORDER;
+import static com.android.tools.profilers.ProfilerLayout.Y_AXIS_TOP_MARGIN;
+import static com.android.tools.profilers.ProfilerLayout.createToolbarLayout;
+
+import com.android.tools.adtui.AxisComponent;
+import com.android.tools.adtui.LegendComponent;
+import com.android.tools.adtui.LegendConfig;
+import com.android.tools.adtui.RangeSelectionComponent;
+import com.android.tools.adtui.RangeTooltipComponent;
+import com.android.tools.adtui.TabularLayout;
+import com.android.tools.adtui.TooltipComponent;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.chart.linechart.LineConfig;
 import com.android.tools.adtui.instructions.InstructionsPanel;
 import com.android.tools.adtui.instructions.TextInstruction;
-import com.android.tools.adtui.model.SelectionListener;
-import com.android.tools.profiler.proto.EnergyProfiler;
-import com.android.tools.profilers.*;
-import com.android.tools.profilers.event.*;
+import com.android.tools.adtui.model.RangeSelectionListener;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profilers.ProfilerColors;
+import com.android.tools.profilers.ProfilerFonts;
+import com.android.tools.profilers.ProfilerLayeredPane;
+import com.android.tools.profilers.ProfilerScrollbar;
+import com.android.tools.profilers.ProfilerTimeline;
+import com.android.tools.profilers.ProfilerTooltipMouseAdapter;
+import com.android.tools.profilers.StageView;
+import com.android.tools.profilers.StudioProfilers;
+import com.android.tools.profilers.StudioProfilersView;
+import com.android.tools.profilers.event.EventMonitorView;
+import com.android.tools.profilers.event.LifecycleTooltip;
+import com.android.tools.profilers.event.LifecycleTooltipView;
+import com.android.tools.profilers.event.UserEventTooltip;
+import com.android.tools.profilers.event.UserEventTooltipView;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.ui.EnumComboBoxModel;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBEmptyBorder;
+import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtilities;
 import icons.StudioIcons;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_HORIZONTAL_BORDERS;
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_VERTICAL_BORDERS;
-import static com.android.tools.profilers.ProfilerLayout.*;
+import javax.swing.BorderFactory;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextPane;
+import javax.swing.SwingConstants;
+import org.jetbrains.annotations.NotNull;
 
 public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
 
@@ -78,7 +109,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     verticalSplitter.setSecondComponent(myEventsPanel);
 
     myDetailsView = new EnergyDetailsView(this);
-    myDetailsView.setMinimumSize(new Dimension(JBUIScale.scale(450), (int)myDetailsView.getMinimumSize().getHeight()));
+    myDetailsView.setMinimumSize(new Dimension(JBUI.scale(450), (int)myDetailsView.getMinimumSize().getHeight()));
     myDetailsView.setVisible(false);
     JBSplitter splitter = new JBSplitter(false, 0.6f);
     splitter.setFirstComponent(verticalSplitter);
@@ -89,14 +120,14 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     getComponent().add(splitter, BorderLayout.CENTER);
 
     getStage().getAspect().addDependency(this)
-              .onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateSelectedDurationView);
+      .onChange(EnergyProfilerAspect.SELECTED_EVENT_DURATION, this::updateSelectedDurationView);
   }
 
   @NotNull
   private JPanel buildMonitorUi() {
     StudioProfilers profilers = getStage().getStudioProfilers();
     ProfilerTimeline timeline = profilers.getTimeline();
-    SelectionComponent selection = new SelectionComponent(getStage().getSelectionModel(), getTimeline().getViewRange());
+    RangeSelectionComponent selection = new RangeSelectionComponent(getStage().getRangeSelectionModel(), getTimeline().getViewRange());
     selection.setCursorSetter(ProfilerLayeredPane::setCursorOnProfilerLayeredPane);
     RangeTooltipComponent tooltip =
       new RangeTooltipComponent(timeline.getTooltipRange(),
@@ -156,6 +187,10 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
       .setLegendIconType(LegendConfig.IconType.BOX)
       .setDataBucketInterval(EnergyMonitorView.CHART_INTERVAL_US);
     lineChart.configure(usage.getLocationUsageSeries(), locationConfig);
+    // The total usage series is only added in the LineChartModel so it can calculate the max Y value across all usages because the
+    // LineChartModel currently does not calculate the max y Range value based on stacked but individual values.
+    // We don't want to draw it as an extra line so we hide it by setting it to transparent.
+    lineChart.configure(usage.getTotalUsageDataSeries(), new LineConfig(ProfilerColors.TRANSPARENT_COLOR));
     lineChart.setRenderOffset(0, (int)LineConfig.DEFAULT_DASH_STROKE.getLineWidth() / 2);
     lineChartPanel.add(lineChart, BorderLayout.CENTER);
 
@@ -180,7 +215,7 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
     legendPanel.add(label, BorderLayout.WEST);
     legendPanel.add(legend, BorderLayout.EAST);
 
-    getStage().getSelectionModel().addListener(new SelectionListener() {
+    getStage().getRangeSelectionModel().addListener(new RangeSelectionListener() {
       @Override
       public void selectionCreated() {
         myEventsPanel.setVisible(true);
@@ -206,8 +241,8 @@ public class EnergyProfilerStageView extends StageView<EnergyProfilerStage> {
           // Updates the end timestamp when last event is not terminal at the details select time. When a new selection range happened,
           // the previous opened details could have terminated and the end time is not Long.MAX_VALUE.
           selectedDuration = getStage().updateDuration(selectedDuration);
-          EnergyProfiler.EnergyEvent lastEvent = selectedDuration.getEventList().get(selectedDuration.getEventList().size() - 1);
-          detailsEndUs = lastEvent.getIsTerminal() ? TimeUnit.NANOSECONDS.toMicros(lastEvent.getTimestamp()) : Long.MAX_VALUE;
+          Common.Event lastEvent = selectedDuration.getEventList().get(selectedDuration.getEventList().size() - 1);
+          detailsEndUs = lastEvent.getIsEnded() ? TimeUnit.NANOSECONDS.toMicros(lastEvent.getTimestamp()) : Long.MAX_VALUE;
         }
         if (selectionRange.getMax() < detailsStartUs || selectionRange.getMin() > detailsEndUs) {
           getStage().setSelectedDuration(null);

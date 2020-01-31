@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.structure.configurables.android.modules.Abs
 import com.android.tools.idea.gradle.structure.configurables.java.dependencies.JavaModuleDependenciesConfigurable
 import com.android.tools.idea.gradle.structure.model.PsModule
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule
+import com.android.tools.idea.gradle.structure.model.empty.PsEmptyModule
 import com.android.tools.idea.gradle.structure.model.java.PsJavaModule
 import com.android.tools.idea.structure.dialog.TrackedConfigurable
 import com.google.wireless.android.sdk.stats.PSDEvent
@@ -42,9 +43,10 @@ class DependenciesPerspectiveConfigurable(context: PsContext)
 
   override fun createConfigurableFor(module: PsModule): AbstractModuleConfigurable<out PsModule, *> =
     when (module) {
-      is PsAllModulesFakeModule -> ProjectDependenciesConfigurable(module, context)
-      is PsAndroidModule -> AndroidModuleDependenciesConfigurable(module, context)
-      is PsJavaModule -> JavaModuleDependenciesConfigurable(module, context)
+      is PsAllModulesFakeModule -> ProjectDependenciesConfigurable(module, context, this)
+      is PsAndroidModule -> AndroidModuleDependenciesConfigurable(module, context, this)
+      is PsJavaModule -> JavaModuleDependenciesConfigurable(module, context, this)
+      is PsEmptyModule -> ModuleUnsupportedConfigurable(context, this, module, message = "Nothing to show. Please select another module.")
       else -> throw IllegalStateException()
     }
 

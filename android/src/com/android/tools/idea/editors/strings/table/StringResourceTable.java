@@ -17,21 +17,21 @@ package com.android.tools.idea.editors.strings.table;
 
 import com.android.tools.idea.editors.strings.StringResourceData;
 import com.android.tools.idea.rendering.Locale;
-import com.intellij.ui.scale.JBUIScale;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
+import com.intellij.util.ui.JBUI;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.stream.IntStream;
+import javax.swing.KeyStroke;
+import javax.swing.SortOrder;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public final class StringResourceTable extends FrozenColumnTable {
+public final class StringResourceTable extends FrozenColumnTable<StringResourceTableModel> {
   private final TableCellRenderer myLocaleRenderer;
 
   @Nullable
@@ -44,7 +44,7 @@ public final class StringResourceTable extends FrozenColumnTable {
 
     setDefaultEditor(String.class, new StringTableCellEditor());
     setDefaultRenderer(String.class, new StringsCellRenderer());
-    setRowSorter(new ThreeStateTableRowSorter<>(getModel()));
+    setRowSorter(new FrozenColumnTableRowSorter<>(new ThreeStateTableRowSorter<>(getModel()), this));
 
     putInInputMap(KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "delete");
     putInInputMap(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "delete");
@@ -59,11 +59,17 @@ public final class StringResourceTable extends FrozenColumnTable {
 
   @Nullable
   public StringResourceTableRowFilter getRowFilter() {
-    return (StringResourceTableRowFilter)getRowSorter().getRowFilter();
+    FrozenColumnTableRowSorter<StringResourceTableModel> sorter = getRowSorter();
+    assert sorter != null;
+
+    return (StringResourceTableRowFilter)sorter.getRowFilter();
   }
 
   public void setRowFilter(@Nullable StringResourceTableRowFilter filter) {
-    getRowSorter().setRowFilter(filter);
+    FrozenColumnTableRowSorter<StringResourceTableModel> sorter = getRowSorter();
+    assert sorter != null;
+
+    sorter.setRowFilter(filter);
   }
 
   @Nullable
@@ -104,30 +110,17 @@ public final class StringResourceTable extends FrozenColumnTable {
     return column;
   }
 
-  @NotNull
   @Override
-  public TableRowSorter<StringResourceTableModel> getRowSorter() {
-    //noinspection unchecked
-    return (TableRowSorter<StringResourceTableModel>)super.getRowSorter();
-  }
-
-  @NotNull
-  @Override
-  public StringResourceTableModel getModel() {
-    return (StringResourceTableModel)super.getModel();
-  }
-
-  @Override
-  public void setModel(@NotNull TableModel model) {
+  public void setModel(@NotNull StringResourceTableModel model) {
     super.setModel(model);
-    getRowSorter().setModel((StringResourceTableModel)model);
+    setRowSorter(new FrozenColumnTableRowSorter<>(new ThreeStateTableRowSorter<>(model), this));
 
     if (myColumnPreferredWidthsSet) {
       return;
     }
 
     IntStream.range(0, getColumnCount())
-             .forEach(viewColumnIndex -> getColumn(viewColumnIndex).setPreferredWidth(getPreferredColumnWidth(viewColumnIndex)));
+      .forEach(viewColumnIndex -> getColumn(viewColumnIndex).setPreferredWidth(getPreferredColumnWidth(viewColumnIndex)));
 
     myColumnPreferredWidthsSet = true;
   }
@@ -136,17 +129,17 @@ public final class StringResourceTable extends FrozenColumnTable {
     int headerWidth = getPreferredHeaderWidth(viewColumnIndex);
 
     OptionalInt optionalMaxCellWidth = IntStream.range(0, getRowCount())
-                                                .map(viewRowIndex -> getPreferredCellWidth(viewRowIndex, viewColumnIndex))
-                                                .max();
+      .map(viewRowIndex -> getPreferredCellWidth(viewRowIndex, viewColumnIndex))
+      .max();
 
-    int minColumnWidth = JBUIScale.scale(20);
+    int minColumnWidth = JBUI.scale(20);
     int columnWidth = Math.max(headerWidth, optionalMaxCellWidth.orElse(minColumnWidth));
 
     if (columnWidth < minColumnWidth) {
       return minColumnWidth;
     }
 
-    int maxColumnWidth = JBUIScale.scale(200);
+    int maxColumnWidth = JBUI.scale(200);
 
     if (columnWidth > maxColumnWidth) {
       return maxColumnWidth;
@@ -182,7 +175,7 @@ public final class StringResourceTable extends FrozenColumnTable {
   }
 
   static class ThreeStateTableRowSorter<M extends TableModel> extends TableRowSorter<M> {
-    public ThreeStateTableRowSorter(M model) {
+    private ThreeStateTableRowSorter(M model) {
       super(model);
     }
 

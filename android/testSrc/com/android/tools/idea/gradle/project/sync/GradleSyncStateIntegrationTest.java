@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.tools.idea.gradle.project.sync.GradleSyncState.GRADLE_SYNC_TOPIC;
-import static com.android.tools.idea.testing.TestProjectPaths.PROJECT_WITH_APPAND_LIB;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -26,12 +25,8 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.gradle.project.ProjectStructure;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.util.messages.MessageBus;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.mockito.Mock;
 
 /**
@@ -40,59 +35,20 @@ import org.mockito.Mock;
 public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
   @Mock private GradleSyncListener myGradleSyncListener;
 
-  private GradleSyncState mySyncState;
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    Project project = getProject();
 
     MessageBus messageBus = mock(MessageBus.class);
     when(messageBus.syncPublisher(GRADLE_SYNC_TOPIC)).thenReturn(myGradleSyncListener);
-
-    mySyncState = new GradleSyncState(project, GradleFiles.getInstance(project), messageBus,
-                                      ProjectStructure.getInstance(project),
-                                      new GradleSyncState.StateChangeNotification(project),
-                                      new GradleSyncSummary(project));
-
-  }
-
-  public void testInvalidateLastSync() throws Exception {
-    loadProject(PROJECT_WITH_APPAND_LIB);
-
-    Module appModule = myModules.getAppModule();
-    AndroidFacet appAndroidFacet = AndroidFacet.getInstance(appModule);
-    assertNotNull(appAndroidFacet);
-    assertNotNull(appAndroidFacet.getModel());
-
-    Module libModule = myModules.getModule("lib");
-    AndroidFacet libAndroidFacet = AndroidFacet.getInstance(libModule);
-    assertNotNull(libAndroidFacet);
-    assertNotNull(libAndroidFacet.getModel());
-
-    mySyncState.setSyncStartedTimeStamp(0, TRIGGER_TEST_REQUESTED);
-    mySyncState.invalidateLastSync("Error");
-    assertTrue(mySyncState.lastSyncFailed());
-
-    assertNull(appAndroidFacet.getModel());
-    assertNull(libAndroidFacet.getModel());
-
-    verify(myGradleSyncListener).syncFailed(getProject(), "Error");
-  }
-
-  public void testSyncErrorsFailSync() throws Exception {
-    loadSimpleApplication();
-    mySyncState.getSummary().setSyncErrorsFound(true);
-
-    assertTrue(mySyncState.lastSyncFailed());
   }
 
   public void testCompoundSyncEnabled() throws Exception {
     try {
-      StudioFlags.NEW_SYNC_INFRA_ENABLED.override(true);
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.override(true);
       StudioFlags.COMPOUND_SYNC_ENABLED.override(true);
+      StudioFlags.BUILD_AFTER_SYNC_ENABLED.override(true);
 
       loadSimpleApplication();
 
@@ -100,14 +56,14 @@ public class GradleSyncStateIntegrationTest extends AndroidGradleTestCase {
       verify(myGradleSyncListener, times(0)).sourceGenerationFinished(eq(getProject()));
 
       // Sync with source generation
-      GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(getProject(), TRIGGER_TEST_REQUESTED, myGradleSyncListener);
+      GradleSyncInvoker.getInstance().requestProjectSync(getProject(), TRIGGER_TEST_REQUESTED, myGradleSyncListener);
 
       verify(myGradleSyncListener).sourceGenerationFinished(eq(getProject()));
     }
     finally {
-      StudioFlags.NEW_SYNC_INFRA_ENABLED.clearOverride();
       StudioFlags.SINGLE_VARIANT_SYNC_ENABLED.clearOverride();
       StudioFlags.COMPOUND_SYNC_ENABLED.clearOverride();
+      StudioFlags.BUILD_AFTER_SYNC_ENABLED.clearOverride();
     }
   }
 }

@@ -24,7 +24,6 @@ import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationP
 import com.android.tools.idea.gradle.notification.ProjectSyncStatusNotificationProvider.NotificationPanel.Type;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.structure.dialog.ProjectStructureConfigurable;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.mock.MockDumbService;
@@ -32,6 +31,9 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -42,10 +44,9 @@ import org.mockito.Mock;
 /**
  * Tests for {@link ProjectSyncStatusNotificationProvider}.
  */
-public class ProjectSyncStatusNotificationProviderTest extends JavaProjectTestCase {
+public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase {
   @Mock private GradleProjectInfo myProjectInfo;
   @Mock private GradleSyncState mySyncState;
-  @Mock private GradleSyncSummary mySyncSummary;
 
   private ProjectSyncStatusNotificationProvider myNotificationProvider;
   private VirtualFile myFile;
@@ -58,7 +59,6 @@ public class ProjectSyncStatusNotificationProviderTest extends JavaProjectTestCa
 
     initMocks(this);
 
-    when(mySyncState.getSummary()).thenReturn(mySyncSummary);
     when(myProjectInfo.isBuildWithGradle()).thenReturn(true);
     when(mySyncState.areSyncNotificationsEnabled()).thenReturn(true);
 
@@ -85,12 +85,7 @@ public class ProjectSyncStatusNotificationProviderTest extends JavaProjectTestCa
     assertEquals(Type.NONE, type);
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
     // Since Project Structure notification isn't really a sync notification, we will show it here if the flag is enabled.
-    if (ProjectStructureConfigurable.isNewPsdEnabled()) {
-      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
-    }
-    else {
-      assertNull(panel);
-    }
+    assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
   }
 
   public void testNotificationPanelTypeWithSyncInProgress() {
@@ -108,20 +103,15 @@ public class ProjectSyncStatusNotificationProviderTest extends JavaProjectTestCa
     assertInstanceOf(createPanel(type), IndexingSensitiveNotificationPanel.class);
   }
 
-  public void testNotificationPanelTypeWithSyncErrors() {
-    when(mySyncSummary.hasSyncErrors()).thenReturn(true);
+  public void testProjectStructureNotificationPanelType() {
+    when(mySyncState.lastSyncFailed()).thenReturn(false);
     PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
 
     Type type = myNotificationProvider.notificationPanelType();
     assertEquals(Type.NONE, type);
 
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
-    if (ProjectStructureConfigurable.isNewPsdEnabled()) {
-      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
-    }
-    else {
-      assertNull(panel);
-    }
+    assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
 
     // The reshow timeout should always be too large comparing to the potential time difference between statements below,
     // e.g. dozens of days.

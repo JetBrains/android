@@ -23,7 +23,7 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.FakeProfilerService;

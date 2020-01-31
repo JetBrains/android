@@ -23,7 +23,6 @@ import com.android.tools.apk.analyzer.dex.tree.DexPackageNode;
 import com.android.tools.apk.analyzer.internal.ProguardMappingFiles;
 import com.android.tools.idea.apk.viewer.ApkFileEditorComponent;
 import com.android.tools.idea.apk.viewer.ApkViewPanel;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.proguard.ProguardMap;
 import com.android.tools.proguard.ProguardSeedsMap;
 import com.android.tools.proguard.ProguardUsagesMap;
@@ -46,6 +45,7 @@ import com.intellij.ui.*;
 import com.intellij.ui.components.JBLoadingPanel;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.PlatformIcons;
+import com.intellij.util.concurrency.EdtExecutorService;
 import com.intellij.util.ui.EmptyIcon;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import org.jetbrains.annotations.NotNull;
@@ -192,7 +192,13 @@ public class DexFileViewer implements ApkFileEditorComponent {
   @NotNull
   private ActionGroup createPopupActionGroup(@NotNull Tree tree) {
     final DefaultActionGroup group = new DefaultActionGroup();
-    group.add(new ShowDisassemblyAction(tree));
+    group.add(new ShowDisassemblyAction(tree, () -> {
+      if (myDeobfuscateNames && myProguardMappings != null) {
+        return myProguardMappings.map;
+      } else {
+        return null;
+      }
+    }));
     group.add(new ShowReferencesAction(tree, this));
     group.add(new GenerateProguardKeepRuleAction(tree));
     return group;
@@ -328,7 +334,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
       public void onFailure(@NotNull Throwable t) {
         myLoadingPanel.stopLoading();
       }
-    }, EdtExecutor.INSTANCE);
+    }, EdtExecutorService.getInstance());
 
     ListenableFuture<DexFileStats> dexStatsFuture =
       Futures.transform(dexFileFuture, new Function<Map<Path, DexBackedDexFile>, DexFileStats>() {
@@ -368,7 +374,7 @@ public class DexFileViewer implements ApkFileEditorComponent {
           titleComponent.setIcon(AllIcons.General.Error);
           titleComponent.append("Error parsing dex file: " + t.getMessage());
         }
-      }, EdtExecutor.INSTANCE);
+      }, EdtExecutorService.getInstance());
     }
   }
 

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.error;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.util.ListenerCollection;
 import com.google.common.collect.ImmutableList;

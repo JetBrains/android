@@ -16,14 +16,13 @@
 
 package com.android.tools.adtui;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.instructions.*;
 import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtilities;
@@ -47,17 +46,17 @@ public class LegendComponent extends AnimatedComponent {
   /**
    * Space, in pixels, between vertical legends.
    */
-  private static final int LEGEND_VERT_MARGIN_PX = JBUIScale.scale(8);
+  private static final int LEGEND_VERT_MARGIN_PX = JBUI.scale(8);
 
   /**
    * Space, in pixels, between horizontal legends.
    */
-  private final static int LEGEND_HORIZ_MARGIN_PX = JBUIScale.scale(10);
+  private final static int LEGEND_HORIZ_MARGIN_PX = JBUI.scale(10);
 
   /**
    * Space between a legend icon and its text
    */
-  private static final int ICON_MARGIN_PX = JBUIScale.scale(6);
+  private static final int ICON_MARGIN_PX = JBUI.scale(6);
 
   /**
    * A cache for cropped icons.
@@ -161,6 +160,10 @@ public class LegendComponent extends AnimatedComponent {
   }
 
   private void modelChanged() {
+    if (!isShowing()) {
+      return;
+    }
+
     boolean valuesChanged = false;
     // Check for new/modified legends.
     for (Legend legend : myModel.getLegends()) {
@@ -270,10 +273,9 @@ public class LegendComponent extends AnimatedComponent {
   }
 
   public static final class Builder {
-    private static final int DEFAULT_PADDING_X_PX = JBUIScale.scale(1); // Should at least be 1 to avoid borders getting clipped.
-
-    private static final int DEFAULT_PADDING_Y_PX = JBUIScale.scale(5);
-    private static final float DEFAULT_TEXT_SIZE = JBUIScale.scale(12);
+    private static final int DEFAULT_PADDING_X_PX = JBUI.scale(1); // Should at least be 1 to avoid borders getting clipped.
+    private static final int DEFAULT_PADDING_Y_PX = JBUI.scale(5);
+    private static final float DEFAULT_TEXT_SIZE = JBUI.scale(12);
 
     private final LegendComponentModel myModel;
     private int myLeftPadding = DEFAULT_PADDING_X_PX;

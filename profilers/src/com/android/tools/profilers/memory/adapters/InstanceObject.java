@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.tools.profiler.proto.MemoryProfiler.AllocationStack;
+import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.ThreadId;
 import org.jetbrains.annotations.NotNull;
@@ -40,9 +40,6 @@ public interface InstanceObject extends ValueObject {
 
   @NotNull
   ClassDb.ClassEntry getClassEntry();
-
-  @Nullable
-  InstanceObject getClassObject();
 
   default int getFieldCount() {
     return 0;
@@ -84,8 +81,8 @@ public interface InstanceObject extends ValueObject {
     switch (callStack.getFrameCase()) {
       case FULL_STACK:
         return callStack.getFullStack().getFramesCount();
-      case SMALL_STACK:
-        return callStack.getSmallStack().getFramesCount();
+      case ENCODED_STACK:
+        return callStack.getEncodedStack().getFramesCount();
       default:
         return 0;
     }

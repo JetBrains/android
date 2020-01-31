@@ -28,6 +28,7 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.DrawGuidelineCycle;
 import java.awt.Cursor;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -52,7 +53,7 @@ public class GuidelineCycleTarget extends GuidelineTarget {
   }
 
   @Override
-  public Cursor getMouseCursor() {
+  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifiersEx) {
     return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
   }
 

@@ -61,6 +61,7 @@ public abstract class ProgressStep extends FirstRunWizardStep {
     myConsoleEditor = ConsoleViewUtil.setupConsoleEditor((Project)null, false, false);
     myConsoleEditor.getSettings().setUseSoftWraps(true);
     myConsoleEditor.reinitSettings();
+    myConsoleEditor.setBorder(BorderFactory.createEmptyBorder(6,6,6,0));
     Disposer.register(parent, () -> EditorFactory.getInstance().releaseEditor(myConsoleEditor));
     myHighlighter = new ConsoleHighlighter();
     myHighlighter.setModalityState(ModalityState.stateForComponent(myLabel));

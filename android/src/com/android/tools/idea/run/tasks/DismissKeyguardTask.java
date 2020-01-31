@@ -19,6 +19,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.run.ConsolePrinter;
 import com.android.tools.idea.run.util.LaunchStatus;
 import com.android.tools.idea.run.util.LaunchUtils;
+import com.intellij.execution.Executor;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -36,9 +37,10 @@ public class DismissKeyguardTask implements LaunchTask {
   }
 
   @Override
-  public boolean perform(@NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
+  public LaunchResult run(
+    @NotNull Executor executor, @NotNull IDevice device, @NotNull LaunchStatus launchStatus, @NotNull ConsolePrinter printer) {
     LaunchUtils.initiateDismissKeyguard(device);
-    return true;
+    return LaunchResult.success();
   }
 
   @NotNull

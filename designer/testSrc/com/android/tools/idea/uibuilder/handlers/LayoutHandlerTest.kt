@@ -19,6 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.scene.Region
+import com.android.tools.idea.common.scene.SnappingInfo
 import com.android.tools.idea.uibuilder.model.viewHandler
 import com.android.tools.idea.uibuilder.scene.SceneTest
 import java.awt.Point
@@ -41,7 +42,7 @@ class LayoutHandlerTest : SceneTest() {
     val ph = layoutComponent.nlComponent.viewHandler!!.getPlaceholders(layoutComponent)[0]
     val p = Point()
     mySceneManager.update()
-    assertTrue(ph.snap(50, 60, 150, 160, p))
+    assertTrue(ph.snap(SnappingInfo(50, 60, 150, 160), p))
     assertEquals(50, p.x)
     assertEquals(60, p.y)
   }
@@ -50,7 +51,7 @@ class LayoutHandlerTest : SceneTest() {
     val layoutComponent = myScene.root!!
     val ph = layoutComponent.nlComponent.viewHandler!!.getPlaceholders(layoutComponent)[0]
     val p = Point()
-    assertFalse(ph.snap(600, 600, 700, 700, p))
+    assertFalse(ph.snap(SnappingInfo(600, 600, 700, 700), p))
   }
 
   fun testNotSnappableWithAnyRootView() {
@@ -66,7 +67,7 @@ class LayoutHandlerTest : SceneTest() {
 
     val component = model.surface.scene?.root!!
     val ph = LayoutPlaceholder(component)
-    assertFalse(ph.snap(50, 60, 150, 160, Point()))
+    assertFalse(ph.snap(SnappingInfo(50, 60, 150, 160), Point()))
   }
 
   fun testSnappableWithOnlyDataTag() {
@@ -80,7 +81,7 @@ class LayoutHandlerTest : SceneTest() {
 
     val component = model.surface.scene?.root!!
     val ph = LayoutPlaceholder(component)
-    assertTrue(ph.snap(50, 60, 150, 160, Point()))
+    assertTrue(ph.snap(SnappingInfo(50, 60, 150, 160), Point()))
   }
 
   override fun createModel(): ModelBuilder = model("layout.xml",

@@ -31,6 +31,6 @@ public class DisableOfflineModeHyperlink extends NotificationHyperlink {
   @Override
   protected void execute(@NotNull Project project) {
     GradleSettings.getInstance(project).setOfflineWork(false);
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, TRIGGER_QF_OFFLINE_MODE_DISABLED);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, TRIGGER_QF_OFFLINE_MODE_DISABLED);
   }
 }

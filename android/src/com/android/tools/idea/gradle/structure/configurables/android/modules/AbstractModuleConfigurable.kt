@@ -16,10 +16,14 @@
 package com.android.tools.idea.gradle.structure.configurables.android.modules
 
 import com.android.tools.idea.gradle.structure.configurables.BaseNamedConfigurable
+import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable
+import com.android.tools.idea.gradle.structure.configurables.ContainerConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.ui.CrossModuleUiStateComponent
 import com.android.tools.idea.gradle.structure.model.PsModule
+import com.android.tools.idea.gradle.util.GradleUtil
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.ui.NamedConfigurable
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.navigation.History
@@ -33,12 +37,13 @@ import javax.swing.JComponent
  */
 abstract class AbstractModuleConfigurable<ModuleT : PsModule, out PanelT>(
   val context: PsContext,
+  val perspectiveConfigurable: BasePerspectiveConfigurable,
   module: ModuleT
-) : BaseNamedConfigurable<ModuleT>(module)
-    where PanelT : JComponent,
-          PanelT : CrossModuleUiStateComponent,
-          PanelT : Disposable,
-          PanelT : Place.Navigator {
+) : BaseNamedConfigurable<ModuleT>(module), ContainerConfigurable<PsModule>
+  where PanelT : JComponent,
+        PanelT : CrossModuleUiStateComponent,
+        PanelT : Disposable,
+        PanelT : Place.Navigator {
 
 
   private val lazyPanel = lazy(mode = LazyThreadSafetyMode.NONE) { createPanel().apply { setHistory(history) } }
@@ -67,5 +72,20 @@ abstract class AbstractModuleConfigurable<ModuleT : PsModule, out PanelT>(
     }
     uiDisposed = true
   }
+
+  override fun getChildrenModels(): Collection<PsModule> {
+    val currentModuleGradlePath = getModule().gradlePath
+    return if (currentModuleGradlePath == null) emptyList()
+    else context.project.modules
+      .filter { it.gradlePath != null }
+      .filter { GradleUtil.isDirectChild(it.gradlePath, currentModuleGradlePath) }
+  }
+
+  override fun createChildConfigurable(model: PsModule): NamedConfigurable<out PsModule> =
+    perspectiveConfigurable.createChildConfigurable(model)
+
+  override fun onChange(disposable: Disposable, listener: () -> Unit) = context.project.modules.onChange(disposable, listener)
+
+  override fun dispose() = Unit
 }
 

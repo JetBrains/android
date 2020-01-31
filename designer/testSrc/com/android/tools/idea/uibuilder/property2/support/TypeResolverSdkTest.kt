@@ -27,6 +27,7 @@ import com.android.SdkConstants.DOT_XML
 import com.android.SdkConstants.FLOATING_ACTION_BUTTON
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.MATERIAL1_PKG
+import com.android.SdkConstants.MATERIAL2_PKG
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -51,10 +52,12 @@ private const val ANDROID_VIEWS_HEADER = "Android Views"
 private const val ANDROID_PREFERENCES_HEADER = "Android Preferences"
 private const val APPCOMPAT_VIEWS_HEADER = "AppCompat Views"
 private const val CONSTRAINT_LAYOUT_HEADER = "Constraint Layout"
-private const val DESIGN_HEADER = "Material Design"
+private const val DESIGN_HEADER = "Design Lecagy"
+private const val MATERIAL_HEADER = "Material Design"
 private const val RECYCLER_VIEW_HEADER = "RecyclerView v7"
 private const val CONSTRAINT_LAYOUT_ID = "constraint"
 private const val DESIGN_ID = "design"
+private const val MATERIAL_ID = "material/material"
 private const val PREFERENCE_PACKAGE = "android.preference"
 private const val APPCOMPAT_VIEW_PACKAGE = "android.support.v7.widget"
 private const val CONSTRAINT_LAYOUT_PACKAGE = "android.support.constraint"
@@ -133,6 +136,23 @@ class TypeResolverSdkTest {
     val report = Report(DESIGN_HEADER)
     psiPackage.classes.filter { it.isInheritor(psiViewClass, true) }.forEach { checkViewAttributes(it.qualifiedName!!, report) }
     psiPackage.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
+    report.dumpReport()
+    assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
+  }
+
+  @Test
+  fun testMaterialViewAttributeTypes() {
+    Dependencies.add(projectRule.fixture, "appcompat/appcompat")
+    Dependencies.add(projectRule.fixture, MATERIAL_ID)
+    val psiFacade = JavaPsiFacade.getInstance(projectRule.project)
+    val psiViewClass = psiFacade.findClass(CLASS_VIEW, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiViewGroupClass = psiFacade.findClass(CLASS_VIEWGROUP, GlobalSearchScope.allScope(projectRule.project))!!
+    val psiPackage = psiFacade.findPackage(MATERIAL2_PKG)!!
+    val report = Report(MATERIAL_HEADER)
+    for (folder in psiPackage.subPackages) {
+      folder.classes.filter { it.isInheritor(psiViewClass, true) }.forEach { checkViewAttributes(it.qualifiedName!!, report) }
+      folder.classes.filter { it.isInheritor(psiViewGroupClass, true) }.forEach { checkViewLayoutAttributes(it.qualifiedName!!, report) }
+    }
     report.dumpReport()
     assertThat(report.totalErrors).named(TOTAL_ERROR_MESSAGE).isEqualTo(0)
   }

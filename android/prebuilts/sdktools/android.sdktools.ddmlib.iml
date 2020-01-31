@@ -6,7 +6,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="module" module-name="android.sdktools.common" exported="" />
     <orderEntry type="library" exported="" name="kxml2" level="project" />
-    <orderEntry type="library" scope="TEST" name="jmock" level="project" />
     <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
@@ -15,14 +14,22 @@
     <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-ddmlib" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.tools.ddms:ddmlib:26.5.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:ddmlib:26.6.0.1" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/ddms/ddmlib/26.5.0/ddmlib-26.5.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/ddmlib/26.6.0.1/ddmlib-26.6.0.1.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/ddms/ddmlib/26.5.0/ddmlib-26.5.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="" scope="TEST">
+      <library name="studio.android.sdktools.ddmlib_test" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:ddmlib_test:26.6.0.1" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/ddmlib_test/26.6.0.1/ddmlib_test-26.6.0.1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
       </library>
     </orderEntry>
   </component>

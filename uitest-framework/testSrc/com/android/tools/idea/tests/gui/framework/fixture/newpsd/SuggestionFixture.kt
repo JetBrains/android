@@ -16,16 +16,15 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.adtui.HtmlLabel
-import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
-import com.android.tools.idea.tests.gui.framework.find
 import com.android.tools.idea.tests.gui.framework.findByType
 import com.android.tools.idea.tests.gui.framework.finder
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.matcher
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.components.JBOptionButton
+import org.fest.swing.core.Robot
 import org.fest.swing.edt.GuiQuery
 import org.fest.swing.exception.ComponentLookupException
+import org.fest.swing.fixture.ContainerFixture
 import org.fest.swing.fixture.JButtonFixture
 import org.junit.Assert.fail
 import javax.swing.Action
@@ -33,11 +32,12 @@ import javax.swing.JButton
 import javax.swing.JPanel
 
 class SuggestionFixture(
-    override val ideFrameFixture: IdeFrameFixture,
-    override val container: JPanel
-) : IdeFrameContainerFixture {
+  val robot: Robot,
+  val container: JPanel
+) : ContainerFixture<JPanel> {
 
-  private fun robot() = ideFrameFixture.robot()
+  override fun target(): JPanel = container
+  override fun robot(): Robot = robot
 
   fun plainTextMessage(): String {
     val htmlLabel = finder().findByType(container, HtmlLabel::class.java)
@@ -64,7 +64,6 @@ class SuggestionFixture(
   fun clickAction() {
     val buttonFixture = findButton()
     buttonFixture.click()
-    waitForIdle()
   }
 
   fun findButton(): JButtonFixture {

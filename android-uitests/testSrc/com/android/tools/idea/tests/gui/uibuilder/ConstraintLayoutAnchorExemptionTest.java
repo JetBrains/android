@@ -34,6 +34,7 @@ import static com.google.common.truth.Truth.assertThat;
 public class ConstraintLayoutAnchorExemptionTest {
 
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
    * To verify that anchors on different axis, such as left and top anchor cannot be connected.

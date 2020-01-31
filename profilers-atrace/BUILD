@@ -9,6 +9,7 @@ iml_module(
         "src/core/model/src/main/kotlin",
     ],
     iml_files = ["intellij.android.profilers.atrace.iml"],
+    lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [

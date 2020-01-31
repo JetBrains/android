@@ -27,6 +27,7 @@ import com.android.tools.idea.project.AndroidNotification;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.module.Module;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
@@ -47,7 +48,7 @@ import org.mockito.MockitoAnnotations;
 /**
  * Tests for {@link GoToApkLocationTask}.
  */
-public class GoToApkLocationTaskTest extends JavaProjectTestCase {
+public class GoToApkLocationTaskTest extends PlatformTestCase {
   private static final String NOTIFICATION_TITLE = "Build APK";
   private boolean isRevealFileActionSupported;
   @Mock private AndroidNotification myMockNotification;
@@ -67,7 +68,8 @@ public class GoToApkLocationTaskTest extends JavaProjectTestCase {
     modulesToPaths = new TreeMap<>();
     modulesToPaths.put(getModule().getName(), myApkPath);
     modules.add(getModule());
-    BuildsToPathsMapper mockGenerator = IdeComponents.mockProjectService(myProject, BuildsToPathsMapper.class, getTestRootDisposable());
+    IdeComponents ideComponents = new IdeComponents(getProject());
+    BuildsToPathsMapper mockGenerator = ideComponents.mockProjectService(BuildsToPathsMapper.class);
     when(mockGenerator.getBuildsToPaths(any(), any(), any(), anyBoolean(), any())).thenReturn(modulesToPaths);
     myTask = new GoToApkLocationTask(getProject(), modules, NOTIFICATION_TITLE) {
       @Override
@@ -75,8 +77,7 @@ public class GoToApkLocationTaskTest extends JavaProjectTestCase {
         return isRevealFileActionSupported;  // Inject ability to simulate both behaviors.
       }
     };
-    ServiceContainerUtil
-      .replaceService(myProject, AndroidNotification.class, myMockNotification, getTestRootDisposable());
+    ideComponents.replaceProjectService(AndroidNotification.class, myMockNotification);
   }
 
   public void testExecuteWithCancelledBuild() {

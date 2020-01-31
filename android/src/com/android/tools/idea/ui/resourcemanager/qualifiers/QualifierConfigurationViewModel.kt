@@ -69,7 +69,7 @@ private val NETWORK_CODE_RANGE = 0..1000
 private typealias QualifierConfigurationPair = Pair<ResourceQualifier, QualifierConfiguration?>
 
 /**
- * ViewModel for [com.android.tools.idea.ui.resourcemanager.view.QualifierConfigurationPanel].
+ * ViewModel for [com.android.tools.idea.ui.resourcemanager.qualifiers.QualifierConfigurationPanel].
  */
 class QualifierConfigurationViewModel(private val folderConfiguration: FolderConfiguration = FolderConfiguration()) {
 
@@ -178,7 +178,7 @@ class QualifierConfigurationViewModel(private val folderConfiguration: FolderCon
 interface QualifierConfiguration {
 
   /**
-   * The [InputParam] needed to build a new instance of the desired [ResourceQualifier]
+   * The [InputParam] needed to build a new instance of the desired [ResourceQualifier].
    */
   val parameters: List<InputParam<*>>
 
@@ -194,7 +194,7 @@ interface QualifierConfiguration {
 internal class LocaleQualifierConfiguration(language: String?, region: String?) : QualifierConfiguration {
 
   /**
-   * List of the available region for the selected language
+   * List of the available region for the selected language.
    */
   private val regionList = CollectionParam(listOf(region), "Any region").apply {
     paramValue = region
@@ -210,7 +210,7 @@ internal class LocaleQualifierConfiguration(language: String?, region: String?) 
   override val parameters: List<InputParam<String?>> = listOf(languageList, regionList)
 
   /**
-   * Returns a new [LocaleQualifier] using the selected language and the optionally selected region
+   * Returns a new [LocaleQualifier] using the selected language and the optionally selected region.
    */
   override fun buildQualifier(): LocaleQualifier? {
     val language = languageList.paramValue ?: return null
@@ -224,7 +224,7 @@ internal class LocaleQualifierConfiguration(language: String?, region: String?) 
 }
 
 /**
- * Utility method to build an [EnumBasedResourceQualifier]
+ * Utility method to build an [EnumBasedResourceQualifier].
  */
 private inline fun <Qualifier : EnumBasedResourceQualifier, reified E> enumConfiguration(
   noinline factory: (E) -> Qualifier,

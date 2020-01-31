@@ -35,11 +35,7 @@ public class NdkVariantChangeModuleSetup extends BaseSetup<NdkModuleSetupStep, N
   }
 
   @Override
-  protected boolean shouldRunSyncStep(@NotNull NdkModuleSetupStep step, boolean syncSkipped) {
+  protected boolean shouldRunSyncStep(NdkModuleSetupStep step) {
     return step.invokeOnBuildVariantChange();
-  }
-
-  public void setUpModule(@NotNull ModuleSetupContext context, @Nullable NdkModuleModel model) {
-    super.setUpModule(context, model, false);
   }
 }

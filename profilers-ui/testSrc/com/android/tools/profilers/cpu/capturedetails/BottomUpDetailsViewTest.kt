@@ -64,8 +64,8 @@ class BottomUpDetailsViewTest {
 
     stage = CpuProfilerStage(profilers)
     stage.studioProfilers.stage = stage
+    stage.capture = CpuProfilerUITestUtils.validCapture()
     stage.enter()
-
     val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
     stageView = CpuProfilerStageView(profilersView, stage)
   }
@@ -73,6 +73,7 @@ class BottomUpDetailsViewTest {
   @Test
   fun showsNoDataForThreadMessageWhenNodeIsNull() {
     stage.setCaptureDetails(CaptureDetails.Type.BOTTOM_UP)
+    stage.selectedThread = 1
 
     val bottomUp = stage.captureDetails as CaptureDetails.BottomUp
     assertThat(bottomUp.model).isNull()

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.common.surface;
 
-import com.android.tools.idea.uibuilder.surface.ScreenView;
-
 import java.awt.event.AdjustmentEvent;
 
 /**
@@ -26,13 +24,13 @@ import java.awt.event.AdjustmentEvent;
 public interface PanZoomListener {
 
   /**
-   * The designSurface's {@link ScreenView} have benn scaled
+   * The designSurface's screen scale has changed.
    * @param designSurface
    */
   void zoomChanged(DesignSurface designSurface);
 
   /**
-   * The scrollbars value have been changed
+   * The scrollbars value has changed.
    * @param adjustmentEvent
    */
   void panningChanged(AdjustmentEvent adjustmentEvent);

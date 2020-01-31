@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.profiling.capture;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.tools.analytics.UsageTracker;
-import com.android.tools.idea.concurrent.EdtExecutor;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
@@ -37,6 +36,7 @@ import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.util.concurrency.EdtExecutorService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,8 +74,8 @@ public class CaptureService {
   public CaptureService(@NotNull Project project) {
     myProject = project;
     myCaptures = LinkedListMultimap.create();
-    myListeners = new LinkedList<>();
-    myOpenCaptureHandles = new HashSet<>();
+    myListeners = new LinkedList<CaptureListener>();
+    myOpenCaptureHandles = new HashSet<CaptureHandle>();
 
     update();
   }
@@ -86,7 +86,7 @@ public class CaptureService {
   }
 
   private static Set<VirtualFile> findCaptureFiles(@NotNull VirtualFile[] files, @NotNull CaptureType type) {
-    Set<VirtualFile> set = new HashSet<>();
+    Set<VirtualFile> set = new HashSet<VirtualFile>();
     for (VirtualFile file : files) {
       if (type.isValidCapture(file)) {
         set.add(file);
@@ -264,7 +264,7 @@ public class CaptureService {
         //noinspection ResultOfMethodCallIgnored
         captureHandle.getFile().delete();
       }
-    }, EdtExecutor.INSTANCE);
+    }, EdtExecutorService.getInstance());
   }
 
   /**

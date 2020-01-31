@@ -15,77 +15,64 @@
  */
 package com.android.tools.idea.profilers.perfd;
 
-import com.android.annotations.Nullable;
+import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
-import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profilers.memory.LegacyAllocationConverter;
-import com.android.tools.idea.profilers.LegacyAllocationTracker;
-import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryProfiler.*;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.idea.profilers.FakeLegacyAllocationTracker;
+import com.android.tools.idea.protobuf.ByteString;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
+import com.android.tools.profiler.proto.Common;
+import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profiler.proto.Memory.AllocationsInfo;
+import com.android.tools.profiler.proto.Memory.TrackStatus;
+import com.android.tools.profiler.proto.MemoryProfiler;
+import com.android.tools.profiler.proto.MemoryProfiler.ForceGarbageCollectionRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStartRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.MemoryStopRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsRequest;
+import com.android.tools.profiler.proto.MemoryProfiler.TrackAllocationsResponse;
+import com.android.tools.profiler.proto.MemoryServiceGrpc;
 import com.android.tools.profilers.memory.FakeMemoryService;
 import io.grpc.ManagedChannel;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
-import java.util.stream.Collectors;
-
-import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.COMPLETED;
-import static com.android.tools.profiler.proto.MemoryProfiler.AllocationsInfo.Status.IN_PROGRESS;
-import static com.google.common.truth.Truth.assertThat;
-import static org.mockito.Mockito.*;
-
 public class MemoryServiceProxyTest {
   private static final Common.Session SESSION1 = Common.Session.newBuilder().setSessionId(1).setPid(1).build();
   private static final Common.Session SESSION2 = Common.Session.newBuilder().setSessionId(2).setPid(2).build();
-
-  /**
-   * Auxiliary static test data used for verifying legacy allocation tracking workflow
-   */
-  private static final String CLASS_NAME = MemoryServiceProxyTest.class.getName();
-  private static final String METHOD_NAME = "TestMethod";
-  private static final String FILE_NAME = "MemoryServiceProxyTest.java";
-  private static final int LINE_NUMBER = 100;
-  private static final int CLASS_ID = 0;
-  private static final int THREAD_ID = 10;
-  private static final int SIZE = 101;
-  private static final byte[] RAW_DATA = new byte[]{'a'};
 
   @NotNull private final FakeMemoryService myService = new FakeMemoryService();
   @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryServiceProxyTest", myService);
   @NotNull private MemoryServiceProxy myProxy;
 
-  // Mockable tracker states
-  private CountDownLatch myParsingWaitLatch;
-  private CountDownLatch myParsingDoneLatch;
-  private boolean myAllocationTrackingState;
-  private LegacyAllocationConverter myAllocationConverter;
-  private boolean myReturnNullTrackingData;
   private IDevice myDevice;
+  private Map<String, ByteString> myProxyBytesCache = new HashMap<>();
+  private FakeLegacyAllocationTracker myTracker = new FakeLegacyAllocationTracker();
 
   @Before
   public void setUp() {
-    myReturnNullTrackingData = false;
-    myAllocationTrackingState = false;
-    myParsingWaitLatch = new CountDownLatch(1);
-    myParsingDoneLatch = new CountDownLatch(1);
-    myAllocationConverter = new LegacyAllocationConverter();
-
     myDevice = mock(IDevice.class);
     when(myDevice.getSerialNumber()).thenReturn("Serial");
     when(myDevice.getName()).thenReturn("Device");
@@ -94,7 +81,8 @@ public class MemoryServiceProxyTest {
     when(myDevice.isOnline()).thenReturn(true);
 
     ManagedChannel mockChannel = InProcessChannelBuilder.forName("MemoryServiceProxyTest").build();
-    myProxy = new MemoryServiceProxy(myDevice, mockChannel, Runnable::run, (device, process) -> getTracker(device, process));
+    myProxy = new MemoryServiceProxy(myDevice, mockChannel, Runnable::run, (device, process) -> myTracker,
+                                     myProxyBytesCache);
 
     // Monitoring two processes simultaneously
     myProxy.startMonitoringApp(MemoryStartRequest.newBuilder().setSession(SESSION1).build(), mock(StreamObserver.class));
@@ -137,17 +125,16 @@ public class MemoryServiceProxyTest {
     int startTime2 = 10;
     // Enable a tracking session on Process 1
     myProxy.trackAllocations(
-      TrackAllocationsRequest.newBuilder().setEnabled(true).setSession(SESSION1).setRequestTime(startTime1).build(),
+      TrackAllocationsRequest.newBuilder().setSession(SESSION1).setEnabled(true).setRequestTime(startTime1).build(),
       mock(StreamObserver.class));
 
     // Enable a tracking sesion on Process 2
     myProxy.trackAllocations(
-      TrackAllocationsRequest.newBuilder().setEnabled(true).setSession(SESSION2).setRequestTime(startTime2).build(),
+      TrackAllocationsRequest.newBuilder().setSession(SESSION2).setEnabled(true).setRequestTime(startTime2).build(),
       mock(StreamObserver.class));
 
     MemoryData expected1 = MemoryData.newBuilder()
-      .addAllocationsInfo(AllocationsInfo.newBuilder().setStartTime(startTime1).setEndTime(Long.MAX_VALUE)
-                            .setStatus(IN_PROGRESS).setLegacy(true).build())
+      .addAllocationsInfo(AllocationsInfo.newBuilder().setStartTime(startTime1).setEndTime(Long.MAX_VALUE).setLegacy(true).build())
       .setEndTimestamp(startTime1)
       .build();
     StreamObserver<MemoryData> observer1 = mock(StreamObserver.class);
@@ -156,8 +143,7 @@ public class MemoryServiceProxyTest {
     verify(observer1, times(1)).onCompleted();
 
     MemoryData expected2 = MemoryData.newBuilder()
-      .addAllocationsInfo(AllocationsInfo.newBuilder().setStartTime(startTime2).setEndTime(Long.MAX_VALUE)
-                            .setStatus(IN_PROGRESS).setLegacy(true).build())
+      .addAllocationsInfo(AllocationsInfo.newBuilder().setStartTime(startTime2).setEndTime(Long.MAX_VALUE).setLegacy(true).build())
       .setEndTimestamp(startTime2)
       .build();
     StreamObserver<MemoryData> observer2 = mock(StreamObserver.class);
@@ -170,31 +156,27 @@ public class MemoryServiceProxyTest {
   public void testLegacyAllocationTrackingWorkflow() throws Exception {
     int time1 = 5;
     int time2 = 10;
-    LegacyAllocationEventsRequest eventRequest =
-      LegacyAllocationEventsRequest.newBuilder().setSession(SESSION1).setStartTime(time1).setEndTime(time2).build();
 
     // Enable a tracking session on Process 1
-    TrackAllocationsResponse expected1 = TrackAllocationsResponse.newBuilder().setStatus(TrackAllocationsResponse.Status.SUCCESS)
+    TrackAllocationsResponse expected1 = TrackAllocationsResponse.newBuilder()
+      .setStatus(TrackStatus.newBuilder().setStatus(TrackStatus.Status.SUCCESS).setStartTime(time1))
       .setInfo(
-        AllocationsInfo.newBuilder().setStartTime(time1).setEndTime(Long.MAX_VALUE).setStatus(IN_PROGRESS)
-          .setLegacy(true).build()).build();
+        AllocationsInfo.newBuilder().setStartTime(time1).setEndTime(Long.MAX_VALUE).setLegacy(true).build()).build();
     StreamObserver<TrackAllocationsResponse> observer1 = mock(StreamObserver.class);
     myProxy.trackAllocations(
       TrackAllocationsRequest.newBuilder().setSession(SESSION1).setEnabled(true).setRequestTime(time1).build(),
       observer1);
-    assertThat(myAllocationTrackingState).isTrue();
+    assertThat(myTracker.getTrackingState()).isTrue();
     verify(observer1, times(1)).onNext(expected1);
     verify(observer1, times(1)).onCompleted();
 
-    // Verify that query for AllocationEvents on at ongoing session returns the NOT_FOUND response
-    StreamObserver<LegacyAllocationEventsResponse> notFoundObserver = mock(StreamObserver.class);
-    myProxy.getLegacyAllocationEvents(eventRequest, notFoundObserver);
-    verify(notFoundObserver, times(1)).onNext(MemoryServiceProxy.NOT_FOUND_RESPONSE);
-    verify(notFoundObserver, times(1)).onCompleted();
+    // Verify that query for bytes on at ongoing session does not return any byte contents
+    assertThat(myProxyBytesCache.containsKey(Integer.toString(time1))).isFalse();
 
     // Disable a tracking session on Process 1
-    TrackAllocationsResponse expected2 = TrackAllocationsResponse.newBuilder().setStatus(TrackAllocationsResponse.Status.SUCCESS)
-      .setInfo(AllocationsInfo.newBuilder().setStartTime(time1).setEndTime(time2).setStatus(COMPLETED).setLegacy(true).build())
+    TrackAllocationsResponse expected2 = TrackAllocationsResponse.newBuilder()
+      .setStatus(TrackStatus.newBuilder().setStatus(TrackStatus.Status.SUCCESS).setStartTime(time1))
+      .setInfo(AllocationsInfo.newBuilder().setStartTime(time1).setEndTime(time2).setSuccess(true).setLegacy(true).build())
       .build();
     StreamObserver<TrackAllocationsResponse> observer2 = mock(StreamObserver.class);
     myProxy.trackAllocations(
@@ -204,38 +186,10 @@ public class MemoryServiceProxyTest {
     verify(observer2, times(1)).onCompleted();
 
     // Mock completion of the parsing process and the resulting data.
-    myParsingWaitLatch.countDown();
-    myParsingDoneLatch.await();
-    List<LegacyAllocationEvent> expectedEvents = myAllocationConverter.getAllocationEvents(time1, time2);
-    LegacyAllocationEventsResponse expected3 =
-      LegacyAllocationEventsResponse.newBuilder().setStatus(LegacyAllocationEventsResponse.Status.SUCCESS).addAllEvents(expectedEvents)
-        .build();
-    StreamObserver<LegacyAllocationEventsResponse> observer3 = mock(StreamObserver.class);
-    myProxy.getLegacyAllocationEvents(eventRequest, observer3);
-    verify(observer3, times(1)).onNext(expected3);
-    verify(observer3, times(1)).onCompleted();
-
-    // Verify that ListAllocationContexts contains the stack/class info
-    AllocationContextsResponse expected4 = AllocationContextsResponse.newBuilder()
-      .addAllAllocatedClasses(myAllocationConverter.getClassNames())
-      .addAllAllocationStacks(myAllocationConverter.getAllocationStacks()).build();
-    StreamObserver<AllocationContextsResponse> observer4 = mock(StreamObserver.class);
-    myProxy.getLegacyAllocationContexts(
-      LegacyAllocationContextsRequest.newBuilder().setSession(SESSION1).addClassIds(expectedEvents.get(0).getClassId())
-        .addStackIds(expectedEvents.get(0).getStackId()).build(), observer4);
-    verify(observer4, times(1)).onNext(expected4);
-    verify(observer4, times(1)).onCompleted();
-
-    // Verify that ListAllocationContexts for the wrong pid/capture time returns empty result.
-    StreamObserver<AllocationContextsResponse> observer5 = mock(StreamObserver.class);
-    myProxy.getLegacyAllocationContexts(LegacyAllocationContextsRequest.newBuilder().build(), observer5);
-    verify(observer5, times(1)).onNext(AllocationContextsResponse.getDefaultInstance());
-    verify(observer5, times(1)).onCompleted();
-    StreamObserver<AllocationContextsResponse> observer6 = mock(StreamObserver.class);
-    myProxy.getLegacyAllocationContexts(
-      LegacyAllocationContextsRequest.newBuilder().build(), observer6);
-    verify(observer6, times(1)).onNext(AllocationContextsResponse.getDefaultInstance());
-    verify(observer6, times(1)).onCompleted();
+    myTracker.getParsingWaitLatch().countDown();
+    myTracker.getParsingDoneLatch().await();
+    assertThat(myProxyBytesCache.get(Integer.toString(time1)))
+      .isEqualTo(ByteString.copyFrom(FakeLegacyAllocationTracker.Companion.getRAW_DATA()));
   }
 
   @Test
@@ -254,24 +208,10 @@ public class MemoryServiceProxyTest {
       mock(StreamObserver.class));
 
     // Mock completion of the parsing process and returning of null data;
-    myReturnNullTrackingData = true;
-    myParsingWaitLatch.countDown();
-    myParsingDoneLatch.await();
-    LegacyAllocationEventsRequest eventRequest =
-      LegacyAllocationEventsRequest.newBuilder().setSession(SESSION1).setStartTime(time1).setEndTime(time2).build();
-    LegacyAllocationEventsResponse expected1 =
-      LegacyAllocationEventsResponse.newBuilder().setStatus(LegacyAllocationEventsResponse.Status.FAILURE_UNKNOWN).build();
-    StreamObserver<LegacyAllocationEventsResponse> observer1 = mock(StreamObserver.class);
-    myProxy.getLegacyAllocationEvents(eventRequest, observer1);
-    verify(observer1, times(1)).onNext(expected1);
-    verify(observer1, times(1)).onCompleted();
-
-    DumpDataRequest dumpRequest = DumpDataRequest.newBuilder().setSession(SESSION1).setDumpTime(time1).build();
-    DumpDataResponse expected2 = DumpDataResponse.newBuilder().setStatus(DumpDataResponse.Status.FAILURE_UNKNOWN).build();
-    StreamObserver<DumpDataResponse> observer2 = mock(StreamObserver.class);
-    myProxy.getLegacyAllocationDump(dumpRequest, observer2);
-    verify(observer2, times(1)).onNext(expected2);
-    verify(observer2, times(1)).onCompleted();
+    myTracker.setReturnNullTrackingData(true);
+    myTracker.getParsingWaitLatch().countDown();
+    myTracker.getParsingDoneLatch().await();
+    assertThat(myProxyBytesCache.get(Integer.toString(time1))).isEqualTo(ByteString.EMPTY);
   }
 
   @Test
@@ -305,45 +245,5 @@ public class MemoryServiceProxyTest {
     when(myDevice.getClients()).thenReturn(new Client[0]);
     myProxy.forceGarbageCollection(ForceGarbageCollectionRequest.newBuilder().setSession(SESSION1).build(), mock(StreamObserver.class));
     verify(client, never()).executeGarbageCollector();
-  }
-
-  private LegacyAllocationTracker getTracker(IDevice device, int processId) {
-    return new LegacyAllocationTracker() {
-      @Override
-      public boolean trackAllocations(long startTime,
-                                      long endTime,
-                                      boolean enabled,
-                                      @Nullable Executor executor,
-                                      @Nullable LegacyAllocationTrackingCallback allocationConsumer) {
-        myAllocationTrackingState = enabled;
-        if (!enabled) {
-          myAllocationConverter.addClassName(CLASS_NAME);
-          List<StackTraceElement> stackTraceList = new ArrayList<>();
-          stackTraceList.add(new StackTraceElement(CLASS_NAME, METHOD_NAME, FILE_NAME, LINE_NUMBER));
-          LegacyAllocationConverter.CallStack stack = myAllocationConverter.addCallStack(stackTraceList);
-          myAllocationConverter.addAllocation(new LegacyAllocationConverter.Allocation(CLASS_ID, SIZE, THREAD_ID, stack.hashCode()));
-
-          new Thread(() -> {
-            try {
-              myParsingWaitLatch.await();
-            }
-            catch (InterruptedException ignored) {
-            }
-
-            if (myReturnNullTrackingData) {
-              allocationConsumer.accept(null, Collections.emptyList(), Collections.emptyList(), Collections.emptyList());
-            }
-            else {
-              allocationConsumer.accept(RAW_DATA, myAllocationConverter.getClassNames(), myAllocationConverter.getAllocationStacks(),
-                                        myAllocationConverter.getAllocationEvents(startTime, endTime));
-            }
-
-            myParsingDoneLatch.countDown();
-          }).start();
-        }
-
-        return true;
-      }
-    };
   }
 }

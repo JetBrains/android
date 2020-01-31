@@ -62,9 +62,11 @@ public class AndroidConfigurationProducer extends JavaRunConfigurationProducerBa
   }
 
   @Override
-  protected boolean setupConfigurationFromContext(@NotNull AndroidRunConfiguration configuration,
-                                                  @NotNull ConfigurationContext context,
-                                                  @NotNull Ref<PsiElement> sourceElement) {
+  protected boolean setupConfigurationFromContext(
+    @NotNull AndroidRunConfiguration configuration,
+    @NotNull ConfigurationContext context,
+    @NotNull Ref<PsiElement> sourceElement) {
+
     final PsiClass activity = getActivityClass(context);
 
     if (activity == null) {

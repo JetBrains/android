@@ -71,9 +71,4 @@ public class CompilerOutputModuleSetupStep extends JavaModuleSetupStep {
       myCompilerSettingsSetup.setOutputPaths(moduleModel, mainClassesFolderPath, testClassesFolderPath);
     }
   }
-
-  @Override
-  public boolean invokeOnSkippedSync() {
-    return true;
-  }
 }

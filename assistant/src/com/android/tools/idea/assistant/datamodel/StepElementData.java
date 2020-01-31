@@ -65,4 +65,9 @@ public interface StepElementData {
   @Nullable
   DefaultTutorialBundle.Image getImage();
 
+  /**
+   * Panel for additional content
+   */
+  @Nullable
+  DefaultTutorialBundle.Panel getPanel();
 }

@@ -31,9 +31,10 @@ public interface Deployable {
   Future<AndroidVersion> getVersion();
 
   /**
-   * Returns whether the current project's application is already running on this {@link Deployable}.
+   * Returns the {@link Client}s associated with the current project's application that are already running on this {@link Deployable}.
    */
-  boolean isApplicationRunningOnDeployable();
+  @NotNull
+  List<Client> searchClientsForPackage();
 
   /**
    * @return true if the underlying device is online, or false otherwise.

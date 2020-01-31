@@ -57,7 +57,7 @@ public class ToggleOfflineModeHyperlink extends NotificationHyperlink {
   protected void execute(@NotNull Project project) {
     GradleSettings.getInstance(project).setOfflineWork(myEnableOfflineMode);
     GradleSyncStats.Trigger trigger = myEnableOfflineMode ? TRIGGER_QF_OFFLINE_MODE_ENABLED : TRIGGER_QF_OFFLINE_MODE_DISABLED;
-    GradleSyncInvoker.getInstance().requestProjectSyncAndSourceGeneration(project, trigger);
+    GradleSyncInvoker.getInstance().requestProjectSync(project, trigger);
   }
 
   @TestOnly

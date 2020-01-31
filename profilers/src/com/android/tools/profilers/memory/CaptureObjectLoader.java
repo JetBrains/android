@@ -17,14 +17,17 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.Range;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
-import com.google.common.util.concurrent.*;
-import com.intellij.util.concurrency.SameThreadExecutor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListenableFutureTask;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class CaptureObjectLoader {
   @Nullable private ExecutorService myExecutorService = null;
@@ -57,7 +60,7 @@ public class CaptureObjectLoader {
       private void removeTask() {
         myOutstandingLoadingTask = null;
       }
-    }, SameThreadExecutor.INSTANCE);
+    }, MoreExecutors.directExecutor());
 
     myExecutorService.execute(task);
     return task;

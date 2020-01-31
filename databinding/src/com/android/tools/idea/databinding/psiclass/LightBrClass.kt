@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.databinding.psiclass
 
-import com.android.ide.common.resources.DataBindingResourceType
-import com.android.tools.idea.databinding.BrUtil
-import com.android.tools.idea.databinding.DataBindingUtil
+import com.android.tools.idea.databinding.util.BrUtil
+import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.databinding.ModuleDataBinding
 import com.android.tools.idea.databinding.cache.ResourceCacheValueProvider
-import com.android.tools.idea.res.ResourceRepositoryManager
 import com.google.common.collect.ImmutableSet
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.project.Project
@@ -59,7 +57,7 @@ private const val ALL_FIELD = "_all"
  *
  * See also: https://developer.android.com/topic/libraries/data-binding/generated-binding#advanced_binding
  */
-class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet) :
+class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet, private val qualifiedName: String) :
   AndroidLightClassBase(psiManager, ImmutableSet.of(PsiModifier.PUBLIC, PsiModifier.FINAL)) {
 
   /**
@@ -69,23 +67,23 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet) :
     get() = fieldCache.value.map { field -> field.name }.toTypedArray()
 
   private val fieldCache: CachedValue<Array<PsiField>>
-  private val qualifiedName: String = DataBindingUtil.getBrQualifiedName(facet)
   private val cacheLock = Any()
   private val containingFile: PsiFile
 
   init {
     fieldCache = CachedValuesManager.getManager(facet.module.project).createCachedValue(
+      // TODO(davidherman): Reliance on javaStructureModificationTracker is known to cause performance problems.
       object : ResourceCacheValueProvider<Array<PsiField>>(facet, cacheLock,
                                                            psiManager.modificationTracker.javaStructureModificationTracker) {
         override fun doCompute(): Array<PsiField> {
           val project = facet.module.project
-          val elementFactory = PsiElementFactory.SERVICE.getInstance(project)
-          val moduleResources = ResourceRepositoryManager.getInstance(facet).existingModuleResources ?: return defaultValue()
-          val dataBindingResourceFiles = moduleResources.dataBindingResourceFiles ?: return defaultValue()
+          val elementFactory = PsiElementFactory.getInstance(project)
+          val groups = ModuleDataBinding.getInstance(facet).bindingLayoutGroups.takeIf { it.isNotEmpty() } ?: return defaultValue()
 
-          val variableNamesSet = dataBindingResourceFiles.values
-            .flatMap { info -> info.getItems(DataBindingResourceType.VARIABLE).values }
-            .map { item -> item.name }
+          val variableNamesSet = groups
+            .flatMap { group -> group.layouts }
+            .flatMap { layout -> layout.data.variables }
+            .map { variable -> variable.name }
             .toMutableSet()
           collectVariableNamesFromUserBindables()?.let { bindables -> variableNamesSet.addAll(bindables) }
 
@@ -99,7 +97,7 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet) :
 
         override fun defaultValue(): Array<PsiField> {
           val project = facet.module.project
-          return arrayOf(createPsiField(project, PsiElementFactory.SERVICE.getInstance(project), "_all"))
+          return arrayOf(createPsiField(project, PsiElementFactory.getInstance(project), "_all"))
         }
       }, false)
     setModuleInfo(facet.module, false)
@@ -117,11 +115,6 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet) :
    * generated code, since those were `@Bindable` fields were generated FROM variable names.
    */
   private fun collectVariableNamesFromUserBindables(): Set<String>? {
-    // TODO(b/134532947): The code to search for @Bindable annotations is causing a deadlock, and
-    //  this feature isn't used too commonly, so we are disabling it temporarily until we can come
-    //  up with a proper fix. The deadlock can be caused by the searchElements call below.
-    return null
-
     val facade = JavaPsiFacade.getInstance(facet.module.project)
     val mode = ModuleDataBinding.getInstance(facet).dataBindingMode
     val bindableAnnotation = facade.findClass(
@@ -147,7 +140,7 @@ class LightBrClass(psiManager: PsiManager, private val facet: AndroidFacet) :
     return LightBRField(PsiManager.getInstance(project), field, this)
   }
 
-  override fun getQualifiedName(): String? {
+  override fun getQualifiedName(): String {
     return qualifiedName
   }
 

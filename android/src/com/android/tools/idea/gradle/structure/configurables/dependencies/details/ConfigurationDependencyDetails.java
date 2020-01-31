@@ -15,59 +15,57 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.dependencies.details;
 
+import static com.android.tools.idea.gradle.structure.dependencies.QuickSearchComboBoxKt.createQuickSearchComboBox;
+
+import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.model.PsDeclaredDependency;
 import com.android.tools.idea.gradle.structure.model.PsModule;
-import com.intellij.openapi.ui.ComboBox;
+import com.intellij.ui.EditorComboBox;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.JComboBox;
+import javax.swing.JPanel;
 import org.jetbrains.annotations.NotNull;
 
 interface ConfigurationDependencyDetails extends DependencyDetails {
-  JComboBox<String> getConfigurationUI();
+  JPanel getConfigurationUI();
 
-  default JComboBox<String> createConfigurationUI() {
-    JComboBox<String> ui = new ComboBox<>();
-    ui.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        modifyConfiguration();
-      }
-    });
-    return ui;
-  }
+  PsContext getContext();
 
   default void displayConfiguration(@NotNull PsDeclaredDependency dependency, @NotNull PsModule.ImportantFor importantFor) {
     if (dependency != getModel()) {
-      if (getModel() != null) {
-        modifyConfiguration();
+      JPanel panel = getConfigurationUI();
+      for (Component c : panel.getComponents()) {
+        panel.remove(c);
       }
-      JComboBox<String> ui = getConfigurationUI();
-      ActionListener[] listeners = ui.getActionListeners();
-      try {
-        for (ActionListener l : listeners) {
-          ui.removeActionListener(l);
+
+      final EditorComboBox ui = createQuickSearchComboBox(
+        getContext().getProject().getIdeProject(),
+        dependency.getParent().getConfigurations(null),
+        dependency.getParent().getConfigurations(importantFor)
+      );
+      ui.setName("configuration");
+      ui.setSelectedItem(dependency.getConfigurationName());
+      panel.add(ui);
+      ui.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          modifyConfiguration();
         }
-        ui.removeAllItems();
-        String configuration = dependency.getJoinedConfigurationNames();
-        for (String c : dependency.getParent().getConfigurations(importantFor)) {
-          ui.addItem(c);
-        }
-        ui.setSelectedItem(configuration);
-      } finally {
-        for (ActionListener l : listeners) {
-          ui.addActionListener(l);
-        }
-      }
+      });
     }
   }
 
   default void modifyConfiguration() {
-    PsDeclaredDependency dependency = (PsDeclaredDependency) getModel();
-    String configuration = (String) getConfigurationUI().getEditor().getItem();
-    if (dependency != null && configuration != null) {
-        PsModule module = dependency.getParent();
-        module.modifyDependencyConfiguration(dependency, configuration);
+    PsDeclaredDependency dependency = (PsDeclaredDependency)getModel();
+    EditorComboBox ui = (EditorComboBox)getConfigurationUI().getComponent(0);
+    String configuration = ui.getText();
+    if (dependency != null &&
+        configuration != null &&
+        !configuration.equals(dependency.getConfigurationName())) {
+      PsModule module = dependency.getParent();
+      assert module.getDependencies().getItems().contains(dependency);
+      module.modifyDependencyConfiguration(dependency, configuration);
     }
   }
 }

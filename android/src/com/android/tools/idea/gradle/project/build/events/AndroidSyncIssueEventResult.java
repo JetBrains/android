@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.build.events;
 
+import static com.android.tools.idea.gradle.project.build.events.AndroidSyncIssueEvent.convertCategory;
+
 import com.intellij.build.events.Failure;
 import com.intellij.build.events.FailureResult;
-import com.intellij.build.events.MessageEvent;
+import com.intellij.build.events.MessageEvent.Kind;
 import com.intellij.build.events.MessageEventResult;
 import com.intellij.openapi.externalSystem.service.notification.NotificationData;
+import java.util.Collections;
+import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -30,12 +35,14 @@ import static com.android.tools.idea.gradle.project.build.events.AndroidSyncIssu
 public class AndroidSyncIssueEventResult implements MessageEventResult, FailureResult {
 
   @NotNull private final List<Failure> myFailures;
-  @NotNull private final MessageEvent.Kind myKind;
+  @NotNull private final Kind myKind;
   @NotNull private final String myDetails;
 
   public AndroidSyncIssueEventResult(@NotNull NotificationData notificationData) {
-    myFailures = Collections.singletonList(AndroidSyncFailure.create(notificationData));
     myKind = convertCategory(notificationData.getNotificationCategory());
+    myFailures = myKind.equals(Kind.ERROR)
+                 ? Collections.singletonList(AndroidSyncFailure.create(notificationData))
+                 : Collections.emptyList();
     myDetails = notificationData.getMessage();
   }
 
@@ -47,7 +54,7 @@ public class AndroidSyncIssueEventResult implements MessageEventResult, FailureR
 
   @NotNull
   @Override
-  public MessageEvent.Kind getKind() {
+  public Kind getKind() {
     return myKind;
   }
 

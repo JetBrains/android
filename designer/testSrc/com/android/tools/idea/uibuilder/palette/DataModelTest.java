@@ -46,6 +46,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.testFramework.PlatformTestUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -132,6 +133,8 @@ public class DataModelTest extends AndroidTestCase {
     finally {
       categoryListModel.removeListDataListener(listener);
     }
+
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
   }
 
   public void testEmptyModelHoldsUsableListModels() {
@@ -317,6 +320,8 @@ public class DataModelTest extends AndroidTestCase {
 
   @NotNull
   private static List<String> getElementsAsStrings(@NotNull ListModel<?> model) {
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
+
     List<String> elements = new ArrayList<>();
     for (int index = 0; index < model.getSize(); index++) {
       elements.add(model.getElementAt(index).toString());
@@ -326,6 +331,8 @@ public class DataModelTest extends AndroidTestCase {
 
   @NotNull
   private static List<String> getElementsAsTagNames(@NotNull ListModel<Palette.Item> model) {
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
+
     List<String> elements = new ArrayList<>();
     for (int index = 0; index < model.getSize(); index++) {
       elements.add(model.getElementAt(index).getTagName());
@@ -335,6 +342,8 @@ public class DataModelTest extends AndroidTestCase {
 
   @NotNull
   private List<Integer> getMatchCounts() {
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
+
     List<Integer> matchCounts = new ArrayList<>();
     for (int index = 0; index < myCategoryListModel.getSize(); index++) {
       matchCounts.add(myCategoryListModel.getMatchCountAt(index));

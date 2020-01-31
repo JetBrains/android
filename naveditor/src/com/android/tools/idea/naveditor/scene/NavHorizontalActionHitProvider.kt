@@ -22,10 +22,15 @@ import com.android.tools.idea.common.scene.DefaultHitProvider
 import com.android.tools.idea.common.scene.SceneComponent
 import com.android.tools.idea.common.scene.SceneContext
 import com.android.tools.idea.common.scene.ScenePicker
+import com.android.tools.idea.naveditor.model.popUpTo
 
 class NavHorizontalActionHitProvider : DefaultHitProvider() {
   override fun addHit(component: SceneComponent, sceneTransform: SceneContext, picker: ScenePicker) {
     super.addHit(component, sceneTransform, picker)
+
+    if (component.nlComponent.popUpTo == null) {
+      return
+    }
 
     @AndroidDpCoordinate val componentRect = component.fillDrawRect2D(0, null)
     @SwingCoordinate val swingRect = Coordinates.getSwingRectDip(sceneTransform, componentRect)

@@ -38,6 +38,7 @@ class PsModuleCollectionTest : DependencyTestCase() {
   private var patchProject: ((VirtualFile) -> Unit)? = null
 
   override fun patchPreparedProject(projectRoot: File) {
+    defaultPatchPreparedProject(projectRoot)
     synchronizeTempDirVfs(project.baseDir)
     patchProject?.run {
       ApplicationManager.getApplication().runWriteAction {
@@ -140,6 +141,28 @@ class PsModuleCollectionTest : DependencyTestCase() {
     val javModule = project.findModuleByGradlePath(":jav") as? PsJavaModule
     assertThat(javModule?.dependencies?.findLibraryDependencies("junit", "junit")?.firstOrNull()?.version).isEqualTo("4.12".asParsed())
   }
+  
+  fun testEmptyParentsInNestedModules() {
+    loadProject(TestProjectPaths.PSD_SAMPLE)
+
+    val resolvedProject = myFixture.project
+    val project = PsProjectImpl(resolvedProject)
+
+    assertThat(project.modules.map { it.gradlePath }).containsExactly(
+      ":app",
+      ":lib",
+      ":jav",
+      ":nested1",
+      ":nested2",
+      ":nested1:deep",
+      ":nested2:deep",
+      ":nested2:trans",
+      ":nested2:trans:deep2",
+      ":dyn_feature")
+
+    assertThat(project.findModuleByGradlePath(":nested2:trans")?.moduleKind).isEqualTo(ModuleKind.EMPTY)
+  }
+
 }
 
 private fun moduleWithSyncedModel(project: PsProject, name: String): PsModule = project.findModuleByName(name) as PsModule

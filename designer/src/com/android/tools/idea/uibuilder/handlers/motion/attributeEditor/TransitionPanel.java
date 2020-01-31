@@ -41,7 +41,7 @@ import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
  * Used for the Main Transition tag
  */
 public class TransitionPanel extends TagPanel {
-  private Vector<String> colNames = new Vector<>(Arrays.asList("Name", "Value"));
+  private Vector<String> colNames = new Vector<String>(Arrays.asList("Name", "Value"));
   private Vector<Vector<Object>> data = new Vector<>();
   private DefaultTableModel myTableModel = new TransitionTableModel(data, colNames);
   private MotionSceneModel.TransitionTag myTag;

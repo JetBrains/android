@@ -14,10 +14,6 @@
  * limitations under the License.
  */
 
-// Modify databinding expression grammar to allow calls to unqualified methods. See b/37137454.
-// See https://github.com/JetBrains/Grammar-Kit/blob/master/HOWTO.md#24-compact-expression-parsing-with-priorities
-// and https://github.com/JetBrains/Grammar-Kit/blob/master/testData/generator/ExprParser.bnf
-
 {
   parserClass="com.android.tools.idea.lang.databinding.parser.DbParser"
   extends="com.android.tools.idea.lang.databinding.psi.DataBindingPsiElement"
@@ -122,7 +118,7 @@ expr
   |   signChangeExpr
   |   castExpr
   |   callExpr
-  |   bracketExpr          //  array op - []
+  |   arrayExpr            //  array op - []
   |   qualRefExpr          //  field access
   |   simpleRefExpr
   |   functionRefExpr      //  method reference using '::'
@@ -132,6 +128,34 @@ expr
   |   literalExpr
   |   parenExpr           //  (grouping)
 
+// Understanding 'fake refExpr', 'simpleRefExpr', and 'qualRefExpr'
+//
+// It's essentially a trick that improves parsing behavior which is otherwise encapsulated away
+// from the developer (as it only generates a single PsiDbRefExpr class that handles everything).
+//
+// Imagine you are parsing both "identifier" and "qualified.prefix.identifier". As a developer,
+// these two cases are the same kind of expression - an identifier with and without a qualifier.
+// Therefore, there should only be one PSI type to represent both of them.
+//
+// However, when parsing, it is useful to have a base case where parsing knows it can stop,
+// which in this case is simpleRefExpr.
+//
+// expr   = "a.b.c" -> qualRef,   with id = 'c', expr'  = "a.b"
+// expr'  = "a.b"   -> qualRef,   with id = 'b', expr'' = "a"
+// expr'' = "a"     -> simpleRef, with id = 'a' // Stop parsing here
+//
+// So, for the parser, its useful to distinguish these two types; while, for the developer, we want
+// to collapse the whole "a.b.c" expression into a single PSI element. This is accomplished with a
+// fake rule (which is used to generate the PSI element) and two parsing rules with extends and
+// elementType tags to force them to be represented by the same PSI element.
+//
+// As a developer, if you have a PsiDbRefExpr and want to know if it represents a qualified or
+// unqualified identifier, just call PsiDbRefExpr#getExpr() and see if it returns null.
+//
+// See also:
+// b/37137454: Modify databinding expression grammar to allow calls to unqualified methods
+// https://github.com/JetBrains/Grammar-Kit/blob/master/HOWTO.md#24-compact-expression-parsing-with-priorities
+// https://github.com/JetBrains/Grammar-Kit/blob/master/testData/generator/ExprParser.bnf
 fake refExpr ::= expr? '.' id
 simpleRefExpr ::= id {extends=refExpr elementType=refExpr}
 qualRefExpr ::= expr '.' id {extends=refExpr elementType=refExpr}
@@ -152,7 +176,7 @@ negationExpr ::= negationOp expr
 signChangeExpr ::= signOp expr
 castExpr ::= '(' type ')' expr
 callExpr ::= refExpr '(' expressionList? ')'
-bracketExpr ::= expr '[' expr ']'
+arrayExpr ::= expr bracketArgument
 functionRefExpr ::= expr '::' id
 resourcesExpr ::= RESOURCE_REFERENCE resourceParameters?
 classExtractionExpr ::= type '.' 'class'
@@ -169,6 +193,7 @@ private mulOp ::= '*' | '/' | '%'
 private negationOp ::= '~' | '!'
 
 expressionList ::= expr (',' expr)*
+bracketArgument ::= '[' expr ']'
 
 private literal
   ::= INTEGER_LITERAL
@@ -216,6 +241,13 @@ lambdaExpression
 
 lambdaParameters
   ::= '(' inferredFormalParameterList? ')'
-  |   IDENTIFIER
+  |   inferredFormalSingleParameterList
 
-inferredFormalParameterList ::= IDENTIFIER (',' IDENTIFIER)*
+inferredFormalParameterList ::= inferredFormalParameter (',' inferredFormalParameter)*
+
+// Although inferredFormatParameterList and inferredFormatSingleParameterList are different for the parser, they are
+// fundamentally the same concept (e.g. "(value) -> ..." is equivalent to "value -> ..."), so we make sure we generate
+// PSI that allows us to treat these as the same case.
+inferredFormalSingleParameterList ::= inferredFormalParameter {extends=inferredFormalParameterList elementType=inferredFormalParameterList}
+
+inferredFormalParameter ::= IDENTIFIER

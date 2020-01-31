@@ -23,7 +23,6 @@ import com.android.ide.common.resources.ResourceResolver;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;
 
@@ -71,36 +70,6 @@ public class ResolutionUtilsTest extends AndroidTestCase {
     assertEquals("Theme", ResolutionUtils.getNameFromQualifiedName("app:Theme"));
     assertEquals("Theme", ResolutionUtils.getNameFromQualifiedName("android:Theme"));
     assertEquals("AppTheme", ResolutionUtils.getNameFromQualifiedName("AppTheme"));
-  }
-
-  public void testFrameworkStyleRead() {
-    VirtualFile myLayout = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout1.xml");
-    Configuration configuration = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(myLayout);
-
-    assertNotNull(ResolutionUtils.getThemeEditorStyle(configuration, "android:TextAppearance", null));
-
-    ConfiguredThemeEditorStyle style = ResolutionUtils.getThemeEditorStyle(configuration, "android:Theme.Holo.Light", null);
-    assertEquals("Theme.Holo.Light", style.getName());
-
-    try {
-      style.setValue("newAttribute", "test");
-      fail("Project styles shouldn't be modifiable");
-    }
-    catch (UnsupportedOperationException ignored) {
-    }
-
-    try {
-      // We try to set a parent, this should fail because the style is read-only.
-      // We use Theme as it's the only parent available on the test SDK.
-      style.setParent("Theme");
-      fail("Project styles shouldn't be modifiable");
-    }
-    catch (UnsupportedOperationException ignored) {
-    }
-
-    style = style.getParent();
-    assertEquals("Theme.Light", style.getName());
-    assertNotEmpty(style.getConfiguredValues());
   }
 
   public void testGetOriginalApiLevel() {

@@ -27,7 +27,6 @@ import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.UnifiedEventDataSeries;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 
 public class MemoryUsage extends LineChartModel {
@@ -47,7 +46,6 @@ public class MemoryUsage extends LineChartModel {
       myTotalMemorySeries =
         createLegacyRangedSeries(profilers, getTotalSeriesLabel(), myMemoryRange, sample -> (long)sample.getMemoryUsage().getTotalMem());
     }
-
     add(myTotalMemorySeries);
   }
 
@@ -57,22 +55,22 @@ public class MemoryUsage extends LineChartModel {
                                                             @NotNull Function<MemorySample, Long> getter) {
     MemoryServiceGrpc.MemoryServiceBlockingStub client = profilers.getClient().getMemoryClient();
     MemoryDataSeries series = new MemoryDataSeries(client, profilers.getSession(), getter);
-    return new RangedContinuousSeries(name, profilers.getTimeline().getViewRange(), range, series);
+    return new RangedContinuousSeries(name, profilers.getTimeline().getViewRange(), range, series, profilers.getTimeline().getDataRange());
   }
 
   protected RangedContinuousSeries createRangedSeries(@NotNull StudioProfilers profilers,
                                                       @NotNull String name,
                                                       @NotNull Range range,
                                                       int groupId,
-                                                      Function<List<Common.Event>, Stream<SeriesData<Long>>> dataExtractor) {
+                                                      Function<List<Common.Event>, List<SeriesData<Long>>> dataExtractor) {
     TransportServiceGrpc.TransportServiceBlockingStub client = profilers.getClient().getTransportClient();
-    UnifiedEventDataSeries series = new UnifiedEventDataSeries(client,
-                                                               profilers.getSession().getStreamId(),
-                                                               profilers.getSession().getPid(),
-                                                               Common.Event.Kind.MEMORY_USAGE,
-                                                               groupId,
-                                                               dataExtractor);
-    return new RangedContinuousSeries(name, profilers.getTimeline().getViewRange(), range, series);
+    UnifiedEventDataSeries<Long> series = new UnifiedEventDataSeries<>(client,
+                                                                       profilers.getSession().getStreamId(),
+                                                                       profilers.getSession().getPid(),
+                                                                       Common.Event.Kind.MEMORY_USAGE,
+                                                                       groupId,
+                                                                       dataExtractor);
+    return new RangedContinuousSeries(name, profilers.getTimeline().getViewRange(), range, series, profilers.getTimeline().getDataRange());
   }
 
   @NotNull

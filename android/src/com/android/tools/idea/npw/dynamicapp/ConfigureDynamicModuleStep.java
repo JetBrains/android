@@ -19,7 +19,7 @@ import static com.android.builder.model.AndroidProject.PROJECT_TYPE_APP;
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.android.tools.idea.gradle.util.DynamicAppUtils.baseIsInstantEnabled;
-import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
+import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static java.lang.String.format;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
@@ -28,12 +28,10 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
-import com.android.tools.idea.npw.project.DomainToPackageExpression;
 import com.android.tools.idea.npw.project.FormFactorSdkControls;
 import com.android.tools.idea.npw.template.TemplateHandle;
 import com.android.tools.idea.npw.ui.ActivityGallery;
@@ -46,7 +44,6 @@ import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.OptionalProperty;
 import com.android.tools.idea.observable.core.StringProperty;
-import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
@@ -61,7 +58,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ComboBox;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.SimpleListCellRenderer;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
@@ -73,7 +70,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
@@ -81,7 +77,7 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * This class configures the Dynamic Feature Module specific data such as the "Base Application Module", "Module Name", "Package Name" and
- * "Minimum API Level"
+ * "Minimum SDK".
  */
 public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatureModel> {
   private final ValidatorPanel myValidatorPanel;
@@ -100,32 +96,33 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
   private JBLabel myInstantInfoIcon;
   private JTextField myModuleTitle;
   private JLabel myModuleTitleLabel;
+  private JLabel myModuleNameLabel;
   private FormFactorSdkControls myFormFactorSdkControls;
 
   public ConfigureDynamicModuleStep(@NotNull DynamicFeatureModel model, @NotNull String basePackage, boolean isInstant) {
     super(model, message("android.wizard.module.config.title"));
 
     TextProperty packageNameText = new TextProperty(myPackageName);
-    Expression<String> computedPackageName = new Expression<String>(model.moduleName()) {
+    Expression<String> computedPackageName = new Expression<String>(model.moduleName) {
       @NotNull
       @Override
       public String get() {
-        return format("%s.%s", basePackage, toPackagePart(model.moduleName().get()));
+        return format("%s.%s", basePackage, nameToJavaPackage(model.moduleName.get()));
       }
     };
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
-    myBindings.bind(model.packageName(), packageNameText);
+    myBindings.bind(model.packageName, packageNameText);
 
     myInstantInfoIcon.setIcon(AllIcons.General.BalloonInformation);
     if (isInstant) {
       SelectedProperty isFusingSelected = new SelectedProperty(myFusingCheckbox);
-      myBindings.bind(model.featureFusing(), isFusingSelected);
+      myBindings.bind(model.featureFusing, isFusingSelected);
       BoolProperty isOnDemand = new BoolValueProperty(false);
-      myBindings.bind(model.featureOnDemand(), isOnDemand);
+      myBindings.bind(model.featureOnDemand, isOnDemand);
       BoolProperty isInstantModule = new BoolValueProperty(true);
-      myBindings.bind(model.instantModule(), isInstantModule);
-      myBindings.bindTwoWay(new TextProperty(myModuleTitle), getModel().featureTitle());
+      myBindings.bind(model.instantModule, isInstantModule);
+      myBindings.bindTwoWay(new TextProperty(myModuleTitle), getModel().featureTitle);
     }
     else {
       myFusingCheckbox.setVisible(false);
@@ -151,32 +148,27 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
   @NotNull
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
-    if (StudioFlags.NPW_DYNAMIC_APPS_CONDITIONAL_DELIVERY.get()) {
-      return Collections.singletonList(new ConfigureModuleDownloadOptionsStep(getModel()));
-    } else {
-      return Collections.singletonList(new ConfigureDynamicDeliveryStep(getModel()));
-    }
+    return Collections.singletonList(new ConfigureModuleDownloadOptionsStep(getModel()));
   }
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    StringProperty modelName = getModel().moduleName();
+    StringProperty modelName = getModel().moduleName;
     Project project = getModel().getProject();
 
     myBindings.bindTwoWay(new TextProperty(myModuleName), modelName);
 
-    StringProperty companyDomain = new StringValueProperty(NewProjectModel.getInitialDomain(false));
-    String basePackage = new DomainToPackageExpression(companyDomain, new StringValueProperty("")).get();
+    String basePackage = NewProjectModel.getSuggestedProjectPackage();
 
     Expression<String> computedPackageName = modelName
-      .transform(appName -> format("%s.%s", basePackage, toPackagePart(appName)));
+      .transform(appName -> format("%s.%s", basePackage, nameToJavaPackage(appName)));
     TextProperty packageNameText = new TextProperty(myPackageName);
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
-    myBindings.bind(getModel().packageName(), packageNameText);
+    myBindings.bind(getModel().packageName, packageNameText);
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
     myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
-    OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo = getModel().androidSdkInfo();
+    OptionalProperty<AndroidVersionsInfo.VersionItem> androidSdkInfo = getModel().androidSdkInfo;
     myFormFactorSdkControls.init(androidSdkInfo, this);
 
     AndroidProjectInfo.getInstance(project).getAllModulesOfProjectType(PROJECT_TYPE_APP)
@@ -184,13 +176,13 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
                       .filter(module -> AndroidModuleModel.get(module) != null)
                       .forEach(module -> myBaseApplication.addItem(module));
 
-    OptionalProperty<Module> baseApplication = getModel().baseApplication();
+    OptionalProperty<Module> baseApplication = getModel().baseApplication;
     myBindings.bind(baseApplication, new SelectedItemProperty<>(myBaseApplication));
 
     myValidatorPanel.registerValidator(modelName, value ->
       value.isEmpty() ? new Validator.Result(ERROR, message("android.wizard.validate.empty.module.name")) : OK);
 
-    myValidatorPanel.registerValidator(getModel().packageName(),
+    myValidatorPanel.registerValidator(getModel().packageName,
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
     myValidatorPanel.registerValidator(androidSdkInfo, value ->
@@ -259,6 +251,7 @@ public class ConfigureDynamicModuleStep extends SkippableWizardStep<DynamicFeatu
       }
     }));
 
+    myModuleNameLabel = ContextHelpLabel.create(message("android.wizard.module.help.name"));
     myFormFactorSdkControls = new FormFactorSdkControls();
     myFormFactorSdkControls.showStatsPanel(false);
     myFormFactorSdkControlsPanel = myFormFactorSdkControls.getRoot();

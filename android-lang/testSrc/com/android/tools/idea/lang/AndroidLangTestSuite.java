@@ -19,7 +19,6 @@ import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import org.junit.runner.RunWith;
 
-@SuppressWarnings("NewClassNamingConvention")
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(AndroidLangTestSuite.class)  // a suite mustn't contain itself
 public class AndroidLangTestSuite extends IdeaTestSuiteBase {

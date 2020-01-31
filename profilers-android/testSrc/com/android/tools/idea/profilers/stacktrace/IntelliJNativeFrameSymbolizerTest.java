@@ -20,7 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.nativeSymbolizer.NativeSymbolizer;
 import com.android.tools.nativeSymbolizer.Symbol;
-import com.android.tools.profiler.proto.MemoryProfiler.NativeCallStack;
+import com.android.tools.profiler.proto.Memory.NativeCallStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;

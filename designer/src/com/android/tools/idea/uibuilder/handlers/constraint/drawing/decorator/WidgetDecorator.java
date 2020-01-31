@@ -16,13 +16,16 @@
 
 package com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator;
 
+import com.android.tools.idea.common.scene.draw.ColorSet;
+import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ViewTransform;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintWidget;
 import com.android.tools.idea.uibuilder.handlers.constraint.model.ConstraintWidgetContainer;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ColorSet;
-import com.android.tools.idea.uibuilder.handlers.constraint.drawing.ViewTransform;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.LinearGradientPaint;
+import java.awt.MultipleGradientPaint;
+import javax.swing.Timer;
 
 /**
  * Base class for painting a widget in blueprint mode

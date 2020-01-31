@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_NEW;
+import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_PROJECT_REOPEN;
+
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
@@ -33,14 +36,14 @@ public class AndroidGradleProjectStartupActivity implements StartupActivity {
   public void runActivity(@NotNull Project project) {
     GradleProjectInfo gradleProjectInfo = GradleProjectInfo.getInstance(project);
     if ((
-          // We only request sync if we know this is an Android project.
+      // We only request sync if we know this is an Android project.
 
-          // Opening an IDEA project with Android modules (AS and IDEA - i.e. previously synced).
-          !gradleProjectInfo.getAndroidModules().isEmpty()
-          // Opening a Gradle project with .idea but no .iml files or facets (Typical for AS but not in IDEA)
-          || IdeInfo.getInstance().isAndroidStudio() && gradleProjectInfo.isBuildWithGradle()
-          // Opening a project without .idea directory (including a newly created).
-          || gradleProjectInfo.isImportedProject()
+      // Opening an IDEA project with Android modules (AS and IDEA - i.e. previously synced).
+      !gradleProjectInfo.getAndroidModules().isEmpty()
+      // Opening a Gradle project with .idea but no .iml files or facets (Typical for AS but not in IDEA)
+      || IdeInfo.getInstance().isAndroidStudio() && gradleProjectInfo.isBuildWithGradle()
+      // Opening a project without .idea directory (including a newly created).
+      || gradleProjectInfo.isImportedProject()
         ) &&
         !gradleProjectInfo.isSkipStartupActivity()
     ) {

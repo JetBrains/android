@@ -15,7 +15,7 @@
  */
 package com.android.tools.profilers.memory.adapters;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.adtui.model.filter.Filter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -121,6 +121,7 @@ public abstract class ClassifierSet implements MemoryObject {
   public int getFilterMatchCount() {
     return myFilterMatchCount;
   }
+
   /**
    * Add an instance to the baseline snapshot and update the accounting of the "total" values.
    * Note that instances at the baseline must be an allocation event.
@@ -278,6 +279,7 @@ public abstract class ClassifierSet implements MemoryObject {
     myDeltaAllocations = 0;
     myDeltaDeallocations = 0;
     myTotalShallowSize = 0;
+    myTotalNativeSize = 0;
     myTotalRetainedSize = 0;
     myInstancesWithStackInfoCount = 0;
     myObjectSetCount = 0;
@@ -476,7 +478,7 @@ public abstract class ClassifierSet implements MemoryObject {
   /**
    * The base index for holding child {@link ClassifierSet}s.
    */
-  @VisibleForTesting(visibility = VisibleForTesting.Visibility.PROTECTED)
+  @VisibleForTesting
   public static abstract class Classifier {
     public static final Classifier IDENTITY_CLASSIFIER = new Classifier() {
       @Override

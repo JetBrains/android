@@ -15,7 +15,7 @@
  */
 package org.jetbrains.android.exportSignedPackage;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.help.StudioHelpManagerImpl;
 import com.intellij.ui.HyperlinkLabel;
 

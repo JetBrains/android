@@ -47,7 +47,7 @@ public final class LogcatPanel extends JBLoadingPanel {
   private Component createCenterComponent(@NotNull Project project) {
     RunnerLayoutUi ui = RunnerLayoutUi.Factory.getInstance(project).create("Android", "Logcat", "Logcat", project);
 
-    Content content = ui.createContent("Android Logcat", myLogcatView.getContentPanel(), "logcat", ToolWindows.LOGCAT, myLogcatView.getLogConsole().getPreferredFocusableComponent());
+    Content content = ui.createContent("Android Logcat", myLogcatView.getContentPanel(), "logcat", ToolWindows.LOGCAT, null);
     content.setCloseable(false);
     content.setPreferredFocusableComponent(myDevicePanel.getDeviceComboBox());
     content.putUserData(AndroidLogcatView.ANDROID_LOGCAT_VIEW_KEY, myLogcatView);

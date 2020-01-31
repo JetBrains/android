@@ -33,7 +33,7 @@ public class ProjectBuildFileChecksumsTest extends AndroidGradleTestCase {
 
     Project project = myAndroidFacet.getModule().getProject();
     GradleSyncState syncState = GradleSyncState.getInstance(project);
-    long previousSyncTime = syncState.getSummary().getSyncTimestamp();
+    long previousSyncTime = syncState.getLastSyncFinishedTimeStamp();
 
     ProjectBuildFileChecksums data = ProjectBuildFileChecksums.createFrom(project);
     verifyGradleProjectSyncData(data, previousSyncTime);

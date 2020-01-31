@@ -24,6 +24,7 @@ import static com.android.tools.idea.gradle.dsl.parser.build.SubProjectsDslEleme
 import static com.android.tools.idea.gradle.dsl.parser.dependencies.DependenciesDslElement.DEPENDENCIES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.ext.ExtDslElement.EXT_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement.JAVA_BLOCK_NAME;
+import static com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement.PLUGINS_BLOCK_NAME;
 import static com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement.REPOSITORIES_BLOCK_NAME;
 import static com.android.tools.idea.gradle.util.GradleUtil.getGradleBuildFile;
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
@@ -38,6 +39,7 @@ import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.configurations.ConfigurationsModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
+import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
 import com.android.tools.idea.gradle.dsl.api.java.JavaModel;
 import com.android.tools.idea.gradle.dsl.api.repositories.RepositoriesModel;
 import com.android.tools.idea.gradle.dsl.api.values.GradleNotNullValue;
@@ -65,8 +67,8 @@ import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradlePropertiesFile;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleSettingsFile;
 import com.android.tools.idea.gradle.dsl.parser.java.JavaDslElement;
+import com.android.tools.idea.gradle.dsl.parser.plugins.PluginsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.repositories.RepositoriesDslElement;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -87,6 +89,7 @@ import org.jetbrains.annotations.TestOnly;
 
 public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleBuildModel {
   @NonNls private static final String PLUGIN = "plugin";
+  @NonNls private static final String ID = "id";
 
   /**
    * @deprecated Use {@link ProjectBuildModel#get(Project)} instead.
@@ -125,7 +128,7 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   public static GradleBuildModel parseBuildFile(@NotNull VirtualFile file,
                                                 @NotNull Project project,
                                                 @NotNull String moduleName) {
-    return new GradleBuildModelImpl(parseBuildFile(file, project, moduleName, BuildModelContext.create(project), false));
+    return new GradleBuildModelImpl(BuildModelContext.create(project).getOrCreateBuildFile(file, moduleName, false));
   }
 
   @Deprecated
@@ -267,46 +270,80 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
   @Override
   @NotNull
   public List<PluginModel> plugins() {
-    ApplyDslElement applyDslElement = myGradleDslFile.getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
-    if (applyDslElement == null) {
-      return ImmutableList.of();
+    // Look for plugins block first if it exists, and then look for apply block to retrieve plugins.
+    PluginsDslElement pluginsDslElement = myGradleDslFile.getPropertyElement(PLUGINS_BLOCK_NAME, PluginsDslElement.class);
+    ArrayList<PluginModelImpl> plugins = new ArrayList<>();
+    if (pluginsDslElement != null) {
+      plugins.addAll(PluginModelImpl.deduplicatePlugins(PluginModelImpl.create(pluginsDslElement)).values());
     }
 
-    return new ArrayList<>(PluginModelImpl.deduplicatePlugins(PluginModelImpl.create(applyDslElement)).values());
+    ApplyDslElement applyDslElement = myGradleDslFile.getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
+    if (applyDslElement != null) {
+      plugins.addAll(PluginModelImpl.deduplicatePlugins(PluginModelImpl.create(applyDslElement)).values());
+    }
+
+    return new ArrayList<>(PluginModelImpl.deduplicatePlugins(plugins).values());
   }
 
   @NotNull
   @Override
   public PluginModel applyPlugin(@NotNull String plugin) {
+    PluginsDslElement pluginsDslElement = myGradleDslFile.getPropertyElement(PLUGINS_BLOCK_NAME, PluginsDslElement.class);
     ApplyDslElement applyDslElement = myGradleDslFile.getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
-    if (applyDslElement == null) {
-      applyDslElement = new ApplyDslElement(myGradleDslFile);
-      // The apply element should be added at the start.
-      myGradleDslFile.addNewElementAt(0, applyDslElement);
+    // If no plugins declaration exist, create a PluginDslElement to apply plugins
+    if (pluginsDslElement == null && applyDslElement == null) {
+      pluginsDslElement = new PluginsDslElement(myGradleDslFile);
+      myGradleDslFile.addNewElementAt(0, pluginsDslElement);
+    }
+    else if (pluginsDslElement == null) {
+      Map<String, PluginModelImpl> models = PluginModelImpl.deduplicatePlugins(PluginModelImpl.create(applyDslElement));
+      if (models.containsKey(plugin)) {
+        return models.get(plugin);
+      }
+
+      GradleDslExpressionMap applyMap = new GradleDslExpressionMap(myGradleDslFile, GradleNameElement.create(APPLY_BLOCK_NAME));
+      GradleDslLiteral literal = new GradleDslLiteral(applyMap, GradleNameElement.create(PLUGIN));
+      literal.setValue(plugin.trim());
+      applyMap.setNewElement(literal);
+      applyDslElement.setNewElement(applyMap);
+
+      return new PluginModelImpl(applyMap, literal);
     }
 
-    Map<String, PluginModel> models = PluginModelImpl.deduplicatePlugins(PluginModelImpl.create(applyDslElement));
+    Map<String, PluginModelImpl> models = PluginModelImpl.deduplicatePlugins(PluginModelImpl.create(pluginsDslElement));
     if (models.containsKey(plugin)) {
       return models.get(plugin);
     }
+    if (applyDslElement != null) {
+      Map<String, PluginModelImpl> applyPluginsModels = PluginModelImpl.deduplicatePlugins(PluginModelImpl.create(applyDslElement));
+      if (applyPluginsModels.containsKey(plugin)) {
+        return applyPluginsModels.get(plugin);
+      }
+    }
 
-    GradleDslExpressionMap applyMap = new GradleDslExpressionMap(myGradleDslFile, GradleNameElement.create(APPLY_BLOCK_NAME));
-    GradleDslLiteral literal = new GradleDslLiteral(applyMap, GradleNameElement.create(PLUGIN));
+    // Create the plugin literal.
+    GradleDslLiteral literal = new GradleDslLiteral(pluginsDslElement, GradleNameElement.create(ID));
+    literal.setElementType(PropertyType.REGULAR);
     literal.setValue(plugin.trim());
-    applyMap.setNewElement(literal);
-    applyDslElement.setNewElement(applyMap);
+    pluginsDslElement.setNewElement(literal);
 
-    return new PluginModelImpl(applyMap, literal);
+    return new PluginModelImpl(literal, literal);
   }
 
   @Override
   public void removePlugin(@NotNull String plugin) {
-    ApplyDslElement applyDslElement = myGradleDslFile.getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
-    if (applyDslElement == null) {
-      return;
+    // First look for plugins{} block (i.e. PluginsDslElement) if it exists, and try to remove the plugin from.
+    PluginsDslElement pluginsDslElement = myGradleDslFile.getPropertyElement(PLUGINS_BLOCK_NAME, PluginsDslElement.class);
+    if (pluginsDslElement != null) {
+      PluginModelImpl.removePlugins(PluginModelImpl.create(pluginsDslElement), plugin);
     }
 
-    PluginModelImpl.removePlugins(PluginModelImpl.create(applyDslElement), plugin);
+    // If ApplyDslElement exists, try to remove the plugin from it as well (We might have plugins defined in both apply and plugins blocks).
+    ApplyDslElement applyDslElement = myGradleDslFile.getPropertyElement(APPLY_BLOCK_NAME, ApplyDslElement.class);
+    if (applyDslElement != null) {
+      PluginModelImpl.removePlugins(PluginModelImpl.create(applyDslElement), plugin);
+    }
+
   }
 
   /**

@@ -68,8 +68,8 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
     val model = model("nav.xml") {
       navigation {
         fragment("f1") {
-          deeplink(uri1)
-          deeplink(uri2)
+          deeplink("deepLink1", uri1)
+          deeplink("deepLink2", uri2)
         }
         fragment("f2")
         activity("a1")
@@ -122,7 +122,7 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
     val model = model("nav.xml") {
       navigation {
         fragment("f1") {
-          deeplink("http://example.com")
+          deeplink("deepLink1", "http://example.com")
         }
       }
     }
@@ -180,7 +180,7 @@ class NavDeeplinksInspectorProviderTest : NavTestCase() {
       navigation {
         fragment("f1") {
           fragment = this
-          deeplink("a")
+          deeplink("deepLink", "a")
         }
       }
     }

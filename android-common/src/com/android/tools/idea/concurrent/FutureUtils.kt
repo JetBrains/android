@@ -37,6 +37,11 @@ fun <I, O> ListenableFuture<I>.transform(executor: Executor = directExecutor(), 
 }
 
 /**
+ * Transforms a [ListenableFuture] by throwing out the result.
+ */
+fun ListenableFuture<*>.ignoreResult(): ListenableFuture<Void?> = transform { null }
+
+/**
  * Wrapper function to convert Future to ListenableFuture
  */
 fun <I> Future<I>.listenInPoolThread(executor: Executor = directExecutor()): ListenableFuture<I> {

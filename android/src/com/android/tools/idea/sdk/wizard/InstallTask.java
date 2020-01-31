@@ -15,7 +15,8 @@
  */
 package com.android.tools.idea.sdk.wizard;
 
-import com.android.annotations.VisibleForTesting;
+import com.android.repository.impl.installer.AbstractPackageOperation;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.repository.api.*;
 import com.android.repository.api.ProgressIndicator;
 import com.android.repository.io.FileOp;
@@ -30,8 +31,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.*;
+import com.intellij.openapi.progress.impl.ProgressSuspender;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.wm.ex.ProgressIndicatorEx;
+import java.io.File;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,6 +50,7 @@ import java.util.function.Function;
  * {@link Task} that installs SDK packages.
  */
 class InstallTask extends Task.Backgroundable {
+
   private final ProgressIndicator myLogger;
   private Collection<UpdatablePackage> myInstallRequests;
   private Collection<LocalPackage> myUninstallRequests;
@@ -192,7 +197,9 @@ class InstallTask extends Task.Backgroundable {
     // If there's already an installer in progress for this package, reuse it.
     PackageOperation op = myRepoManager.getInProgressInstallOperation(p);
     if (op == null || !(op instanceof Installer)) {
-      op = myInstallerFactory.createInstaller((RemotePackage)p, myRepoManager, new StudioDownloader(), myFileOp);
+      Downloader downloader = new StudioDownloader();
+      downloader.setDownloadIntermediatesLocation(new File(myRepoManager.getLocalPath(), AbstractPackageOperation.DOWNLOAD_INTERMEDIATES_DIR_FN));
+      op = myInstallerFactory.createInstaller((RemotePackage)p, myRepoManager, downloader, myFileOp);
     }
     return op;
   }
@@ -234,7 +241,21 @@ class InstallTask extends Task.Backgroundable {
         double currentProgress = myLogger.getFraction();
         try {
           progressMax += progressIncrement;
-          success = op.prepare(myLogger.createSubProgress(progressMax));
+          // Allow pausing package preparation when installing.
+          // We probably don't want to allow pausing in other cases to minimize the risk of leaving SDK in an inconsistent
+          // state - e.g. it's way easier to pause, forget about it and turn off the machine so the cancellation handlers
+          // won't have a chance to clean up. Pausing the preparation is safe though, as it typically involves downloading
+          // and unzipping in a temp location (and it makes most sense to render downloading pausable
+          // rather than any other install phase anyway).
+          if (op instanceof Installer && taskProgressIndicator instanceof ProgressIndicatorEx) {
+            try (ProgressSuspender suspender = ProgressSuspender.markSuspendable(taskProgressIndicator,
+                                                                               "Installation paused")) {
+              success = op.prepare(myLogger.createSubProgress(progressMax));
+            }
+          }
+          else {
+            success = op.prepare(myLogger.createSubProgress(progressMax));
+          }
           taskProgressIndicator.checkCanceled();
           myLogger.setFraction(progressMax);
         }

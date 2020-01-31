@@ -57,6 +57,7 @@ class DetailsCapturePane extends CapturePane {
     myBinder.bind(CaptureDetails.BottomUp.class, TreeDetailsView.BottomUpDetailsView::new);
     myBinder.bind(CaptureDetails.CallChart.class, ChartDetailsView.CallChartDetailsView::new);
     myBinder.bind(CaptureDetails.FlameChart.class, ChartDetailsView.FlameChartDetailsView::new);
+    myBinder.bind(CaptureDetails.RenderAuditCaptureDetails.class, RenderAuditView::new);
 
     myTabsPanel.addChangeListener(event -> setCaptureDetailToTab());
 

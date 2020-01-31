@@ -34,16 +34,10 @@ import com.android.tools.profiler.proto.CpuProfiler.CpuStartRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStartResponse;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStopRequest;
 import com.android.tools.profiler.proto.CpuProfiler.CpuStopResponse;
-import com.android.tools.profiler.proto.CpuProfiler.EmptyCpuReply;
 import com.android.tools.profiler.proto.CpuProfiler.GetThreadsRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetThreadsResponse;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuProfiler.GetTraceInfoResponse;
-import com.android.tools.profiler.proto.CpuProfiler.GetTraceRequest;
-import com.android.tools.profiler.proto.CpuProfiler.GetTraceResponse;
-import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateRequest;
-import com.android.tools.profiler.proto.CpuProfiler.ProfilingStateResponse;
-import com.android.tools.profiler.proto.CpuProfiler.SaveTraceInfoRequest;
 import com.android.tools.profiler.proto.CpuProfiler.StartupProfilingRequest;
 import com.android.tools.profiler.proto.CpuProfiler.StartupProfilingResponse;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
@@ -137,17 +131,6 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
   }
 
   @Override
-  public void saveTraceInfo(SaveTraceInfoRequest request, StreamObserver<EmptyCpuReply> responseObserver) {
-    myCpuTable.insertTraceInfo(request.getSession(), request.getTraceInfo());
-    if (!request.getPreprocessedTrace().isEmpty()) {
-      myCpuTable.insertTrace(request.getSession(), request.getTraceInfo().getTraceId(), request.getTraceInfo().getTraceType(),
-                             request.getTraceInfo().getTraceMode(), request.getPreprocessedTrace());
-    }
-    responseObserver.onNext(EmptyCpuReply.getDefaultInstance());
-    responseObserver.onCompleted();
-  }
-
-  @Override
   public void startMonitoringApp(CpuStartRequest request, StreamObserver<CpuStartResponse> observer) {
     // Start monitoring request needs to happen before we begin the poller to inform the device that we are going to be requesting
     // data for a specific process id.
@@ -206,34 +189,8 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     CpuProfilingAppStopResponse response = CpuProfilingAppStopResponse.getDefaultInstance();
     if (client != null) {
       response = client.stopProfilingApp(request);
-      // Only add successfully captured traces to the database
-      if (response.getStatus() == CpuProfilingAppStopResponse.Status.SUCCESS) {
-        myCpuTable.insertTrace(
-          request.getSession(), response.getTraceId(), request.getTraceType(), request.getTraceMode(), response.getTrace());
-      }
     }
     observer.onNext(response);
-    observer.onCompleted();
-  }
-
-  @Override
-  public void checkAppProfilingState(ProfilingStateRequest request,
-                                     StreamObserver<ProfilingStateResponse> observer) {
-    ProfilingStateResponse response = myCpuTable.getProfilingStateData(request.getSession());
-    if (response != null) {
-      observer.onNext(response);
-    }
-    else {
-      // When Profiler opens CpuProfilerStage directly (e.g when startup profiling was started),
-      // we're expecting to hit this, because we haven't inserted any data in the DB yet.
-      CpuServiceGrpc.CpuServiceBlockingStub client = myService.getCpuClient(request.getSession().getStreamId());
-      if (client != null) {
-        observer.onNext(client.checkAppProfilingState(request));
-      }
-      else {
-        observer.onNext(ProfilingStateResponse.getDefaultInstance());
-      }
-    }
     observer.onCompleted();
   }
 
@@ -247,24 +204,6 @@ public class CpuService extends CpuServiceGrpc.CpuServiceImplBase implements Ser
     else {
       observer.onNext(StartupProfilingResponse.getDefaultInstance());
     }
-    observer.onCompleted();
-  }
-
-  @Override
-  public void getTrace(GetTraceRequest request, StreamObserver<GetTraceResponse> observer) {
-    CpuTable.TraceData data = myCpuTable.getTraceData(request.getSession(), request.getTraceId());
-    GetTraceResponse.Builder builder = GetTraceResponse.newBuilder();
-    if (data == null) {
-      builder.setStatus(GetTraceResponse.Status.FAILURE);
-    }
-    else {
-      builder.setStatus(GetTraceResponse.Status.SUCCESS)
-        .setData(data.getTraceBytes())
-        .setTraceType(data.getTraceType())
-        .setTraceMode(data.getTraceMode());
-    }
-
-    observer.onNext(builder.build());
     observer.onCompleted();
   }
 

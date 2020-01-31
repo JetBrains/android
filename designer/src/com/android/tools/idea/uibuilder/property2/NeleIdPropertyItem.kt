@@ -33,10 +33,11 @@ class NeleIdPropertyItem(
   model: NelePropertiesModel,
   definition: AttributeDefinition?,
   componentName: String,
-  optionalValue: Any?,
-  components: List<NlComponent>
-) : NelePropertyItem(ANDROID_URI, ATTR_ID, NelePropertyType.ID, definition, componentName, "", model, optionalValue,
-                     listOf(components.first())) {
+  components: List<NlComponent>,
+  optionalValue1: Any? = null,
+  optionalValue2: Any? = null
+) : NelePropertyItem(ANDROID_URI, ATTR_ID, NelePropertyType.ID, definition, componentName, "", model,
+                     listOf(components.first()), optionalValue1, optionalValue2) {
 
   // TODO(b/120919869): The snapshot value in NlComponent may be stale.
   // The snapshot stored in an NlComponent can get stale when something else

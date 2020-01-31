@@ -16,24 +16,21 @@
 package com.android.tools.profilers.cpu
 
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.RangeSelectionComponent
 import com.android.tools.adtui.RangeTooltipComponent
-import com.android.tools.adtui.SelectionComponent
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.chart.linechart.OverlayComponent
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.model.AspectObserver
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.swing.FakeUi
-import com.android.tools.profiler.proto.CpuProfiler
-import com.android.tools.profiler.protobuf3jarjar.ByteString
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
-import com.android.tools.profilers.FakeIdeProfilerComponents
-import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
-import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerMode
 import com.android.tools.profilers.StudioProfilers
@@ -52,6 +49,8 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import org.mockito.Mockito
 import java.awt.Graphics2D
 import java.awt.Point
@@ -63,22 +62,32 @@ import javax.swing.SwingUtilities
 // Path to trace file. Used in test to build AtraceParser.
 private const val TOOLTIP_TRACE_DATA_FILE = "tools/adt/idea/profilers-ui/testData/cputraces/atrace.ctrace"
 
-private const val ART_TRACE_FILE = "tools/adt/idea/profilers-ui/testData/valid_trace.trace"
+@RunWith(Parameterized::class)
+class CpuProfilerStageViewTest(newPipeline: Boolean) {
 
-class CpuProfilerStageViewTest {
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters
+    fun data(): Collection<Boolean> {
+      return listOf(false, true)
+    }
+  }
 
   private val myTimer = FakeTimer()
 
   private val myComponents = FakeIdeProfilerComponents()
 
-  private val myIdeServices = FakeIdeProfilerServices()
+  private val myIdeServices = FakeIdeProfilerServices().apply {
+    enableEventsPipeline(newPipeline)
+  }
 
   private val myCpuService = FakeCpuService()
 
+  private val myTransportService = FakeTransportService(myTimer)
 
   @get:Rule
   val myGrpcChannel = FakeGrpcChannel(
-    "CpuCaptureViewTestChannel", myCpuService, FakeTransportService(myTimer), FakeProfilerService(myTimer),
+    "CpuCaptureViewTestChannel", myCpuService, myTransportService, FakeProfilerService(myTimer),
     FakeMemoryService(), FakeEventService(), FakeNetworkService.newBuilder().build()
   )
 
@@ -137,7 +146,7 @@ class CpuProfilerStageViewTest {
     overlayComponent.setBounds(1, 1, 10, 10)
     overlayMouseUi.mouse.moveTo(0, 0)
     // Grab the selection component and move the mouse to set the mode to !MOVE.
-    val selectionComponent = treeWalker.descendants().filterIsInstance<SelectionComponent>()[0]
+    val selectionComponent = treeWalker.descendants().filterIsInstance<RangeSelectionComponent>()[0]
     FakeUi(selectionComponent).mouse.moveTo(0, 0)
     val mockGraphics = Mockito.mock(Graphics2D::class.java)
     Mockito.`when`(mockGraphics.create()).thenReturn(mockGraphics)
@@ -157,14 +166,17 @@ class CpuProfilerStageViewTest {
 
   @Test
   fun importTraceModeShouldShowSelectedProcessName() {
+    // Generates a capture
+    myStage.profilerConfigModel.profilingConfiguration = FakeIdeProfilerServices.ATRACE_CONFIG
+    CpuProfilerTestUtils.captureSuccessfully(myStage, myCpuService, myTransportService,
+                                             CpuProfilerTestUtils.traceFileToByteString(
+                                               TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
+
     // Enable import trace flag which is required for import-trace-mode.
     myIdeServices.enableImportTrace(true)
     myStage = CpuProfilerStage(myStage.studioProfilers, File("FakePathToTraceFile.trace"))
     myStage.enter()
-    // Set a capture of type atrace.
-    myCpuService.traceType = Cpu.CpuTraceType.ATRACE
-    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
-    myCpuService.setTrace(CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
+
     val cpuStageView = CpuProfilerStageView(myProfilersView, myStage)
     // Selecting the capture automatically selects the first process in the capture.
     myStage.setAndSelectCapture(0)
@@ -191,11 +203,19 @@ class CpuProfilerStageViewTest {
   @Test
   fun recordButtonDisabledInDeadSessions() {
     // Create a valid capture and end the current session afterwards.
-    myCpuService.traceType = Cpu.CpuTraceType.ART
-    myCpuService.setGetTraceResponseStatus(CpuProfiler.GetTraceResponse.Status.SUCCESS)
-    myCpuService.setTrace(ByteString.copyFrom(TestUtils.getWorkspaceFile(ART_TRACE_FILE).readBytes()))
+    myStage.profilerConfigModel.profilingConfiguration = FakeIdeProfilerServices.ATRACE_CONFIG
+    CpuProfilerTestUtils.captureSuccessfully(
+      myStage,
+      myCpuService,
+      myTransportService,
+      CpuProfilerTestUtils.traceFileToByteString(TestUtils.getWorkspaceFile(TOOLTIP_TRACE_DATA_FILE)))
+    val captureId = myStage.capture!!.traceId
     myStage.studioProfilers.sessionsManager.endCurrentSession()
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
 
+    // Re-create the stage so that the capture is not cached
+    myStage = CpuProfilerStage(myStage.studioProfilers)
+    myStage.studioProfilers.stage = myStage
     val stageView = CpuProfilerStageView(myProfilersView, myStage)
     val recordButton = TreeWalker(stageView.toolbar).descendants().filterIsInstance<JButton>().first {
       it.text == CpuProfilerToolbar.RECORD_TEXT
@@ -203,20 +223,11 @@ class CpuProfilerStageViewTest {
     // When creating the stage view, the record button should be disabled as the current session is dead.
     assertThat(recordButton.isEnabled).isFalse()
 
-    var aspectFired = false
-    // Listen to CAPTURE_PARSING aspect to make sure that parsing happens.
-    val observer = AspectObserver()
-    myStage.captureParser.aspect.addDependency(observer).onChange(CpuProfilerAspect.CAPTURE_PARSING) {
-      assertThat(myStage.captureParser.isParsing).isTrue()
-      aspectFired = true
-    }
-
     // Set and select a capture, which will trigger capture parsing.
-    myStage.setAndSelectCapture(FakeCpuService.FAKE_TRACE_ID)
-
-    assertThat(aspectFired).isTrue() // Sanity check to verify we actually fired the CAPTURE_PARSING state.
-    // Parsing should be over when the capture is set.
-    assertThat(myStage.captureParser.isParsing).isFalse()
+    val observer = AspectObserver()
+    val parsingLatch = CpuProfilerTestUtils.waitForParsingStartFinish(myStage, observer)
+    myStage.setAndSelectCapture(captureId)
+    parsingLatch.await()
 
     // Even after parsing the capture, the record button should remain disabled.
     assertThat(recordButton.isEnabled).isFalse()
@@ -306,7 +317,7 @@ class CpuProfilerStageViewTest {
 
     // Moving the cursor over one of the selection handles should hide the tooltip seek bar
     val treeWalker = TreeWalker(stageView.component)
-    val selection = treeWalker.descendants().filterIsInstance<SelectionComponent>().first()
+    val selection = treeWalker.descendants().filterIsInstance<RangeSelectionComponent>().first()
     val selectionPos = ui.getPosition(selection)
 
     val w = selection.width.toDouble()
@@ -317,7 +328,7 @@ class CpuProfilerStageViewTest {
 
     // One pixel to the left of the selection range targets the min handle
     ui.mouse.moveTo(selectionPos.x + selection.width / 2 - 1, selectionPos.y)
-    assertThat(selection.mode).isEqualTo(SelectionComponent.Mode.ADJUST_MIN)
+    assertThat(selection.mode).isEqualTo(RangeSelectionComponent.Mode.ADJUST_MIN)
     assertThat(stageView.shouldShowTooltipSeekComponent()).isFalse()
   }
 

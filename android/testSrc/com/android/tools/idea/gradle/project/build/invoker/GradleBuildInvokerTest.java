@@ -28,7 +28,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.gradle.project.BuildSettings;
-import com.android.tools.idea.gradle.project.build.GradleProjectBuilder;
 import com.android.tools.idea.gradle.util.BuildMode;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.common.collect.ArrayListMultimap;
@@ -37,7 +36,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.xdebugger.XDebugSession;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,7 +49,7 @@ import org.mockito.Mock;
 /**
  * Tests for {@link GradleBuildInvoker}.
  */
-public class GradleBuildInvokerTest extends JavaProjectTestCase {
+public class GradleBuildInvokerTest extends PlatformTestCase {
   @Mock private FileDocumentManager myFileDocumentManager;
   @Mock private GradleTasksExecutor myTasksExecutor;
   @Mock private NativeDebugSessionFinder myDebugSessionFinder;
@@ -69,8 +68,9 @@ public class GradleBuildInvokerTest extends JavaProjectTestCase {
     myTasksExecutorFactory = new GradleTasksExecutorFactoryStub(myTasksExecutor);
     myModules = new Module[]{getModule()};
 
-    myTaskFinder = IdeComponents.mockApplicationService(GradleTaskFinder.class, getTestRootDisposable());
-    myBuildSettings = IdeComponents.mockProjectService(myProject, BuildSettings.class, getTestRootDisposable());
+    IdeComponents ideComponents = new IdeComponents(myProject);
+    myTaskFinder = ideComponents.mockApplicationService(GradleTaskFinder.class);
+    myBuildSettings = ideComponents.mockProjectService(BuildSettings.class);
 
     myBuildInvoker = new GradleBuildInvoker(myProject, myFileDocumentManager, myTasksExecutorFactory, myDebugSessionFinder);
   }
@@ -90,36 +90,13 @@ public class GradleBuildInvokerTest extends JavaProjectTestCase {
     }
   }
 
-  public void testCleanUpWithSourceGenerationEnabled() {
-    // Simulate the case when source generation is enabled.
-    GradleProjectBuilder builderMock = IdeComponents.mockProjectService(getProject(), GradleProjectBuilder.class, getTestRootDisposable());
-    when(builderMock.isSourceGenerationEnabled()).thenReturn(true);
-
-    // Invoke method to test.
-    List<String> tasks = setUpTasksForSourceGeneration();
-    myBuildInvoker.cleanProject();
-    GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
-    List<String> expectedTasks = new ArrayList<>(tasks);
-    expectedTasks.add(0, "clean");
-    // Verify task list includes source generation tasks and clean.
-    assertThat(request.getGradleTasks()).containsExactly(expectedTasks.toArray());
-    assertThat(request.getCommandLineArguments()).containsExactly("-Pandroid.injected.generateSourcesOnly=true");
-
-    verifyInteractionWithMocks(CLEAN);
-  }
-
-  public void testCleanUpWithSourceGenerationDisabled() {
-    // Simulate the case when source generation is disabled.
-    GradleProjectBuilder builderMock = IdeComponents.mockProjectService(getProject(), GradleProjectBuilder.class, getTestRootDisposable());
-    when(builderMock.isSourceGenerationEnabled()).thenReturn(false);
-
+  public void testCleanUp() {
     // Invoke method to test.
     myBuildInvoker.cleanProject();
     GradleBuildInvoker.Request request = myTasksExecutorFactory.getRequest();
-    // Verify source generation tasks are not run.
+    // Verify task list includes clean.
     assertThat(request.getGradleTasks()).containsExactly("clean");
     assertThat(request.getCommandLineArguments()).isEmpty();
-
     verifyInteractionWithMocks(CLEAN);
   }
 

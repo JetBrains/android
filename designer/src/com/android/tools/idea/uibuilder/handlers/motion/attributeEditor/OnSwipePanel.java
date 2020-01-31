@@ -42,7 +42,7 @@ import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
  * Used for OnSwipeControls
  */
 public class OnSwipePanel extends TagPanel {
-  private Vector<String> colNames = new Vector<>(Arrays.asList("Name", "Value"));
+  private Vector<String> colNames = new Vector<String>(Arrays.asList("Name", "Value"));
   private Vector<Vector<Object>> data = new Vector<>();
   private DefaultTableModel myTableModel = new OnSwipeTableModel(data, colNames);
   MotionSceneModel.OnSwipeTag myOnSwipeTag;

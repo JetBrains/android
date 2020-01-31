@@ -24,10 +24,10 @@ import com.google.common.collect.Multimap;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.DumbServiceImpl;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
@@ -37,7 +37,6 @@ import com.intellij.testFramework.PsiTestUtil;
 import com.intellij.util.indexing.UnindexedFilesUpdater;
 import com.intellij.util.io.ZipUtil;
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
@@ -46,6 +45,7 @@ import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.annotations.NotNull;
+import org.mockito.Mockito;
 
 /**
  * Tests for {@link NavigationSchema}.
@@ -201,7 +201,7 @@ public class NavigationSchemaTest extends AndroidTestCase {
     WriteCommandAction.runWriteCommandAction(
       getProject(), () -> {
         try {
-          psiClass.getContainingFile().getVirtualFile().setBinaryContent(newContent.getBytes(StandardCharsets.UTF_8));
+          psiClass.getContainingFile().getVirtualFile().setBinaryContent(newContent.getBytes());
         }
         catch (Exception e) {
           fail(e.getMessage());
@@ -265,6 +265,14 @@ public class NavigationSchemaTest extends AndroidTestCase {
     dumbService.completeJustSubmittedTasks();
 
     assertFalse(schema.quickValidate());
+  }
+
+  public void testQuickValidateDeleteFileContents() throws Exception {
+    testQuickValidate("import androidx.navigation.*;\n" +
+                      "@Navigator.Name(\"activity_sub\")\n" +
+                      "public class QuickValidateIrrelevantChange extends ActivityNavigator {}\n",
+                      "",
+                      false);
   }
 
   public void testQuickValidateChangeTag() throws Exception {
@@ -530,5 +538,12 @@ public class NavigationSchemaTest extends AndroidTestCase {
     schema.rebuildSchema().get();
     assertTrue(didRun.tryAcquire(5, TimeUnit.SECONDS));
     NavigationSchema.removeSchemaRebuildListener(myModule, checkListener);
+  }
+
+  public void testMissingModule() {
+    Module module = Mockito.mock(Module.class);
+    NavigationSchema schema = NavigationSchema.get(module);
+    NavigationSchema empty = new NavigationSchema(module);
+    assertEquals(schema, empty);
   }
 }

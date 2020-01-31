@@ -22,6 +22,7 @@ import com.google.common.base.Joiner;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.JavaProjectTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.util.SystemProperties;
@@ -33,7 +34,7 @@ import java.io.IOException;
 /**
  * Tests for {@link AndroidImportProjectAction}.
  */
-public class AndroidImportProjectActionTest extends JavaProjectTestCase {
+public class AndroidImportProjectActionTest extends PlatformTestCase {
   private VirtualFile myProjectRootDir;
 
   @Override

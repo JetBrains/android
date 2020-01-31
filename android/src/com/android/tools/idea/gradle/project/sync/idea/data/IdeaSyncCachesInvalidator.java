@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.gradle.project.sync.idea.data;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.importing.ProjectFolder.deleteLibrariesFolder;
+
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
-import com.android.tools.idea.gradle.project.sync.ng.caching.CachedProjectModels;
 import com.intellij.ide.caches.CachesInvalidator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.project.importing.ProjectFolder.deleteLibrariesFolder;
 
 public class IdeaSyncCachesInvalidator extends CachesInvalidator {
   @Override
@@ -31,9 +30,6 @@ public class IdeaSyncCachesInvalidator extends CachesInvalidator {
     for (Project project : openProjects) {
       if (GradleProjectInfo.getInstance(project).isBuildWithGradle()) {
         DataNodeCaches.getInstance(project).clearCaches();
-
-        // Delete New Sync cached models if they exist
-        CachedProjectModels.eraseDiskCache(project);
 
         // Remove contents in .idea/libraries to recover from any invalid library entries.
         deleteLibrariesFolder(getBaseDirPath(project));

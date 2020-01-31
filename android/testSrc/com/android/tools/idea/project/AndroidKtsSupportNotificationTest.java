@@ -27,30 +27,30 @@ import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.tools.idea.project.AndroidKtsSupportNotification.DisableAndroidKtsNotificationHyperlink;
 import com.android.tools.idea.project.hyperlink.NotificationHyperlink;
-import com.intellij.testFramework.ServiceContainerUtil;
+import com.android.tools.idea.testing.IdeComponents;
+import com.intellij.testFramework.PlatformTestCase;
 import java.util.List;
-import org.jetbrains.android.AndroidTestCase;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 /**
  * Tests for {@link AndroidKtsSupportNotification}
  */
-public class AndroidKtsSupportNotificationTest extends AndroidTestCase {
+public class AndroidKtsSupportNotificationTest extends PlatformTestCase {
   @Mock private AndroidNotification myAndroidNotification;
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
     initMocks(this);
-    ServiceContainerUtil.replaceService(getProject(), AndroidNotification.class, myAndroidNotification, getTestRootDisposable());
+    new IdeComponents(myProject).replaceProjectService(AndroidNotification.class, myAndroidNotification);
   }
 
   /**
    * Verify an AndroidNotification is created with the expected parameters
    */
   public void testShowWarningIfNotShown() {
-    AndroidKtsSupportNotification myKtsNotification = new AndroidKtsSupportNotification(getProject());
+    AndroidKtsSupportNotification myKtsNotification = new AndroidKtsSupportNotification(myProject);
     myKtsNotification.showWarningIfNotShown();
     verifyBalloon();
   }
@@ -59,7 +59,7 @@ public class AndroidKtsSupportNotificationTest extends AndroidTestCase {
    * Verify that warning is generated only once even when called multiple times
    */
   public void testShowWarningIfNotShownTwice() {
-    AndroidKtsSupportNotification myKtsNotification = new AndroidKtsSupportNotification(getProject());
+    AndroidKtsSupportNotification myKtsNotification = new AndroidKtsSupportNotification(myProject);
     myKtsNotification.showWarningIfNotShown();
     myKtsNotification.showWarningIfNotShown();
     verifyBalloon();

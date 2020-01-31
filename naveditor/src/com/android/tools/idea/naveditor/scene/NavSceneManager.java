@@ -94,6 +94,7 @@ public class NavSceneManager extends SceneManager {
   private final NavScreenTargetProvider myScreenTargetProvider;
   private final NavigationTargetProvider myNavigationTargetProvider;
   private final NavActionTargetProvider myNavActionTargetProvider;
+  private final HitProvider myNavActionSourceHitProvider = new NavActionSourceHitProvider();
   private final HitProvider myNavDestinationHitProvider = new NavDestinationHitProvider();
   private final HitProvider myHorizontalActionHitProvider = new NavHorizontalActionHitProvider();
 
@@ -103,7 +104,7 @@ public class NavSceneManager extends SceneManager {
   private SceneDecoratorFactory myDecoratorFactory;
 
   public NavSceneManager(@NotNull NlModel model, @NotNull NavDesignSurface surface, @NotNull RenderSettings settings) {
-    super(model, surface, settings);
+    super(model, surface, () -> settings);
     createSceneView();
     myLayoutAlgorithms = ImmutableList.of(
       new NewDestinationLayoutAlgorithm(),
@@ -144,13 +145,9 @@ public class NavSceneManager extends SceneManager {
 
     NlComponent nlComponent = sceneComponent.getNlComponent();
 
-    switch (NavComponentHelperKt.getActionType(nlComponent, getRoot())) {
-      case GLOBAL:
-      case EXIT:
-        sceneComponent.setSize((int)ACTION_WIDTH, (int)ACTION_HEIGHT);
-        return;
-      default:
-        break;
+    if (isHorizontalAction(nlComponent)) {
+      sceneComponent.setSize((int)ACTION_WIDTH, (int)ACTION_HEIGHT);
+      return;
     }
 
     NavigationSchema.DestinationType type = NavComponentHelperKt.getDestinationType(nlComponent);
@@ -214,16 +211,16 @@ public class NavSceneManager extends SceneManager {
     if (getScene().getRoot() != null) {
       rootBounds = getScene().getRoot().fillDrawRect(0, null);
     }
-    super.update();
-    updateRootBounds(rootBounds);
-  }
 
-  @Override
-  protected void postUpdateFromComponent(@NotNull SceneComponent sceneComponent) {
-    NlComponent nlComponent = sceneComponent.getNlComponent();
-    if (NavComponentHelperKt.isNavigation(nlComponent) && nlComponent == getDesignSurface().getCurrentNavigation()) {
-      layoutAll(sceneComponent);
+    super.update();
+
+    SceneComponent root = getScene().getRoot();
+    if (root != null) {
+      root.updateTargets();
+      layoutAll(root);
     }
+
+    updateRootBounds(rootBounds);
   }
 
   private void updateRootBounds(@Nullable @NavCoordinate Rectangle prevRootBounds) {
@@ -253,7 +250,7 @@ public class NavSceneManager extends SceneManager {
     root.setSize(rootBounds.width, rootBounds.height);
     surface.updateScrolledAreaSize();
 
-    SceneView view = surface.getCurrentSceneView();
+    SceneView view = surface.getFocusedSceneView();
     if (view != null) {
       @SwingCoordinate int deltaX = Coordinates.getSwingDimension(view, root.getDrawX() - (prevRootBounds == null ? 0 : prevRootBounds.x));
       @SwingCoordinate int deltaY = Coordinates.getSwingDimension(view, root.getDrawY() - (prevRootBounds == null ? 0 : prevRootBounds.y));
@@ -400,11 +397,6 @@ public class NavSceneManager extends SceneManager {
   public CompletableFuture<Void> requestRender() {
     boolean wasEmpty = getScene().getRoot() == null || getScene().getRoot().getChildCount() == 0;
     update();
-    SceneComponent root = getScene().getRoot();
-    if (root != null) {
-      root.updateTargets();
-      layoutAll(root);
-    }
     if (wasEmpty) {
       getDesignSurface().zoomToFit();
     }
@@ -570,8 +562,14 @@ public class NavSceneManager extends SceneManager {
     }
   }
 
+  private boolean isHorizontalAction(@NotNull NlComponent component) {
+    ActionType actionType = (NavComponentHelperKt.getActionType(component, getRoot()));
+    return actionType == ActionType.GLOBAL || actionType == ActionType.EXIT;
+  }
+
+  @NotNull
   @Override
-  public void layout(boolean animate) {
+  public CompletableFuture<Void> requestLayout(boolean animate) {
     Rectangle bounds = null;
     if (getScene().getRoot() != null) {
       bounds = getScene().getRoot().fillDrawRect(0, null);
@@ -579,6 +577,13 @@ public class NavSceneManager extends SceneManager {
     updateRootBounds(bounds);
     getDesignSurface().updateScrolledAreaSize();
     getScene().needsRebuildList();
+
+    return CompletableFuture.completedFuture(null);
+  }
+
+  @Override
+  public void layout(boolean animate) {
+    requestLayout(animate);
   }
 
   @NotNull
@@ -705,12 +710,13 @@ public class NavSceneManager extends SceneManager {
   @Override
   public HitProvider getHitProvider(@NotNull NlComponent component) {
     if (NavComponentHelperKt.getSupportsActions(component)) {
-      return myNavDestinationHitProvider;
+      return myNavActionSourceHitProvider;
     }
-    else if (NavComponentHelperKt.getPopUpTo(component) != null) {
+    else if (isHorizontalAction(component)) {
       return myHorizontalActionHitProvider;
     }
-    return super.getHitProvider(component);
+
+    return myNavDestinationHitProvider;
   }
 
   public void performUndoablePositionAction(@NotNull NlComponent component) {

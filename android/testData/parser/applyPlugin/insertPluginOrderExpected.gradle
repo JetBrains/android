@@ -1,3 +1,5 @@
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-plugin-extensions'
-apply plugin: 'some-other-plugin'
+plugins {
+  id 'kotlin-android'
+  id 'kotlin-plugin-extensions'
+  id 'some-other-plugin'
+}

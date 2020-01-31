@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.npw.project;
 
+import static com.android.sdklib.AndroidVersion.VersionCodes.Q;
 import static com.android.tools.adtui.validation.Validator.Result.OK;
 import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
-import static com.android.tools.idea.flags.StudioFlags.NELE_USE_ANDROIDX_DEFAULT;
-import static com.android.tools.idea.npw.model.NewProjectModel.toPackagePart;
+import static com.android.tools.adtui.validation.Validator.Severity.WARNING;
+import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
+import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
 import static com.android.tools.idea.ui.wizard.StudioWizardStepPanel.wrappedWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
 import static java.lang.String.format;
@@ -26,15 +28,12 @@ import static org.jetbrains.android.util.AndroidBundle.message;
 
 import com.android.repository.api.RemotePackage;
 import com.android.repository.api.UpdatablePackage;
-import com.android.sdklib.AndroidVersion.VersionCodes;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.npw.FormFactor;
 import com.android.tools.idea.npw.model.NewProjectModel;
 import com.android.tools.idea.npw.model.NewProjectModuleModel;
-import com.android.tools.idea.npw.platform.AndroidVersionsInfo;
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo.VersionItem;
 import com.android.tools.idea.npw.platform.Language;
 import com.android.tools.idea.npw.template.TemplateHandle;
@@ -48,8 +47,6 @@ import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.core.OptionalProperty;
-import com.android.tools.idea.observable.core.StringProperty;
-import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.expressions.Expression;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
@@ -63,7 +60,13 @@ import com.android.tools.idea.ui.wizard.WizardUtils;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
 import com.google.common.collect.Lists;
+import com.intellij.icons.AllIcons;
+import com.intellij.ide.HelpTooltip;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.ui.components.JBCheckBox;
+import com.intellij.ui.components.JBLabel;
+import com.intellij.uiDesigner.core.GridLayoutManager;
+import java.awt.Font;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -71,10 +74,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import org.jetbrains.annotations.NotNull;
@@ -98,22 +99,27 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JTextField myAppName;
   private JTextField myPackageName;
   private JComboBox<Language> myProjectLanguage;
-  private JCheckBox myInstantAppCheck;
-  private JCheckBox myWearCheck;
-  private JCheckBox myTvCheck;
-  private JCheckBox myOfflineRepoCheck;
-  private JLabel myTemplateIconTitle;
-  private JLabel myTemplateIconDetail;
+  private JBCheckBox myAppCompatCheck;
+  private JBCheckBox myWearCheck;
+  private JBCheckBox myTvCheck;
+  private JBLabel myAppCompatHelp;
+  private JBLabel myTemplateIconTitle;
+  private JBLabel myTemplateIconDetail;
   private JPanel myFormFactorSdkControlsPanel;
-  private JCheckBox myUseAndroidxCheck;
   private FormFactorSdkControls myFormFactorSdkControls;
-
 
   public ConfigureAndroidProjectStep(@NotNull NewProjectModuleModel newProjectModuleModel, @NotNull NewProjectModel projectModel) {
     super(newProjectModuleModel, message("android.wizard.project.new.configure"));
 
     myProjectModel = projectModel;
     myValidatorPanel = new ValidatorPanel(this, wrappedWithVScroll(myPanel));
+
+    myAppCompatHelp.setIcon(AllIcons.General.ContextHelp);
+    HelpTooltip helpTooltip = new HelpTooltip()
+      .setDescription(message("android.wizard.project.help.appcompat"));
+    helpTooltip.installOn(myAppCompatCheck);
+    helpTooltip.installOn(myAppCompatHelp);
+
     FormScalingUtil.scaleComponentTree(this.getClass(), myValidatorPanel);
   }
 
@@ -121,7 +127,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   @Override
   protected Collection<? extends ModelWizardStep> createDependentSteps() {
     LicenseAgreementStep licenseAgreementStep =
-      new LicenseAgreementStep(new LicenseAgreementModel(AndroidVersionsInfo.getSdkManagerLocalPath()), myInstallLicenseRequests);
+      new LicenseAgreementStep(new LicenseAgreementModel(getSdkManagerLocalPath()), myInstallLicenseRequests);
 
     InstallSelectedPackagesStep installPackagesStep =
       new InstallSelectedPackagesStep(myInstallRequests, new HashSet<>(), AndroidSdks.getInstance().tryToChooseSdkHandler(), false);
@@ -131,116 +137,82 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
 
   @Override
   protected void onWizardStarting(@NotNull ModelWizard.Facade wizard) {
-    myBindings.bindTwoWay(new TextProperty(myAppName), myProjectModel.applicationName());
+    ((GridLayoutManager)myPanel.getLayout()).setVGap(2);
 
-    // TODO: http://b/76205038 - The new UI no longer ask the user for the company domain. We should stop using it, and save the package
-    // instead. Keep in mind that we need to remove the last segment, that is specific to the application name.
-    StringProperty companyDomain = new StringValueProperty(NewProjectModel.getInitialDomain(false));
-    String basePackage = new DomainToPackageExpression(companyDomain, new StringValueProperty("")).get();
+    myBindings.bindTwoWay(new TextProperty(myAppName), myProjectModel.getApplicationName());
 
-    Expression<String> computedPackageName = myProjectModel.applicationName()
-                                                           .transform(appName -> format("%s.%s", basePackage, toPackagePart(appName)));
+    String basePackage = NewProjectModel.getSuggestedProjectPackage();
+
+    Expression<String> computedPackageName = myProjectModel.getApplicationName()
+                                                           .transform(appName -> format("%s.%s", basePackage, nameToJavaPackage(appName)));
     TextProperty packageNameText = new TextProperty(myPackageName);
     BoolProperty isPackageNameSynced = new BoolValueProperty(true);
-    myBindings.bind(myProjectModel.packageName(), packageNameText);
+    myBindings.bind(myProjectModel.getPackageName(), packageNameText);
+
     myBindings.bind(packageNameText, computedPackageName, isPackageNameSynced);
     myListeners.listen(packageNameText, value -> isPackageNameSynced.set(value.equals(computedPackageName.get())));
 
-    Expression<String> computedLocation = myProjectModel.applicationName().transform(ConfigureAndroidProjectStep::findProjectLocation);
+    Expression<String> computedLocation = myProjectModel.getApplicationName().transform(ConfigureAndroidProjectStep::findProjectLocation);
     TextProperty locationText = new TextProperty(myProjectLocation.getTextField());
     BoolProperty isLocationSynced = new BoolValueProperty(true);
     myBindings.bind(locationText, computedLocation, isLocationSynced);
-    myBindings.bind(myProjectModel.projectLocation(), locationText);
+    myBindings.bind(myProjectModel.getProjectLocation(), locationText);
     myListeners.listen(locationText, value -> isLocationSynced.set(value.equals(computedLocation.get())));
 
     OptionalProperty<VersionItem> androidSdkInfo = getModel().androidSdkInfo();
     myFormFactorSdkControls.init(androidSdkInfo, this);
 
-    if (StudioFlags.UAB_NEW_PROJECT_INSTANT_APP_IS_DYNAMIC_APP.get()) {
-      myBindings.bindTwoWay(getModel().dynamicInstantApp(), new SelectedProperty(myInstantAppCheck));
-    }
-    else {
-      myBindings.bindTwoWay(getModel().instantApp(), new SelectedProperty(myInstantAppCheck));
-    }
-    myBindings.bindTwoWay(new SelectedItemProperty<>(myProjectLanguage), myProjectModel.language());
-    myBindings.bindTwoWay(myProjectModel.useAndroidx(), new SelectedProperty(myUseAndroidxCheck));
+    myBindings.bindTwoWay(new SelectedItemProperty<>(myProjectLanguage), myProjectModel.getLanguage());
+    myBindings.bindTwoWay(myProjectModel.getUseAppCompat(), new SelectedProperty(myAppCompatCheck));
 
+    myValidatorPanel.registerValidator(myProjectModel.getApplicationName(), new ProjectNameValidator());
 
-    myValidatorPanel.registerValidator(myProjectModel.applicationName(), new ProjectNameValidator());
-
-    Expression<File> locationFile = myProjectModel.projectLocation().transform(File::new);
+    Expression<File> locationFile = myProjectModel.getProjectLocation().transform(File::new);
     myValidatorPanel.registerValidator(locationFile, PathValidator.createDefault("project location"));
 
-    myValidatorPanel.registerValidator(myProjectModel.packageName(),
+    myValidatorPanel.registerValidator(myProjectModel.getPackageName(),
                                        value -> Validator.Result.fromNullableMessage(WizardUtils.validatePackageName(value)));
 
-    myValidatorPanel.registerValidator(myProjectModel.language(), value ->
+    myValidatorPanel.registerValidator(myProjectModel.getLanguage(), value ->
       value.isPresent() ? OK : new Validator.Result(ERROR, message("android.wizard.validate.select.language")));
 
     myValidatorPanel.registerValidator(androidSdkInfo, value ->
       value.isPresent() ? OK : new Validator.Result(ERROR, message("select.target.dialog.text")));
 
+    myValidatorPanel.registerTest(myProjectModel.getUseAppCompat().not(), WARNING, message("android.wizard.validate.select.appcompat"));
+
     myProjectLocation.addBrowseFolderListener(null, null, null, createSingleFolderDescriptor());
 
-    myListeners.listenAll(getModel().formFactor(), myProjectModel.enableCppSupport()).withAndFire(() -> {
-      FormFactor formFactor = getModel().formFactor().get();
-      boolean isCppTemplate = myProjectModel.enableCppSupport().get();
+    myListeners.listenAll(getModel().formFactor, myProjectModel.getEnableCppSupport()).withAndFire(() -> {
+      FormFactor formFactor = getModel().formFactor.get();
 
-      myInstantAppCheck.setVisible(formFactor == FormFactor.MOBILE && !isCppTemplate);
       myFormFactorSdkControls.showStatsPanel(formFactor == FormFactor.MOBILE);
       myWearCheck.setVisible(formFactor == FormFactor.WEAR);
       myTvCheck.setVisible(formFactor == FormFactor.TV);
-      myOfflineRepoCheck.setVisible(StudioFlags.NPW_OFFLINE_REPO_CHECKBOX.get());
-      myUseAndroidxCheck.setVisible(NELE_USE_ANDROIDX_DEFAULT.get()
-                                    && myProjectModel.isAndroidxAvailable());
     });
 
-    myListeners.listenAndFire(androidSdkInfo, () -> {
-      VersionItem androidVersion = androidSdkInfo.getValueOrNull();
-      boolean isAndroidxOnly = androidVersion != null && androidVersion.getTargetApiLevel() >= VersionCodes.Q;
-      if (isAndroidxOnly) {
-        // No more app-compat after Q. Force androidx checkbox selection and disable it from change.
-        myUseAndroidxCheck.setSelected(true);
-        myUseAndroidxCheck.setEnabled(false);
-      }
-      else {
-        myUseAndroidxCheck.setEnabled(true);
-      }
-    });
-    myListeners.listenAndFire(androidSdkInfo, sender -> {
-      AndroidVersionsInfo.VersionItem androidVersion = androidSdkInfo.getValueOrNull();
-      boolean isAndroidxOnly = androidVersion != null && androidVersion.getTargetApiLevel() >= 29;
-      if (isAndroidxOnly) {
-        // No more app-compat after Q. Force androidx checkbox selection and disable it from change.
-        myUseAndroidxCheck.setSelected(true);
-        myUseAndroidxCheck.setEnabled(false);
-      }
-      else {
-        myUseAndroidxCheck.setEnabled(true);
-      }
-    });
+    myListeners.listenAndFire(androidSdkInfo, () -> updateAppCompatCheckBox());
+    myListeners.listenAndFire(androidSdkInfo, sender -> updateAppCompatCheckBox());
   }
 
   @Override
   protected void onEntering() {
-    FormFactor formFactor = getModel().formFactor().get();
-    TemplateHandle templateHandle = getModel().renderTemplateHandle().getValueOrNull();
+    FormFactor formFactor = getModel().formFactor.get();
+    TemplateHandle templateHandle = getModel().renderTemplateHandle.getValueOrNull();
     int minSdk = templateHandle == null ? formFactor.getMinOfflineApiLevel() : templateHandle.getMetadata().getMinSdk();
 
     myFormFactorSdkControls.startDataLoading(formFactor, minSdk);
     setTemplateThumbnail(templateHandle);
+    updateAppCompatCheckBox();
   }
 
   @Override
   protected void onProceeding() {
-    getModel().hasCompanionApp().set(
+    getModel().hasCompanionApp.set(
       (myWearCheck.isVisible() && myWearCheck.isSelected()) ||
       (myTvCheck.isVisible() && myTvCheck.isSelected()) ||
-      getModel().formFactor().get() == FormFactor.CAR || // Auto is not a standalone module (but rather a modification to a mobile module)
-      getModel().formFactor().get() == FormFactor.AUTOMOTIVE // Automotive projects include a mobile module for Android Auto by default
+      getModel().formFactor.get() == FormFactor.AUTOMOTIVE // Automotive projects include a mobile module for Android Auto by default
     );
-
-    myProjectModel.useOfflineRepo().set(myOfflineRepoCheck.isVisible() && myOfflineRepoCheck.isSelected());
 
     myInstallRequests.clear();
     myInstallLicenseRequests.clear();
@@ -289,7 +261,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   }
 
   private void setTemplateThumbnail(@Nullable TemplateHandle templateHandle) {
-    boolean isCppTemplate = myProjectModel.enableCppSupport().get();
+    boolean isCppTemplate = myProjectModel.getEnableCppSupport().get();
     TemplateIcon icon = ActivityGallery.getTemplateIcon(templateHandle, isCppTemplate);
     if (icon != null) {
       icon.cropBlankWidth();
@@ -300,6 +272,22 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     }
     myTemplateIconTitle.setVisible(icon != null);
     myTemplateIconDetail.setVisible(icon != null);
+  }
+
+  private void updateAppCompatCheckBox() {
+    VersionItem androidVersion = getModel().androidSdkInfo().getValueOrNull();
+    boolean isAndroidxApi = androidVersion != null && androidVersion.getMinApiLevel() >= Q; // No more app-compat after Q
+
+    TemplateHandle templateHandle = getModel().renderTemplateHandle.getValueOrNull();
+    boolean hasAndroidxConstraint = templateHandle != null && templateHandle.getMetadata().getAndroidXRequired();
+
+    if (isAndroidxApi || hasAndroidxConstraint) {
+      myAppCompatCheck.setSelected(false);
+      myAppCompatCheck.setEnabled(false);
+    }
+    else {
+      myAppCompatCheck.setEnabled(true);
+    }
   }
 
   private void createUIComponents() {

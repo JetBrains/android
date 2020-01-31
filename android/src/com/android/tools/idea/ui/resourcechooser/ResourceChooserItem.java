@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.ui.resourcechooser;
 
+import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
+import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
+import static com.android.SdkConstants.PREFIX_THEME_REF;
+import static com.android.SdkConstants.SAMPLE_PREFIX;
+import static com.android.SdkConstants.TOOLS_SAMPLE_PREFIX;
+
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
@@ -23,20 +29,21 @@ import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.res.PredefinedSampleDataResourceRepository;
 import com.android.tools.idea.res.SampleDataResourceItem;
-import com.android.tools.idea.res.SampleDataResourceRepository;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.util.Pair;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.android.SdkConstants.*;
 
 public abstract class ResourceChooserItem {
   public static final String DEFAULT_FOLDER_NAME = "Default";
@@ -309,7 +316,7 @@ public abstract class ResourceChooserItem {
     @NotNull
     @Override
     public String getResourceUrl() {
-      boolean isPredefinedData = SampleDataResourceRepository.PREDEFINED_SAMPLES_NS.equals(myItem.getResourceValue().getNamespace());
+      boolean isPredefinedData = PredefinedSampleDataResourceRepository.NAMESPACE.equals(myItem.getResourceValue().getNamespace());
       String prefix = isPredefinedData ? TOOLS_SAMPLE_PREFIX : SAMPLE_PREFIX;
       return prefix + myName + ((myIndex >= 0) ? "[" + myIndex + "]" : "");
     }

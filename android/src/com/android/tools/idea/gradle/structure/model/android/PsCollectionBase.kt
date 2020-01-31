@@ -20,7 +20,7 @@ import com.android.tools.idea.gradle.structure.model.PsKeyedModelCollection
 import com.android.tools.idea.gradle.structure.model.PsModel
 import com.intellij.openapi.Disposable
 
-abstract class PsCollectionBase<TModel : PsModel, TKey, TParent : PsModel>
+abstract class PsCollectionBase<TModel , TKey, TParent>
 protected constructor(val parent: TParent) :
   PsKeyedModelCollection<TKey, TModel> {
   private val changedDispatcher = ChangeDispatcher()
@@ -41,7 +41,7 @@ protected constructor(val parent: TParent) :
 
   fun refresh() {
     entries = getKeys(parent).map { key -> key to (entries[key] ?: create(key)) }.toMap()
-    entries.forEach { key, value -> update(key, value) }
+    entries.forEach { (key, value) -> update(key, value) }
     notifyChanged()
   }
 
@@ -86,7 +86,7 @@ abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel
     if (entries.containsKey(key)) throw IllegalArgumentException("Duplicate key: $key")
     instantiateNew(key)
     val model = create(key).also { update(key, it) }
-    entries += (key to model)
+    entries = entries + (key to model)
     parent.isModified = true
     notifyChanged()
     return model
@@ -95,7 +95,7 @@ abstract class PsMutableCollectionBase<TModel : PsModel, TKey, TParent : PsModel
   fun remove(key: TKey) {
     if (!entries.containsKey(key)) throw IllegalArgumentException("Key not found: $key")
     removeExisting(key)
-    entries -= key
+    entries = entries - key
     parent.isModified = true
     notifyChanged()
   }

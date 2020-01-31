@@ -36,7 +36,8 @@ class ExtractVariableWorker<PropertyT : Any, out ModelPropertyCoreT : ModelPrope
     this.property = null
     this.variable = null
 
-    val suggestedName = newScope.getNewVariableName("var")
+    val preferredName = refactoredProperty.getPreferredVariableName()
+    val suggestedName = newScope.getNewVariableName(preferredName)
     val variable = newScope.getOrCreateVariable(suggestedName)
     val property = variable.bindNewPropertyAs(refactoredProperty)!!
     property.setParsedValue(currentValue ?: refactoredProperty.getParsedValue().value)

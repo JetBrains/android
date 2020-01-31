@@ -18,6 +18,10 @@ package com.android.tools.idea.navigator.nodes.android;
 import com.intellij.ide.projectView.TreeStructureProvider;
 import com.intellij.ide.projectView.ViewSettings;
 import com.intellij.ide.util.treeView.AbstractTreeNode;
+import java.util.Collection;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +42,7 @@ public class BuildScriptTreeStructureProvider implements TreeStructureProvider {
   @Override
   public Collection<AbstractTreeNode<?>> modify(@NotNull AbstractTreeNode<?> parent,
                                              @NotNull Collection<AbstractTreeNode<?>> children,
-                                             ViewSettings settings) {
+                                             @Nullable ViewSettings settings) {
     if (parent instanceof AndroidBuildScriptsGroupNode) {
       return children;
     }
@@ -50,5 +54,10 @@ public class BuildScriptTreeStructureProvider implements TreeStructureProvider {
   @Override
   public Object getData(@NotNull Collection<AbstractTreeNode<?>> selected, @NotNull String dataName) {
     return myRealTreeStructureProvider.getData(selected, dataName);
+  }
+
+  @Override
+  public String toString() {
+    return String.format("BuildScriptTreeStructureProvider(%s)", myRealTreeStructureProvider);
   }
 }

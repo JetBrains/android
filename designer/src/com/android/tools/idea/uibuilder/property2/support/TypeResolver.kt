@@ -21,6 +21,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.resources.ResourceType
 import org.jetbrains.android.dom.AndroidDomUtil
+import org.jetbrains.android.dom.navigation.NavigationSchema
 
 /**
  * Temporary type resolver.
@@ -72,8 +73,12 @@ object TypeResolver {
 
   private fun lookupByName(name: String) =
     when (name) {
+      SdkConstants.ATTR_ITEM_SHAPE_APPEARANCE,
+      SdkConstants.ATTR_ITEM_SHAPE_APPEARANCE_OVERLAY,
       SdkConstants.ATTR_THEME,
       SdkConstants.ATTR_POPUP_THEME,
+      SdkConstants.ATTR_SHAPE_APPEARANCE,
+      SdkConstants.ATTR_SHAPE_APPEARANCE_OVERLAY,
       SdkConstants.ATTR_STYLE -> NelePropertyType.STYLE
 
       SdkConstants.ATTR_CLASS -> NelePropertyType.FRAGMENT
@@ -89,6 +94,7 @@ object TypeResolver {
       SdkConstants.ATTR_HANDLE,
       SdkConstants.ATTR_LAYOUT_CONSTRAINT_CIRCLE,
       SdkConstants.ATTR_LAYOUT_CONSTRAINTSET,
+      SdkConstants.ATTR_LIFT_ON_SCROLL_TARGET_VIEW_ID,
       SdkConstants.ATTR_NEXT_CLUSTER_FORWARD,
       SdkConstants.ATTR_NEXT_FOCUS_DOWN,
       SdkConstants.ATTR_NEXT_FOCUS_FORWARD,
@@ -130,6 +136,7 @@ object TypeResolver {
       SdkConstants.ATTR_QUERY_BACKGROUND,
       SdkConstants.ATTR_NAVIGATION_ICON,
       SdkConstants.ATTR_SELECTED_DATE_VERTICAL_BAR,
+      SdkConstants.ATTR_STATUS_BAR_FOREGROUND,
       SdkConstants.ATTR_SUBMIT_BACKGROUND,
       SdkConstants.ATTR_SRC,
       SdkConstants.ATTR_SRC_COMPAT,
@@ -150,33 +157,53 @@ object TypeResolver {
       SdkConstants.ATTR_OUT_ANIMATION,
       SdkConstants.ATTR_SHOW_MOTION_SPEC,
       SdkConstants.ATTR_HIDE_MOTION_SPEC,
+
       SdkConstants.ATTR_LAYOUT_ANIMATION,
-      SdkConstants.ATTR_STATE_LIST_ANIMATOR -> NelePropertyType.ANIM
+      NavigationSchema.ATTR_ENTER_ANIM,
+      NavigationSchema.ATTR_EXIT_ANIM,
+      NavigationSchema.ATTR_POP_ENTER_ANIM,
+      NavigationSchema.ATTR_POP_EXIT_ANIM -> NelePropertyType.ANIM
+
+      SdkConstants.ATTR_STATE_LIST_ANIMATOR -> NelePropertyType.ANIMATOR
 
       SdkConstants.ATTR_AM_PM_BACKGROUND_COLOR,
       SdkConstants.ATTR_AM_PM_TEXT_COLOR,
+      SdkConstants.ATTR_BACKGROUND_TINT,
+      SdkConstants.ATTR_BUTTON_TINT,
+      SdkConstants.ATTR_CHECK_MARK_TINT,
+      SdkConstants.ATTR_CHIP_BACKGROUND_COLOR,
+      SdkConstants.ATTR_CHIP_ICON_TINT,
+      SdkConstants.ATTR_CHIP_STROKE_COLOR,
+      SdkConstants.ATTR_CHIP_SURFACE_COLOR,
+      SdkConstants.ATTR_CLOSE_ICON_TINT,
+      SdkConstants.ATTR_DRAWABLE_TINT,
+      SdkConstants.ATTR_END_ICON_TINT,
+      SdkConstants.ATTR_ERROR_TEXT_COLOR,
+      SdkConstants.ATTR_FOREGROUND_TINT,
+      SdkConstants.ATTR_HELPER_TEXT_TEXT_COLOR,
+      SdkConstants.ATTR_HINT_TEXT_COLOR,
+      SdkConstants.ATTR_ICON_TINT,
+      SdkConstants.ATTR_INDETERMINATE_TINT,
+      SdkConstants.ATTR_ITEM_RIPPLE_COLOR,
+      SdkConstants.ATTR_ITEM_SHAPE_FILL_COLOR,
+      SdkConstants.ATTR_ITEM_TEXT_COLOR,
       SdkConstants.ATTR_NUMBERS_INNER_TEXT_COLOR,
       SdkConstants.ATTR_NUMBERS_SELECTOR_COLOR,
       SdkConstants.ATTR_NUMBERS_TEXT_COLOR,
       SdkConstants.ATTR_PASSWORD_TOGGLE_TINT,
+      SdkConstants.ATTR_PROGRESS_TINT,
+      SdkConstants.ATTR_PROGRESS_BACKGROUND_TINT,
       SdkConstants.ATTR_RIPPLE_COLOR,
+      SdkConstants.ATTR_SECONDARY_PROGRESS_TINT,
+      SdkConstants.ATTR_START_ICON_TINT,
+      SdkConstants.ATTR_STROKE_COLOR,
+      SdkConstants.ATTR_TAB_TEXT_COLOR,
       SdkConstants.ATTR_TEXT_COLOR,
       SdkConstants.ATTR_TEXT_COLOR_HINT,
       SdkConstants.ATTR_TEXT_COLOR_LINK,
-      SdkConstants.ATTR_TINT,
-      SdkConstants.ATTR_BACKGROUND_TINT,
-      SdkConstants.ATTR_BUTTON_TINT,
-      SdkConstants.ATTR_CHECK_MARK_TINT,
-      SdkConstants.ATTR_DRAWABLE_TINT,
-      SdkConstants.ATTR_INDETERMINATE_TINT,
-      SdkConstants.ATTR_ITEM_TEXT_COLOR,
-      SdkConstants.ATTR_FOREGROUND_TINT,
-      SdkConstants.ATTR_PROGRESS_TINT,
-      SdkConstants.ATTR_PROGRESS_BACKGROUND_TINT,
-      SdkConstants.ATTR_SECONDARY_PROGRESS_TINT,
-      SdkConstants.ATTR_TAB_TEXT_COLOR,
       SdkConstants.ATTR_THUMB_TINT,
       SdkConstants.ATTR_TICK_MARK_TINT,
+      SdkConstants.ATTR_TINT,
       SdkConstants.ATTR_TRACK_TINT -> NelePropertyType.COLOR_STATE_LIST
 
       SdkConstants.ATTR_AUTO_SIZE_PRESET_SIZES -> NelePropertyType.ARRAY
@@ -209,6 +236,19 @@ object TypeResolver {
       SdkConstants.ATTR_LISTHEADER,
       SdkConstants.ATTR_LISTITEM -> NelePropertyType.LAYOUT
 
+      SdkConstants.ATTR_GRAPH,
+      SdkConstants.ATTR_NAV_GRAPH -> NelePropertyType.NAVIGATION
+
+      NavigationSchema.ATTR_DESTINATION,
+      SdkConstants.ATTR_START_DESTINATION,
+      NavigationSchema.ATTR_POP_UP_TO -> NelePropertyType.DESTINATION
+
+      SdkConstants.ATTR_NAME -> NelePropertyType.CLASS_NAME
+
+      SdkConstants.ATTR_CONSTRAINT_LAYOUT_DESCRIPTION -> NelePropertyType.XML
+
+      SdkConstants.ATTR_MOTION_TARGET -> NelePropertyType.ID_OR_STRING
+
       else -> null
     }
 
@@ -231,6 +271,8 @@ object TypeResolver {
         if (thirdLast == "text" && secondLast == "select") return NelePropertyType.DRAWABLE
       "layout" ->
         return NelePropertyType.LAYOUT
+      "spec" ->
+        if (secondLast == "motion") return NelePropertyType.ANIMATOR
       "style" ->
         return NelePropertyType.STYLE
       else -> {

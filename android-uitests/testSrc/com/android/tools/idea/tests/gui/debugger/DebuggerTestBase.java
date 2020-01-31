@@ -134,11 +134,11 @@ public class DebuggerTestBase {
     finish.click();
   }
 
-  void stopDebugSession(DebugToolWindowFixture debugToolWindowFixture) {
+  public static void stopDebugSession(DebugToolWindowFixture debugToolWindowFixture) {
     stopDebugSession(debugToolWindowFixture, DEBUG_CONFIG_NAME);
   }
 
-  void stopDebugSession(DebugToolWindowFixture debugToolWindowFixture, String debugConfigName) {
+  public static void stopDebugSession(DebugToolWindowFixture debugToolWindowFixture, String debugConfigName) {
     final ExecutionToolWindowFixture.ContentFixture contentFixture = debugToolWindowFixture.findContent(debugConfigName);
     contentFixture.waitForStopClick();
     contentFixture.waitForExecutionToFinish();

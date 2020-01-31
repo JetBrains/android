@@ -26,6 +26,7 @@ import com.android.tools.idea.rendering.RenderTaskContext;
 import com.android.tools.idea.res.ResourceHelper;
 import com.android.tools.lint.checks.IconDetector;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.ui.RowIcon;
 import com.intellij.ui.IconManager;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
@@ -152,7 +153,7 @@ public class IconFactory {
           }
           colorIcons[i] = new ResourceChooserColorIcon(sectionSize, size, colors.get(i), checkerboardSize);
         }
-        icon = IconManager.getInstance().createRowIcon(colorIcons);
+        icon = new RowIcon(colorIcons);
       }
     }
 

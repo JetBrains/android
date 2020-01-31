@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module relativePaths="true" type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="android.sdktools.db-baseLibrary" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.db-baseLibrarySupport" exported="" />
+    <orderEntry type="module" module-name="android.sdktools.android-annotations" />
+    <orderEntry type="module" module-name="android.sdktools.db-compilerCommon" />
+    <orderEntry type="module-library">
+      <library name="antlr4-runtime" type="repository">
+        <properties maven-id="org.antlr:antlr4-runtime:4.5.3" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/antlr/antlr4-runtime/4.5.3/antlr4-runtime-4.5.3.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="commons-io" level="project" />
+    <orderEntry type="module-library">
+      <library name="juniversalchardet" type="repository">
+        <properties maven-id="com.googlecode.juniversalchardet:juniversalchardet:1.0.3" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/googlecode/juniversalchardet/juniversalchardet/1.0.3/juniversalchardet-1.0.3.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/googlecode/juniversalchardet/juniversalchardet/1.0.3/juniversalchardet-1.0.3-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="commons-lang" type="repository">
+        <properties maven-id="commons-lang:commons-lang:2.6" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/commons-lang/commons-lang/2.6/commons-lang-2.6.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://$MAVEN_REPOSITORY$/commons-lang/commons-lang/2.6/commons-lang-2.6-sources.jar!/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="Guava" level="project" />
+    <orderEntry type="library" name="gson" level="project" />
+    <orderEntry type="library" scope="TEST" name="JUnit4" level="project" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="library" scope="TEST" name="Objenesis" level="project" />
+    <orderEntry type="module-library">
+      <library name="javapoet" type="repository">
+        <properties maven-id="com.squareup:javapoet:1.10.0" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/squareup/javapoet/1.10.0/javapoet-1.10.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
+    <orderEntry type="library" name="jetbrains-annotations-java5" level="project" />
+    <orderEntry type="module-library">
+      <library name="auto-common" type="repository">
+        <properties maven-id="com.google.auto:auto-common:0.10" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/com/google/auto/auto-common/0.10/auto-common-0.10.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" scope="TEST" name="truth" level="project" />
+    <orderEntry type="module-library" exported="">
+      <library name="precompiled-db-compiler" type="repository">
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:compiler:26.6.0.1" />
+        <CLASSES>
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/compiler/26.6.0.1/compiler-26.6.0.1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+  </component>
+</module>

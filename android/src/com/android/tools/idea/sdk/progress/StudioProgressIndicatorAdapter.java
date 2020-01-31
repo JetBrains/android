@@ -129,9 +129,7 @@ public class StudioProgressIndicatorAdapter implements ProgressIndicator {
     if (myExistingIndicator != null) {
       return myExistingIndicator.getFraction();
     }
-    // TODO: ProgressIndicator currently has no way to retrieve its progress and other state. If it's important to be able to retrieve that
-    //       state once set, support needs to be added and it should be hooked up here.
-    return 0;
+    return myWrapped.getFraction();
   }
 
   @Override

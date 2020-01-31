@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
-import com.android.internal.annotations.VisibleForTesting
 import com.android.sdklib.devices.Device
 import com.android.tools.idea.common.model.AndroidCoordinate
+import com.google.common.annotations.VisibleForTesting
 
 /**
  * List of [DeviceSize]. Optimized for [snapToDevice]

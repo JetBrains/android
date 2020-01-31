@@ -61,8 +61,8 @@ import javax.swing.table.AbstractTableModel;
 import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.intellij.openapi.util.text.StringUtil.capitalize;
@@ -100,7 +100,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
                        @NotNull IAndroidTarget projectTarget,
                        @Nullable Predicate<IDevice> filter) {
     myFilter = filter;
-    myMinSdkVersion = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
+    myMinSdkVersion = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersionSynchronously();
     myProjectTarget = projectTarget;
     mySupportedAbis = facet.getModel() instanceof AndroidModuleModel ?
                       ((AndroidModuleModel)facet.getModel()).getSelectedVariant().getMainArtifact().getAbiFilters() :

@@ -113,7 +113,7 @@ public class TestConfigurationTesting {
   }
 
   @Nullable
-  private static RunConfiguration createConfigurationFromPsiElement(@NotNull Project project, @NotNull PsiElement psiElement) {
+  public static RunConfiguration createConfigurationFromPsiElement(@NotNull Project project, @NotNull PsiElement psiElement) {
     ConfigurationContext context = createContext(project, psiElement);
     RunnerAndConfigurationSettings settings = context.getConfiguration();
     if (settings == null) {

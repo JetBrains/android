@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="5" by="lint 26.6.0-dev">
+
+    <issue
+        id="ImplicitExecutor"
+        message="Use `addCallback` overload with an explicit Executor instead. See `go/do-not-freeze`.">
+        <location
+            file="src/com/android/tools/idea/apk/viewer/ApkViewPanel.java"
+            line="166"/>
+    </issue>
+
+</issues>

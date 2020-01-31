@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.gradle.structure.model.android
 
+import com.android.SdkConstants.GRADLE_LATEST_VERSION
 import com.android.tools.idea.gradle.structure.model.PsDependencyCollection
 import com.android.tools.idea.gradle.structure.model.PsModuleDependency
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests
+import com.android.tools.idea.testing.AndroidGradleTests.createGradleWrapper
 import com.android.tools.idea.testing.AndroidGradleTests.getLocalRepositoriesForGroovy
 import com.android.tools.idea.testing.TestProjectPaths.PSD_SAMPLE_REPO
 import com.intellij.util.PathUtil.toSystemDependentName
@@ -26,7 +28,12 @@ import org.jetbrains.android.AndroidTestBase
 import java.io.File
 
 abstract class DependencyTestCase : AndroidGradleTestCase() {
-  override fun updateVersionAndDependencies(projectRoot: File) {
+  override fun patchPreparedProject(projectRoot: File) {
+    // Override settings just for tests (e.g. sdk.dir)
+    AndroidGradleTests.updateLocalProperties(projectRoot, findSdkPath())
+    // We need the wrapper for import to succeed
+    createGradleWrapper(projectRoot, GRADLE_LATEST_VERSION)
+
     val localRepositories = getLocalRepositoriesForGroovy()
     val testRepositoryPath = File(AndroidTestBase.getTestDataPath(), toSystemDependentName(PSD_SAMPLE_REPO)).absolutePath!!
     val repositories = """
@@ -43,4 +50,4 @@ abstract class DependencyTestCase : AndroidGradleTestCase() {
 internal fun <T> PsDependencyCollection<*, *, *, T>.findModuleDependency(gradlePath: String)
   where T: PsModuleDependency = findModuleDependencies(gradlePath).singleOrNull()
 
-internal fun PsAndroidModule.findVariant(name: String): PsVariant? = variants.singleOrNull { it.name == name }
+internal fun PsAndroidModule.findVariant(name: String): PsVariant? = resolvedVariants.singleOrNull { it.name == name }

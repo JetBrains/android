@@ -1,4 +1,18 @@
-// Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+/*
+ * Copyright 2000-2010 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.jetbrains.android.maven;
 
 import com.android.SdkConstants;
@@ -14,6 +28,7 @@ import org.jetbrains.android.facet.AndroidFacetConfiguration;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.idea.maven.model.MavenArtifact;
 import org.jetbrains.idea.maven.model.MavenResource;
 import org.jetbrains.idea.maven.project.MavenProject;
@@ -33,7 +48,7 @@ import java.util.regex.Pattern;
 public class AndroidMavenProviderImpl implements AndroidMavenProvider {
 
   public static void setPathsToDefault(MavenProject mavenProject, Module module, AndroidFacetConfiguration configuration) {
-    String moduleDirPath = AndroidRootUtil.getModuleDirPath(module);
+    @SystemIndependent String moduleDirPath = AndroidRootUtil.getModuleDirPath(module);
     String genSources = FileUtil.toSystemIndependentName(mavenProject.getGeneratedSourcesDirectory(false));
 
     if (moduleDirPath != null) {
@@ -89,7 +104,7 @@ public class AndroidMavenProviderImpl implements AndroidMavenProvider {
   }
 
   private static List<Pattern> collectPatterns(@Nullable List<String> values, @Nullable String defaultValue) {
-    List<Pattern> result = new ArrayList<>();
+    List<Pattern> result = new ArrayList<Pattern>();
     if (values == null || values.isEmpty()) {
       if (defaultValue == null) return Collections.emptyList();
       return MavenUtil.collectPattern(defaultValue, result);
@@ -136,7 +151,7 @@ public class AndroidMavenProviderImpl implements AndroidMavenProvider {
   @NotNull
   public List<File> getMavenDependencyArtifactFiles(@NotNull Module module) {
     MavenProject mavenProject = MavenProjectsManager.getInstance(module.getProject()).findProject(module);
-    List<File> result = new ArrayList<>();
+    List<File> result = new ArrayList<File>();
     if (mavenProject != null) {
       for (MavenArtifact depArtifact : mavenProject.getDependencies()) {
         if (AndroidMavenUtil.APKSOURCES_DEPENDENCY_TYPE.equals(depArtifact.getType())) {

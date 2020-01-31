@@ -21,16 +21,25 @@ import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.android.tools.profilers.stacktrace.ContextMenuItem;
 import com.intellij.ide.actions.CopyAction;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.CommonShortcuts;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.KeyboardShortcut;
+import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.Shortcut;
+import com.intellij.openapi.actionSystem.ShortcutSet;
 import com.intellij.ui.PopupHandler;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
 import java.util.Arrays;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 import java.util.function.Supplier;
+import javax.swing.JComponent;
+import javax.swing.JPopupMenu;
+import org.jetbrains.annotations.NotNull;
 
 public class IntellijContextMenuInstaller implements ContextMenuInstaller {
   private static final String COMPONENT_CONTEXT_MENU = "ComponentContextMenu";
@@ -64,7 +73,6 @@ public class IntellijContextMenuInstaller implements ContextMenuInstaller {
     AnAction action = new AnAction() {
       @Override
       public void update(@NotNull AnActionEvent e) {
-
         Presentation presentation = e.getPresentation();
         presentation.setText(contextMenuItem.getText());
         presentation.setIcon(contextMenuItem.getIcon());

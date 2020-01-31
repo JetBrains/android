@@ -12,14 +12,12 @@
     <orderEntry type="library" name="jetbrains-annotations" level="project" />
     <orderEntry type="module-library" exported="">
       <library name="precompiled-layoutlib-api" type="repository">
-        <properties include-transitive-deps="false" maven-id="com.android.tools.layoutlib:layoutlib-api:26.5.0" />
+        <properties include-transitive-deps="false" maven-id="org.jetbrains.intellij.deps.android.tools.base:layoutlib-api:26.6.0.1" />
         <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/layoutlib/layoutlib-api/26.5.0/layoutlib-api-26.5.0.jar!/" />
+          <root url="jar://$MAVEN_REPOSITORY$/org/jetbrains/intellij/deps/android/tools/base/layoutlib-api/26.6.0.1/layoutlib-api-26.6.0.1.jar!/" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="jar://$MAVEN_REPOSITORY$/com/android/tools/layoutlib/layoutlib-api/26.5.0/layoutlib-api-26.5.0-sources.jar!/" />
-        </SOURCES>
+        <SOURCES />
       </library>
     </orderEntry>
   </component>

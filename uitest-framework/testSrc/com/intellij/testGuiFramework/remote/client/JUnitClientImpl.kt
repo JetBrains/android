@@ -119,7 +119,19 @@ class JUnitClientImpl(host: String, port: Int, initHandlers: Array<ClientHandler
               // if we tried to send a non-serializable Throwable, then wrap its string representation in an Exception and send that instead.
               if ((e is NotSerializableException || e is InvalidClassException) && message is JUnitInfoMessage && message.info is JUnitFailureInfo) {
                 val info = message.info
-                val serializableThrowable = Exception(info.failure.exception.toString())
+                val serializableThrowable = Exception(buildString {
+                  val ex = message.info.failure.exception
+                  appendln(ex.toString())
+                  appendln(ex.stackTrace.joinToString(separator = "\n    at "))
+                  var cause = ex.cause
+                  while (cause != null) {
+                    appendln("Caused by $cause")
+                    appendln(cause.stackTrace.joinToString(separator = "\n    at "))
+                    // Throwables use a self-referential cause to indicate "uninitialized", and null to indicate "unknown" or "nonexistent"
+                    if (cause.cause === cause) break
+                    cause = cause.cause
+                  }
+                })
                 val serializableMessage = JUnitInfoMessage(JUnitFailureInfo(info.type, Failure(info.description, serializableThrowable)))
                 objectOutputStream.writeObject(serializableMessage)
               }

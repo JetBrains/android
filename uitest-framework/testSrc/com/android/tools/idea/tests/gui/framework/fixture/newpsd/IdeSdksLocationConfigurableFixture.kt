@@ -16,19 +16,22 @@
 package com.android.tools.idea.tests.gui.framework.fixture.newpsd
 
 import com.android.tools.idea.gradle.structure.IdeSdksConfigurable
-import com.android.tools.idea.tests.gui.framework.IdeFrameContainerFixture
-import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
+import org.fest.swing.core.Robot
+import org.fest.swing.fixture.ContainerFixture
 import java.awt.Container
 
 class IdeSdksLocationConfigurableFixture(
-    override val ideFrameFixture: IdeFrameFixture,
-    override val container: Container
-) : IdeFrameContainerFixture {
+  val robot: Robot,
+  val container: Container
+) : ContainerFixture<Container> {
+  override fun target(): Container = container
+  override fun robot(): Robot = robot
+
 }
 
 fun ProjectStructureDialogFixture.selectIdeSdksLocationConfigurable(): IdeSdksLocationConfigurableFixture {
   selectConfigurable("SDK Location")
   return IdeSdksLocationConfigurableFixture(
-          ideFrameFixture,
-          findConfigurable(IdeSdksConfigurable.IDE_SDKS_LOCATION_VIEW))
+    robot(),
+    findConfigurable(IdeSdksConfigurable.IDE_SDKS_LOCATION_VIEW))
 }

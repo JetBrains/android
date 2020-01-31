@@ -1,7 +1,7 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package com.android.tools.idea.logcat;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.ddmlib.Client;
 import com.android.ddmlib.ClientData;
 import com.android.ddmlib.IDevice;
@@ -45,6 +45,10 @@ import java.util.stream.IntStream;
 public class AndroidLogcatView {
   public static final Key<AndroidLogcatView> ANDROID_LOGCAT_VIEW_KEY = Key.create("ANDROID_LOGCAT_VIEW_KEY");
 
+  /**
+   * This is a fake version of the selected app filter that acts as a placeholder before a real one
+   * is swapped in, which happens when the pulldown of processes is populated.
+   */
   static final AndroidLogcatFilter FAKE_SHOW_ONLY_SELECTED_APPLICATION_FILTER = new MatchAllFilter(getSelectedAppFilter());
   static final AndroidLogcatFilter NO_FILTERS_ITEM = new MatchAllFilter(getNoFilters());
 

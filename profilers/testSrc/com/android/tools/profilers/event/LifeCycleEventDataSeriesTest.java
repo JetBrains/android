@@ -88,7 +88,7 @@ public class LifeCycleEventDataSeriesTest {
                        },
                        0);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<LifecycleEvent>>> dataList = myActivitySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<LifecycleEvent>>> dataList = myActivitySeries.getDataForRange(range);
     assertThat(dataList).hasSize(1);
     SeriesData<EventAction<LifecycleEvent>> event = dataList.get(0);
     verifyActivity(event, 0);
@@ -111,7 +111,7 @@ public class LifeCycleEventDataSeriesTest {
                        },
                        0);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<LifecycleEvent>>> dataList = myActivitySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<LifecycleEvent>>> dataList = myActivitySeries.getDataForRange(range);
     assertThat(dataList).hasSize(1);
     SeriesData<EventAction<LifecycleEvent>> event = dataList.get(0);
     verifyActivity(event, TEST_END_TIME_NS);
@@ -137,7 +137,7 @@ public class LifeCycleEventDataSeriesTest {
                        },
                        0);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<LifecycleEvent>>> dataList = myActivitySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<LifecycleEvent>>> dataList = myActivitySeries.getDataForRange(range);
     assertThat(dataList).hasSize(1);
     SeriesData<EventAction<LifecycleEvent>> event = dataList.get(0);
     verifyActivity(event, TEST_END_TIME_NS);
@@ -172,7 +172,7 @@ public class LifeCycleEventDataSeriesTest {
                        },
                        0);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<LifecycleEvent>>> dataList = myActivitySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<LifecycleEvent>>> dataList = myActivitySeries.getDataForRange(range);
     assertThat(dataList).hasSize(2);
     SeriesData<EventAction<LifecycleEvent>> event = dataList.get(0);
     verifyActivity(event, TEST_START_TIME_NS);
@@ -196,7 +196,7 @@ public class LifeCycleEventDataSeriesTest {
                        },
                        0);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<LifecycleEvent>>> dataList = myActivitySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<LifecycleEvent>>> dataList = myActivitySeries.getDataForRange(range);
     assertThat(dataList).hasSize(1);
     SeriesData<EventAction<LifecycleEvent>> event = dataList.get(0);
     assertThat(event.value.getType()).isEqualTo(LifecycleEvent.COMPLETED);
@@ -214,7 +214,7 @@ public class LifeCycleEventDataSeriesTest {
                        },
                        0);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<LifecycleEvent>>> dataList = myActivitySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<LifecycleEvent>>> dataList = myActivitySeries.getDataForRange(range);
     assertThat(dataList).hasSize(1);
     SeriesData<EventAction<LifecycleEvent>> event = dataList.get(0);
     assertThat(event.value.getType()).isEqualTo(LifecycleEvent.COMPLETED);
@@ -244,7 +244,7 @@ public class LifeCycleEventDataSeriesTest {
                        },
                        0);
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<LifecycleEvent>>> dataList = myActivitySeries.getDataForXRange(range);
+    List<SeriesData<EventAction<LifecycleEvent>>> dataList = myActivitySeries.getDataForRange(range);
     assertThat(dataList).hasSize(2);
     SeriesData<EventAction<LifecycleEvent>> event = dataList.get(0);
     verifyActivity(event, 0);
@@ -278,7 +278,7 @@ public class LifeCycleEventDataSeriesTest {
                        0
     );
     Range range = new Range(TimeUnit.NANOSECONDS.toMicros(TEST_START_TIME_NS), TimeUnit.NANOSECONDS.toMicros(TEST_END_TIME_NS));
-    List<SeriesData<EventAction<LifecycleEvent>>> dataList = myFragmentSeries.getDataForXRange(range);
+    List<SeriesData<EventAction<LifecycleEvent>>> dataList = myFragmentSeries.getDataForRange(range);
     assertThat(dataList).hasSize(1);
     SeriesData<EventAction<LifecycleEvent>> event = dataList.get(0);
     verifyActivity(event, TEST_END_TIME_NS);
@@ -295,8 +295,8 @@ public class LifeCycleEventDataSeriesTest {
   private void buildActivityEvent(String name, ActivityStateData[] states, long contextHash) {
     if (myIdeProfilerServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
       for (ActivityStateData state : states) {
-        myTransportService.addEventToEventGroup(FAKE_DEVICE_ID,
-                                                Common.Event.newBuilder()
+        myTransportService.addEventToStream(FAKE_DEVICE_ID,
+                                            Common.Event.newBuilder()
                                                   .setKind(Common.Event.Kind.VIEW)
                                                   .setTimestamp(state.activityStateTime)
                                                   .setGroupId(name.hashCode())

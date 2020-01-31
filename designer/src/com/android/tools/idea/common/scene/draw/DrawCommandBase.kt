@@ -27,8 +27,10 @@ val HQ_RENDERING_HINTS = ImmutableMap.of(
   RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE
 )
 
-abstract class DrawCommandBase : DrawCommand {
-  override fun paint(g: Graphics2D, sceneContext: SceneContext) {
+abstract class DrawCommandBase(private val level: Int = 0) : DrawCommand {
+  override fun getLevel(): Int = level
+
+  override final fun paint(g: Graphics2D, sceneContext: SceneContext) {
     val g2 = g.create() as Graphics2D
     onPaint(g2, sceneContext)
     g2.dispose()

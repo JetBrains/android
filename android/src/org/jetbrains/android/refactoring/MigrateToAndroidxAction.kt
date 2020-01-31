@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.refactoring
 
-import com.android.annotations.VisibleForTesting
 import com.android.ide.common.repository.GradleVersion
 import com.android.sdklib.AndroidTargetHash
 import com.android.sdklib.AndroidVersion
@@ -25,9 +24,10 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
-import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.gradle.project.sync.setup.post.project.GradleKtsBuildFilesWarningStep.HAS_KTS_BUILD_FILES
+import com.android.tools.idea.gradle.util.GradleProjects
 import com.android.tools.idea.model.AndroidModuleInfo
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.lang.Language
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext

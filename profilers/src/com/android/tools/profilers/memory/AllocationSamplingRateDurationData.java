@@ -16,31 +16,32 @@
 package com.android.tools.profilers.memory;
 
 import com.android.tools.adtui.model.DurationData;
+import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profiler.proto.MemoryProfiler.AllocationSamplingRateEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class AllocationSamplingRateDurationData implements DurationData {
-  @Nullable private final AllocationSamplingRateEvent myPreviousRateEvent;
-  @NotNull private final AllocationSamplingRateEvent myCurrentRateEvent;
+  @Nullable private final MemoryAllocSamplingData myPreviousRate;
+  @NotNull private final MemoryAllocSamplingData myCurrentRate;
   private final long myDurationUs;
 
   public AllocationSamplingRateDurationData(long durationUs,
-                                            @Nullable AllocationSamplingRateEvent previousRateEvent,
-                                            @NotNull AllocationSamplingRateEvent currentRateEvent) {
+                                            @Nullable MemoryAllocSamplingData previousRate,
+                                            @NotNull MemoryAllocSamplingData currentRate) {
     myDurationUs = durationUs;
-    myPreviousRateEvent = previousRateEvent;
-    myCurrentRateEvent = currentRateEvent;
+    myPreviousRate = previousRate;
+    myCurrentRate = currentRate;
   }
 
   @Nullable
-  public AllocationSamplingRateEvent getPreviousRateEvent() {
-    return myPreviousRateEvent;
+  public MemoryAllocSamplingData getPreviousRate() {
+    return myPreviousRate;
   }
 
   @NotNull
-  public AllocationSamplingRateEvent getCurrentRateEvent() {
-    return myCurrentRateEvent;
+  public MemoryAllocSamplingData getCurrentRate() {
+    return myCurrentRate;
   }
 
   @Override

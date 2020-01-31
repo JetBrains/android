@@ -15,20 +15,20 @@
  */
 package com.android.tools.profilers.cpu.capturedetails
 
+import com.android.testutils.TestUtils
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.chart.hchart.HTreeChart
 import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.model.FakeTimer
-import com.android.tools.profiler.proto.CpuProfiler
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
-import com.android.tools.profilers.FakeIdeProfilerComponents
-import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.profiler.proto.Cpu
+import com.android.tools.profilers.FakeIdeProfilerComponents
+import com.android.tools.profilers.FakeIdeProfilerServices
+import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
@@ -38,7 +38,6 @@ import com.android.tools.profilers.cpu.CpuCaptureParser
 import com.android.tools.profilers.cpu.CpuProfilerStage
 import com.android.tools.profilers.cpu.CpuProfilerStageView
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
-import com.android.tools.profilers.cpu.CpuProfilerTestUtils.CPU_UI_TRACES_DIR
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
@@ -49,7 +48,6 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import java.io.File
 
 class FlameChartDetailsViewTest {
 
@@ -102,7 +100,8 @@ class FlameChartDetailsViewTest {
       val parser = CpuCaptureParser(FakeIdeProfilerServices())
       val capture = parser.parse(ProfilersTestData.SESSION_DATA.toBuilder().setPid(1).build(),
                                  FakeCpuService.FAKE_TRACE_ID,
-                                 CpuProfilerTestUtils.traceFileToByteString(File(CPU_UI_TRACES_DIR + "atrace_processid_1.ctrace")),
+                                 CpuProfilerTestUtils.traceFileToByteString(
+                                   TestUtils.getWorkspaceFile(CpuProfilerUITestUtils.ATRACE_PID1_PATH)),
                                  Cpu.CpuTraceType.ATRACE)!!.get()
       setAndSelectCapture(capture)
       selectedThread = capture.mainThreadId

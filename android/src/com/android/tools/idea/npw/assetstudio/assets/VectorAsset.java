@@ -18,7 +18,6 @@ package com.android.tools.idea.npw.assetstudio.assets;
 import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.roundToInt;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.vectordrawable.Svg2Vector;
 import com.android.ide.common.vectordrawable.VdOverrideInfo;
 import com.android.ide.common.vectordrawable.VdPreview;
@@ -32,6 +31,7 @@ import com.android.tools.idea.observable.core.DoubleProperty;
 import com.android.tools.idea.observable.core.DoubleValueProperty;
 import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObjectValueProperty;
+import com.android.tools.idea.observable.core.OptionalValueProperty;
 import com.android.utils.SdkUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -42,10 +42,9 @@ import com.intellij.util.ui.EdtInvocationManager;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.StringReader;
 import java.nio.file.Files;
+import java.util.Objects;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.jetbrains.annotations.NotNull;
@@ -63,37 +62,43 @@ import org.xml.sax.InputSource;
  */
 public final class VectorAsset extends BaseAsset {
   private static final String ERROR_EMPTY_PREVIEW = "Could not generate a preview";
+  private static final VectorDrawableInfo SELECT_A_FILE =
+      new VectorDrawableInfo(new Validator.Result(Severity.WARNING, "Please select a file"));
 
-  @NotNull private final ObjectProperty<File> myPath = new ObjectValueProperty<>(new File(System.getProperty("user.home")));
+  @NotNull private final OptionalValueProperty<File> myPath = new OptionalValueProperty<>(new File(System.getProperty("user.home")));
   @NotNull private final BoolProperty myAutoMirrored = new BoolValueProperty();
   @NotNull private final DoubleProperty myOutputWidth = new DoubleValueProperty();
   @NotNull private final DoubleProperty myOutputHeight = new DoubleValueProperty();
 
-  @NotNull private final ObjectProperty<VectorDrawableInfo> myVectorDrawableInfo =
-      new ObjectValueProperty<>(new VectorDrawableInfo(new Validator.Result(Severity.WARNING, "Please select a file")));
+  @NotNull private final ObjectProperty<VectorDrawableInfo> myVectorDrawableInfo = new ObjectValueProperty<>(SELECT_A_FILE);
 
   public VectorAsset() {
     InvalidationListener listener = () -> {
-      File file = myPath.get();
-      ApplicationManager.getApplication().executeOnPooledThread(() -> {
-        VectorDrawableInfo drawableInfo = convertToVectorDrawable(file);
-        EdtInvocationManager.getInstance().invokeLater(() -> {
-          if (isCurrentFile(file)) {
-            myVectorDrawableInfo.set(drawableInfo);
-          }
+      File file = myPath.getValueOrNull();
+      if (file != null) {
+        ApplicationManager.getApplication().executeOnPooledThread(() -> {
+          VectorDrawableInfo drawableInfo = convertToVectorDrawable(file);
+          EdtInvocationManager.getInstance().invokeLater(() -> {
+            if (isCurrentFile(file)) {
+              myVectorDrawableInfo.set(drawableInfo);
+            }
+          });
         });
-      });
+      }
+      else {
+        myVectorDrawableInfo.set(SELECT_A_FILE);
+      }
     };
     myPath.addListener(listener);
     listener.onInvalidated();
   }
 
-  public boolean isCurrentFile(@NotNull Object file) {
-    return file.equals(myPath.get());
+  public boolean isCurrentFile(@Nullable Object file) {
+    return Objects.equals(file, myPath.getValueOrNull());
   }
 
   @NotNull
-  public ObjectProperty<File> path() {
+  public OptionalValueProperty<File> path() {
     return myPath;
   }
 
@@ -135,24 +140,25 @@ public final class VectorAsset extends BaseAsset {
 
   @NotNull
   private static VectorDrawableInfo convertToVectorDrawable(@NotNull File file) {
+    String filename = file.getName();
     if (!file.exists()) {
-      return new VectorDrawableInfo("File " + file.getName() + " does not exist");
+      return new VectorDrawableInfo("File " + filename + " does not exist");
     }
     if (file.isDirectory()) {
-      return new VectorDrawableInfo(new Validator.Result(Severity.WARNING, "Please select a file"));
+      return SELECT_A_FILE;
     }
 
     String xmlFileContent = null;
     StringBuilder errors = new StringBuilder();
-    FileType fileType = FileType.fromFile(file);
 
     try {
+      FileType fileType = FileType.fromFile(file);
       switch (fileType) {
         case SVG: {
-          OutputStream outStream = new ByteArrayOutputStream();
+          ByteArrayOutputStream outStream = new ByteArrayOutputStream();
           String errorMessage = Svg2Vector.parseSvgToXml(file, outStream);
+          xmlFileContent = outStream.toString(UTF_8.name());
           errors.append(errorMessage);
-          xmlFileContent = outStream.toString();
           break;
         }
 
@@ -164,13 +170,19 @@ public final class VectorAsset extends BaseAsset {
           xmlFileContent = new String(Files.readAllBytes(file.toPath()), UTF_8);
           break;
       }
-    } catch (IOException e) {
-      errors.replace(0, errors.length(), e.getMessage());
+    } catch (Exception e) {
+      errors.append("Error while parsing ").append(filename);
+      String errorDetail = e.getLocalizedMessage();
+      if (errorDetail != null) {
+        errors.append(" - ").append(errorDetail);
+      }
+      return new VectorDrawableInfo(errors.toString());
     }
 
     double originalWidth = 0;
     double originalHeight = 0;
     if (!Strings.isNullOrEmpty(xmlFileContent)) {
+      // TODO: Use XML pull parser to make parsing faster.
       Document document = parseXml(xmlFileContent, errors.length() == 0 ? errors : null);
       if (document == null) {
         xmlFileContent = null; // XML content is invalid, discard it.
@@ -188,19 +200,32 @@ public final class VectorAsset extends BaseAsset {
     }
 
     Severity severity = !valid ? Severity.ERROR : errors.length() == 0 ? Severity.OK : Severity.WARNING;
-    Validator.Result messages = new Validator.Result(severity, errors.toString());
-    return new VectorDrawableInfo(messages, xmlFileContent, originalWidth, originalHeight);
+    Validator.Result validityState = createValidatorResult(severity, errors.toString());
+    return new VectorDrawableInfo(validityState, xmlFileContent, originalWidth, originalHeight);
+  }
+
+  @NotNull
+  private static Validator.Result createValidatorResult(@NotNull Validator.Severity severity, @NotNull String errors) {
+    if (errors.indexOf('\n') < 0) {
+      // Single-line error message.
+      return new Validator.Result(severity, "The image may be incomplete: " + errors);
+    }
+
+    // Multi-line error message.
+    String shortMessage = "<html>The image may be incomplete due to encountered <a href=\"issues\">issues</a></html>";
+    return new Validator.Result(severity, shortMessage, errors);
   }
 
   /**
-   * Parses the file specified by the {@link #path()} property, overriding its final width which is
-   * useful for previewing this vector asset in some UI component of the same width.
+   * Parses the file specified by the {@link #path()} property, overriding its final width,
+   * which is useful for previewing this vector asset in some UI component of the same width.
    *
    * @param previewWidth width of the display component
    */
   @NotNull
   public Preview generatePreview(int previewWidth) {
-    VectorDrawableInfo drawableInfo = convertToVectorDrawable(myPath.get());
+    File file = myPath.getValueOrNull();
+    VectorDrawableInfo drawableInfo = file == null ? SELECT_A_FILE : convertToVectorDrawable(file);
     return generatePreview(drawableInfo, previewWidth, null);
   }
 
@@ -244,7 +269,8 @@ public final class VectorAsset extends BaseAsset {
 
     if (validityState.getSeverity() == Severity.OK && errors.length() != 0) {
       validityState = image == null ?
-                      new Validator.Result(Severity.ERROR, ERROR_EMPTY_PREVIEW) : new Validator.Result(Severity.WARNING, errors.toString());
+                      new Validator.Result(Severity.ERROR, ERROR_EMPTY_PREVIEW) :
+                      createValidatorResult(Severity.WARNING, errors.toString());
     }
 
     return new Preview(validityState, image, xmlFileContent);

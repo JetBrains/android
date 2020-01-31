@@ -18,10 +18,10 @@ import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.EaseOutModel;
 import com.android.tools.adtui.model.Interpolatable;
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.RangeSelectionListener;
+import com.android.tools.adtui.model.RangeSelectionModel;
 import com.android.tools.adtui.model.RangedContinuousSeries;
 import com.android.tools.adtui.model.RangedSeries;
-import com.android.tools.adtui.model.SelectionListener;
-import com.android.tools.adtui.model.SelectionModel;
 import com.android.tools.adtui.model.StateChartModel;
 import com.android.tools.adtui.model.axis.AxisComponentModel;
 import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
@@ -31,11 +31,10 @@ import com.android.tools.adtui.model.legend.Legend;
 import com.android.tools.adtui.model.legend.LegendComponentModel;
 import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
+import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.EnergyProfiler;
-import com.android.tools.profiler.proto.EnergyProfiler.EnergyEvent;
-import com.android.tools.profiler.proto.Transport.BytesRequest;
-import com.android.tools.profiler.proto.Transport.BytesResponse;
-import com.android.tools.profiler.protobuf3jarjar.ByteString;
+import com.android.tools.profiler.proto.Transport;
+import com.android.tools.profiler.proto.TransportServiceGrpc;
 import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerMode;
 import com.android.tools.profilers.Stage;
@@ -46,9 +45,10 @@ import com.android.tools.profilers.event.EventMonitor;
 import com.android.tools.profilers.stacktrace.CodeLocation;
 import com.android.tools.profilers.stacktrace.CodeNavigator;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.util.text.StringUtil;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,17 +63,15 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   @NotNull private final EnergyUsageLegends myLegends;
   @NotNull private final EnergyUsageLegends myUsageTooltipLegends;
   @NotNull private final EnergyEventLegends myEventTooltipLegends;
-  @NotNull private final SelectionModel mySelectionModel;
+  @NotNull private final RangeSelectionModel myRangeSelectionModel;
   @NotNull private final EnergyEventsFetcher myFetcher;
-  @NotNull private final StateChartModel<EnergyEvent> myEventModel;
+  @NotNull private final StateChartModel<Common.Event> myEventModel;
   @NotNull private final EaseOutModel myInstructionsEaseOutModel;
   @NotNull private final Updatable myUpdatable;
 
   // Intentionally local field, to prevent GC from cleaning it and removing weak listeners
   @SuppressWarnings("FieldCanBeLocal") private AspectObserver myAspectObserver = new AspectObserver();
   private AspectModel<EnergyProfilerAspect> myAspect = new AspectModel<>();
-
-  @NotNull private final EnergyTraceCache myTraceCache = new EnergyTraceCache(this);
 
   @Nullable private EnergyDuration mySelectedDuration;
 
@@ -87,28 +85,15 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     myUsageTooltipLegends = new EnergyUsageLegends(myDetailedUsage, profilers.getTimeline().getTooltipRange());
     myEventTooltipLegends = new EnergyEventLegends(new DetailedEnergyEventsCount(profilers), profilers.getTimeline().getTooltipRange());
 
-    EnergyEventsDataSeries eventsDataSeries = new EnergyEventsDataSeries(profilers.getClient(), profilers.getSession());
-
-    mySelectionModel = new SelectionModel(profilers.getTimeline().getSelectionRange());
-    mySelectionModel.setSelectionEnabled(profilers.isAgentAttached());
+    myRangeSelectionModel = new RangeSelectionModel(profilers.getTimeline().getSelectionRange());
+    myRangeSelectionModel.setSelectionEnabled(profilers.isAgentAttached());
     profilers.addDependency(myAspectObserver)
-      .onChange(ProfilerAspect.AGENT, () -> mySelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
-    mySelectionModel.addListener(new SelectionListener() {
+      .onChange(ProfilerAspect.AGENT, () -> myRangeSelectionModel.setSelectionEnabled(profilers.isAgentAttached()));
+    myRangeSelectionModel.addListener(new RangeSelectionListener() {
       @Override
       public void selectionCreated() {
         setProfilerMode(ProfilerMode.EXPANDED);
-        profilers.getIdeServices().getFeatureTracker().trackSelectRange();
-        List<EnergyEvent> energyEvents =
-          eventsDataSeries
-            .getDataForXRange(mySelectionModel.getSelectionRange())
-            .stream()
-            .map(seriesData -> seriesData.value)
-            .collect(Collectors.toList());
-        if (!energyEvents.isEmpty()) {
-          List<EnergyDuration> energyDurations = EnergyDuration.groupById(energyEvents);
-          profilers.getIdeServices().getFeatureTracker().trackSelectEnergyRange(new EnergyRangeMetadata(energyDurations));
-        }
-
+        trackRangeSelection(profilers, myRangeSelectionModel.getSelectionRange());
         profilers.getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_ENERGY_SELECTION, true);
         myInstructionsEaseOutModel.setCurrentPercentage(1);
       }
@@ -118,16 +103,13 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
         setProfilerMode(ProfilerMode.NORMAL);
       }
     });
-    myFetcher =
-      new EnergyEventsFetcher(profilers.getClient().getEnergyClient(), profilers.getSession(), profilers.getTimeline().getSelectionRange());
+    myFetcher = new EnergyEventsFetcher(
+      profilers.getClient(),
+      profilers.getSession(),
+      profilers.getTimeline().getSelectionRange(),
+      profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled());
 
-    myEventModel = new StateChartModel<>();
-    Range range = profilers.getTimeline().getViewRange();
-    // StateChart renders series in reverse order
-    myEventModel.addSeries(
-      new RangedSeries<>(range, new MergedEnergyEventsDataSeries(eventsDataSeries, EnergyDuration.Kind.ALARM, EnergyDuration.Kind.JOB)));
-    myEventModel.addSeries(new RangedSeries<>(range, new MergedEnergyEventsDataSeries(eventsDataSeries, EnergyDuration.Kind.WAKE_LOCK)));
-    myEventModel.addSeries(new RangedSeries<>(range, new MergedEnergyEventsDataSeries(eventsDataSeries, EnergyDuration.Kind.LOCATION)));
+    myEventModel = createEventChartModel(profilers);
 
     myInstructionsEaseOutModel = new EaseOutModel(profilers.getUpdater(), PROFILING_INSTRUCTIONS_EASE_OUT_NS);
 
@@ -161,8 +143,8 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   @NotNull
-  public SelectionModel getSelectionModel() {
-    return mySelectionModel;
+  public RangeSelectionModel getRangeSelectionModel() {
+    return myRangeSelectionModel;
   }
 
   @NotNull
@@ -171,7 +153,7 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   @NotNull
-  StateChartModel<EnergyEvent> getEventModel() {
+  StateChartModel<Common.Event> getEventModel() {
     return myEventModel;
   }
 
@@ -232,11 +214,6 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   }
 
   @NotNull
-  public EnergyTraceCache getEventsTraceCache() {
-    return myTraceCache;
-  }
-
-  @NotNull
   public EaseOutModel getInstructionsEaseOutModel() {
     return myInstructionsEaseOutModel;
   }
@@ -245,34 +222,30 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
     return getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().getBoolean(HAS_USED_ENERGY_SELECTION, false);
   }
 
-  @NotNull
-  public ByteString requestBytes(@NotNull String id) {
-    if (StringUtil.isEmpty(id)) {
-      return ByteString.EMPTY;
-    }
-
-    BytesRequest request = BytesRequest.newBuilder()
-      .setStreamId(getStudioProfilers().getSession().getStreamId())
-      .setId(id)
-      .build();
-
-    BytesResponse response = getStudioProfilers().getClient().getTransportClient().getBytes(request);
-    return response.getContents();
-  }
-
   /**
    * Refresh this duration, which is a no-op if it is already terminate, or it fetches latest values if the duration was still in progress.
    */
   @NotNull
   public EnergyDuration updateDuration(@NotNull EnergyDuration duration) {
-    if (duration.getEventList().get(duration.getEventList().size() - 1).getIsTerminal()) {
+    if (duration.getEventList().get(duration.getEventList().size() - 1).getIsEnded()) {
       return duration;
     }
-    EnergyProfiler.EnergyEventGroupRequest request = EnergyProfiler.EnergyEventGroupRequest.newBuilder()
-      .setSession(getStudioProfilers().getSession())
-      .setEventId(duration.getEventList().get(0).getEventId())
-      .build();
-    return new EnergyDuration(getStudioProfilers().getClient().getEnergyClient().getEventGroup(request).getEventsList());
+    if (getStudioProfilers().getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      Transport.GetEventGroupsRequest request = Transport.GetEventGroupsRequest.newBuilder()
+        .setStreamId(getStudioProfilers().getSession().getStreamId())
+        .setPid(getStudioProfilers().getSession().getPid())
+        .setKind(Common.Event.Kind.ENERGY_EVENT)
+        .setGroupId(duration.getEventList().get(0).getGroupId())
+        .build();
+      return new EnergyDuration(getStudioProfilers().getClient().getTransportClient().getEventGroups(request).getGroups(0).getEventsList());
+    }
+    else {
+      EnergyProfiler.EnergyEventGroupRequest request = EnergyProfiler.EnergyEventGroupRequest.newBuilder()
+        .setSession(getStudioProfilers().getSession())
+        .setEventId(duration.getEventList().get(0).getGroupId())
+        .build();
+      return new EnergyDuration(getStudioProfilers().getClient().getEnergyClient().getEventGroup(request).getEventsList());
+    }
   }
 
   @NotNull
@@ -300,8 +273,78 @@ public class EnergyProfilerStage extends Stage implements CodeNavigator.Listener
   @NotNull
   public List<EnergyDuration> filterByOrigin(@NotNull List<EnergyDuration> list) {
     String appName = getStudioProfilers().getSelectedAppName();
-    return list.stream().filter(duration -> getEventOrigin().isValid(appName, myTraceCache.getTraceData(duration.getCalledByTraceId())))
+    return list.stream().filter(duration -> getEventOrigin().isValid(appName, duration.getCalledBy()))
       .collect(Collectors.toList());
+  }
+
+  private static void trackRangeSelection(@NotNull StudioProfilers profilers, Range selectionRange) {
+    profilers.getIdeServices().getFeatureTracker().trackSelectRange();
+    long minNs = TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMin());
+    long maxNs = TimeUnit.MICROSECONDS.toNanos((long)selectionRange.getMax());
+    List<EnergyDuration> energyDurations = new ArrayList<>();
+
+    if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      Transport.GetEventGroupsRequest request = Transport.GetEventGroupsRequest.newBuilder()
+        .setStreamId(profilers.getSession().getStreamId())
+        .setPid(profilers.getSession().getPid())
+        .setKind(Common.Event.Kind.ENERGY_EVENT)
+        .setFromTimestamp(minNs)
+        .setToTimestamp(maxNs)
+        .build();
+      Transport.GetEventGroupsResponse response = profilers.getClient().getTransportClient().getEventGroups(request);
+      for (Transport.EventGroup group : response.getGroupsList()) {
+        energyDurations.add(new EnergyDuration(group.getEventsList()));
+      }
+    }
+    else {
+      EnergyProfiler.EnergyRequest request = EnergyProfiler.EnergyRequest.newBuilder()
+        .setStartTimestamp(minNs)
+        .setEndTimestamp(maxNs)
+        .setSession(profilers.getSession())
+        .build();
+      EnergyProfiler.EnergyEventsResponse response = profilers.getClient().getEnergyClient().getEvents(request);
+      List<Common.Event> energyEvents = response.getEventsList();
+      if (!energyEvents.isEmpty()) {
+        energyDurations = EnergyDuration.groupById(energyEvents);
+      }
+    }
+    if (!energyDurations.isEmpty()) {
+      profilers.getIdeServices().getFeatureTracker().trackSelectEnergyRange(new EnergyRangeMetadata(energyDurations));
+    }
+  }
+
+  private static StateChartModel<Common.Event> createEventChartModel(StudioProfilers profilers) {
+    StateChartModel<Common.Event> stateChartModel = new StateChartModel<>();
+    Range range = profilers.getTimeline().getViewRange();
+    TransportServiceGrpc.TransportServiceBlockingStub transportClient = profilers.getClient().getTransportClient();
+    long streamId = profilers.getSession().getStreamId();
+    int pid = profilers.getSession().getPid();
+
+    // StateChart renders series in reverse order
+    // TODO(b/122964201) Pass data range as 3rd param to RangedSeries to only show data from current session
+    if (profilers.getIdeServices().getFeatureConfig().isUnifiedPipelineEnabled()) {
+      stateChartModel.addSeries(
+        new RangedSeries<>(range, new MergedEnergyEventsDataSeries(transportClient, streamId, pid,
+                                                                   kind -> kind == EnergyDuration.Kind.ALARM ||
+                                                                           kind == EnergyDuration.Kind.JOB)));
+      stateChartModel.addSeries(
+        new RangedSeries<>(range, new MergedEnergyEventsDataSeries(transportClient, streamId, pid,
+                                                                   kind -> kind == EnergyDuration.Kind.WAKE_LOCK)));
+      stateChartModel.addSeries(
+        new RangedSeries<>(range, new MergedEnergyEventsDataSeries(transportClient, streamId, pid,
+                                                                   kind -> kind == EnergyDuration.Kind.LOCATION)));
+    }
+    else {
+      LegacyEnergyEventsDataSeries eventsDataSeries = new LegacyEnergyEventsDataSeries(profilers.getClient(), profilers.getSession());
+      stateChartModel.addSeries(
+        new RangedSeries<>(range,
+                           new LegacyMergedEnergyEventsDataSeries(eventsDataSeries, EnergyDuration.Kind.ALARM, EnergyDuration.Kind.JOB)));
+      stateChartModel.addSeries(
+        new RangedSeries<>(range, new LegacyMergedEnergyEventsDataSeries(eventsDataSeries, EnergyDuration.Kind.WAKE_LOCK)));
+      stateChartModel.addSeries(
+        new RangedSeries<>(range, new LegacyMergedEnergyEventsDataSeries(eventsDataSeries, EnergyDuration.Kind.LOCATION)));
+    }
+    return stateChartModel;
   }
 
   @Override

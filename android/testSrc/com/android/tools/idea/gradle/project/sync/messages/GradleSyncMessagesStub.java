@@ -103,14 +103,9 @@ public class GradleSyncMessagesStub extends GradleSyncMessages {
     return myNotificationUpdate;
   }
 
-  public void clearReportedMessages() {
-    myMessages.clear();
-  }
-
   @Override
-  public void removeMessages(@NotNull String... groupNames) {
-    Set<String> groupNamesSet = new HashSet<>(Arrays.asList(groupNames));
-    myMessages.removeIf(m -> groupNamesSet.contains(m.getGroup()));
+  public void removeAllMessages() {
+    myMessages.clear();
   }
 
   public static class NotificationUpdate {

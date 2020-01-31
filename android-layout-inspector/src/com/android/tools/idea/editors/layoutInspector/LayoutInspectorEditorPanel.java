@@ -23,6 +23,7 @@ import com.android.tools.idea.editors.layoutInspector.ui.PropertiesDefinition;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.LayoutInspectorEvent;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import org.jetbrains.annotations.NotNull;
@@ -34,8 +35,7 @@ public class LayoutInspectorEditorPanel extends WorkBench<LayoutInspectorContext
   public LayoutInspectorEditorPanel(@NotNull LayoutInspectorEditor editor,
                                     @NotNull Project project,
                                     @NotNull LayoutInspectorContext context) {
-    super(project, "Layout Inspector", editor);
-    Disposer.register(editor, this);
+    super(project, "Layout Inspector", editor, (Disposable)editor);
 
     List<ToolWindowDefinition<LayoutInspectorContext>> tools = new ArrayList<>(2);
     tools.add(new LayoutTreeDefinition(Side.LEFT, Split.TOP, AutoHide.DOCKED));

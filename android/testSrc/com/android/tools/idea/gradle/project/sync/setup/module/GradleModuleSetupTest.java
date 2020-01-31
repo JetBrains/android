@@ -15,42 +15,42 @@
  */
 package com.android.tools.idea.gradle.project.sync.setup.module;
 
+import static com.android.tools.idea.Projects.getBaseDirPath;
+import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
+import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
+import static com.android.tools.idea.testing.FileSubject.file;
+import static com.google.common.truth.Truth.assertAbout;
+import static com.intellij.openapi.util.io.FileUtil.writeToFile;
+import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
+import static org.jetbrains.android.facet.AndroidRootUtil.findModuleRootFolderPath;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
+
 import com.android.SdkConstants;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.gradle.project.model.GradleModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleModuleModels;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
-import com.android.tools.idea.gradle.project.sync.GradleSyncSummary;
 import com.android.tools.idea.gradle.stubs.gradle.GradleProjectStub;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProvider;
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.testFramework.JavaProjectTestCase;
+import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.ServiceContainerUtil;
-import org.gradle.tooling.model.GradleProject;
-import org.mockito.Mock;
-
 import java.io.File;
 import java.io.IOException;
-
-import static com.android.tools.idea.Projects.getBaseDirPath;
-import static com.android.tools.idea.gradle.project.sync.setup.Facets.findFacet;
-import static com.android.tools.idea.gradle.util.GradleProjects.findModuleRootFolderPath;
-import static com.android.tools.idea.gradle.util.GradleWrapper.getDefaultPropertiesFilePath;
-import static com.android.tools.idea.testing.FileSubject.file;
-import static com.google.common.truth.Truth.assertAbout;
-import static com.intellij.openapi.util.io.FileUtil.writeToFile;
-import static com.intellij.openapi.util.io.FileUtilRt.createIfNotExists;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
+import org.gradle.tooling.model.GradleProject;
+import org.mockito.Mock;
 
 /**
  * Tests for {@link GradleModuleSetup}.
  */
-public class GradleModuleSetupTest extends JavaProjectTestCase {
+public class GradleModuleSetupTest extends PlatformTestCase {
   @Mock private GradleModuleModels myModuleModels;
   @Mock private GradleSyncState mySyncState;
 
@@ -58,7 +58,6 @@ public class GradleModuleSetupTest extends JavaProjectTestCase {
   private File myBuildFile;
   private IdeModifiableModelsProvider myModelsProvider;
   private GradleProjectStub myGradleProject;
-  private GradleSyncSummary mySyncSummary;
   private GradleModuleSetup myModuleSetup;
 
   @Override
@@ -77,9 +76,6 @@ public class GradleModuleSetupTest extends JavaProjectTestCase {
     createIfNotExists(myBuildFile);
 
     myGradleProject = new GradleProjectStub("app", ":app", getBaseDirPath(project), myBuildFile, "assemble");
-
-    mySyncSummary = new GradleSyncSummary(project);
-    when(mySyncState.getSummary()).thenReturn(mySyncSummary);
 
     myModelsProvider = new IdeModifiableModelsProviderImpl(project);
     myModuleSetup = new GradleModuleSetup();
@@ -108,8 +104,6 @@ public class GradleModuleSetupTest extends JavaProjectTestCase {
 
     assertAbout(file()).that(gradleModuleModel.getBuildFilePath()).isEquivalentAccordingToCompareTo(myBuildFile);
 
-    GradleVersion actualGradleVersion = mySyncSummary.getGradleVersion();
-    assertNotNull(actualGradleVersion);
-    assertEquals(gradleVersion, actualGradleVersion.toString());
+    verify(mySyncState, times(1)).setLastSyncedGradleVersion(argThat(version -> version.toString().equals(gradleVersion)));
   }
 }

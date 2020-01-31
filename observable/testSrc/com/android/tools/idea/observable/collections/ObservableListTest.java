@@ -484,7 +484,7 @@ public final class ObservableListTest {
     CountListener listener = new CountListener();
     numericList.addListener(listener);
 
-    numericList.setAll(ImmutableSet.of());
+    numericList.setAll(ImmutableSet.<Integer>of());
 
     assertThat(numericList).isEmpty();
     assertThat(listener.getCount()).isEqualTo(1);

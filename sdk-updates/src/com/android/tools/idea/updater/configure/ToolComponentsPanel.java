@@ -15,25 +15,39 @@
  */
 package com.android.tools.idea.updater.configure;
 
+import static com.android.repository.util.RepoPackageUtilKt.getRepoPackagePrefix;
+
 import com.android.SdkConstants;
+import com.android.repository.Revision;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.repository.installer.MavenInstallListener;
 import com.android.sdklib.repository.meta.DetailsTypes;
 import com.android.tools.idea.sdk.install.patch.PatchInstallerUtil;
-import com.google.common.collect.*;
+import com.android.tools.idea.welcome.install.Haxm;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
 import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
 import com.intellij.util.ui.AsyncProcessIcon;
 import com.intellij.util.ui.ColumnInfo;
 import com.intellij.util.ui.tree.TreeUtil;
-import org.jetbrains.annotations.NotNull;
-
-import javax.swing.*;
+import java.awt.CardLayout;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Enumeration;
+import java.util.Set;
+import java.util.TreeSet;
+import javax.swing.JCheckBox;
+import javax.swing.JPanel;
 import javax.swing.event.ChangeListener;
-import java.awt.*;
-import java.util.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Panel that shows all packages not associated with an AndroidVersion.
@@ -41,11 +55,15 @@ import java.util.*;
 public class ToolComponentsPanel {
   private static final Set<String> MULTI_VERSION_PREFIXES =
     ImmutableSet.of(SdkConstants.FD_BUILD_TOOLS, SdkConstants.FD_LLDB, SdkConstants.FD_CMAKE,
-                    SdkConstants.FD_NDK_SIDE_BY_SIDE,
+                    SdkConstants.FD_NDK_SIDE_BY_SIDE, SdkConstants.FD_CMDLINE_TOOLS,
                     String.join(String.valueOf(RepoPackage.PATH_SEPARATOR),
                                 SdkConstants.FD_EXTRAS,
                                 SdkConstants.FD_ANDROID_EXTRAS,
                                 SdkConstants.FD_GAPID));
+
+  // TODO: Add more fine-grained support for ChromeOS to SDK repo infrastructure (b/131738330)
+  private static final Set<String> CHROME_OS_INCOMPATIBLE_PATHS =
+    ImmutableSet.of(SdkConstants.FD_EMULATOR, Haxm.REPO_PACKAGE_PATH);
 
   private TreeTableView myToolsSummaryTable;
   private JCheckBox myToolsDetailsCheckbox;
@@ -55,22 +73,20 @@ public class ToolComponentsPanel {
   private JPanel myToolsLoadingPanel;
   @SuppressWarnings("unused") private AsyncProcessIcon myToolsLoadingIcon;
   @SuppressWarnings("unused") private JPanel myRootPanel;
-  private final Set<UpdatablePackage> myToolsPackages = Sets.newTreeSet(new Comparator<UpdatablePackage>() {
-    @Override
-    public int compare(UpdatablePackage o1, UpdatablePackage o2) {
-      // Since we won't have added these packages if they don't have something we care about.
-      //noinspection ConstantConditions
-      return ComparisonChain.start()
-        .compare(o1.getRepresentative().getDisplayName(), o2.getRepresentative().getDisplayName())
-        .compare(o1.getRepresentative().getPath(), o2.getRepresentative().getPath())
-        .result();
-    }
+  private final Set<UpdatablePackage> myToolsPackages = Sets.newTreeSet((o1, o2) -> {
+    // Since we won't have added these packages if they don't have something we care about.
+    return ComparisonChain.start()
+      .compare(o1.getRepresentative().getDisplayName(), o2.getRepresentative().getDisplayName())
+      .compare(o1.getRepresentative().getPath(), o2.getRepresentative().getPath())
+      .result();
   });
   private final Multimap<String, UpdatablePackage> myMultiVersionPackages = HashMultimap.create();
   private final Multimap<String, UpdatablePackage> myMavenPackages = HashMultimap.create();
 
-  private UpdaterTreeNode myToolsDetailsRootNode;
-  private UpdaterTreeNode myToolsSummaryRootNode;
+  @VisibleForTesting
+  UpdaterTreeNode myToolsDetailsRootNode;
+  @VisibleForTesting
+  UpdaterTreeNode myToolsSummaryRootNode;
 
   Set<PackageNodeModel> myStates = Sets.newHashSet();
 
@@ -94,12 +110,13 @@ public class ToolComponentsPanel {
 
     for (String prefix : myMultiVersionPackages.keySet()) {
       Collection<UpdatablePackage> versions = myMultiVersionPackages.get(prefix);
-      Set<DetailsTreeNode> detailsNodes = new TreeSet<>();
+      // TODO: maybe support "latest" in the repo infrastructure?
+      Set<DetailsTreeNode> detailsNodes =
+        new TreeSet<>(Comparator.<DetailsTreeNode, Revision>comparing(node -> node.getPackage().getVersion())
+                        .thenComparing(node -> node.getPackage().getPath().endsWith("latest"))
+                        .reversed());
       for (UpdatablePackage info : versions) {
         RepoPackage representative = info.getRepresentative();
-        if (representative.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
-          continue;
-        }
         if (representative.getTypeDetails() instanceof DetailsTypes.MavenType) {
           // Maven repository in the SDK manager is deprecated. So we should not visualise it here.
           // TODO: Mark the packages as deprecated on the server side.
@@ -107,6 +124,9 @@ public class ToolComponentsPanel {
         }
 
         PackageNodeModel model = new PackageNodeModel(info);
+        if (model.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
+          continue;
+        }
         myStates.add(model);
 
         detailsNodes.add(new DetailsTreeNode(model, myModificationListener, myConfigurable));
@@ -121,16 +141,15 @@ public class ToolComponentsPanel {
       }
     }
     for (UpdatablePackage info : myToolsPackages) {
-      RepoPackage representative = info.getRepresentative();
-      if (representative.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
-        continue;
-      }
       boolean isMaven = info.getPath().endsWith(RepoPackage.PATH_SEPARATOR + MavenInstallListener.MAVEN_DIR_NAME);
       if (isMaven) {
         continue;
       }
 
       PackageNodeModel holder = new PackageNodeModel(info);
+      if (holder.obsolete() && myHideObsoletePackagesCheckbox.isSelected()) {
+        continue;
+      }
       myStates.add(holder);
       UpdaterTreeNode node = new DetailsTreeNode(holder, myModificationListener, myConfigurable);
       myToolsDetailsRootNode.add(node);
@@ -151,25 +170,34 @@ public class ToolComponentsPanel {
     myMultiVersionPackages.clear();
     myToolsPackages.clear();
     for (UpdatablePackage p : toolsPackages) {
-      String prefix = p.getRepresentative().getPath();
-      int lastSegmentIndex = prefix.lastIndexOf(';');
+      String path = p.getRepresentative().getPath();
+      if (shouldAlwaysHide(path)) {
+        continue;
+      }
+
       boolean found = false;
-      if (lastSegmentIndex > 0) {
-        prefix = prefix.substring(0, lastSegmentIndex);
-        if (prefix.equals(PatchInstallerUtil.PATCHER_PATH_PREFIX)) {
-          // We don't want to show the patcher in the UI
-          continue;
-        }
-        if (MULTI_VERSION_PREFIXES.contains(prefix) || p.getRepresentative().getTypeDetails() instanceof DetailsTypes.MavenType) {
-          myMultiVersionPackages.put(prefix, p);
-          found = true;
-        }
+      String prefix = getRepoPackagePrefix(path);
+      if (MULTI_VERSION_PREFIXES.contains(prefix) || p.getRepresentative().getTypeDetails() instanceof DetailsTypes.MavenType) {
+        myMultiVersionPackages.put(prefix, p);
+        found = true;
       }
       if (!found) {
         myToolsPackages.add(p);
       }
     }
     updateToolsItems();
+  }
+
+  private static boolean shouldAlwaysHide(@NotNull String path) {
+    String prefix = getRepoPackagePrefix(path);
+    if (prefix.equals(PatchInstallerUtil.PATCHER_PATH_PREFIX)) {
+      // We don't want to show the patcher in the UI
+      return true;
+    }
+    if (SystemInfo.isChromeOS && CHROME_OS_INCOMPATIBLE_PATHS.contains(path)) {
+      return true;
+    }
+    return false;
   }
 
   public void startLoading() {

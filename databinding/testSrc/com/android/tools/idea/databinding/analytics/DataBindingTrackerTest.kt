@@ -61,9 +61,16 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
   @Before
   fun setUp() {
     projectRule.fixture.testDataPath = TestDataPaths.TEST_DATA_ROOT
+    projectRule.fixture.addFileToProject("AndroidManifest.xml", """
+      <?xml version="1.0" encoding="utf-8"?>
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="test.db">
+        <application />
+      </manifest>
+    """.trimIndent())
     projectRule.fixture.copyDirectoryToProject(TestDataPaths.PROJECT_FOR_TRACKING, "src")
-    val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)
-    ModuleDataBinding.getInstance(androidFacet!!).setMode(mode)
+
+    val androidFacet = FacetManager.getInstance(projectRule.module).getFacetByType(AndroidFacet.ID)!!
+    ModuleDataBinding.getInstance(androidFacet).dataBindingMode = mode
   }
 
   @Test
@@ -73,8 +80,8 @@ class DataBindingTrackerTest(private val mode: DataBindingMode) {
       try {
         UsageTracker.setWriterForTest(tracker)
         val syncState = GradleSyncState.getInstance(projectRule.project)
-        syncState.syncStarted(true, GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED))
-        syncState.syncEnded()
+        syncState.syncStarted(GradleSyncInvoker.Request(GradleSyncStats.Trigger.TRIGGER_TEST_REQUESTED), null)
+        syncState.syncSucceeded()
         val dataBindingPollMetadata = tracker.usages
           .map { it.studioEvent }
           .filter { it.kind == AndroidStudioEvent.EventKind.DATA_BINDING }

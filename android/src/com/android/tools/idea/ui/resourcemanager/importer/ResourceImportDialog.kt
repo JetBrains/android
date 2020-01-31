@@ -15,36 +15,58 @@
  */
 package com.android.tools.idea.ui.resourcemanager.importer
 
+import com.android.tools.idea.help.StudioHelpManagerImpl.STUDIO_HELP_PREFIX
+import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeCellRenderer
+import com.android.tools.idea.npw.assetstudio.ui.ProposedFileTreeModel
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
-import com.android.tools.idea.ui.resourcemanager.model.DesignAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.ResourceAssetSet
+import com.android.tools.idea.ui.resourcemanager.model.designAssets
+import com.android.tools.idea.ui.resourcemanager.widget.DetailedPreview
 import com.intellij.icons.AllIcons
 import com.intellij.ide.plugins.newui.VerticalLayout
+import com.intellij.ide.wizard.AbstractWizard
+import com.intellij.ide.wizard.Step
+import com.intellij.ide.wizard.StepAdapter
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.ComponentValidator
-import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.DocumentAdapter
+import com.intellij.ui.JBCardLayout
 import com.intellij.ui.JBColor
+import com.intellij.ui.JBSplitter
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.tree.TreeUtil
 import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
 import java.awt.FlowLayout
 import java.awt.KeyboardFocusManager
 import java.awt.Rectangle
+import java.awt.event.ItemEvent
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 import java.beans.PropertyChangeListener
 import java.util.IdentityHashMap
+import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 import javax.swing.BorderFactory
+import javax.swing.GroupLayout
 import javax.swing.ImageIcon
 import javax.swing.JComponent
+import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JTextField
 import javax.swing.event.DocumentEvent
@@ -67,12 +89,12 @@ private val CONTENT_PANEL_BORDER = JBUI.Borders.empty(0, 20)
  */
 class ResourceImportDialog(
   private val dialogViewModel: ResourceImportDialogViewModel
-) : DialogWrapper(dialogViewModel.facet.module.project, true, DialogWrapper.IdeModalityType.MODELESS) {
+) : AbstractWizard<Step>(DIALOG_TITLE, dialogViewModel.facet.module.project) {
 
   constructor(facet: AndroidFacet, assetSets: Sequence<DesignAsset>) :
     this(ResourceImportDialogViewModel(facet, assetSets))
 
-  private val assetSetToView = IdentityHashMap<DesignAssetSet, DesignAssetSetView>()
+  private val assetSetToView = IdentityHashMap<ResourceAssetSet, DesignAssetSetView>()
 
   private val content = JPanel(VerticalLayout(0)).apply {
     border = CONTENT_PANEL_BORDER
@@ -100,33 +122,55 @@ class ResourceImportDialog(
   }
 
   init {
-    setOKButtonText("Import")
+    addWizardSteps()
     setSize(DIALOG_SIZE.width(), DIALOG_SIZE.height())
     setResizable(false)
-    isOKActionEnabled = true
-    title = DIALOG_TITLE
     dialogViewModel.updateCallback = ::updateValues
     init()
     dialogViewModel.assetSets.forEach(this::addDesignAssetSet)
     updateValues()
+    setupWindowListener()
     KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", focusPropertyChangeListener)
   }
 
-  override fun doOKAction() {
-    dialogViewModel.doImport()
-    super.doOKAction()
+  /**
+   * Setup a window listener that will display the file picker as soon as the dialog
+   * opens if the [ResourceImportDialogViewModel] contains no asset.
+   */
+  private fun setupWindowListener() {
+    if (ApplicationManager.getApplication().isHeadlessEnvironment) {
+      return
+    }
+    window.addWindowListener(object : WindowAdapter() {
+      override fun windowActivated(e: WindowEvent?) {
+        dialogViewModel.importMoreAssetIfEmpty(this@ResourceImportDialog::addAssets)
+        // Remove the listener after the first call, otherwise it will be displayed
+        // each time the dialog has the focus.
+        e?.window?.removeWindowListener(this)
+      }
+    })
   }
 
-  override fun createCenterPanel() = root
+  private fun addWizardSteps() {
+    addStep(object : StepAdapter() {
+      override fun _commit(finishChosen: Boolean) {
+        if (doValidateAll().isEmpty()) {
+          dialogViewModel.commit()
+        }
+      }
+      override fun getComponent() = root
+    })
+    addStep(SummaryStep(dialogViewModel.summaryScreenViewModel))
+  }
+
   override fun createNorthPanel() = northPanel
-  override fun getStyle() = DialogStyle.COMPACT
 
   private fun updateValues() {
     val importedAssetCount = dialogViewModel.fileCount
     fileCountLabel.text = "$importedAssetCount ${StringUtil.pluralize("resource", importedAssetCount)} ready to be imported"
   }
 
-  private fun addDesignAssetSet(assetSet: DesignAssetSet) {
+  private fun addDesignAssetSet(assetSet: ResourceAssetSet) {
     val view = DesignAssetSetView(assetSet)
     content.add(view)
     assetSetToView[assetSet] = view
@@ -136,7 +180,7 @@ class ResourceImportDialog(
    * If a [DesignAssetSetView] already exists for [designAssetSet], merge the [newDesignAssets]
    * within this view, otherwise create a new [DesignAssetSetView].
    */
-  private fun addAssets(designAssetSet: DesignAssetSet,
+  private fun addAssets(designAssetSet: ResourceAssetSet,
                         newDesignAssets: List<DesignAsset>) {
     val existingView = assetSetToView[designAssetSet]
     if (existingView != null) {
@@ -145,12 +189,16 @@ class ResourceImportDialog(
     else {
       addDesignAssetSet(designAssetSet)
     }
+    updateStep()
   }
 
   private fun createImportButtonAction(): JComponent {
     val importAction = object : DumbAwareAction("Import more assets", "Import more assets", AllIcons.Actions.Upload) {
       override fun actionPerformed(e: AnActionEvent) {
         dialogViewModel.importMoreAssets { designAssetSet, newDesignAssets ->
+          if (newDesignAssets.isNotEmpty()) {
+            jumpToImportStep()
+          }
           addAssets(designAssetSet, newDesignAssets)
         }
       }
@@ -162,9 +210,19 @@ class ResourceImportDialog(
   }
 
   /**
-   * View showing a [DesignAssetSet] and its contained [DesignAsset].
+   * Jump back to the import step and scroll the the end so the last added files are
+   * visible.
    */
-  private inner class DesignAssetSetView(private var assetSet: DesignAssetSet) : JPanel(BorderLayout(0, 0)) {
+  private fun jumpToImportStep() {
+    myCurrentStep = 0
+    updateStep(JBCardLayout.SwipeDirection.BACKWARD)
+    root.viewport.scrollRectToVisible(Rectangle(content.width, content.height, content.width + 1, content.height + 1))
+  }
+
+  /**
+   * View showing a [ResourceAssetSet] and its contained [DesignAsset].
+   */
+  private inner class DesignAssetSetView(private var assetSet: ResourceAssetSet) : JPanel(BorderLayout(0, 0)) {
     val assetNameLabel = JBTextField(assetSet.name, 20).apply {
       this.font = UIUtil.getLabelFont().deriveFont(JBUI.scaleFontSize(14f))
       document.addDocumentListener(object : DocumentAdapter() {
@@ -177,7 +235,11 @@ class ResourceImportDialog(
     }
 
     private fun JTextField.installValidator() {
-      ComponentValidator(disposable).withValidator(Supplier { dialogViewModel.validateName(this.text, this) })
+      ComponentValidator(disposable).withValidator(Supplier {
+        dialogViewModel.validateName(this.text, this).also {
+          updateButtons()
+        }
+      })
         .installOn(this)
         .revalidate()
     }
@@ -238,6 +300,7 @@ class ResourceImportDialog(
         parent.remove(this)
         root.revalidate()
         root.repaint()
+        updateStep()
       }
     }
   }
@@ -263,12 +326,142 @@ class ResourceImportDialog(
     }
   }
 
-  override fun doValidate() = dialogViewModel.getValidationInfo()
+  override fun canGoNext(): Boolean {
+    return dialogViewModel.assetSets.isNotEmpty() && doValidateAll().isEmpty()
+  }
+
+  override fun updateButtons(lastStep: Boolean, canGoNext: Boolean, firstStep: Boolean) {
+    super.updateButtons(lastStep, canGoNext, firstStep)
+    if (lastStep) {
+      nextButton.text = "Import"
+    }
+  }
+
+  override fun getHelpID(): String? {
+    return STUDIO_HELP_PREFIX + "studio/write/resource-manager"
+  }
+
+  override fun doValidate(): ValidationInfo? {
+    val result = dialogViewModel.getValidationInfo()
+    setErrorInfoAll(if (result != null) listOf(result) else emptyList())
+    return result
+  }
 
   override fun getValidationThreadToUse(): Alarm.ThreadToUse = Alarm.ThreadToUse.POOLED_THREAD
 
   override fun dispose() {
     super.dispose()
     KeyboardFocusManager.getCurrentKeyboardFocusManager().removePropertyChangeListener("focusOwner", focusPropertyChangeListener)
+  }
+}
+
+/**
+ * UI of the second step of the resource wizard showing a summary of the file being imported.
+ */
+private class SummaryStep(private val viewModel: SummaryScreenViewModel) : StepAdapter() {
+
+  private var root: JComponent? = null
+
+  private val preview = DetailedPreview().apply {
+    border = JBUI.Borders.emptyTop(6)
+  }
+
+  private val fileTree = createTree()
+
+  private var pendingFuture: CompletableFuture<*>? = null
+
+  init {
+    viewModel.updateCallback = this::update
+  }
+
+  override fun _init() {
+    root = JBSplitter(false, 0.5f).apply {
+      isShowDividerControls = true
+      isShowDividerIcon = true
+      firstComponent = createFileTreePreview()
+      secondComponent = preview
+      dividerWidth = JBUI.scale(4)
+    }
+  }
+
+  private fun createFileTreePreview() = JPanel(BorderLayout()).apply {
+    border = JBUI.Borders.merge(border, JBUI.Borders.empty(8), true)
+    add(createSourceSetSelectionCombo(), BorderLayout.NORTH)
+    add(JBScrollPane(fileTree).apply {
+      background = UIUtil.getPanelBackground()
+    })
+  }
+
+  /**
+   * Panel showing a dropdown to select the target source set
+   * and a tree of the file to be imported
+   */
+  private fun createSourceSetSelectionCombo() = JPanel().apply {
+    val groupLayout = GroupLayout(this)
+    layout = groupLayout
+    val label = JBLabel("Source Set:")
+    val comboBox = ComboBox<SourceSetResDir>(viewModel.availableResDirs).apply {
+      addItemListener { itemEvent ->
+        if (itemEvent.stateChange == ItemEvent.SELECTED) {
+          viewModel.selectedResDir = itemEvent.item as SourceSetResDir
+        }
+      }
+      renderer = object : ColoredListCellRenderer<SourceSetResDir>() {
+        override fun customizeCellRenderer(list: JList<out SourceSetResDir>,
+                                           value: SourceSetResDir,
+                                           index: Int,
+                                           selected: Boolean,
+                                           hasFocus: Boolean) {
+          append(value.sourceSetName)
+          append(" ")
+          append(viewModel.getUserFormattedPath(value.absolutePath), SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES)
+        }
+      }
+    }
+    groupLayout.setHorizontalGroup(groupLayout.createSequentialGroup()
+                                     .addComponent(label)
+                                     .addComponent(comboBox, 50, comboBox.preferredSize.width, Int.MAX_VALUE))
+
+    groupLayout.setVerticalGroup(groupLayout.createParallelGroup(GroupLayout.Alignment.CENTER)
+                                   .addComponent(label)
+                                   .addComponent(comboBox))
+  }
+
+  override fun _commit(finishChosen: Boolean) {
+    if (finishChosen) {
+      viewModel.doImport()
+    }
+  }
+
+  override fun getComponent(): JComponent? = root
+
+  private fun update() {
+    if (viewModel.fileTreeModel !== fileTree.model) {
+      val previousSelectionRow = fileTree.leadSelectionRow
+      fileTree.model = viewModel.fileTreeModel
+      TreeUtil.expandAll(fileTree)
+      if (previousSelectionRow >= 0) {
+        fileTree.setSelectionRow(previousSelectionRow)
+      }
+      else {
+        TreeUtil.selectPath(fileTree, TreeUtil.getFirstLeafNodePath(fileTree))
+      }
+    }
+    preview.data = viewModel.metadata
+    pendingFuture?.cancel(true)
+    pendingFuture = viewModel.getPreview().whenComplete { icon, _ ->
+      pendingFuture = null
+      preview.icon = icon
+    }
+  }
+
+  private fun createTree() = Tree(viewModel.fileTreeModel).apply {
+    cellRenderer = ProposedFileTreeCellRenderer()
+    background = UIUtil.getTreeBackground()
+    addTreeSelectionListener { selectionEvent ->
+      val node = selectionEvent.newLeadSelectionPath?.lastPathComponent as? ProposedFileTreeModel.Node
+      viewModel.selectedFile = if (node != null && node.isLeaf()) node.file else null
+    }
+    TreeUtil.expandAll(this)
   }
 }

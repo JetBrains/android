@@ -20,8 +20,9 @@ import static com.android.tools.lint.checks.DeprecatedSdkRegistryKt.DEPRECATED_S
 import static com.android.tools.lint.detector.api.TextFormat.RAW;
 
 import com.android.annotations.NonNull;
-import com.android.builder.model.AndroidProject;
 import com.android.builder.model.LintOptions;
+import com.android.ide.common.gradle.model.IdeAndroidProject;
+import com.android.ide.common.gradle.model.IdeLintOptions;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.GradleVersion;
 import com.android.ide.common.repository.ResourceVisibilityLookup;
@@ -43,7 +44,6 @@ import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.project.AndroidProjectInfo;
 import com.android.tools.idea.res.FileResourceReader;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.progress.StudioLoggerProgressIndicator;
@@ -128,6 +128,7 @@ import org.jetbrains.android.inspections.lint.ProblemData;
 import org.jetbrains.android.inspections.lint.State;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
+import org.jetbrains.android.util.AndroidResourceUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -212,10 +213,10 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   public Configuration getConfiguration(@NonNull com.android.tools.lint.detector.api.Project project, @Nullable final LintDriver driver) {
     if (project.isGradleProject() && project.isAndroidProject() && !project.isLibrary()) {
-      AndroidProject model = project.getGradleProjectModel();
+      IdeAndroidProject model = project.getGradleProjectModel();
       if (model != null) {
         try {
-          LintOptions lintOptions = model.getLintOptions();
+          IdeLintOptions lintOptions = model.getLintOptions();
           final Map<String, Integer> overrides = lintOptions.getSeverityOverrides();
           if (overrides != null && !overrides.isEmpty()) {
             return new DefaultConfiguration(this, project, null) {
@@ -504,7 +505,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   private AndroidSdkHandler sdk = null;
 
   @Nullable
-  @Override
+@Override
   public AndroidSdkHandler getSdk() {
     if (sdk == null) {
       Module module = getModule();
@@ -1151,7 +1152,7 @@ public class LintIdeClient extends LintClient implements Disposable {
   @Override
   @NonNull
   public Location.Handle createResourceItemHandle(@NonNull ResourceItem item) {
-    XmlTag tag = LocalResourceRepository.getItemTag(myProject, item);
+    XmlTag tag = AndroidResourceUtil.getItemTag(myProject, item);
     if (tag != null) {
       PathString source = item.getSource();
       assert source != null : item;

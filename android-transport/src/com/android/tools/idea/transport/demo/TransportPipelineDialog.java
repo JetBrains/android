@@ -45,6 +45,7 @@ import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.swing.JButton;
@@ -153,7 +154,7 @@ public class TransportPipelineDialog extends DialogWrapper {
         event -> {
           // Add events to log
           myEventLog.append(event.toString());
-          return Unit.INSTANCE;
+          return false;
         });
       myTransportEventPoller.registerListener(mySelectedEventListener);
     });
@@ -206,7 +207,7 @@ public class TransportPipelineDialog extends DialogWrapper {
         myStreamIdMap.put(stream.getStreamId(), stream);
         myProcessesMap.put(stream.getStreamId(), new ArrayList<>());
         rebuildDevicesDropdown();
-        return Unit.INSTANCE;
+        return false;
       });
     myTransportEventPoller.registerListener(streamConnectedListener);
 
@@ -221,7 +222,7 @@ public class TransportPipelineDialog extends DialogWrapper {
         myStreamIdMap.remove(stream.getStreamId());
         myProcessesMap.remove(stream.getStreamId());
         rebuildDevicesDropdown();
-        return Unit.INSTANCE;
+        return false;
       });
     myTransportEventPoller.registerListener(streamDisconnectedListener);
 
@@ -236,7 +237,7 @@ public class TransportPipelineDialog extends DialogWrapper {
         myProcessesMap.get(process.getDeviceId()).add(process);
         myProcessIdMap.put(event.getGroupId(), process);
         rebuildDevicesDropdown();
-        return Unit.INSTANCE;
+        return false;
       });
     myTransportEventPoller.registerListener(processStartedListener);
 
@@ -252,7 +253,7 @@ public class TransportPipelineDialog extends DialogWrapper {
           myProcessesMap.get(process.getDeviceId()).remove(process);
         }
         rebuildDevicesDropdown();
-        return Unit.INSTANCE;
+        return false;
       });
     myTransportEventPoller.registerListener(processEndedListener);
   }
@@ -303,7 +304,7 @@ public class TransportPipelineDialog extends DialogWrapper {
     else {
       List<CommonAction> processActions = new ArrayList<>();
       for (Common.Process process : processes) {
-        CommonAction processAction = new CommonAction(String.format("%s (%d)", process.getName(), process.getPid()), null);
+        CommonAction processAction = new CommonAction(String.format(Locale.US, "%s (%d)", process.getName(), process.getPid()), null);
         processAction.setAction(() -> {
           mySelectedStream = stream;
           mySelectedProcess = process;
@@ -318,7 +319,7 @@ public class TransportPipelineDialog extends DialogWrapper {
             .setType(Command.CommandType.ATTACH_AGENT)
             .setAttachAgent(
               Commands.AttachAgent.newBuilder()
-                .setAgentLibFileName(String.format("libperfa_%s.so", process.getAbiCpuArch()))
+                .setAgentLibFileName(String.format("libjvmtiagent_%s.so", process.getAbiCpuArch()))
                 .setAgentConfigPath(TransportFileManager.getAgentConfigFile()))
             .build();
           myClient.getTransportStub().execute(Transport.ExecuteRequest.newBuilder().setCommand(attachCommand).build());
@@ -345,7 +346,7 @@ public class TransportPipelineDialog extends DialogWrapper {
       event -> {
         // If a process is selected, enable the UI once the agent is detected.
         toggleControls(true);
-        return Unit.INSTANCE;
+        return false;
       });
     myTransportEventPoller.registerListener(myAgentStatusListener);
   }

@@ -42,12 +42,12 @@ public class AndroidInlineLayoutHandler extends InlineActionHandler {
   }
 
   @Override
-  public boolean canInlineElement(PsiElement element) {
-    return false;
+  public boolean isEnabledOnElement(PsiElement element, @Nullable Editor editor) {
+    return canInlineElementInEditor(element, editor);
   }
 
   @Override
-  public boolean canInlineElementInEditor(PsiElement element, Editor editor) {
+  public boolean canInlineElement(PsiElement element) {
     if (element instanceof ResourceElementWrapper) {
       element = ((ResourceElementWrapper)element).getWrappedElement();
     }
@@ -59,7 +59,12 @@ public class AndroidInlineLayoutHandler extends InlineActionHandler {
       return DomManager.getDomManager(element.getProject()).getDomFileDescription((XmlFile)element)
         instanceof LayoutDomFileDescription;
     }
-    return getLayoutUsageDataFromContext(editor) != null;
+    return false;
+  }
+
+  @Override
+  public boolean canInlineElementInEditor(PsiElement element, Editor editor) {
+    return canInlineElement(element) || getLayoutUsageDataFromContext(editor) != null;
   }
 
   @Nullable

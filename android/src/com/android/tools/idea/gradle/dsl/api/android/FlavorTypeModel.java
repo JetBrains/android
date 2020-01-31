@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.dsl.api.android;
 
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel;
 import com.android.tools.idea.gradle.dsl.api.android.SigningConfigModel;
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel;

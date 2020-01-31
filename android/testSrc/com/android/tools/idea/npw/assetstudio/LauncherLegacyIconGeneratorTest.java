@@ -32,7 +32,7 @@ public class LauncherLegacyIconGeneratorTest extends AndroidTestCase {
     disposeOnTearDown(generator);
     generator.shape().set(IconGenerator.Shape.CIRCLE);
     generator.backgroundColor().set(new Color(0xFFFF00));
-    List<String> expectedFolders = ImmutableList.of("", "mipmap-xxxhdpi", "mipmap-xxhdpi", "mipmap-xhdpi", "mipmap-hdpi", "mipmap-mdpi");
+    List<String> expectedFolders = ImmutableList.of("mipmap-xxxhdpi", "mipmap-xxhdpi", "mipmap-xhdpi", "mipmap-hdpi", "mipmap-mdpi");
     IconGeneratorTestUtil.checkGraphic(generator, sourceType, "android_in_circle", paddingPercent, expectedFolders,
                                        paddingPercent >= 0 ? "launcher" : "launcher_cropped");
   }

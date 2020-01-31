@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.actions
 
-import com.android.tools.idea.lang.roomSql.resolution.RoomSchemaManager
+import com.android.tools.idea.lang.androidSql.room.RoomSchemaManager
 import com.intellij.ide.scratch.ScratchFileService
 import com.intellij.ide.scratch.ScratchRootType
 import com.intellij.openapi.actionSystem.AnAction
@@ -24,6 +24,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileTypes.PlainTextLanguage
+import com.intellij.openapi.module.ModuleUtil
 import java.io.PrintWriter
 import java.io.StringWriter
 
@@ -44,7 +45,8 @@ class ShowRoomSchemaAction : AnAction("Show Room schema") {
     val psiFile = CommonDataKeys.PSI_FILE.getData(e.dataContext)
 
     if (psiFile != null) {
-      val schema = RoomSchemaManager.getInstance(project)?.getSchema(psiFile)
+      val module = ModuleUtil.findModuleForPsiElement(psiFile)
+      val schema = module?.let { RoomSchemaManager.getInstance(it)?.getSchema(psiFile) }
 
       if (schema == null) {
         writer.println("Failed to get Room schema.")

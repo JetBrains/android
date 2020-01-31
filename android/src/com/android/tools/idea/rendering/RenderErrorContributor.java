@@ -40,7 +40,7 @@ import com.android.ide.common.rendering.api.LayoutLog;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.layoutlib.bridge.impl.RenderSessionImpl;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
@@ -79,6 +79,7 @@ import com.intellij.openapi.roots.ui.configuration.ModulesConfigurator;
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
@@ -89,6 +90,9 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
+import com.intellij.psi.util.CachedValue;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import java.awt.datatransfer.StringSelection;
@@ -129,6 +133,8 @@ import org.jetbrains.jps.model.java.compiler.JpsJavaCompilerOptions;
  */
 public class RenderErrorContributor {
   private static final String RENDER_SESSION_IMPL_FQCN = RenderSessionImpl.class.getCanonicalName();
+  private static final Key<CachedValue<Set<String>>> VIEWS_CACHE_KEY =
+    new Key<>(RenderErrorContributor.class.getName() + ".VIEWS_CACHE");
 
   // These priorities can be used to promote certain issues to the top of the list
   protected static final int HIGH_PRIORITY = 100;
@@ -230,24 +236,20 @@ public class RenderErrorContributor {
       return Collections.emptyList();
     }
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      return ApplicationManager.getApplication().runReadAction(new Computable<Collection<String>>() {
-        @NotNull
-        @Override
-        public Collection<String> compute() {
-          return getAllViews(module);
+      return ApplicationManager.getApplication().runReadAction((Computable<Collection<String>>)() -> getAllViews(module));
+    }
+
+    // Optimization: we cache the set of views per module, using a modification tracker which ignores XML keystrokes.
+    return CachedValuesManager.getManager(module.getProject()).getCachedValue(module, VIEWS_CACHE_KEY, () -> {
+      Set<String> names = new HashSet<>();
+      for (PsiClass psiClass : findInheritors(module, CLASS_VIEW)) {
+        String name = psiClass.getQualifiedName();
+        if (name != null) {
+          names.add(name);
         }
-      });
-    }
-
-    Set<String> names = new HashSet<>();
-    for (PsiClass psiClass : findInheritors(module, CLASS_VIEW)) {
-      String name = psiClass.getQualifiedName();
-      if (name != null) {
-        names.add(name);
       }
-    }
-
-    return names;
+      return CachedValueProvider.Result.create(names, AndroidPsiUtils.getPsiModificationTrackerIgnoringXml(module.getProject()));
+    }, false);
   }
 
   static boolean isBuiltByJdk7OrHigher(@NotNull Module module) {
@@ -717,7 +719,7 @@ public class RenderErrorContributor {
       }
 
       AndroidFacet facet = AndroidFacet.getInstance(module);
-      Manifest manifest = facet != null ? facet.getManifest() : null;
+      Manifest manifest = facet != null ? Manifest.getMainManifest(facet) : null;
       Application application = manifest != null ? manifest.getApplication() : null;
       if (application == null) {
         return;
@@ -1069,7 +1071,7 @@ public class RenderErrorContributor {
       if (CLASS_CONSTRAINT_LAYOUT.isEquals(className)) {
         builder.newline().addNbsps(3);
         Project project = logger.getProject();
-        boolean useAndroidX = project != null ? MigrateToAndroidxUtil.isAndroidx(project) : StudioFlags.NELE_USE_ANDROIDX_DEFAULT.get();
+        boolean useAndroidX = project == null || MigrateToAndroidxUtil.isAndroidx(project);
         GoogleMavenArtifactId artifact = useAndroidX ?
                                          GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT :
                                          GoogleMavenArtifactId.CONSTRAINT_LAYOUT;

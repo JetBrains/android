@@ -41,7 +41,7 @@ class PsJavaModuleAnalyzerTest : DependencyTestCase() {
     val disposable = Disposer.newDisposable()
     try {
       val javaModule = project.findModuleByName("jModuleK") as PsJavaModule
-      val context = PsContextImpl(project, disposable, disableAnalysis = true)
+      val context = PsContextImpl(project, disposable, disableAnalysis = true, disableResolveModels = true)
       val analyzer = PsJavaModuleAnalyzer(context)
       val messageCollection = analyzer.analyze(javaModule)
 

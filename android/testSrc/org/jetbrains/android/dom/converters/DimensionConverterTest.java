@@ -61,9 +61,9 @@ public class DimensionConverterTest extends LightIdeaTestCase {
     assertNull(converter.fromString("", context));
     assertEquals("Cannot resolve symbol ''", converter.getErrorMessage("", context));
     assertNull(converter.fromString("1", context));
-    assertEquals("Cannot resolve symbol '1'", converter.getErrorMessage("1", context));
+    assertEquals("Dimension value 1 must specify a unit, such as 'dp'.", converter.getErrorMessage("1", context));
     assertNull(converter.fromString("1.5", context));
-    assertEquals("Cannot resolve symbol '1.5'", converter.getErrorMessage("1.5", context));
+    assertEquals("Dimension value 1.5 must specify a unit, such as 'dp'.", converter.getErrorMessage("1.5", context));
 
     // Unknown units
     assertNull(converter.fromString("15d", context));
@@ -91,7 +91,7 @@ public class DimensionConverterTest extends LightIdeaTestCase {
 
     // Make sure the right type of decimal separator is used
     assertNull(converter.fromString("1,5sp", context));
-    assertEquals("Use a dot instead of a comma as the decimal mark", converter.getErrorMessage("1,5sp", context));
+    assertEquals("Use a dot (.) instead of a comma (,) as the decimal separator.", converter.getErrorMessage("1,5sp", context));
 
     // Documentation
     assertEquals("<html><body>" +

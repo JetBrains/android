@@ -24,7 +24,7 @@ public final class GeneratedXmlResource extends GeneratedIcon {
 
   public GeneratedXmlResource(@NotNull String name, @NotNull PathString outputPath, @NotNull IconCategory category,
                               @NotNull String xmlText) {
-    super(name, outputPath, category);
+    super(name, outputPath, category, null);
     this.xmlText = xmlText;
   }
 

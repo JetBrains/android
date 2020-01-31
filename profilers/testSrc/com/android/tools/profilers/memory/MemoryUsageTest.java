@@ -26,7 +26,6 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.UnifiedEventDataSeries;
 import com.google.common.truth.Truth;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -52,12 +51,13 @@ public class MemoryUsageTest {
 
     // insert memory data for new pipeline.
     for (int i = 0; i < 10; i++) {
-      myService.addEventToEventGroup(STREAM_ID,
-                                     // Space out the data by 10 seconds to work around the 1 second buffer in UnifiedEventDataSeries.
-                                     ProfilersTestData.generateMemoryUsageData(
+      myService.addEventToStream(STREAM_ID,
+                                 // Space out the data by 10 seconds to work around the 1 second buffer in UnifiedEventDataSeries.
+                                 ProfilersTestData.generateMemoryUsageData(
                                        TimeUnit.SECONDS.toMicros(i * 10),
                                        Memory.MemoryUsageData.newBuilder().setTotalMem(i * 10).build()).build());
     }
+    myProfilers.getTimeline().getDataRange().set(0, TimeUnit.SECONDS.toMicros(100));
   }
 
   @Test
@@ -78,17 +78,17 @@ public class MemoryUsageTest {
     // Request negative to mid range
     range.set(TimeUnit.SECONDS.toMicros(-50), TimeUnit.SECONDS.toMicros(45));
     series = rangedSeries.getSeries();
-    Truth.assertThat(series.size()).isEqualTo(5);
+    Truth.assertThat(series.size()).isEqualTo(6);
     for (int i = 0; i < series.size(); i++) {
       Truth.assertThat(series.get(i).value).isEqualTo(i * 10);
     }
 
-    // Request negative to mid range
+    // Request mid to high range
     range.set(TimeUnit.SECONDS.toMicros(45), TimeUnit.SECONDS.toMicros(200));
     series = rangedSeries.getSeries();
-    Truth.assertThat(series.size()).isEqualTo(5);
+    Truth.assertThat(series.size()).isEqualTo(6);
     for (int i = 0; i < series.size(); i++) {
-      Truth.assertThat(series.get(i).value).isEqualTo((i + 5) * 10);
+      Truth.assertThat(series.get(i).value).isEqualTo((i + 4) * 10);
     }
   }
 }

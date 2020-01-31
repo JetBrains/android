@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework.fixture;
 
 import com.android.tools.idea.run.editor.AndroidDebugger;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.application.options.ModulesComboBox;
 import com.intellij.execution.configurations.ConfigurationType;
 import com.intellij.execution.impl.EditConfigurationsDialog;
@@ -26,6 +27,7 @@ import org.fest.swing.cell.JListCellReader;
 import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
+import org.fest.swing.fixture.JCheckBoxFixture;
 import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JListFixture;
 import org.fest.swing.fixture.JTextComponentFixture;
@@ -74,9 +76,9 @@ public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfi
     return this;
   }
 
-  @NotNull
   public void clickOk() {
     findAndClickOkButton(this);
+    waitUntilNotShowing();
   }
 
   @NotNull
@@ -112,6 +114,13 @@ public class EditConfigurationsDialogFixture extends IdeaDialogFixture<EditConfi
     JComboBoxFixture comboBoxFixture = new JComboBoxFixture(robot(), robot().finder().findByType(ModulesComboBox.class, true));
     comboBoxFixture.replaceCellReader(MODULE_PICKER_READER);
     comboBoxFixture.selectItem(moduleName);
+    return this;
+  }
+
+  @NotNull
+  public EditConfigurationsDialogFixture selectDeployAsInstantApp(boolean selected) {
+    JCheckBox instantAppCheckbox = waitUntilShowing(robot(), target(), Matchers.byText(JCheckBox.class, "Deploy as instant app"));
+    new JCheckBoxFixture(robot(), instantAppCheckbox).setSelected(selected);
     return this;
   }
 }

@@ -63,7 +63,7 @@ public class FontEnumSupport extends EnumSupport {
     ResourceResolver resolver = myProperty.getResolver();
     if (resolver != null) {
       values.add(ValueWithDisplayString.SEPARATOR);
-      values.add(new ValueWithDisplayString("More Fonts...", null, null,
+      values.add(new ValueWithDisplayString(MoreFontsDialog.ACTION_NAME, null, null,
                                             new MoreFontSelector(facet, resolver)));
     }
     return values;
@@ -123,7 +123,7 @@ public class FontEnumSupport extends EnumSupport {
     @Nullable
     @Override
     public ValueWithDisplayString selectValue(@Nullable String currentValue) {
-      MoreFontsDialog dialog = new MoreFontsDialog(myFacet, currentValue);
+      MoreFontsDialog dialog = new MoreFontsDialog(myFacet, currentValue, true);
       dialog.show();
       String font = dialog.isOK() ? dialog.getResultingFont() : null;
       if (font == null) {

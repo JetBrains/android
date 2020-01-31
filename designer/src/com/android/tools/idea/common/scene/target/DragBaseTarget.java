@@ -28,6 +28,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModificatio
 import com.android.tools.idea.uibuilder.scene.target.TargetSnapper;
 import com.google.common.collect.ImmutableList;
 import com.intellij.ui.JBColor;
+import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -170,7 +171,7 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
     updateAttributes(modification, snappedX, snappedY);
     modification.apply();
     component.fireLiveChangeEvent();
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
     myChangedComponent = true;
   }
 
@@ -202,7 +203,7 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
       }
     }
     if (myChangedComponent) {
-      myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+      myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
     }
   }
   //endregion
@@ -233,11 +234,11 @@ public abstract class DragBaseTarget extends BaseTarget implements MultiComponen
     myComponent.setDragging(false);
     myTargetSnapper.reset();
     myChangedComponent = false;
-    myComponent.getScene().needsLayout(Scene.IMMEDIATE_LAYOUT);
+    myComponent.getScene().markNeedsLayout(Scene.IMMEDIATE_LAYOUT);
   }
 
   @Override
-  public Cursor getMouseCursor() {
+  public Cursor getMouseCursor(@JdkConstants.InputEventMask int modifiersEx) {
     return Cursor.getPredefinedCursor(Cursor.HAND_CURSOR);
   }
 

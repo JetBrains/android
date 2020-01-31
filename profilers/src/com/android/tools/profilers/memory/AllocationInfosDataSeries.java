@@ -18,23 +18,21 @@ package com.android.tools.profilers.memory;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.SeriesData;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.MemoryProfiler;
-import com.android.tools.profiler.proto.MemoryServiceGrpc;
+import com.android.tools.profiler.proto.Memory;
+import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.LegacyAllocationCaptureObject;
 import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
   @Nullable private MemoryProfilerStage myStage;
 
-  public AllocationInfosDataSeries(@NotNull MemoryServiceGrpc.MemoryServiceBlockingStub client,
+  public AllocationInfosDataSeries(@NotNull ProfilerClient client,
                                    @NotNull Common.Session session,
                                    @NotNull FeatureTracker featureTracker,
                                    @Nullable MemoryProfilerStage stage) {
@@ -42,26 +40,13 @@ class AllocationInfosDataSeries extends CaptureDataSeries<CaptureObject> {
     myStage = stage;
   }
 
-  @NotNull
-  List<MemoryProfiler.AllocationsInfo> getInfoForTimeRangeNs(long rangeMinNs, long rangeMaxNs) {
-    MemoryProfiler.MemoryRequest.Builder dataRequestBuilder = MemoryProfiler.MemoryRequest.newBuilder()
-      .setSession(mySession)
-      .setStartTime(rangeMinNs)
-      .setEndTime(rangeMaxNs);
-    MemoryProfiler.MemoryData response = myClient.getData(dataRequestBuilder.build());
-    return response.getAllocationsInfoList();
-  }
-
   @Override
-  public List<SeriesData<CaptureDurationData<CaptureObject>>> getDataForXRange(Range xRange) {
-    long bufferNs = TimeUnit.SECONDS.toNanos(1);
-    long rangeMin = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMin()) - bufferNs;
-    long rangeMax = TimeUnit.MICROSECONDS.toNanos((long)xRange.getMax()) + bufferNs;
-
-    List<MemoryProfiler.AllocationsInfo> infos = getInfoForTimeRangeNs(rangeMin, rangeMax);
+  public List<SeriesData<CaptureDurationData<CaptureObject>>> getDataForRange(Range range) {
+    List<Memory.AllocationsInfo> infos =
+      MemoryProfiler.getAllocationInfosForSession(myClient, mySession, range, myStage.getStudioProfilers().getIdeServices());
 
     List<SeriesData<CaptureDurationData<CaptureObject>>> seriesData = new ArrayList<>();
-    for (MemoryProfiler.AllocationsInfo info : infos) {
+    for (Memory.AllocationsInfo info : infos) {
       long startTimeNs = info.getStartTime();
       long durationUs = getDurationUs(startTimeNs, info.getEndTime());
 

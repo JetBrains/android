@@ -16,17 +16,13 @@
 package com.android.tools.idea.ui.resourcemanager.rendering
 
 import com.android.ide.common.resources.ResourceResolver
-import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
-import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.ui.resourcemanager.ImageCache
 import com.android.tools.idea.ui.resourcemanager.model.DesignAsset
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
 
 /**
- * An [AssetPreviewManager] is used to manage [AssetIconProvider] and return the
+ * An [AssetPreviewManager] is used to manage [AssetIconProvider] and returns the
  * correct one for a given [ResourceType].
  * @see AssetPreviewManagerImpl
  */
@@ -36,13 +32,20 @@ interface AssetPreviewManager {
    * Returns an [AssetIconProvider] capable of rendering [DesignAsset] of type [resourceType].
    */
   fun getPreviewProvider(resourceType: ResourceType): AssetIconProvider
+
+  /**
+   * Returns an [AssetDataProvider] for basic [DesignAsset] data to be displayed.
+   */
+  fun getDataProvider(resourceType: ResourceType): AssetDataProvider
 }
 
 /**
  * Default implementation of [AssetPreviewManager]. The supported [ResourceType] are [ResourceType.DRAWABLE],
  * [ResourceType.LAYOUT], [ResourceType.COLOR] and [ResourceType.MIPMAP]
  */
-class AssetPreviewManagerImpl(val facet: AndroidFacet, imageCache: ImageCache) : AssetPreviewManager {
+class AssetPreviewManagerImpl(
+  private val facet: AndroidFacet, imageCache: ImageCache, private val resourceResolver: ResourceResolver
+) : AssetPreviewManager {
 
   private val colorPreviewProvider by lazy {
     ColorIconProvider(facet.module.project, resourceResolver)
@@ -50,8 +53,19 @@ class AssetPreviewManagerImpl(val facet: AndroidFacet, imageCache: ImageCache) :
   private val drawablePreviewProvider by lazy {
     DrawableIconProvider(facet, resourceResolver, imageCache)
   }
+  private val fontPreviewProvider by lazy {
+    FontIconProvider(facet)
+  }
 
-  private var resourceResolver = createResourceResolver(facet)
+  private val colorDataProvider by lazy {
+    ColorAssetDataProvider(facet.module.project, resourceResolver)
+  }
+  private val valueDataProvider by lazy {
+    ValueAssetDataProvider(resourceResolver)
+  }
+  private val defaultDataProvider by lazy {
+    DefaultAssetDataProvider()
+  }
 
   /**
    * Returns an [AssetIconProvider] for [ResourceType.COLOR], [ResourceType.DRAWABLE], [ResourceType.LAYOUT]
@@ -61,15 +75,26 @@ class AssetPreviewManagerImpl(val facet: AndroidFacet, imageCache: ImageCache) :
       ResourceType.COLOR -> colorPreviewProvider
       ResourceType.DRAWABLE,
       ResourceType.MIPMAP,
+      ResourceType.MENU,
       ResourceType.LAYOUT -> drawablePreviewProvider
+      ResourceType.FONT -> fontPreviewProvider
       else -> DefaultIconProvider.INSTANCE
     }
-}
 
-private fun createResourceResolver(androidFacet: AndroidFacet): ResourceResolver {
-  val configurationManager = ConfigurationManager.getOrCreateInstance(androidFacet)
-  val manifest = MergedManifestManager.getSnapshot(androidFacet)
-  val theme = manifest.manifestTheme ?: manifest.getDefaultTheme(null, null, null)
-  val target = configurationManager.highestApiTarget?.let { StudioEmbeddedRenderTarget.getCompatibilityTarget(it) }
-  return configurationManager.resolverCache.getResourceResolver(target, theme, FolderConfiguration.createDefault())
+  /**
+   * Returns an [AssetDataProvider] for some specific [ResourceType]s, their difference will mostly depend if it makes sense for the
+   * resource to have an Icon preview, those that don't will have their resolved value in the [AssetData].
+   */
+  override fun getDataProvider(resourceType: ResourceType): AssetDataProvider =
+    when (resourceType) {
+      ResourceType.COLOR -> colorDataProvider
+      ResourceType.ARRAY,
+      ResourceType.BOOL,
+      ResourceType.DIMEN,
+      ResourceType.FRACTION,
+      ResourceType.INTEGER,
+      ResourceType.PLURALS,
+      ResourceType.STRING -> valueDataProvider
+      else -> defaultDataProvider
+    }
 }

@@ -16,9 +16,11 @@
 package com.android.tools.idea.ui.wizard;
 
 import com.android.tools.adtui.validation.Validator;
+import com.intellij.ide.GeneralSettings;
 import com.intellij.ide.RecentProjectsManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.PathUtil;
 import com.intellij.util.SystemProperties;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
@@ -50,14 +52,17 @@ public final class WizardUtils {
   @NotNull
   public static File getProjectLocationParent() {
     String parent = RecentProjectsManager.getInstance().getLastProjectCreationLocation();
+    if (parent != null) {
+      return new File(PathUtil.toSystemDependentName(parent));
+    }
 
-    if (parent == null) {
-      String child = ApplicationNamesInfo.getInstance().getFullProductName().replace(" ", "") + "Projects";
-      return new File(SystemProperties.getUserHome(), child);
+    String defaultProjectLocation = GeneralSettings.getInstance().getDefaultProjectDirectory();
+    if (defaultProjectLocation != null && !defaultProjectLocation.isEmpty()) {
+      return new File(defaultProjectLocation);
     }
-    else {
-      return new File(parent.replace('/', File.separatorChar));
-    }
+
+    String child = ApplicationNamesInfo.getInstance().getFullProductName().replace(" ", "") + "Projects";
+    return new File(SystemProperties.getUserHome(), child);
   }
 
   @Nullable

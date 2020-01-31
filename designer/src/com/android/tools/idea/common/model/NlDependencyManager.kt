@@ -75,7 +75,7 @@ class NlDependencyManager private constructor() {
 
     // When the user clicks "Yes" to install the missing dependencies, sync the project so they'll effectively be present.
     val syncResult: ListenableFuture<ProjectSystemSyncManager.SyncResult> =
-      facet.module.project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED, true)
+      facet.module.project.getSyncManager().syncProject(ProjectSystemSyncManager.SyncReason.PROJECT_MODIFIED)
 
     if (syncDoneCallback != null) {
       syncResult.addCallback(success = { syncDoneCallback() }, failure = { syncDoneCallback() })

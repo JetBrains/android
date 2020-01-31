@@ -16,7 +16,7 @@
 package com.android.tools.idea.editors.layoutInspector.ui;
 
 import com.android.annotations.Nullable;
-import com.android.annotations.VisibleForTesting;
+import com.google.common.annotations.VisibleForTesting;
 import com.android.tools.property.ptable.PTable;
 import com.android.tools.property.ptable.PTableGroupItem;
 import com.android.tools.property.ptable.PTableItem;

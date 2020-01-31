@@ -170,7 +170,7 @@ public class GradleEditorDependencyParser {
       return null;
     }
     Set<GradleEditorEntityMetaData> metaData = assignment.lValueLocation.file.equals(context.getTargetFile())
-                                               ? Collections.emptySet()
+                                               ? Collections.<GradleEditorEntityMetaData>emptySet()
                                                : Collections.singleton(StdGradleEditorEntityMetaData.INJECTED);
     if (dependencies.isEmpty()) {
       return new DependencyDimension(dimensionValue, sourceBindings, dimensionLocation, metaData);
