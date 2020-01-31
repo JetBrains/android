@@ -53,12 +53,12 @@ abstract public class SceneManager implements Disposable {
   @NotNull private SceneView mySceneView;
   @NotNull private final HitProvider myHitProvider = new DefaultHitProvider();
 
-  public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface, @NotNull Supplier<RenderSettings> renderSettingsProvider) {
+  public SceneManager(@NotNull NlModel model, @NotNull DesignSurface surface, @NotNull boolean useLiveRendering) {
     myModel = model;
     myDesignSurface = surface;
     Disposer.register(model, this);
 
-    myScene = new Scene(this, myDesignSurface, renderSettingsProvider.get().getUseLiveRendering());
+    myScene = new Scene(this, myDesignSurface, useLiveRendering);
   }
 
   /**

@@ -16,29 +16,39 @@
 package com.android.tools.idea.uibuilder.actions
 
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.rendering.RefreshRenderAction
 import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.util.ui.LafIconLookup
 
-class ToggleLiveRenderingAction(label: String = "Live Rendering") :
+class ToggleAllShowDecorationsAction(label: String = "Show System UI") :
   ToggleViewAction(null, LafIconLookup.getIcon("checkmark"), label, label) {
   override fun isSelected(editor: ViewEditor,
                           handler: ViewHandler,
                           parent: NlComponent,
-                          selectedChildren: MutableList<NlComponent>): Boolean = editor.scene.isLiveRenderingEnabled
+                          selectedChildren: MutableList<NlComponent>): Boolean {
+    val surface = editor.scene.designSurface
+    return surface.models
+             .map { surface.getSceneManager(it) as? LayoutlibSceneManager }
+             .first()
+             ?.isShowingDecorations ?: false
+  }
 
   override fun setSelected(editor: ViewEditor,
                            handler: ViewHandler,
                            parent: NlComponent,
                            selectedChildren: MutableList<NlComponent>,
                            selected: Boolean) {
-    // We also persist the settings to the RenderSettings
-    RenderSettings.getProjectSettings(editor.model.project).useLiveRendering = selected
-    editor.scene.isLiveRenderingEnabled = selected
-    RefreshRenderAction.clearCacheAndRefreshSurface(editor.scene.designSurface)
+    // Save as global setting
+    RenderSettings.getProjectSettings(editor.model.project).showDecorations = selected
+
+    val surface = editor.scene.designSurface
+    surface.models
+      .mapNotNull { surface.getSceneManager(it) as? LayoutlibSceneManager }
+      .forEach { it.setShowDecorations(selected) }
+    surface.requestRender()
   }
 
 }

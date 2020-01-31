@@ -16,27 +16,38 @@
 package com.android.tools.idea.uibuilder.actions
 
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.rendering.RefreshRenderAction
 import com.android.tools.idea.rendering.RenderSettings
 import com.android.tools.idea.uibuilder.api.ViewEditor
 import com.android.tools.idea.uibuilder.api.ViewHandler
 import com.android.tools.idea.uibuilder.api.actions.ToggleViewAction
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.util.ui.LafIconLookup
 
-class ToggleShowDecorationsAction(label: String = "Show System UI") :
+class ToggleAllLiveRenderingAction(label: String = "Live Rendering") :
   ToggleViewAction(null, LafIconLookup.getIcon("checkmark"), label, label) {
   override fun isSelected(editor: ViewEditor,
                           handler: ViewHandler,
                           parent: NlComponent,
-                          selectedChildren: MutableList<NlComponent>): Boolean = RenderSettings.getProjectSettings(editor.model.project).showDecorations
+                          selectedChildren: MutableList<NlComponent>): Boolean =
+    editor.scene.isLiveRenderingEnabled
+
   override fun setSelected(editor: ViewEditor,
                            handler: ViewHandler,
                            parent: NlComponent,
                            selectedChildren: MutableList<NlComponent>,
                            selected: Boolean) {
     // We also persist the settings to the RenderSettings
-    RenderSettings.getProjectSettings(editor.model.project).showDecorations = selected
-    RefreshRenderAction.clearCacheAndRefreshSurface(editor.scene.designSurface)
+    RenderSettings.getProjectSettings(editor.model.project).useLiveRendering = selected
+
+    val surface = editor.scene.designSurface
+    surface.models
+      .mapNotNull { surface.getSceneManager(it) as? LayoutlibSceneManager }
+      .forEach {
+        // The image pool is not needed if we are not using live rendering
+        it.setUseImagePool(selected)
+        it.scene.isLiveRenderingEnabled = selected
+      }
+    surface.requestRender()
   }
 
 }
