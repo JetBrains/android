@@ -108,7 +108,7 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
           listModel.clear()
           if (values.isNotEmpty()) {
             val currentValue = editor.text
-            if (currentValue.isNotEmpty()) {
+            if (support.allowCustomValues && currentValue.isNotEmpty()) {
               listModel.addElement(currentValue)
             }
             values.forEach { if (it != currentValue) listModel.addElement(it) }
@@ -120,10 +120,11 @@ class Lookup<out M : CommonTextFieldModel>(val editor: CommonTextField<M>, priva
   }
 
   private fun updateFilter() {
+    val support = editor.editorModel.editingSupport
     val text = editor.text
     val oldSelectedValue = ui.selectedValue
     val isCurrentValueSelected = ui.selectedIndex == 0
-    if (listModel.size() > 0) {
+    if (support.allowCustomValues && listModel.size() > 0) {
       listModel.set(0, text)
     }
     matcher.pattern = text

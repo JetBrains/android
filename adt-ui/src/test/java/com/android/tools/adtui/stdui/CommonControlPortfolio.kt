@@ -202,14 +202,16 @@ object CommonControlPortfolio {
 }
 
 class TestEditingSupport(val model: CommonTextFieldModel): EditingSupport {
+
   override val validation = fun(editedValue: String?): Pair<EditingErrorCategory, String> {
-    val testValue = editedValue ?: model.value
-    return when (testValue) {
+    return when (editedValue ?: model.value) {
       "Error" -> Pair(EditingErrorCategory.ERROR, "Error is not a valid value")
       "Warning" -> Pair(EditingErrorCategory.WARNING, "Be careful about warnings")
       else -> EDITOR_NO_ERROR
     }
   }
+
+  override var allowCustomValues: Boolean = true
 
   override val completion = fun(): List<String> {
     return listOf("@string/almond",

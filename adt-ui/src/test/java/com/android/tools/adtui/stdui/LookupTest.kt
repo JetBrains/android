@@ -358,6 +358,21 @@ class LookupTest {
     assertThat(ui.visible).isFalse()
   }
 
+  @Test
+  fun testPopupDotNotAllowCustomValues() {
+    val model = TestCommonTextFieldModel("")
+    model.editingSupport.allowCustomValues = false
+    val field = CommonTextField(model)
+    val ui = TestUI()
+    val lookup = Lookup(field, ui)
+    field.text = "a7"
+    lookup.showLookup()
+    assertThat(ui.elements()).containsExactly("@string/app_name7", "@string/app_name17", "@string/app_name27")
+    field.text = "a17"
+    lookup.showLookup()
+    assertThat(ui.elements()).containsExactly("@string/app_name17")
+  }
+
   class TestUI : LookupUI {
     private var listModel: ListModel<String>? = null
     override var visible = false
