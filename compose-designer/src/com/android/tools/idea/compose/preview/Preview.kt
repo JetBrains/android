@@ -37,6 +37,7 @@ import com.android.tools.idea.compose.preview.actions.requestBuildForSurface
 import com.android.tools.idea.compose.preview.navigation.PreviewNavigationHandler
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.editors.notifications.NotificationPanel
@@ -52,7 +53,6 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import com.android.tools.idea.uibuilder.surface.SceneMode
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
-import com.android.utils.concurrency.EvictingExecutor
 import com.intellij.ide.util.PsiNavigationSupport
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -71,10 +71,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
-import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.UIUtil
-import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -148,8 +145,10 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
 
   private val previewProvider = GroupNameFilteredPreviewProvider(previewProvider)
 
-  private val refreshDispatcher = AppExecutorUtil.createBoundedApplicationPoolExecutor("Compose Preview refresh thread", 1)
-    .asCoroutineDispatcher()
+  /**
+   * A [UniqueTaskCoroutineLauncher] used to run the image rendering. This ensures that only one image rendering is running at time.
+   */
+  private val uniqueRefreshLauncher = UniqueTaskCoroutineLauncher(this, "Compose Preview refresh")
 
   override var groupNameFilter: String? by Delegates.observable(null as String?) { _, oldValue, newValue ->
     if (oldValue != newValue) {
@@ -159,9 +158,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
   }
   override val availableGroups: Set<String> get() = previewProvider.availableGroups
 
-  private val refreshExecutor = EvictingExecutor(
-    AppExecutorUtil.createBoundedApplicationPoolExecutor(
-      "Compose Preview thread", AppExecutorUtil.getAppExecutorService(), 1, this), 1)
   private enum class InteractionMode {
     DEFAULT,
     INTERACTIVE,
@@ -428,13 +424,13 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * Refresh the preview surfaces. This will retrieve all the Preview annotations and render those elements.
    * The call will block until all the given [PreviewElement]s have completed rendering.
    */
-  private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>) = withContext(refreshDispatcher) {
+  private suspend fun doRefreshSync(filePreviewElements: List<PreviewElement>) {
     if (LOG.isDebugEnabled) LOG.debug("doRefresh of ${filePreviewElements.size} elements.")
     val stopwatch = if (LOG.isDebugEnabled) StopWatch() else null
     val psiFile = psiFilePointer.element
     if (psiFile == null || !psiFile.isValid) {
       LOG.warn("doRefresh with invalid PsiFile")
-      return@withContext
+      return
     }
     val facet = AndroidFacet.getInstance(psiFile)!!
     val configurationManager = ConfigurationManager.getOrCreateInstance(facet)
@@ -537,7 +533,6 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
    * The refresh will only happen if the Preview elements have changed from the last render.
    */
   override fun refresh() {
-    refreshDispatcher.cancel()
     launch(uiThread) {
       isContentBeingRendered = true
       val filePreviewElements = previewProvider.previewElements
@@ -549,7 +544,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         // configured and that we are showing the right size for components. For example, if the user switches on/off
         // decorations, that will not generate/remove new PreviewElements but will change the surface settings.
         val showingDecorations = RenderSettings.getProjectSettings(project).showDecorations
-        withContext(refreshDispatcher) {
+        uniqueRefreshLauncher.launch {
           surface.models
             .mapNotNull { surface.getSceneManager(it) }
             .filterIsInstance<LayoutlibSceneManager>()
@@ -561,7 +556,9 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         }
       }
       else {
-        doRefreshSync(filePreviewElements)
+        uniqueRefreshLauncher.launch {
+          doRefreshSync(filePreviewElements)
+        }
       }
 
       isContentBeingRendered = false
