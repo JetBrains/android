@@ -15,21 +15,29 @@
  */
 package com.android.tools.adtui.actions;
 
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
 import com.intellij.openapi.actionSystem.impl.ActionManagerImpl;
 import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupAdapter;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.ui.popup.JBPopupListener;
 import com.intellij.openapi.ui.popup.LightweightWindowEvent;
 import com.intellij.ui.PopupMenuListenerAdapter;
-import com.intellij.util.ui.EmptyIcon;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Point;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.event.PopupMenuEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import javax.swing.event.PopupMenuEvent;
-import java.awt.*;
 
 /**
  * Button Action with a drop down popup and a text.
@@ -39,11 +47,9 @@ import java.awt.*;
  * method. This method will be called before opening the popup menu
  */
 public class DropDownAction extends DefaultActionGroup implements CustomComponentAction {
-
   private static final Icon BLANK_ICON = new Icon() {
     @Override
     public void paintIcon(Component c, Graphics g, int x, int y) {
-
     }
 
     @Override
@@ -145,17 +151,15 @@ public class DropDownAction extends DefaultActionGroup implements CustomComponen
     JBPopup popupMenu;
     JBPopupFactory popupFactory = JBPopupFactory.getInstance();
     popupMenu = popupFactory.createComponentPopupBuilder(content, content).createPopup();
-    popupMenu.addListener(new JBPopupAdapter() {
+    popupMenu.addListener(new JBPopupListener() {
       @Override
       public void beforeShown(@NotNull LightweightWindowEvent event) {
-        super.beforeShown(event);
         DropDownActionButton button = (DropDownActionButton)event.asPopup().getOwner();
         button.setSelected(true);
       }
 
       @Override
       public void onClosed(@NotNull LightweightWindowEvent event) {
-        super.onClosed(event);
         DropDownActionButton button = (DropDownActionButton)event.asPopup().getOwner();
         button.setSelected(false);
         event.asPopup().removeListener(this);
