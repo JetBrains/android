@@ -16,11 +16,9 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
 import com.intellij.mock.MockApplication
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -36,17 +34,12 @@ import org.mockito.MockitoAnnotations
 class DetailsViewContentViewTest {
   @get:Rule
   val edtRule = EdtRule()
-  val disposable: Disposable = Disposer.newDisposable()
+  @get:Rule val disposableRule = DisposableRule()
 
   @Before
   fun setup() {
     MockitoAnnotations.initMocks(this)
-    MockApplication.setUp(disposable)
-  }
-
-  @After
-  fun teardown() {
-    Disposer.dispose(disposable)
+    MockApplication.setUp(disposableRule.disposable)
   }
 
   // TODO: Remove this test case when we have a real implementation of DetailsViewContentView.

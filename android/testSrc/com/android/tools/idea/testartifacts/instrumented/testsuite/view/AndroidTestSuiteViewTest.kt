@@ -24,11 +24,9 @@ import com.android.tools.idea.testartifacts.instrumented.testsuite.model.Android
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.mock.MockApplication
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -46,24 +44,19 @@ import org.mockito.MockitoAnnotations
 class AndroidTestSuiteViewTest {
 
   @get:Rule val edtRule = EdtRule()
-  val disposable: Disposable = Disposer.newDisposable()
+  @get:Rule val disposableRule = DisposableRule()
 
   @Mock lateinit var processHandler: ProcessHandler
 
   @Before
   fun setup() {
     MockitoAnnotations.initMocks(this)
-    MockApplication.setUp(disposable)
-  }
-
-  @After
-  fun teardown() {
-    Disposer.dispose(disposable)
+    MockApplication.setUp(disposableRule.disposable)
   }
 
   @Test
   fun attachToProcess() {
-    val view = AndroidTestSuiteView(disposable)
+    val view = AndroidTestSuiteView(disposableRule.disposable)
 
     view.attachToProcess(processHandler)
 
@@ -72,14 +65,14 @@ class AndroidTestSuiteViewTest {
 
   @Test
   fun detailsViewIsNotVisibleInitially() {
-    val view = AndroidTestSuiteView(disposable)
+    val view = AndroidTestSuiteView(disposableRule.disposable)
 
     assertThat(view.detailsViewForTesting.rootPanel.isVisible).isFalse()
   }
 
   @Test
   fun openAndCloseDetailsView() {
-    val view = AndroidTestSuiteView(disposable)
+    val view = AndroidTestSuiteView(disposableRule.disposable)
 
     val device1 = AndroidDevice("deviceId1", "deviceName1")
     val device2 = AndroidDevice("deviceId2", "deviceName2")

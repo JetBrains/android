@@ -15,17 +15,15 @@
  */
 package com.android.tools.idea.testartifacts.instrumented.testsuite.view
 
-import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
 import com.android.tools.idea.testartifacts.instrumented.testsuite.api.AndroidTestResults
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidTestCaseResult
+import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteDetailsView.AndroidTestSuiteDetailsViewListener
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockApplication
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -43,24 +41,19 @@ import org.mockito.MockitoAnnotations
 class AndroidTestSuiteDetailsViewTest {
 
   @get:Rule val edtRule = EdtRule()
-  val disposable: Disposable = Disposer.newDisposable()
+  @get:Rule val disposableRule = DisposableRule()
 
   @Mock lateinit var mockListener: AndroidTestSuiteDetailsViewListener
 
   @Before
   fun setup() {
     MockitoAnnotations.initMocks(this)
-    MockApplication.setUp(disposable)
-  }
-
-  @After
-  fun teardown() {
-    Disposer.dispose(disposable)
+    MockApplication.setUp(disposableRule.disposable)
   }
 
   @Test
   fun setAndroidTestResultsShouldUpdateUiComponents() {
-    val view = AndroidTestSuiteDetailsView(disposable, mockListener)
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockListener)
 
     view.setAndroidTestResults(createTestResults("testName", AndroidTestCaseResult.PASSED))
 
@@ -69,7 +62,7 @@ class AndroidTestSuiteDetailsViewTest {
 
   @Test
   fun clickOnCloseButtonShouldInvokeListener() {
-    val view = AndroidTestSuiteDetailsView(disposable, mockListener)
+    val view = AndroidTestSuiteDetailsView(disposableRule.disposable, mockListener)
 
     view.closeButtonForTesting.doClick()
 

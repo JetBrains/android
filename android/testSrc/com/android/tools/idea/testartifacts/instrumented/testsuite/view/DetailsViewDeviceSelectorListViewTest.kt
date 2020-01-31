@@ -19,12 +19,8 @@ import com.android.testutils.MockitoKt.eq
 import com.android.tools.idea.testartifacts.instrumented.testsuite.model.AndroidDevice
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.DetailsViewDeviceSelectorListView.DetailsViewDeviceSelectorListViewListener
 import com.google.common.truth.Truth.assertThat
-import com.intellij.mock.MockApplication
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -41,19 +37,12 @@ import org.mockito.MockitoAnnotations
 @RunsInEdt
 class DetailsViewDeviceSelectorListViewTest {
   @get:Rule val edtRule = EdtRule()
-  val disposable: Disposable = Disposer.newDisposable()
 
   @Mock lateinit var mockListener: DetailsViewDeviceSelectorListViewListener
 
   @Before
   fun setup() {
     MockitoAnnotations.initMocks(this)
-    MockApplication.setUp(disposable)
-  }
-
-  @After
-  fun teardown() {
-    Disposer.dispose(disposable)
   }
 
   @Test
