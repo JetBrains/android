@@ -38,10 +38,9 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
+import java.awt.Container
 import java.awt.Cursor
 import java.awt.Point
-import java.awt.event.ComponentAdapter
-import java.awt.event.ComponentEvent
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_SPACE
@@ -66,7 +65,7 @@ const val DEVICE_VIEW_ACTION_TOOLBAR_NAME = "DeviceViewPanel.ActionToolbar"
  * Panel that shows the device screen in the layout inspector.
  */
 class DeviceViewPanel(
-  val layoutInspector: LayoutInspector,
+  private val layoutInspector: LayoutInspector,
   private val viewSettings: DeviceViewSettings,
   disposableParent: Disposable
 ) : JPanel(BorderLayout()), Zoomable, DataProvider, Pannable {
@@ -79,6 +78,7 @@ class DeviceViewPanel(
   override var isPanning = false
   private var isSpacePressed = false
   private var lastPanMouseLocation: Point? = null
+  private var currentZoomOperation: ZoomType? = null
 
   private val contentPanel = DeviceViewContentPanel(layoutInspector.layoutInspectorModel, viewSettings)
 
@@ -183,8 +183,17 @@ class DeviceViewPanel(
 
     layeredPane.setLayer(scrollPane, JLayeredPane.DEFAULT_LAYER)
     layeredPane.setLayer(floatingToolbar, JLayeredPane.PALETTE_LAYER)
-    layeredPane.add(scrollPane)
+
+    layeredPane.layout = object: BorderLayout() {
+      override fun layoutContainer(parent: Container?) {
+        super.layoutContainer(parent)
+        // Position the floating toolbar
+        updateLayeredPaneSize()
+      }
+    }
+
     layeredPane.add(floatingToolbar)
+    layeredPane.add(scrollPane, BorderLayout.CENTER)
 
     layoutInspector.layoutInspectorModel.modificationListeners.add { _, _, structural ->
       if (structural) {
@@ -198,11 +207,6 @@ class DeviceViewPanel(
         prevZoom = viewSettings.scalePercent
       }
     }
-    layeredPane.addComponentListener(object: ComponentAdapter() {
-      override fun componentResized(e: ComponentEvent?) {
-        updateLayeredPaneSize()
-      }
-    })
   }
 
   private fun updateLayeredPaneSize() {
@@ -236,7 +240,7 @@ class DeviceViewPanel(
       ZoomType.IN -> viewSettings.scalePercent += 10
       ZoomType.OUT -> viewSettings.scalePercent -= 10
     }
-    updateLayeredPaneSize()
+    contentPanel.revalidate()
 
     ApplicationManager.getApplication().invokeLater {
       scrollPane.viewport.viewPosition = when (type) {
