@@ -511,6 +511,65 @@ class JdbcDatabaseConnectionTest : PlatformTestCase() {
     assertEquals("col Name", table.columns.first().name)
   }
 
+  fun testInsertStatementReturnsEmptyResultSet() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("c1"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    val resultSet = pumpEventsAndWaitForFuture(
+      customConnection!!.execute(SqliteStatement("INSERT INTO tableName (c1) values (1)"))
+    )
+
+    // Assert
+    val columns = pumpEventsAndWaitForFuture(resultSet.columns)
+    val rowCount = pumpEventsAndWaitForFuture(resultSet.rowCount)
+    assertEquals(0, rowCount)
+    assertEmpty(columns)
+  }
+
+  fun testUpdateStatementReturnsEmptyResultSet() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("c1"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    pumpEventsAndWaitForFuture(customConnection!!.execute(SqliteStatement("INSERT INTO tableName (c1) values (0)")))
+
+    // Act
+    val resultSet = pumpEventsAndWaitForFuture(
+      customConnection!!.execute(SqliteStatement("UPDATE tableName SET c1 = 1 WHERE c1 = 0"))
+    )
+
+    // Assert
+    val columns = pumpEventsAndWaitForFuture(resultSet.columns)
+    val rowCount = pumpEventsAndWaitForFuture(resultSet.rowCount)
+    assertEquals(0, rowCount)
+    assertEmpty(columns)
+  }
+
+  fun testCreateTableReturnsEmptyResultSet() {
+    // Prepare
+    val customSqliteFile = sqliteUtil.createTestSqliteDatabase("customDb", "tableName", listOf("c1"))
+    customConnection = pumpEventsAndWaitForFuture(
+      getSqliteJdbcService(customSqliteFile, FutureCallbackExecutor.wrap(EdtExecutorService.getInstance()))
+    )
+
+    // Act
+    val resultSet = pumpEventsAndWaitForFuture(
+      customConnection!!.execute(SqliteStatement("CREATE TABLE t1 (c1 int)"))
+    )
+
+    // Assert
+    val columns = pumpEventsAndWaitForFuture(resultSet.columns)
+    val rowCount = pumpEventsAndWaitForFuture(resultSet.rowCount)
+    assertEquals(0, rowCount)
+    assertEmpty(columns)
+  }
+
   private fun SqliteResultSet.hasColumn(name: String, affinity: SqliteAffinity) : Boolean {
     return pumpEventsAndWaitForFuture(this.columns).find { it.name == name }?.affinity?.equals(affinity) ?: false
   }

@@ -18,13 +18,16 @@ package com.android.tools.idea.sqlite.controllers
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.refEq
+import com.android.tools.idea.concurrency.AsyncTestUtils.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.sqlite.databaseConnection.DatabaseConnection
 import com.android.tools.idea.sqlite.databaseConnection.SqliteResultSet
+import com.android.tools.idea.sqlite.databaseConnection.live.ImmediateSqliteResultSet
 import com.android.tools.idea.sqlite.mocks.MockDatabaseInspectorViewsFactory
 import com.android.tools.idea.sqlite.mocks.MockSqliteEvaluatorView
 import com.android.tools.idea.sqlite.model.LiveSqliteDatabase
 import com.android.tools.idea.sqlite.model.SqliteDatabase
+import com.android.tools.idea.sqlite.model.SqliteRow
 import com.android.tools.idea.sqlite.model.SqliteStatement
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.google.common.util.concurrent.Futures
@@ -75,7 +78,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
   fun testEvaluateSqlActionQuerySuccess() {
     // Prepare
     val sqlStatement = SqliteStatement("SELECT")
-    `when`(databaseConnection.execute(sqlStatement)).thenReturn(Futures.immediateFuture(any(SqliteResultSet::class.java)))
+    `when`(databaseConnection.execute(sqlStatement)).thenReturn(Futures.immediateFuture(ImmediateSqliteResultSet(emptyList())))
 
     sqliteEvaluatorController.setUp()
 
@@ -107,7 +110,7 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     // Prepare
     val parametersBindingDialogView = viewFactory.parametersBindingDialogView
     `when`(databaseConnection.execute(any(SqliteStatement::class.java)))
-      .thenReturn(Futures.immediateFuture(any(SqliteResultSet::class.java)))
+      .thenReturn(Futures.immediateFuture(ImmediateSqliteResultSet(emptyList())))
     sqliteEvaluatorController.setUp()
 
     // Act
@@ -193,9 +196,38 @@ class SqliteEvaluatorControllerTest : PlatformTestCase() {
     evaluateSqlActionFailure("DELETE")
   }
 
+  fun testTableViewIsNotShownIfResultSetIsEmpty() {
+    // Prepare
+    `when`(databaseConnection.execute(SqliteStatement("SELECT")))
+      .thenReturn(Futures.immediateFuture(ImmediateSqliteResultSet(emptyList())))
+
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, SqliteStatement("SELECT")))
+
+    // Assert
+    verify(sqliteEvaluatorView.tableView, times(0)).showTableRowBatch(emptyList())
+  }
+
+  fun testTableViewIsShownIfResultSetIsNotEmpty() {
+    // Prepare
+    val rows = listOf(SqliteRow(emptyList()))
+    `when`(databaseConnection.execute(SqliteStatement("SELECT")))
+      .thenReturn(Futures.immediateFuture(ImmediateSqliteResultSet(rows)))
+
+    sqliteEvaluatorController.setUp()
+
+    // Act
+    pumpEventsAndWaitForFuture(sqliteEvaluatorController.evaluateSqlStatement(sqliteDatabase, SqliteStatement("SELECT")))
+
+    // Assert
+    verify(sqliteEvaluatorView.tableView).showTableRowBatch(rows)
+  }
+
   private fun evaluateSqlActionSuccess(action: String) {
     // Prepare
-    `when`(databaseConnection.execute(SqliteStatement(action))).thenReturn(Futures.immediateFuture(null))
+    `when`(databaseConnection.execute(SqliteStatement(action))).thenReturn(Futures.immediateFuture(ImmediateSqliteResultSet(emptyList())))
 
     sqliteEvaluatorController.setUp()
 

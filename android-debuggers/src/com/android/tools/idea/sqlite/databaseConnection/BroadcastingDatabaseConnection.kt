@@ -35,8 +35,8 @@ class BroadcastingDatabaseConnection(
 ) : DatabaseConnection by databaseConnection {
   private val taskExecutor = FutureCallbackExecutor.wrap(executor)
 
-  override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet?> {
-    val settableFuture = SettableFuture.create<SqliteResultSet?>()
+  override fun execute(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
+    val settableFuture = SettableFuture.create<SqliteResultSet>()
     val executeFuture = databaseConnection.execute(sqliteStatement)
 
     taskExecutor.addCallback(executeFuture, object : FutureCallback<SqliteResultSet?> {
