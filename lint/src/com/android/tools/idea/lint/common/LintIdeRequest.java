@@ -56,6 +56,7 @@ public class LintIdeRequest extends LintRequest {
     myModules = modules;
     myFileList = fileList;
     myIncremental = incremental;
+    platform = LintIdeSupport.get().getPlatforms();
   }
 
   @NonNull
