@@ -73,6 +73,7 @@ import org.jetbrains.kotlin.psi.KtVisitor
 import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
 import org.jetbrains.kotlin.resolve.constants.evaluate.parseBoolean
 import org.jetbrains.kotlin.resolve.constants.evaluate.parseNumericLiteral
+import java.math.BigDecimal
 
 /**
  * Parser for .gradle.kt files. This method produces a [GradleDslElement] tree.
@@ -148,8 +149,7 @@ class KotlinDslParser(val psiFile : KtFile, val dslFile : GradleDslFile): KtVisi
           }
           KtNodeTypes.FLOAT_CONSTANT -> {
             val parsedNumber = parseNumericLiteral(literal.text, literal.node.elementType)
-            if (parsedNumber is Float) return parsedNumber.toBigDecimal()
-            return (parsedNumber as Double).toBigDecimal()
+            return BigDecimal(parsedNumber.toString())
           }
           KtNodeTypes.BOOLEAN_CONSTANT -> parseBoolean(literal.text)
           else -> unquoteString(literal.text)
