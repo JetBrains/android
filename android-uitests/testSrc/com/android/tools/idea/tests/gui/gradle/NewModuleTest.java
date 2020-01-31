@@ -153,12 +153,8 @@ public class NewModuleTest {
       .clickFinish()
       .waitForGradleProjectSyncToFinish();
 
-    assertThat(guiTest.getProjectFileText("build.gradle"))
-      .contains("classpath 'androidx.navigation:navigation-safe-args-gradle-plugin:");
-
     String otherModuleBuildGradleText = guiTest.getProjectFileText("otherModule/build.gradle");
     assertThat(otherModuleBuildGradleText).contains("implementation 'androidx.navigation:navigation-fragment-ktx:");
-    assertThat(otherModuleBuildGradleText).contains("apply plugin: 'androidx.navigation.safeargs'");
 
     String navGraphText = guiTest.getProjectFileText("otherModule/src/main/res/navigation/nav_graph.xml");
     assertThat(navGraphText).contains("navigation xmlns:android=");
