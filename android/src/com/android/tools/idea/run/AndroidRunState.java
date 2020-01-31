@@ -19,6 +19,7 @@ import com.android.tools.idea.run.applychanges.ApplyChangesUtilsKt;
 import com.android.tools.idea.run.applychanges.ExistingSession;
 import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.stats.RunStats;
+import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType;
 import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
@@ -69,7 +70,13 @@ public class AndroidRunState implements RunProfileState {
     ExecutionConsole console = prevHandler.getExecutionConsole();
 
     if (processHandler == null) {
-      processHandler = new AndroidProcessHandler(myEnv.getProject(), getApplicationId());
+      boolean isInstrumentationTest =
+        AndroidTestRunConfigurationType.getInstance().equals(myEnv.getRunnerAndConfigurationSettings().getType());
+      // Don't capture logcat message in AndroidProcessHandler if this run is an instrumentation test because
+      // a test application process is often a short lived process and it finishes before the handler finds
+      // the process. We cannot display logcat messages reliably, thus disable it at all.
+      boolean captureLogcat = !isInstrumentationTest;
+      processHandler = new AndroidProcessHandler(myEnv.getProject(), getApplicationId(), captureLogcat);
     }
     if (console == null) {
       console = myConsoleProvider.createAndAttach(myModule.getProject(), processHandler, executor);
