@@ -27,15 +27,22 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.fileEditor.*;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorManagerEvent;
+import com.intellij.openapi.fileEditor.FileEditorManagerListener;
+import com.intellij.openapi.fileEditor.TextEditor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.*;
+import com.intellij.openapi.wm.IdeFocusManager;
+import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowAnchor;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.ToolWindowType;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
-import com.intellij.openapi.wm.impl.commands.RequestFocusInToolWindowCommand;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -46,17 +53,18 @@ import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import icons.StudioIcons;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
+import java.util.Arrays;
+import javax.swing.JComponent;
+import javax.swing.LayoutFocusTraversalPolicy;
 import org.jetbrains.android.uipreview.AndroidEditorSettings;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
-import java.util.Arrays;
 
 /**
  * Manages a shared UI Preview window on the right side of the source editor which shows a preview
@@ -70,7 +78,6 @@ public class NlPreviewManager implements ProjectComponent {
   private final MergingUpdateQueue myToolWindowUpdateQueue;
 
   private final Project myProject;
-  private final FileEditorManager myFileEditorManager;
 
   private NlPreviewForm myToolWindowForm;
   private ToolWindow myToolWindow;
@@ -80,9 +87,8 @@ public class NlPreviewManager implements ProjectComponent {
   @VisibleForTesting
   private int myUpdateCount;
 
-  public NlPreviewManager(final Project project, final FileEditorManager fileEditorManager) {
+  public NlPreviewManager(@NotNull Project project) {
     myProject = project;
-    myFileEditorManager = fileEditorManager;
 
     myToolWindowUpdateQueue = new MergingUpdateQueue("android.layout.preview", 100, true, null, project);
 
@@ -330,7 +336,7 @@ public class NlPreviewManager implements ProjectComponent {
       return ApplicationManager.getApplication().runReadAction((Computable<TextEditor>)() -> getActiveLayoutXmlEditor(file));
     }
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    return (TextEditor)Arrays.stream(myFileEditorManager.getSelectedEditors())
+    return (TextEditor)Arrays.stream(FileEditorManager.getInstance(myProject).getSelectedEditors())
       .filter(editor -> editor instanceof TextEditor && isApplicableEditor((TextEditor)editor, file))
       .findFirst()
       .orElse(null);
