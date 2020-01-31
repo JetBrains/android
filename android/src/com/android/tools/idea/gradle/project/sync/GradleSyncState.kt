@@ -516,11 +516,11 @@ open class GradleSyncState @NonInjectable constructor(
     quickFixes.add(DoNotShowJdkHomeWarningAgainHyperlink())
 
     val message = """
-      Android Studio and Gradle are using different locations for the JDK.
-      Android Studio: ${ideSdks.jdkPath}
-      Gradle: ${IdeSdks.getJdkFromJavaHome()}
-      Using different JDK locations might cause Gradle to spawn multiple daemons
-      when executing tasks for Android Studio and other external processes.
+      Android Studio is using the following JDK location when running Gradle:
+      ${ideSdks.jdkPath}
+      Using different JDK locations on different processes might cause Gradle to
+      spawn multiple daemons, for example, by executing Gradle tasks from a terminal
+      while using Android Studio.
     """.trimIndent()
     addToEventLog(JDK_LOCATION_WARNING_NOTIFICATION_GROUP, message, MessageType.WARNING, quickFixes)
   }
