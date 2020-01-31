@@ -20,27 +20,22 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.handlers.ImageViewHandler
 import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFactory
-import com.google.common.truth.Truth
-import com.google.common.truth.Truth.*
+import com.google.common.truth.Truth.assertThat
+import com.intellij.util.WaitFor
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.facet.AndroidFacet
-import org.junit.ClassRule
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import javax.swing.JCheckBox
 import javax.swing.JComboBox
 import javax.swing.JList
+import kotlin.test.assertTrue
 
-/**
- * TODO Write documention
- */
 class ImageViewAssistantTest {
 
-  companion object {
-    @ClassRule
-    @JvmField
-    val rule = AndroidProjectRule.inMemory()
-  }
+  @get:Rule
+  val rule = AndroidProjectRule.inMemory()
 
   @Test
   fun uiState() {
@@ -61,8 +56,16 @@ class ImageViewAssistantTest {
       }
     }
 
-    val assistant = ImageViewAssistant(ComponentAssistantFactory.Context(nlComponent, {}), imageHandler)
+    val assistant = ImageViewAssistant(ComponentAssistantFactory.Context(nlComponent) {}, imageHandler)
     val content = assistant.component.content
+
+    with(object : WaitFor(200) {
+      override fun condition(): Boolean {
+        // Enabled ComboBox means it finished loading the sample data into the ui
+        return UIUtil.findComponentOfType(content, JComboBox::class.java)?.isEnabled == true
+      }
+    }) { assertTrue(isConditionRealized) }
+
     val useAllCheckBox = UIUtil.findComponentOfType(content, JCheckBox::class.java)!!
     val sampleSetComboBox = UIUtil.findComponentOfType(content, JComboBox::class.java)!!
     val sampleResourceList = UIUtil.findComponentOfType(content, JList::class.java)!!

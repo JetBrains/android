@@ -33,12 +33,15 @@ import com.android.tools.idea.uibuilder.property.assistant.ComponentAssistantFac
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBCheckBox
+import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.JBUI.Borders
 import com.intellij.util.ui.JBUI.scale
-import org.jetbrains.android.facet.AndroidFacet
 import java.awt.BorderLayout
-import java.awt.Dimension
 import java.util.EnumSet
+import java.util.concurrent.CompletableFuture
+import java.util.function.BiConsumer
+import java.util.function.Supplier
 import javax.swing.Box
 import javax.swing.DefaultListModel
 import javax.swing.JComboBox
@@ -71,35 +74,64 @@ class ImageViewAssistant(
       itemNameLabel.text = StringUtil.shortenTextWithEllipsis(itemName.orEmpty(), 20, 15, true)
     }
 
-  private val itemList = createItemList()
+  private val drawableGrid = createDrawableGrid()
 
   private var useAll = originalValue == null || isSampleValueAll(originalValue)
     set(value) {
       field = value
-      itemList.isEnabled = !value
-      if (value) itemList.clearSelection() else itemList.selectedIndex = 0
+      drawableGrid.isEnabled = !value
+      if (value) drawableGrid.clearSelection() else drawableGrid.selectedIndex = 0
     }
 
   private val useAllCheckBox = createUseAllCheckBox()
 
-  val component = AssistantPopupPanel(content = createContent(nlComponent.model.facet))
+  private val bottomBar = createBottomBar()
+
+  private val comboBoxModel = DefaultCommonComboBoxModel<SampleDataSetItem>(NONE_VALUE)
+
+  private val sampleDataSetComboBox = CommonComboBox(comboBoxModel).apply {
+    isOpaque = false
+    isEnabled = false
+    isEditable = false
+    addActionListener { event ->
+      val selectedItem = (event.source as JComboBox<*>).selectedItem as? SampleDataSetItem
+      setSelectedSampleItem(selectedItem?.resource)
+    }
+  }
+
+  private val content = JPanel(BorderLayout()).apply {
+    isOpaque = false
+    add(createHeader(), BorderLayout.NORTH)
+    add(drawableGrid)
+    add(bottomBar, BorderLayout.SOUTH)
+  }
+
+  val component = AssistantPopupPanel(content = content)
+
+  init {
+    displayResourceValues(null, -1)
+    updateUIState()
+
+    // Get SampleData drawables in background thread, then, update the widget on the EDT
+    CompletableFuture.supplyAsync(Supplier {
+      ResourceRepositoryManager.getAppResources(nlComponent.model.facet).getSampleDataOfType(IMAGE).toList()
+    }, AppExecutorUtil.getAppExecutorService()).whenCompleteAsync(BiConsumer { sampleDataItems, _ ->
+      populateWidget(sampleDataItems)
+    }, EdtExecutorService.getScheduledExecutorInstance())
+  }
 
   private fun isSampleValueAll(value: String?) = value?.endsWith(']')?.not() ?: false
 
-  private fun createContent(facet: AndroidFacet) = JPanel(BorderLayout()).apply {
-    isOpaque = false
-    add(createHeaderControls(facet), BorderLayout.NORTH)
-    add(itemList)
-    add(createBottomBar(), BorderLayout.SOUTH)
+  private fun populateWidget(sampleDataItems: List<SampleDataResourceItem>) {
+    updateComboBox(sampleDataItems)
     updateUIState()
   }
 
-  private fun createHeaderControls(facet: AndroidFacet): JPanel {
+  private fun createHeader(): JPanel {
     return JPanel(BorderLayout()).apply {
       isOpaque = false
-      val sampleItems = fetchSampleItems(facet)
       add(assistantLabel("srcCompat"), BorderLayout.NORTH)
-      add(createComboBox(sampleItems))
+      add(sampleDataSetComboBox)
       add(useAllCheckBox, BorderLayout.EAST)
       border = Borders.emptyBottom(2)
     }
@@ -117,10 +149,10 @@ class ImageViewAssistant(
     })
   }
 
-  private fun createItemList() = DrawableGrid(nlComponent.model.facet.module,
-                                              DefaultListModel<ResourceValue>(),
-                                              IMAGE_SIZE,
-                                              ITEM_COUNT.toLong()).apply {
+  private fun createDrawableGrid() = DrawableGrid(nlComponent.model.facet.module,
+                                                  DefaultListModel<ResourceValue>(),
+                                                  IMAGE_SIZE,
+                                                  ITEM_COUNT.toLong()).apply {
     isOpaque = false
     isEnabled = originalValue != null && !isSampleValueAll(originalValue)
     visibleRowCount = 3
@@ -136,34 +168,26 @@ class ImageViewAssistant(
     addItemListener { event -> useAll = (event.source as JBCheckBox).isSelected }
   }
 
-  private fun createComboBox(sampleItems: List<SampleDataResourceItem>): CommonComboBox<String, DefaultCommonComboBoxModel<String>> {
+  private fun updateComboBox(sampleItems: List<SampleDataResourceItem>) {
     val sampleItemsWithNull = listOf(null) + sampleItems
     val elements = sampleItemsWithNull.map { it?.name ?: NONE_VALUE }
-    val selected = elements
-                     .firstOrNull { originalValue?.contains(it) ?: false }
-                   ?: elements.first()
-    val comboBoxModel = DefaultCommonComboBoxModel(selected, elements)
-    return CommonComboBox(comboBoxModel).apply {
-      isEditable = false
-      isOpaque = false
-      selectedItem = selected
-      preferredSize = Dimension(itemList.preferredSize.width - useAllCheckBox.preferredSize.width, preferredSize.height)
-      selectedSampleItem = sampleItemsWithNull[selectedIndex]
-      displayResourceValues(selectedSampleItem, -1)
-      addActionListener { event ->
-        val selectedIndex = (event.source as JComboBox<*>).selectedIndex
-        setSelectedSampleItem(sampleItemsWithNull[selectedIndex]) // -1 to account for the None value
-      }
-    }
+    val selectedIndex = elements.indexOfFirst { originalValue?.contains(it) ?: false }.coerceAtLeast(0)
+
+    comboBoxModel.removeAllElements()
+    sampleItemsWithNull.forEach { comboBoxModel.addElement(SampleDataSetItem(it)) }
+    sampleDataSetComboBox.selectedIndex = selectedIndex
+    selectedSampleItem = sampleItemsWithNull[selectedIndex]
+
+    sampleDataSetComboBox.isEnabled = true
   }
 
   private fun updateUIState() {
     if (selectedSampleItem == null) {
-      itemList.isEnabled = false
+      drawableGrid.isEnabled = false
       useAllCheckBox.isEnabled = false
     }
     else {
-      itemList.isEnabled = true && !useAll
+      drawableGrid.isEnabled = true && !useAll
       useAllCheckBox.isEnabled = true
     }
   }
@@ -175,28 +199,25 @@ class ImageViewAssistant(
       return
     }
     selectedSampleItem = item
-    val selectedIndex = itemList.selectedIndex
+    val selectedIndex = drawableGrid.selectedIndex
     displayResourceValues(item, selectedIndex)
-    if (itemList.selectedIndex == -1) {
+    if (drawableGrid.selectedIndex == -1) { // -1 to account for the None value
       applySampleItem(selectedSampleItem, -1)
     }
   }
 
   private fun displayResourceValues(item: SampleDataResourceItem?, selectedIndex: Int) {
-    val listModel = itemList.model as DefaultListModel<ResourceValue>
+    val listModel = drawableGrid.model as DefaultListModel<ResourceValue>
     listModel.removeAllElements()
-    itemList.resetCache()
+    drawableGrid.resetCache()
     item?.getDrawableResources()?.take(ITEM_COUNT)?.forEach {
       listModel.addElement(it)
     }
     while (listModel.size() < ITEM_COUNT) {
       listModel.addElement(null)
     }
-    itemList.selectedIndex = Math.min(selectedIndex, itemList.model.size - 1)
+    drawableGrid.selectedIndex = Math.min(selectedIndex, drawableGrid.model.size - 1)
   }
-
-  private fun fetchSampleItems(facet: AndroidFacet) =
-    ResourceRepositoryManager.getAppResources(facet).getSampleDataOfType(IMAGE).toList()
 
   private fun applySampleItem(item: SampleDataResourceItem?, resourceValueIndex: Int) {
     val useAll = resourceValueIndex < 0 || item == null
@@ -225,5 +246,15 @@ class ImageViewAssistant(
       imageHandler.setToolsSrc(nlComponent, dialog.resourceName)
       context.doClose(false)
     }
+  }
+}
+
+/**
+ * Class for the SampleData ComboBox model, which uses [Any.toString] to display data in the ComboBox, this makes sure that it displays the
+ * SampleData resource name.
+ */
+private data class SampleDataSetItem(val resource: SampleDataResourceItem?) {
+  override fun toString(): String {
+    return resource?.name ?: NONE_VALUE
   }
 }
