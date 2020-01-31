@@ -89,27 +89,28 @@ class SqliteEvaluatorController(
   private fun execute(database: SqliteDatabase, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
     val settableFuture = SettableFuture.create<Unit>()
     val databaseConnection = database.databaseConnection
-    edtExecutor.addCallback(databaseConnection.execute(sqliteStatement), object : FutureCallback<SqliteResultSet?> {
+    edtExecutor.addCallback(databaseConnection.execute(sqliteStatement), object : FutureCallback<SqliteResultSet> {
       override fun onSuccess(resultSet: SqliteResultSet?) {
-        if (resultSet != null) {
-          // query statement
-          currentTableController = TableController(
-            view = view.tableView,
-            table = null,
-            databaseConnection = databaseConnection,
-            sqliteStatement = sqliteStatement,
-            edtExecutor = edtExecutor
-          )
-          Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
-          currentTableController!!.setUp()
-        } else {
-          // update statement
-          view.tableView.resetView()
-          view.tableView.setEditable(false)
-          listeners.forEach { it.onSchemaUpdated(database) }
-        }
+        checkNotNull(resultSet)
+        edtExecutor.transform(resultSet.rowCount) { rowCount ->
+          if (rowCount > 0) {
+            currentTableController = TableController(
+              view = view.tableView,
+              table = null,
+              databaseConnection = databaseConnection,
+              sqliteStatement = sqliteStatement,
+              edtExecutor = edtExecutor
+            )
+            Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
+            currentTableController!!.setUp()
+          } else {
+            view.tableView.resetView()
+            view.tableView.setEditable(false)
+            listeners.forEach { it.onSchemaUpdated(database) }
+          }
 
-        settableFuture.set(Unit)
+          settableFuture.set(Unit)
+        }
       }
 
       override fun onFailure(t: Throwable) {
