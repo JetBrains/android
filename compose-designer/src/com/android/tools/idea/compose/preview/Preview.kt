@@ -59,8 +59,6 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
@@ -76,7 +74,6 @@ import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 import org.jetbrains.kotlin.backend.common.pop
 import java.awt.BorderLayout
 import java.time.Duration
@@ -100,13 +97,16 @@ private val REFRESHING_STATUS = ComposePreviewManager.Status(hasRuntimeErrors = 
  * Sets up the given [sceneManager] with the right values to work on the Compose Preview. Currently, this
  * will configure if the preview elements will be displayed with "full device size" or simply containing the
  * previewed components (shrink mode).
- * @param fullDeviceSize when true, the rendered content will be shown with the full device size specified in
- * the device configuration.
+ * @param showDecorations when true, the rendered content will be shown with the full device size specified in
+ * the device configuration and with the frame decorations.
  */
-private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager, fullDeviceSize: Boolean): LayoutlibSceneManager =
+private fun configureLayoutlibSceneManager(sceneManager: LayoutlibSceneManager, showDecorations: Boolean): LayoutlibSceneManager =
   sceneManager.apply {
-    setTransparentRendering(!fullDeviceSize)
-    setShrinkRendering(!fullDeviceSize)
+    setTransparentRendering(!showDecorations)
+    setShrinkRendering(!showDecorations)
+    setUseImagePool(false)
+    setQuality(0.7f)
+    setShowDecorations(showDecorations)
     forceReinflate()
   }
 
@@ -179,11 +179,11 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
         // we customize the quality setting and set it to the minimum for now to optimize for rendering speed.
         // For now we just render at 70% quality to get a good balance of speed/memory vs rendering quality.
         currentRenderSettings
-          .copy(quality = 0.7f, useLiveRendering = true)
+          .copy(quality = 0.7f)
       }
       // When showing decorations, show the full device size
-      configureLayoutlibSceneManager(LayoutlibSceneManager(model, surface, settingsProvider),
-                                     fullDeviceSize = currentRenderSettings.showDecorations)
+      configureLayoutlibSceneManager(LayoutlibSceneManager(model, surface),
+                                     showDecorations = currentRenderSettings.showDecorations)
     }
     .setActionManagerProvider { surface -> PreviewSurfaceActionManager(surface) }
     .setInteractionHandlerProvider { surface ->
@@ -545,7 +545,7 @@ class ComposePreviewRepresentation(psiFile: PsiFile,
             .filterIsInstance<LayoutlibSceneManager>()
             .forEach {
               // When showing decorations, show the full device size
-              configureLayoutlibSceneManager(it, fullDeviceSize = showingDecorations)
+              configureLayoutlibSceneManager(it, showDecorations = showingDecorations)
             }
           surface.requestRender().await()
         }.join()

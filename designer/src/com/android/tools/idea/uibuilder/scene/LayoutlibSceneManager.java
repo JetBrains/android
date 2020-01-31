@@ -52,8 +52,8 @@ import com.android.tools.idea.rendering.Locale;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.rendering.RenderSettings;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -103,7 +103,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.concurrent.GuardedBy;
 import javax.swing.Timer;
@@ -118,7 +117,6 @@ import org.jetbrains.ide.PooledThreadExecutor;
 public class LayoutlibSceneManager extends SceneManager {
 
   private static final SceneDecoratorFactory DECORATOR_FACTORY = new NlSceneDecoratorFactory();
-  private final Supplier<RenderSettings> myRenderSettingsProvider;
 
   @Nullable private SceneView mySecondarySceneView;
 
@@ -178,6 +176,22 @@ public class LayoutlibSceneManager extends SceneManager {
   private boolean useShrinkRendering = false;
 
   /**
+   * If true, the render will paint the system decorations (status and navigation bards)
+   */
+  private boolean useShowDecorations;
+
+  /**
+   * If false, the use of the {@link ImagePool} will be disabled for the scene manager.
+   */
+  private boolean useImagePool = true;
+
+  /**
+   * Value in the range [0f..1f] to set the quality of the rendering, 0 meaning the lowest quality.
+   */
+  private float quality = 1f;
+
+
+  /**
    * When true, this will force the current {@link RenderTask} to be disposed and re-created on the next render. This will also
    * re-inflate the model.
    */
@@ -213,10 +227,8 @@ public class LayoutlibSceneManager extends SceneManager {
 
   protected LayoutlibSceneManager(@NotNull NlModel model,
                                   @NotNull DesignSurface designSurface,
-                                  @NotNull Supplier<RenderSettings> settingsProvider,
                                   @NotNull Executor renderTaskDisposerExecutor) {
-    super(model, designSurface, settingsProvider);
-    myRenderSettingsProvider = settingsProvider;
+    super(model, designSurface, false);
     myRenderTaskDisposerExecutor = renderTaskDisposerExecutor;
     createSceneView();
     updateTrackingConfiguration();
@@ -250,9 +262,8 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   public LayoutlibSceneManager(@NotNull NlModel model,
-                               @NotNull DesignSurface designSurface,
-                               @NotNull Supplier<RenderSettings> renderSettingsProvider) {
-    this(model, designSurface, renderSettingsProvider, PooledThreadExecutor.INSTANCE);
+                               @NotNull DesignSurface designSurface) {
+    this(model, designSurface, PooledThreadExecutor.INSTANCE);
   }
 
   @NotNull
@@ -679,6 +690,23 @@ public class LayoutlibSceneManager extends SceneManager {
     useShrinkRendering = enabled;
   }
 
+  public void setShowDecorations(boolean enabled) {
+    useShowDecorations = enabled;
+    forceReinflate(); // Showing decorations changes the XML content of the render so requires re-inflation
+  }
+
+  public boolean isShowingDecorations() {
+    return useShowDecorations;
+  }
+
+  public void setUseImagePool(boolean enabled) {
+    useImagePool = enabled;
+  }
+
+  public void setQuality(float quality) {
+    this.quality = quality;
+  }
+
   @Override
   @NotNull
   public CompletableFuture<Void> requestLayout(boolean animate) {
@@ -918,16 +946,15 @@ public class LayoutlibSceneManager extends SceneManager {
   @VisibleForTesting
   @NotNull
   protected RenderService.RenderTaskBuilder setupRenderTaskBuilder(@NotNull RenderService.RenderTaskBuilder taskBuilder) {
-    RenderSettings settings = myRenderSettingsProvider.get();
-    if (!settings.getUseLiveRendering()) {
-      // When we are not using live rendering, we do not need the pool
+    if (!useImagePool) {
       taskBuilder.disableImagePool();
     }
-    if (settings.getQuality() < 1f) {
-      taskBuilder.withDownscaleFactor(settings.getQuality());
+
+    if (quality < 1f) {
+      taskBuilder.withDownscaleFactor(quality);
     }
 
-    if (!settings.getShowDecorations()) {
+    if (!useShowDecorations) {
       taskBuilder.disableDecorations();
     }
 
