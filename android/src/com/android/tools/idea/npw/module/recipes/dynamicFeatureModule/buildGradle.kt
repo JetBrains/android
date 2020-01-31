@@ -76,7 +76,6 @@ $kotlinPluginsBlock
 $androidConfigBlock
 
 dependencies {
-    ${getConfigurationName("compile", agpVersion)} fileTree(dir: "libs", include: ["*.jar"])
     $testDepsBlock
     implementation project("${baseFeatureName}")
 }
