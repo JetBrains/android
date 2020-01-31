@@ -373,6 +373,11 @@ public class NewCustomAttributePanel extends DialogWrapper {
     public Function0<List<String>> getCompletion() {
       return () -> Collections.emptyList();
     }
+
+    @Override
+    public boolean getAllowCustomValues() {
+      return true;
+    }
   }
 
   private static class AttributeNameEditingSupport implements EditingSupport {
@@ -409,6 +414,11 @@ public class NewCustomAttributePanel extends DialogWrapper {
     @Override
     public Function0<List<String>> getCompletion() {
       return () -> getCompletions();
+    }
+
+    @Override
+    public boolean getAllowCustomValues() {
+      return true;
     }
 
     private Pair<EditingErrorCategory, String> validate(@Nullable String value) {

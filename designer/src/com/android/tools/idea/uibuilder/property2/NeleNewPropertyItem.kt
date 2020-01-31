@@ -92,6 +92,7 @@ class NeleNewPropertyItem(model: NelePropertiesModel,
 
   override val nameEditingSupport = object : EditingSupport {
     override val completion = { getPropertyNamesWithPrefix() }
+    override val allowCustomValues = false
     override val validation = { text: String? -> validateName(text)}
   }
 
