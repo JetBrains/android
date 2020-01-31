@@ -16,6 +16,7 @@
 package com.android.tools.adtui;
 
 import com.android.tools.adtui.model.Range;
+import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.Timeline;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ui.JBColor;
@@ -72,7 +73,11 @@ public final class RangeTooltipComponent extends AnimatedComponent {
     myTimeline = timeline;
     myShowSeekComponent = showSeekComponent;
     myTooltipComponent =
-      new TooltipComponent.Builder(component, this, parent).setDefaultVisibilityOverride(() -> isHighlightRangeVisible()).build();
+      new TooltipComponent.Builder(component, this, parent)
+        .setDefaultVisibilityOverride(() -> isHighlightRangeVisible())
+        // Flapping usually happens when the timeline is constantly changing.
+        .setEnableAntiFlap(timeline instanceof StreamingTimeline)
+        .build();
     myTimeline.getViewRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::refreshRanges);
     myTimeline.getTooltipRange().addDependency(myAspectObserver).onChange(Range.Aspect.RANGE, this::tooltipRangeChanged);
   }

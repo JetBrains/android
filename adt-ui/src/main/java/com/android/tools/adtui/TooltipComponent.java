@@ -58,7 +58,8 @@ public final class TooltipComponent extends AnimatedComponent {
   // Minimum size of the tooltip between mouse enter/exit events.
   // This prevents the tooltip component from flapping due to the content size changing constantly.
   @NotNull
-  private final Dimension myExpandedSize = new Dimension(0, 0);
+  private final Dimension myAntiFlapSize = new Dimension(0, 0);
+  private final boolean myEnableAntiFlap;
 
   @Nullable
   private Point myLastPoint;
@@ -74,6 +75,7 @@ public final class TooltipComponent extends AnimatedComponent {
     myParent = builder.myParent;
     myIsOwnerDisplayable = builder.myIsOwnerDisplayable;
     myDefaultVisibilityOverride = builder.myDefaultVisibilityOverride;
+    myEnableAntiFlap = builder.myEnableAntiFlap;
 
     myParentListener = new ComponentAdapter() {
       @Override
@@ -125,7 +127,7 @@ public final class TooltipComponent extends AnimatedComponent {
   @Override
   public void doLayout() {
     Dimension size = getPreferredSize();
-    myExpandedSize.setSize(size.width, 0); // Always let height vary.
+    myAntiFlapSize.setSize(size.width, 0); // Always let height vary.
     myTooltipContent.setSize(size);
     super.doLayout();
   }
@@ -144,7 +146,7 @@ public final class TooltipComponent extends AnimatedComponent {
 
       @Override
       public void mouseEntered(MouseEvent e) {
-        myExpandedSize.setSize(0, 0);
+        myAntiFlapSize.setSize(0, 0);
         myTooltipContent.setSize(0, 0);
         myParent.addComponentListener(myParentListener);
         resetBounds();
@@ -159,7 +161,7 @@ public final class TooltipComponent extends AnimatedComponent {
       @Override
       public void mouseExited(MouseEvent e) {
         repaintLastPoint(myLastSize);
-        myExpandedSize.setSize(0, 0);
+        myAntiFlapSize.setSize(0, 0);
         myTooltipContent.setSize(0, 0);
         removeFromParent();
         setVisible(false);
@@ -178,7 +180,7 @@ public final class TooltipComponent extends AnimatedComponent {
         if (!isVisible()) {
           // If we turn invisible, then reset the anti-flap size.
           // This won't work in all cases, since the content could set itself to invisible.
-          myExpandedSize.setSize(0, 0);
+          myAntiFlapSize.setSize(0, 0);
         }
         if (!myTooltipContent.getPreferredSize().equals(myTooltipContent.getBounds().getSize())) {
           revalidate();
@@ -193,7 +195,12 @@ public final class TooltipComponent extends AnimatedComponent {
 
   @Override
   public Dimension getPreferredSize() {
-    return max(max(myTooltipContent.getPreferredSize(), myTooltipContent.getMinimumSize()), myExpandedSize);
+    Dimension preferredSize = max(myTooltipContent.getPreferredSize(), myTooltipContent.getMinimumSize());
+    if (myEnableAntiFlap) {
+      // Prevent the size from constantly changing.
+      return max(preferredSize, myAntiFlapSize);
+    }
+    return preferredSize;
   }
 
   @Override
@@ -264,6 +271,7 @@ public final class TooltipComponent extends AnimatedComponent {
     @NotNull private final JLayeredPane myParent;
     @NotNull private Supplier<Boolean> myIsOwnerDisplayable;
     @Nullable private Supplier<Boolean> myDefaultVisibilityOverride;
+    private boolean myEnableAntiFlap;
 
     /**
      * Construct a tooltip component to show for a particular {@code owner}. After
@@ -280,6 +288,7 @@ public final class TooltipComponent extends AnimatedComponent {
       myOwner = owner;
       myParent = parent;
       myIsOwnerDisplayable = myOwner::isDisplayable;
+      myEnableAntiFlap = true;
     }
 
     /**
@@ -300,6 +309,14 @@ public final class TooltipComponent extends AnimatedComponent {
     @NotNull
     public Builder setDefaultVisibilityOverride(@NotNull Supplier<Boolean> defaultVisibilityOverride) {
       myDefaultVisibilityOverride = defaultVisibilityOverride;
+      return this;
+    }
+
+    /**
+     * @param enableAntiFlap set to true to enable anti-flapping on the tooltip component.
+     */
+    public Builder setEnableAntiFlap(boolean enableAntiFlap) {
+      myEnableAntiFlap = enableAntiFlap;
       return this;
     }
 
