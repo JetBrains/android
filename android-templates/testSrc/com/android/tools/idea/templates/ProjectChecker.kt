@@ -135,7 +135,7 @@ data class ProjectChecker(
     if (activityState[COMPARE_NEW_RENDERING_CONTEXT] != null && activityState.getBoolean(COMPARE_NEW_RENDERING_CONTEXT)) {
       return compareProject(moduleName)
     }
-    val modifiedModuleName = getModifiedModuleName(moduleName, activityState)
+    val modifiedModuleName = getModifiedModuleName(moduleName)
     val fixture = setUpFixtureForProject(modifiedModuleName)
     val project = fixture.project!!
     try {
@@ -175,7 +175,7 @@ data class ProjectChecker(
    * Compare the contents of the generated files between the old and new RenderingContexts
    */
   private fun compareProject(moduleName: String) {
-    val modifiedModuleName = getModifiedModuleName(moduleName, activityState, true)
+    val modifiedModuleName = getModifiedModuleName(moduleName)
     val fixtureForOld = setUpFixtureForProject(modifiedModuleName)
     val oldProject = fixtureForOld.project!!
     val oldTempDirFixture = TempDirTestFixtureImpl().apply {
