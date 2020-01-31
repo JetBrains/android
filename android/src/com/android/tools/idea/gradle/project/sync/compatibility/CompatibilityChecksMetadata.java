@@ -15,6 +15,12 @@
  */
 package com.android.tools.idea.gradle.project.sync.compatibility;
 
+import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.ANDROID_GRADLE_PLUGIN;
+import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.ANDROID_STUDIO;
+import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.GRADLE;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
+import static com.google.common.base.Strings.emptyToNull;
+
 import com.android.annotations.Nullable;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.project.sync.compatibility.version.BuildFileComponentVersionReader;
@@ -25,13 +31,6 @@ import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.JDOMUtil;
-import org.intellij.lang.annotations.Language;
-import org.jdom.Element;
-import org.jdom.JDOMException;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.TestOnly;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,11 +39,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static com.android.tools.idea.gradle.project.sync.compatibility.version.ComponentVersionReader.*;
-import static com.android.tools.idea.project.messages.MessageType.ERROR;
-import static com.android.tools.idea.io.FilePaths.toSystemDependentPath;
-import static com.google.common.base.Strings.emptyToNull;
+import org.intellij.lang.annotations.Language;
+import org.jdom.Element;
+import org.jdom.JDOMException;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.TestOnly;
 
 class CompatibilityChecksMetadata {
   @NonNls private static final String BUILD_FILE_PREFIX = "buildFile:";
@@ -108,8 +108,7 @@ class CompatibilityChecksMetadata {
 
   @NotNull
   static File getSourceFilePath() {
-    File configPath = toSystemDependentPath(PathManager.getConfigPath());
-    return new File(configPath, METADATA_FILE_NAME);
+    return PathManager.getConfigDir().resolve(METADATA_FILE_NAME).toFile();
   }
 
   @NotNull

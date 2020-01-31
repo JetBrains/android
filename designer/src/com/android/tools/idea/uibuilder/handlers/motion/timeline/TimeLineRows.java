@@ -48,6 +48,7 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * The make chart that displays the Keyframes in time
@@ -420,10 +421,10 @@ public class TimeLineRows extends JPanel implements Gantt.ChartElement {
         myChart.myModel.getEndConstraintSet() == null || myChart.myModel.getEndConstraintSet().myConstraintViews.isEmpty();
 
       final JList<String> displayedList = new JBList<String>(list);
-      JBPopupListener listener = new JBPopupListener.Adapter() {
+      JBPopupListener listener = new JBPopupListener() {
 
         @Override
-        public void onClosed(LightweightWindowEvent event) {
+        public void onClosed(@NotNull LightweightWindowEvent event) {
           JBPopup popup = event.asPopup();
           System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.. " + event.isOk());
           if (!event.isOk()) {

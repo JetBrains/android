@@ -170,9 +170,9 @@ class ViewList extends JPanel implements Gantt.ChartElement {
       }
     }
     final JList<String> displayedList = new JBList<String>(list);
-    JBPopupListener listener = new JBPopupListener.Adapter() {
+    JBPopupListener listener = new JBPopupListener() {
       @Override
-      public void onClosed(LightweightWindowEvent event) {
+      public void onClosed(@NotNull LightweightWindowEvent event) {
         JBPopup popup = event.asPopup();
         boolean noStartConstraints =
           myChart.myModel.getStartConstraintSet() == null || myChart.myModel.getStartConstraintSet().myConstraintViews.isEmpty();
