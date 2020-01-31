@@ -212,7 +212,6 @@ iml_module(
         },
         "run": {
             "shard_count": 2,
-            "tags": ["no_windows"],  # some test directory paths are too long
             "test_filter": "com.android.tools.idea.run",
         },
         "npw.assetstudio": {
