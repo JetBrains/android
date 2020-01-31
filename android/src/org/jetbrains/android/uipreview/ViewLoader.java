@@ -85,7 +85,7 @@ public class ViewLoader {
   @NotNull private final LayoutLibrary myLayoutLibrary;
   /** {@link IRenderLogger} used to log loading problems. */
   @NotNull private IRenderLogger myLogger;
-  @Nullable private ModuleClassLoader myModuleClassLoader;
+  @NotNull private final ModuleClassLoader myModuleClassLoader;
 
   public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull AndroidFacet facet, @NotNull IRenderLogger logger,
                     @Nullable Object credential) {
@@ -93,6 +93,14 @@ public class ViewLoader {
     myModule = facet.getModule();
     myLogger = logger;
     myCredential = credential;
+    // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
+    boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
+    try {
+      myModuleClassLoader = ModuleClassLoaderManager.get().get(myLayoutLibrary.getClassLoader(), myModule);
+    }
+    finally {
+      RenderSecurityManager.exitSafeRegion(token);
+    }
   }
 
   /**
@@ -230,22 +238,6 @@ public class ViewLoader {
       return EMPTY_EXTENSION_LIST;
     }
     return area.getExtensionPoint(ViewLoaderExtension.EP_NAME).getExtensions();
-  }
-
-  @NotNull
-  private ModuleClassLoader getModuleClassLoader() {
-    if (myModuleClassLoader == null) {
-      // Allow creating class loaders during rendering; may be prevented by the RenderSecurityManager
-      boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
-      try {
-        myModuleClassLoader = ModuleClassLoaderManager.get().get(myLayoutLibrary.getClassLoader(), myModule);
-      }
-      finally {
-        RenderSecurityManager.exitSafeRegion(token);
-      }
-    }
-
-    return myModuleClassLoader;
   }
 
   /** Checks that the given class has not been edited since the last compilation (and if it has, logs a warning to the user) */
@@ -410,16 +402,14 @@ public class ViewLoader {
     }
 
     try {
-      ModuleClassLoader moduleClassLoader = getModuleClassLoader();
-
       for (ViewLoaderExtension extension : getExtensions()) {
-        Class<?> loadedClass = extension.loadClass(className, moduleClassLoader);
+        Class<?> loadedClass = extension.loadClass(className, myModuleClassLoader);
         if (loadedClass != null) {
           return loadedClass;
         }
       }
 
-      return moduleClassLoader.loadClass(className);
+      return myModuleClassLoader.loadClass(className);
     }
     catch (ClassNotFoundException e) {
       if (logError && !className.equals(VIEW_FRAGMENT)) {
@@ -541,46 +531,32 @@ public class ViewLoader {
         LOG.debug("  The R class is not loaded.");
       }
 
-      final ModuleClassLoader moduleClassLoader = getModuleClassLoader();
-      final boolean isClassLoaded = moduleClassLoader.isClassLoaded(className);
-      aClass = moduleClassLoader.loadClass(className);
+      final boolean isClassLoaded = myModuleClassLoader.isClassLoaded(className);
+      aClass = myModuleClassLoader.loadClass(className);
 
-      if (!isClassLoaded && aClass != null) {
+      if (!isClassLoaded) {
         if (LOG.isDebugEnabled()) {
           LOG.debug(String.format("  Class found in module %s, first time load.", anonymize(myModule)));
         }
 
-        // This is the first time we've found the resources. The dynamic R classes generated for aar libraries are now stale and must be
-        // regenerated. Clear the ModuleClassLoader and reload the R class.
-        myLoadedClasses.clear();
-        ModuleClassLoaderManager.get().clearCache(myModule);
-        myModuleClassLoader = null;
-        aClass = getModuleClassLoader().loadClass(className);
         idManager.resetDynamicIds();
       }
       else {
         if (LOG.isDebugEnabled()) {
-          if (isClassLoaded) {
-            LOG.debug(String.format("  Class already loaded in module %s.", anonymize(myModule)));
-          }
+          LOG.debug(String.format("  Class already loaded in module %s.", anonymize(myModule)));
         }
       }
-      if (aClass != null) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("  Class loaded");
-        }
 
-        myLoadedClasses.put(className, aClass);
-        myLogger.setHasLoadedClasses();
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("  Class loaded");
       }
+
+      myLoadedClasses.put(className, aClass);
+      myLogger.setHasLoadedClasses();
     }
 
-    if (aClass != null) {
-      AndroidFacet facet = AndroidFacet.getInstance(myModule);
-      if (facet != null) {
-        idManager.loadCompiledIds(aClass);
-      }
-    }
+    idManager.loadCompiledIds(aClass);
+
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("END loadAndParseRClass(%s)", anonymizeClassName(className)));
     }
