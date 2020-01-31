@@ -657,12 +657,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     // Stops the previous profiling session if it is active
     if (!Common.Session.getDefaultInstance().equals(myProfilingSession)) {
       assert SessionsManager.isSessionAlive(myProfilingSession);
+      // TODO: If there are multiple instances of StudioProfiers class, we should call stopProfiling() only once.
       myProfilers.forEach(profiler -> profiler.stopProfiling(myProfilingSession));
     }
 
     myProfilingSession = newSession;
 
-    if (!Common.Session.getDefaultInstance().equals(myProfilingSession)) {
+    if (!Common.Session.getDefaultInstance().equals(myProfilingSession)
+        // When multiple instances of Studio are open, there may be multiple instances of StudioProfiers class. Each of them
+        // registers to PROFILING_SESSION aspect and this method will be called on each of the instance. We should not call
+        // startProfiling() if the device isn't the one where the new session is from. Ideally, we should call startProfiling()
+        // only once.
+        && myDevice != null && myDevice.getDeviceId() == myProfilingSession.getStreamId()) {
       assert SessionsManager.isSessionAlive(myProfilingSession);
       myProfilers.forEach(profiler -> profiler.startProfiling(myProfilingSession));
       myIdeServices.getFeatureTracker().trackProfilingStarted();
