@@ -81,6 +81,8 @@ import java.io.Reader
 import java.util.Objects
 import java.util.stream.Stream
 
+private val LOG = Logger.getInstance(AndroidManifestIndex::class.java)
+
 /**
  * A file-based index which maps each AndroidManifest.xml to a structured representation
  * of the manifest's raw text (as an [AndroidManifestRawText]).
@@ -97,7 +99,6 @@ import java.util.stream.Stream
  */
 class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestRawText>() {
   companion object {
-    private val LOG = Logger.getInstance(AndroidManifestIndex::class.java)
     @JvmField
     val NAME: ID<Int, AndroidManifestRawText> = ID.create(::NAME.qualifiedName)
 
@@ -178,7 +179,7 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
 
   override fun getValueExternalizer() = AndroidManifestRawText.Externalizer
   override fun getName() = NAME
-  override fun getVersion() = 3
+  override fun getVersion() = 4
   override fun getIndexer() = Indexer
   override fun getInputFilter() = InputFilter
 
@@ -198,7 +199,7 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
           when {
             parser.eventType != START_TAG -> parser.next()
             parser.name == TAG_MANIFEST -> return parser.parseManifestTag()
-            else -> parser.skipSubTree()
+            else -> parser.skipSubTreeWithExceptionCaught()
           }
         }
       }
@@ -238,6 +239,26 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
       }
     }
 
+    /**
+     * This is a copy of the KXmlPullParser implementation, except that it catches pull parser exceptions and returns
+     * them as an invalid status code so that we can retain whatever information we've already computed.
+     */
+    private fun KXmlParser.skipSubTreeWithExceptionCaught() {
+      require(START_TAG, null, null)
+      var level = 1
+      var eventType = START_TAG
+
+      while (level > 0 && eventType != END_DOCUMENT) {
+        eventType = nextWithExceptionCaught()
+        if (eventType == END_TAG) {
+          --level
+        }
+        else if (eventType == START_TAG) {
+          ++level
+        }
+      }
+    }
+
     private fun KXmlParser.parseManifestTag(): AndroidManifestRawText {
       require(START_TAG, null, TAG_MANIFEST)
       val activities = hashSetOf<ActivityRawText>()
@@ -259,28 +280,28 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
               when (name) {
                 TAG_ACTIVITY -> activities.add(parseActivityTag())
                 TAG_ACTIVITY_ALIAS -> activityAliases.add(parseActivityAliasTag())
-                else -> skipSubTree()
+                else -> skipSubTreeWithExceptionCaught()
               }
             }
           }
           TAG_PERMISSION -> {
             androidName?.let(customPermissionNames::add)
-            skipSubTree()
+            skipSubTreeWithExceptionCaught()
           }
           TAG_PERMISSION_GROUP -> {
             androidName?.let(customPermissionGroupNames::add)
-            skipSubTree()
+            skipSubTreeWithExceptionCaught()
           }
           TAG_USES_PERMISSION, TAG_USES_PERMISSION_SDK_23, TAG_USES_PERMISSION_SDK_M -> {
             androidName?.let(usedPermissionNames::add)
-            skipSubTree()
+            skipSubTreeWithExceptionCaught()
           }
           TAG_USES_SDK -> {
             minSdkLevel = getAttributeValue(ANDROID_URI, ATTR_MIN_SDK_VERSION)
             targetSdkLevel = getAttributeValue(ANDROID_URI, ATTR_TARGET_SDK_VERSION)
-            skipSubTree()
+            skipSubTreeWithExceptionCaught()
           }
-          else -> skipSubTree()
+          else -> skipSubTreeWithExceptionCaught()
         }
       }
       return AndroidManifestRawText(
@@ -308,7 +329,7 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
           intentFilters.add(parseIntentFilterTag())
         }
         else {
-          skipSubTree()
+          skipSubTreeWithExceptionCaught()
         }
       }
       return ActivityRawText(
@@ -329,7 +350,7 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
           intentFilters.add(parseIntentFilterTag())
         }
         else {
-          skipSubTree()
+          skipSubTreeWithExceptionCaught()
         }
       }
       return ActivityAliasRawText(
@@ -349,7 +370,7 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
           TAG_ACTION -> androidName?.let(actionNames::add)
           TAG_CATEGORY -> androidName?.let(categoryNames::add)
         }
-        skipSubTree()
+        skipSubTreeWithExceptionCaught()
       }
       return IntentFilterRawText(
         actionNames = actionNames.toSet(),
@@ -366,28 +387,48 @@ class AndroidManifestIndex : SingleEntryFileBasedIndexExtension<AndroidManifestR
  * [processChildTag] must also consume each child tag for which it is called,
  * moving the parser to the child's end tag. In order to make this actually
  * process just the children of the current tag, [processChildTag] should consume
- * the subtree of each child (e.g. by calling [KXmlParser.skipSubTree] or recursively calling
- * [processChildTags]).
+ * the subtree of each child (e.g. by calling [KXmlParser.skipSubTreeWithExceptionCaught]
+ * or recursively calling [processChildTags]).
  */
 private inline fun KXmlParser.processChildTags(crossinline processChildTag: KXmlParser.() -> Unit) {
   require(START_TAG, null, null)
   val parentName = name
   val parentDepth = depth
-  while (next() != END_DOCUMENT) {
+  var eventType = nextWithExceptionCaught()
+  while (eventType != END_DOCUMENT) {
     when (eventType) {
       START_TAG -> {
-        check(parentDepth + 1 == depth) {
-          "Child start tag depth mismatch: expected ${parentDepth + 1}, got $depth for tag \"$name\" (child of \"$parentName\")."
+        if (parentDepth + 1 != depth) {
+          LOG.warn("Child start tag depth mismatch: expected ${parentDepth + 1}, got $depth for tag \"$name\" (child of \"$parentName\").")
+          return
         }
         processChildTag()
       }
       END_TAG -> {
-        check(parentDepth == depth) {
-          "Parent end tag depth mismatch: expected $parentDepth, got $depth for tag \"$name\"."
+        if (parentDepth != depth) {
+          LOG.warn("Parent end tag depth mismatch: expected $parentDepth, got $depth for tag \"$name\".")
         }
         return
       }
     }
+    eventType = nextWithExceptionCaught()
+  }
+}
+
+private val ERROR_TAG get() = -1
+
+private fun KXmlParser.nextWithExceptionCaught(): Int {
+  try {
+    return next()
+  }
+  catch (e: XmlPullParserException) {
+    LOG.warn(e.message)
+
+    if (this.eventType == END_TAG) {
+      return END_TAG
+    }
+
+    return ERROR_TAG
   }
 }
 
